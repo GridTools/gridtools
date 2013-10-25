@@ -50,3 +50,7 @@ add_executable(
         unit_tests/test-independent.cpp
         ${SOURCES}
 )
+set_target_properties(test-independent
+        PROPERTIES COMPILE_FLAGS "-std=c++11")
+
+
