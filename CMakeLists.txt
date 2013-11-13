@@ -44,6 +44,11 @@ add_executable(interface1_notemps_block   examples/interface1_notemps.cpp ${SOUR
 set_target_properties(interface1_notemps_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
+add_executable(interface1_naive   examples/interface1.cpp ${SOURCES} )
+add_executable(interface1_block   examples/interface1.cpp ${SOURCES} )
+set_target_properties(interface1_block
+        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+
 
 add_executable(
         test-independent
