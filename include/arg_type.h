@@ -108,3 +108,21 @@ struct arg_type {
         return arg_type<I>(i()+_i, j()+_j, k()+_k);
     }
 };
+
+template <int I, typename R>
+std::ostream& operator<<(std::ostream& s, arg_type<I,R> const&) {
+    return s << "[ arg_type< " << I
+             << ", " << R() << " > ]";
+}
+
+template <int I, typename R>
+std::ostream& operator<<(std::ostream& s, arg<I,temporary<R> > const&) {
+    return s << "[ arg< " << I
+             << ", temporary<something>" << " > ]";
+}
+
+template <int I, typename R>
+std::ostream& operator<<(std::ostream& s, arg<I,R> const&) {
+    return s << "[ arg< " << I
+             << ", NON TEMP" << " > ]";
+}
