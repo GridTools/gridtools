@@ -52,7 +52,7 @@ struct arg {
 template <int I, typename U>
 struct arg<I, temporary<U> > {
     typedef U value_type;
-    typedef storage<U, GCL::layout_map<0,1,2>, true > storage_type;
+    typedef storage<U, GCL::layout_map<0,1,2>, true, arg<I, temporary<U> > > storage_type;
     typedef typename storage_type::iterator_type iterator_type;
     typedef boost::mpl::int_<I> index_type;
     typedef boost::mpl::int_<I> index;
