@@ -369,7 +369,7 @@ struct print__ {
 struct intermediate {
 
     template <typename t_backend, typename t_mss_type, typename t_domain_type, typename t_coords>
-    static void run(t_mss_type const &, t_domain_type const & domain, t_coords const & coords)
+    static void run(t_mss_type const &, t_domain_type & domain, t_coords const & coords)
     {
         typedef typename boost::mpl::transform<typename t_mss_type::linear_esf,
             _impl::extract_functor>::type functors_list;
@@ -439,7 +439,11 @@ struct intermediate {
         boost::mpl::for_each<range_sizes>(print__());
         std::cout << "fine2" <<std::endl;
 
-        t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
+        // Prepare domain's temporary fields to proper storage sizes
+        domain.template prepare_temporaries<t_mss_type, range_sizes>();
+
+        // UNCOMMENT THIS
+        //t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
 
      }    
 };
