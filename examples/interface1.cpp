@@ -1,13 +1,4 @@
-#include <storage.h>
-#include <array.h>
-#include <layout_map.h>
-#include <axis.h>
-#include <make_stencils.h>
-#include <arg_type.h>
-#include <execution_types.h>
-#include <domain_type.h>
-#include <boost/fusion/include/for_each.hpp>
-#include <intermediate.h>
+#include <gridtools.h>
 #include <backend_block.h>
 #include <backend_naive.h>
 
@@ -136,10 +127,10 @@ int main(int argc, char** argv) {
 
     GCL::array<storage_type*, 2> args;
 
-    typedef arg<5, temporary<double> > p_lap;
-    typedef arg<4, temporary<double> > p_flx;
-    typedef arg<3, temporary<double> > p_fly;
-    typedef arg<2, storage_type > p_coeff;
+    typedef arg<3, temporary<double> > p_lap;
+    typedef arg<2, temporary<double> > p_flx;
+    typedef arg<4, temporary<double> > p_fly;
+    typedef arg<5, storage_type > p_coeff;
     typedef arg<1, storage_type > p_in;
     typedef arg<0, storage_type > p_out;
 
