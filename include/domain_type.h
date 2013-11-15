@@ -8,6 +8,8 @@
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/find_if.hpp>
+#include <boost/mpl/find.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/fusion/include/nview.hpp>
@@ -19,6 +21,14 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits/remove_reference.hpp>
+#include <boost/mpl/distance.hpp>
+#include <boost/mpl/begin_end.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/is_const.hpp>
+#include <boost/mpl/contains.hpp>
+
+#include <boost/mpl/deref.hpp>
+#include <boost/type_traits/remove_pointer.hpp>
 
 #include "arg_type.h"
 #include "storage.h"
@@ -46,6 +56,14 @@ namespace _impl {
         };
     };
 
+    template <typename T>
+    struct is_plchldr_to_temp : boost::false_type
+    {};
+
+    template <int I, typename T>
+    struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
+    {};
+
     struct moveto_functor {
         int i,j,k;
         moveto_functor(int i, int j, int k) 
@@ -69,7 +87,84 @@ namespace _impl {
             //            boost::fusion::at_c<0>(a) = &( (*(boost::fusion::at_c<0>(a)))(i,j,k) );
         }
     };
-}
+
+    template <typename t_esf>
+    struct is_written_temp {
+        template <typename index>
+        struct apply {
+            typedef typename boost::mpl::if_<
+                is_plchldr_to_temp<typename boost::mpl::at<typename t_esf::args, index>::type>,
+                typename boost::mpl::if_<
+                    boost::is_const<typename boost::mpl::at<typename t_esf::esf_function::arg_list, index>::type>,
+                    typename boost::false_type,
+                    typename boost::true_type
+                    >::type,
+                typename boost::false_type
+            >::type type;
+        };
+    };
+
+    template <typename t_esf>
+    struct get_it {
+        template <typename index>
+        struct apply {
+            typedef typename boost::mpl::at<typename t_esf::args, index>::type type;
+        };
+    };
+
+    template <typename t_esf_f>
+    struct get_temps_per_functor {
+        typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename t_esf_f::args>::type::value> range;
+        typedef typename boost::mpl::fold<
+            range,
+            boost::mpl::vector<>,
+            typename boost::mpl::if_<
+                typename is_written_temp<t_esf_f>::template apply<boost::mpl::_2>,
+                boost::mpl::push_back<
+                    boost::mpl::_1, 
+                    typename _impl::get_it<t_esf_f>::template apply<boost::mpl::_2> >,
+                boost::mpl::_1
+                >
+            >::type type;
+    };
+
+    template <typename temps_per_functor, typename t_range_sizes>
+    struct associate_ranges {
+
+        template <typename t_temp>
+        struct is_temp_there {
+            template <typename t_temps_in_esf>
+            struct apply {
+                typedef typename boost::mpl::contains<
+                    t_temps_in_esf,
+                    t_temp >::type type;
+            };
+        };
+        
+        template <typename t_temp>
+        struct apply {
+
+            typedef typename boost::mpl::find_if<
+                temps_per_functor,
+                typename is_temp_there<t_temp>::template apply<boost::mpl::_> >::type iter;
+
+            BOOST_MPL_ASSERT_MSG( ( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<temps_per_functor>::type >::type >::type::value ) ,WHATTTTTTTTT_, (iter) );
+
+            typedef typename boost::mpl::at<t_range_sizes, typename iter::pos>::type type;               
+        };
+    };
+    
+    template <typename t_mss_type>
+    struct instantiate_tmps {
+        // elem_type: an element in the data field place-holders list
+        template <typename elem_type>
+        void operator()(elem_type const& elem) const {
+            //int i = elem;
+            std::cout << " HAHAHAHAHAHAH " << elem_type() << std::endl;
+        }
+    };
+
+} // namespace _impl
 
 template <typename t_placeholders>
 struct domain_type {
@@ -125,46 +220,118 @@ public:
         : args()
         , iterators()
         , zip_vector(iterators, args)
-          //        , iter_args_zip(zip_vector)
     {
-//         {
-//             boost::fusion::for_each(args, printa());
-//             std::cout << " <-  args" << std::endl;
-//             boost::fusion::for_each(real_storage, printa());
-//             std::cout << " <- real_storage" << std::endl;
-//         }
-//        arg_list_view ll(args);
-//         {
-//             boost::fusion::for_each(ll, printa());
-//             std::cout << " <- arg_list_view ll(args)" << std::endl;
-//         }
-        boost::fusion::filter_view<arg_list , 
-            boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > fview(args);
-//         {
-//             boost::fusion::for_each(fview, printa());
-//             std::cout << " <- fview" << std::endl;
-//         }
+        typedef typename boost::fusion::filter_view<arg_list, 
+            boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > view_type;
+
+        view_type fview(args);
+
+        BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
+
+        // {
+        //     boost::fusion::for_each(fview, printa());
+        //     std::cout << " <- fview" << std::endl;
+        // }
+
         boost::fusion::copy(real_storage, fview);
-//         {
-//             boost::fusion::for_each(ll, printa());
-//             std::cout << " <- arg_list_view ll(args)" << std::endl;
-//         }
+
+        // {
+        //     boost::fusion::for_each(ll, printa());
+        //     std::cout << " <- arg_list_view ll(args)" << std::endl;
+        // }
+    }
+
+
+    struct print_index {
+        template <typename T>
+        void operator()(T& ) const {
+            std::cout << " *" << T() << ", " << T::index::value << " * " << std::endl;
+        }
+    };
+
+    struct print_tmps {
+        template <typename T>
+        void operator()(T& ) const {
+            boost::mpl::for_each<T>(print_index());
+            std::cout << " ---" << std::endl;
+        }
+    };
+
+    struct print_ranges {
+        template <typename T>
+        void operator()(T& ) const {
+            std::cout << T() << std::endl;
+        }
+    };
+
+    struct print_view {
+        template <typename T>
+        void operator()(T& t) const {
+            // int a = T();
+            boost::remove_pointer<T>::type::text();
+        }
+    };
+
+    template <typename t_mss_type, typename t_range_sizes>
+    void prepare_temporaries() {
+        std::cout << "Prepare ARGUMENTS" << std::endl;
+
+        boost::fusion::filter_view<arg_list, 
+            is_temporary_storage<boost::mpl::_> > fview(args);
+
+        // Got to find temporary indices
+        typedef typename boost::mpl::fold<placeholders,
+            boost::mpl::vector<>,
+            boost::mpl::if_<
+                _impl::is_plchldr_to_temp<boost::mpl::_2>,
+                 boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
+                 boost::mpl::_1>
+            >::type list_of_temporaries;
+
+        std::cout << "BEGIN TMPS" << std::endl;
+        boost::mpl::for_each<list_of_temporaries>(print_index());
+        std::cout << "END TMPS" << std::endl;
+//        static const int a = typename boost::mpl::template at<list_of_temporaries,boost::mpl::template int_<0> >::type();
+        // Compute a vector of vectors of temp indices of temporaris initialized by each functor
+        typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
+            boost::mpl::vector<>,
+            boost::mpl::push_back<boost::mpl::_1, typename _impl::get_temps_per_functor<boost::mpl::_2> >
+            >::type temps_per_functor;
+
+        typedef typename boost::mpl::transform<
+            list_of_temporaries,
+            _impl::associate_ranges<temps_per_functor, t_range_sizes>
+        >::type list_of_ranges;
+        
+        // typedef typename boost::mpl::fold<list_of_temporaries,
+        //     boost::mpl::vector<>,
+        //     boost::mpl::push_back<boost::mpl::_1, 
+        //     typename _impl::compute_range<typename t_mss_type::linear_esf>::template apply<boost::mpl::_2> > 
+        //     >::type list_of_ranges;
+
+        std::cout << "BEGIN TMPS/F" << std::endl;
+        boost::mpl::for_each<temps_per_functor>(print_tmps());
+        std::cout << "END TMPS/F" << std::endl;
+
+        std::cout << "BEGIN RANGES/F" << std::endl;
+        boost::mpl::for_each<list_of_ranges>(print_ranges());
+        std::cout << "END RANGES/F" << std::endl;
+
+        std::cout << "BEGIN Fs" << std::endl;
+        boost::mpl::for_each<typename t_mss_type::linear_esf>(print_ranges());
+        std::cout << "END Fs" << std::endl;
+
+        std::cout << "BEGIN VIEW" << std::endl;
+        boost::fusion::for_each(fview, print_view());
+        std::cout << "END VIEW" << std::endl;
+        //boost::fusion::for_each(fview, _impl::instantiate_tmps<>());
     }
 
     template <typename T>
-    //    typename boost::mpl::at<arg_list, boost::mpl::int_<T::index> >::value_type&
     typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&
     operator[](T const &) {
         return *(boost::fusion::template at<typename T::index_type>(iterators));
     }
-
-//    template <int I>
-//    typename boost::mpl::at<arg_list, boost::mpl::int_<I> >::value_type&
-//    direct() const {
-////        assert(iterators[I] >= args[I]->min_addr());
-////        assert(iterators[I] < args[I]->max_addr());
-//        return *(boost::fusion::at<boost::mpl::int_<I> >(iterators));
-//    }
 
     template <typename I>
     typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
