@@ -440,7 +440,7 @@ struct intermediate {
         std::cout << "fine2" <<std::endl;
 
         // Prepare domain's temporary fields to proper storage sizes
-        domain.template prepare_temporaries<t_mss_type, range_sizes>();
+        domain.template prepare_temporaries<t_mss_type, range_sizes, t_backend>();
 
         // UNCOMMENT THIS
         //t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
