@@ -9,7 +9,8 @@
 
 template <typename t_value_type,
           typename t_layout,
-          bool is_temporary = false>
+          bool is_temporary = false,
+          typename type_tag = int>
 struct storage {
     typedef t_layout layout;
     typedef t_value_type value_type;
@@ -42,7 +43,7 @@ struct storage {
 
     explicit storage() {is_set=false;}
 
-    void text() const {
+    static void text() {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
@@ -171,8 +172,8 @@ struct is_temporary_storage<storage<X,Y,false>*& > {
     typedef boost::false_type type;
 };
 
-template <typename X, typename Y>
-struct is_temporary_storage<storage<X,Y,true>*& > {
+template <typename X, typename Y, typename A>
+struct is_temporary_storage<storage<X,Y,true,A>*& > {
     typedef boost::true_type type;
 };
 
@@ -181,8 +182,8 @@ struct is_temporary_storage<storage<X,Y,false>* > {
     typedef boost::false_type type;
 };
 
-template <typename X, typename Y>
-struct is_temporary_storage<storage<X,Y,true>* > {
+template <typename X, typename Y,typename A>
+struct is_temporary_storage<storage<X,Y,true,A>* > {
     typedef boost::true_type type;
 };
 
@@ -191,8 +192,8 @@ struct is_temporary_storage<storage<X,Y,false> > {
     typedef boost::false_type type;
 };
 
-template <typename X, typename Y>
-struct is_temporary_storage<storage<X,Y,true> > {
+template <typename X, typename Y, typename A>
+struct is_temporary_storage<storage<X,Y,true,A> > {
     typedef boost::true_type type;
 };
 
