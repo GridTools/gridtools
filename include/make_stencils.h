@@ -75,6 +75,11 @@ struct esf_descriptor {
     typedef t_arg_array args;
 };
 
+template <typename T, typename V>
+std::ostream& operator<<(std::ostream& s, esf_descriptor<T,V> const7) {
+    return s << "esf_desctiptor< " << T() << " , somevector > ";
+}
+
 // Descriptors for ES
 template <typename t_execution_engine,
           typename t_esf_descr>
