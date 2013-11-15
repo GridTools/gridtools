@@ -154,13 +154,14 @@ namespace _impl {
         };
     };
     
-    template <typename t_mss_type>
+    template <typename t_back_end>
     struct instantiate_tmps {
         // elem_type: an element in the data field place-holders list
         template <typename elem_type>
-        void operator()(elem_type const& elem) const {
+        void operator()(elem_type const&) const {
             //int i = elem;
-            std::cout << " HAHAHAHAHAHAH " << elem_type() << std::endl;
+            typedef typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<1> >::type range_type;
+            std::cout << " HAHAHAHAHAHAH " << range_type() << std::endl;
         }
     };
 
@@ -272,12 +273,9 @@ public:
         }
     };
 
-    template <typename t_mss_type, typename t_range_sizes>
+    template <typename t_mss_type, typename t_range_sizes, typename t_back_end>
     void prepare_temporaries() {
         std::cout << "Prepare ARGUMENTS" << std::endl;
-
-        boost::fusion::filter_view<arg_list, 
-            is_temporary_storage<boost::mpl::_> > fview(args);
 
         // Got to find temporary indices
         typedef typename boost::mpl::fold<placeholders,
@@ -321,10 +319,18 @@ public:
         boost::mpl::for_each<typename t_mss_type::linear_esf>(print_ranges());
         std::cout << "END Fs" << std::endl;
 
+        typedef typename boost::fusion::filter_view<arg_list, 
+            is_temporary_storage<boost::mpl::_> > tmp_view_type;
+        tmp_view_type fview(args);
+
         std::cout << "BEGIN VIEW" << std::endl;
         boost::fusion::for_each(fview, print_view());
         std::cout << "END VIEW" << std::endl;
-        //boost::fusion::for_each(fview, _impl::instantiate_tmps<>());
+        
+        list_of_ranges lor;
+        typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges&> zipper;
+        boost::fusion::zip_view<zipper> zip(zipper(fview, lor)); 
+        boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >());
     }
 
     template <typename T>
