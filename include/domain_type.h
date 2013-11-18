@@ -27,8 +27,8 @@
 #include <boost/type_traits/is_const.hpp>
 #include <boost/mpl/contains.hpp>
 
-#include <boost/mpl/deref.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
+#include <boost/type_traits/remove_reference.hpp>
 
 #include "arg_type.h"
 #include "storage.h"
@@ -156,12 +156,27 @@ namespace _impl {
     
     template <typename t_back_end>
     struct instantiate_tmps {
+        int tileI;
+        int tileJ;
+        int tileK;
+        
+        instantiate_tmps(int tileI, int tileJ, int tileK)
+        : tileI(tileI)
+        , tileJ(tileJ)
+        , tileK(tileK)
+        {}
+        
         // elem_type: an element in the data field place-holders list
         template <typename elem_type>
-        void operator()(elem_type const&) const {
+        void operator()(elem_type  e) const {
             //int i = elem;
             typedef typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<1> >::type range_type;
+            typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<0> >::type>::type>::type storage_type;
             std::cout << " HAHAHAHAHAHAH " << range_type() << std::endl;
+            storage_type::text();
+            boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
+                    -range_type::jminus::value+range_type::jplus::value+tileJ,
+                    tileK);
         }
     };
 
@@ -273,8 +288,16 @@ public:
         }
     };
 
+    struct print_view_ {
+        template <typename T>
+        void operator()(T& t) const {
+            // int a = T();
+            t->info();
+        }
+    };
+
     template <typename t_mss_type, typename t_range_sizes, typename t_back_end>
-    void prepare_temporaries() {
+    void prepare_temporaries(int tileI, int tileJ, int tileK) {
         std::cout << "Prepare ARGUMENTS" << std::endl;
 
         // Got to find temporary indices
@@ -328,9 +351,15 @@ public:
         std::cout << "END VIEW" << std::endl;
         
         list_of_ranges lor;
-        typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges&> zipper;
-        boost::fusion::zip_view<zipper> zip(zipper(fview, lor)); 
-        boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >());
+        typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
+        zipper zzip(fview, lor);
+        boost::fusion::zip_view<zipper> zip(zzip); 
+        boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >(tileI, tileJ, tileK));
+
+        std::cout << "BEGIN VIEW DOPO" << std::endl;
+        boost::fusion::for_each(fview, print_view_());
+        std::cout << "END VIEW DOPO" << std::endl;
+        
     }
 
     template <typename T>
