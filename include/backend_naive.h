@@ -91,6 +91,10 @@ namespace _impl_naive {
 }
 
 struct backend_naive {
+    static const int BI = 0;
+    static const int BJ = 0;
+    static const int BK = 0;
+
     template <typename t_functor_list, // List of functors to execute (in order)
               typename range_sizes, // computed range sizes to know where to compute functot at<i>
               typename t_loop_intervals, // List of intervals on which functors are defined
