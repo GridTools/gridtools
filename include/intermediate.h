@@ -454,7 +454,7 @@ struct intermediate {
                 coords.value_at_top()-coords.value_at_bottom()+1);
 
         // UNCOMMENT THIS
-        //t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
+        t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
 
      }    
 };
