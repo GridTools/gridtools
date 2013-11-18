@@ -115,19 +115,19 @@ struct backend_block {
         typedef typename boost::mpl::range_c<int, 0, boost::mpl::size<t_functor_list>::type::value> iter_range;
 
         typedef typename boost::mpl::at<range_sizes, typename boost::mpl::back<iter_range>::type >::type range_type;
-        int n = coords.i_high_bound + range_type::iplus::value - (coords.i_low_bound + range_type::iminus::value);
-        int m = coords.j_high_bound + range_type::jplus::value - (coords.j_low_bound + range_type::jminus::value);
+        int n = coords.i_high_bound() + range_type::iplus::value - (coords.i_low_bound() + range_type::iminus::value);
+        int m = coords.j_high_bound() + range_type::jplus::value - (coords.j_low_bound() + range_type::jminus::value);
 
         int NBI = n/BI;
         int NBJ = m/BJ;
-        std::cout << "n = " << coords.i_high_bound << " + " 
+        std::cout << "n = " << coords.i_high_bound() << " + " 
                   << range_type::iplus::value << " - " 
-                  << "(" << coords.i_low_bound << " + "
+                  << "(" << coords.i_low_bound() << " + "
                   << range_type::iminus::value << ")"
                   << std::endl;
-        std::cout << "m = " << coords.j_high_bound << " + " 
+        std::cout << "m = " << coords.j_high_bound() << " + " 
                   << range_type::jplus::value << " - " 
-                  << "(" << coords.j_low_bound << " + "
+                  << "(" << coords.j_low_bound() << " + "
                   << range_type::jminus::value << ")"
                   << std::endl;
 
@@ -142,9 +142,9 @@ struct backend_block {
                   << std::endl;
 
         for (int bi = 0; bi < NBI; ++bi) {
-            int starti = bi*BI+coords.i_low_bound;
+            int starti = bi*BI+coords.i_low_bound();
             for (int bj = 0; bj < NBJ; ++bj) {
-                int startj = bj*BJ+coords.j_low_bound;
+                int startj = bj*BJ+coords.j_low_bound();
                 boost::mpl::for_each<iter_range>(_impl::run_functor
                                                  <
                                                  t_functor_list,
