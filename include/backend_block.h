@@ -99,6 +99,10 @@ namespace _impl {
 }
 
 struct backend_block {
+    static const int BI = 2;
+    static const int BJ = 2;
+    static const int BK = 0;
+
     template <typename t_functor_list, // List of functors to execute (in order)
               typename range_sizes, // computed range sizes to know where to compute functot at<i>
               typename t_loop_intervals, // List of intervals on which functors are defined
@@ -109,9 +113,6 @@ struct backend_block {
     static void run(t_domain const& domain, t_coords const& coords, t_local_domain_list &local_domain_list) {
 
         typedef typename boost::mpl::range_c<int, 0, boost::mpl::size<t_functor_list>::type::value> iter_range;
-
-        static const int BI = 2;
-        static const int BJ = 2;
 
         typedef typename boost::mpl::at<range_sizes, typename boost::mpl::back<iter_range>::type >::type range_type;
         int n = coords.i_high_bound + range_type::iplus::value - (coords.i_low_bound + range_type::iminus::value);
