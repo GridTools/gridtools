@@ -439,8 +439,19 @@ struct intermediate {
         boost::mpl::for_each<range_sizes>(print__());
         std::cout << "fine2" <<std::endl;
 
+        int tileI = (t_backend::BI)?
+            (t_backend::BI):
+            (coords.i_high_bound()-coords.i_low_bound()+1);
+        
+        int tileJ = (t_backend::BJ)?
+            (t_backend::BJ):
+            (coords.j_high_bound()-coords.j_low_bound()+1);
+
         // Prepare domain's temporary fields to proper storage sizes
-        domain.template prepare_temporaries<t_mss_type, range_sizes, t_backend>();
+        domain.template prepare_temporaries<t_mss_type, range_sizes, t_backend>
+               (tileI,
+                tileJ, 
+                coords.value_at_top()-coords.value_at_bottom()+1);
 
         // UNCOMMENT THIS
         //t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
