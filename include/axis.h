@@ -22,28 +22,61 @@ struct coordinates {
 
     typedef t_axis axis_type;
 
-    GCL::array<int, boost::mpl::plus<
-                        typename boost::mpl::minus<typename t_axis::ToLevel::Splitter, 
-                                                   typename t_axis::FromLevel::Splitter>,
-                        typename boost::mpl::int_<1> >::value > value_list;
-    int i_low_bound;
-    int i_high_bound;
-    int j_low_bound;
-    int j_high_bound;
+    typedef typename boost::mpl::plus<
+        typename boost::mpl::minus<typename t_axis::ToLevel::Splitter, 
+        typename t_axis::FromLevel::Splitter>,
+        typename boost::mpl::int_<1> >::type size_type;
+    
+    GCL::array<int, size_type::value > value_list;
+    
+    int _i_low_bound;
+    int _i_high_bound;
+    int _j_low_bound;
+    int _j_high_bound;
 
     explicit coordinates(int il, int ih, int jl, int jh)
-        : i_low_bound(il)
-        , i_high_bound(ih)
-        , j_low_bound(jl)
-        , j_high_bound(jh)
+    : _i_low_bound(il)
+    , _i_high_bound(ih)
+    , _j_low_bound(jl)
+    , _j_high_bound(jh)
     {}
-    
+        
+    int i_low_bound() const {
+        return _i_low_bound;
+    }
+
+    int i_high_bound() const {
+        return _i_high_bound;
+    }
+
+    int j_low_bound() const {
+        return _j_low_bound;
+    }
+
+    int j_high_bound() const {
+        return _j_high_bound;
+    }
+
     template <typename t_level>
     int value_at() const {
         BOOST_STATIC_ASSERT(is_level<t_level>::value);
         int offs = t_level::Offset::value;
         if (offs < 0) offs += 1;
         return value_list[t_level::Splitter::value] + offs;
+    }
+
+    template <typename t_level>
+    int& value_at(int val) const {
+        BOOST_STATIC_ASSERT(is_level<t_level>::value);
+        return value_list[t_level::Splitter::value];
+    }
+
+    int value_at_top() const {
+        return value_list[size_type::value - 1];
+    }
+
+    int value_at_bottom() const {
+        return value_list[0];
     }
 };
 
