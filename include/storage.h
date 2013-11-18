@@ -40,13 +40,21 @@ struct storage {
         is_set=true;
         name = s;
     }
-
+    
     explicit storage() {is_set=false;}
 
     static void text() {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
+    void info() const {
+        text();
+        std::cout << m_dims[0] << "x"
+                  << m_dims[1] << "x"
+                  << m_dims[2] << ", "
+                  << name << std::endl;
+    }
+    
     ~storage() {
         if (is_set) {
             std::cout << "deleting " << std::hex << data << std::endl;
