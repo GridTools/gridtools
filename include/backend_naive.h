@@ -66,21 +66,21 @@ namespace _impl_naive {
             local_domain_type local_domain = boost::fusion::at<t_index>(domain_list);
 
             std::cout << "Functor " << functor_type() << std::endl;
-            std::cout << "I loop " << coords.i_low_bound + range_type::iminus::value << " -> "
-                      << coords.i_high_bound + range_type::iplus::value << std::endl;
-            std::cout << "J loop " << coords.j_low_bound + range_type::jminus::value << " -> "
-                      << coords.j_high_bound + range_type::jplus::value << std::endl;
+            std::cout << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> "
+                      << coords.i_high_bound() + range_type::iplus::value << std::endl;
+            std::cout << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
+                      << coords.j_high_bound() + range_type::jplus::value << std::endl;
 
 
             typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<t_loop_intervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
             std::cout << " ******************** " << first_hit() << std::endl;
             std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
 
-            for (int i = coords.i_low_bound + range_type::iminus::value;
-                 i < coords.i_high_bound + range_type::iplus::value;
+            for (int i = coords.i_low_bound() + range_type::iminus::value;
+                 i < coords.i_high_bound() + range_type::iplus::value;
                  ++i)
-                for (int j = coords.j_low_bound + range_type::jminus::value;
-                     j < coords.j_high_bound + range_type::jplus::value;
+                for (int j = coords.j_low_bound() + range_type::jminus::value;
+                     j < coords.j_high_bound() + range_type::jplus::value;
                      ++j) {
                     local_domain.move_to(i,j, coords.template value_at<first_hit>());
                     boost::mpl::for_each<t_loop_intervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
