@@ -4,7 +4,7 @@
 #include <iostream>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/utility/enable_if.hpp>
-
+#include "basic_utils.h"
 //////// STORAGE
 
 template <typename t_value_type,
@@ -158,11 +158,20 @@ struct get_stride<I, _t_layout, typename boost::disable_if<
 };
 
     int _index(int i, int j, int k) const {
-        int index =
-            layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-            * layout::template find<0>(i,j,k) +
-            layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
-            layout::template find<2>(i,j,k);
+        int index;
+        if (is_temporary) {
+            index =
+                layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+                * (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +
+                layout::template find<2>(m_dims) * modulus(layout::template find<1>(i,j,k),layout::template find<1>(m_dims)) +
+                modulus(layout::template find<2>(i,j,k),layout::template find<2>(m_dims));
+        } else {
+            index =
+                layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+                * layout::template find<0>(i,j,k) +
+                layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
+                layout::template find<2>(i,j,k);
+        }
         assert(index >= 0);
         assert(index <m_size);
         return index;
