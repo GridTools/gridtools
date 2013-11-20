@@ -109,6 +109,15 @@ struct arg_type {
     }
 };
 
+template <typename T>
+struct is_plchldr_to_temp : boost::false_type 
+{};
+
+template <int I, typename T>
+struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
+{};
+
+
 template <int I, typename R>
 std::ostream& operator<<(std::ostream& s, arg_type<I,R> const&) {
     return s << "[ arg_type< " << I
