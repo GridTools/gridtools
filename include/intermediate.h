@@ -11,11 +11,11 @@
 #include <boost/mpl/eval_if.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
-#include "Level.h"
-#include "Interval.h"
-#include "LoopIntervals.h"
-#include "FunctorDoMethods.h"
-#include "FunctorDoMethodLookupMaps.h"
+#include "level.h"
+#include "interval.h"
+#include "loopintervals.h"
+#include "functor_do_methods.h"
+#include "functor_do_method_lookup_maps.h"
 #include "axis.h"
 
 namespace _impl{

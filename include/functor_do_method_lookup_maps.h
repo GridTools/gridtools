@@ -15,8 +15,8 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/back.hpp>
 #include <boost/mpl/if.hpp>
-#include "Level.h"
-#include "Interval.h"
+#include "level.h"
+#include "interval.h"
 
 // implementation of the do method lookup map computation
 

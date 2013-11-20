@@ -11,11 +11,11 @@
 #include <backend_block.h>
 #include <backend_naive.h>
 
-typedef Interval<Level<0,-1>, Level<1,-1> > x_lap;
-typedef Interval<Level<0,-1>, Level<1,-1> > x_flx;
-typedef Interval<Level<0,-1>, Level<1,-1> > x_out;
+typedef interval<level<0,-1>, level<1,-1> > x_lap;
+typedef interval<level<0,-1>, level<1,-1> > x_flx;
+typedef interval<level<0,-1>, level<1,-1> > x_out;
 
-typedef Interval<Level<0,-2>, Level<1,3> > axis;
+typedef interval<level<0,-2>, level<1,3> > axis;
 //typedef extend_by<tight_axis, 2>::type axis;
 
 struct lap_function {

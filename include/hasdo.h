@@ -2,7 +2,7 @@
 
 #include <boost/config.hpp> 
 #include <boost/mpl/void.hpp>
-#include "YesNo.h"
+#include "yesno.h"
 
 /**
 * @struct has_do_member

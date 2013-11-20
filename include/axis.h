@@ -2,18 +2,18 @@
 
 #include <boost/mpl/minus.hpp>
 #include <boost/mpl/plus.hpp>
-#include "LoopIntervals.h"
+#include "loopintervals.h"
 #include "array.h"
 
 template <typename t_min_level, typename t_max_level>
 struct make_axis {
-    typedef Interval<t_min_level, t_max_level> type;
+    typedef interval<t_min_level, t_max_level> type;
 };
 
 template <typename t_axis, int I>
 struct extend_by {
-    typedef Interval<Level<t_axis::FromLevel::Splitter::value, t_axis::FromLevel::Offset::value - 1>,
-                     Level<t_axis::ToLevel::Splitter::value, t_axis::ToLevel::Offset::value + 1> > type;
+    typedef interval<level<t_axis::FromLevel::Splitter::value, t_axis::FromLevel::Offset::value - 1>,
+                     level<t_axis::ToLevel::Splitter::value, t_axis::ToLevel::Offset::value + 1> > type;
 };
 
 template <typename t_axis>

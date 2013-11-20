@@ -1,15 +1,15 @@
 #include <iostream>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
-#include "Level.h"
-#include "Interval.h"
-#include "FunctorDoMethods.h"
+#include "level.h"
+#include "interval.h"
+#include "functor_do_methods.h"
 
 // test functor 1
 struct Functor0 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<3,-1>, Level<3,-1> >) 
+    static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >) 
     {
         std::cout << "Functor0:Do(Interval<Level<3,-1>, Level<3,-1> >) called" << std::endl;
     }
@@ -19,7 +19,7 @@ struct Functor0
 struct Functor1 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<0,1>, Level<2,-1> >) 
+    static void Do(TArguments& args, interval<level<0,1>, level<2,-1> >) 
     {
         std::cout << "Functor1:Do(Interval<Level<0,1>, Level<2,-1> >) called" << std::endl;
     }
@@ -29,13 +29,13 @@ struct Functor1
 struct Functor2 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<0,1>, Level<1,-1> >) 
+    static void Do(TArguments& args, interval<level<0,1>, level<1,-1> >) 
     {
         std::cout << "Functor2:Do(Interval<Level<0,1>, Level<1,-1> >) called" << std::endl;
     }
 
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<1,1>, Level<3,-1> >) 
+    static void Do(TArguments& args, interval<level<1,1>, level<3,-1> >) 
     {
         std::cout << "Functor2:Do(Interval<Level<1,1>, Level<3,-1> >) called" << std::endl;
     }
@@ -45,11 +45,11 @@ struct Functor2
 struct IllegalFunctor 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<1,1>, Level<2,-1> >) {}
+    static void Do(TArguments& args, interval<level<1,1>, level<2,-1> >) {}
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<1,1>, Level<3,-2> >) {}
+    static void Do(TArguments& args, interval<level<1,1>, level<3,-2> >) {}
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<3,-1>, Level<3,-1> >) {}
+    static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >) {}
 };
 
 // functor printing level and index
@@ -81,7 +81,7 @@ struct RunnerFunctor
         >::type Interval;
 
         int argument = 0;
-        TFunctor::Do(argument, Interval()); 
+        TFunctor::Do(argument, interval()); 
     }
 };
 
@@ -101,12 +101,12 @@ int main(int argc, char *argv[])
     std::cout << "Done!" << std::endl; 
 
     // check has_do_simple on a few examples
-    BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, Interval<Level<1,1>, Level<2,-1> > >::value));
-    BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, Interval<Level<1,1>, Level<3,-2> > >::value));
-    BOOST_STATIC_ASSERT((!has_do_simple<IllegalFunctor, Interval<Level<0,1>, Level<3,-2> > >::value));
+    BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, interval<level<1,1>, level<2,-1> > >::value));
+    BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, interval<level<1,1>, level<3,-2> > >::value));
+    BOOST_STATIC_ASSERT((!has_do_simple<IllegalFunctor, interval<level<0,1>, level<3,-2> > >::value));
 
     // define the axis search interval
-    typedef Interval<Level<0,-3>, Level<3,3> > AxisInterval;
+    typedef interval<level<0,-3>, level<3,3> > AxisInterval;
    
     // run all methods of functor 0
     std::cout << "Print Functor0 Do methods:" << std::endl;

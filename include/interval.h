@@ -4,7 +4,7 @@
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/range_c.hpp>
-#include "Level.h"
+#include "level.h"
 
 /**
 * @struct Interval
@@ -13,12 +13,12 @@
 template<
     typename TFromLevel,
     typename TToLevel>
-struct Interval 
+struct interval 
 {
     // HACK allow implicit conversion from the from level to any interval starting with the from level
     // (due to this trick we can search all do method overloads starting at a given from position)
-    Interval() {};
-    Interval(TFromLevel) {};
+    interval() {};
+    interval(TFromLevel) {};
 
     // check the parameters are of type level
     BOOST_STATIC_ASSERT(is_level<TFromLevel>::value);
@@ -45,7 +45,7 @@ struct is_interval : boost::mpl::false_ {};
 template<
     typename TFromLevel,
     typename TToLevel>
-struct is_interval<Interval<TFromLevel, TToLevel> > : boost::mpl::true_ {};
+struct is_interval<interval<TFromLevel, TToLevel> > : boost::mpl::true_ {};
 
 /**
 * @struct interval_from_index
@@ -57,7 +57,7 @@ struct interval_from_index;
 template<
     typename TFromLevel,
     typename TToLevel>
-struct interval_from_index<Interval<TFromLevel, TToLevel> > : level_to_index<TFromLevel> {};
+struct interval_from_index<interval<TFromLevel, TToLevel> > : level_to_index<TFromLevel> {};
 
 /**
 * @struct interval_to_index
@@ -69,7 +69,7 @@ struct interval_to_index;
 template<
     typename TFromLevel,
     typename TToLevel>
-struct interval_to_index<Interval<TFromLevel, TToLevel> > : level_to_index<TToLevel> {};
+struct interval_to_index<interval<TFromLevel, TToLevel> > : level_to_index<TToLevel> {};
 
 /**
 * @struct make_interval
@@ -80,7 +80,7 @@ template<
     typename ToIndex>
 struct make_interval
 {
-    typedef Interval<
+    typedef interval<
         typename index_to_level<TFromIndex>::type,
         typename index_to_level<ToIndex>::type
     > type;

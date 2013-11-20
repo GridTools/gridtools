@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/config.hpp> 
 #include <boost/mpl/void.hpp>
-#include "HasDo.h"
+#include "hasdo.h"
 
 struct B {
     template <typename T>

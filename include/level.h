@@ -18,7 +18,7 @@ const int cLevelOffsetLimit = 3;
 template<
     int VSplitter, 
     int VOffset>
-struct Level 
+struct level 
 {
     // check offset and splitter value ranges
     // (note that non negative splitter values simplify the index computation)
@@ -40,7 +40,7 @@ struct is_level : boost::mpl::false_ {};
 template<
     int VSplitter, 
     int VOffset>
-struct is_level<Level<VSplitter, VOffset> > : boost::mpl::true_ {};
+struct is_level<level<VSplitter, VOffset> > : boost::mpl::true_ {};
 
 /**
 * @struct level_to_index
@@ -75,7 +75,7 @@ struct index_to_level
     typedef boost::mpl::integral_c<int, OffsetIndex::value < 0 ? OffsetIndex::value : OffsetIndex::value + 1> Offset;
 
     // define the level
-    typedef Level<Splitter::value, Offset::value> type;
+    typedef level<Splitter::value, Offset::value> type;
 };
 
 /**
@@ -91,7 +91,7 @@ struct make_range
 };
 
 template <int F, int T>
-std::ostream& operator<<(std::ostream & s, Level<F,T> const &) {
-    return s << "(" << Level<F,T>::Splitter::value << ", "
-             << Level<F,T>::Offset::value << ")";
+std::ostream& operator<<(std::ostream & s, level<F,T> const &) {
+    return s << "(" << level<F,T>::Splitter::value << ", "
+             << level<F,T>::Offset::value << ")";
 }

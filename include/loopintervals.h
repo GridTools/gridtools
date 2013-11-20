@@ -18,8 +18,8 @@
 #include <boost/mpl/next.hpp>
 #include <boost/mpl/prior.hpp>
 #include <boost/mpl/if.hpp>
-#include "Level.h"
-#include "Interval.h"
+#include "level.h"
+#include "interval.h"
 
 // implementation of the loop interval computation
 

@@ -1,32 +1,32 @@
 #include <iostream>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
-#include "Interval.h"
-#include "FunctorDoMethods.h"
-#include "LoopIntervals.h"
+#include "interval.h"
+#include "functor_do_methods.h"
+#include "loopintervals.h"
 
 // test functor 1
 struct Functor0 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<3,-1>, Level<3,-1> >) {}
+    static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >) {}
 };
 
 // test functor 1
 struct Functor1 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<0,1>, Level<2,-1> >) {}
+    static void Do(TArguments& args, interval<level<0,1>, level<2,-1> >) {}
 };
 
 // test functor 2
 struct Functor2 
 {
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<0,1>, Level<1,-1> >) {}
+    static void Do(TArguments& args, interval<level<0,1>, level<1,-1> >) {}
 
     template <typename TArguments>
-    static void Do(TArguments& args, Interval<Level<1,1>, Level<3,-1> >) {}
+    static void Do(TArguments& args, interval<level<1,1>, level<3,-1> >) {}
 };
 
 // helper printing the loop index pairs
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         << "==============" << std::endl;
 
     // define the axis search interval
-    typedef Interval<Level<0,-3>, Level<3,3> > AxisInterval;
+    typedef interval<level<0,-3>, level<3,3> > AxisInterval;
     
     // compute the functor do methods
     typedef boost::mpl::transform<

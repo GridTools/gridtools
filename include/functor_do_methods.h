@@ -12,9 +12,9 @@
 #include <boost/mpl/back.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/if.hpp>
-#include "HasDo.h"
-#include "Level.h"
-#include "Interval.h"
+#include "hasdo.h"
+#include "level.h"
+#include "interval.h"
 
 // implementation of the do method overload search
 
