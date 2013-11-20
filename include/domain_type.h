@@ -34,6 +34,47 @@
 #include "storage.h"
 #include "layout_map.h"
 
+namespace _debug {
+    
+    struct print_index {
+        template <typename T>
+        void operator()(T& ) const {
+            std::cout << " *" << T() << ", " << T::index::value << " * " << std::endl;
+        }
+    };
+
+    struct print_tmps {
+        template <typename T>
+        void operator()(T& ) const {
+            boost::mpl::for_each<T>(print_index());
+            std::cout << " ---" << std::endl;
+        }
+    };
+
+    struct print_ranges {
+        template <typename T>
+        void operator()(T& ) const {
+            std::cout << T() << std::endl;
+        }
+    };
+
+    struct print_view {
+        template <typename T>
+        void operator()(T& t) const {
+            // int a = T();
+            boost::remove_pointer<T>::type::text();
+        }
+    };
+
+    struct print_view_ {
+        template <typename T>
+        void operator()(T& t) const {
+            // int a = T();
+            t->info();
+        }
+    };
+} // namespace _debug
+
 namespace _impl {
     struct l_get_type {
         template <typename U>
@@ -56,14 +97,6 @@ namespace _impl {
         };
     };
 
-    template <typename T>
-    struct is_plchldr_to_temp : boost::false_type
-    {};
-
-    template <int I, typename T>
-    struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
-    {};
-
     struct moveto_functor {
         int i,j,k;
         moveto_functor(int i, int j, int k) 
@@ -82,9 +115,9 @@ namespace _impl {
     struct increment_functor {
         template <typename t_zip_elem>
         void operator()(t_zip_elem const &a) const {
-//             iterators[l] += (*(args[l])).template stride_along<DIR>();
+            // Simpler code:
+            // iterators[l] += (*(args[l])).template stride_along<DIR>();
             boost::fusion::at_c<0>(a) += (*(boost::fusion::at_c<1>(a))).template stride_along<DIR>();
-            //            boost::fusion::at_c<0>(a) = &( (*(boost::fusion::at_c<0>(a)))(i,j,k) );
         }
     };
 
@@ -169,11 +202,9 @@ namespace _impl {
         // elem_type: an element in the data field place-holders list
         template <typename elem_type>
         void operator()(elem_type  e) const {
-            //int i = elem;
             typedef typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<1> >::type range_type;
             typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<0> >::type>::type>::type storage_type;
-            std::cout << " HAHAHAHAHAHAH " << range_type() << std::endl;
-            storage_type::text();
+
             boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
                     -range_type::jminus::value+range_type::jplus::value+tileJ,
                     tileK);
@@ -182,9 +213,13 @@ namespace _impl {
 
 } // namespace _impl
 
+/**
+ * @tparam t_placeholders list of placeholders of type arg<I,T>
+ */
 template <typename t_placeholders>
 struct domain_type {
     typedef t_placeholders placeholders;
+private:
     BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<placeholders>::type::value);
 
     typedef typename boost::mpl::transform<placeholders,
@@ -209,28 +244,38 @@ struct domain_type {
             typename boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
     >::type iterator_list_mpl;
     
-
+public:
+    /**
+     * Type of fusion::vector of pointers to storages as indicated in t_placeholders
+     */
     typedef typename boost::fusion::result_of::as_vector<arg_list_mpl>::type arg_list;
+    /**
+     * Type of fusion::vector of pointers to iterators as indicated in t_placeholders
+     */
     typedef typename boost::fusion::result_of::as_vector<iterator_list_mpl>::type iterator_list;
     
+    /**
+     * fusion::vector of pointers to storages
+     */
     arg_list args;
+
+    /**
+     * fusion::vector of iterators used to access args
+     */
     iterator_list iterators;
 
 private:
+    // Using zip view to associate iterators and args in a single object.
+    // This is used to move iterators to coordinates relative to storage
     typedef typename boost::fusion::vector<iterator_list&, arg_list&> zip_vector_type;
     zip_vector_type zip_vector;
     typedef typename boost::fusion::zip_view<zip_vector_type> zipping;
 public:
 
-    //explicit domain_type() {}
-
-    struct printa {
-        template <typename T>
-        void operator()(T const& v) const {
-            std::cout << std::hex << v << "  ";
-        }
-    };
-
+    /**
+     * @tparam t_real_storage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
+     * @param real_storage The actual fusion::vector with the values
+     */
     template <typename t_real_storage>
     explicit domain_type(t_real_storage const & real_storage)
         : args()
@@ -244,58 +289,22 @@ public:
 
         BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
-        // {
-        //     boost::fusion::for_each(fview, printa());
-        //     std::cout << " <- fview" << std::endl;
-        // }
-
         boost::fusion::copy(real_storage, fview);
 
-        // {
-        //     boost::fusion::for_each(ll, printa());
-        //     std::cout << " <- arg_list_view ll(args)" << std::endl;
-        // }
     }
 
-
-    struct print_index {
-        template <typename T>
-        void operator()(T& ) const {
-            std::cout << " *" << T() << ", " << T::index::value << " * " << std::endl;
-        }
-    };
-
-    struct print_tmps {
-        template <typename T>
-        void operator()(T& ) const {
-            boost::mpl::for_each<T>(print_index());
-            std::cout << " ---" << std::endl;
-        }
-    };
-
-    struct print_ranges {
-        template <typename T>
-        void operator()(T& ) const {
-            std::cout << T() << std::endl;
-        }
-    };
-
-    struct print_view {
-        template <typename T>
-        void operator()(T& t) const {
-            // int a = T();
-            boost::remove_pointer<T>::type::text();
-        }
-    };
-
-    struct print_view_ {
-        template <typename T>
-        void operator()(T& t) const {
-            // int a = T();
-            t->info();
-        }
-    };
-
+    /**
+     * This function is to be called by intermediate representation or back-end
+     * 
+     * @tparam t_mss_type The multistage stencil type as passed to the back-end
+     * @tparam t_range_sizes mpl::vector with the sizes of the extents of the 
+     *         access for each functor listed as linear_esf in t_mss_type
+     * @tparam t_back_end This is not currently used and may be dropped in future
+     * 
+     * @param tileI Tile size in the first dimension as used by the back-end
+     * @param tileJ Tile size in the second dimension as used by the back-end
+     * @param tileK Tile size in the third dimension as used by the back-end
+     */
     template <typename t_mss_type, typename t_range_sizes, typename t_back_end>
     void prepare_temporaries(int tileI, int tileJ, int tileK) {
         std::cout << "Prepare ARGUMENTS" << std::endl;
@@ -304,15 +313,15 @@ public:
         typedef typename boost::mpl::fold<placeholders,
             boost::mpl::vector<>,
             boost::mpl::if_<
-                _impl::is_plchldr_to_temp<boost::mpl::_2>,
+                 is_plchldr_to_temp<boost::mpl::_2>,
                  boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
                  boost::mpl::_1>
             >::type list_of_temporaries;
 
         std::cout << "BEGIN TMPS" << std::endl;
-        boost::mpl::for_each<list_of_temporaries>(print_index());
+        boost::mpl::for_each<list_of_temporaries>(_debug::print_index());
         std::cout << "END TMPS" << std::endl;
-//        static const int a = typename boost::mpl::template at<list_of_temporaries,boost::mpl::template int_<0> >::type();
+
         // Compute a vector of vectors of temp indices of temporaris initialized by each functor
         typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
             boost::mpl::vector<>,
@@ -324,31 +333,29 @@ public:
             _impl::associate_ranges<temps_per_functor, t_range_sizes>
         >::type list_of_ranges;
         
-        // typedef typename boost::mpl::fold<list_of_temporaries,
-        //     boost::mpl::vector<>,
-        //     boost::mpl::push_back<boost::mpl::_1, 
-        //     typename _impl::compute_range<typename t_mss_type::linear_esf>::template apply<boost::mpl::_2> > 
-        //     >::type list_of_ranges;
-
+#ifndef NDEBUG
         std::cout << "BEGIN TMPS/F" << std::endl;
-        boost::mpl::for_each<temps_per_functor>(print_tmps());
+        boost::mpl::for_each<temps_per_functor>(_debug::print_tmps());
         std::cout << "END TMPS/F" << std::endl;
 
         std::cout << "BEGIN RANGES/F" << std::endl;
-        boost::mpl::for_each<list_of_ranges>(print_ranges());
+        boost::mpl::for_each<list_of_ranges>(_debug::print_ranges());
         std::cout << "END RANGES/F" << std::endl;
 
         std::cout << "BEGIN Fs" << std::endl;
-        boost::mpl::for_each<typename t_mss_type::linear_esf>(print_ranges());
+        boost::mpl::for_each<typename t_mss_type::linear_esf>(_debug::print_ranges());
         std::cout << "END Fs" << std::endl;
-
+#endif
+        
         typedef typename boost::fusion::filter_view<arg_list, 
             is_temporary_storage<boost::mpl::_> > tmp_view_type;
         tmp_view_type fview(args);
 
+#ifndef NDEBUG
         std::cout << "BEGIN VIEW" << std::endl;
-        boost::fusion::for_each(fview, print_view());
+        boost::fusion::for_each(fview, _debug::print_view());
         std::cout << "END VIEW" << std::endl;
+#endif
         
         list_of_ranges lor;
         typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
@@ -356,10 +363,11 @@ public:
         boost::fusion::zip_view<zipper> zip(zzip); 
         boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >(tileI, tileJ, tileK));
 
+#ifndef NDEBUG
         std::cout << "BEGIN VIEW DOPO" << std::endl;
-        boost::fusion::for_each(fview, print_view_());
+        boost::fusion::for_each(fview, _debug::print_view_());
         std::cout << "END VIEW DOPO" << std::endl;
-        
+#endif        
     }
 
     template <typename T>
@@ -368,39 +376,47 @@ public:
         return *(boost::fusion::template at<typename T::index_type>(iterators));
     }
 
+    /**
+     * Function to access the data pointed to a specific iterator
+     * 
+     * @tparam Index of the iterator in the iterator list
+     * 
+     * @return Reference to the value pointed to Ith iterator
+     */
     template <typename I>
     typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
     direct() const {
         assert(boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(args)->min_addr());
         assert(boost::fusion::template at<I>(iterators) < boost::fusion::template at<I>(args)->max_addr());
-        //typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type v = *(boost::fusion::template at<I>(iterators));
+
         return *(boost::fusion::template at<I>(iterators));
     }
 
-    template <int I, typename OFFS>
-    typename boost::mpl::at<arg_list, boost::mpl::int_<I> >::value_type&
-    direct(OFFS const & offset) const {
-        typename boost::mpl::at<arg_list, boost::mpl::int_<I> >::value_type* ptr = iterators[I] + (*(args[I])).compute_offset(offset);
-        assert(ptr >= args[I]->min_addr());
-        assert(ptr < args[I]->max_addr());
-        return *(ptr);
-    }
-
+    /**
+     * Move all iterators of storages to (i,j,k) coordinates
+     */
     void move_to(int i, int j, int k) const {
         boost::fusion::for_each(zipping(zip_vector), _impl::moveto_functor(i,j,k));
-//         for (int l = 0; l < len; ++l) {
-//             iterators[l] = &( (*(args[l]))(i,j,k) );
-//             assert(iterators[l] >= args[l]->min_addr());
-//             assert(iterators[l] < args[l]->max_addr());
-//         }
+        // Simpler code:
+        // for (int l = 0; l < len; ++l) {
+        //     iterators[l] = &( (*(args[l]))(i,j,k) );
+        //     assert(iterators[l] >= args[l]->min_addr());
+        //     assert(iterators[l] < args[l]->max_addr());
+        // }
     }
 
+    /**
+     * Move all iterators one position along one direction
+     * 
+     * @\tparam DIR index of coordinate to increment by one
+     */
     template <int DIR>
     void increment_along() const {
         boost::fusion::for_each(zipping(zip_vector), _impl::increment_functor<DIR>());
-//         for (int l = 0; l < len; ++l) {
-//             iterators[l] += (*(args[l])).template stride_along<DIR>();
-//         }
+        // Simpler code:
+        // for (int l = 0; l < len; ++l) {
+        //     iterators[l] += (*(args[l])).template stride_along<DIR>();
+        // }
     }
 
 };
