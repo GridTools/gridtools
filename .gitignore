@@ -12,5 +12,7 @@
 *.la
 *.a
 
+*.exe
+
 CMakeFiles
 CMakeCache.txt
