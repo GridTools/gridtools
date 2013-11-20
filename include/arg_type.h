@@ -118,27 +118,50 @@ struct arg_type {
     }
 };
 
+/**
+ * Struct to test if an argument is a temporary
+ */
 template <typename T>
 struct is_plchldr_to_temp : boost::false_type 
 {};
 
+/**
+ * Struct to test if an argument is a temporary - Specialization yielding true
+ */
 template <int I, typename T>
 struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
 {};
 
-
+/**
+ * Printing type information for debug purposes
+ * @param s The ostream
+ * @param n/a Type selector for arg_type
+ * @return ostream
+ */
 template <int I, typename R>
 std::ostream& operator<<(std::ostream& s, arg_type<I,R> const&) {
     return s << "[ arg_type< " << I
              << ", " << R() << " > ]";
 }
 
+/**
+ * Printing type information for debug purposes
+ * @param s The ostream
+ * @param n/a Type selector for arg to a temporary
+ * @return ostream
+ */
 template <int I, typename R>
 std::ostream& operator<<(std::ostream& s, arg<I,temporary<R> > const&) {
     return s << "[ arg< " << I
              << ", temporary<something>" << " > ]";
 }
 
+/**
+ * Printing type information for debug purposes
+ * @param s The ostream
+ * @param n/a Type selector for arg to a NON temp
+ * @return ostream
+ */
 template <int I, typename R>
 std::ostream& operator<<(std::ostream& s, arg<I,R> const&) {
     return s << "[ arg< " << I
