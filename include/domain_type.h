@@ -39,7 +39,7 @@ namespace _debug {
     struct print_index {
         template <typename T>
         void operator()(T& ) const {
-            std::cout << " *" << T() << ", " << T::index::value << " * " << std::endl;
+            std::cout << " *" << T() << ", " << T::index_type::value << " * " << std::endl;
         }
     };
 
