@@ -18,27 +18,6 @@
 #include "FunctorDoMethodLookupMaps.h"
 #include "axis.h"
 
-namespace _debug {
-    template <typename t_coords>
-    struct show_pair {
-        t_coords coords;
-
-        explicit show_pair(t_coords const& coords)
-            : coords(coords)
-        {}
-
-        template <typename T>
-        void operator()(T const&) const {
-            typedef typename index_to_level<typename T::first>::type from;
-            typedef typename index_to_level<typename T::second>::type to;
-            std::cout << "{ (" << from() << " "
-                      << to() << ") "
-                      << "[" << coords.template value_at<from>() << ", "
-                      << coords.template value_at<to>() << "] } ";
-        }
-    };
-}
-
 namespace _impl{
     /* wrap type to simplify specialization based on mpl::vectors */
     template <typename mpl_array>
@@ -212,12 +191,72 @@ namespace _impl{
 } //namespace _impl
 
 
+namespace _debug {
+    template <typename t_coords>
+    struct show_pair {
+        t_coords coords;
+
+        explicit show_pair(t_coords const& coords)
+            : coords(coords)
+        {}
+
+        template <typename T>
+        void operator()(T const&) const {
+            typedef typename index_to_level<typename T::first>::type from;
+            typedef typename index_to_level<typename T::second>::type to;
+            std::cout << "{ (" << from() << " "
+                      << to() << ") "
+                      << "[" << coords.template value_at<from>() << ", "
+                      << coords.template value_at<to>() << "] } ";
+        }
+    };
+
+    struct print__ {
+        std::string prefix;
+
+        print__()
+            : prefix("")
+        {}
+
+        print__(std::string const &s)
+            : prefix(s)
+        {}
+
+        template <int i, int j, int k, int l>
+        void operator()(range<i,j,k,l> const&) const {
+            std::cout << prefix << range<i,j,k,l>() << std::endl;
+        }
+
+        template <typename mplvec>
+        void operator()(mplvec const&) const {
+            std::cout << "Independent" << std::endl;
+            boost::mpl::for_each<mplvec>(print__(std::string("    ")));
+            std::cout << "End Independent" << std::endl;
+        }
+
+        template <typename mplvec>
+        void operator()(_impl::wrap_type<mplvec> const&) const {
+            std::cout << "Independent" << std::endl;
+            boost::mpl::for_each<mplvec>(print__(std::string("    ")));
+            std::cout << "End Independent" << std::endl;
+        }
+    };
+
+} // namespace _debug
+
+/**
+ * This is the base class for local_domains to extract the proper iterators/storages from the full domain
+ * to adapt it for a particular functor. There is one version which provide coordinates to the functor
+ * and one that does not
+ * 
+ * @tparam t_esf_descriptor The descriptor of the elementary stencil function
+ * @tparam t_domain The full domain type
+ */
 template <typename t_esf_descriptor, typename t_domain>
 struct local_domain_base {
     typedef typename t_esf_descriptor::args esf_args;
     typedef typename t_esf_descriptor::esf_function esf_function;
     typedef typename t_domain::placeholders dom_placeholders;
-    //typedef typename t_domain::arg dom_args;
     typedef t_domain domain_type;
 
     t_domain *dom;
@@ -225,10 +264,6 @@ struct local_domain_base {
     int m_i,m_j,m_k;
 
                     
-    //explicit local_domain_base(t_domain const & dom)
-    //    : dom(dom)
-    //{}
-
     void init(t_domain* _dom) {
         dom = _dom;
     }
@@ -254,10 +289,6 @@ struct local_domain_base {
     template <typename T>
     typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
     operator[](T const&) const {
-        // std::cout << "Requesting " << T::index;
-        // std::cout << " which is "
-        //           << boost::mpl::at_c<esf_args, T::index>::type::index
-        //           << " iin domain" << std::endl;
         return dom->template direct<boost::mpl::template at_c<esf_args, T::index>::type::index>();
     }
 
@@ -269,9 +300,6 @@ struct local_domain_base {
         dom->template increment_along<2>();
     }
 
-    //                typename t_domain::iteration_space_type const& iteration_space() const {
-    //                    return dom.is;
-    //                }
 };
 
 //            template <typename t_esf_descriptor, typename t_domain>
@@ -299,13 +327,20 @@ struct local_domain_base {
 //                int k() const { return m_k;}
 //            };
 
+/**
+ * This class extract the proper iterators/storages from the full domain
+ * to adapt it for a particular functor. This version does not provide coordinates
+ * to the function operator
+ * 
+ * @tparam t_esf_descriptor The descriptor of the elementary stencil function
+ * @tparam t_domain The full domain type
+ */
 template <typename t_esf_descriptor, typename t_domain>
 struct local_domain : public local_domain_base<t_esf_descriptor, t_domain> {
     typedef local_domain_base<t_esf_descriptor, t_domain> base_type;
     typedef typename t_esf_descriptor::args esf_args;
     typedef typename t_esf_descriptor::esf_function esf_function;
     typedef typename t_domain::placeholders dom_placeholders;
-    //typedef typename t_domain::arg dom_args;
     typedef t_domain domain_type;
 
     local_domain() {}
@@ -313,58 +348,15 @@ struct local_domain : public local_domain_base<t_esf_descriptor, t_domain> {
     void init(t_domain* dom, int, int, int)
     {
         base_type::init(dom);
+#ifndef NDEBUG
         std::cout << "LOCAL DOMAIN" << std::endl;
+#endif
     }
 
     int i() const { }
     int j() const { }
     int k() const { }
 };
-
-struct print__ {
-    std::string prefix;
-
-    print__()
-        :prefix("")
-    {}
-
-    print__(std::string const &s)
-        : prefix(s)
-    {}
-
-    template <int i, int j, int k, int l>
-    void operator()(range<i,j,k,l> const&) const {
-        std::cout << prefix << range<i,j,k,l>() << std::endl;
-    }
-
-    template <typename mplvec>
-    void operator()(mplvec const&) const {
-        std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<mplvec>(print__(std::string("    ")));
-        std::cout << "End Independent" << std::endl;
-    }
-
-    template <typename mplvec>
-    void operator()(_impl::wrap_type<mplvec> const&) const {
-        std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<mplvec>(print__(std::string("    ")));
-        std::cout << "End Independent" << std::endl;
-    }
-};
-
-// struct __print {
-//     template <typename T>
-//     void operator()(T const&) const {
-//         std::cout << T() << std::endl;
-//     }
-
-//     template <template <typename A, typename B> class mah, typename T0, typename T1>
-//     void operator()(mah<T0,T1> const&) const {
-//         std::cout << "independent " << std::endl;
-//         std::cout << "     " << T0() << std::endl;
-//         std::cout << "     " <<  T1() << std::endl;
-//     }
-// };
 
 struct intermediate {
 
@@ -395,10 +387,12 @@ struct intermediate {
             >::type FunctorDoMethodLookupMaps; // vector of maps, indexed by functors indices in Functor vector. 
         // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
+#ifndef NDEBUG
         std::cout << "Actual loop bounds ";
         boost::mpl::for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
         std::cout << std::endl;
-
+#endif
+        
         // Create a fusion::vector of domains for each functor
         typedef typename boost::mpl::transform<
             typename t_mss_type::linear_esf,
@@ -413,32 +407,33 @@ struct intermediate {
         // Extract the ranges from functors to determine iteration spaces bounds
 
         // For each functor collect the minimum enclosing box of the ranges for the arguments
-        // typedef typename boost::mpl::fold<functors_list,
-        //     boost::mpl::vector<>,
-        //     boost::mpl::push_back<boost::mpl::_1, _impl::extract_ranges<boost::mpl::_2> >
-        //     >::type ranges_list;
-
         typedef typename boost::mpl::fold<typename t_mss_type::esf_array,
             boost::mpl::vector<>,
             _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
             >::type ranges_list;
 
 
+#ifndef NDEBUG
         std::cout << "ranges list" << std::endl;
-        boost::mpl::for_each<ranges_list>(print__());
-
+        boost::mpl::for_each<ranges_list>(_debug::print__());
+#endif
+        
         // Compute prefix sum to compute bounding boxes for calling a given functor
         typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
 
-        //     std::cout << "range sizes" << std::endl;
-        boost::mpl::for_each<structured_range_sizes>(print__());
-        std::cout << "fine" <<std::endl;
-
+#ifndef NDEBUG
+        std::cout << "range sizes" << std::endl;
+        boost::mpl::for_each<structured_range_sizes>(_debug::print__());
+        std::cout << "end1" <<std::endl;
+#endif
+        
         typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
 
-        boost::mpl::for_each<range_sizes>(print__());
-        std::cout << "fine2" <<std::endl;
-
+#ifndef NDEBUG
+        boost::mpl::for_each<range_sizes>(_debug::print__());
+        std::cout << "end2" <<std::endl;
+#endif
+        
         int tileI = (t_backend::BI)?
             (t_backend::BI):
             (coords.i_high_bound()-coords.i_low_bound()+1);
@@ -453,7 +448,7 @@ struct intermediate {
                 tileJ, 
                 coords.value_at_top()-coords.value_at_bottom()+1);
 
-        // UNCOMMENT THIS
+        // Now run!
         t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
 
      }    
