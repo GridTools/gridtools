@@ -25,18 +25,18 @@ set(
      "include/calls.h"
      "include/domain_type.h"
      "include/execution_types.h"
-     "include/FunctorDoMethodLookupMaps.h"
-     "include/FunctorDoMethods.h"
-     "include/HasDo.h"
+     "include/functor_do_method_lookup_maps.h"
+     "include/functor_do_methods.h"
+     "include/hasdo.h"
      "include/intermediate.h"
-     "include/Interval.h"
+     "include/interval.h"
      "include/layout_map.h"
-     "include/Level.h"
-     "include/LoopIntervals.h"
+     "include/level.h"
+     "include/loopintervals.h"
      "include/make_stencils.h"
      "include/range.h"
      "include/storage.h"
-     "include/YesNo.h"
+     "include/yesno.h"
 )
 
 add_executable(interface1_notemps_naive   examples/interface1_notemps.cpp ${SOURCES} )
@@ -49,6 +49,10 @@ add_executable(interface1_block   examples/interface1.cpp ${SOURCES} )
 set_target_properties(interface1_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
+
+add_executable(FunctorDoMethodLookupMaps unit_tests/FunctorDoMethodLookupMaps.cpp ${SOURCES})
+add_executable(FunctorDoMethods unit_tests/FunctorDoMethods.cpp ${SOURCES})
+add_executable(LoopIntervals unit_tests/LoopIntervals.cpp ${SOURCES})
 
 add_executable(
         test-independent
