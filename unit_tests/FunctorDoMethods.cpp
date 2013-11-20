@@ -78,7 +78,7 @@ struct RunnerFunctor
         typedef typename make_interval<
             typename boost::mpl::first<T>::type,
             typename boost::mpl::second<T>::type
-        >::type Interval;
+        >::type interval;
 
         int argument = 0;
         TFunctor::Do(argument, interval()); 
