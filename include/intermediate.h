@@ -269,9 +269,9 @@ struct local_domain_base {
     }
 
     template <typename T>
-    typename boost::mpl::at<esf_args, typename T::index>::type::value_type&  
+    typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
     operator()(T const& t) const {
-        return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index>::type::index>(/*typename T::index()*/);
+        return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
     }
 
     template <typename T>
