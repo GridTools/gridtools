@@ -211,6 +211,12 @@ namespace _impl {
         }
     };
 
+    struct delete_tmps {
+        template <typename t_elem>
+        void operator()(t_elem & elem) const {
+            delete elem;
+        }
+    };
 } // namespace _impl
 
 /**
@@ -293,6 +299,13 @@ public:
 
     }
 
+    ~domain_type() {
+        typedef typename boost::fusion::filter_view<arg_list, 
+                is_temporary_storage<boost::mpl::_> > tmp_view_type;
+        tmp_view_type fview(args);
+        boost::fusion::for_each(fview, _impl::delete_tmps());
+
+    }
     /**
      * This function is to be called by intermediate representation or back-end
      * 
