@@ -25,8 +25,10 @@ namespace _impl_naive {
             typedef typename index_to_level<typename t_interval::first>::type from;
             typedef typename index_to_level<typename t_interval::second>::type to;
             if (boost::mpl::has_key<interval_map, t_interval>::type::value) {
+#ifndef NDEBUG
                 std::cout << "K loop: " << coords.template value_at<from>() << " -> "
                           << coords.template value_at<to>() << std::endl; 
+#endif
                 for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
                     //std::cout << k << " yessssssss ";
                     //                    int a = typename boost::mpl::at<interval_map, t_interval>::type();
@@ -65,17 +67,21 @@ namespace _impl_naive {
 
             local_domain_type local_domain = boost::fusion::at<t_index>(domain_list);
 
+#ifndef NDEBUG
             std::cout << "Functor " << functor_type() << std::endl;
             std::cout << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> "
                       << coords.i_high_bound() + range_type::iplus::value << std::endl;
             std::cout << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
                       << coords.j_high_bound() + range_type::jplus::value << std::endl;
-
+#endif
+            
 
             typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<t_loop_intervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
+#ifndef NDEBUG
             std::cout << " ******************** " << first_hit() << std::endl;
             std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
-
+#endif
+            
             for (int i = coords.i_low_bound() + range_type::iminus::value;
                  i < coords.i_high_bound() + range_type::iplus::value;
                  ++i)
