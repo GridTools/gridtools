@@ -331,10 +331,12 @@ public:
                  boost::mpl::_1>
             >::type list_of_temporaries;
 
+#ifndef NDEBUG
         std::cout << "BEGIN TMPS" << std::endl;
         boost::mpl::for_each<list_of_temporaries>(_debug::print_index());
         std::cout << "END TMPS" << std::endl;
-
+#endif
+        
         // Compute a vector of vectors of temp indices of temporaris initialized by each functor
         typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
             boost::mpl::vector<>,
