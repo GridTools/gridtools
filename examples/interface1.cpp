@@ -20,7 +20,6 @@ struct lap_function {
         dom(out()) = 3*dom(in()) - 
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
-        std::cout << "*" << dom(out()) << "*" << std::endl;
     }
 };
 
