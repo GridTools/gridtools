@@ -26,8 +26,10 @@ namespace _impl {
             typedef typename index_to_level<typename t_interval::first>::type from;
             typedef typename index_to_level<typename t_interval::second>::type to;
             if (boost::mpl::has_key<interval_map, t_interval>::type::value) {
+#ifndef NDEBUG
                 std::cout << "K loop: " << coords.template value_at<from>() << " -> "
                           << coords.template value_at<to>() << std::endl; 
+#endif
                 for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
                     //std::cout << k << " yessssssss ";
                     //                    int a = typename boost::mpl::at<interval_map, t_interval>::type();
@@ -69,27 +71,33 @@ namespace _impl {
 
             local_domain_type local_domain = boost::fusion::at<t_index>(domain_list);
 
+#ifndef NDEBUG
             std::cout << "Functor " << functor_type() << std::endl;
             std::cout << "I loop " << starti + range_type::iminus::value << " -> "
                       << starti + BI + range_type::iplus::value << std::endl;
             std::cout << "J loop " << startj + range_type::jminus::value << " -> "
                       << startj + BJ + range_type::jplus::value << std::endl;
-
+#endif
+            
 
             typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<t_loop_intervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
+#ifndef NDEBUG
             std::cout << " ******************** " << first_hit() << std::endl;
             std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
-
+#endif
+            
             for (int i = starti + range_type::iminus::value;
                  i < starti + BI + range_type::iplus::value;
                  ++i)
                 for (int j = startj + range_type::jminus::value;
                      j < startj + BJ + range_type::jplus::value;
                      ++j) {
+#ifndef NDEBUG
                     std::cout << "--------------------------------------" 
                               << i << ", " 
                               << " (" << startj << "," << j << ") " << j << ", " 
                               << coords.template value_at<first_hit>() << std::endl;                    
+#endif
                     local_domain.move_to(i,j, coords.template value_at<first_hit>());
                     boost::mpl::for_each<t_loop_intervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
                 }
@@ -99,8 +107,8 @@ namespace _impl {
 }
 
 struct backend_block {
-    static const int BI = 2;
-    static const int BJ = 2;
+    static const int BI = 16;
+    static const int BJ = 16;
     static const int BK = 0;
 
     template <typename t_functor_list, // List of functors to execute (in order)
@@ -120,6 +128,8 @@ struct backend_block {
 
         int NBI = n/BI;
         int NBJ = m/BJ;
+
+#ifndef NDEBUG
         std::cout << "n = " << coords.i_high_bound() << " + " 
                   << range_type::iplus::value << " - " 
                   << "(" << coords.i_low_bound() << " + "
@@ -140,7 +150,8 @@ struct backend_block {
                   << "\n"
                   << "Number of blocks on j: " << NBJ
                   << std::endl;
-
+#endif
+        
         for (int bi = 0; bi < NBI; ++bi) {
             int starti = bi*BI+coords.i_low_bound();
             for (int bj = 0; bj < NBJ; ++bj) {
