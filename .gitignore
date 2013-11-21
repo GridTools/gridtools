@@ -16,3 +16,9 @@
 
 CMakeFiles
 CMakeCache.txt
+
+nbproject
+/nbproject
+/Makefile
+/cmake_install.cmake
+/build/
