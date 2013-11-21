@@ -89,9 +89,9 @@ struct storage {
         std::cout << "v j" << std::endl;
         std::cout << "---> k" << std::endl;
 
-        for (int i = 0; i < m_dims[0]; ++i) {
-            for (int j = 0; j < m_dims[1]; ++j) {
-                for (int k = 0; k < m_dims[2]; ++k) {
+        for (int i = 0; i < std::min(m_dims[0],6); ++i) {
+            for (int j = 0; j < std::min(m_dims[1],6); ++j) {
+                for (int k = 0; k < std::min(m_dims[2],12); ++k) {
                     std::cout << "["/*("
                                       << i << ","
                                       << j << ","
@@ -143,7 +143,9 @@ private:
                                         _is_2< void, _t_layout::template at_<I>::value > 
                                         >::type> {
         static int get(const int* ) {
+#ifndef NDEBUG
             std::cout << "U" ;//<< std::endl;
+#endif
             return 1;
         }
     };
