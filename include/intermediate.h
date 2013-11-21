@@ -353,9 +353,9 @@ struct local_domain : public local_domain_base<t_esf_descriptor, t_domain> {
 #endif
     }
 
-    int i() const { }
-    int j() const { }
-    int k() const { }
+    int i() const {return; }
+    int j() const {return; }
+    int k() const {return; }
 };
 
 struct intermediate {
