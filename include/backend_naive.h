@@ -4,48 +4,15 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/find_if.hpp>
+#include "basic_token_execution.h"
 
 namespace _impl_naive {
 
-    template <typename functor_type,
-              typename interval_map,
-              typename local_domain_type,
-              typename t_coords>
-    struct run_f_on_interval {
-        t_coords const &coords;
-        local_domain_type &domain;
-
-        explicit run_f_on_interval(local_domain_type & domain, t_coords const& coords)
-            : coords(coords)
-            , domain(domain)
-        {}
-
-        template <typename t_interval>
-        void operator()(t_interval const&) const {
-            typedef typename index_to_level<typename t_interval::first>::type from;
-            typedef typename index_to_level<typename t_interval::second>::type to;
-            if (boost::mpl::has_key<interval_map, t_interval>::type::value) {
-#ifndef NDEBUG
-                std::cout << "K loop: " << coords.template value_at<from>() << " -> "
-                          << coords.template value_at<to>() << std::endl; 
-#endif
-                for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
-                    //std::cout << k << " yessssssss ";
-                    //                    int a = typename boost::mpl::at<interval_map, t_interval>::type();
-                    typedef typename boost::mpl::at<interval_map, t_interval>::type interval_type;
-                    functor_type::Do(domain, interval_type());
-                    domain.increment();
-                }
-            }
-
-        }
-    };
-
-    template <typename t_functor_list, 
-              typename t_loop_intervals, 
-              typename t_functors_map, 
-              typename t_range_sizes, 
-              typename t_domain_list, 
+    template <typename t_functor_list,
+              typename t_loop_intervals,
+              typename t_functors_map,
+              typename t_range_sizes,
+              typename t_domain_list,
               typename t_coords>
     struct run_functor {
         t_coords const &coords;
@@ -74,14 +41,14 @@ namespace _impl_naive {
             std::cout << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
                       << coords.j_high_bound() + range_type::jplus::value << std::endl;
 #endif
-            
+
 
             typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<t_loop_intervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
 #ifndef NDEBUG
             std::cout << " ******************** " << first_hit() << std::endl;
             std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
 #endif
-            
+
             for (int i = coords.i_low_bound() + range_type::iminus::value;
                  i < coords.i_high_bound() + range_type::iplus::value;
                  ++i)
@@ -89,7 +56,7 @@ namespace _impl_naive {
                      j < coords.j_high_bound() + range_type::jplus::value;
                      ++j) {
                     local_domain.move_to(i,j, coords.template value_at<first_hit>());
-                    boost::mpl::for_each<t_loop_intervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
+                    boost::mpl::for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
                 }
         }
 
