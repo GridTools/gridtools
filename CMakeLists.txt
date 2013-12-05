@@ -15,7 +15,7 @@ set(LIBRARY_OUTPUT_PATH "lib")
 
 
 # define a list of all sources
-set( 
+set(
      SOURCES
      "include/arg_type.h"
      "include/array.h"
