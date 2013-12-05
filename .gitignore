@@ -14,12 +14,14 @@
 
 *.exe
 
-CMakeFiles
-CMakeCache.txt
-
 nbproject
 /nbproject
 /Makefile
 /cmake_install.cmake
 /build/
 /interface1_block.exe.stackdump
+
+/*
+!LICENSE
+!CmakeLists.txt
+!README.md
