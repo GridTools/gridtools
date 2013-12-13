@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
 
-    typedef gridtools::storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef gridtools::cuda_storage<double, gridtools::layout_map<0,1,2> > storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
@@ -138,9 +138,9 @@ int main(int argc, char** argv) {
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<3, gridtools::temporary<double> > p_lap;
-    typedef arg<2, gridtools::temporary<double> > p_flx;
-    typedef arg<4, gridtools::temporary<double> > p_fly;
+    typedef arg<3, gridtools::temporary<storage_type> > p_lap;
+    typedef arg<2, gridtools::temporary<storage_type> > p_flx;
+    typedef arg<4, gridtools::temporary<storage_type> > p_fly;
     typedef arg<5, storage_type > p_coeff;
     typedef arg<1, storage_type > p_in;
     typedef arg<0, storage_type > p_out;
