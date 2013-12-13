@@ -22,13 +22,13 @@ struct is_temporary {
 template <typename U>
 struct is_temporary<temporary<U> > {
     typedef boost::true_type type;
-};    
+};
 
 /**
  * Type to create placeholders for data fields.
- * 
+ *
  * There is a specialization for the case in which T is a temporary
- * 
+ *
  * @tparam I Integer index (unique) of the data field to identify it
  * @tparam T The type of the storage used to store data
  */
@@ -47,25 +47,31 @@ struct arg {
 
 /**
  * Type to create placeholders for data fields.
- * 
+ *
  * Specialization for the case in which T is a temporary
- * 
+ *
  * @tparam I Integer index (unique) of the data field to identify it
  * @tparam T The type of values to store in the actual storage for the temporary data-field
  */
 template <int I, typename U>
 struct arg<I, temporary<U> > {
     typedef U value_type;
+
+#ifndef NDEBUG
     typedef storage<U, GCL::layout_map<0,1,2>, true, arg<I, temporary<U> > > storage_type;
+#else
+    typedef storage<U, GCL::layout_map<0,1,2>, true > storage_type;
+#endif
+
     typedef typename storage_type::iterator_type iterator_type;
     typedef boost::mpl::int_<I> index_type;
 };
 
 /**
  * Type to be used in elementary stencil functions to specify argument mapping and ranges
- * 
+ *
  * The class also provides the interface for accessing data in the function body
- * 
+ *
  * @tparam I Index of the argument in the function argument list
  * @tparam t_range Bounds over which the function access the argument
  */
@@ -100,7 +106,7 @@ struct arg_type {
     int j() const {
         return offset[1];
     }
-    
+
     int k() const {
         return offset[2];
     }
@@ -122,7 +128,7 @@ struct arg_type {
  * Struct to test if an argument is a temporary
  */
 template <typename T>
-struct is_plchldr_to_temp : boost::false_type 
+struct is_plchldr_to_temp : boost::false_type
 {};
 
 /**
