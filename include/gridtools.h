@@ -1,6 +1,7 @@
 #pragma once
 
 #include <storage.h>
+#include <cuda_storage.h>
 #include <array.h>
 #include <layout_map.h>
 #include <axis.h>
