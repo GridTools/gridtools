@@ -11,11 +11,16 @@
 #include <backend_block.h>
 #include <backend_naive.h>
 
-typedef interval<level<0,-1>, level<1,-1> > x_lap;
-typedef interval<level<0,-1>, level<1,-1> > x_flx;
-typedef interval<level<0,-1>, level<1,-1> > x_out;
+using gridtools::level;
+using gridtools::arg_type;
+using gridtools::range;
+using gridtools::arg;
 
-typedef interval<level<0,-2>, level<1,3> > axis;
+typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
+typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
+typedef gridtools::interval<level<0,-1>, level<1,-1> > x_out;
+
+typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 //typedef extend_by<tight_axis, 2>::type axis;
 
 struct lap_function {
@@ -123,7 +128,7 @@ int main(int argc, char** argv) {
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
 
-    typedef storage<double, GCL::layout_map<0,1,2> > storage_type;
+    typedef gridtools::storage<double, gridtools::layout_map<0,1,2> > storage_type;
 
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
@@ -134,7 +139,7 @@ int main(int argc, char** argv) {
 
     out.print();
 
-    GCL::array<storage_type*, 2> args;
+    gridtools::array<storage_type*, 2> args;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;
@@ -145,10 +150,10 @@ int main(int argc, char** argv) {
 
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
 
-    domain_type<arg_type_list> domain
+    gridtools::domain_type<arg_type_list> domain
         (boost::fusion::make_vector(&out, &in, &coeff, &fly, &flx, &lap));
 
-    coordinates<axis> coords(2,d1-2,2,d2-2);
+    gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3;
 
@@ -177,15 +182,15 @@ int main(int argc, char** argv) {
 #define BACKEND backend_naive
 #endif
 
-    intermediate::run<BACKEND>(make_mss(execute_upward, 
-                                              make_esf<lap_function>(p_lap(), p_in()),
-                                              make_independent(
-                                                               make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-                                                               make_esf<fly_function>(p_fly(), p_in(), p_lap())
-                                                               ),
-                                              make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-                                              ), 
-                                     domain, coords);
+    gridtools::intermediate::run<gridtools::BACKEND>(gridtools::make_mss(gridtools::execute_upward, 
+                                                                         gridtools::make_esf<lap_function>(p_lap(), p_in()),
+                                                                         make_independent(
+                                                                                          gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+                                                                                          gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+                                                                                          ),
+                                                                         gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+                                                                         ), 
+                                                     domain, coords);
 
 
     in.print();

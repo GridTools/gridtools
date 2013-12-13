@@ -13,110 +13,7 @@
 #include <boost/mpl/lambda.hpp>
 #include "intermediate.h"
 
-// template <typename t_functor_desc>
-// struct extract_ranges {
-//     typedef typename t_functor_desc::esf_function t_functor;
-
-//     template <typename range_state, typename argument_index>
-//     struct update_range {
-//         typedef typename boost::mpl::at<typename t_functor::arg_list, argument_index>::type argument_type;
-//         typedef typename enclosing_range<range_state, typename argument_type::range_type>::type type;
-//     };
-
-//     typedef typename boost::mpl::fold<
-//         boost::mpl::range_c<int, 0, t_functor::n_args>,
-//         range<0,0,0,0>,
-//         update_range<boost::mpl::_1, boost::mpl::_2>
-//         >::type type;
-// };
-
-// template <typename T>
-// struct extract_ranges<independent_esf<T> >
-// {
-//     typedef typename boost::false_type type;
-// };
-
-// template <typename not_independent_elem>
-// struct from_independents {
-//     typedef typename boost::false_type type;
-// };
-
-// template <typename mpl_array>
-// struct wrap_type {
-//     typedef mpl_array type;
-// };
-
-// template <typename T>
-// struct from_independents<independent_esf<T> > {
-//     typedef typename boost::mpl::fold<
-//         typename independent_esf<T>::esf_list,
-//         boost::mpl::vector<>,
-//         boost::mpl::push_back<boost::mpl::_1, extract_ranges<boost::mpl::_2> >
-//         >::type raw_type;
-
-//     typedef wrap_type<raw_type> type;
-// };
-
-// template <typename state, typename elem>
-// struct traverse_ranges {
-
-//     typedef typename boost::mpl::push_back<
-//         state,
-//         typename boost::mpl::if_<
-//             is_independent<elem>,
-//             typename from_independents<elem>::type,
-//             typename extract_ranges<elem>::type
-//             >::type
-//             >::type type;
-// };
-
-
-// template <typename list_of_ranges>
-// struct prefix_on_ranges {
-
-//     template <typename t_list, typename t_range>
-//     struct state {
-//         typedef t_list list;
-//         typedef t_range range;
-//     };
-
-//     template <typename previous_state, typename current_element>
-//     struct update_state {
-//         typedef typename sum_range<typename previous_state::range,
-//                                    current_element>::type new_range;
-//         typedef typename boost::mpl::push_front<typename previous_state::list, new_range>::type new_list;
-//         typedef state<new_list, new_range> type;
-//     };
-
-//     template <typename previous_state, typename ind_vector>
-//     struct update_state<previous_state, wrap_type<ind_vector> > {
-//         typedef typename boost::mpl::fold<
-//             ind_vector,
-//             boost::mpl::vector<>,
-//             boost::mpl::push_back<boost::mpl::_1, sum_range<typename previous_state::range, boost::mpl::_2> >
-//             >::type raw_ranges;
-
-//         typedef typename boost::mpl::fold<
-//             raw_ranges,
-//             range<0,0,0,0>,
-//             enclosing_range<boost::mpl::_2, boost::mpl::_1>
-//             >::type final_range;
-
-//         typedef typename boost::mpl::push_front<typename previous_state::list, wrap_type<raw_ranges> >::type new_list;
-
-//         typedef state<new_list, final_range> type;
-//     };
-
-//     typedef typename boost::mpl::reverse_fold<
-//         list_of_ranges,
-//         state<boost::mpl::vector<>, range<0,0,0,0> >,
-//         update_state<boost::mpl::_1, boost::mpl::_2> >::type final_state;
-
-//      typedef typename final_state::list type;
-// };
-
-
-
+using namespace gridtools;
 
 typedef int x_all;
 
@@ -256,7 +153,7 @@ struct print_ {
 };
 
 int main() {
-    typedef storage<double, GCL::layout_map<0,1,2> > storage_type;
+    typedef storage<double, gridtools::layout_map<0,1,2> > storage_type;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;

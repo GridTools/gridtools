@@ -11,6 +11,8 @@
 #include "functor_do_methods.h"
 #include "functor_do_method_lookup_maps.h"
 
+using namespace gridtools;
+
 // test functor 1
 struct Functor0 
 {
