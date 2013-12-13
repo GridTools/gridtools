@@ -24,3 +24,6 @@ nbproject
 !LICENSE
 !CmakeLists.txt
 !README.md
+!include
+!examples
+!unit_tests
