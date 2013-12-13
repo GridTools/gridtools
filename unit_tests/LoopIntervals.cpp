@@ -5,6 +5,8 @@
 #include "functor_do_methods.h"
 #include "loopintervals.h"
 
+using namespace gridtools;
+
 // test functor 1
 struct Functor0 
 {

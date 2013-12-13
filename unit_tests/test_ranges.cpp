@@ -3,6 +3,8 @@
 #include "range.h"
 #include <boost/mpl/for_each.hpp>
 
+using namespace gridtools;
+
 typedef range<-1,1,-1,1> range0;
 typedef range<-2,2,-2,2> range1;
 typedef range<-3,3,-3,3> range2;

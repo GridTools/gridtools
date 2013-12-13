@@ -7,7 +7,7 @@
 #include <boost/mpl/at.hpp>
 #include <assert.h>
 
-namespace GCL {
+namespace gridtools {
 
     namespace _impl {
         template <unsigned int I>
@@ -405,7 +405,7 @@ namespace GCL {
     struct default_layout_map<4> {
         typedef layout_map<0,1,2,3> type;
     };
-}
+} // namespace gridtools
 
 
 
