@@ -9,9 +9,10 @@ namespace gridtools {
     /**
      * Flag type to identify data fields that must be treated as temporary
      */
-    template <typename t_value_type>
+    template <typename s_type>
     struct temporary {
-        typedef t_value_type value_type;
+        typedef s_type storage_type;
+        typedef typename storage_type::value_type value_type;
     };
 
 
@@ -56,12 +57,32 @@ namespace gridtools {
      */
     template <int I, typename U>
     struct arg<I, temporary<U> > {
-        typedef U value_type;
 #ifndef NDEBUG
-        typedef storage<U, gridtools::layout_map<0,1,2>, true, arg<I, temporary<U> > > storage_type;
+        template <typename STORAGE, typename TAG>
+        struct add_tag {};
+
+        template <typename VAL, typename LAYOUT, bool BOOL, typename OLD_TAG, template <typename, typename, bool, typename> class STORE, typename NEW_TAG>
+        struct add_tag<STORE<VAL, LAYOUT, BOOL, OLD_TAG>, NEW_TAG> {
+            typedef STORE<VAL, LAYOUT, true, NEW_TAG> type;
+        };
 #else
-        typedef storage<U, gridtools::layout_map<0,1,2>, true > storage_type;
+        template <typename STORAGE>
+        struct make_it_temporary {};
+
+        template <typename VAL, typename LAYOUT, bool BOOL, template <typename, typename, bool> class STORE>
+        struct make_it_temporary<STORE<VAL, LAYOUT, BOOL> > {
+            typedef STORE<VAL, LAYOUT, true> type;
+        };
+
 #endif
+
+#ifndef NDEBUG
+        typedef typename add_tag<U, arg<I, temporary<U> > >::type storage_type;
+#else
+        typedef typename make_it_temporary<U>::type storage_type;
+#endif
+        typedef typename storage_type::value_type value_type;
+
         typedef typename storage_type::iterator_type iterator_type;
         typedef boost::mpl::int_<I> index_type;
     };
