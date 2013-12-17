@@ -375,83 +375,90 @@ namespace gridtools {
                 compute_functor_do_methods<boost::mpl::_, typename t_coords::axis_type>
                 >::type FunctorDoMethods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 
-        // compute the loop intervals
-        typedef typename compute_loop_intervals<
-            FunctorDoMethods,
-            typename t_coords::axis_type
-            >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
+            // compute the loop intervals
+            typedef typename compute_loop_intervals<
+                FunctorDoMethods,
+                typename t_coords::axis_type
+                >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
 
-        // compute the do method lookup maps
-        typedef typename boost::mpl::transform<
-            FunctorDoMethods,
+            // compute the do method lookup maps
+            typedef typename boost::mpl::transform<
+                FunctorDoMethods,
                 compute_functor_do_method_lookup_map<boost::mpl::_, LoopIntervals>
                 >::type FunctorDoMethodLookupMaps; // vector of maps, indexed by functors indices in Functor vector. 
-        // Each map key is a pair of indices in the axis, value is the corresponding method interval.
+            // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
 #ifndef NDEBUG
-        std::cout << "Actual loop bounds ";
-        boost::mpl::for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
-        std::cout << std::endl;
+            std::cout << "Actual loop bounds ";
+            boost::mpl::for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
+            std::cout << std::endl;
 #endif
         
-        // Create a fusion::vector of domains for each functor
-        typedef typename boost::mpl::transform<
-            typename t_mss_type::linear_esf,
-            typename _impl::get_local_domain<t_domain_type, local_domain> >::type mpl_local_domain_list;
-        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type t_local_domain_list;
+            // Create a fusion::vector of domains for each functor
+            typedef typename boost::mpl::transform<
+                typename t_mss_type::linear_esf,
+                typename _impl::get_local_domain<t_domain_type, local_domain> >::type mpl_local_domain_list;
+            typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type t_local_domain_list;
 
-        t_local_domain_list local_domain_list;
-        boost::fusion::for_each(local_domain_list, 
-                                _impl::instantiate_local_domain<t_domain_type>
-                                (const_cast<typename boost::remove_const<t_domain_type>::type*>(&domain)));
+            t_local_domain_list local_domain_list;
+            boost::fusion::for_each(local_domain_list, 
+                                    _impl::instantiate_local_domain<t_domain_type>
+                                    (const_cast<typename boost::remove_const<t_domain_type>::type*>(&domain)));
 
-        // Extract the ranges from functors to determine iteration spaces bounds
+            // Extract the ranges from functors to determine iteration spaces bounds
 
-        // For each functor collect the minimum enclosing box of the ranges for the arguments
-        typedef typename boost::mpl::fold<typename t_mss_type::esf_array,
-                boost::mpl::vector<>,
-                _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
-                >::type ranges_list;
+            // For each functor collect the minimum enclosing box of the ranges for the arguments
+            typedef typename boost::mpl::fold<typename t_mss_type::esf_array,
+                                              boost::mpl::vector<>,
+                                              _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
+                                              >::type ranges_list;
 
 
 #ifndef NDEBUG
-        std::cout << "ranges list" << std::endl;
-        boost::mpl::for_each<ranges_list>(_debug::print__());
+            std::cout << "ranges list" << std::endl;
+            boost::mpl::for_each<ranges_list>(_debug::print__());
 #endif
         
-        // Compute prefix sum to compute bounding boxes for calling a given functor
-        typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
+            // Compute prefix sum to compute bounding boxes for calling a given functor
+            typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
 
 #ifndef NDEBUG
-        std::cout << "range sizes" << std::endl;
-        boost::mpl::for_each<structured_range_sizes>(_debug::print__());
-        std::cout << "end1" <<std::endl;
+            std::cout << "range sizes" << std::endl;
+            boost::mpl::for_each<structured_range_sizes>(_debug::print__());
+            std::cout << "end1" <<std::endl;
 #endif
         
-        typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
+            typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
 
 #ifndef NDEBUG
-        boost::mpl::for_each<range_sizes>(_debug::print__());
-        std::cout << "end2" <<std::endl;
+            boost::mpl::for_each<range_sizes>(_debug::print__());
+            std::cout << "end2" <<std::endl;
 #endif
         
-        int tileI = (t_backend::BI)?
-            (t_backend::BI):
-            (coords.i_high_bound()-coords.i_low_bound()+1);
+            int tileI = (t_backend::BI)?
+                (t_backend::BI):
+                (coords.i_high_bound()-coords.i_low_bound()+1);
         
-        int tileJ = (t_backend::BJ)?
-            (t_backend::BJ):
-            (coords.j_high_bound()-coords.j_low_bound()+1);
+            int tileJ = (t_backend::BJ)?
+                (t_backend::BJ):
+                (coords.j_high_bound()-coords.j_low_bound()+1);
 
-        // Prepare domain's temporary fields to proper storage sizes
-        domain.template prepare_temporaries<t_mss_type, range_sizes, t_backend>
-            (tileI,
-             tileJ, 
-             coords.value_at_top()-coords.value_at_bottom()+1);
 
-        // Now run!
-        t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
+            /*******
+                    The following couple of calls should be decoupled from <run>
+                    since it may be costly to do that work everytime a stencil
+                    is executed.
+             *******/
+            // Prepare domain's temporary fields to proper storage sizes
+            domain.template prepare_temporaries<t_mss_type, range_sizes, t_backend>
+                (tileI,
+                 tileJ, 
+                 coords.value_at_top()-coords.value_at_bottom()+1);
 
+            domain.setup_computation();
+            // Now run!
+            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
+            domain.finalize_computation();
         }    
     };
 

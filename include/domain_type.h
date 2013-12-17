@@ -218,6 +218,21 @@ namespace gridtools {
                 delete elem;
             }
         };
+
+        struct call_h2d {
+            template <typename t_arg>
+            void operator()(t_arg * arg) const {
+                arg->h2d_update();
+            }
+        };
+
+        struct call_d2h {
+            template <typename t_arg>
+            void operator()(t_arg * arg) const {
+                arg->d2h_update();
+            }
+        };
+
     } // namespace _impl
 
     /**
@@ -328,64 +343,80 @@ namespace gridtools {
             typedef typename boost::mpl::fold<placeholders,
                 boost::mpl::vector<>,
                 boost::mpl::if_<
-            is_plchldr_to_temp<boost::mpl::_2>,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-                boost::mpl::_1>
+                   is_plchldr_to_temp<boost::mpl::_2>,
+                       boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
+                       boost::mpl::_1>
                 >::type list_of_temporaries;
-
+        
 #ifndef NDEBUG
-        std::cout << "BEGIN TMPS" << std::endl;
-        boost::mpl::for_each<list_of_temporaries>(_debug::print_index());
-        std::cout << "END TMPS" << std::endl;
+            std::cout << "BEGIN TMPS" << std::endl;
+            boost::mpl::for_each<list_of_temporaries>(_debug::print_index());
+            std::cout << "END TMPS" << std::endl;
 #endif
         
-        // Compute a vector of vectors of temp indices of temporaris initialized by each functor
-        typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
-                boost::mpl::vector<>,
-                boost::mpl::push_back<boost::mpl::_1, typename _impl::get_temps_per_functor<boost::mpl::_2> >
-                >::type temps_per_functor;
+            // Compute a vector of vectors of temp indices of temporaris initialized by each functor
+            typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
+                    boost::mpl::vector<>,
+                    boost::mpl::push_back<boost::mpl::_1, typename _impl::get_temps_per_functor<boost::mpl::_2> >
+                    >::type temps_per_functor;
 
-        typedef typename boost::mpl::transform<
-            list_of_temporaries,
+             typedef typename boost::mpl::transform<
+                list_of_temporaries,
                 _impl::associate_ranges<temps_per_functor, t_range_sizes>
                 >::type list_of_ranges;
 
 #ifndef NDEBUG
-        std::cout << "BEGIN TMPS/F" << std::endl;
-        boost::mpl::for_each<temps_per_functor>(_debug::print_tmps());
-        std::cout << "END TMPS/F" << std::endl;
+            std::cout << "BEGIN TMPS/F" << std::endl;
+            boost::mpl::for_each<temps_per_functor>(_debug::print_tmps());
+            std::cout << "END TMPS/F" << std::endl;
 
-        std::cout << "BEGIN RANGES/F" << std::endl;
-        boost::mpl::for_each<list_of_ranges>(_debug::print_ranges());
-        std::cout << "END RANGES/F" << std::endl;
+            std::cout << "BEGIN RANGES/F" << std::endl;
+            boost::mpl::for_each<list_of_ranges>(_debug::print_ranges());
+            std::cout << "END RANGES/F" << std::endl;
 
-        std::cout << "BEGIN Fs" << std::endl;
-        boost::mpl::for_each<typename t_mss_type::linear_esf>(_debug::print_ranges());
-        std::cout << "END Fs" << std::endl;
+            std::cout << "BEGIN Fs" << std::endl;
+            boost::mpl::for_each<typename t_mss_type::linear_esf>(_debug::print_ranges());
+            std::cout << "END Fs" << std::endl;
 #endif
         
-        typedef typename boost::fusion::filter_view<arg_list, 
-                                                    is_temporary_storage<boost::mpl::_> > tmp_view_type;
-        tmp_view_type fview(args);
+            typedef typename boost::fusion::filter_view<arg_list, 
+                is_temporary_storage<boost::mpl::_> > tmp_view_type;
+            tmp_view_type fview(args);
 
 #ifndef NDEBUG
-        std::cout << "BEGIN VIEW" << std::endl;
-        boost::fusion::for_each(fview, _debug::print_view());
-        std::cout << "END VIEW" << std::endl;
+            std::cout << "BEGIN VIEW" << std::endl;
+            boost::fusion::for_each(fview, _debug::print_view());
+            std::cout << "END VIEW" << std::endl;
 #endif
         
-        list_of_ranges lor;
-        typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
-        zipper zzip(fview, lor);
-        boost::fusion::zip_view<zipper> zip(zzip); 
-        boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >(tileI, tileJ, tileK));
+            list_of_ranges lor;
+            typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
+            zipper zzip(fview, lor);
+            boost::fusion::zip_view<zipper> zip(zzip); 
+            boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >(tileI, tileJ, tileK));
 
 #ifndef NDEBUG
-        std::cout << "BEGIN VIEW DOPO" << std::endl;
-        boost::fusion::for_each(fview, _debug::print_view_());
-        std::cout << "END VIEW DOPO" << std::endl;
+            std::cout << "BEGIN VIEW DOPO" << std::endl;
+            boost::fusion::for_each(fview, _debug::print_view_());
+            std::cout << "END VIEW DOPO" << std::endl;
 #endif        
-}
+        }
+
+        /**
+           This function calls h2d_update on all storages, in order to
+           get the data prepared in the case of GPU execution.
+        */
+        void setup_computation() {
+            boost::fusion::for_each(args, _impl::call_h2d());
+        }
+
+        /**
+           This function calls d2h_update on all storages, in order to
+           get the data back to the host after a computation.
+        */
+        void finalize_computation() {
+            boost::fusion::for_each(args, _impl::call_d2h());
+        }
 
         template <typename T>
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&

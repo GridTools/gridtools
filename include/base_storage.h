@@ -1,4 +1,5 @@
 #pragma once
+#include "basic_utils.h"
 
 namespace gridtools {
 
@@ -35,6 +36,9 @@ namespace gridtools {
         explicit base_storage() {
             is_set=false;
         }
+
+        virtual void h2d_update() const {}
+        virtual void d2h_update() const {}
 
         void info() const {
             std::cout << m_dims[0] << "x"

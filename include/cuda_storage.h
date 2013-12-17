@@ -4,7 +4,7 @@
 #include <iostream>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/utility/enable_if.hpp>
-#include "basic_utils.h"
+
 #ifdef __CUDACC__
 
 //////// STORAGE
@@ -63,6 +63,14 @@ namespace gridtools {
                 delete[] host_data;
                 cudaFree(acc_data);
             }
+        }
+
+        void h2d_update() const {
+            cudaMemcpy(acc_data, host_data, m_size*sizeof(value_type), cudaMemcpyHostToDevice);
+        }
+
+        void d2h_update() const {
+            cudaMemcpy(host_data, acc_data, m_size*sizeof(value_type), cudaMemcpyDeviceToHost);
         }
 
         value_type* min_addr() const {

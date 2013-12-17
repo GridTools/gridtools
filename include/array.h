@@ -41,6 +41,7 @@ namespace gridtools {
         array& operator=(A const& a) {
             assert(a.size() == _size);
             std::copy(a.begin(), a.end(), _array);
+            return this;
         }
 
         size_t size() const {return _size;}

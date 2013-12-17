@@ -32,7 +32,6 @@ set(
      "include/axis.h"
      "include/backend0.h"
      "include/backend_naive.h"
-     "include/calls.h"
      "include/domain_type.h"
      "include/execution_types.h"
      "include/functor_do_method_lookup_maps.h"

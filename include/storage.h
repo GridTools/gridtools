@@ -5,7 +5,6 @@
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "base_storage.h"
-#include "basic_utils.h"
 //////// STORAGE
 
 namespace gridtools {
