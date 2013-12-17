@@ -110,7 +110,7 @@ namespace gridtools {
         }
 
         template <int I>
-        const int stride_along() const {
+        int stride_along() const {
             return get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 

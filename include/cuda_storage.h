@@ -5,6 +5,8 @@
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "basic_utils.h"
+#ifdef __CUDACC__
+
 //////// STORAGE
 
 namespace gridtools {
@@ -23,7 +25,8 @@ namespace gridtools {
         int m_dims[3];
         int strides[3];
         int m_size;
-        value_type* data;
+        value_type* host_data;
+        value_type* acc_data;
         bool is_set;
         std::string name;
 
@@ -38,9 +41,18 @@ namespace gridtools {
             strides[2] = 1;
             m_size = m_dims[0] * m_dims[1] * m_dims[2];
             std::cout << "Size " << m_size << std::endl;
-            data = new value_type[m_size];
+            host_data = new value_type[m_size];
+            int err = cudaMalloc(&acc_data, m_size*sizeof(value_type));
+            if (err != cudaSuccess) {
+                std::cout << "Error allocating storage in "
+                          << __PRETTY_FUNCTION__
+                          << " : size = "
+                          << m_size*sizeof(value_type)
+                          << " bytes "
+                          << std::endl;
+            }
             for (int i = 0; i < m_size; ++i)
-                data[i] = init;
+                host_data[i] = init;
             is_set=true;
             name = s;
         }
@@ -61,25 +73,44 @@ namespace gridtools {
 
         ~cuda_storage() {
             if (is_set) {
-                std::cout << "deleting " << std::hex << data << std::endl;
-                delete[] data;
+                std::cout << "deleting " << std::hex << host_data << std::endl;
+                delete[] host_data;
+                cudaFree(acc_data);
             }
         }
 
         value_type* min_addr() const {
-            return data ;
+#ifdef __CUDA_ARCH__
+            return acc_data ;
+#else
+            return host_data ;
+#endif
         }
 
         value_type* max_addr() const {
-            return data+m_size;
+#ifdef __CUDA_ARCH__
+            return acc_data+m_size;
+#else
+            return host_data+m_size;
+#endif
         }
 
+        __host__ __device__
         value_type& operator()(int i, int j, int k) {
-            return data[_index(i,j,k)];
+#ifdef __CUDA_ARCH__
+            return acc_data[_index(i,j,k)];
+#else
+            return host_data[_index(i,j,k)];
+#endif
         }
 
+        __host__ __device__
         value_type const & operator()(int i, int j, int k) const {
-            return data[_index(i,j,k)];
+#ifdef __CUDA_ARCH__
+            return acc_data[_index(i,j,k)];
+#else
+            return host_data[_index(i,j,k)];
+#endif
         }
 
         void print() const {
@@ -110,7 +141,7 @@ namespace gridtools {
         }
 
         template <int I>
-        const int stride_along() const {
+        int stride_along() const {
             return get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
@@ -163,6 +194,7 @@ struct get_stride<I, _t_layout, typename boost::disable_if<
     }
 };
 
+        __host__ __device__
         int _index(int i, int j, int k) const {
             int index;
             if (is_temporary) {
@@ -236,3 +268,4 @@ struct get_stride<I, _t_layout, typename boost::disable_if<
     };
 #endif
 } // namespace gridtools
+#endif

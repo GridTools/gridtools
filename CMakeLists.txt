@@ -8,6 +8,16 @@ if (Boost_FOUND)
     include_directories( ${Boost_INCLUDE_DIRS} )
 endif()
 
+set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
+
+if( "${USE_GPU}" STREQUAL "ON" )
+  include(FindCUDA)
+  include_directories(${CUDA_INCLUDE_DIRS})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
+else()
+set (CUDA_LIBRARIES "")
+endif()
+
 include_directories( include/ ) ## Library header files
 
 set(EXECUTABLE_OUTPUT_PATH "build")
@@ -62,4 +72,8 @@ add_executable(
 set_target_properties(test-independent
         PROPERTIES COMPILE_FLAGS "-std=c++11")
 
-
+if( "${USE_GPU}" STREQUAL "ON" )
+    cuda_add_executable( interface1_cuda examples/interface1.cu )
+    #add_dependencies(  )
+    #target_link_libraries( interface1_cuda ${CUDA_MPI_LIB} )
+endif()

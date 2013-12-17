@@ -100,34 +100,18 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
     return s << "out_function";
 }
 
-struct print {
-    template <typename T>
-    void operator()(T const t) const {
-        t->text();
-    }
-};
-
-struct stampa {
-    template <typename T>
-    void operator()(T const t) const {
-        std::cout << t << " ";
-    }
-};
-
-struct stampa1 {
-    template <typename T>
-    void operator()(T const& t) const {
-        std::cout << *t << " ";
-    }
-};
-
-
 int main(int argc, char** argv) {
     int d1 = atoi(argv[1]);
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
 
-    typedef gridtools::cuda_storage<double, gridtools::layout_map<0,1,2> > storage_type;
+#ifdef DOING_CUDA
+#define STORAGE cuda_storage
+#else
+#define STORAGE storage
+#endif
+
+    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
@@ -179,14 +163,17 @@ int main(int argc, char** argv) {
      */
     gridtools::intermediate::run<gridtools::BACKEND>
     (
-        gridtools::make_mss(gridtools::execute_upward,
-        gridtools::make_esf<lap_function>(p_lap(), p_in()),
-        gridtools::make_independent
+        gridtools::make_mss
         (
-            gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-            gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-        ),
-        gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+            gridtools::execute_upward,
+            gridtools::make_esf<lap_function>(p_lap(), p_in()),
+            gridtools::make_independent
+            (
+                gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+                gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+            ),
+            gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff()
+        )
     ),
     domain, coords);
 
