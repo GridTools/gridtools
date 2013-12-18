@@ -120,7 +120,6 @@ namespace gridtools {
                       << std::endl;
 #endif
 
-#pragma omp parallel for collapse(2)
             for (int bi = 0; bi < NBI; ++bi) {
                 for (int bj = 0; bj < NBJ; ++bj) {
                     int starti = bi*BI+coords.i_low_bound();
