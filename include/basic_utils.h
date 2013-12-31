@@ -1,5 +1,7 @@
 #pragma once
 
+#include <host_device.h>
+
 namespace gridtools {
     __host__ __device__
     inline int modulus(int __i, int __j) {

@@ -6,6 +6,7 @@
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/at.hpp>
 #include <assert.h>
+#include <host_device.h>
 
 namespace gridtools {
 
