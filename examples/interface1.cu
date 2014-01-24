@@ -1,2 +1,2 @@
-#define DOING_CUDA
+#define CUDA_EXAMPLE
 #include "interface1.cpp"

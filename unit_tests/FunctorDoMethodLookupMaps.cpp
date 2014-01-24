@@ -2,10 +2,11 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/pair.hpp>
-#include <boost/mpl/for_each.hpp>
+#include "gt_for_each/for_each.hpp"
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/at.hpp>
 #include <iostream>
+#include "host_device.h"
 #include "interval.h"
 #include "loopintervals.h"
 #include "functor_do_methods.h"
@@ -104,7 +105,7 @@ struct PrintDoMethodLookupMap
         }
 
         // print the map
-        boost::mpl::for_each<
+        for_each<
             TLoopIntervals
         >(PrintLoopInterval<DoMethodLookUpMap>());
     }
@@ -143,7 +144,7 @@ int main(int argc, char *argv[])
 
     // print all loop intervals of functor 0, 1 and 2
     std::cout << "Print the Functor0, Functor1 and Functor2 do method lookup maps:" << std::endl;
-    boost::mpl::for_each<
+    for_each<
         boost::mpl::range_c<int, 0, boost::mpl::size<FunctorsDoMethods>::value>
     >(PrintDoMethodLookupMap<Functors, LoopIntervals, FunctorDoMethodLookupMaps>());
     std::cout << "Done!" << std::endl;

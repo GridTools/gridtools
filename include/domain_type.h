@@ -18,7 +18,7 @@
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/make_vector.hpp>
-#include <boost/mpl/for_each.hpp>
+#include "gt_for_each/for_each.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/mpl/distance.hpp>
@@ -47,7 +47,7 @@ namespace gridtools {
         struct print_tmps {
             template <typename T>
             void operator()(T& ) const {
-                boost::mpl::for_each<T>(print_index());
+                for_each<T>(print_index());
                 std::cout << " ---" << std::endl;
             }
         };
@@ -100,6 +100,7 @@ namespace gridtools {
 
         struct moveto_functor {
             int i,j,k;
+            __host__ __device__
             moveto_functor(int i, int j, int k) 
                 : i(i)
                 , j(j)
@@ -107,6 +108,7 @@ namespace gridtools {
             {}
 
             template <typename t_zip_elem>
+            __host__ __device__
             void operator()(t_zip_elem const &a) const {
                 boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
             }
@@ -115,6 +117,7 @@ namespace gridtools {
         template <int DIR>
         struct increment_functor {
             template <typename t_zip_elem>
+            __host__ __device__
             void operator()(t_zip_elem const &a) const {
                 // Simpler code:
                 // iterators[l] += (*(args[l])).template stride_along<DIR>();
@@ -194,6 +197,7 @@ namespace gridtools {
             int tileJ;
             int tileK;
         
+            __host__ __device__
             instantiate_tmps(int tileI, int tileJ, int tileK)
                 : tileI(tileI)
                 , tileJ(tileJ)
@@ -337,7 +341,9 @@ namespace gridtools {
          */
         template <typename t_mss_type, typename t_range_sizes, typename t_back_end>
         void prepare_temporaries(int tileI, int tileJ, int tileK) {
+#ifndef NDEBUG
             std::cout << "Prepare ARGUMENTS" << std::endl;
+#endif
 
             // Got to find temporary indices
             typedef typename boost::mpl::fold<placeholders,
@@ -350,7 +356,7 @@ namespace gridtools {
         
 #ifndef NDEBUG
             std::cout << "BEGIN TMPS" << std::endl;
-            boost::mpl::for_each<list_of_temporaries>(_debug::print_index());
+            for_each<list_of_temporaries>(_debug::print_index());
             std::cout << "END TMPS" << std::endl;
 #endif
         
@@ -367,15 +373,15 @@ namespace gridtools {
 
 #ifndef NDEBUG
             std::cout << "BEGIN TMPS/F" << std::endl;
-            boost::mpl::for_each<temps_per_functor>(_debug::print_tmps());
+            for_each<temps_per_functor>(_debug::print_tmps());
             std::cout << "END TMPS/F" << std::endl;
 
             std::cout << "BEGIN RANGES/F" << std::endl;
-            boost::mpl::for_each<list_of_ranges>(_debug::print_ranges());
+            for_each<list_of_ranges>(_debug::print_ranges());
             std::cout << "END RANGES/F" << std::endl;
 
             std::cout << "BEGIN Fs" << std::endl;
-            boost::mpl::for_each<typename t_mss_type::linear_esf>(_debug::print_ranges());
+            for_each<typename t_mss_type::linear_esf>(_debug::print_ranges());
             std::cout << "END Fs" << std::endl;
 #endif
         
@@ -419,6 +425,7 @@ namespace gridtools {
         }
 
         template <typename T>
+        __host__ __device__
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&
         operator[](T const &) {
             return *(boost::fusion::template at<typename T::index_type>(iterators));
@@ -432,6 +439,7 @@ namespace gridtools {
          * @return Reference to the value pointed to Ith iterator
          */
         template <typename I>
+        __host__ __device__
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
         direct() const {
             assert(boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(args)->min_addr());
@@ -443,6 +451,7 @@ namespace gridtools {
         /**
          * Move all iterators of storages to (i,j,k) coordinates
          */
+        __host__ __device__
         void move_to(int i, int j, int k) const {
             boost::fusion::for_each(zipping(zip_vector), _impl::moveto_functor(i,j,k));
             // Simpler code:
@@ -459,6 +468,7 @@ namespace gridtools {
          * @\tparam DIR index of coordinate to increment by one
          */
         template <int DIR>
+        __host__ __device__
         void increment_along() const {
             boost::fusion::for_each(zipping(zip_vector), _impl::increment_functor<DIR>());
             // Simpler code:

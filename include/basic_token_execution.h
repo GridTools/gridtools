@@ -13,12 +13,14 @@ namespace gridtools {
             t_coords const &coords;
             local_domain_type const &domain;
 
+            __host__ __device__
             explicit run_f_on_interval(local_domain_type & domain, t_coords const& coords)
                 : coords(coords)
                 , domain(domain)
             {}
 
             template <typename t_interval>
+            __host__ __device__
             void operator()(t_interval const&) const {
                 typedef typename index_to_level<typename t_interval::first>::type from;
                 typedef typename index_to_level<typename t_interval::second>::type to;

@@ -67,7 +67,7 @@ namespace gridtools {
                                   << coords.template value_at<first_hit>() << std::endl;
 #endif
                         local_domain.move_to(i,j, coords.template value_at<first_hit>());
-                        boost::mpl::for_each<t_loop_intervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
+                        for_each<t_loop_intervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
                     }
             }
 
@@ -124,7 +124,7 @@ namespace gridtools {
                 for (int bj = 0; bj < NBJ; ++bj) {
                     int starti = bi*BI+coords.i_low_bound();
                     int startj = bj*BJ+coords.j_low_bound();
-                    boost::mpl::for_each<iter_range>(_impl::run_functor
+                    for_each<iter_range>(_impl::run_functor
                                                      <
                                                      t_functor_list,
                                                      t_loop_intervals,

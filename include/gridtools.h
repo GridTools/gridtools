@@ -1,5 +1,8 @@
 #pragma once
 
+#define BOOST_NO_CXX11_RVALUE_REFERENCES
+
+#include <defs.h>
 #include <host_device.h>
 #include <storage.h>
 #include <cuda_storage.h>

@@ -1,6 +1,10 @@
 #include <gridtools.h>
+#ifdef CUDA_EXAMPLE
+#include <backend_cuda.h>
+#else
 #include <backend_block.h>
 #include <backend_naive.h>
+#endif
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -26,6 +30,7 @@ struct lap_function {
     typedef typename boost::mpl::vector<out, in> arg_list;
 
     template <typename t_domain>
+    __host__ __device__
     static void Do(t_domain const & dom, x_lap) {
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
@@ -42,6 +47,7 @@ struct flx_function {
     typedef typename boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename t_domain>
+    __host__ __device__
     static void Do(t_domain const & dom, x_flx) {
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
@@ -58,6 +64,7 @@ struct fly_function {
     typedef typename boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename t_domain>
+    __host__ __device__
     static void Do(t_domain const & dom, x_flx) {
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
@@ -76,6 +83,7 @@ struct out_function {
     typedef typename boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename t_domain>
+    __host__ __device__
     static void Do(t_domain const & dom, x_out) {
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx(-1,0,0)) +
@@ -105,7 +113,7 @@ int main(int argc, char** argv) {
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
 
-#ifdef DOING_CUDA
+#ifdef CUDA_EXAMPLE
 #define STORAGE cuda_storage
 #else
 #define STORAGE storage
@@ -146,10 +154,14 @@ int main(int argc, char** argv) {
     coords.value_list[0] = 0;
     coords.value_list[1] = d3;
 
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend_cuda
+#else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend_block
 #else
 #define BACKEND backend_naive
+#endif
 #endif
 
     /*

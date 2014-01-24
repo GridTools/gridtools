@@ -3,12 +3,8 @@ project( GRIDTOOLS )
 enable_language( CXX )
 
 # include boost
-find_package( Boost )
-if (Boost_FOUND)
-    include_directories( ${Boost_INCLUDE_DIRS} )
-endif()
-
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
+set( GPU_ENABLED_FUSION "../fusion/include" CACHE STRING "Path to...")
 
 if( "${USE_GPU}" STREQUAL "ON" )
   include(FindCUDA)
@@ -19,6 +15,12 @@ set (CUDA_LIBRARIES "")
 endif()
 
 include_directories( include/ ) ## Library header files
+include_directories( ${GPU_ENABLED_FUSION} ) ## Library header files
+
+find_package( Boost )
+if (Boost_FOUND)
+    include_directories( ${Boost_INCLUDE_DIRS} )
+endif()
 
 set(EXECUTABLE_OUTPUT_PATH "build")
 set(LIBRARY_OUTPUT_PATH "lib")

@@ -39,6 +39,7 @@ namespace gridtools {
         {
             host_data = new value_type[m_size];
             int err = cudaMalloc(&acc_data, m_size*sizeof(value_type));
+#ifndef __CUDA_ARCH__
             if (err != cudaSuccess) {
                 std::cout << "Error allocating storage in "
                           << __PRETTY_FUNCTION__
@@ -47,6 +48,7 @@ namespace gridtools {
                           << " bytes "
                           << std::endl;
             }
+#endif
         }
 
         explicit cuda_storage()
@@ -59,7 +61,9 @@ namespace gridtools {
 
         ~cuda_storage() {
             if (is_set) {
+#ifndef __CUDA_ARCH__
                 std::cout << "deleting " << std::hex << host_data << std::endl;
+#endif
                 delete[] host_data;
                 cudaFree(acc_data);
             }
@@ -73,6 +77,7 @@ namespace gridtools {
             cudaMemcpy(host_data, acc_data, m_size*sizeof(value_type), cudaMemcpyDeviceToHost);
         }
 
+        __host__ __device__
         value_type* min_addr() const {
 #ifdef __CUDA_ARCH__
             return acc_data ;
@@ -81,6 +86,7 @@ namespace gridtools {
 #endif
         }
 
+        __host__ __device__
         value_type* max_addr() const {
 #ifdef __CUDA_ARCH__
             return acc_data+m_size;

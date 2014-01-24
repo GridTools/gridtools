@@ -2,7 +2,7 @@
 
 #include "make_stencils.h"
 #include <boost/mpl/transform.hpp>
-#include <boost/mpl/for_each.hpp>
+#include "gt_for_each/for_each.hpp"
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -59,11 +59,13 @@ namespace gridtools {
         template <typename t_dom>
         struct instantiate_local_domain {
             t_dom * dom;
+            __host__ __device__
             instantiate_local_domain(t_dom * dom)
                 : dom(dom)
             {}
 
             template <typename t_elem>
+            __host__ __device__
             void operator()(t_elem & elem) const {
                 elem.init(dom, 0,0,0);
             }
@@ -231,14 +233,14 @@ namespace gridtools {
             template <typename mplvec>
             void operator()(mplvec const&) const {
                 std::cout << "Independent" << std::endl;
-                boost::mpl::for_each<mplvec>(print__(std::string("    ")));
+                for_each<mplvec>(print__(std::string("    ")));
                 std::cout << "End Independent" << std::endl;
             }
 
             template <typename mplvec>
             void operator()(_impl::wrap_type<mplvec> const&) const {
                 std::cout << "Independent" << std::endl;
-                boost::mpl::for_each<mplvec>(print__(std::string("    ")));
+                for_each<mplvec>(print__(std::string("    ")));
                 std::cout << "End Independent" << std::endl;
             }
         };
@@ -265,38 +267,45 @@ namespace gridtools {
         int m_i,m_j,m_k;
 
                     
+        __host__ __device__
         void init(t_domain* _dom) {
             dom = _dom;
         }
 
         template <typename T>
+        __host__ __device__
         typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         operator()(T const& t) const {
             return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
         }
 
         template <typename T>
+        __host__ __device__
         typename boost::mpl::at<esf_args, typename T::index>::type::value_type& 
         operator()(T const&, int i, int j, int k) const {
             return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index>::type::index>();
         }
 
         template <typename T>
+        __host__ __device__
         typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
         get(int i, int j, int k) const {
             return dom->template direct<typename boost::mpl::template at_c<esf_args, T::index>::type::index>();     
         }
 
         template <typename T>
+        __host__ __device__
         typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
         operator[](T const&) const {
             return dom->template direct<boost::mpl::template at_c<esf_args, T::index>::type::index>();
         }
 
+        __host__ __device__
         void move_to(int i, int j, int k) const {
             dom->move_to(i,j,k);
         }
 
+        __host__ __device__
         void increment() const {
             dom->template increment_along<2>();
         }
@@ -344,8 +353,10 @@ namespace gridtools {
         typedef typename t_domain::placeholders dom_placeholders;
         typedef t_domain domain_type;
 
+        __host__ __device__
         local_domain() {}
                 
+        __host__ __device__
         void init(t_domain* dom, int, int, int)
         {
             base_type::init(dom);
@@ -354,8 +365,11 @@ namespace gridtools {
 #endif
         }
 
+        __host__ __device__
         int i() const {return; }
+        __host__ __device__
         int j() const {return; }
+        __host__ __device__
         int k() const {return; }
     };
 
@@ -390,7 +404,7 @@ namespace gridtools {
 
 #ifndef NDEBUG
             std::cout << "Actual loop bounds ";
-            boost::mpl::for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
+            for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
             std::cout << std::endl;
 #endif
         
@@ -416,7 +430,7 @@ namespace gridtools {
 
 #ifndef NDEBUG
             std::cout << "ranges list" << std::endl;
-            boost::mpl::for_each<ranges_list>(_debug::print__());
+            for_each<ranges_list>(_debug::print__());
 #endif
         
             // Compute prefix sum to compute bounding boxes for calling a given functor
@@ -424,14 +438,14 @@ namespace gridtools {
 
 #ifndef NDEBUG
             std::cout << "range sizes" << std::endl;
-            boost::mpl::for_each<structured_range_sizes>(_debug::print__());
+            for_each<structured_range_sizes>(_debug::print__());
             std::cout << "end1" <<std::endl;
 #endif
         
             typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
 
 #ifndef NDEBUG
-            boost::mpl::for_each<range_sizes>(_debug::print__());
+            for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
         

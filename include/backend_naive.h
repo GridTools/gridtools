@@ -57,7 +57,7 @@ namespace gridtools {
                          j < coords.j_high_bound() + range_type::jplus::value;
                          ++j) {
                         local_domain.move_to(i,j, coords.template value_at<first_hit>());
-                        boost::mpl::for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
+                        for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
                     }
             }
 
@@ -80,7 +80,7 @@ namespace gridtools {
 
             typedef typename boost::mpl::range_c<int, 0, boost::mpl::size<t_functor_list>::type::value> iter_range;
 
-            boost::mpl::for_each<iter_range>(_impl_naive::run_functor
+            for_each<iter_range>(_impl_naive::run_functor
                                              <
                                              t_functor_list,
                                              t_loop_intervals,
