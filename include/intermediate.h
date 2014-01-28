@@ -59,13 +59,13 @@ namespace gridtools {
         template <typename t_dom>
         struct instantiate_local_domain {
             t_dom * dom;
-            __host__ __device__
+            GT_FUNCTION
             instantiate_local_domain(t_dom * dom)
                 : dom(dom)
             {}
 
             template <typename t_elem>
-            __host__ __device__
+            GT_FUNCTION
             void operator()(t_elem & elem) const {
                 elem.init(dom, 0,0,0);
             }
@@ -267,45 +267,45 @@ namespace gridtools {
         int m_i,m_j,m_k;
 
                     
-        __host__ __device__
+        GT_FUNCTION
         void init(t_domain* _dom) {
             dom = _dom;
         }
 
         template <typename T>
-        __host__ __device__
+        GT_FUNCTION
         typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         operator()(T const& t) const {
             return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
         }
 
         template <typename T>
-        __host__ __device__
+        GT_FUNCTION
         typename boost::mpl::at<esf_args, typename T::index>::type::value_type& 
         operator()(T const&, int i, int j, int k) const {
             return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index>::type::index>();
         }
 
         template <typename T>
-        __host__ __device__
+        GT_FUNCTION
         typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
         get(int i, int j, int k) const {
             return dom->template direct<typename boost::mpl::template at_c<esf_args, T::index>::type::index>();     
         }
 
         template <typename T>
-        __host__ __device__
+        GT_FUNCTION
         typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
         operator[](T const&) const {
             return dom->template direct<boost::mpl::template at_c<esf_args, T::index>::type::index>();
         }
 
-        __host__ __device__
+        GT_FUNCTION
         void move_to(int i, int j, int k) const {
             dom->move_to(i,j,k);
         }
 
-        __host__ __device__
+        GT_FUNCTION
         void increment() const {
             dom->template increment_along<2>();
         }
@@ -353,10 +353,10 @@ namespace gridtools {
         typedef typename t_domain::placeholders dom_placeholders;
         typedef t_domain domain_type;
 
-        __host__ __device__
+        GT_FUNCTION
         local_domain() {}
                 
-        __host__ __device__
+        GT_FUNCTION
         void init(t_domain* dom, int, int, int)
         {
             base_type::init(dom);
@@ -365,11 +365,11 @@ namespace gridtools {
 #endif
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int i() const {return; }
-        __host__ __device__
+        GT_FUNCTION
         int j() const {return; }
-        __host__ __device__
+        GT_FUNCTION
         int k() const {return; }
     };
 

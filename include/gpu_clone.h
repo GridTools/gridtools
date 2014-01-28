@@ -1,4 +1,5 @@
 #pragma once
+#include "host_device.h" 
 
 namespace gridtools {
 
@@ -18,7 +19,7 @@ namespace gridtools {
     struct gpu_clone {
         T* gpu_object_ptr;
 
-        __host__ __device__
+        GT_FUNCTION
         gpu_clone() {
 #ifndef __CUDA_ARCH__
             cudaMalloc(&gpu_object_ptr, sizeof(T));

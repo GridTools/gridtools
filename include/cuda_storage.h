@@ -77,7 +77,7 @@ namespace gridtools {
             cudaMemcpy(host_data, acc_data, m_size*sizeof(value_type), cudaMemcpyDeviceToHost);
         }
 
-        __host__ __device__
+        GT_FUNCTION
         value_type* min_addr() const {
 #ifdef __CUDA_ARCH__
             return acc_data ;
@@ -86,7 +86,7 @@ namespace gridtools {
 #endif
         }
 
-        __host__ __device__
+        GT_FUNCTION
         value_type* max_addr() const {
 #ifdef __CUDA_ARCH__
             return acc_data+m_size;
@@ -95,7 +95,7 @@ namespace gridtools {
 #endif
         }
 
-        __host__ __device__
+        GT_FUNCTION
         value_type& operator()(int i, int j, int k) {
 #ifdef __CUDA_ARCH__
             return acc_data[base_type::_index(i,j,k)];
@@ -104,7 +104,7 @@ namespace gridtools {
 #endif
         }
 
-        __host__ __device__
+        GT_FUNCTION
         value_type const & operator()(int i, int j, int k) const {
 #ifdef __CUDA_ARCH__
             return acc_data[base_type::_index(i,j,k)];

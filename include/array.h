@@ -21,7 +21,7 @@ namespace gridtools {
     public:
         typedef T value_type;
 
-        __host__ __device__
+        GT_FUNCTION
         array() {}
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
@@ -31,25 +31,25 @@ namespace gridtools {
         }
 #endif
 
-        __host__ __device__
+        GT_FUNCTION
         T const & operator[](size_t i) const {
             return _array[i];
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T & operator[](size_t i) {
             return _array[i];
         }
 
         template <typename A>
-        __host__ __device__
+        GT_FUNCTION
         array& operator=(A const& a) {
             assert(a.size() == _size);
             std::copy(a.begin(), a.end(), _array);
             return this;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         size_t size() const {return _size;}
     };
 
@@ -67,7 +67,7 @@ namespace gridtools {
     public:
         typedef T value_type;
 
-        __host__ __device__
+        GT_FUNCTION
         array() {}
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
@@ -77,24 +77,24 @@ namespace gridtools {
         }
 #endif
 
-        __host__ __device__
+        GT_FUNCTION
         T const & operator[](size_t i) const {
             return *(reinterpret_cast<const T*>(&(_array[i])));
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T & operator[](size_t i) {
             return *(reinterpret_cast<T*>(&(_array[i])));
         }
 
         template <typename A>
-        __host__ __device__
+        GT_FUNCTION
         array& operator=(A const& a) {
             assert(a.size() == _size);
             std::copy(a.begin(), a.end(), _array);
         }
 
-        __host__ __device__
+        GT_FUNCTION
         size_t size() const {return _size;}
     };
 } // namespace gridtools

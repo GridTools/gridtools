@@ -129,7 +129,7 @@ namespace gridtools {
             }
         };
 
-        __host__ __device__
+        GT_FUNCTION
         int _index(int i, int j, int k) const {
             int index;
             if (is_temporary) {

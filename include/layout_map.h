@@ -86,13 +86,13 @@ namespace gridtools {
         typedef typename boost::mpl::vector<boost::mpl::int_<I1> > t;
 
         template <unsigned int I>
-        __host__ __device__
+        GT_FUNCTION
         static int at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int operator[](int i) {
             assert( i<length );
             switch (i) {
@@ -103,13 +103,13 @@ namespace gridtools {
         }
 
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
         }
 
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& find(T & a) {
             return a;
         }
@@ -123,13 +123,13 @@ namespace gridtools {
                                             boost::mpl::int_<I2> > t;
 
         template <unsigned int I>
-        __host__ __device__
+        GT_FUNCTION
         static int at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int operator[](int i) {
             assert( i<length );
             switch (i) {
@@ -142,13 +142,13 @@ namespace gridtools {
         }
 
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
         }
 
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& find(T & a, T & b) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
@@ -225,13 +225,13 @@ namespace gridtools {
             \tparam I The index to be queried
         */
         template <unsigned int I>
-        __host__ __device__
+        GT_FUNCTION
         static int at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int operator[](int i) {
             assert( i<length );
             switch (i) {
@@ -259,7 +259,7 @@ namespace gridtools {
             \param[in] c Reference to the third value
         */
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& select(T & a, T & b, T & c) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c);
         }
@@ -278,7 +278,7 @@ namespace gridtools {
             \param[in] c Reference to the third value
         */
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& find(T & a, T & b, T & c) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
@@ -306,7 +306,7 @@ namespace gridtools {
             \param[in] a Pointer to a region with the elements to match
         */
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& find(T* a) {
             return find<I>(a[0], a[1], a[2]);
         }
@@ -322,13 +322,13 @@ namespace gridtools {
                                             boost::mpl::int_<I4> > t;
 
         template <unsigned int I>
-        __host__ __device__
+        GT_FUNCTION
         static int at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int operator[](int i) {
             assert( i<length );
             switch (i) {
@@ -345,13 +345,13 @@ namespace gridtools {
         }
 
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& select(T & a, T & b, T & c, T & d) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c,d);
         }
 
         template <unsigned int I, typename T>
-        __host__ __device__
+        GT_FUNCTION
         static T& find(T & a, T & b, T & c, T & d) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;

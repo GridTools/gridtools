@@ -35,7 +35,7 @@ namespace gridtools {
         int _j_low_bound;
         int _j_high_bound;
 
-        __host__ __device__
+        GT_FUNCTION
         explicit coordinates(int il, int ih, int jl, int jh)
             : _i_low_bound(il)
             , _i_high_bound(ih)
@@ -43,28 +43,28 @@ namespace gridtools {
             , _j_high_bound(jh)
         {}
         
-        __host__ __device__
+        GT_FUNCTION
         int i_low_bound() const {
             return _i_low_bound;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int i_high_bound() const {
             return _i_high_bound;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int j_low_bound() const {
             return _j_low_bound;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int j_high_bound() const {
             return _j_high_bound;
         }
 
         template <typename t_level>
-        __host__ __device__
+        GT_FUNCTION
         int value_at() const {
             BOOST_STATIC_ASSERT(is_level<t_level>::value);
             int offs = t_level::Offset::value;
@@ -73,18 +73,18 @@ namespace gridtools {
         }
 
         template <typename t_level>
-        __host__ __device__
+        GT_FUNCTION
         int& value_at(int val) const {
             BOOST_STATIC_ASSERT(is_level<t_level>::value);
             return value_list[t_level::Splitter::value];
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int value_at_top() const {
             return value_list[size_type::value - 1];
         }
 
-        __host__ __device__
+        GT_FUNCTION
         int value_at_bottom() const {
             return value_list[0];
         }

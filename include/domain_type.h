@@ -100,7 +100,7 @@ namespace gridtools {
 
         struct moveto_functor {
             int i,j,k;
-            __host__ __device__
+            GT_FUNCTION
             moveto_functor(int i, int j, int k) 
                 : i(i)
                 , j(j)
@@ -108,7 +108,7 @@ namespace gridtools {
             {}
 
             template <typename t_zip_elem>
-            __host__ __device__
+            GT_FUNCTION
             void operator()(t_zip_elem const &a) const {
                 boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
             }
@@ -117,7 +117,7 @@ namespace gridtools {
         template <int DIR>
         struct increment_functor {
             template <typename t_zip_elem>
-            __host__ __device__
+            GT_FUNCTION
             void operator()(t_zip_elem const &a) const {
                 // Simpler code:
                 // iterators[l] += (*(args[l])).template stride_along<DIR>();
@@ -197,7 +197,7 @@ namespace gridtools {
             int tileJ;
             int tileK;
         
-            __host__ __device__
+            GT_FUNCTION
             instantiate_tmps(int tileI, int tileJ, int tileK)
                 : tileI(tileI)
                 , tileJ(tileJ)
@@ -425,7 +425,7 @@ namespace gridtools {
         }
 
         template <typename T>
-        __host__ __device__
+        GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&
         operator[](T const &) {
             return *(boost::fusion::template at<typename T::index_type>(iterators));
@@ -439,7 +439,7 @@ namespace gridtools {
          * @return Reference to the value pointed to Ith iterator
          */
         template <typename I>
-        __host__ __device__
+        GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
         direct() const {
             assert(boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(args)->min_addr());
@@ -451,7 +451,7 @@ namespace gridtools {
         /**
          * Move all iterators of storages to (i,j,k) coordinates
          */
-        __host__ __device__
+        GT_FUNCTION
         void move_to(int i, int j, int k) const {
             boost::fusion::for_each(zipping(zip_vector), _impl::moveto_functor(i,j,k));
             // Simpler code:
@@ -468,7 +468,7 @@ namespace gridtools {
          * @\tparam DIR index of coordinate to increment by one
          */
         template <int DIR>
-        __host__ __device__
+        GT_FUNCTION
         void increment_along() const {
             boost::fusion::for_each(zipping(zip_vector), _impl::increment_functor<DIR>());
             // Simpler code:
