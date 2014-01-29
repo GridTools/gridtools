@@ -28,7 +28,7 @@
     BUT NEED TO BE CLONED ON GPU
 *********************************************************/
 
-struct A: public gridtools::gpu_clone<A> {
+struct A: public gridtools::clonable_to_gpu<A> {
     typedef boost::fusion::vector<int, double> v_type;
     v_type v1;
     v_type v2;
@@ -38,12 +38,11 @@ struct A: public gridtools::gpu_clone<A> {
 
     zip_view_t zip_view;
 
-    A(v_type& a, v_type& b)
+    A(v_type const & a, v_type const& b)
         : v1(a)
         , v2(b)
         , zip_view(support_t(v1, v2))
     {
-        clone();
     }
 
     __device__
@@ -55,8 +54,8 @@ struct A: public gridtools::gpu_clone<A> {
 
     ~A() { }
 
-    void update_gpu_copy() {
-        clone();
+    void update_gpu_copy() const {
+        clone_to_gpu();
     }
 
     __host__ __device__
@@ -98,11 +97,37 @@ private:
 
 };
 
+/** class to test gpu_clonable data-members
+ */
+struct B: public gridtools::clonable_to_gpu<B> {
+    A a;
+
+    B(typename A::v_type const& v1, typename A::v_type const& v2) 
+        : a(v1, v2)
+    {
+        //        clone_to_gpu();
+    }
+
+    __device__
+    B(B const& b) 
+        : a(b.a)
+    {}
+
+    __host__ __device__
+    void out() const {
+        a.out();
+    }
+};
+
 __global__
 void print_on_gpu(A * a) {
     a->out();
 }
 
+__global__
+void print_on_gpu(B * b) {
+    b->out();
+}
 
 struct minus1 {
     template <typename T>
@@ -125,6 +150,7 @@ int main(int argc, char** argv) {
     typename A::v_type w2(m*2, m*2.7182818);
 
     A a(w1, w2);
+    a.update_gpu_copy();
 
     a.out();
 
@@ -147,6 +173,23 @@ int main(int argc, char** argv) {
     print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
 
     cudaDeviceSynchronize();
+
+    printf("\nTesting data clonable data members of clonable classes\n");
+
+    typename A::v_type bw1(m*8, m*1.23456789);
+    typename A::v_type bw2(m*7, m*9.87654321);
+
+    B b(bw1, bw2);
+
+    b.out();
+
+    printf("Now doing the same on GPU");
+
+    print_on_gpu<<<1,1>>>(b.gpu_object_ptr);
+
+    boost::fusion::for_each(b.a.v1, minus1());
+    boost::fusion::for_each(b.a.v2, minus1());
+    b.clone_to_gpu();
 
     return 0;
 }
