@@ -18,7 +18,10 @@ namespace gridtools {
     {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
+        GT_FUNCTION
         interval() {};
+
+        GT_FUNCTION
         interval(TFromLevel) {};
 
         // check the parameters are of type level

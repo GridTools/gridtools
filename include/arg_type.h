@@ -107,38 +107,46 @@ namespace gridtools {
         typedef typename boost::mpl::int_<I> index_type;
         typedef t_range range_type;
 
+        GT_FUNCTION
         arg_type(int i, int j, int k) {
             offset[0] = i;
             offset[1] = j;
             offset[2] = k;
         }
 
+        GT_FUNCTION
         arg_type() {
             offset[0] = 0;
             offset[1] = 0;
             offset[2] = 0;
         }
 
+        GT_FUNCTION
         int i() const {
             return offset[0];
         }
 
+        GT_FUNCTION
         int j() const {
             return offset[1];
         }
 
+        GT_FUNCTION
         int k() const {
             return offset[2];
         }
 
+        GT_FUNCTION
         static arg_type<I> center() {
             return arg_type<I>();
         }
 
+        GT_FUNCTION
         const int* offset_ptr() const {
             return offset;
         }
 
+        GT_FUNCTION
         arg_type<I> plus(int _i, int _j, int _k) const {
             return arg_type<I>(i()+_i, j()+_j, k()+_k);
         }

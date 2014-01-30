@@ -17,21 +17,25 @@ namespace gridtools {
         template <>
         struct select_s<0> {
             template <typename T>
+            GT_FUNCTION
             T& get(T & a) {
                 return a;
             }
 
             template <typename T>
+            GT_FUNCTION
             T& get(T & a, T & /*b*/) {
                 return a;
             }
 
             template <typename T>
+            GT_FUNCTION
             T& get(T & a, T & /*b*/, T & /*c*/) {
                 return a;
             }
 
             template <typename T>
+            GT_FUNCTION
             T& get(T & a, T & /*b*/, T & /*c*/, T & /*d*/) {
                 return a;
             }
@@ -40,16 +44,19 @@ namespace gridtools {
         template <>
         struct select_s<1> {
             template <typename T>
+            GT_FUNCTION
             T& get(T & /*a*/, T & b) {
                 return b;
             }
 
             template <typename T>
+            GT_FUNCTION
             T& get(T & /*a*/, T & b, T & /*c*/) {
                 return b;
             }
 
             template <typename T>
+            GT_FUNCTION
             T& get(T & /*a*/, T & b, T & /*c*/, T & /*d*/) {
                 return b;
             }
@@ -58,11 +65,13 @@ namespace gridtools {
         template <>
         struct select_s<2> {
             template <typename T>
+            GT_FUNCTION
             T& get(T & /*a*/, T & /*b*/, T & c) {
                 return c;
             }
 
             template <typename T>
+            GT_FUNCTION
             T& get(T & /*a*/, T & /*b*/, T & c, T & /*d*/) {
                 return c;
             }
@@ -71,6 +80,7 @@ namespace gridtools {
         template <>
         struct select_s<3> {
             template <typename T>
+            GT_FUNCTION
             T& get(T & /*a*/, T & /*b*/, T & /*c*/, T & d) {
                 return d;
             }

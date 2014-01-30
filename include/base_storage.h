@@ -48,11 +48,13 @@ namespace gridtools {
         }
 
         template <int I>
+        GT_FUNCTION
         int stride_along() const {
             return get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
         template <typename t_offset>
+        GT_FUNCTION
         int compute_offset(t_offset const& offset) const {
             return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
                 * layout::template find<0>(offset.offset_ptr()) +
@@ -112,6 +114,7 @@ namespace gridtools {
         struct get_stride<I, _t_layout, typename boost::enable_if<
                                             _is_2< void, _t_layout::template at_<I>::value >
                                             >::type> {
+            GT_FUNCTION
             static int get(const int* ) {
 #ifndef NDEBUG
                 std::cout << "U" ;//<< std::endl;
@@ -124,6 +127,7 @@ namespace gridtools {
         struct get_stride<I, _t_layout, typename boost::disable_if<
                                             _is_2<void, _t_layout::template at_<I>::value>
                                             >::type> {
+            GT_FUNCTION
             static int get(const int* s) {
                 return s[_t_layout::template at_<I>::value];
             }

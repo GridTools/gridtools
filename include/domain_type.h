@@ -206,34 +206,46 @@ namespace gridtools {
         
             // elem_type: an element in the data field place-holders list
             template <typename elem_type>
+            GT_FUNCTION
             void operator()(elem_type  e) const {
+#ifndef __CUDA_ARCH__
                 typedef typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<1> >::type range_type;
                 typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<0> >::type>::type>::type storage_type;
 
                 boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
                                                              -range_type::jminus::value+range_type::jplus::value+tileJ,
                                                              tileK);
+#endif
             }
         };
 
         struct delete_tmps {
             template <typename t_elem>
+            GT_FUNCTION
             void operator()(t_elem & elem) const {
+#ifndef __CUDA_ARCH__
                 delete elem;
+#endif
             }
         };
 
         struct call_h2d {
             template <typename t_arg>
+            GT_FUNCTION
             void operator()(t_arg * arg) const {
+#ifndef __CUDA_ARCH__
                 arg->h2d_update();
+#endif
             }
         };
 
         struct call_d2h {
             template <typename t_arg>
+            GT_FUNCTION
             void operator()(t_arg * arg) const {
+#ifndef __CUDA_ARCH__
                 arg->d2h_update();
+#endif
             }
         };
 
