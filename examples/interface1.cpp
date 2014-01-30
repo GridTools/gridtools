@@ -30,7 +30,7 @@ struct lap_function {
     typedef typename boost::mpl::vector<out, in> arg_list;
 
     template <typename t_domain>
-    __host__ __device__
+    GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
@@ -47,7 +47,7 @@ struct flx_function {
     typedef typename boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename t_domain>
-    __host__ __device__
+    GT_FUNCTION
     static void Do(t_domain const & dom, x_flx) {
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
@@ -64,7 +64,7 @@ struct fly_function {
     typedef typename boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename t_domain>
-    __host__ __device__
+    GT_FUNCTION
     static void Do(t_domain const & dom, x_flx) {
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
@@ -83,7 +83,7 @@ struct out_function {
     typedef typename boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename t_domain>
-    __host__ __device__
+    GT_FUNCTION
     static void Do(t_domain const & dom, x_out) {
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx(-1,0,0)) +
