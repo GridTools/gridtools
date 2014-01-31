@@ -68,7 +68,7 @@ namespace gridtools {
         }
     };
 #else
-    teamplate <typename derived_type>
+    template <typename derived_type>
     struct clonable_to_gpu {
         void clone_to_gpu() const {}
         void clone_from_gpu() const {}
