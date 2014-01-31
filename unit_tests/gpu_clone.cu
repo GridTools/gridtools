@@ -45,7 +45,7 @@ struct A: public gridtools::clonable_to_gpu<A> {
     {
     }
 
-    __device__
+    __host__ __device__
     A(A const& a) 
         : v1(a.v1)
         , v2(a.v2)
@@ -119,6 +119,21 @@ struct B: public gridtools::clonable_to_gpu<B> {
     }
 };
 
+
+struct mul2_f {
+    template <typename U>
+    __host__ __device__
+    void operator()(U& u) const {
+        u *= 2;
+    }
+};
+
+__global__
+void mul2(A * a) {
+    boost::fusion::for_each(a->v1, mul2_f());
+    boost::fusion::for_each(a->v2, mul2_f());
+}
+
 __global__
 void print_on_gpu(A * a) {
     a->out();
@@ -173,6 +188,11 @@ int main(int argc, char** argv) {
     print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
 
     cudaDeviceSynchronize();
+
+    printf("\nTesting changing values on GPU and copy back to object\n");
+    mul2<<<1,1>>>(a.gpu_object_ptr);
+    a.clone_from_gpu();
+    a.out();
 
     printf("\nTesting data clonable data members of clonable classes\n");
 
