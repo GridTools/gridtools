@@ -167,6 +167,7 @@ namespace gridtools {
                     return b;
                 }
             }
+            return -1; // killing warnings by nvcc
         }
     };
 
@@ -301,6 +302,8 @@ namespace gridtools {
                     }
                 }
             }
+            assert(true);
+            return a; // killing warnings by nvcc
         }
 
         /** Given a tuple of values and a static index I, the function
@@ -378,6 +381,7 @@ namespace gridtools {
                     }
                 }
             }
+            return -1; // killing warnings by nvcc
         }
 
     };
