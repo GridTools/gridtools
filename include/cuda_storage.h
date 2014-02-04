@@ -17,8 +17,12 @@ namespace gridtools {
              , typename type_tag = int
 #endif
         >
-    struct cuda_storage : public base_storage<t_value_type, t_layout, is_temporary> {
-        typedef base_storage<t_value_type, t_layout, is_temporary> base_type;
+    struct cuda_storage : public base_storage<cuda_storage<t_value_type, t_layout, is_temporary>,
+            t_value_type,
+            t_layout,
+            is_temporary> {
+        typedef cuda_storage<t_value_type, t_layout, is_temporary> this_type;
+        typedef base_storage<this_type, t_value_type, t_layout, is_temporary> base_type;
         typedef t_layout layout;
         typedef t_value_type value_type;
         typedef value_type* iterator_type;

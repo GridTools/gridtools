@@ -1,13 +1,15 @@
 #pragma once
 #include "basic_utils.h"
+#include "gpu_clone.h"
 
 namespace gridtools {
 
-    template < typename t_value_type,
+    template < typename derived,
+               typename t_value_type,
                typename t_layout,
                bool is_temporary = false
                >
-    struct base_storage {
+    struct base_storage : public clonable_to_gpu<derived> {
         typedef t_layout layout;
         typedef t_value_type value_type;
         typedef value_type* iterator_type;
