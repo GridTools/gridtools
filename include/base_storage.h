@@ -18,7 +18,7 @@ namespace gridtools {
         int strides[3];
         int m_size;
         bool is_set;
-        std::string name;
+        //std::string name;
 
         explicit base_storage(int m_dim1, int m_dim2, int m_dim3,
                          value_type init = value_type(),
@@ -32,21 +32,36 @@ namespace gridtools {
             m_size = m_dims[0] * m_dims[1] * m_dims[2];
             std::cout << "Size " << m_size << std::endl;
             is_set=true;
-            name = s;
+            //name = s;
         }
+
+        // __device__
+        // base_storage(base_storage const& other)
+        //     : m_size(other.m_size)
+        //     , is_set(is_set)
+        // {
+        //     m_dims[0] = other.m_dims[0];
+        //     m_dims[1] = other.m_dims[1];
+        //     m_dims[2] = other.m_dims[2];
+
+        //     strides[0] = other.strides[0];
+        //     strides[1] = other.strides[1];
+        //     strides[2] = other.strides[2];
+        // }
 
         explicit base_storage() {
             is_set=false;
         }
 
         virtual void h2d_update() const {}
-        virtual void d2h_update() const {}
+        virtual void d2h_update() {}
 
         void info() const {
             std::cout << m_dims[0] << "x"
                       << m_dims[1] << "x"
                       << m_dims[2] << ", "
-                      << name << std::endl;
+                //<< name 
+                      << std::endl;
         }
 
         template <int I>
@@ -67,7 +82,7 @@ namespace gridtools {
     protected:
         template <typename derived_t>
         void print(derived_t* that) const {
-            std::cout << "Printing " << name << std::endl;
+            //std::cout << "Printing " << name << std::endl;
             std::cout << "(" << m_dims[0] << "x"
                       << m_dims[1] << "x"
                       << m_dims[2] << ")"
@@ -156,5 +171,12 @@ namespace gridtools {
             return index;
         }
     };
+    
+    template <typename T>
+    struct is_temporary_storage {
+        typedef boost::false_type type;
+    };
 
-}
+
+
+} //namespace gridtools

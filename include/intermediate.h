@@ -280,9 +280,11 @@ namespace gridtools {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
 #ifndef NDEBUG
+#ifndef __CUDACC__
             std::cout << "Actual loop bounds ";
             for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
             std::cout << std::endl;
+#endif
 #endif
         
             // Create a fusion::vector of domains for each functor

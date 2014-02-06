@@ -1,5 +1,7 @@
 #pragma once
 
+#include "host_device.h"
+
 namespace gridtools {
 
     /**
@@ -116,15 +118,17 @@ namespace gridtools {
         {
             base_type::init(dom);
 #ifndef NDEBUG
+#ifndef __CUDACC__
             std::cout << "LOCAL DOMAIN" << std::endl;
+#endif
 #endif
         }
 
         GT_FUNCTION
-        int i() const {return; }
+        int i() const {return -1; }
         GT_FUNCTION
-        int j() const {return; }
+        int j() const {return -1; }
         GT_FUNCTION
-        int k() const {return; }
+        int k() const {return -1; }
     };
 }

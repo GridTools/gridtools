@@ -1,5 +1,8 @@
 #pragma once
 
+#include "defs.h"
+#include "gt_assert.h"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/mpl/push_back.hpp>
@@ -12,6 +15,7 @@
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/range_c.hpp>
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/zip_view.hpp>
 #include <boost/fusion/view/filter_view.hpp>
@@ -98,6 +102,27 @@ namespace gridtools {
             };
         };
 
+        struct update_pointer {
+            template <typename storage_t>
+            GT_FUNCTION
+            void operator()(storage_t* s) const {}
+            
+#ifdef __CUDACC__
+#ifndef __CUDA_ARCH__
+            template <typename T, typename U, bool B>
+            GT_FUNCTION
+            void operator()(cuda_storage<T,U,B> * s) const {
+                if (s) {
+                    //std::cout << std::hex << s->gpu_object_ptr << std::hex << std::endl;
+                    s->clone_to_gpu();
+                    s = s->gpu_object_ptr;
+                }
+            }
+#endif
+#endif
+        };
+
+        
         struct moveto_functor {
             int i,j,k;
             GT_FUNCTION
@@ -138,32 +163,32 @@ namespace gridtools {
                         >::type,
                             typename boost::false_type
                             >::type type;
+            };
         };
-    };
 
-    template <typename t_esf>
-    struct get_it {
-        template <typename index>
-        struct apply {
-            typedef typename boost::mpl::at<typename t_esf::args, index>::type type;
+        template <typename t_esf>
+        struct get_it {
+            template <typename index>
+            struct apply {
+                typedef typename boost::mpl::at<typename t_esf::args, index>::type type;
+            };
         };
-    };
 
-    template <typename t_esf_f>
-    struct get_temps_per_functor {
-        typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename t_esf_f::args>::type::value> range;
-        typedef typename boost::mpl::fold<
-            range,
-            boost::mpl::vector<>,
-            typename boost::mpl::if_<
-                typename is_written_temp<t_esf_f>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<
-                    boost::mpl::_1, 
-                    typename _impl::get_it<t_esf_f>::template apply<boost::mpl::_2> >,
-                boost::mpl::_1
-                >
+        template <typename t_esf_f>
+        struct get_temps_per_functor {
+            typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename t_esf_f::args>::type::value> range;
+            typedef typename boost::mpl::fold<
+                range,
+                boost::mpl::vector<>,
+                typename boost::mpl::if_<
+                    typename is_written_temp<t_esf_f>::template apply<boost::mpl::_2>,
+                    boost::mpl::push_back<
+                        boost::mpl::_1, 
+                        typename _impl::get_it<t_esf_f>::template apply<boost::mpl::_2> >,
+                   boost::mpl::_1
+               >
             >::type type;
-};
+        };
 
         template <typename temps_per_functor, typename t_range_sizes>
         struct associate_ranges {
@@ -255,7 +280,7 @@ namespace gridtools {
      * @tparam t_placeholders list of placeholders of type arg<I,T>
      */
     template <typename t_placeholders>
-    struct domain_type {
+    struct domain_type : public clonable_to_gpu<domain_type<t_placeholders> > {
         typedef t_placeholders placeholders;
     private:
         BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<placeholders>::type::value);
@@ -328,8 +353,22 @@ namespace gridtools {
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
             boost::fusion::copy(real_storage, fview);
+            boost::fusion::for_each(fview, _impl::update_pointer());
 
         }
+
+#ifdef __CUDACC__
+        /** Copy constructor to be used when cloning to GPU
+         * 
+         * @param The object to copy. Typically this will be *this
+         */
+        __device__
+        explicit domain_type(domain_type const& other)
+            : args(other.args)
+            , iterators(other.iterators)
+            , zip_vector(iterators, args)
+        { }
+#endif
 
         ~domain_type() {
             typedef typename boost::fusion::filter_view<arg_list, 
@@ -454,8 +493,8 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
         direct() const {
-            assert(boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(args)->min_addr());
-            assert(boost::fusion::template at<I>(iterators) < boost::fusion::template at<I>(args)->max_addr());
+            assert((boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(args)->min_addr()));
+            assert((boost::fusion::template at<I>(iterators) < boost::fusion::template at<I>(args)->max_addr()));
 
             return *(boost::fusion::template at<I>(iterators));
         }

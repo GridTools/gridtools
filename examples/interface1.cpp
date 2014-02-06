@@ -6,6 +6,8 @@
 #include <backend_naive.h>
 #endif
 
+#include <stdlib.h>
+
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */

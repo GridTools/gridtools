@@ -2,6 +2,7 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
+#include <gt_assert.h>
 #include <defs.h>
 #include <host_device.h>
 #include <storage.h>

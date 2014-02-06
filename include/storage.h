@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <iostream>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -29,7 +28,7 @@ namespace gridtools {
         using base_type::strides;
         using base_type::m_size;
         using base_type::is_set;
-        using base_type::name;
+        //using base_type::name;
 
         value_type* data;
 
@@ -80,11 +79,6 @@ namespace gridtools {
 
     };
 
-
-    template <typename T>
-    struct is_temporary_storage {
-        typedef boost::false_type type;
-    };
 
     template <typename X, typename Y>
     struct is_temporary_storage<storage<X,Y,false>*& > {

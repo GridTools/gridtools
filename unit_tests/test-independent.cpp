@@ -1,4 +1,5 @@
 #include <iostream>
+#include "gt_assert.h"
 #include "make_stencils.h"
 #include "arg_type.h"
 #include "storage.h"

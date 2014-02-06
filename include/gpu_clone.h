@@ -46,6 +46,7 @@ namespace gridtools {
             derived type.
          */
         void clone_to_gpu() const {
+            //std::cout << "cloning " << sizeof(derived_type) << std::endl;
             const mask_object<const derived_type> *maskT = reinterpret_cast<const mask_object<const derived_type>*>((static_cast<const derived_type*>(this)));
 
             construct<derived_type><<<1,1>>>(*maskT);

@@ -1,7 +1,10 @@
-#include <cassert>
-#include "gridtools.h"
+#pragma once
+
+#include <gt_assert.h>
+#include <iostream>
 
 namespace gridtools {
+    
     template <typename T>
     struct hybrid_pointer {
         T * cpu_p;
@@ -31,7 +34,15 @@ namespace gridtools {
          
         void allocate_it(int size) {
 #ifdef __CUDACC__
-            cudaMalloc(&gpu_p, size*sizeof(T));
+            int err = cudaMalloc(&gpu_p, size*sizeof(T));
+            if (err != cudaSuccess) {
+                std::cout << "Error allocating storage in "
+                          << __PRETTY_FUNCTION__
+                          << " : size = "
+                          << size*sizeof(T)
+                          << " bytes "
+                          << std::endl;
+            }
 #endif
             cpu_p = new T[size];
 #ifdef __CUDACC__
@@ -45,13 +56,13 @@ namespace gridtools {
             delete cpu_p;
         }        
 
-        void update_gpu() {
+        void update_gpu() const {
 #ifdef __CUDACC__
             cudaMemcpy(gpu_p, cpu_p, size*sizeof(T), cudaMemcpyHostToDevice);
 #endif
         }
 
-        void update_cpu() {
+        void update_cpu() const {
 #ifdef __CUDACC__
             cudaMemcpy(cpu_p, gpu_p, size*sizeof(T), cudaMemcpyDeviceToHost);
 #endif
@@ -77,6 +88,9 @@ namespace gridtools {
 
         __host__ __device__
         T const& operator[](int i) const {
+            assert(i<size);
+            assert(i>=0);
+
             return pointer_to_use[i];
         }
 
