@@ -55,7 +55,7 @@ namespace gridtools {
 
         ~cuda_storage() { }
 
-        void h2d_update() const {
+        void h2d_update() {
             data.update_gpu();
         }
 

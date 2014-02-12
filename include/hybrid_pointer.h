@@ -8,9 +8,7 @@ namespace gridtools {
     template <typename T>
     struct hybrid_pointer {
         T * cpu_p;
-#ifdef __CUDACC__
         T * gpu_p;
-#endif
         T * pointer_to_use;
         int size;
 
@@ -22,16 +20,15 @@ namespace gridtools {
         __host__ __device__
         hybrid_pointer(hybrid_pointer const& other)
             : cpu_p(other.cpu_p)
-#ifdef __CUDACC__
             , gpu_p(other.gpu_p)
-#endif
 #ifdef __CUDA_ARCH__
-            , pointer_to_use(gpu_p)
+            , pointer_to_use(other.gpu_p)
 #else
-            , pointer_to_use(cpu_p)
+            , pointer_to_use(other.cpu_p)
 #endif
-        {} 
-         
+            , size(other.size)
+        { } 
+
         void allocate_it(int size) {
 #ifdef __CUDACC__
             int err = cudaMalloc(&gpu_p, size*sizeof(T));
@@ -45,8 +42,6 @@ namespace gridtools {
             }
 #endif
             cpu_p = new T[size];
-#ifdef __CUDACC__
-#endif
         }
 
         void free_it() {
@@ -56,16 +51,21 @@ namespace gridtools {
             delete cpu_p;
         }        
 
-        void update_gpu() const {
+        void update_gpu() {
 #ifdef __CUDACC__
             cudaMemcpy(gpu_p, cpu_p, size*sizeof(T), cudaMemcpyHostToDevice);
 #endif
         }
 
-        void update_cpu() const {
+        void update_cpu() {
 #ifdef __CUDACC__
             cudaMemcpy(cpu_p, gpu_p, size*sizeof(T), cudaMemcpyDeviceToHost);
 #endif
+        }
+
+        __host__ __device__
+        void out() const {
+            printf("%X %X %X %d\n", cpu_p, gpu_p, pointer_to_use, size);
         }
 
         __host__ __device__

@@ -13,6 +13,7 @@
 #include <boost/fusion/include/zip_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -108,7 +109,7 @@ struct B: public gridtools::clonable_to_gpu<B> {
         //        clone_to_gpu();
     }
 
-    __device__
+    __device__ __host__
     B(B const& b) 
         : a(b.a)
     {}
