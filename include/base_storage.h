@@ -35,19 +35,19 @@ namespace gridtools {
             //name = s;
         }
 
-        // __device__
-        // base_storage(base_storage const& other)
-        //     : m_size(other.m_size)
-        //     , is_set(is_set)
-        // {
-        //     m_dims[0] = other.m_dims[0];
-        //     m_dims[1] = other.m_dims[1];
-        //     m_dims[2] = other.m_dims[2];
+        __device__
+        base_storage(base_storage const& other)
+            : m_size(other.m_size)
+            , is_set(is_set)
+        {
+            m_dims[0] = other.m_dims[0];
+            m_dims[1] = other.m_dims[1];
+            m_dims[2] = other.m_dims[2];
 
-        //     strides[0] = other.strides[0];
-        //     strides[1] = other.strides[1];
-        //     strides[2] = other.strides[2];
-        // }
+            strides[0] = other.strides[0];
+            strides[1] = other.strides[1];
+            strides[2] = other.strides[2];
+        }
 
         explicit base_storage() {
             is_set=false;

@@ -7,18 +7,26 @@ namespace gridtools {
 #ifdef __CUDACC__
     template <class derived_type>
     struct mask_object {
+        typedef derived_type type;
         char data[sizeof(derived_type)];
+        
+//         mask_object(mask_object const & other) {
+//             std::cout << "being copied... " << std::endl;
+//             std::cout << std::hex << &other << " " << &(other.data) << std::endl;
+//             std::cout << this << " -- " << &(this->data) << std::endl;
 
-        mask_object() {}
-
-        mask_object(mask_object const & other) {
-            memcpy(data, &(other.data), sizeof(derived_type));
-        }
+//             memcpy(&(this->data), &(other.data), sizeof(derived_type));
+//             std::cout << "copied" << std::dec << std::endl;
+//             }
     };
 
-    template <class derived_type>
+
+    ///QUAAAAAAAAA
+
+    template <class T>
     __global__
-    void construct(mask_object<const derived_type> object) {
+    void construct(T object) {
+        typedef typename T::type derived_type;
         derived_type *p = reinterpret_cast<derived_type*>(&object);
         derived_type* x = new (p->gpu_object_ptr) derived_type(*p);
     }
@@ -52,12 +60,25 @@ namespace gridtools {
             derived type.
          */
         void clone_to_gpu() const {
+#ifndef NDEBUG
+            std::cout << std::hex << " ----> "
+                      << this << " "
+                      << static_cast<const t_derived_type*>(this) <<  std::dec
+                      << " * " << sizeof(t_derived_type)
+                      << std::endl;
+#endif        
+            const mask_object<const t_derived_type> *maskT = 
+                             reinterpret_cast<const mask_object<const t_derived_type>*>
+                             ((static_cast<const t_derived_type*>(this)));
+    
+#ifndef NDEBUG
+            std::cout << "call " 
+                      << std::hex << maskT 
+                      << std::dec << " " << sizeof(mask_object<const t_derived_type>) 
+                      << std::endl;
+#endif
 
-            t_derived_type cucu(*(reinterpret_cast<const t_derived_type*>(this)));
-
-            const mask_object<const t_derived_type> *maskT = reinterpret_cast<const mask_object<const t_derived_type>*>((static_cast<const t_derived_type*>(this)));
-
-            construct<t_derived_type><<<1,1>>>(*maskT);
+            construct<<<1,1>>>(*maskT);
             cudaDeviceSynchronize();
         }
 

@@ -5,8 +5,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/at.hpp>
-#include <assert.h>
-#include <host_device.h>
+#include "gt_assert.h"
+#include "host_device.h"
 
 namespace gridtools {
 

@@ -21,6 +21,15 @@ struct out_value {
     __device__
     void operator()(T const& x) const {
         printf("%X\n", x);
+        // for (int i=0; i<3; ++i) {
+        //     for (int j=0; j<3; ++j) {
+        //         for (int k=0; k<3; ++k) {
+        //             printf("%d ", (*x)(i,j,k));
+        //         }
+        //         printf("\n");
+        //     }
+        //     printf("\n");
+        // }
     }
 };
 
@@ -64,7 +73,11 @@ int main(int argc, char** argv) {
     gridtools::domain_type<arg_type_list> domain
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
+    domain.clone_to_gpu();
+
     print_values<<<1,1>>>(domain.gpu_object_ptr);
+
+    std::cout << " *** DONE ***" << std::endl;
 
     return 0;
 }

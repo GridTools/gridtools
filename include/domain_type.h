@@ -108,17 +108,21 @@ namespace gridtools {
             void operator()(storage_t* s) const {}
             
 #ifdef __CUDACC__
-#ifndef __CUDA_ARCH__
             template <typename T, typename U, bool B>
             GT_FUNCTION
             void operator()(cuda_storage<T,U,B> * s) const {
                 if (s) {
-                    //std::cout << std::hex << s->gpu_object_ptr << std::hex << std::endl;
+#ifndef NDEBUG
+                    std::cout << std::hex << s->gpu_object_ptr 
+                              << " " << s
+                              << " " << sizeof(cuda_storage<T,U,B>)
+                              << std::dec << std::endl;
+#endif
+                    s->data.update_gpu();
                     s->clone_to_gpu();
                     s = s->gpu_object_ptr;
                 }
             }
-#endif
 #endif
         };
 
