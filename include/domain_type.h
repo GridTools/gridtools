@@ -356,7 +356,7 @@ namespace gridtools {
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
             boost::fusion::copy(real_storage, fview);
-            boost::fusion::for_each(storage_pointers/*fview*/, _impl::update_pointer());
+            boost::fusion::for_each(fview, _impl::update_pointer());
 
         }
 
