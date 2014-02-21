@@ -109,23 +109,22 @@ namespace gridtools {
             
 #ifdef __CUDACC__
             template <typename T, typename U, bool B>
-            GT_FUNCTION
-            void operator()(cuda_storage<T,U,B> * s) const {
+            void operator()(cuda_storage<T,U,B> *& s) const {
                 if (s) {
 #ifndef NDEBUG
-                    std::cout << std::hex << s->gpu_object_ptr 
+                    std::cout << "UPDATING " 
+                              << std::hex << s->gpu_object_ptr 
                               << " " << s
                               << " " << sizeof(cuda_storage<T,U,B>)
                               << std::dec << std::endl;
 #endif
-                    s->data.update_gpu();
-                    s->clone_to_gpu();
+                    // s->data.update_gpu();
+                    // s->clone_to_gpu();
                     s = s->gpu_object_ptr;
                 }
             }
 #endif
         };
-
         
         struct moveto_functor {
             int i,j,k;
@@ -307,9 +306,9 @@ namespace gridtools {
                                           >::type arg_list_mpl;
 
         typedef typename boost::mpl::fold<raw_index_list,
-                                      boost::mpl::vector<>,
-                                      typename boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
-                                      >::type iterator_list_mpl;
+                                          boost::mpl::vector<>,
+                                          typename boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
+                                          >::type iterator_list_mpl;
     
     public:
         /**
@@ -324,15 +323,15 @@ namespace gridtools {
         /**
          * fusion::vector of pointers to storages
          */
-        arg_list args;
+        arg_list storage_pointers;
 
         /**
-         * fusion::vector of iterators used to access args
+         * fusion::vector of iterators used to access storage_pointers
          */
         iterator_list iterators;
 
     private:
-        // Using zip view to associate iterators and args in a single object.
+        // Using zip view to associate iterators and storage_pointers in a single object.
         // This is used to move iterators to coordinates relative to storage
         typedef typename boost::fusion::vector<iterator_list&, arg_list&> zip_vector_type;
         zip_vector_type zip_vector;
@@ -345,14 +344,14 @@ namespace gridtools {
          */
         template <typename t_real_storage>
         explicit domain_type(t_real_storage const & real_storage)
-            : args()
+            : storage_pointers()
             , iterators()
-            , zip_vector(iterators, args)
+            , zip_vector(iterators, storage_pointers)
         {
             typedef typename boost::fusion::filter_view<arg_list, 
                 boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > view_type;
 
-            view_type fview(args);
+            view_type fview(storage_pointers);
 
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
@@ -368,16 +367,16 @@ namespace gridtools {
          */
         __device__
         explicit domain_type(domain_type const& other)
-            : args(other.args)
+            : storage_pointers(other.storage_pointers)
             , iterators(other.iterators)
-            , zip_vector(iterators, args)
+            , zip_vector(iterators, storage_pointers)
         { }
 #endif
 
         ~domain_type() {
             typedef typename boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
-            tmp_view_type fview(args);
+            tmp_view_type fview(storage_pointers);
             boost::fusion::for_each(fview, _impl::delete_tmps());
 
         }
@@ -442,7 +441,7 @@ namespace gridtools {
         
             typedef typename boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
-            tmp_view_type fview(args);
+            tmp_view_type fview(storage_pointers);
 
 #ifndef NDEBUG
             std::cout << "BEGIN VIEW" << std::endl;
@@ -468,7 +467,7 @@ namespace gridtools {
            get the data prepared in the case of GPU execution.
         */
         void setup_computation() {
-            boost::fusion::for_each(args, _impl::call_h2d());
+            boost::fusion::for_each(storage_pointers, _impl::call_h2d());
         }
 
         /**
@@ -476,7 +475,7 @@ namespace gridtools {
            get the data back to the host after a computation.
         */
         void finalize_computation() {
-            boost::fusion::for_each(args, _impl::call_d2h());
+            boost::fusion::for_each(storage_pointers, _impl::call_d2h());
         }
 
         template <typename T>
@@ -497,8 +496,8 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
         direct() const {
-            assert((boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(args)->min_addr()));
-            assert((boost::fusion::template at<I>(iterators) < boost::fusion::template at<I>(args)->max_addr()));
+            assert((boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(storage_pointers)->min_addr()));
+            assert((boost::fusion::template at<I>(iterators) < boost::fusion::template at<I>(storage_pointers)->max_addr()));
 
             return *(boost::fusion::template at<I>(iterators));
         }
@@ -511,9 +510,9 @@ namespace gridtools {
             boost::fusion::for_each(zipping(zip_vector), _impl::moveto_functor(i,j,k));
             // Simpler code:
             // for (int l = 0; l < len; ++l) {
-            //     iterators[l] = &( (*(args[l]))(i,j,k) );
-            //     assert(iterators[l] >= args[l]->min_addr());
-            //     assert(iterators[l] < args[l]->max_addr());
+            //     iterators[l] = &( (*(storage_pointers[l]))(i,j,k) );
+            //     assert(iterators[l] >= storage_pointers[l]->min_addr());
+            //     assert(iterators[l] < storage_pointers[l]->max_addr());
             // }
         }
 
@@ -528,7 +527,7 @@ namespace gridtools {
             boost::fusion::for_each(zipping(zip_vector), _impl::increment_functor<DIR>());
             // Simpler code:
             // for (int l = 0; l < len; ++l) {
-            //     iterators[l] += (*(args[l])).template stride_along<DIR>();
+            //     iterators[l] += (*(storage_pointers[l])).template stride_along<DIR>();
             // }
         }
 

@@ -18,25 +18,44 @@
 
 struct out_value {
     template <typename T>
-    __device__
-    void operator()(T const& x) const {
-        printf("%X\n", x);
-        // for (int i=0; i<3; ++i) {
-        //     for (int j=0; j<3; ++j) {
-        //         for (int k=0; k<3; ++k) {
-        //             printf("%d ", (*x)(i,j,k));
-        //         }
-        //         printf("\n");
-        //     }
-        //     printf("\n");
-        // }
+    __host__ __device__
+    void operator()(T x) const {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        printf("gigigi %X %X\n", x, x->data.pointer_to_use);
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<3; ++j) {
+                for (int k=0; k<3; ++k) {
+                    printf("%e ", (*x)(i,j,k));
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+    }
+};
+
+struct out_value_ {
+    template <typename T>
+    __host__ __device__
+    void operator()(T const& stor) const {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        printf(" > %X %X\n", &stor, stor.data.pointer_to_use);
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<3; ++j) {
+                for (int k=0; k<3; ++k) {
+                    printf("%e, ", stor(i,j,k));
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
     }
 };
 
 template <typename t_domain>
 __global__
 void print_values(t_domain const* domain) {
-    boost::fusion::for_each(domain->args, out_value());
+    boost::fusion::for_each(domain->storage_pointers, out_value());
 }
 
 /*
@@ -52,26 +71,57 @@ int main(int argc, char** argv) {
     
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,-3, std::string("coeff"));
+    storage_type coeff(d1,d2,d3,-3.4, std::string("coeff"));
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef gridtools::arg<3, gridtools::temporary<storage_type> > p_lap;
-    typedef gridtools::arg<4, gridtools::temporary<storage_type> > p_flx;
-    typedef gridtools::arg<5, gridtools::temporary<storage_type> > p_fly;
+    // typedef gridtools::arg<3, gridtools::temporary<storage_type> > p_lap;
+    // typedef gridtools::arg<4, gridtools::temporary<storage_type> > p_flx;
+    // typedef gridtools::arg<5, gridtools::temporary<storage_type> > p_fly;
     typedef gridtools::arg<0, storage_type > p_coeff;
     typedef gridtools::arg<1, storage_type > p_in;
     typedef gridtools::arg<2, storage_type > p_out;
 
-    // An array of placeholders to be passed to the domain
-    // I'm using mpl::vector, but the final API should look slightly simpler
+    // // An array of placeholders to be passed to the domain
+    // // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector</*p_lap, p_flx, p_fly*/ p_coeff, p_in, p_out> arg_type_list;
 
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+    // // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
+    // // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+    // // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<arg_type_list> domain
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
+
+    for (int i = 0; i < d1; ++i) {
+        for (int j = 0; j < d2; ++j) {
+            for (int k = 0; k < d3; ++k) {
+                coeff(i,j,k) = -1*(i+j+k)*3.4;
+                //std::cout << coeff(i,j,k) << " ";
+                out(i,j,k) = -1*(i+j+k)*100;
+                //std::cout << out(i,j,k) << " ";
+                in(i,j,k) = -1*(i+j+k)*0.45;
+                //std::cout << in(i,j,k) << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl; 
+        std::cout << std::endl;
+    }
+
+    // printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    // out_value_()(coeff);
+    // printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    // out_value_()(in);
+    // printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    // out_value_()(out);
+
+    coeff.data.update_gpu();
+    in.data.update_gpu();
+    out.data.update_gpu();
+
+    coeff.clone_to_gpu();
+    in.clone_to_gpu();
+    out.clone_to_gpu();
 
     domain.clone_to_gpu();
 
