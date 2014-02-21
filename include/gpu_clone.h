@@ -9,19 +9,8 @@ namespace gridtools {
     struct mask_object {
         typedef derived_type type;
         char data[sizeof(derived_type)];
-        
-//         mask_object(mask_object const & other) {
-//             std::cout << "being copied... " << std::endl;
-//             std::cout << std::hex << &other << " " << &(other.data) << std::endl;
-//             std::cout << this << " -- " << &(this->data) << std::endl;
-
-//             memcpy(&(this->data), &(other.data), sizeof(derived_type));
-//             std::cout << "copied" << std::dec << std::endl;
-//             }
     };
 
-
-    ///QUAAAAAAAAA
 
     template <class T>
     __global__
@@ -60,24 +49,10 @@ namespace gridtools {
             derived type.
          */
         void clone_to_gpu() const {
-#ifndef NDEBUG
-            std::cout << std::hex << " ----> "
-                      << this << " "
-                      << static_cast<const t_derived_type*>(this) <<  std::dec
-                      << " * " << sizeof(t_derived_type)
-                      << std::endl;
-#endif        
             const mask_object<const t_derived_type> *maskT = 
                              reinterpret_cast<const mask_object<const t_derived_type>*>
                              ((static_cast<const t_derived_type*>(this)));
     
-#ifndef NDEBUG
-            std::cout << "call " 
-                      << std::hex << maskT 
-                      << std::dec << " " << sizeof(mask_object<const t_derived_type>) 
-                      << std::endl;
-#endif
-
             construct<<<1,1>>>(*maskT);
             cudaDeviceSynchronize();
         }

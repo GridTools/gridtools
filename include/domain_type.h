@@ -112,14 +112,14 @@ namespace gridtools {
             void operator()(cuda_storage<T,U,B> *& s) const {
                 if (s) {
 #ifndef NDEBUG
-                    std::cout << "UPDATING " 
-                              << std::hex << s->gpu_object_ptr 
-                              << " " << s
-                              << " " << sizeof(cuda_storage<T,U,B>)
-                              << std::dec << std::endl;
+                    // std::cout << "UPDATING " 
+                    //           << std::hex << s->gpu_object_ptr 
+                    //           << " " << s
+                    //           << " " << sizeof(cuda_storage<T,U,B>)
+                    //           << std::dec << std::endl;
 #endif
-                    // s->data.update_gpu();
-                    // s->clone_to_gpu();
+                    s->data.update_gpu();
+                    s->clone_to_gpu();
                     s = s->gpu_object_ptr;
                 }
             }
@@ -356,7 +356,7 @@ namespace gridtools {
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
             boost::fusion::copy(real_storage, fview);
-            boost::fusion::for_each(fview, _impl::update_pointer());
+            boost::fusion::for_each(storage_pointers/*fview*/, _impl::update_pointer());
 
         }
 

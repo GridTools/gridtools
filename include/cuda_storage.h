@@ -45,6 +45,12 @@ namespace gridtools {
             data.update_gpu();
         }
 
+        __device__
+        cuda_storage(cuda_storage const& other)
+            : base_type(other)
+            , data(other.data)
+        { }
+
         explicit cuda_storage()
             : base_type()
         { }

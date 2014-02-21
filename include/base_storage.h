@@ -30,7 +30,7 @@ namespace gridtools {
             strides[1] = layout::template find<2>(m_dims);
             strides[2] = 1;
             m_size = m_dims[0] * m_dims[1] * m_dims[2];
-            std::cout << "Size " << m_size << std::endl;
+            //            std::cout << "Size " << m_size << std::endl;
             is_set=true;
             //name = s;
         }
@@ -53,7 +53,7 @@ namespace gridtools {
             is_set=false;
         }
 
-        virtual void h2d_update() const {}
+        virtual void h2d_update() {}
         virtual void d2h_update() {}
 
         void info() const {

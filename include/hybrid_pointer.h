@@ -2,6 +2,7 @@
 
 #include <gt_assert.h>
 #include <iostream>
+#include <stdio.h>
 
 namespace gridtools {
     
@@ -15,19 +16,32 @@ namespace gridtools {
         hybrid_pointer(int size) : size(size) {
             allocate_it(size);
             pointer_to_use = cpu_p;
+#ifndef NDEBUG
+            printf(" - %X %X %X %d\n", cpu_p, gpu_p, pointer_to_use, size);
+#endif
         }
 
-        __host__ __device__
+        __device__
         hybrid_pointer(hybrid_pointer const& other)
             : cpu_p(other.cpu_p)
             , gpu_p(other.gpu_p)
 #ifdef __CUDA_ARCH__
-            , pointer_to_use(other.gpu_p)
+              //#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 200)
+            , pointer_to_use(gpu_p)
 #else
-            , pointer_to_use(other.cpu_p)
+            , pointer_to_use(cpu_p)
 #endif
             , size(other.size)
-        { } 
+        {
+#ifndef NDEBUG
+            printf("cpy const hp "); 
+            printf("%X ", cpu_p);
+            printf("%X ", gpu_p);
+            printf("%X ", pointer_to_use);
+            printf("%X ", size);
+            printf("\n");
+#endif
+        } 
 
         void allocate_it(int size) {
 #ifdef __CUDACC__
@@ -53,19 +67,30 @@ namespace gridtools {
 
         void update_gpu() {
 #ifdef __CUDACC__
+#ifndef NDEBUG
+            printf("update gpu "); out();
+#endif
             cudaMemcpy(gpu_p, cpu_p, size*sizeof(T), cudaMemcpyHostToDevice);
 #endif
         }
 
         void update_cpu() {
 #ifdef __CUDACC__
+#ifndef NDEBUG
+            printf("update cpu "); out();
+#endif
             cudaMemcpy(cpu_p, gpu_p, size*sizeof(T), cudaMemcpyDeviceToHost);
 #endif
         }
 
         __host__ __device__
         void out() const {
-            printf("%X %X %X %d\n", cpu_p, gpu_p, pointer_to_use, size);
+            printf("out hp "); 
+            printf("%X ", cpu_p);
+            printf("%X ", gpu_p);
+            printf("%X ", pointer_to_use);
+            printf("%X ", size);
+            printf("\n");
         }
 
         __host__ __device__

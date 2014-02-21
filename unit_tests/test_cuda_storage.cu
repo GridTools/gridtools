@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
         std::cout << std::endl;
     }
 
-    data.clone_to_gpu();
     data.h2d_update();
+    data.clone_to_gpu();
 
 #ifdef __CUDACC__
     add_on_gpu<<<1,1>>>(data.gpu_object_ptr, d1, d2, d3);
