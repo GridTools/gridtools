@@ -5,6 +5,24 @@
 #include <stdio.h>
 
 namespace gridtools {
+
+    namespace workaround_ {
+        template <typename T>
+        struct new_op;
+
+#define NEW_OP(x) template <>                   \
+        struct new_op<x> {                      \
+            x* operator()(int size) const {     \
+                return new x[size];             \
+            }                                   \
+        };
+
+        NEW_OP(int)
+        NEW_OP(unsigned int)
+        NEW_OP(char)
+        NEW_OP(float)
+        NEW_OP(double)
+    }
     
     template <typename T>
     struct hybrid_pointer {
@@ -55,7 +73,7 @@ namespace gridtools {
                           << std::endl;
             }
 #endif
-            cpu_p = new T[size];
+            cpu_p = workaround_::new_op<T>()(size);
         }
 
         void free_it() {
@@ -139,6 +157,7 @@ namespace gridtools {
         T* const& operator+(int i) const {
             return &pointer_to_use[i];
         }
+
     };
 
 } // namespace gridtools
