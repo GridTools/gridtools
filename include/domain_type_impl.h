@@ -181,7 +181,6 @@ namespace gridtools {
             };
         };
     
-        template <typename t_back_end>
         struct instantiate_tmps {
             int tileI;
             int tileJ;

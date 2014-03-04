@@ -343,7 +343,7 @@ namespace gridtools {
                     is executed.
              *******/
             // Prepare domain's temporary fields to proper storage sizes
-            domain.template prepare_temporaries<t_mss_type, range_sizes, t_backend>
+            domain.template prepare_temporaries<t_mss_type, range_sizes>
                 (tileI,
                  tileJ, 
                  coords.value_at_top()-coords.value_at_bottom()+1);

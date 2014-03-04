@@ -167,7 +167,7 @@ namespace gridtools {
          * @param tileJ Tile size in the second dimension as used by the back-end
          * @param tileK Tile size in the third dimension as used by the back-end
          */
-        template <typename t_mss_type, typename t_range_sizes, typename t_back_end>
+        template <typename t_mss_type, typename t_range_sizes>
         void prepare_temporaries(int tileI, int tileJ, int tileK) {
 #ifndef NDEBUG
             std::cout << "Prepare ARGUMENTS" << std::endl;
@@ -227,7 +227,7 @@ namespace gridtools {
             typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
             zipper zzip(fview, lor);
             boost::fusion::zip_view<zipper> zip(zzip); 
-            boost::fusion::for_each(zip, _impl::instantiate_tmps< t_back_end >(tileI, tileJ, tileK));
+            boost::fusion::for_each(zip, _impl::instantiate_tmps(tileI, tileJ, tileK));
 
 #ifndef NDEBUG
             std::cout << "BEGIN VIEW DOPO" << std::endl;
