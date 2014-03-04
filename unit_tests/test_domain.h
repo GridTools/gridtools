@@ -1,0 +1,2 @@
+
+bool test_domain();

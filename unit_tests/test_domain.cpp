@@ -68,20 +68,37 @@ void print_values(t_domain const* domain) {
     boost::fusion::for_each(domain->storage_pointers, out_value());
 }
 
+template <typename one, typename two>
+bool the_same(one const& storage1, two const& storage2) {
+    bool same = true;
+    for (int i=0; i<3; ++i) {
+        for (int j=0; j<3; ++j) {
+            for (int k=0; k<3; ++k) {
+                same &= (storage1(i,j,k) == storage2(i,j,k));
+            }
+        }
+    }
+    return same;
+}
+
 /*
  * 
  */
-int main(int argc, char** argv) {
+bool test_domain() {
 
     typedef gridtools::cuda_storage<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    int d1 = atoi(argv[1]);
-    int d2 = atoi(argv[2]);
-    int d3 = atoi(argv[3]);
+    int d1 = 3;
+    int d2 = 3;
+    int d3 = 3;
     
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     storage_type coeff(d1,d2,d3,-3.4, std::string("coeff"));
+
+    storage_type host_in(d1,d2,d3,-1, std::string("host_in"));
+    storage_type host_out(d1,d2,d3,-7.3, std::string("host_out"));
+    storage_type host_coeff(d1,d2,d3,-3.4, std::string("host_coeff"));
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -97,11 +114,11 @@ int main(int argc, char** argv) {
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3; ++k) {
                 coeff(i,j,k) = -1*(i+j+k)*3.4;
-                //std::cout << coeff(i,j,k) << " ";
                 out(i,j,k) = -1*(i+j+k)*100;
-                //std::cout << out(i,j,k) << " ";
                 in(i,j,k) = -1*(i+j+k)*0.45;
-                //std::cout << in(i,j,k) << " ";
+                host_coeff(i,j,k) = -1*(i+j+k)*3.4;
+                host_out(i,j,k) = -1*(i+j+k)*100;
+                host_in(i,j,k) = -1*(i+j+k)*0.45;
             }
         }
     }
@@ -117,29 +134,35 @@ int main(int argc, char** argv) {
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
 
+#ifndef NDEBUG
     printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
     out_value_()(coeff);
     printf(" > %X %X\n", &in, in.data.pointer_to_use);
     out_value_()(in);
     printf(" > %X %X\n", &out, out.data.pointer_to_use);
     out_value_()(out);
+#endif
 
     // THERE ARE NOT TEMPS HERE    domain.prepare_temporaries();
     domain.is_ready=true;
     domain.setup_computation();
     domain.clone_to_gpu();
 
+#ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
+#endif
     print_values<<<1,1>>>(domain.gpu_object_ptr);
     cudaDeviceSynchronize();
+#ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
-
+#endif
     domain.finalize_computation();
 
     coeff.data.update_cpu();
     in.data.update_cpu();
     out.data.update_cpu();
 
+#ifndef NDEBUG
     printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
     out_value_()(coeff);
     printf(" > %X %X\n", &in, in.data.pointer_to_use);
@@ -148,14 +171,19 @@ int main(int argc, char** argv) {
     out_value_()(out);
 
     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
+#endif
 
     domain.setup_computation();
     domain.clone_to_gpu();
 
+#ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
+#endif
     print_values<<<1,1>>>(domain.gpu_object_ptr);
     cudaDeviceSynchronize();
+#ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
+#endif
 
     domain.finalize_computation();
 
@@ -163,15 +191,46 @@ int main(int argc, char** argv) {
     in.data.update_cpu();
     out.data.update_cpu();
 
+#ifndef NDEBUG
     printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
     out_value_()(coeff);
     printf(" > %X %X\n", &in, in.data.pointer_to_use);
     out_value_()(in);
     printf(" > %X %X\n", &out, out.data.pointer_to_use);
     out_value_()(out);
+#endif
 
+    out_value()(&host_in);
+    out_value()(&host_in);
+    out_value()(&host_out);
+    out_value()(&host_out);
+    out_value()(&host_coeff);
+    out_value()(&host_coeff);
+
+#ifndef NDEBUG
+    printf("\n\nON THE HOST\n\n");
+    printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    out_value_()(coeff);
+    printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    out_value_()(in);
+    printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    out_value_()(out);
+#endif
+
+    bool failed = false;
+    std::cout << std::boolalpha << failed << " ";
+    failed |= !the_same(in, host_in);
+    std::cout << std::boolalpha << failed << " ";
+    failed |= !the_same(out, host_out);
+    std::cout << std::boolalpha << failed << " ";
+    failed |= !the_same(coeff, host_coeff);
+    std::cout << std::boolalpha << failed << " ";
+    std::cout << std::endl;
+
+#ifndef NDEBUG
     std::cout << " *** DONE ***" << std::endl;
+#endif
 
-    return 0;
+    return failed;
 }
 
