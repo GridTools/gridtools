@@ -48,7 +48,7 @@ struct out_value_ {
     template <typename T>
     __host__ __device__
     void operator()(T const& stor) const {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        //std::cout << __PRETTY_FUNCTION__ << std::endl;
         printf(" > %X %X\n", &stor, stor.data.pointer_to_use);
         for (int i=0; i<3; ++i) {
             for (int j=0; j<3; ++j) {
@@ -124,9 +124,40 @@ int main(int argc, char** argv) {
     printf(" > %X %X\n", &out, out.data.pointer_to_use);
     out_value_()(out);
 
+    // THERE ARE NOT TEMPS HERE    domain.prepare_temporaries();
+    domain.is_ready=true;
+    domain.setup_computation();
     domain.clone_to_gpu();
 
+    printf("\n\nFROM GPU\n\n");
     print_values<<<1,1>>>(domain.gpu_object_ptr);
+    cudaDeviceSynchronize();
+    printf("\n\nDONE WITH GPU\n\n");
+
+    domain.finalize_computation();
+
+    coeff.data.update_cpu();
+    in.data.update_cpu();
+    out.data.update_cpu();
+
+    printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    out_value_()(coeff);
+    printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    out_value_()(in);
+    printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    out_value_()(out);
+
+    std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
+
+    domain.setup_computation();
+    domain.clone_to_gpu();
+
+    printf("\n\nFROM GPU\n\n");
+    print_values<<<1,1>>>(domain.gpu_object_ptr);
+    cudaDeviceSynchronize();
+    printf("\n\nDONE WITH GPU\n\n");
+
+    domain.finalize_computation();
 
     coeff.data.update_cpu();
     in.data.update_cpu();
