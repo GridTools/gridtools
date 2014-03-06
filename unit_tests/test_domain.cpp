@@ -218,14 +218,9 @@ bool test_domain() {
 #endif
 
     bool failed = false;
-    std::cout << std::boolalpha << failed << " ";
     failed |= !the_same(in, host_in);
-    std::cout << std::boolalpha << failed << " ";
     failed |= !the_same(out, host_out);
-    std::cout << std::boolalpha << failed << " ";
     failed |= !the_same(coeff, host_coeff);
-    std::cout << std::boolalpha << failed << " ";
-    std::cout << std::endl;
 
 #ifndef NDEBUG
     std::cout << " *** DONE ***" << std::endl;

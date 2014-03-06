@@ -7,11 +7,14 @@
 */
 
 
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
+#endif
 
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/zip_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/at.hpp>
 
 #include <iostream>
 #include <stdio.h>
@@ -19,198 +22,211 @@
 
 #include <gpu_clone.h>
 
-/********************************************************
+namespace gpu_clone_test {
+
+    /********************************************************
     GENERIC CODE THAW WORKS WITH ANY (almost POD) OBJECT
-*********************************************************/
+    *********************************************************/
 
 
-/********************************************************
+    /********************************************************
     SPECIFIC CODE WITH AN OBJECT THAT HAS REFERENCES
     BUT NEED TO BE CLONED ON GPU
-*********************************************************/
+    *********************************************************/
 
-struct A: public gridtools::clonable_to_gpu<A> {
-    typedef boost::fusion::vector<int, double> v_type;
-    v_type v1;
-    v_type v2;
+    struct A: public gridtools::clonable_to_gpu<A> {
+        typedef boost::fusion::vector<int, double> v_type;
+        v_type v1;
+        v_type v2;
 
-    typedef boost::fusion::vector<v_type&, v_type&> support_t;
-    typedef boost::fusion::zip_view<support_t> zip_view_t;
+        typedef boost::fusion::vector<v_type&, v_type&> support_t;
+        typedef boost::fusion::zip_view<support_t> zip_view_t;
 
-    zip_view_t zip_view;
+        zip_view_t zip_view;
 
-    A(v_type const & a, v_type const& b)
-        : v1(a)
-        , v2(b)
-        , zip_view(support_t(v1, v2))
-    {
-    }
-
-    __host__ __device__
-    A(A const& a) 
-        : v1(a.v1)
-        , v2(a.v2)
-        , zip_view(support_t(v1, v2))
-    { }
-
-    ~A() { }
-
-    void update_gpu_copy() const {
-        clone_to_gpu();
-    }
-
-    __host__ __device__
-    void out() const {
-        printf("v1:  ");
-        boost::fusion::for_each(v1, print_elements());
-        printf("\n");
-
-        printf("v2:  ");
-        boost::fusion::for_each(v2, print_elements());
-        printf("\n");
-
-        printf("zip: ");
-        boost::fusion::for_each(zip_view, print_zip());
-        printf("\n");
-    }
-
-private:
-    struct print_elements {
-        __host__ __device__
-        void operator()(int u) const {
-            printf("%d, ", u);
+        A(v_type const & a, v_type const& b)
+            : v1(a)
+            , v2(b)
+            , zip_view(support_t(v1, v2))
+        {
         }
 
         __host__ __device__
-        void operator()(double u) const {
-            printf("%e, ", u);
-        }
-    };
+        A(A const& a) 
+            : v1(a.v1)
+            , v2(a.v2)
+            , zip_view(support_t(v1, v2))
+        { }
 
-    struct print_zip {
-        template <typename V>
+        ~A() { }
+
+        void update_gpu_copy() const {
+            clone_to_gpu();
+        }
+
         __host__ __device__
-        void operator()(V const & v) const {
-            boost::fusion::for_each(v, print_elements());
+        void out() const {
+            printf("v1:  ");
+            boost::fusion::for_each(v1, print_elements());
+            printf("\n");
+
+            printf("v2:  ");
+            boost::fusion::for_each(v2, print_elements());
+            printf("\n");
+
+            printf("zip: ");
+            boost::fusion::for_each(zip_view, print_zip());
             printf("\n");
         }
+
+    private:
+        struct print_elements {
+            __host__ __device__
+            void operator()(int u) const {
+                printf("%d, ", u);
+            }
+
+            __host__ __device__
+            void operator()(double u) const {
+                printf("%e, ", u);
+            }
+        };
+
+        struct print_zip {
+            template <typename V>
+            __host__ __device__
+            void operator()(V const & v) const {
+                boost::fusion::for_each(v, print_elements());
+                printf("\n");
+            }
+        };
+
     };
 
-};
+    /** class to test gpu_clonable data-members
+     */
+    struct B: public gridtools::clonable_to_gpu<B> {
+        A a;
 
-/** class to test gpu_clonable data-members
- */
-struct B: public gridtools::clonable_to_gpu<B> {
-    A a;
+        B(typename A::v_type const& v1, typename A::v_type const& v2) 
+            : a(v1, v2)
+        {
+            //        clone_to_gpu();
+        }
 
-    B(typename A::v_type const& v1, typename A::v_type const& v2) 
-        : a(v1, v2)
-    {
-        //        clone_to_gpu();
+        __device__ __host__
+        B(B const& b) 
+            : a(b.a)
+        {}
+
+        __host__ __device__
+        void out() const {
+            a.out();
+        }
+    };
+
+
+    struct mul2_f {
+        template <typename U>
+        __host__ __device__
+        void operator()(U& u) const {
+            u *= 2;
+        }
+    };
+
+    struct mul2_fz {
+        template <typename U>
+        __host__ __device__
+        void operator()(U const& u) const {
+            boost::fusion::at_c<0>(u) *= 2;
+            boost::fusion::at_c<1>(u) *= 2;
+        }
+    };
+
+    __global__
+    void mul2(A * a) {
+        boost::fusion::for_each(a->zip_view, mul2_fz());
     }
 
-    __device__ __host__
-    B(B const& b) 
-        : a(b.a)
-    {}
+    // __global__
+    // void print_on_gpu(A * a) {
+    //     a->out();
+    // }
 
-    __host__ __device__
-    void out() const {
-        a.out();
-    }
-};
+    // __global__
+    // void print_on_gpu(B * b) {
+    //     b->out();
+    // }
 
+    struct minus1_f {
+        template <typename T>
+        __host__ __device__ // Avoid warning
+        void operator()(T & x) const {
+            x -= 1;
+        }
+    };
 
-struct mul2_f {
-    template <typename U>
-    __host__ __device__
-    void operator()(U& u) const {
-        u *= 2;
-    }
-};
-
-__global__
-void mul2(A * a) {
-    boost::fusion::for_each(a->v1, mul2_f());
-    boost::fusion::for_each(a->v2, mul2_f());
-}
-
-__global__
-void print_on_gpu(A * a) {
-    a->out();
-}
-
-__global__
-void print_on_gpu(B * b) {
-    b->out();
-}
-
-struct minus1 {
-    template <typename T>
-    __host__ __device__ // Avoid warning
-    void operator()(T & x) const {
-        x -= 1;
-    }
-};
-
-int main(int argc, char** argv) {
-
-    if (argc != 2) {
-        printf("Multiplicator is needed\n");
-        return 1;
+    __global__
+    void minus1(B * b) {
+        boost::fusion::for_each(b->a.v1, minus1_f());
+        boost::fusion::for_each(b->a.v2, minus1_f());
     }
 
-    int m = atoi(argv[1]);
+    bool test_gpu_clone() {
 
-    typename A::v_type w1(m*1, m*3.1415926);
-    typename A::v_type w2(m*2, m*2.7182818);
+        int m = 7;
 
-    A a(w1, w2);
-    a.update_gpu_copy();
+        typename A::v_type w1(m*1, m*3.1415926);
+        typename A::v_type w2(m*2, m*2.7182818);
 
-    a.out();
+        A a1(w1, w2);
+        A a2(w1, w2);
+        a1.update_gpu_copy();
 
-    printf("Performing the same operation on GPU on cloned object\n");
+        a1.update_gpu_copy();
 
-    print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
+        mul2<<<1,1>>>(a1.gpu_object_ptr);
+        a1.clone_from_gpu();
 
-    cudaDeviceSynchronize();
+        boost::fusion::for_each(a2.v1, mul2_f());
+        boost::fusion::for_each(a2.v2, mul2_f());
 
-    printf("Updating the object with -1\n");
+        bool equal = true;
+        if (boost::fusion::at_c<0>(a1.v1) != boost::fusion::at_c<0>(a2.v1))
+            equal = false;
+        if (boost::fusion::at_c<1>(a1.v1) != boost::fusion::at_c<1>(a2.v1))
+            equal = false;
+        if (boost::fusion::at_c<0>(a1.v2) != boost::fusion::at_c<0>(a2.v2))
+            equal = false;
+        if (boost::fusion::at_c<1>(a1.v2) != boost::fusion::at_c<1>(a2.v2))
+            equal = false;
 
-    boost::fusion::for_each(a.v1, minus1());
-    boost::fusion::for_each(a.v2, minus1());
-    a.update_gpu_copy();
+        typename A::v_type bw1(m*8, m*1.23456789);
+        typename A::v_type bw2(m*7, m*9.87654321);
 
-    a.out();
+        B b1(bw1, bw2);
+        B b2(bw1, bw2);
 
-    printf("Performing the same operation on GPU on cloned object\n");
+        // b.out();
 
-    print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
+        // printf("Now doing the same on GPU");
 
-    cudaDeviceSynchronize();
+        b1.clone_to_gpu();
+        minus1<<<1,1>>>(b1.gpu_object_ptr);
+        b1.clone_from_gpu();
+    
+        boost::fusion::for_each(b2.a.v1, minus1_f());
+        boost::fusion::for_each(b2.a.v2, minus1_f());
 
-    printf("\nTesting changing values on GPU and copy back to object\n");
-    mul2<<<1,1>>>(a.gpu_object_ptr);
-    a.clone_from_gpu();
-    a.out();
+        if (boost::fusion::at_c<0>(b1.a.v1) != boost::fusion::at_c<0>(b2.a.v1))
+            equal = false;
+        if (boost::fusion::at_c<1>(b1.a.v1) != boost::fusion::at_c<1>(b2.a.v1))
+            equal = false;
+        if (boost::fusion::at_c<0>(b1.a.v2) != boost::fusion::at_c<0>(b2.a.v2))
+            equal = false;
+        if (boost::fusion::at_c<1>(b1.a.v2) != boost::fusion::at_c<1>(b2.a.v2))
+            equal = false;
 
-    printf("\nTesting data clonable data members of clonable classes\n");
-
-    typename A::v_type bw1(m*8, m*1.23456789);
-    typename A::v_type bw2(m*7, m*9.87654321);
-
-    B b(bw1, bw2);
-
-    b.out();
-
-    printf("Now doing the same on GPU");
-
-    print_on_gpu<<<1,1>>>(b.gpu_object_ptr);
-
-    boost::fusion::for_each(b.a.v1, minus1());
-    boost::fusion::for_each(b.a.v2, minus1());
-    b.clone_to_gpu();
-
-    return 0;
-}
+        return equal;
+    }
+} // namespace gpu_clone_test

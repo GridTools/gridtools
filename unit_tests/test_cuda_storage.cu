@@ -29,13 +29,13 @@ void add_on_gpu(T * ptr, int d1, int d2, int d3) {
 }
 #endif
 
-int main(int argc, char** argv) {
+bool test_cuda_storage() {
 
     typedef gridtools::cuda_storage<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    int d1 = atoi(argv[1]);
-    int d2 = atoi(argv[2]);
-    int d3 = atoi(argv[3]);
+    int d1 = 3;
+    int d2 = 3;
+    int d3 = 3;
     
     storage_type data(d1,d2,d3,-1, std::string("data"));
 
@@ -43,12 +43,18 @@ int main(int argc, char** argv) {
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3; ++k) {
                 data(i,j,k) = i+j+k;
+#ifndef NDEBUG
                 std::cout << data(i,j,k) << " ";
+#endif
             }
+#ifndef NDEBUG
             std::cout << std::endl;
+#endif
         }
+#ifndef NDEBUG
         std::cout << std::endl; 
         std::cout << std::endl;
+#endif
     }
 
     data.h2d_update();
@@ -60,18 +66,25 @@ int main(int argc, char** argv) {
 #endif
     data.d2h_update();
 
+    bool same = true;
     for (int i = 0; i < d1; ++i) {
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3; ++k) {
+#ifndef NDEBUG
                 std::cout << data(i,j,k) << " ";
+#endif
+                if (data(i,j,k) != -i-j-k)
+                    same = false;
             }
+#ifndef NDEBUG
             std::cout << std::endl;
+#endif
         }
-        std::cout << std::endl; 
+#ifndef NDEBUG
         std::cout << std::endl;
+        std::cout << std::endl;
+#endif
     }
 
-    std::cout << "    *** THE END ***" << std::endl;
-
-    return 0;
+    return same;
 }

@@ -176,20 +176,19 @@ int main(int argc, char** argv) {
       3) The actual domain dimensions
      */
     gridtools::intermediate::run<gridtools::BACKEND>
-    (
-        gridtools::make_mss
         (
-            gridtools::execute_upward,
-            gridtools::make_esf<lap_function>(p_lap(), p_in()),
-            gridtools::make_independent
-            (
-                gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-                gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-            ),
-            gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff()
-        )
-    ),
-    domain, coords);
+         gridtools::make_mss
+         (
+          gridtools::execute_upward,
+          gridtools::make_esf<lap_function>(p_lap(), p_in()),
+          gridtools::make_independent
+          (
+           gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+           gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+           ),
+          gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+          ),
+         domain, coords);
 
 
     in.print();

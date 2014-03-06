@@ -10,29 +10,35 @@ struct A: gridtools::clonable_to_gpu<A> {
     A(int n)
         : p(n)
     {
+#ifndef NDEBUG
         p.out();
+#endif
     }
 
     __device__
     A(A const& other)
         : p(other.p)
     {
+#ifndef NDEBUG
         p.out();
+#endif
     }
 };
 
 __global__
 void reverse(A* p, int n) {
+#ifndef NDEBUG
     printf("%X ", p->p.cpu_p);
     printf("%X ", p->p.gpu_p);
     printf("%X ", p->p.pointer_to_use);
     printf("%X ", p->p.size);
     printf("\n");
+#endif
     for (int i = 0; i < p->p.size; ++i)
         p->p[i] = n-i;
 }
 
-int main() {
+bool test_hybrid_pointer() {
     int n = 10;
     A a(n);
 
@@ -48,8 +54,10 @@ int main() {
 
     a.p.update_cpu();
 
+    bool right = true;
     for (int i = 0; i < n; ++i)
-        std::cout << a.p[i] << std::endl;
+        if (a.p[i] != n-i)
+            right = false;
 
-    return 0;
+    return right;
 }
