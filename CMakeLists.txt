@@ -32,30 +32,49 @@ set(LIBRARY_OUTPUT_PATH "lib")
 set(
      SOURCES
      "include/arg_type.h"
-     "include/array.h"
-     "include/axis.h"
-     "include/backend0.h"
-     "include/backend_naive.h"
-     "include/domain_type.h"
-     "include/execution_types.h"
-     "include/functor_do_method_lookup_maps.h"
-     "include/functor_do_methods.h"
-     "include/hasdo.h"
-     "include/intermediate.h"
-     "include/interval.h"
-     "include/layout_map.h"
-     "include/level.h"
-     "include/loopintervals.h"
-     "include/make_stencils.h"
-     "include/range.h"
-     "include/storage.h"
-     "include/yesno.h"
+	"include/array.h"
+	"include/axis.h"
+	"include/backend0.h"
+	"include/backend_block.h"
+	"include/backend_cuda.h"
+	"include/backend_naive.h"
+	"include/base_storage.h"
+	"include/basic_token_execution.h"
+	"include/basic_utils.h"
+	"include/cuda_storage.h"
+	"include/defs.h"
+	"include/domain_type.h"
+	"include/domain_type_impl.h"
+	"include/execution_types.h"
+	"include/functor_do_method_lookup_maps.h"
+	"include/functor_do_methods.h"
+	"include/gpu_clone.h"
+	"include/gridtools.h"
+	"include/gt_assert.h"
+	"include/hasdo.h"
+	"include/host_device.h"
+	"include/hybrid_pointer.h"
+	"include/intermediate.h"
+	"include/interval.h"
+	"include/layout_map.h"
+	"include/level.h"
+	"include/local_domain.h"
+	"include/loopintervals.h"
+	"include/make_stencils.h"
+	"include/range.h"
+	"include/storage.h"
+	"include/yesno.h"
+	"include/gt_for_each/for_each.hpp"
+	"include/gt_for_each/unwrap.hpp"
+	"include/gt_for_each/value_init.hpp"
 )
 
 add_executable(interface1_notemps_naive   examples/interface1_notemps.cpp ${SOURCES} )
 add_executable(interface1_notemps_block   examples/interface1_notemps.cpp ${SOURCES} )
 set_target_properties(interface1_notemps_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+
+add_executable(interface2   examples/interface2.cpp ${SOURCES} )
 
 add_executable(interface1_naive   examples/interface1.cpp ${SOURCES} )
 add_executable(interface1_block   examples/interface1.cpp ${SOURCES} )
