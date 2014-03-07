@@ -75,8 +75,8 @@ namespace gridtools {
     }
 
     struct backend_block {
-        static const int BI = 16;
-        static const int BJ = 16;
+        static const int BI = 4;
+        static const int BJ = 4;
         static const int BK = 0;
 
         template <typename t_functor_list, // List of functors to execute (in order)

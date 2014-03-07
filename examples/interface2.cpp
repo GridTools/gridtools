@@ -206,10 +206,14 @@ int main(int argc, char** argv) {
           ),
          domain, coords);
 
+    horizontal_diffusion->setup();
+    horizontal_diffusion->prepare();
+    horizontal_diffusion->run();
+    horizontal_diffusion->finalize();
 
 
 
-    in.print();
+    //    in.print();
     out.print();
     //    lap.print();
 

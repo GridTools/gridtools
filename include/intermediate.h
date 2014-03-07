@@ -361,6 +361,25 @@ namespace gridtools {
             // domain.finalize_computation();
         }    
 
+        void setup () {
+            m_domain.template prepare_temporaries<t_mss_type, range_sizes>
+                (tileI,
+                 tileJ, 
+                 m_coords.value_at_top()-m_coords.value_at_bottom()+1);
+        }
+
+        void prepare () {
+            m_domain.setup_computation();
+        }
+
+        void finalize () {
+            m_domain.finalize_computation();
+        }
+
+        void run () {
+            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
+        }
+
     private:
         int tileI, tileJ;
 

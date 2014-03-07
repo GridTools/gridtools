@@ -69,16 +69,16 @@ set(
 	"include/gt_for_each/value_init.hpp"
 )
 
-add_executable(interface1_notemps_naive   examples/interface1_notemps.cpp ${SOURCES} )
-add_executable(interface1_notemps_block   examples/interface1_notemps.cpp ${SOURCES} )
-set_target_properties(interface1_notemps_block
-        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+## # add_executable(interface1_notemps_naive   examples/interface1_notemps.cpp ${SOURCES} )
+## # add_executable(interface1_notemps_block   examples/interface1_notemps.cpp ${SOURCES} )
+## # set_target_properties(interface1_notemps_block
+## #         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
 add_executable(interface2   examples/interface2.cpp ${SOURCES} )
 
-add_executable(interface1_naive   examples/interface1.cpp ${SOURCES} )
-add_executable(interface1_block   examples/interface1.cpp ${SOURCES} )
-set_target_properties(interface1_block
+add_executable(interface2_naive   examples/interface2.cpp ${SOURCES} )
+add_executable(interface2_block   examples/interface2.cpp ${SOURCES} )
+set_target_properties(interface2_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
 
