@@ -133,8 +133,10 @@ namespace gridtools {
                                             >::type> {
             GT_FUNCTION
             static int get(const int* ) {
+#ifndef __CUDACC__
 #ifndef NDEBUG
-                std::cout << "U" ;//<< std::endl;
+                //                std::cout << "U" ;//<< std::endl;
+#endif
 #endif
                 return 1;
             }

@@ -34,6 +34,7 @@ struct lap_function {
     template <typename t_domain>
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
+        //printf("%e\n", dom(in()));
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
@@ -175,7 +176,23 @@ int main(int argc, char** argv) {
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
-    gridtools::intermediate::run<gridtools::BACKEND>
+    // gridtools::intermediate::run<gridtools::BACKEND>
+    //     (
+    //      gridtools::make_mss
+    //      (
+    //       gridtools::execute_upward,
+    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
+    //       gridtools::make_independent
+    //       (
+    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+    //        ),
+    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+    //       ),
+    //      domain, coords);
+
+    gridtools::computation *horizontal_diffusion =
+        gridtools::make_computation<gridtools::BACKEND>
         (
          gridtools::make_mss
          (
@@ -190,8 +207,14 @@ int main(int argc, char** argv) {
           ),
          domain, coords);
 
+    horizontal_diffusion->setup();
+    horizontal_diffusion->prepare();
+    horizontal_diffusion->run();
+    horizontal_diffusion->finalize();
 
-    in.print();
+
+
+    //    in.print();
     out.print();
     //    lap.print();
 

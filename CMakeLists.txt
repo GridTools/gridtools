@@ -74,11 +74,11 @@ set(
 ## # set_target_properties(interface1_notemps_block
 ## #         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
-add_executable(interface2   examples/interface2.cpp ${SOURCES} )
+#add_executable(interface2   examples/interface2.cpp ${SOURCES} )
 
-add_executable(interface2_naive   examples/interface2.cpp ${SOURCES} )
-add_executable(interface2_block   examples/interface2.cpp ${SOURCES} )
-set_target_properties(interface2_block
+add_executable(interface1_naive   examples/interface1.cpp ${SOURCES} )
+add_executable(interface1_block   examples/interface1.cpp ${SOURCES} )
+set_target_properties(interface1_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
 

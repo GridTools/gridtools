@@ -240,9 +240,9 @@ namespace gridtools {
 
             template <typename mplvec>
             void operator()(_impl::wrap_type<mplvec> const&) const {
-                std::cout << "Independent" << std::endl;
+                printf("Independent*\n"); // this whould not be necessary but nvcc s#$ks
                 for_each<mplvec>(print__(std::string("    ")));
-                std::cout << "End Independent" << std::endl;
+                printf("End Independent*\n");
             }
         };
 

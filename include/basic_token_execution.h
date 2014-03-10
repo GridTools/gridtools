@@ -27,8 +27,10 @@ namespace gridtools {
                 if (boost::mpl::has_key<interval_map, t_interval>::type::value) {
 #ifndef __CUDA_ARCH__
 #ifndef NDEBUG
-                    std::cout << "K loop: " << coords.template value_at<from>() << " -> "
-                              << coords.template value_at<to>() << std::endl;
+                    printf("K Loop: %d ", coords.template value_at<from>());
+                    printf("-> %d\n", coords.template value_at<to>());
+                    // std::cout << "K loop: " << coords.template value_at<from>() << " -> "
+                    //           << coords.template value_at<to>() << std::endl;
 #endif
 #endif
                     for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {

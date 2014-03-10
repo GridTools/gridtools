@@ -56,18 +56,17 @@ namespace gridtools {
                 t_coords const *coords_gp = &coords; // FIXME: must be on GPU
 
 #ifndef NDEBUG
-                std::cout << "Functor " << functor_type() << std::endl;
-                std::cout << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> "
-                          << coords.i_high_bound() + range_type::iplus::value << std::endl;
-                std::cout << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
-                          << coords.j_high_bound() + range_type::jplus::value << std::endl;
+                printf("I loop %d ", coords.i_low_bound() + range_type::iminus::value);
+                printf("-> %d\n", coords.i_high_bound() + range_type::iplus::value);
+                printf("J loop %d ", coords.j_low_bound() + range_type::jminus::value);
+                printf("-> %d\n", coords.j_high_bound() + range_type::jplus::value);
 #endif
 
 
                 typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<t_loop_intervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
 #ifndef NDEBUG
-                std::cout << " ******************** " << first_hit() << std::endl;
-                std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
+                printf(" ********************\n", first_hit());
+                printf(" ********************\n", coords.template value_at<first_hit>());
 #endif
 
                 int nx = coords.i_high_bound() + range_type::iplus::value - coords.i_low_bound() + range_type::iminus::value;
@@ -80,6 +79,10 @@ namespace gridtools {
                 int nby = (ny + nty - 1) / nty;
                 int nbz = 1;
                 dim3 blocks(nbx, nby, nbz);
+
+                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+                printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
+                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 
                 do_it_on_gpu<first_hit, t_loop_intervals, functor_type, interval_map><<<blocks, threads>>>(local_domain_gp, coords_gp);
 
@@ -123,7 +126,7 @@ namespace gridtools {
                                              t_coords
                                              >
                                              (local_domain_list,coords));
-            std::cout << std::endl;
+            //std::cout << std::endl;
         }
     };
 

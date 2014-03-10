@@ -2,7 +2,7 @@
 #define _GCL_ARRAY_H_
 
 #include <stddef.h>
-#include <assert.h>
+#include "gt_assert.h"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
 #include <boost/utility/enable_if.hpp>
