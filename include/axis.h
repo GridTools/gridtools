@@ -4,6 +4,7 @@
 #include <boost/mpl/plus.hpp>
 #include "loopintervals.h"
 #include "array.h"
+#include "gpu_clone.h"
 
 namespace gridtools {
     template <typename t_min_level, typename t_max_level>
@@ -18,7 +19,7 @@ namespace gridtools {
     };
 
     template <typename t_axis>
-    struct coordinates {
+    struct coordinates : public clonable_to_gpu<coordinates<t_axis> > {
         BOOST_STATIC_ASSERT(is_interval<t_axis>::value);
 
         typedef t_axis axis_type;

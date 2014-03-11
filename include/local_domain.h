@@ -1,6 +1,7 @@
 #pragma once
 
 #include "host_device.h"
+#include "gpu_clone.h"
 
 namespace gridtools {
 
@@ -12,21 +13,39 @@ namespace gridtools {
      * @tparam t_esf_descriptor The descriptor of the elementary stencil function
      * @tparam t_domain The full domain type
      */
-    template <typename t_esf_descriptor, typename t_domain>
-    struct local_domain_base {
+    template <typename t_derived, typename t_esf_descriptor, typename t_domain>
+    struct local_domain_base: public clonable_to_gpu<t_derived> {
         typedef typename t_esf_descriptor::args esf_args;
         typedef typename t_esf_descriptor::esf_function esf_function;
         typedef typename t_domain::placeholders dom_placeholders;
         typedef t_domain domain_type;
 
         t_domain *dom;
+        t_domain *g_dom;
 
-        int m_i,m_j,m_k;
+        //int m_i,m_j,m_k;
 
+        local_domain_base() {}
                     
         GT_FUNCTION
-        void init(t_domain* _dom) {
+        void init(t_domain* _dom) 
+        {
             dom = _dom;
+            g_dom = _dom->gpu_object_ptr;
+            printf("ADDR CONSTRUCTOR ???????????? %X\n", dom->gpu_object_ptr);
+            printf("ADDR CONSTRUCTOR ???????????? %X\n", _dom->gpu_object_ptr);
+            printf("ADDR CONSTRUCTOR ???????????? %X\n", dom);
+        }
+
+        __device__
+        local_domain_base(local_domain_base const& other)
+            : dom(other.g_dom)
+            // , m_i(other.m_i)
+            // , m_j(other.m_j)
+            // , m_k(other.m_k)
+        {
+            printf("ADDR CONSTRUCTOR %X\n", other.g_dom);
+            printf("ADDR CONSTRUCTOR %X\n", other.g_dom);
         }
 
         template <typename T>
@@ -59,7 +78,8 @@ namespace gridtools {
 
         GT_FUNCTION
         void move_to(int i, int j, int k) const {
-            dom->move_to(i,j,k);
+            printf("ADDR %X\n", dom);
+            // dom->move_to(i,j,k);
         }
 
         GT_FUNCTION
@@ -103,8 +123,8 @@ namespace gridtools {
      * @tparam t_domain The full domain type
      */
     template <typename t_esf_descriptor, typename t_domain>
-    struct local_domain : public local_domain_base<t_esf_descriptor, t_domain> {
-        typedef local_domain_base<t_esf_descriptor, t_domain> base_type;
+    struct local_domain : public local_domain_base< local_domain<t_esf_descriptor, t_domain>, t_esf_descriptor, t_domain> {
+        typedef local_domain_base<local_domain<t_esf_descriptor, t_domain>, t_esf_descriptor, t_domain> base_type;
         typedef typename t_esf_descriptor::args esf_args;
         typedef typename t_esf_descriptor::esf_function esf_function;
         typedef typename t_domain::placeholders dom_placeholders;
@@ -113,11 +133,19 @@ namespace gridtools {
         GT_FUNCTION
         local_domain() {}
                 
+        __device__
+        local_domain(local_domain const& other)
+            : base_type(other)
+        {}
+
         GT_FUNCTION
         void init(t_domain* dom, int, int, int)
         {
             base_type::init(dom);
 #ifndef NDEBUG
+            printf("LOCAL DOMAIN %X\n", dom);
+            printf("   -> LOCAL DOMAIN %X\n", dom->gpu_object_ptr);
+            printf("       ->  GPU PTR %X\n", this->gpu_object_ptr);
 #ifndef __CUDACC__
             std::cout << "LOCAL DOMAIN" << std::endl;
 #endif

@@ -68,7 +68,9 @@ namespace gridtools {
             template <typename t_elem>
             GT_FUNCTION
             void operator()(t_elem & elem) const {
+                printf("   ---->     ");
                 elem.init(dom, 0,0,0);
+                elem.clone_to_gpu();
             }
         };
 

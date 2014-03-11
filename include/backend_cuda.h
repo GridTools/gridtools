@@ -22,8 +22,11 @@ namespace gridtools {
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             int z = coords->template value_at<first_hit>();
 
-            l_domain->move_to(i,j, z);
-            for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,t_l_domain,t_coords>(*l_domain,*coords));
+             printf("l_domain %X\n", l_domain);
+             printf("coords   %X\n", coords);
+
+            //            l_domain->move_to(i,j, z);
+            //            for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,t_l_domain,t_coords>(*l_domain,*coords));
         }
 
         template <typename t_functor_list,
@@ -50,10 +53,14 @@ namespace gridtools {
 
                 typedef typename boost::mpl::at<t_functors_map, t_index>::type interval_map;
 
-                local_domain_type local_domain = boost::fusion::at<t_index>(domain_list);
-                local_domain_type *local_domain_gp = &local_domain; // FIXME: must be on GPU
+                local_domain_type &local_domain = boost::fusion::at<t_index>(domain_list);
 
-                t_coords const *coords_gp = &coords; // FIXME: must be on GPU
+                local_domain.clone_to_gpu();
+                coords.clone_to_gpu();
+
+                local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
+
+                t_coords const *coords_gp = coords.gpu_object_ptr;
 
 #ifndef NDEBUG
                 printf("I loop %d ", coords.i_low_bound() + range_type::iminus::value);
@@ -85,6 +92,7 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 
                 do_it_on_gpu<first_hit, t_loop_intervals, functor_type, interval_map><<<blocks, threads>>>(local_domain_gp, coords_gp);
+                cudaDeviceSynchronize();
 
             //     for (int i = coords.i_low_bound() + range_type::iminus::value;
             //          i < coords.i_high_bound() + range_type::iplus::value;
