@@ -73,7 +73,12 @@ namespace gridtools {
                           << std::endl;
             }
 #endif
+
+#if (CUDA_VERSION > 5050)
+            cpu_p = new T[size];
+#else
             cpu_p = workaround_::new_op<T>()(size);
+#endif
         }
 
         void free_it() {

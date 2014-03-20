@@ -40,6 +40,38 @@ namespace gridtools {
                 t->info();
             }
         };
+
+        struct print_pointer {
+            template <typename storage_t>
+            GT_FUNCTION_WARNING
+            void operator()(storage_t* s) const {
+                printf("CIAOOO TATATA %x\n", s);
+            }
+            
+#ifdef __CUDACC__
+            template <typename T, typename U, bool B
+#ifndef NDEBUG
+                      , typename type_tag
+#endif
+                      >
+            GT_FUNCTION_WARNING
+            void operator()(cuda_storage<T,U,B
+#ifndef NDEBUG
+                            , type_tag
+#endif
+                            > *& s) const {
+                printf("CIAO POINTER %X\n", s);
+            }
+#endif
+        };
+        
+        struct print_domain_info {
+            template <typename storage_t>
+            GT_FUNCTION
+            void operator()(storage_t* s) const {
+                printf("PTR %x\n", s);
+            }
+        };
     } // namespace _debug
 
     namespace _impl {
@@ -66,12 +98,21 @@ namespace gridtools {
 
         struct update_pointer {
             template <typename storage_t>
-            GT_FUNCTION
+            GT_FUNCTION_WARNING
             void operator()(storage_t* s) const {}
             
 #ifdef __CUDACC__
-            template <typename T, typename U, bool B>
-            void operator()(cuda_storage<T,U,B> *& s) const {
+            template <typename T, typename U, bool B
+#ifndef NDEBUG
+                      , typename type_tag
+#endif
+                      >
+            GT_FUNCTION_WARNING
+            void operator()(cuda_storage<T,U,B
+#ifndef NDEBUG
+                      , type_tag
+#endif
+                            > *& s) const {
                 if (s) {
 #ifndef NDEBUG
                     // std::cout << "UPDATING " 
@@ -87,7 +128,7 @@ namespace gridtools {
             }
 #endif
         };
-        
+            
         struct moveto_functor {
             int i,j,k;
             GT_FUNCTION
@@ -100,7 +141,11 @@ namespace gridtools {
             template <typename t_zip_elem>
             GT_FUNCTION
             void operator()(t_zip_elem const &a) const {
-                boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
+#ifdef __CUDA_ARCH__
+                printf("CIAOLLLL %X\n", &a);//, (boost::fusion::at<boost::mpl::int_<1> >(a)));
+#endif
+                //                (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k);
+                //                boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
             }
         };
 

@@ -32,9 +32,6 @@ namespace gridtools {
         {
             dom = _dom;
             g_dom = _dom->gpu_object_ptr;
-            printf("ADDR CONSTRUCTOR ???????????? %X\n", dom->gpu_object_ptr);
-            printf("ADDR CONSTRUCTOR ???????????? %X\n", _dom->gpu_object_ptr);
-            printf("ADDR CONSTRUCTOR ???????????? %X\n", dom);
         }
 
         __device__
@@ -43,10 +40,7 @@ namespace gridtools {
             // , m_i(other.m_i)
             // , m_j(other.m_j)
             // , m_k(other.m_k)
-        {
-            printf("ADDR CONSTRUCTOR %X\n", other.g_dom);
-            printf("ADDR CONSTRUCTOR %X\n", other.g_dom);
-        }
+        { }
 
         template <typename T>
         GT_FUNCTION
@@ -78,8 +72,8 @@ namespace gridtools {
 
         GT_FUNCTION
         void move_to(int i, int j, int k) const {
-            printf("ADDR %X\n", dom);
-            // dom->move_to(i,j,k);
+            printf("ADDR-- %X\n", dom);
+            dom->move_to(i,j,k);
         }
 
         GT_FUNCTION
@@ -143,9 +137,6 @@ namespace gridtools {
         {
             base_type::init(dom);
 #ifndef NDEBUG
-            printf("LOCAL DOMAIN %X\n", dom);
-            printf("   -> LOCAL DOMAIN %X\n", dom->gpu_object_ptr);
-            printf("       ->  GPU PTR %X\n", this->gpu_object_ptr);
 #ifndef __CUDACC__
             std::cout << "LOCAL DOMAIN" << std::endl;
 #endif

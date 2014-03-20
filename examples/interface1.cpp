@@ -207,12 +207,15 @@ int main(int argc, char** argv) {
           ),
          domain, coords);
 
-    horizontal_diffusion->setup();
-    horizontal_diffusion->prepare();
+    horizontal_diffusion->ready();
+    horizontal_diffusion->steady();
+    printf("\n\n\n\n\n\n");
+    domain.clone_to_gpu();
+    printf("CLONED\n");
     horizontal_diffusion->run();
     horizontal_diffusion->finalize();
 
-
+    out.data.update_cpu();
 
     //    in.print();
     out.print();

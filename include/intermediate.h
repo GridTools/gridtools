@@ -68,7 +68,6 @@ namespace gridtools {
             template <typename t_elem>
             GT_FUNCTION
             void operator()(t_elem & elem) const {
-                printf("   ---->     ");
                 elem.init(dom, 0,0,0);
                 elem.clone_to_gpu();
             }
@@ -313,10 +312,6 @@ namespace gridtools {
 #endif
 #endif
         
-            boost::fusion::for_each(local_domain_list, 
-                                    _impl::instantiate_local_domain<t_domain_type>
-                                    (const_cast<typename boost::remove_const<t_domain_type>::type*>(&domain)));
-
             // Extract the ranges from functors to determine iteration spaces bounds
 
             // For each functor collect the minimum enclosing box of the ranges for the arguments
@@ -363,14 +358,14 @@ namespace gridtools {
             // domain.finalize_computation();
         }    
 
-        void setup () {
+        void ready () {
             m_domain.template prepare_temporaries<t_mss_type, range_sizes>
                 (tileI,
                  tileJ, 
                  m_coords.value_at_top()-m_coords.value_at_bottom()+1);
         }
 
-        void prepare () {
+        void steady () {
             m_domain.setup_computation();
         }
 
@@ -379,7 +374,15 @@ namespace gridtools {
         }
 
         void run () {
-            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
+            boost::fusion::for_each(local_domain_list, 
+                                    _impl::instantiate_local_domain<t_domain_type>
+                                    (const_cast<typename boost::remove_const<t_domain_type>::type*>(&m_domain)));
+
+#ifndef NDEBUG
+            m_domain.info();
+#endif
+
+            //            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
         }
 
     private:

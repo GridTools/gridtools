@@ -17,12 +17,22 @@ namespace gridtools {
 #ifndef NDEBUG
              , typename type_tag = int
 #endif
-        >
-    struct cuda_storage : public base_storage<cuda_storage<t_value_type, t_layout, is_temporary>,
-            t_value_type,
-            t_layout,
-            is_temporary> {
-        typedef cuda_storage<t_value_type, t_layout, is_temporary> this_type;
+               >
+    struct cuda_storage : public base_storage<cuda_storage<t_value_type, t_layout, is_temporary
+#ifndef NDEBUG
+                                                           , type_tag
+#endif
+                                                           >,
+                                              t_value_type,
+                                              t_layout,
+                                              is_temporary
+                                              > 
+    {
+        typedef cuda_storage<t_value_type, t_layout, is_temporary
+#ifndef NDEBUG
+                             , type_tag
+#endif
+                             > this_type;
         typedef base_storage<this_type, t_value_type, t_layout, is_temporary> base_type;
         typedef t_layout layout;
         typedef t_value_type value_type;
@@ -42,6 +52,8 @@ namespace gridtools {
         : base_type(m_dim1, m_dim2, m_dim3, init, s)
         , data(m_size)
         {
+            for (int i = 0; i < m_size; ++i)
+                data[i] = init;
             data.update_gpu();
         }
 

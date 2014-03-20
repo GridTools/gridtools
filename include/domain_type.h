@@ -147,6 +147,15 @@ namespace gridtools {
         { }
 #endif
 
+        GT_FUNCTION
+        void info() {
+            printf("domain_type: Storage pointers\n");
+            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+            printf("domain_type: Original pointers\n");
+            boost::fusion::for_each(original_pointers, _debug::print_domain_info());
+            printf("domain_type: End info\n");
+        }
+
         ~domain_type() {
             typedef typename boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
@@ -246,15 +255,24 @@ namespace gridtools {
         */
         int setup_computation() {
             if (is_ready) {
+#ifndef NDEBUG
+                printf("Setup computation\n");
+#endif
                 original_pointers = storage_pointers;
-                typedef typename boost::fusion::filter_view<arg_list, 
-                    boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > view_type;
 
-                view_type fview(storage_pointers);
-
-                boost::fusion::for_each(fview, _impl::update_pointer());
-            } else
+                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+#ifndef NDEBUG
+                printf("POINTERS\n");
+                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+                printf("ORIGINAL\n");
+                boost::fusion::for_each(original_pointers, _debug::print_pointer());
+#endif
+            } else {
+#ifndef NDEBUG
+                printf("Setup computation FAILED\n");
+#endif
                 return GT_ERROR_NO_TEMPS;
+            }
 
             return GT_NO_ERRORS;
         }

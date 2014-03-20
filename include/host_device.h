@@ -8,3 +8,4 @@
 #endif
 
 #define GT_FUNCTION __host__ __device__
+#define GT_FUNCTION_WARNING __host__ __device__

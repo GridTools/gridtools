@@ -17,16 +17,15 @@ namespace gridtools {
                   typename t_l_domain, 
                   typename t_coords>
         __global__
-        void do_it_on_gpu(t_l_domain * l_domain, t_coords const* coords) {
+        void do_it_on_gpu(t_l_domain * l_domain, t_coords const* coords, int nx, int ny) {
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             int z = coords->template value_at<first_hit>();
 
-             printf("l_domain %X\n", l_domain);
-             printf("coords   %X\n", coords);
-
-            //            l_domain->move_to(i,j, z);
-            //            for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,t_l_domain,t_coords>(*l_domain,*coords));
+            if ((i < nx) || (j < ny)) {
+                l_domain->move_to(i,j, z);
+                for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,t_l_domain,t_coords>(*l_domain,*coords));
+            }
         }
 
         template <typename t_functor_list,
@@ -91,7 +90,7 @@ namespace gridtools {
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 
-                do_it_on_gpu<first_hit, t_loop_intervals, functor_type, interval_map><<<blocks, threads>>>(local_domain_gp, coords_gp);
+                do_it_on_gpu<first_hit, t_loop_intervals, functor_type, interval_map><<<blocks, threads>>>(local_domain_gp, coords_gp, nx, ny);
                 cudaDeviceSynchronize();
 
             //     for (int i = coords.i_low_bound() + range_type::iminus::value;
