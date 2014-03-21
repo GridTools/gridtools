@@ -25,13 +25,28 @@ namespace gridtools {
 
         //int m_i,m_j,m_k;
 
+        template <typename t_dom, typename is_actually_clonable, int DUMMY = 0>
+        struct pointer_if_clonable {
+            static t_dom* get(t_dom* d) {
+                return d;
+            }
+        };
+
+        template <typename t_dom, int DUMMY>
+        struct pointer_if_clonable<t_dom, boost::true_type, DUMMY> {
+            static t_dom* get(t_dom* d) {
+                return d->gpu_object_ptr;
+            }
+        };
+
+
         local_domain_base() {}
                     
         GT_FUNCTION
         void init(t_domain* _dom) 
         {
             dom = _dom;
-            g_dom = _dom->gpu_object_ptr;
+            g_dom = pointer_if_clonable<t_domain, typename t_domain::actually_clonable>::get(_dom);
         }
 
         __device__
