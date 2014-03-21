@@ -121,7 +121,7 @@ namespace gridtools {
                   typename t_local_domain_list> // List of local domain to be pbassed to functor at<i>
         static void run(t_domain const& domain, t_coords const& coords, t_local_domain_list &local_domain_list) {
 
-            typedef typename boost::mpl::range_c<int, 0, boost::mpl::size<t_functor_list>::type::value> iter_range;
+            typedef boost::mpl::range_c<int, 0, boost::mpl::size<t_functor_list>::type::value> iter_range;
 
             boost::mpl::for_each<iter_range>(_impl_cuda::run_functor
                                              <

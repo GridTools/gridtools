@@ -29,7 +29,7 @@ struct lap_function {
     static const int n_args = 2;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1> > in;
-    typedef typename boost::mpl::vector<out, in> arg_list;
+    typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename t_domain>
     GT_FUNCTION
@@ -47,7 +47,7 @@ struct flx_function {
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
 
-    typedef typename boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename t_domain>
     GT_FUNCTION
@@ -64,7 +64,7 @@ struct fly_function {
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-    typedef typename boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename t_domain>
     GT_FUNCTION
@@ -83,7 +83,7 @@ struct out_function {
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
-    typedef typename boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
+    typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename t_domain>
     GT_FUNCTION

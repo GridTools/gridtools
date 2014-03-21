@@ -51,17 +51,17 @@ namespace gridtools {
                 >
             >::type NextFromIndexSet;
 
-// additionally add a sentinel from index after the last do method interval
-// (note that it is ok to use next as we checked the do method intervals to not max out the offset limits)
-typedef typename boost::mpl::insert<
-    NextFromIndexSet,
-    typename boost::mpl::next<
-        typename boost::mpl::second<
-            typename boost::mpl::back<TDoMethods>::type
-            >::type
-        >::type
-    >::type type;
-};
+        // additionally add a sentinel from index after the last do method interval
+        // (note that it is ok to use next as we checked the do method intervals to not max out the offset limits)
+        typedef typename boost::mpl::insert<
+            NextFromIndexSet,
+            typename boost::mpl::next<
+                typename boost::mpl::second<
+                    typename boost::mpl::back<TDoMethods>::type
+                    >::type
+                >::type
+            >::type type;
+    };
 
     /**
      * @struct compute_loop_intervals
@@ -101,27 +101,27 @@ typedef typename boost::mpl::insert<
                 >
             >::type OrderedFromIndexes;
 
-// check that there are at least two levels
-BOOST_STATIC_ASSERT(boost::mpl::size<OrderedFromIndexes>::value >= 2);
+        // check that there are at least two levels
+        BOOST_STATIC_ASSERT(boost::mpl::size<OrderedFromIndexes>::value >= 2);
     
-// iterate over all levels and group succeeding levels into intervals
-// (note that the prior is ok as do methods do not end at the maximum or minimum offsets of a splitter)
-typedef typename boost::mpl::fold<
-    boost::mpl::range_c<int, 0, boost::mpl::size<OrderedFromIndexes>::value - 1>,
-    boost::mpl::vector0<>,
-    boost::mpl::push_back<
-        boost::mpl::_1,
-        boost::mpl::pair<
-            boost::mpl::at<OrderedFromIndexes, boost::mpl::_2>,
-            boost::mpl::prior<
-                boost::mpl::at<
-                    OrderedFromIndexes, 
-                    boost::mpl::next<boost::mpl::_2> 
+        // iterate over all levels and group succeeding levels into intervals
+        // (note that the prior is ok as do methods do not end at the maximum or minimum offsets of a splitter)
+        typedef typename boost::mpl::fold<
+            boost::mpl::range_c<int, 0, boost::mpl::size<OrderedFromIndexes>::value - 1>,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                boost::mpl::pair<
+                    boost::mpl::at<OrderedFromIndexes, boost::mpl::_2>,
+                    boost::mpl::prior<
+                        boost::mpl::at<
+                            OrderedFromIndexes, 
+                            boost::mpl::next<boost::mpl::_2> 
+                            >
+                        >
                     >
                 >
-            >
-        >
-    >::type type;
+            >::type type;
     };
 
 } // namespace gridtools

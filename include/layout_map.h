@@ -93,7 +93,7 @@ namespace gridtools {
     template <int I1>
     struct layout_map<I1, -1, -1, -1> {
         static const unsigned int length=1;
-        typedef typename boost::mpl::vector<boost::mpl::int_<I1> > t;
+        typedef boost::mpl::vector<boost::mpl::int_<I1> > t;
 
         template <unsigned int I>
         GT_FUNCTION
@@ -129,8 +129,8 @@ namespace gridtools {
     template <int I1, int I2>
     struct layout_map<I1, I2, -1, -1> {
         static const unsigned int length=2;
-        typedef typename boost::mpl::vector<boost::mpl::int_<I1>, 
-                                            boost::mpl::int_<I2> > t;
+        typedef boost::mpl::vector<boost::mpl::int_<I1>, 
+                                   boost::mpl::int_<I2> > t;
 
         template <unsigned int I>
         GT_FUNCTION
@@ -196,9 +196,9 @@ namespace gridtools {
     template <int I1, int I2, int I3>
     struct layout_map<I1, I2, I3, -1> {
         static const unsigned int length=3;
-        typedef typename boost::mpl::vector<boost::mpl::int_<I1>, 
-                                            boost::mpl::int_<I2>, 
-                                            boost::mpl::int_<I3> > t;
+        typedef boost::mpl::vector<boost::mpl::int_<I1>, 
+                                   boost::mpl::int_<I2>, 
+                                   boost::mpl::int_<I3> > t;
     
         template <unsigned int I>
         struct at_ {
@@ -329,10 +329,10 @@ namespace gridtools {
     template <int I1, int I2, int I3, int I4>
     struct layout_map {
         static const unsigned int length=4;
-        typedef typename boost::mpl::vector<boost::mpl::int_<I1>, 
-                                            boost::mpl::int_<I2>, 
-                                            boost::mpl::int_<I3>, 
-                                            boost::mpl::int_<I4> > t;
+        typedef boost::mpl::vector<boost::mpl::int_<I1>, 
+                                   boost::mpl::int_<I2>, 
+                                   boost::mpl::int_<I3>, 
+                                   boost::mpl::int_<I4> > t;
 
         template <unsigned int I>
         GT_FUNCTION

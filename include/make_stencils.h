@@ -88,20 +88,18 @@ namespace gridtools {
 
     template <typename t_arg_array>
     struct independent_esf {
-        typedef  t_arg_array esf_list;
+        typedef t_arg_array esf_list;
     };
 
     template <typename T>
-    struct is_independent {
-        typedef boost::false_type type;
-        static const bool value = false;
-    };
+    struct is_independent 
+      : boost::false_type
+    {};
 
     template <typename T>
-    struct is_independent<independent_esf<T> > {
-        typedef boost::true_type type;
-        static const bool value = true;
-    };
+    struct is_independent<independent_esf<T> >
+      : boost::true_type
+    {};
 
 
     // Descriptors for MSS
@@ -115,25 +113,24 @@ namespace gridtools {
                 state,
                 boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
                 >::type type;
-    };
+        };
 
-    template <typename array>
-    struct linearize_esf_array {
-        typedef typename boost::mpl::fold<array,
-                                          boost::mpl::vector<>,
-                                          boost::mpl::if_<
-                                              is_independent<boost::mpl::_2>,
-                                              keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                                              boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
-                                              >
-        >::type type;
-};
+        template <typename array>
+        struct linearize_esf_array {
+            typedef typename boost::mpl::fold<array,
+                                              boost::mpl::vector<>,
+                                              boost::mpl::if_<
+                                                  is_independent<boost::mpl::_2>,
+                                                  keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                                                  boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
+                                                  >
+                >::type type;
+        };
 
         typedef t_array_esf_descr esf_array; // may contain independent constructs
         typedef t_execution_engine execution_engine;
 
         typedef typename linearize_esf_array<esf_array>::type linear_esf; // independent functors are listed one after the other
-
     };
 
 

@@ -25,9 +25,9 @@ namespace gridtools {
         typedef t_axis axis_type;
 
     typedef typename boost::mpl::plus<
-        typename boost::mpl::minus<typename t_axis::ToLevel::Splitter, 
-                                   typename t_axis::FromLevel::Splitter>,
-        typename boost::mpl::int_<1> >::type size_type;
+        boost::mpl::minus<typename t_axis::ToLevel::Splitter, 
+                          typename t_axis::FromLevel::Splitter>,
+        boost::mpl::int_<1> >::type size_type;
     
         gridtools::array<int, size_type::value > value_list;
     

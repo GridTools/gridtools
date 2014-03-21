@@ -81,53 +81,53 @@ namespace gridtools {
 
 
     template <typename X, typename Y>
-    struct is_temporary_storage<storage<X,Y,false>*& > {
-        typedef boost::false_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,false>*& >
+      : boost::false_type
+    {};
 
 #ifndef NDEBUG
     template <typename X, typename Y, typename A>
-    struct is_temporary_storage<storage<X,Y,true,A>*& > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,true,A>*& >
+      : boost::true_type
+    {};
 #else
     template <typename X, typename Y>
-    struct is_temporary_storage<storage<X,Y,true>*& > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,true>*& >
+      : boost::true_type
+    {};
 #endif
 
     template <typename X, typename Y>
-    struct is_temporary_storage<storage<X,Y,false>* > {
-        typedef boost::false_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,false>* >
+      : boost::false_type
+    {};
 
 #ifndef NDEBUG
     template <typename X, typename Y,typename A>
-    struct is_temporary_storage<storage<X,Y,true,A>* > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,true,A>* >
+      : boost::true_type
+    {};
 #else
     template <typename X, typename Y>
-    struct is_temporary_storage<storage<X,Y,true>* > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,true>* >
+      : boost::true_type
+    {};
 #endif
 
     template <typename X, typename Y>
-    struct is_temporary_storage<storage<X,Y,false> > {
-        typedef boost::false_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,false> >
+      : boost::false_type
+    {};
 
 #ifndef NDEBUG
     template <typename X, typename Y, typename A>
-    struct is_temporary_storage<storage<X,Y,true,A> > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,true,A> >
+      : boost::true_type
+    {};
 #else
     template <typename X, typename Y>
-    struct is_temporary_storage<storage<X,Y,true> > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<storage<X,Y,true> >
+      : boost::true_type
+    {};
 #endif
 } // namespace gridtools

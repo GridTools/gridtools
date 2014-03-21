@@ -104,7 +104,7 @@ namespace gridtools {
         };
 
         int offset[3];
-        typedef typename boost::mpl::int_<I> index_type;
+        typedef boost::mpl::int_<I> index_type;
         typedef t_range range_type;
 
         GT_FUNCTION

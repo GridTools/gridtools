@@ -164,14 +164,15 @@ namespace gridtools {
         struct is_written_temp {
             template <typename index>
             struct apply {
+                // TODO: boolean logic, replace with mpl::and_ and mpl::or_
                 typedef typename boost::mpl::if_<
                     is_plchldr_to_temp<typename boost::mpl::at<typename t_esf::args, index>::type>,
                     typename boost::mpl::if_<
                         boost::is_const<typename boost::mpl::at<typename t_esf::esf_function::arg_list, index>::type>,
-                        typename boost::false_type,
-                        typename boost::true_type
+                        boost::false_type,
+                        boost::true_type
                         >::type,
-                            typename boost::false_type
+                            boost::false_type
                             >::type type;
             };
         };
@@ -190,7 +191,7 @@ namespace gridtools {
             typedef typename boost::mpl::fold<
                 range,
                 boost::mpl::vector<>,
-                typename boost::mpl::if_<
+                boost::mpl::if_<
                     typename is_written_temp<t_esf_f>::template apply<boost::mpl::_2>,
                     boost::mpl::push_back<
                         boost::mpl::_1, 
@@ -244,6 +245,7 @@ namespace gridtools {
             void operator()(elem_type  e) const {
 #ifndef __CUDA_ARCH__
                 typedef typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<1> >::type range_type;
+                // TODO: computed storage_type should decide where to heap/cuda allocate or stack allocate.
                 typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<0> >::type>::type>::type storage_type;
 
                 boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,

@@ -28,14 +28,14 @@ namespace gridtools {
         };
 
         template <typename T>
-        struct is_wrap_type {
-            typedef typename boost::false_type type;
-        };
+        struct is_wrap_type
+          : boost::false_type
+        {};
 
         template <typename T>
-        struct is_wrap_type<wrap_type<T> > {
-            typedef typename boost::true_type type;
-        };
+        struct is_wrap_type<wrap_type<T> >
+          : boost::true_type
+        {};
 
 
 
@@ -93,12 +93,12 @@ namespace gridtools {
         template <typename T>
         struct extract_ranges<independent_esf<T> >
         {
-            typedef typename boost::false_type type;
+            typedef boost::false_type type;
         };
 
         template <typename not_independent_elem>
         struct from_independents {
-            typedef typename boost::false_type type;
+            typedef boost::false_type type;
         };
 
         template <typename T>
@@ -123,9 +123,10 @@ namespace gridtools {
                 typename extract_ranges<elem>::type
                 >::type
             >::type type;
-};
+    };
 
 
+    // prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.
         template <typename list_of_ranges>
         struct prefix_on_ranges {
 
@@ -279,7 +280,7 @@ namespace gridtools {
         // Create a fusion::vector of domains for each functor
         typedef typename boost::mpl::transform<
             typename t_mss_type::linear_esf,
-            typename _impl::get_local_domain<t_domain_type, local_domain> >::type mpl_local_domain_list;
+            _impl::get_local_domain<t_domain_type, local_domain> >::type mpl_local_domain_list;
 
         typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type t_local_domain_list;
 
@@ -293,6 +294,7 @@ namespace gridtools {
         // Compute prefix sum to compute bounding boxes for calling a given functor
         typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
 
+        // linearize the data flow graph.
         typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
 
         t_domain_type & m_domain;

@@ -15,10 +15,10 @@ namespace gridtools {
     template <int _iminus=0, int _iplus=0,
               int _jminus=0, int _jplus=0>
     struct range {
-        typedef typename boost::mpl::int_<_iminus> iminus;
-        typedef typename boost::mpl::int_<_iplus> iplus;
-        typedef typename boost::mpl::int_<_jminus> jminus;
-        typedef typename boost::mpl::int_<_jplus> jplus;
+        typedef boost::mpl::int_<_iminus> iminus;
+        typedef boost::mpl::int_<_iplus> iplus;
+        typedef boost::mpl::int_<_jminus> jminus;
+        typedef boost::mpl::int_<_jplus> jplus;
     };
 
     /**
@@ -41,18 +41,17 @@ namespace gridtools {
      * Metafunction to check if a type is a range
      */
     template <typename T>
-    struct is_range {
-        typedef boost::false_type type;
-    };
+    struct is_range
+      : boost::false_type
+    {};
 
     /**
      * Metafunction to check if a type is a range - Specialization yielding true
      */
     template <int I, int J, int K, int L>
-    struct is_range<range<I,J,K,L> > {
-        typedef boost::true_type type;
-    };
-
+    struct is_range<range<I,J,K,L> >
+      : boost::true_type
+    {};
 
     /**
      * Metafunction taking two ranges and yielding a range containing them
