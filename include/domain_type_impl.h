@@ -145,7 +145,7 @@ namespace gridtools {
                 printf("CIAOLLLL %X\n", &a);//, (boost::fusion::at<boost::mpl::int_<1> >(a)));
 #endif
                 //                (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k);
-                //                boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
+                boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
             }
         };
 
