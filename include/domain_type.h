@@ -139,8 +139,9 @@ namespace gridtools {
          * @param The object to copy. Typically this will be *this
          */
         __device__
-        explicit domain_type(domain_type const& other)
+        explicit domain_type(domain_type const& other) 
             : storage_pointers(other.storage_pointers)
+            , original_pointers(other.original_pointers)
             , iterators(other.iterators)
             , zip_vector(iterators, storage_pointers)
             , is_ready(other.is_ready) // should no matter
