@@ -63,12 +63,12 @@ namespace gridtools {
     
         typedef typename boost::mpl::fold<raw_index_list,
                                           boost::mpl::vector<>,
-                                          typename boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_storage_list, boost::mpl::_2> >
+                                          boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_storage_list, boost::mpl::_2> >
                                           >::type arg_list_mpl;
 
         typedef typename boost::mpl::fold<raw_index_list,
                                           boost::mpl::vector<>,
-                                          typename boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
+                                          boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
                                           >::type iterator_list_mpl;
     
     public:
@@ -104,9 +104,9 @@ namespace gridtools {
     private:
         // Using zip view to associate iterators and storage_pointers in a single object.
         // This is used to move iterators to coordinates relative to storage
-        typedef typename boost::fusion::vector<iterator_list&, arg_list&> zip_vector_type;
+        typedef boost::fusion::vector<iterator_list&, arg_list&> zip_vector_type;
         zip_vector_type zip_vector;
-        typedef typename boost::fusion::zip_view<zip_vector_type> zipping;
+        typedef boost::fusion::zip_view<zip_vector_type> zipping;
     public:
 
         /**
@@ -120,7 +120,7 @@ namespace gridtools {
             , zip_vector(iterators, storage_pointers)
             , is_ready(false)
         {
-            typedef typename boost::fusion::filter_view<arg_list, 
+            typedef boost::fusion::filter_view<arg_list, 
                 boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > view_type;
 
             view_type fview(storage_pointers);
@@ -158,7 +158,7 @@ namespace gridtools {
         }
 
         ~domain_type() {
-            typedef typename boost::fusion::filter_view<arg_list, 
+            typedef boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
             tmp_view_type fview(storage_pointers);
             boost::fusion::for_each(fview, _impl::delete_tmps());
@@ -201,7 +201,7 @@ namespace gridtools {
             // Compute a vector of vectors of temp indices of temporaris initialized by each functor
             typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
                     boost::mpl::vector<>,
-                    boost::mpl::push_back<boost::mpl::_1, typename _impl::get_temps_per_functor<boost::mpl::_2> >
+                    boost::mpl::push_back<boost::mpl::_1, _impl::get_temps_per_functor<boost::mpl::_2> >
                     >::type temps_per_functor;
 
              typedef typename boost::mpl::transform<
@@ -223,7 +223,7 @@ namespace gridtools {
             std::cout << "END Fs" << std::endl;
 #endif
         
-            typedef typename boost::fusion::filter_view<arg_list, 
+            typedef boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
             tmp_view_type fview(storage_pointers);
 
@@ -234,7 +234,7 @@ namespace gridtools {
 #endif
         
             list_of_ranges lor;
-            typedef typename boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
+            typedef boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
             zipper zzip(fview, lor);
             boost::fusion::zip_view<zipper> zip(zzip); 
             boost::fusion::for_each(zip, _impl::instantiate_tmps(tileI, tileJ, tileK));
