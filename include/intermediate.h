@@ -382,7 +382,7 @@ namespace gridtools {
             m_domain.info();
 #endif
 
-            //            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
+            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
         }
 
     private:
