@@ -1,1 +1,2 @@
-#include "tests.cpp"
+
+#include "tests_gpu.cpp"
