@@ -7,6 +7,8 @@
  * Test domain features, especially the working on the GPU
  */
 
+#define BOOST_NO_CXX11_RVALUE_REFERENCES
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
