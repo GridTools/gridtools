@@ -52,7 +52,7 @@ namespace gridtools {
 
         ~storage() {
             if (is_set) {
-                std::cout << "deleting " << std::hex << data << std::endl;
+                //std::cout << "deleting " << std::hex << data << std::endl;
                 delete[] data;
             }
         }
