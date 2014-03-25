@@ -18,6 +18,7 @@
 #include "functor_do_method_lookup_maps.h"
 #include "axis.h"
 #include "local_domain.h"
+#include "computation.h"
 
 namespace gridtools {
     namespace _impl{
