@@ -18,7 +18,7 @@ endif()
 
 include_directories( include/ ) ## Library header files
 include_directories( ${GPU_ENABLED_FUSION} ) ## Library header files
-include_directories( $ENV{GTEST_ROOT}/include $ENV{GTEST_ROOT} )
+include_directories( $ENV{GTEST_ROOT}/include )
 
 find_package( Boost )
 if (Boost_FOUND)
@@ -86,6 +86,14 @@ add_executable(FunctorDoMethodLookupMaps unit_tests/FunctorDoMethodLookupMaps.cp
 add_executable(FunctorDoMethods unit_tests/FunctorDoMethods.cpp ${SOURCES})
 add_executable(LoopIntervals unit_tests/LoopIntervals.cpp ${SOURCES})
 
+set (test_gtest  $ENV{GTEST_ROOT})
+if ("${test_gtest}" STREQUAL "")
+   message("GTEST_ROOT not defined: tests targets not compiled")
+else()
+    add_executable(tests unit_tests/tests.cpp unit_tests/test_domain_indices.cpp )
+    target_link_libraries( tests $ENV{GTEST_ROOT}/libgtest.a $ENV{GTEST_ROOT}/libgtest_main.a -lpthread )
+endif()
+
 add_executable(
         test-independent
         unit_tests/test-independent.cpp
@@ -99,7 +107,11 @@ if( "${USE_GPU}" STREQUAL "ON" )
     #add_dependencies(  )
     #target_link_libraries( interface1_cuda ${CUDA_MPI_LIB} )
     cuda_add_executable( cloning_derived unit_tests/cloning_derived.cu )
-    cuda_add_executable( tests unit_tests/tests.cu unit_tests/test_domain.cu unit_tests/test_cuda_storage.cu unit_tests/test_hybrid_pointer.cu unit_tests/gpu_clone.cu unit_tests/cloningstuff.cu )
-    target_link_libraries( tests $ENV{GTEST_ROOT}/libgtest.a $ENV{GTEST_ROOT}/libgtest_main.a )
+
+    if (test_gtest STREQUAL "")
+    else()
+        cuda_add_executable( tests_gpu unit_tests/tests.cu unit_tests/test_domain.cu unit_tests/test_cuda_storage.cu unit_tests/test_hybrid_pointer.cu unit_tests/gpu_clone.cu unit_tests/cloningstuff.cu )
+        target_link_libraries( tests_gpu $ENV{GTEST_ROOT}/libgtest.a $ENV{GTEST_ROOT}/libgtest_main.a )
+    endif()
 
 endif()
