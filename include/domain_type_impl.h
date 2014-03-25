@@ -82,10 +82,17 @@ namespace gridtools {
             };
         };
 
+        struct l_get_it_pos {
+            template <typename U>
+            struct apply {
+                typedef typename U::pos type;
+            };
+        };
+
         struct l_get_index {
             template <typename U>
             struct apply {
-                typedef typename U::index_type type;
+                typedef typename boost::mpl::integral_c<int, U::index_type::value> type;
             };
         };
 
