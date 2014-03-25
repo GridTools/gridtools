@@ -2,6 +2,8 @@
 #include <new>
 #include "host_device.h"
 #include <string>
+#include <boost/type_traits/integral_constant.hpp>
+
 namespace gridtools {
 
 #ifdef __CUDACC__
@@ -36,6 +38,7 @@ namespace gridtools {
     */
     template <typename t_derived_type>
     struct clonable_to_gpu {
+        typedef boost::true_type actually_clonable;
         t_derived_type* gpu_object_ptr;
 
         __host__ __device__
@@ -75,6 +78,7 @@ namespace gridtools {
 #else
     template <typename t_derived_type>
     struct clonable_to_gpu {
+        typedef boost::false_type actually_clonable;
         void clone_to_gpu() const {}
         void clone_from_gpu() const {}
     };
