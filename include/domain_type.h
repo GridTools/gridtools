@@ -10,6 +10,7 @@
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/copy.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/find.hpp>
@@ -57,16 +58,34 @@ namespace gridtools {
                                                _impl::l_get_it_type
                                                >::type raw_iterators_list;
 
+    public:
         typedef typename boost::mpl::transform<placeholders,
                                                _impl::l_get_index
                                                >::type raw_index_list;
-    
-        typedef typename boost::mpl::fold<raw_index_list,
+    private:    
+        typedef boost::mpl::range_c<int,0,len> range_t;
+        typedef typename boost::mpl::fold<range_t,
                                           boost::mpl::vector<>,
-                                          boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_storage_list, boost::mpl::_2> >
-                                          >::type arg_list_mpl;
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1,
+                                              boost::mpl::find<raw_index_list, boost::mpl::_2>
+                                              >
+                                          >::type iter_list;
 
-        typedef typename boost::mpl::fold<raw_index_list,
+    public:
+        typedef typename boost::mpl::transform<iter_list,
+                                               _impl::l_get_it_pos
+                                               >::type index_list;
+   
+        typedef typename boost::mpl::fold<index_list,
+                                          boost::mpl::vector<>,
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1, 
+                                              boost::mpl::at<raw_storage_list, boost::mpl::_2> 
+                                              >
+                                          >::type arg_list_mpl;
+    private:
+        typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
                                           >::type iterator_list_mpl;
@@ -284,7 +303,7 @@ namespace gridtools {
         */
         void finalize_computation() {
             boost::fusion::for_each(original_pointers, _impl::call_d2h());
-            storage_pointers = original_pointers;
+            boost::fusion::copy(original_pointers, storage_pointers);
         }
 
         template <typename T>
