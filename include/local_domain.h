@@ -98,7 +98,8 @@ namespace gridtools {
 
         template <typename T>
         void info(T const&) const {
-            //            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            T::info();
+            std::cout << "[" << boost::mpl::template at_c<esf_args, T::index_type::value>::type::index_type::value << "] ";
             dom->template storage_info<typename boost::mpl::template at_c<esf_args, T::index_type::value>::type::index_type>();
             //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         }
