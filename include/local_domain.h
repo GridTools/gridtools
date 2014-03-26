@@ -66,7 +66,7 @@ namespace gridtools {
 
         template <typename T>
         GT_FUNCTION
-        typename boost::mpl::at<esf_args, typename T::index>::type::value_type& 
+        typename boost::mpl::at<esf_args, typename T::index>::type::value_type const& 
         operator()(T const&, int i, int j, int k) const {
             return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index>::type::index>();
         }
@@ -94,6 +94,13 @@ namespace gridtools {
         GT_FUNCTION
         void increment() const {
             dom->template increment_along<2>();
+        }
+
+        template <typename T>
+        void info(T const&) const {
+            //            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            dom->template storage_info<typename boost::mpl::template at_c<esf_args, T::index_type::value>::type::index_type>();
+            //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         }
 
     };
