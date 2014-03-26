@@ -1,6 +1,8 @@
 #pragma once
 
+#ifndef __CUDACC__
 #include <boost/lexical_cast.hpp>
+#endif
 
 namespace gridtools {
     namespace _debug {
@@ -264,15 +266,21 @@ namespace gridtools {
                           << tileK << ")"
                           << std::endl; 
 #endif
+#ifndef __CUDACC__
                 std::string s = boost::lexical_cast<std::string>(range_type::iminus::value)+
                     boost::lexical_cast<std::string>(range_type::iplus::value)+
                     boost::lexical_cast<std::string>(range_type::jminus::value)+
                     boost::lexical_cast<std::string>(range_type::jplus::value);
+#endif
                 boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
                                                              -range_type::jminus::value+range_type::jplus::value+tileJ,
                                                              tileK,
+#ifndef __CUDACC__
                                                              666,
                                                              s);
+#else
+                                                             666);
+#endif
 #endif
             }
         };
