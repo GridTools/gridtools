@@ -334,15 +334,20 @@ namespace gridtools {
             for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
-        
-            int tileI = (t_backend::BI)?
+
+            tileI = (t_backend::BI)?
                 (t_backend::BI):
                 (coords.i_high_bound()-coords.i_low_bound()+1);
         
-            int tileJ = (t_backend::BJ)?
+            tileJ = (t_backend::BJ)?
                 (t_backend::BJ):
                 (coords.j_high_bound()-coords.j_low_bound()+1);
 
+#ifndef NDEBUG
+            std::cout << "tileI " << tileI << " "
+                      << "tileK " << tileJ
+                      << std::endl;
+#endif
 
             /*******
                     The following couple of calls should be decoupled from <run>
@@ -370,13 +375,7 @@ namespace gridtools {
 
         void steady () {
             m_domain.setup_computation();
-        }
 
-        void finalize () {
-            m_domain.finalize_computation();
-        }
-
-        void run () {
             boost::fusion::for_each(local_domain_list, 
                                     _impl::instantiate_local_domain<t_domain_type>
                                     (const_cast<typename boost::remove_const<t_domain_type>::type*>(&m_domain)));
@@ -385,6 +384,13 @@ namespace gridtools {
             m_domain.info();
 #endif
 
+        }
+
+        void finalize () {
+            m_domain.finalize_computation();
+        }
+
+        void run () {
             t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
         }
 
