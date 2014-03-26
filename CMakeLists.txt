@@ -108,7 +108,7 @@ if( "${USE_GPU}" STREQUAL "ON" )
     #target_link_libraries( interface1_cuda ${CUDA_MPI_LIB} )
     cuda_add_executable( cloning_derived unit_tests/cloning_derived.cu )
 
-    if (test_gtest STREQUAL "")
+    if ("${test_gtest}" STREQUAL "")
     else()
         cuda_add_executable( tests_gpu unit_tests/tests.cu unit_tests/test_domain.cu unit_tests/test_cuda_storage.cu unit_tests/test_hybrid_pointer.cu unit_tests/gpu_clone.cu unit_tests/cloningstuff.cu )
         target_link_libraries( tests_gpu $ENV{GTEST_ROOT}/libgtest.a $ENV{GTEST_ROOT}/libgtest_main.a )
