@@ -28,7 +28,7 @@ namespace gridtools {
         using base_type::strides;
         using base_type::m_size;
         using base_type::is_set;
-        //using base_type::name;
+        std::string m_name;
 
         value_type* data;
 
@@ -36,10 +36,15 @@ namespace gridtools {
                          value_type init = value_type(),
                          std::string const& s = std::string("default name") ) 
             : base_type(m_dim1, m_dim2, m_dim3, init, s)
+            , m_name(s)
         {
             data = new value_type[m_size];
             for (int i = 0; i < m_size; ++i)
                 data[i] = init;
+        }
+
+        std::string const& name() const {
+            return m_name;
         }
 
         explicit storage() 

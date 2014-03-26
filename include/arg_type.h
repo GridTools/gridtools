@@ -42,8 +42,8 @@ namespace gridtools {
         typedef boost::mpl::int_<I> index_type;
         typedef boost::mpl::int_<I> index;
 
-        static arg<I,T> center() {
-            return arg<I,T>();
+        static void info() {
+            std::cout << "Arg on real storage with index " << I;
         }
     };
 
@@ -85,6 +85,10 @@ namespace gridtools {
 
         typedef typename storage_type::iterator_type iterator_type;
         typedef boost::mpl::int_<I> index_type;
+
+        static void info() {
+            std::cout << "Arg on TEMP storage with index " << I;
+        }
     };
 
     /**

@@ -46,24 +46,24 @@ namespace gridtools {
      */
     template <typename t_placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<t_placeholders> > {
-        typedef t_placeholders placeholders;
+        typedef t_placeholders original_placeholders;
     private:
-        BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<placeholders>::type::value);
+        BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<original_placeholders>::type::value);
 
-        typedef typename boost::mpl::transform<placeholders,
+        typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_type
                                                >::type raw_storage_list;
 
-        typedef typename boost::mpl::transform<placeholders,
+        typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_it_type
                                                >::type raw_iterators_list;
 
     public:
-        typedef typename boost::mpl::transform<placeholders,
+        typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_index
                                                >::type raw_index_list;
-    private:    
         typedef boost::mpl::range_c<int,0,len> range_t;
+    private:    
         typedef typename boost::mpl::fold<range_t,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -84,6 +84,15 @@ namespace gridtools {
                                               boost::mpl::at<raw_storage_list, boost::mpl::_2> 
                                               >
                                           >::type arg_list_mpl;
+
+        typedef typename boost::mpl::fold<index_list,
+                                          boost::mpl::vector<>,
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1, 
+                                              boost::mpl::at<original_placeholders, boost::mpl::_2> 
+                                              >
+                                          >::type placeholders;
+
     private:
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
@@ -174,6 +183,13 @@ namespace gridtools {
             printf("domain_type: Original pointers\n");
             boost::fusion::for_each(original_pointers, _debug::print_domain_info());
             printf("domain_type: End info\n");
+        }
+
+        template <typename t_index>
+        void storage_info() const {
+            std::cout << t_index::value << " -|-> "
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->name()
+                      << std::endl;
         }
 
         ~domain_type() {
