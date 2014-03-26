@@ -9,13 +9,11 @@
 
 using namespace gridtools;
 
-struct print {
-    mutable int count;
-    mutable bool result;
+int count;
+bool result;
 
+struct print {
     print(void)
-        : count(0)
-        , result(true)
     {}
 
     template <typename T>
@@ -24,7 +22,30 @@ struct print {
         std::cout << T::value << std::endl;
 #endif
         if (T::value != count)
-            result == false;
+            result = false;
+        ++count;
+    }
+};
+
+struct print_plchld {
+    mutable int count;
+    mutable bool result;
+
+    print_plchld(void)
+    {}
+
+    template <typename T>
+    void operator()(T const& v) const {
+#ifndef NDEBUG
+        T::info();
+        std::cout << " (count = " << count << ")" 
+                  << " (index = " << T::index_type::value << ")"
+                  << std::endl;
+#endif
+        if (T::index_type::value != count) {
+            std::cout << "FUCK" << std::endl;
+            result = false;
+        }
         ++count;
     }
 };
@@ -54,13 +75,12 @@ bool test_domain_indices() {
     typedef arg<3, storage_type > p_in;
     typedef arg<4, storage_type > p_out;
 
+    result = true;
 
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
 
     gridtools::domain_type<arg_type_list> domain
         (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
-
-    bool result = true;
 
 #ifndef NDEBUG
     boost::mpl::for_each<gridtools::domain_type<arg_type_list>::raw_index_list>(print());
@@ -70,7 +90,17 @@ bool test_domain_indices() {
     boost::mpl::for_each<gridtools::domain_type<arg_type_list>::arg_list_mpl>(print_pretty());
 #endif
     std::cout << std::endl;
-    print pf;
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::index_list>(pf);
-    return pf.result;
+
+    count = 0;
+    result = true;
+
+    print_plchld pfph;
+    count = 0;
+    result = true;
+    //std::cout << "3 " << std::boolalpha << result << std::endl;
+    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::placeholders>(pfph);
+
+    //std::cout << "4 " << std::boolalpha << result << std::endl;
+
+    return result;
 }
