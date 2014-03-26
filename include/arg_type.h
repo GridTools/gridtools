@@ -154,6 +154,11 @@ namespace gridtools {
         arg_type<I> plus(int _i, int _j, int _k) const {
             return arg_type<I>(i()+_i, j()+_j, k()+_k);
         }
+
+        static void info() {
+            std::cout << "Arg_type storage with index " << I << " and range " << t_range() << " ";
+        }
+
     };
 
     /**
