@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/lexical_cast.hpp>
+
 namespace gridtools {
     namespace _debug {
     
@@ -255,9 +257,22 @@ namespace gridtools {
                 // TODO: computed storage_type should decide where to heap/cuda allocate or stack allocate.
                 typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<elem_type, boost::mpl::int_<0> >::type>::type>::type storage_type;
 
+#ifndef NDEBUG
+                std::cout << "Temporary: " << range_type() << " + (" 
+                          << tileI << "x" 
+                          << tileJ << "x" 
+                          << tileK << ")"
+                          << std::endl; 
+#endif
+                std::string s = boost::lexical_cast<std::string>(range_type::iminus::value)+
+                    boost::lexical_cast<std::string>(range_type::iplus::value)+
+                    boost::lexical_cast<std::string>(range_type::jminus::value)+
+                    boost::lexical_cast<std::string>(range_type::jplus::value);
                 boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
                                                              -range_type::jminus::value+range_type::jplus::value+tileJ,
-                                                             tileK);
+                                                             tileK,
+                                                             666,
+                                                             s);
 #endif
             }
         };
