@@ -87,8 +87,9 @@ namespace gridtools {
 
         GT_FUNCTION
         void move_to(int i, int j, int k) const {
-            printf("ADDR-- %X\n", dom);
+            //printf("ADDR-- %X\n", dom);
             dom->move_to(i,j,k);
+            //info();
         }
 
         GT_FUNCTION
@@ -104,6 +105,10 @@ namespace gridtools {
             //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         }
 
+        GT_FUNCTION
+        void info() const {
+            dom->info();
+        }
     };
 
     //            template <typename t_esf_descriptor, typename t_domain>
