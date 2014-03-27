@@ -9,6 +9,7 @@
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/fusion/include/transform.hpp>
+#include <boost/fusion/include/value_at.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/mpl/fold.hpp>
@@ -41,6 +42,16 @@
 #include "domain_type_impl.h"
 
 namespace gridtools {
+
+    namespace gt_aux {
+        template<typename Iterator>
+        static void assert_in_range(Iterator pos, std::pair<Iterator, Iterator> min_max)
+        {
+            assert(pos >= min_max.first);
+            assert(pos < min_max.second);
+        }
+    }
+
     /**
      * @tparam t_placeholders list of placeholders of type arg<I,T>
      */
@@ -190,19 +201,19 @@ namespace gridtools {
         template <typename t_index>
         void storage_info() const {
             std::cout << t_index::value << " -|-> "
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->name()
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->name()
                       << " "
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->m_dims[0]
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->m_dims[0]
                       << "x"
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->m_dims[1]
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->m_dims[1]
                       << "x"
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->m_dims[2]
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->m_dims[2]
                       << ", "
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->strides[0]
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->strides[0]
                       << "x"
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->strides[1]
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->strides[1]
                       << "x"
-                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->strides[2]
+                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->strides[2]
                       << ", "
                       << std::endl;
         }
@@ -341,7 +352,7 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&
         operator[](T const &) {
-            return *(boost::fusion::template at<typename T::index_type>(iterators));
+            return *(boost::fusion::at<typename T::index_type>(iterators));
         }
 
         /**
@@ -355,10 +366,14 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
         direct() const {
-            assert((boost::fusion::template at<I>(iterators) >= boost::fusion::template at<I>(storage_pointers)->min_addr()));
-            assert((boost::fusion::template at<I>(iterators) < boost::fusion::template at<I>(storage_pointers)->max_addr()));
+            #ifndef NDEBUG
+            gt_aux::assert_in_range(
+                boost::fusion::at<I>(iterators),
+                std::make_pair(boost::fusion::at<I>(storage_pointers)->min_addr(),
+                               boost::fusion::at<I>(storage_pointers)->max_addr()));
+            #endif
 
-            return *(boost::fusion::template at<I>(iterators));
+            return *(boost::fusion::at<I>(iterators));
         }
 
         /**
