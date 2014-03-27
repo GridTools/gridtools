@@ -22,7 +22,10 @@ namespace gridtools {
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             int z = coords->template value_at<first_hit>();
 
-            if ((i < nx) || (j < ny)) {
+            //if (i==0 && j == 0) {
+            //     l_domain->info();
+            // }
+            if ((i < nx) && (j < ny)) {
                 l_domain->move_to(i+starti,j+startj, z);
                 for_each<t_loop_intervals>(_impl::run_f_on_interval<functor_type, interval_map,t_l_domain,t_coords>(*l_domain,*coords));
             }
@@ -62,6 +65,8 @@ namespace gridtools {
                 t_coords const *coords_gp = coords.gpu_object_ptr;
 
 #ifndef NDEBUG
+                local_domain.info();
+
                 printf("I loop %d ", coords.i_low_bound() + range_type::iminus::value);
                 printf("-> %d\n", coords.i_high_bound() + range_type::iplus::value);
                 printf("J loop %d ", coords.j_low_bound() + range_type::jminus::value);
