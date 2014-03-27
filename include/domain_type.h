@@ -180,6 +180,8 @@ namespace gridtools {
         void info() {
             printf("domain_type: Storage pointers\n");
             boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+            printf("domain_type: Iterators\n");
+            boost::fusion::for_each(iterators, _debug::print_domain_info());
             printf("domain_type: Original pointers\n");
             boost::fusion::for_each(original_pointers, _debug::print_domain_info());
             printf("domain_type: End info\n");
@@ -189,6 +191,19 @@ namespace gridtools {
         void storage_info() const {
             std::cout << t_index::value << " -|-> "
                       << (boost::fusion::template at_c<t_index::value>(storage_pointers))->name()
+                      << " "
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->m_dims[0]
+                      << "x"
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->m_dims[1]
+                      << "x"
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->m_dims[2]
+                      << ", "
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->strides[0]
+                      << "x"
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->strides[1]
+                      << "x"
+                      << (boost::fusion::template at_c<t_index::value>(storage_pointers))->strides[2]
+                      << ", "
                       << std::endl;
         }
 
