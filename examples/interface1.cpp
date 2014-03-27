@@ -34,10 +34,18 @@ struct lap_function {
     template <typename t_domain>
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
-        //printf("%e\n", dom(in()));
+#ifndef CUDA_EXAMPLE
+        std::cout << "in     ";
+        dom.info(in());
+        std::cout << "out    ";
+        dom.info(out());
+#endif
+        // printf("dom(out()) => %e\n", dom(out()));
+        // printf("dom(in()) => %e\n", dom(in()));
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+        // printf("dom(out()) <= %e\n", dom(out()));
     }
 };
 
@@ -52,6 +60,14 @@ struct flx_function {
     template <typename t_domain>
     GT_FUNCTION
     static void Do(t_domain const & dom, x_flx) {
+#ifndef CUDA_EXAMPLE
+        std::cout << "out    ";
+        dom.info(out());
+        std::cout << "in     ";
+        dom.info(in());
+        std::cout << "lap    ";
+        dom.info(lap());
+#endif
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
@@ -69,6 +85,14 @@ struct fly_function {
     template <typename t_domain>
     GT_FUNCTION
     static void Do(t_domain const & dom, x_flx) {
+#ifndef CUDA_EXAMPLE
+        std::cout << "out    ";
+        dom.info(out());
+        std::cout << "in     ";
+        dom.info(in());
+        std::cout << "lap    ";
+        dom.info(lap());
+#endif
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
@@ -88,10 +112,23 @@ struct out_function {
     template <typename t_domain>
     GT_FUNCTION
     static void Do(t_domain const & dom, x_out) {
+#ifndef CUDA_EXAMPLE
+        std::cout << "out    ";
+        dom.info(out());
+        std::cout << "in     ";
+        dom.info(in());
+        std::cout << "flx    ";
+        dom.info(flx());
+        std::cout << "fly    ";
+        dom.info(fly());
+        std::cout << "coeff  ";
+        dom.info(coeff());
+#endif
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx(-1,0,0)) +
              dom(fly()) - dom(fly(0,-1,0))
              );
+        // printf("final dom(out()) => %e\n", dom(out()));
     }
 };
 
@@ -127,18 +164,18 @@ int main(int argc, char** argv) {
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,-3, std::string("coeff"));
+    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
     out.print();
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<3, gridtools::temporary<storage_type> > p_lap;
-    typedef arg<2, gridtools::temporary<storage_type> > p_flx;
-    typedef arg<4, gridtools::temporary<storage_type> > p_fly;
-    typedef arg<5, storage_type > p_coeff;
-    typedef arg<1, storage_type > p_in;
-    typedef arg<0, storage_type > p_out;
+    typedef arg<0, gridtools::temporary<storage_type> > p_lap;
+    typedef arg<1, gridtools::temporary<storage_type> > p_flx;
+    typedef arg<2, gridtools::temporary<storage_type> > p_fly;
+    typedef arg<3, storage_type > p_coeff;
+    typedef arg<4, storage_type > p_in;
+    typedef arg<5, storage_type > p_out;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
@@ -148,7 +185,7 @@ int main(int argc, char** argv) {
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
+        (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -208,6 +245,14 @@ int main(int argc, char** argv) {
          domain, coords);
 
     horizontal_diffusion->ready();
+
+    domain.storage_info<boost::mpl::int_<0> >();
+    domain.storage_info<boost::mpl::int_<1> >();
+    domain.storage_info<boost::mpl::int_<2> >();
+    domain.storage_info<boost::mpl::int_<3> >();
+    domain.storage_info<boost::mpl::int_<4> >();
+    domain.storage_info<boost::mpl::int_<5> >();
+
     horizontal_diffusion->steady();
     printf("\n\n\n\n\n\n");
     domain.clone_to_gpu();
@@ -215,7 +260,9 @@ int main(int argc, char** argv) {
     horizontal_diffusion->run();
     horizontal_diffusion->finalize();
 
+#ifdef CUDA_EXAMPLE
     out.data.update_cpu();
+#endif
 
     //    in.print();
     out.print();
