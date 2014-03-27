@@ -61,28 +61,28 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         operator()(T const& t) const {
-            return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
+            return dom->template direct<typename boost::mpl::at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
         }
 
         template <typename T>
         GT_FUNCTION
         typename boost::mpl::at<esf_args, typename T::index>::type::value_type const& 
         operator()(T const&, int i, int j, int k) const {
-            return dom->template direct<typename boost::mpl::template at<esf_args, typename T::index>::type::index>();
+            return dom->template direct<typename boost::mpl::at<esf_args, typename T::index>::type::index>();
         }
 
         template <typename T>
         GT_FUNCTION
         typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
         get(int i, int j, int k) const {
-            return dom->template direct<typename boost::mpl::template at_c<esf_args, T::index>::type::index>();     
+            return dom->template direct<typename boost::mpl::at_c<esf_args, T::index>::type::index>();     
         }
 
         template <typename T>
         GT_FUNCTION
         typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
         operator[](T const&) const {
-            return dom->template direct<boost::mpl::template at_c<esf_args, T::index>::type::index>();
+            return dom->template direct<boost::mpl::at_c<esf_args, T::index>::type::index>();
         }
 
         GT_FUNCTION
@@ -100,8 +100,8 @@ namespace gridtools {
         template <typename T>
         void info(T const&) const {
             T::info();
-            std::cout << "[" << boost::mpl::template at_c<esf_args, T::index_type::value>::type::index_type::value << "] ";
-            dom->template storage_info<typename boost::mpl::template at_c<esf_args, T::index_type::value>::type::index_type>();
+            std::cout << "[" << boost::mpl::at_c<esf_args, T::index_type::value>::type::index_type::value << "] ";
+            dom->template storage_info<typename boost::mpl::at_c<esf_args, T::index_type::value>::type::index_type>();
             //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
         }
 
