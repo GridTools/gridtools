@@ -13,6 +13,7 @@ namespace gridtools {
         typedef t_layout layout;
         typedef t_value_type value_type;
         typedef value_type* iterator_type;
+        typedef value_type const* const_iterator_type;
 
         int m_dims[3];
         int strides[3];
@@ -92,9 +93,13 @@ namespace gridtools {
             std::cout << "v j" << std::endl;
             std::cout << "---> k" << std::endl;
 
-            for (int i = 0; i < std::min(m_dims[0],6); ++i) {
-                for (int j = 0; j < std::min(m_dims[1],6); ++j) {
-                    for (int k = 0; k < std::min(m_dims[2],12); ++k) {
+            int MI=12;
+            int MJ=12;
+            int MK=12;
+
+            for (int i = 0; i < std::min(m_dims[0],MI); ++i) {
+                for (int j = 0; j < std::min(m_dims[1],MJ); ++j) {
+                    for (int k = 0; k < std::min(m_dims[2],MK); ++k) {
                         std::cout << "["/*("
                                           << i << ","
                                           << j << ","
