@@ -37,6 +37,7 @@ namespace gridtools {
         typedef t_layout layout;
         typedef t_value_type value_type;
         typedef value_type* iterator_type;
+        typedef value_type const* const_iterator_type;
 
         hybrid_pointer<value_type> data;
 
@@ -84,12 +85,12 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        value_type const* min_addr() const {
+        const_iterator_type min_addr() const {
             return &(data[0]);
         }
 
         GT_FUNCTION
-        value_type const * max_addr() const {
+        const_iterator_type max_addr() const {
             return &(data[m_size]);
         }
 

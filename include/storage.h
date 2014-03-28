@@ -23,6 +23,7 @@ namespace gridtools {
         typedef t_layout layout;
         typedef t_value_type value_type;
         typedef value_type* iterator_type;
+        typedef value_type const* const_iterator_type;
 
         using base_type::m_dims;
         using base_type::strides;

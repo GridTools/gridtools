@@ -44,8 +44,9 @@
 namespace gridtools {
 
     namespace gt_aux {
-        template<typename Iterator>
-        static void assert_in_range(Iterator pos, std::pair<Iterator, Iterator> min_max)
+        template<typename Iterator, typename Bound>
+        GT_FUNCTION
+        static void assert_in_range(Iterator pos, std::pair<Bound, Bound> min_max)
         {
             assert(pos >= min_max.first);
             assert(pos < min_max.second);
