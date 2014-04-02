@@ -5,32 +5,32 @@ namespace gridtools {
        This class implements the basic operation of iterating over a "column" in a interval.
     */
     namespace _impl {
-        template <typename functor_type,
-                  typename interval_map,
-                  typename local_domain_type,
-                  typename t_coords>
+        template <typename FunctorType,
+                  typename IntervalMap,
+                  typename LocalDomainType,
+                  typename Coords>
         struct run_f_on_interval {
-            t_coords const &coords;
-            local_domain_type const &domain;
+            Coords const &coords;
+            LocalDomainType const &domain;
 
             GT_FUNCTION
-            explicit run_f_on_interval(local_domain_type & domain, t_coords const& coords)
+            explicit run_f_on_interval(LocalDomainType & domain, Coords const& coords)
                 : coords(coords)
                 , domain(domain)
             {}
 
-            template <typename t_interval>
+            template <typename Interval>
             GT_FUNCTION
-            void operator()(t_interval const&) const {
-                typedef typename index_to_level<typename t_interval::first>::type from;
-                typedef typename index_to_level<typename t_interval::second>::type to;
-                if (boost::mpl::has_key<interval_map, t_interval>::type::value) {
+            void operator()(Interval const&) const {
+                typedef typename index_to_level<typename Interval::first>::type from;
+                typedef typename index_to_level<typename Interval::second>::type to;
+                if (boost::mpl::has_key<IntervalMap, Interval>::type::value) {
                     printf("K Loop: %d ", coords.template value_at<from>());
                     printf("-> %d\n", coords.template value_at<to>());
 
                     for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
-                        typedef typename boost::mpl::at<interval_map, t_interval>::type interval_type;
-                        functor_type::Do(domain, interval_type());
+                        typedef typename boost::mpl::at<IntervalMap, Interval>::type interval_type;
+                        FunctorType::Do(domain, interval_type());
                         domain.increment();
                     }
                 }

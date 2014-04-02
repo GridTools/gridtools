@@ -10,31 +10,31 @@ namespace gridtools {
      * to adapt it for a particular functor. There is one version which provide coordinates to the functor
      * and one that does not
      * 
-     * @tparam t_esf_descriptor The descriptor of the elementary stencil function
-     * @tparam t_domain The full domain type
+     * @tparam EsfDescriptor The descriptor of the elementary stencil function
+     * @tparam Domain The full domain type
      */
-    template <typename t_derived, typename t_esf_descriptor, typename t_domain>
-    struct local_domain_base: public clonable_to_gpu<t_derived> {
-        typedef typename t_esf_descriptor::args esf_args;
-        typedef typename t_esf_descriptor::esf_function esf_function;
-        typedef typename t_domain::placeholders dom_placeholders;
-        typedef t_domain domain_type;
+    template <typename Derived, typename EsfDescriptor, typename Domain>
+    struct local_domain_base: public clonable_to_gpu<Derived> {
+        typedef typename EsfDescriptor::args esf_args;
+        typedef typename EsfDescriptor::esf_function esf_function;
+        typedef typename Domain::placeholders dom_placeholders;
+        typedef Domain domain_type;
 
-        t_domain *dom;
-        t_domain *g_dom;
+        Domain *dom;
+        Domain *g_dom;
 
         //int m_i,m_j,m_k;
 
-        template <typename t_dom, typename is_actually_clonable, int DUMMY = 0>
+        template <typename Dom, typename IsActuallyClonable, int DUMMY = 0>
         struct pointer_if_clonable {
-            static t_dom* get(t_dom* d) {
+            static Dom* get(Dom* d) {
                 return d;
             }
         };
 
-        template <typename t_dom, int DUMMY>
-        struct pointer_if_clonable<t_dom, boost::true_type, DUMMY> {
-            static t_dom* get(t_dom* d) {
+        template <typename Dom, int DUMMY>
+        struct pointer_if_clonable<Dom, boost::true_type, DUMMY> {
+            static Dom* get(Dom* d) {
                 return d->gpu_object_ptr;
             }
         };
@@ -43,10 +43,10 @@ namespace gridtools {
         local_domain_base() {}
                     
         GT_FUNCTION
-        void init(t_domain* _dom) 
+        void init(Domain* _dom) 
         {
             dom = _dom;
-            g_dom = pointer_if_clonable<t_domain, typename t_domain::actually_clonable>::get(_dom);
+            g_dom = pointer_if_clonable<Domain, typename Domain::actually_clonable>::get(_dom);
         }
 
         __device__
@@ -111,18 +111,18 @@ namespace gridtools {
         }
     };
 
-    //            template <typename t_esf_descriptor, typename t_domain>
-    //            struct local_domain_location : public local_domain_base<t_esf_descriptor, t_domain> {
-    //                typedef local_domain_base<t_esf_descriptor, t_domain> base_type;
-    //                typedef typename t_esf_descriptor::args esf_args;
-    //                typedef typename t_esf_descriptor::esf_function esf_function;
-    //                typedef typename t_domain::placeholders dom_placeholders;
-    //                //typedef typename t_domain::arg dom_args;
-    //                typedef t_domain domain_type;
+    //            template <typename EsfDescriptor, typename Domain>
+    //            struct local_domain_location : public local_domain_base<EsfDescriptor, Domain> {
+    //                typedef local_domain_base<EsfDescriptor, Domain> base_type;
+    //                typedef typename EsfDescriptor::args esf_args;
+    //                typedef typename EsfDescriptor::esf_function esf_function;
+    //                typedef typename Domain::placeholders dom_placeholders;
+    //                //typedef typename Domain::arg dom_args;
+    //                typedef Domain domain_type;
     //
     //                int m_i,m_j,m_k;
     //
-    //                explicit local_domain_location(t_domain const & dom, int i, int j, int k)
+    //                explicit local_domain_location(Domain const & dom, int i, int j, int k)
     //                    : base_type(dom)
     //                    , m_i(i)
     //                    , m_j(j)
@@ -141,16 +141,16 @@ namespace gridtools {
      * to adapt it for a particular functor. This version does not provide coordinates
      * to the function operator
      * 
-     * @tparam t_esf_descriptor The descriptor of the elementary stencil function
-     * @tparam t_domain The full domain type
+     * @tparam EsfDescriptor The descriptor of the elementary stencil function
+     * @tparam Domain The full domain type
      */
-    template <typename t_esf_descriptor, typename t_domain>
-    struct local_domain : public local_domain_base< local_domain<t_esf_descriptor, t_domain>, t_esf_descriptor, t_domain> {
-        typedef local_domain_base<local_domain<t_esf_descriptor, t_domain>, t_esf_descriptor, t_domain> base_type;
-        typedef typename t_esf_descriptor::args esf_args;
-        typedef typename t_esf_descriptor::esf_function esf_function;
-        typedef typename t_domain::placeholders dom_placeholders;
-        typedef t_domain domain_type;
+    template <typename EsfDescriptor, typename Domain>
+    struct local_domain : public local_domain_base< local_domain<EsfDescriptor, Domain>, EsfDescriptor, Domain> {
+        typedef local_domain_base<local_domain<EsfDescriptor, Domain>, EsfDescriptor, Domain> base_type;
+        typedef typename EsfDescriptor::args esf_args;
+        typedef typename EsfDescriptor::esf_function esf_function;
+        typedef typename Domain::placeholders dom_placeholders;
+        typedef Domain domain_type;
 
         GT_FUNCTION
         local_domain() {}
@@ -161,7 +161,7 @@ namespace gridtools {
         {}
 
         GT_FUNCTION
-        void init(t_domain* dom, int, int, int)
+        void init(Domain* dom, int, int, int)
         {
             base_type::init(dom);
 #ifndef NDEBUG

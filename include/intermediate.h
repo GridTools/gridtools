@@ -23,9 +23,9 @@
 namespace gridtools {
     namespace _impl{
         /* wrap type to simplify specialization based on mpl::vectors */
-        template <typename mpl_array>
+        template <typename MplArray>
         struct wrap_type {
-            typedef mpl_array type;
+            typedef MplArray type;
         };
 
         template <typename T>
@@ -48,44 +48,44 @@ namespace gridtools {
             };
         };
 
-        template <typename t_dom, template <class A, class B> class t_local_domain>
+        template <typename Dom, template <class A, class B> class LocalDomain>
         struct get_local_domain {
             template <typename T>
             struct apply {
-                typedef t_local_domain<T, t_dom> type;
+                typedef LocalDomain<T, Dom> type;
             };
         };
     
         /* Functor used to instantiate the local domains to be passed to each
            elementary stencil function */
-        template <typename t_dom>
+        template <typename Dom>
         struct instantiate_local_domain {
-            t_dom * dom;
+            Dom * dom;
             GT_FUNCTION
-            instantiate_local_domain(t_dom * dom)
+            instantiate_local_domain(Dom * dom)
                 : dom(dom)
             {}
 
-            template <typename t_elem>
+            template <typename Elem>
             GT_FUNCTION
-            void operator()(t_elem & elem) const {
+            void operator()(Elem & elem) const {
                 elem.init(dom, 0,0,0);
                 elem.clone_to_gpu();
             }
         };
 
-        template <typename t_functor_desc>
+        template <typename FunctorDesc>
         struct extract_ranges {
-            typedef typename t_functor_desc::esf_function t_functor;
+            typedef typename FunctorDesc::esf_function Functor;
 
-            template <typename range_state, typename argument_index>
+            template <typename RangeState, typename ArgumentIndex>
             struct update_range {
-                typedef typename boost::mpl::at<typename t_functor::arg_list, argument_index>::type argument_type;
-                typedef typename enclosing_range<range_state, typename argument_type::range_type>::type type;
+                typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
+                typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
             };
 
             typedef typename boost::mpl::fold<
-                boost::mpl::range_c<int, 0, t_functor::n_args>,
+                boost::mpl::range_c<int, 0, Functor::n_args>,
                 range<0,0,0,0>,
                 update_range<boost::mpl::_1, boost::mpl::_2>
                 >::type type;
@@ -97,7 +97,7 @@ namespace gridtools {
             typedef boost::false_type type;
         };
 
-        template <typename not_independent_elem>
+        template <typename NotIndependentElem>
         struct from_independents {
             typedef boost::false_type type;
         };
@@ -113,78 +113,78 @@ namespace gridtools {
         typedef wrap_type<raw_type> type;
     };
 
-    template <typename state, typename elem>
+    template <typename State, typename Elem>
     struct traverse_ranges {
 
         typedef typename boost::mpl::push_back<
-            state,
+            State,
             typename boost::mpl::if_<
-                is_independent<elem>,
-                typename from_independents<elem>::type,
-                typename extract_ranges<elem>::type
+                is_independent<Elem>,
+                typename from_independents<Elem>::type,
+                typename extract_ranges<Elem>::type
                 >::type
             >::type type;
     };
 
 
     // prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.
-        template <typename list_of_ranges>
+        template <typename ListOfRanges>
         struct prefix_on_ranges {
 
-            template <typename t_list, typename t_range/*, typename t_next_range*/>
+            template <typename List, typename Range/*, typename NextRange*/>
             struct state {
-                typedef t_list list;
-                typedef t_range range;
-                // typedef t_next_range next_range;
+                typedef List list;
+                typedef Range range;
+                // typedef NextRange next_range;
             };
 
-            template <typename previous_state, typename current_element>
+            template <typename PreviousState, typename CurrentElement>
             struct update_state {
-                typedef typename sum_range<typename previous_state::range,
-                                           current_element>::type new_range;
-                typedef typename boost::mpl::push_front<typename previous_state::list, typename previous_state::range>::type new_list;
+                typedef typename sum_range<typename PreviousState::range,
+                                           CurrentElement>::type new_range;
+                typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
                 typedef state<new_list, new_range> type;
             };
 
-            template <typename previous_state, typename ind_vector>
-            struct update_state<previous_state, wrap_type<ind_vector> > {
+            template <typename PreviousState, typename IndVector>
+            struct update_state<PreviousState, wrap_type<IndVector> > {
                 typedef typename boost::mpl::fold<
-                    ind_vector,
+                    IndVector,
                     boost::mpl::vector<>,
-                    boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename previous_state::range/*, boost::mpl::_2>*/ >
+                    boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
                     >::type raw_ranges;
             
             typedef typename boost::mpl::fold<
-                ind_vector,
+                IndVector,
                 range<0,0,0,0>,
-                enclosing_range<boost::mpl::_1, sum_range<typename previous_state::range, boost::mpl::_2> >
+                enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
                 >::type final_range;
 
-            typedef typename boost::mpl::push_front<typename previous_state::list, wrap_type<raw_ranges> >::type new_list;
+            typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
 
             typedef state<new_list, final_range> type;
         };
 
         typedef typename boost::mpl::reverse_fold<
-            list_of_ranges,
+            ListOfRanges,
             state<boost::mpl::vector<>, range<0,0,0,0> >,
             update_state<boost::mpl::_1, boost::mpl::_2> >::type final_state;
 
             typedef typename final_state::list type;
         };
 
-        template <typename state, typename subarray>
+        template <typename State, typename SubArray>
         struct keep_scanning {
             typedef typename boost::mpl::fold<
-                typename subarray::type,
-                state,
+                typename SubArray::type,
+                State,
                 boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
                 >::type type;
         };
 
-        template <typename array>
+        template <typename Array>
         struct linearize_range_sizes {
-            typedef typename boost::mpl::fold<array,
+            typedef typename boost::mpl::fold<Array,
                                               boost::mpl::vector<>,
                                               boost::mpl::if_<
                                                   is_wrap_type<boost::mpl::_2>,
@@ -199,11 +199,11 @@ namespace gridtools {
 
 
     namespace _debug {
-        template <typename t_coords>
+        template <typename Coords>
         struct show_pair {
-            t_coords coords;
+            Coords coords;
 
-            explicit show_pair(t_coords const& coords)
+            explicit show_pair(Coords const& coords)
                 : coords(coords)
             {}
 
@@ -229,22 +229,22 @@ namespace gridtools {
                 : prefix(s)
             {}
 
-            template <int i, int j, int k, int l>
-            void operator()(range<i,j,k,l> const&) const {
-                std::cout << prefix << range<i,j,k,l>() << std::endl;
+            template <int I, int J, int K, int L>
+            void operator()(range<I,J,K,L> const&) const {
+                std::cout << prefix << range<I,J,K,L>() << std::endl;
             }
 
-            template <typename mplvec>
-            void operator()(mplvec const&) const {
+            template <typename MplVector>
+            void operator()(MplVector const&) const {
                 std::cout << "Independent" << std::endl;
-                for_each<mplvec>(print__(std::string("    ")));
+                for_each<MplVector>(print__(std::string("    ")));
                 std::cout << "End Independent" << std::endl;
             }
 
-            template <typename mplvec>
-            void operator()(_impl::wrap_type<mplvec> const&) const {
+            template <typename MplVector>
+            void operator()(_impl::wrap_type<MplVector> const&) const {
                 printf("Independent*\n"); // this whould not be necessary but nvcc s#$ks
-                for_each<mplvec>(print__(std::string("    ")));
+                for_each<MplVector>(print__(std::string("    ")));
                 printf("End Independent*\n");
             }
         };
@@ -253,22 +253,24 @@ namespace gridtools {
 
 
 
-    template <typename t_backend, typename t_mss_type, typename t_domain_type, typename t_coords>
+    template <typename Backend, typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
-        typedef typename boost::mpl::transform<typename t_mss_type::linear_esf,
+        // typename MssType::linear_esf is a list of all the esf nodes in the multi-stage descriptor.
+        // functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
+        typedef typename boost::mpl::transform<typename MssType::linear_esf,
                                                _impl::extract_functor>::type functors_list;
         
         // compute the functor do methods - This is the most computationally intensive part
         typedef typename boost::mpl::transform<
             functors_list,
-            compute_functor_do_methods<boost::mpl::_, typename t_coords::axis_type>
+            compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
             >::type FunctorDoMethods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 
         // compute the loop intervals
         typedef typename compute_loop_intervals<
             FunctorDoMethods,
-            typename t_coords::axis_type
+            typename Coords::axis_type
             >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
 
         // compute the do method lookup maps
@@ -280,14 +282,14 @@ namespace gridtools {
 
         // Create a fusion::vector of domains for each functor
         typedef typename boost::mpl::transform<
-            typename t_mss_type::linear_esf,
-            _impl::get_local_domain<t_domain_type, local_domain> >::type mpl_local_domain_list;
+            typename MssType::linear_esf,
+            _impl::get_local_domain<DomainType, local_domain> >::type mpl_local_domain_list;
 
-        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type t_local_domain_list;
+        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type LocalDomainList;
 
-        t_local_domain_list local_domain_list;
+        LocalDomainList local_domain_list;
 
-        typedef typename boost::mpl::fold<typename t_mss_type::esf_array,
+        typedef typename boost::mpl::fold<typename MssType::esf_array,
                                           boost::mpl::vector<>,
                                           _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
                                           >::type ranges_list;
@@ -298,10 +300,10 @@ namespace gridtools {
         // linearize the data flow graph.
         typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
 
-        t_domain_type & m_domain;
-        t_coords m_coords;
+        DomainType & m_domain;
+        Coords m_coords;
 
-        intermediate(t_mss_type const &, t_domain_type & domain, t_coords const & coords)
+        intermediate(MssType const &, DomainType & domain, Coords const & coords)
             : m_domain(domain)
             , m_coords(coords)
         {
@@ -310,7 +312,7 @@ namespace gridtools {
 #ifndef NDEBUG
 #ifndef __CUDACC__
             std::cout << "Actual loop bounds ";
-            for_each<LoopIntervals>(_debug::show_pair<t_coords>(coords));
+            for_each<LoopIntervals>(_debug::show_pair<Coords>(coords));
             std::cout << std::endl;
 #endif
 #endif
@@ -335,12 +337,12 @@ namespace gridtools {
             std::cout << "end2" <<std::endl;
 #endif
 
-            tileI = (t_backend::BI)?
-                (t_backend::BI):
+            tileI = (Backend::BI)?
+                (Backend::BI):
                 (coords.i_high_bound()-coords.i_low_bound()+1);
         
-            tileJ = (t_backend::BJ)?
-                (t_backend::BJ):
+            tileJ = (Backend::BJ)?
+                (Backend::BJ):
                 (coords.j_high_bound()-coords.j_low_bound()+1);
 
 #ifndef NDEBUG
@@ -355,19 +357,19 @@ namespace gridtools {
                     is executed.
              *******/
             // Prepare domain's temporary fields to proper storage sizes
-            // domain.template prepare_temporaries<t_mss_type, range_sizes>
+            // domain.template prepare_temporaries<MssType, range_sizes>
             //     (tileI,
             //      tileJ, 
             //      coords.value_at_top()-coords.value_at_bottom()+1);
 
             // domain.setup_computation();
             // // Now run!
-            // t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
+            // Backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
             // domain.finalize_computation();
         }    
 
         void ready () {
-            m_domain.template prepare_temporaries<t_mss_type, range_sizes>
+            m_domain.template prepare_temporaries<MssType, range_sizes>
                 (tileI,
                  tileJ, 
                  m_coords.value_at_top()-m_coords.value_at_bottom()+1);
@@ -377,8 +379,8 @@ namespace gridtools {
             m_domain.setup_computation();
 
             boost::fusion::for_each(local_domain_list, 
-                                    _impl::instantiate_local_domain<t_domain_type>
-                                    (const_cast<typename boost::remove_const<t_domain_type>::type*>(&m_domain)));
+                                    _impl::instantiate_local_domain<DomainType>
+                                    (const_cast<typename boost::remove_const<DomainType>::type*>(&m_domain)));
 
 #ifndef NDEBUG
             m_domain.info();
@@ -391,7 +393,7 @@ namespace gridtools {
         }
 
         void run () {
-            t_backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
+            Backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
         }
 
     private:

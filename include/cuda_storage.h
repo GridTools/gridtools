@@ -11,31 +11,31 @@
 //////// STORAGE
 
 namespace gridtools {
-    template < typename t_value_type
-             , typename t_layout
-             , bool is_temporary = false
+    template < typename ValueType
+             , typename Layout
+             , bool IsTemporary = false
 #ifndef NDEBUG
-             , typename type_tag = int
+             , typename TypeTag = int
 #endif
                >
-    struct cuda_storage : public base_storage<cuda_storage<t_value_type, t_layout, is_temporary
+    struct cuda_storage : public base_storage<cuda_storage<ValueType, Layout, IsTemporary
 #ifndef NDEBUG
-                                                           , type_tag
+                                                           , TypeTag
 #endif
                                                            >,
-                                              t_value_type,
-                                              t_layout,
-                                              is_temporary
+                                              ValueType,
+                                              Layout,
+                                              IsTemporary
                                               > 
     {
-        typedef cuda_storage<t_value_type, t_layout, is_temporary
+        typedef cuda_storage<ValueType, Layout, IsTemporary
 #ifndef NDEBUG
-                             , type_tag
+                             , TypeTag
 #endif
                              > this_type;
-        typedef base_storage<this_type, t_value_type, t_layout, is_temporary> base_type;
-        typedef t_layout layout;
-        typedef t_value_type value_type;
+        typedef base_storage<this_type, ValueType, Layout, IsTemporary> base_type;
+        typedef Layout layout;
+        typedef ValueType value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
 

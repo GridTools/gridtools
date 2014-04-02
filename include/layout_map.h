@@ -2,7 +2,7 @@
 #define _LAYOUT_MAP_H_
 
 #include <boost/static_assert.hpp>
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/vector_c.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/at.hpp>
 #include "gt_assert.h"
@@ -93,7 +93,7 @@ namespace gridtools {
     template <int I1>
     struct layout_map<I1, -1, -1, -1> {
         static const unsigned int length=1;
-        typedef boost::mpl::vector<boost::mpl::int_<I1> > t;
+        typedef boost::mpl::vector1_c<int, I1> t;
 
         template <unsigned int I>
         GT_FUNCTION
@@ -129,8 +129,7 @@ namespace gridtools {
     template <int I1, int I2>
     struct layout_map<I1, I2, -1, -1> {
         static const unsigned int length=2;
-        typedef boost::mpl::vector<boost::mpl::int_<I1>, 
-                                   boost::mpl::int_<I2> > t;
+        typedef boost::mpl::vector2_c<int, I1, I2> t;
 
         template <unsigned int I>
         GT_FUNCTION
@@ -196,10 +195,8 @@ namespace gridtools {
     template <int I1, int I2, int I3>
     struct layout_map<I1, I2, I3, -1> {
         static const unsigned int length=3;
-        typedef boost::mpl::vector<boost::mpl::int_<I1>, 
-                                   boost::mpl::int_<I2>, 
-                                   boost::mpl::int_<I3> > t;
-    
+        typedef boost::mpl::vector3_c<int, I1, I2, I3> t;
+
         template <unsigned int I>
         struct at_ {
             static const int value = boost::mpl::at_c<t, I >::type::value;
@@ -209,7 +206,7 @@ namespace gridtools {
         template <unsigned int I>
         struct pos_ {
 
-            template <int X, bool HERE>
+            template <int X, bool IsHere>
             struct _find_pos 
             {
                 static const int value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
@@ -220,8 +217,8 @@ namespace gridtools {
                 static const int value = X;
             };
 
-            template <bool B>
-            struct _find_pos<length, B> {
+            template <bool IsHere>
+            struct _find_pos<length, IsHere> {
                 static const int value = -1;
             };
 
@@ -329,10 +326,7 @@ namespace gridtools {
     template <int I1, int I2, int I3, int I4>
     struct layout_map {
         static const unsigned int length=4;
-        typedef boost::mpl::vector<boost::mpl::int_<I1>, 
-                                   boost::mpl::int_<I2>, 
-                                   boost::mpl::int_<I3>, 
-                                   boost::mpl::int_<I4> > t;
+        typedef boost::mpl::vector4_c<int, I1, I2, I3, I4> t;
 
         template <unsigned int I>
         GT_FUNCTION

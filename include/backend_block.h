@@ -10,34 +10,34 @@
 namespace gridtools {
     namespace _impl {
 
-        template <typename t_functor_list,
-                  typename t_loop_intervals,
-                  typename t_functors_map,
-                  typename t_range_sizes,
-                  typename t_domain_list,
-                  typename t_coords, int BI, int BJ>
+        template <typename FunctorList,
+                  typename LoopIntervals,
+                  typename FunctorsMap,
+                  typename RangeSizes,
+                  typename DomainList,
+                  typename Coords, int BI, int BJ>
         struct run_functor {
-            t_coords const &coords;
-            t_domain_list &domain_list;
+            Coords const &coords;
+            DomainList &domain_list;
             int starti, startj;
 
-            explicit run_functor(t_domain_list & domain_list, t_coords const& coords, int starti, int startj)
+            explicit run_functor(DomainList & domain_list, Coords const& coords, int starti, int startj)
                 : coords(coords)
                 , domain_list(domain_list)
                 , starti(starti)
                 , startj(startj)
             {}
 
-            template <typename t_index>
-            void operator()(t_index const&) const {
-                typedef typename boost::mpl::at<t_range_sizes, t_index>::type range_type;
+            template <typename Index>
+            void operator()(Index const&) const {
+                typedef typename boost::mpl::at<RangeSizes, Index>::type range_type;
 
-                typedef typename boost::mpl::at<t_functor_list, t_index>::type functor_type;
-                typedef typename boost::fusion::result_of::value_at<t_domain_list, t_index>::type local_domain_type;
+                typedef typename boost::mpl::at<FunctorList, Index>::type functor_type;
+                typedef typename boost::fusion::result_of::value_at<DomainList, Index>::type local_domain_type;
 
-                typedef typename boost::mpl::at<t_functors_map, t_index>::type interval_map;
+                typedef typename boost::mpl::at<FunctorsMap, Index>::type interval_map;
 
-                local_domain_type local_domain = boost::fusion::at<t_index>(domain_list);
+                local_domain_type local_domain = boost::fusion::at<Index>(domain_list);
 
 #ifndef NDEBUG
                 std::cout << "Functor " << functor_type() << std::endl;
@@ -48,7 +48,7 @@ namespace gridtools {
 #endif
 
 
-                typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<t_loop_intervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
+                typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<LoopIntervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
 #ifndef NDEBUG
                 std::cout << " ******************** " << first_hit() << std::endl;
                 std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
@@ -67,7 +67,7 @@ namespace gridtools {
                                   << coords.template value_at<first_hit>() << std::endl;
 #endif
                         local_domain.move_to(i,j, coords.template value_at<first_hit>());
-                        for_each<t_loop_intervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,t_coords>(local_domain,coords));
+                        for_each<LoopIntervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,Coords>(local_domain,coords));
                     }
             }
 
@@ -79,16 +79,16 @@ namespace gridtools {
         static const int BJ = 4;
         static const int BK = 0;
 
-        template <typename t_functor_list, // List of functors to execute (in order)
+        template <typename FunctorList, // List of functors to execute (in order)
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>
-                  typename t_loop_intervals, // List of intervals on which functors are defined
-                  typename t_functors_map,  // Map between interval and actual arguments to pass to Do methods
-                  typename t_domain, // Domain class (maybe not really useful, local domain could be enoufg)
-                  typename t_coords, // Coordinate class with domain sizes and splitter coordinates
-                  typename t_local_domain_list> // List of local domain to be passed to functor at<i>
-        static void run(t_domain const& domain, t_coords const& coords, t_local_domain_list &local_domain_list) {
+                  typename LoopIntervals, // List of intervals on which functors are defined
+                  typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
+                  typename Domain, // Domain class (maybe not really useful, local domain could be enoufg)
+                  typename Coords, // Coordinate class with domain sizes and splitter coordinates
+                  typename LocalDomainList> // List of local domain to be passed to functor at<i>
+        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
 
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<t_functor_list>::type::value> iter_range;
+            typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
 
             typedef typename boost::mpl::at<range_sizes, typename boost::mpl::back<iter_range>::type >::type range_type;
             int n = coords.i_high_bound() + range_type::iplus::value - (coords.i_low_bound() + range_type::iminus::value);
@@ -126,12 +126,12 @@ namespace gridtools {
                     int startj = bj*BJ+coords.j_low_bound();
                     for_each<iter_range>(_impl::run_functor
                                                      <
-                                                     t_functor_list,
-                                                     t_loop_intervals,
-                                                     t_functors_map,
+                                                     FunctorList,
+                                                     LoopIntervals,
+                                                     FunctorsMap,
                                                      range_sizes,
-                                                     t_local_domain_list,
-                                                     t_coords, BI, BJ
+                                                     LocalDomainList,
+                                                     Coords, BI, BJ
                                                      >
                                                      (local_domain_list,coords,starti,startj));
                 }

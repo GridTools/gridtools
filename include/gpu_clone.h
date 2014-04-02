@@ -7,10 +7,10 @@
 namespace gridtools {
 
 #ifdef __CUDACC__
-    template <class derived_type>
+    template <class DerivedType>
     struct mask_object {
-        typedef derived_type type;
-        char data[sizeof(derived_type)];
+        typedef DerivedType type;
+        char data[sizeof(DerivedType)];
     };
 
 
@@ -22,9 +22,9 @@ namespace gridtools {
         derived_type* x = new (p->gpu_object_ptr) derived_type(*p);
     }
 
-    template <typename t_pointer, typename derived_type>
-    derived_type* reconstruct(t_pointer p, derived_type const *obj) {
-        return new (reinterpret_cast<void*>(p)) derived_type(*obj);
+    template <typename Pointer, typename DerivedType>
+    DerivedType* reconstruct(Pointer p, DerivedType const *obj) {
+        return new (reinterpret_cast<void*>(p)) DerivedType(*obj);
     }
 
     /** This class provides methods to copy to and from GPU objects whose data memeners
@@ -36,15 +36,15 @@ namespace gridtools {
         At this point an object of the derived class can call clone_to_gpu() and 
         clone_from_gpu() for doing what should be clear now.
     */
-    template <typename t_derived_type>
+    template <typename DerivedType>
     struct clonable_to_gpu {
         typedef boost::true_type actually_clonable;
-        t_derived_type* gpu_object_ptr;
+        DerivedType* gpu_object_ptr;
 
         __host__ __device__
         clonable_to_gpu() {
 #ifndef __CUDA_ARCH__
-            cudaMalloc(&gpu_object_ptr, sizeof(t_derived_type));
+            cudaMalloc(&gpu_object_ptr, sizeof(DerivedType));
 #endif
         }
 
@@ -52,9 +52,9 @@ namespace gridtools {
             derived type.
          */
         void clone_to_gpu() const {
-            const mask_object<const t_derived_type> *maskT = 
-                             reinterpret_cast<const mask_object<const t_derived_type>*>
-                             ((static_cast<const t_derived_type*>(this)));
+            const mask_object<const DerivedType> *maskT = 
+                             reinterpret_cast<const mask_object<const DerivedType>*>
+                             ((static_cast<const DerivedType*>(this)));
     
             construct<<<1,1>>>(*maskT);
             cudaDeviceSynchronize();
@@ -64,11 +64,11 @@ namespace gridtools {
             derived type.
          */
         void clone_from_gpu() {
-            mask_object<t_derived_type> space;
+            mask_object<DerivedType> space;
 
-            cudaMemcpy(&space, gpu_object_ptr, sizeof(t_derived_type), cudaMemcpyDeviceToHost);
+            cudaMemcpy(&space, gpu_object_ptr, sizeof(DerivedType), cudaMemcpyDeviceToHost);
 
-            t_derived_type *x = reconstruct(this, reinterpret_cast<const t_derived_type*>(&space));
+            DerivedType *x = reconstruct(this, reinterpret_cast<const DerivedType*>(&space));
         }
 
         ~clonable_to_gpu() {
@@ -76,7 +76,7 @@ namespace gridtools {
         }
     };
 #else
-    template <typename t_derived_type>
+    template <typename DerivedType>
     struct clonable_to_gpu {
         typedef boost::false_type actually_clonable;
         void clone_to_gpu() const {}
