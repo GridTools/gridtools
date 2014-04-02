@@ -24,8 +24,8 @@ struct lap_function {
     typedef const arg_type<1, range<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename t_domain>
-    static void Do(t_domain const & dom, x_all) {
+    template <typename Domain>
+    static void Do(Domain const & dom, x_all) {
         dom(out()) = 4*dom(in()) - 
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
@@ -40,8 +40,8 @@ struct flx_function {
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename t_domain>
-    static void Do(t_domain const & dom, x_all) {
+    template <typename Domain>
+    static void Do(Domain const & dom, x_all) {
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
@@ -56,8 +56,8 @@ struct fly_function {
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename t_domain>
-    static void Do(t_domain const & dom, x_all) {
+    template <typename Domain>
+    static void Do(Domain const & dom, x_all) {
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
@@ -74,8 +74,8 @@ struct out_function {
     typedef const arg_type<4> coeff;
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
-    template <typename t_domain>
-    static void Do(t_domain const & dom, x_all) {
+    template <typename Domain>
+    static void Do(Domain const & dom, x_all) {
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx(-1,0,0)) +
              dom(fly()) - dom(fly(0,-1,0))
@@ -114,10 +114,10 @@ struct print {
         std::cout << prefix_ << typename T::esf_function() << std::endl;
     }
 
-    template <typename mplvec>
-    void operator()(independent_esf<mplvec> const&) const {
+    template <typename MplVector>
+    void operator()(independent_esf<MplVector> const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<mplvec>(print(prefix_ + std::string("    ")));
+        boost::mpl::for_each<MplVector>(print(prefix_ + std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 };
@@ -133,22 +133,22 @@ struct print_ {
         : prefix(s)
     {}
 
-    template <int i, int j, int k, int l>
-    void operator()(range<i,j,k,l> const&) const {
-        std::cout << prefix << range<i,j,k,l>() << std::endl;
+    template <int I, int J, int K, int L>
+    void operator()(range<I,J,K,L> const&) const {
+        std::cout << prefix << range<I,J,K,L>() << std::endl;
     }
 
-    template <typename mplvec>
-    void operator()(mplvec const&) const {
+    template <typename MplVector>
+    void operator()(MplVector const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<mplvec>(print_(std::string("    ")));
+        boost::mpl::for_each<MplVector>(print_(std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 
-    template <typename mplvec>
-    void operator()(_impl::wrap_type<mplvec> const&) const {
+    template <typename MplVector>
+    void operator()(_impl::wrap_type<MplVector> const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<mplvec>(print_(std::string("    ")));
+        boost::mpl::for_each<MplVector>(print_(std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 };

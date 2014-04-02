@@ -32,7 +32,7 @@ namespace gridtools {
 
     namespace gt_aux {
 
-        template< bool done = true >
+        template< bool Done = true >
         struct for_each_impl
         {
             template<

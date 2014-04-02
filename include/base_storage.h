@@ -5,13 +5,13 @@
 namespace gridtools {
 
     template < typename derived,
-               typename t_value_type,
-               typename t_layout,
-               bool is_temporary = false
+               typename ValueType,
+               typename Layout,
+               bool IsTemporary = false
                >
     struct base_storage : public clonable_to_gpu<derived> {
-        typedef t_layout layout;
-        typedef t_value_type value_type;
+        typedef Layout layout;
+        typedef ValueType value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
 
@@ -71,9 +71,9 @@ namespace gridtools {
             return get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
-        template <typename t_offset>
+        template <typename Offset>
         GT_FUNCTION
-        int compute_offset(t_offset const& offset) const {
+        int compute_offset(Offset const& offset) const {
             return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
                 * layout::template find<0>(offset.offset_ptr()) +
                 layout::template find<2>(m_dims) * layout::template find<1>(offset.offset_ptr()) +
@@ -113,28 +113,28 @@ namespace gridtools {
             std::cout << std::endl;
         }
 
-        template <typename t_dummy, int X>
+        template <typename Dummy, int X>
         struct _is_0: public boost::false_type
         {};
 
-        template <typename t_dummy>
-        struct _is_0<t_dummy,0>: public boost::true_type
+        template <typename Dummy>
+        struct _is_0<Dummy,0>: public boost::true_type
         { };
 
-        template <typename t_dummy, int X>
+        template <typename Dummy, int X>
         struct _is_2: public boost::false_type
         {};
 
-        template <typename t_dummy>
-        struct _is_2<t_dummy,2>: public boost::true_type
+        template <typename Dummy>
+        struct _is_2<Dummy,2>: public boost::true_type
         { };
 
-        template <int I, typename _t_layout, typename ENABLE=void>
+        template <int I, typename OtherLayout, typename ENABLE=void>
         struct get_stride;
 
-        template <int I, typename _t_layout>
-        struct get_stride<I, _t_layout, typename boost::enable_if<
-                                            _is_2< void, _t_layout::template at_<I>::value >
+        template <int I, typename OtherLayout>
+        struct get_stride<I, OtherLayout, typename boost::enable_if<
+                                            _is_2< void, OtherLayout::template at_<I>::value >
                                             >::type> {
             GT_FUNCTION
             static int get(const int* ) {
@@ -147,20 +147,20 @@ namespace gridtools {
             }
         };
 
-        template <int I, typename _t_layout>
-        struct get_stride<I, _t_layout, typename boost::disable_if<
-                                            _is_2<void, _t_layout::template at_<I>::value>
+        template <int I, typename OtherLayout>
+        struct get_stride<I, OtherLayout, typename boost::disable_if<
+                                            _is_2<void, OtherLayout::template at_<I>::value>
                                             >::type> {
             GT_FUNCTION
             static int get(const int* s) {
-                return s[_t_layout::template at_<I>::value];
+                return s[OtherLayout::template at_<I>::value];
             }
         };
 
         GT_FUNCTION
         int _index(int i, int j, int k) const {
             int index;
-            if (is_temporary) {
+            if (IsTemporary) {
                 index =
                     layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
                     * (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +

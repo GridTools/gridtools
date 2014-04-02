@@ -9,9 +9,9 @@ namespace gridtools {
     /**
      * Flag type to identify data fields that must be treated as temporary
      */
-    template <typename s_type>
+    template <typename StorageType>
     struct temporary {
-        typedef s_type storage_type;
+        typedef StorageType storage_type;
         typedef typename storage_type::value_type value_type;
     };
 
@@ -97,19 +97,19 @@ namespace gridtools {
      * The class also provides the interface for accessing data in the function body
      *
      * @tparam I Index of the argument in the function argument list
-     * @tparam t_range Bounds over which the function access the argument
+     * @tparam Range Bounds over which the function access the argument
      */
-    template <int I, typename t_range=range<0,0,0,0> >
+    template <int I, typename Range=range<0,0,0,0> >
     struct arg_type {
 
-        template <int im, int ip, int jm, int jp, int kp, int km>
+        template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
         struct halo {
             typedef arg_type<I> type;
         };
 
         int offset[3];
         typedef boost::mpl::int_<I> index_type;
-        typedef t_range range_type;
+        typedef Range range_type;
 
         GT_FUNCTION
         arg_type(int i, int j, int k) {
@@ -156,7 +156,7 @@ namespace gridtools {
         }
 
         static void info() {
-            std::cout << "Arg_type storage with index " << I << " and range " << t_range() << " ";
+            std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
         }
 
     };

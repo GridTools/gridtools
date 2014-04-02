@@ -64,14 +64,14 @@ struct out_value_ {
     }
 };
 
-template <typename t_domain>
+template <typename Domain>
 __global__
-void print_values(t_domain const* domain) {
+void print_values(Domain const* domain) {
     boost::fusion::for_each(domain->storage_pointers, out_value());
 }
 
-template <typename one, typename two>
-bool the_same(one const& storage1, two const& storage2) {
+template <typename One, typename Two>
+bool the_same(One const& storage1, Two const& storage2) {
     bool same = true;
     for (int i=0; i<3; ++i) {
         for (int j=0; j<3; ++j) {

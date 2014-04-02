@@ -12,13 +12,13 @@ namespace gridtools {
     /**
      * Class to specify access ranges for stencil functions
      */
-    template <int _iminus=0, int _iplus=0,
-              int _jminus=0, int _jplus=0>
+    template <int IMinus=0, int IPlus=0,
+              int JMinus=0, int JPlus=0>
     struct range {
-        typedef boost::mpl::int_<_iminus> iminus;
-        typedef boost::mpl::int_<_iplus> iplus;
-        typedef boost::mpl::int_<_jminus> jminus;
-        typedef boost::mpl::int_<_jplus> jplus;
+        typedef boost::mpl::int_<IMinus> iminus;
+        typedef boost::mpl::int_<IPlus> iplus;
+        typedef boost::mpl::int_<JMinus> jminus;
+        typedef boost::mpl::int_<JPlus> jplus;
     };
 
     /**
@@ -28,13 +28,13 @@ namespace gridtools {
      * @param n/a Arguemnt to deduce range type
      * @return The ostream
      */
-    template <int i1, int i2, int i3, int i4>
-    std::ostream& operator<<(std::ostream &s, range<i1,i2,i3,i4>) {
+    template <int I1, int I2, int I3, int I4>
+    std::ostream& operator<<(std::ostream &s, range<I1,I2,I3,I4>) {
         return s << "[" 
-                 << i1 << ", "
-                 << i2 << ", "
-                 << i3 << ", "
-                 << i4 << "]";
+                 << I1 << ", "
+                 << I2 << ", "
+                 << I3 << ", "
+                 << I4 << "]";
     }
 
     /**
@@ -56,32 +56,32 @@ namespace gridtools {
     /**
      * Metafunction taking two ranges and yielding a range containing them
      */
-    template <typename range1,
-              typename range2>
+    template <typename Range1,
+              typename Range2>
     struct enclosing_range {
-        BOOST_STATIC_ASSERT(is_range<range1>::type::value);
-        BOOST_STATIC_ASSERT(is_range<range2>::type::value);
+        BOOST_STATIC_ASSERT(is_range<Range1>::type::value);
+        BOOST_STATIC_ASSERT(is_range<Range2>::type::value);
 
-        typedef range<boost::mpl::min<typename range1::iminus, typename range2::iminus>::type::value,
-                      boost::mpl::max<typename range1::iplus,  typename range2::iplus>::type::value,
-                      boost::mpl::min<typename range1::jminus, typename range2::jminus>::type::value,
-                      boost::mpl::max<typename range1::jplus,  typename range2::jplus>::type::value
+        typedef range<boost::mpl::min<typename Range1::iminus, typename Range2::iminus>::type::value,
+                      boost::mpl::max<typename Range1::iplus,  typename Range2::iplus>::type::value,
+                      boost::mpl::min<typename Range1::jminus, typename Range2::jminus>::type::value,
+                      boost::mpl::max<typename Range1::jplus,  typename Range2::jplus>::type::value
                       > type;
     };
 
     /**
      * Metafunction taking two ranges and yielding a range which is the extension of one another
      */
-    template <typename range1,
-              typename range2>
+    template <typename Range1,
+              typename Range2>
     struct sum_range {
-        BOOST_STATIC_ASSERT(is_range<range1>::type::value);
-        BOOST_STATIC_ASSERT(is_range<range2>::type::value);
+        BOOST_STATIC_ASSERT(is_range<Range1>::type::value);
+        BOOST_STATIC_ASSERT(is_range<Range2>::type::value);
 
-        typedef range<boost::mpl::plus<typename range1::iminus, typename range2::iminus>::type::value,
-                      boost::mpl::plus<typename range1::iplus,  typename range2::iplus>::type::value,
-                      boost::mpl::plus<typename range1::jminus, typename range2::jminus>::type::value,
-                      boost::mpl::plus<typename range1::jplus,  typename range2::jplus>::type::value
+        typedef range<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
+                      boost::mpl::plus<typename Range1::iplus,  typename Range2::iplus>::type::value,
+                      boost::mpl::plus<typename Range1::jminus, typename Range2::jminus>::type::value,
+                      boost::mpl::plus<typename Range1::jplus,  typename Range2::jplus>::type::value
                       > type;
     };
 } // namespace gridtools

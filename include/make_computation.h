@@ -1,11 +1,13 @@
 #pragma once
 
+#include <boost/ref.hpp>
+#include <boost/make_shared.hpp>
 #include "intermediate.h"
 
 namespace gridtools {
-    template <typename t_backend, typename t_mss_type, typename t_domain, typename t_coords>
-    computation* make_computation(t_mss_type const& mss, t_domain & domain, t_coords const& coords) {
-        return new intermediate<t_backend, t_mss_type, t_domain, t_coords>(mss, domain, coords);
+    template <typename Backend, typename MssType, typename Domain, typename Coords>
+    boost::shared_ptr<computation> make_computation(MssType const& mss, Domain & domain, Coords const& coords) {
+        return boost::make_shared<intermediate<Backend, MssType, Domain, Coords> >(mss, boost::ref(domain), coords);
     }
 
 } //namespace gridtools

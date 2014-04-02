@@ -54,11 +54,11 @@ namespace gridtools {
     }
 
     /**
-     * @tparam t_placeholders list of placeholders of type arg<I,T>
+     * @tparam Placeholders list of placeholders of type arg<I,T>
      */
-    template <typename t_placeholders>
-    struct domain_type : public clonable_to_gpu<domain_type<t_placeholders> > {
-        typedef t_placeholders original_placeholders;
+    template <typename Placeholders>
+    struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
+        typedef Placeholders original_placeholders;
     private:
         BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<original_placeholders>::type::value);
 
@@ -113,11 +113,11 @@ namespace gridtools {
     
     public:
         /**
-         * Type of fusion::vector of pointers to storages as indicated in t_placeholders
+         * Type of fusion::vector of pointers to storages as indicated in Placeholders
          */
         typedef typename boost::fusion::result_of::as_vector<arg_list_mpl>::type arg_list;
         /**
-         * Type of fusion::vector of pointers to iterators as indicated in t_placeholders
+         * Type of fusion::vector of pointers to iterators as indicated in Placeholders
          */
         typedef typename boost::fusion::result_of::as_vector<iterator_list_mpl>::type iterator_list;
     
@@ -150,11 +150,11 @@ namespace gridtools {
     public:
 
         /**
-         * @tparam t_real_storage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
+         * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
          * @param real_storage The actual fusion::vector with the values
          */
-        template <typename t_real_storage>
-        explicit domain_type(t_real_storage const & real_storage)
+        template <typename RealStorage>
+        explicit domain_type(RealStorage const & real_storage)
             : storage_pointers()
             , iterators()
             , zip_vector(iterators, storage_pointers)
@@ -165,7 +165,7 @@ namespace gridtools {
 
             view_type fview(storage_pointers);
 
-            BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<t_real_storage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
+            BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
             boost::fusion::copy(real_storage, fview);
 
@@ -199,22 +199,22 @@ namespace gridtools {
             printf("domain_type: End info\n");
         }
 
-        template <typename t_index>
+        template <typename Index>
         void storage_info() const {
-            std::cout << t_index::value << " -|-> "
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->name()
+            std::cout << Index::value << " -|-> "
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->name()
                       << " "
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->m_dims[0]
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[0]
                       << "x"
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->m_dims[1]
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[1]
                       << "x"
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->m_dims[2]
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[2]
                       << ", "
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->strides[0]
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[0]
                       << "x"
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->strides[1]
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[1]
                       << "x"
-                      << (boost::fusion::at_c<t_index::value>(storage_pointers))->strides[2]
+                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[2]
                       << ", "
                       << std::endl;
         }
@@ -230,16 +230,16 @@ namespace gridtools {
         /**
          * This function is to be called by intermediate representation or back-end
          * 
-         * @tparam t_mss_type The multistage stencil type as passed to the back-end
-         * @tparam t_range_sizes mpl::vector with the sizes of the extents of the 
-         *         access for each functor listed as linear_esf in t_mss_type
-         * @tparam t_back_end This is not currently used and may be dropped in future
+         * @tparam MssType The multistage stencil type as passed to the back-end
+         * @tparam RangeSizes mpl::vector with the sizes of the extents of the 
+         *         access for each functor listed as linear_esf in MssType
+         * @tparam BackEnd This is not currently used and may be dropped in future
          * 
          * @param tileI Tile size in the first dimension as used by the back-end
          * @param tileJ Tile size in the second dimension as used by the back-end
          * @param tileK Tile size in the third dimension as used by the back-end
          */
-        template <typename t_mss_type, typename t_range_sizes>
+        template <typename MssType, typename RangeSizes>
         void prepare_temporaries(int tileI, int tileJ, int tileK) {
 #ifndef NDEBUG
             std::cout << "Prepare ARGUMENTS" << std::endl;
@@ -261,14 +261,14 @@ namespace gridtools {
 #endif
         
             // Compute a vector of vectors of temp indices of temporaris initialized by each functor
-            typedef typename boost::mpl::fold<typename t_mss_type::linear_esf,
+            typedef typename boost::mpl::fold<typename MssType::linear_esf,
                     boost::mpl::vector<>,
                     boost::mpl::push_back<boost::mpl::_1, _impl::get_temps_per_functor<boost::mpl::_2> >
                     >::type temps_per_functor;
 
              typedef typename boost::mpl::transform<
                 list_of_temporaries,
-                _impl::associate_ranges<temps_per_functor, t_range_sizes>
+                _impl::associate_ranges<temps_per_functor, RangeSizes>
                 >::type list_of_ranges;
 
 #ifndef NDEBUG
@@ -281,7 +281,7 @@ namespace gridtools {
             std::cout << "END RANGES/F" << std::endl;
 
             std::cout << "BEGIN Fs" << std::endl;
-            for_each<typename t_mss_type::linear_esf>(_debug::print_ranges());
+            for_each<typename MssType::linear_esf>(_debug::print_ranges());
             std::cout << "END Fs" << std::endl;
 #endif
         

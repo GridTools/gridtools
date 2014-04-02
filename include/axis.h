@@ -7,26 +7,26 @@
 #include "gpu_clone.h"
 
 namespace gridtools {
-    template <typename t_min_level, typename t_max_level>
+    template <typename MinLevel, typename MaxLevel>
     struct make_axis {
-        typedef interval<t_min_level, t_max_level> type;
+        typedef interval<MinLevel, MaxLevel> type;
     };
 
-    template <typename t_axis, int I>
+    template <typename Axis, int I>
     struct extend_by {
-        typedef interval<level<t_axis::FromLevel::Splitter::value, t_axis::FromLevel::Offset::value - 1>,
-                         level<t_axis::ToLevel::Splitter::value, t_axis::ToLevel::Offset::value + 1> > type;
+        typedef interval<level<Axis::FromLevel::Splitter::value, Axis::FromLevel::Offset::value - 1>,
+                         level<Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1> > type;
     };
 
-    template <typename t_axis>
-    struct coordinates : public clonable_to_gpu<coordinates<t_axis> > {
-        BOOST_STATIC_ASSERT(is_interval<t_axis>::value);
+    template <typename Axis>
+    struct coordinates : public clonable_to_gpu<coordinates<Axis> > {
+        BOOST_STATIC_ASSERT(is_interval<Axis>::value);
 
-        typedef t_axis axis_type;
+        typedef Axis axis_type;
 
     typedef typename boost::mpl::plus<
-        boost::mpl::minus<typename t_axis::ToLevel::Splitter, 
-                          typename t_axis::FromLevel::Splitter>,
+        boost::mpl::minus<typename Axis::ToLevel::Splitter, 
+                          typename Axis::FromLevel::Splitter>,
         boost::mpl::int_<1> >::type size_type;
     
         gridtools::array<int, size_type::value > value_list;
@@ -64,20 +64,20 @@ namespace gridtools {
             return _j_high_bound;
         }
 
-        template <typename t_level>
+        template <typename Level>
         GT_FUNCTION
         int value_at() const {
-            BOOST_STATIC_ASSERT(is_level<t_level>::value);
-            int offs = t_level::Offset::value;
+            BOOST_STATIC_ASSERT(is_level<Level>::value);
+            int offs = Level::Offset::value;
             if (offs < 0) offs += 1;
-            return value_list[t_level::Splitter::value] + offs;
+            return value_list[Level::Splitter::value] + offs;
         }
 
-        template <typename t_level>
+        template <typename Level>
         GT_FUNCTION
         int& value_at(int val) const {
-            BOOST_STATIC_ASSERT(is_level<t_level>::value);
-            return value_list[t_level::Splitter::value];
+            BOOST_STATIC_ASSERT(is_level<Level>::value);
+            return value_list[Level::Splitter::value];
         }
 
         GT_FUNCTION

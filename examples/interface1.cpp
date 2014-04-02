@@ -31,9 +31,9 @@ struct lap_function {
     typedef const arg_type<1, range<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename t_domain>
+    template <typename Domain>
     GT_FUNCTION
-    static void Do(t_domain const & dom, x_lap) {
+    static void Do(Domain const & dom, x_lap) {
 #ifndef CUDA_EXAMPLE
         std::cout << "in     ";
         dom.info(in());
@@ -57,9 +57,9 @@ struct flx_function {
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename t_domain>
+    template <typename Domain>
     GT_FUNCTION
-    static void Do(t_domain const & dom, x_flx) {
+    static void Do(Domain const & dom, x_flx) {
 #ifndef CUDA_EXAMPLE
         std::cout << "out    ";
         dom.info(out());
@@ -82,9 +82,9 @@ struct fly_function {
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename t_domain>
+    template <typename Domain>
     GT_FUNCTION
-    static void Do(t_domain const & dom, x_flx) {
+    static void Do(Domain const & dom, x_flx) {
 #ifndef CUDA_EXAMPLE
         std::cout << "out    ";
         dom.info(out());
@@ -109,9 +109,9 @@ struct out_function {
     typedef const arg_type<4> coeff;
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
-    template <typename t_domain>
+    template <typename Domain>
     GT_FUNCTION
-    static void Do(t_domain const & dom, x_out) {
+    static void Do(Domain const & dom, x_out) {
 #ifndef CUDA_EXAMPLE
         std::cout << "out    ";
         dom.info(out());
@@ -228,21 +228,22 @@ int main(int argc, char** argv) {
     //       ),
     //      domain, coords);
 
-    gridtools::computation *horizontal_diffusion =
+    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
         gridtools::make_computation<gridtools::BACKEND>
         (
-         gridtools::make_mss
+         gridtools::make_mss // mss_descriptor
          (
           gridtools::execute_upward,
-          gridtools::make_esf<lap_function>(p_lap(), p_in()),
-          gridtools::make_independent
+          gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
+          gridtools::make_independent // independent_esf
           (
            gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
            gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-           ),
-          gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
           ),
-         domain, coords);
+          gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+         ),
+         domain, coords
+        );
 
     horizontal_diffusion->ready();
 
