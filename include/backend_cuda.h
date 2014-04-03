@@ -80,8 +80,8 @@ namespace gridtools {
                 printf(" ********************\n", coords.template value_at<first_hit>());
 #endif
 
-                int nx = coords.i_high_bound() + range_type::iplus::value - coords.i_low_bound() + range_type::iminus::value;
-                int ny = coords.j_high_bound() + range_type::jplus::value - coords.j_low_bound() + range_type::jminus::value;
+                int nx = coords.i_high_bound() + range_type::iplus::value - (coords.i_low_bound() + range_type::iminus::value);
+                int ny = coords.j_high_bound() + range_type::jplus::value - (coords.j_low_bound() + range_type::jminus::value);
 
                 int ntx = 8, nty = 32, ntz = 1;
                 dim3 threads(ntx, nty, ntz);
