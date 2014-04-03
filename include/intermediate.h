@@ -372,7 +372,7 @@ namespace gridtools {
             m_domain.template prepare_temporaries<MssType, range_sizes>
                 (tileI,
                  tileJ, 
-                 m_coords.value_at_top()-m_coords.value_at_bottom()+1);
+                 m_coords.value_at_top()-m_coords.value_at_bottom());
         }
 
         void steady () {
