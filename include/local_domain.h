@@ -10,27 +10,6 @@
 
 namespace gridtools {
 
-    struct outout {
-        template <typename t>
-        void operator()(t const&) const {
-            std::cout << "outout " << t() << std::endl;
-        }
-    };
-
-    struct printhem {
-        template <typename t>
-        void operator()(t const& x) const {
-            std::cout << "outout whowho" << x << std::endl;
-        }
-    };
-
-    struct outouts {
-        template <typename t>
-        void operator()(t const&) const {
-            boost::remove_pointer<t>::type::text();
-        }
-    };
-
     namespace local_domain_aux {
         template <typename List, typename Index>
         struct get_index {
@@ -66,13 +45,7 @@ namespace gridtools {
             template <typename ZipElem>
             void operator()(ZipElem const& ze) const {
                 typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
-                // typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::at<typename Domain::arg_list, index>::type>::type>::type storage_type;
 
-                // std::cout << "outout pointer " 
-                //           << index()
-                //           << " " << boost::fusion::size(domain.storage_pointers) << " "
-                //           << " " << boost::fusion::at<index>(domain.storage_pointers) << std::endl;;
-                //                storage_type::text();
                 boost::fusion::at_c<1>(ze) = 
                     boost::fusion::at<index>(domain.storage_pointers);
             }
@@ -151,9 +124,6 @@ namespace gridtools {
         GT_FUNCTION
         void init(Domain* _dom) 
         {
-            gridtools::for_each<domain_indices>(outout());
-            gridtools::for_each<mpl_storages>(outouts());
-
             typedef boost::fusion::vector<domain_indices const&, local_args_type&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
 
