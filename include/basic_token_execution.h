@@ -25,8 +25,8 @@ namespace gridtools {
                 typedef typename index_to_level<typename Interval::first>::type from;
                 typedef typename index_to_level<typename Interval::second>::type to;
                 if (boost::mpl::has_key<IntervalMap, Interval>::type::value) {
-                    printf("K Loop: %d ", coords.template value_at<from>());
-                    printf("-> %d\n", coords.template value_at<to>());
+                    // printf("K Loop: %d ", coords.template value_at<from>());
+                    // printf("-> %d\n", coords.template value_at<to>());
 
                     for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
                         typedef typename boost::mpl::at<IntervalMap, Interval>::type interval_type;
