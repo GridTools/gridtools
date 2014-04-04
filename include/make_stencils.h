@@ -5,70 +5,6 @@
 #include <boost/mpl/push_back.hpp>
 
 namespace gridtools {
-    template <int N_ARGS,
-              typename A0 = void,
-              typename A1 = void,
-              typename A2 = void,
-              typename A3 = void,
-              typename A4 = void>
-    struct with_wrapper;
-
-    template <typename A0>
-    struct with_wrapper<1, A0> {
-        typedef boost::mpl::vector1<A0> result_type;
-
-        static
-        result_type
-        with(A0 &) {
-            return result_type();
-        }
-    };
-
-    template <typename A0, typename A1>
-    struct with_wrapper<2, A0, A1> {
-        typedef boost::mpl::vector2<A0, A1> result_type;
-
-        static
-        result_type
-        with(A0 &, A1&) {
-            return result_type();
-        }
-    };
-
-    template <typename A0, typename A1, typename A2>
-    struct with_wrapper<3, A0, A1, A2> {
-        typedef boost::mpl::vector3<A0, A1, A2> result_type;
-
-        static
-        result_type
-        with(A0 &, A1&, A2&) {
-            return result_type();
-        }
-    };
-
-    template <typename A0, typename A1, typename A2, typename A3>
-    struct with_wrapper<4, A0, A1, A2, A3> {
-        typedef boost::mpl::vector4<A0, A1, A2, A3> result_type;
-
-        static
-        result_type
-        with(A0 &, A1&, A2&, A3&) {
-            return result_type();
-        }
-    };
-
-    template <typename A0, typename A1, typename A2, typename A3, typename A4>
-    struct with_wrapper<5, A0, A1, A2, A3, A4> {
-        typedef boost::mpl::vector5<A0, A1, A2, A3, A4> result_type;
-
-        static
-        result_type
-        with(A0 &, A1&, A2&, A3&) {
-            return result_type();
-        }
-    };
-
-
 
     // Descriptors for ESF
     template <typename ESF, typename ArgArray>
@@ -140,29 +76,29 @@ namespace gridtools {
 
     template <typename ESF,
               typename A0>
-    esf_descriptor<ESF, typename with_wrapper<1, A0>::result_type >
+    esf_descriptor<ESF, boost::mpl::vector1<A0> >
     make_esf(A0) {
         BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 1);
-        return esf_descriptor<ESF, typename with_wrapper<1, A0>::result_type >();
+        return esf_descriptor<ESF, boost::mpl::vector1<A0> >();
     }
 
     template <typename ESF,
               typename A0,
               typename A1>
-    esf_descriptor<ESF, typename with_wrapper<2, A0, A1>::result_type >
+    esf_descriptor<ESF, boost::mpl::vector2<A0, A1> >
     make_esf(A0, A1) {
         BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 2);
-        return esf_descriptor<ESF, typename with_wrapper<2, A0, A1>::result_type >();
+        return esf_descriptor<ESF, boost::mpl::vector2<A0, A1> >();
     }
 
     template <typename ESF,
               typename A0,
               typename A1,
               typename A2>
-    esf_descriptor<ESF, typename with_wrapper<3, A0, A1, A2>::result_type >
+    esf_descriptor<ESF, boost::mpl::vector3<A0, A1, A2> >
     make_esf(A0, A1, A2) {
         BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 3);
-        return esf_descriptor<ESF, typename with_wrapper<3, A0, A1, A2>::result_type >();
+        return esf_descriptor<ESF, boost::mpl::vector3<A0, A1, A2> >();
     }
 
     template <typename ESF,
@@ -170,10 +106,10 @@ namespace gridtools {
               typename A1,
               typename A2,
               typename A3>
-    esf_descriptor<ESF, typename with_wrapper<4, A0, A1, A2, A3>::result_type >
+    esf_descriptor<ESF, boost::mpl::vector4<A0, A1, A2, A3> >
     make_esf(A0, A1, A2, A3) {
         BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 4);
-        return esf_descriptor<ESF, typename with_wrapper<4, A0, A1, A2, A3>::result_type >();
+        return esf_descriptor<ESF, boost::mpl::vector4<A0, A1, A2, A3> >();
     }
 
     template <typename ESF,
@@ -182,10 +118,10 @@ namespace gridtools {
               typename A2,
               typename A3,
               typename A4>
-    esf_descriptor<ESF, typename with_wrapper<5, A0, A1, A2, A3, A4>::result_type >
+    esf_descriptor<ESF, boost::mpl::vector5<A0, A1, A2, A3, A4> >
     make_esf(A0, A1, A2, A3, A4) {
         BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 5);
-        return esf_descriptor<ESF, typename with_wrapper<5, A0, A1, A2, A3, A4>::result_type >();
+        return esf_descriptor<ESF, boost::mpl::vector5<A0, A1, A2, A3, A4> >();
     }
 
     template <typename ExecutionEngine,
