@@ -34,11 +34,13 @@ struct lap_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
+#ifndef NDEBUG
 #ifndef CUDA_EXAMPLE
         std::cout << "in     ";
         dom.info(in());
         std::cout << "out    ";
         dom.info(out());
+#endif
 #endif
         // printf("dom(out()) => %e\n", dom(out()));
         // printf("dom(in()) => %e\n", dom(in()));
@@ -60,6 +62,7 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifndef NDEBUG
 #ifndef CUDA_EXAMPLE
         std::cout << "out    ";
         dom.info(out());
@@ -67,6 +70,7 @@ struct flx_function {
         dom.info(in());
         std::cout << "lap    ";
         dom.info(lap());
+#endif
 #endif
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
@@ -85,6 +89,7 @@ struct fly_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifndef NDEBUG
 #ifndef CUDA_EXAMPLE
         std::cout << "out    ";
         dom.info(out());
@@ -92,6 +97,7 @@ struct fly_function {
         dom.info(in());
         std::cout << "lap    ";
         dom.info(lap());
+#endif
 #endif
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
@@ -112,6 +118,7 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
+#ifndef NDEBUG
 #ifndef CUDA_EXAMPLE
         std::cout << "out    ";
         dom.info(out());
@@ -123,6 +130,7 @@ struct out_function {
         dom.info(fly());
         std::cout << "coeff  ";
         dom.info(coeff());
+#endif
 #endif
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx(-1,0,0)) +
