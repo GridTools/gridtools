@@ -2,8 +2,85 @@
 
 #include "host_device.h"
 #include "gpu_clone.h"
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/size.hpp>
+#include "iterate_domain.h"
 
 namespace gridtools {
+
+    struct outout {
+        template <typename t>
+        void operator()(t const&) const {
+            std::cout << "outout " << t() << std::endl;
+        }
+    };
+
+    struct printhem {
+        template <typename t>
+        void operator()(t const& x) const {
+            std::cout << "outout whowho" << x << std::endl;
+        }
+    };
+
+    struct outouts {
+        template <typename t>
+        void operator()(t const&) const {
+            boost::remove_pointer<t>::type::text();
+        }
+    };
+
+    namespace local_domain_aux {
+        template <typename List, typename Index>
+        struct get_index {
+            typedef typename boost::mpl::at<
+                List, 
+                Index
+                >::type type;
+        };
+
+        struct get_storage {
+            template <typename U>
+            struct apply {
+                typedef typename U::storage_type* type;
+            };
+        };
+
+        struct get_iterator {
+            template <typename U>
+            struct apply {
+                typedef typename U::iterator_type type;
+            };
+        };
+
+        template <typename Domain>
+        struct assign_base_pointers {
+
+            Domain const& domain;
+
+            assign_base_pointers(Domain const& domain)
+                : domain(domain)
+            {}
+
+            template <typename ZipElem>
+            void operator()(ZipElem const& ze) const {
+                typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
+                // typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::at<typename Domain::arg_list, index>::type>::type>::type storage_type;
+
+                // std::cout << "outout pointer " 
+                //           << index()
+                //           << " " << boost::fusion::size(domain.storage_pointers) << " "
+                //           << " " << boost::fusion::at<index>(domain.storage_pointers) << std::endl;;
+                //                storage_type::text();
+                boost::fusion::at_c<1>(ze) = 
+                    boost::fusion::at<index>(domain.storage_pointers);
+            }
+        };
+
+    } // namespace gt_aux
+
+
 
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
@@ -15,9 +92,38 @@ namespace gridtools {
      */
     template <typename Derived, typename EsfDescriptor, typename Domain>
     struct local_domain_base: public clonable_to_gpu<Derived> {
+
+        typedef local_domain_base<Derived, EsfDescriptor, Domain> this_type;
+
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
         typedef typename Domain::placeholders dom_placeholders;
+
+
+        typedef boost::mpl::range_c<int, 0, boost::mpl::size<esf_args>::type::value > the_range;
+        typedef typename boost::mpl::fold<the_range,
+                                          boost::mpl::vector<>,
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1,
+                                              local_domain_aux::get_index<esf_args,  boost::mpl::_2>
+                                              >
+                                          >::type domain_indices;
+    
+        typedef typename boost::mpl::transform<domain_indices,
+                                               local_domain_aux::get_storage
+                                               >::type mpl_storages;
+
+        typedef typename boost::mpl::transform<domain_indices,
+                                               local_domain_aux::get_iterator
+                                               >::type mpl_iterators;
+
+        typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
+        typedef typename boost::fusion::result_of::as_vector<mpl_iterators>::type local_iterators_type;
+                                          
+        typedef iterate_domain<this_type> iterate_domain_type;
+
+        local_args_type local_args;
+
         typedef Domain domain_type;
 
         Domain *dom;
@@ -45,8 +151,19 @@ namespace gridtools {
         GT_FUNCTION
         void init(Domain* _dom) 
         {
+            gridtools::for_each<domain_indices>(outout());
+            gridtools::for_each<mpl_storages>(outouts());
+
+            typedef boost::fusion::vector<domain_indices const&, local_args_type&> to_zip;
+            typedef boost::fusion::zip_view<to_zip> zipping;
+
+            to_zip z(domain_indices(), local_args);
+
             dom = _dom;
             g_dom = pointer_if_clonable<Domain, typename Domain::actually_clonable>::get(_dom);
+
+            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<Domain>(*g_dom));
+
         }
 
         __device__
