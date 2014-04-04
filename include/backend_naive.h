@@ -33,7 +33,7 @@ namespace gridtools {
 
                 typedef typename boost::mpl::at<FunctorsMap, Index>::type interval_map;
 
-                local_domain_type local_domain = boost::fusion::at<Index>(domain_list);
+                local_domain_type& local_domain = boost::fusion::at<Index>(domain_list);
 
 #ifndef NDEBUG
                 std::cout << "Functor " << functor_type() << std::endl;
@@ -44,7 +44,14 @@ namespace gridtools {
 #endif
 
 
-                typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<LoopIntervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
+                typedef typename index_to_level<
+                    typename boost::mpl::deref<
+                        typename boost::mpl::find_if<
+                            LoopIntervals, 
+                            boost::mpl::has_key<interval_map, boost::mpl::_1> 
+                        >::type
+                    >::type::first
+                >::type first_hit;
 #ifndef NDEBUG
                 std::cout << " ******************** " << first_hit() << std::endl;
                 std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
