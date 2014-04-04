@@ -16,7 +16,7 @@ namespace gridtools {
             template <typename ZipElem>
             GT_FUNCTION
             void operator()(ZipElem const& ze) const {
-                // boost::fusion::at<0>(ze) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(ze)))(i,j,k) );
+                boost::fusion::at_c<0>(ze) = &( (*(boost::fusion::at_c<1>(ze)))(i,j,k) );
             }
         };
 
@@ -24,7 +24,6 @@ namespace gridtools {
             template <typename Iterator>
             GT_FUNCTION
             void operator()(Iterator & it) const {
-                printf("outout INCREMENT %X\n", it);
                 ++it;
             }
         };
@@ -56,22 +55,22 @@ namespace gridtools {
         template <typename T>
         GT_FUNCTION
         void info(T const &x) const {
-            std::cout << "Well... to late for that\n" << std::endl;
             local_domain.info(x);
         }
 
         template <typename T>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename T::index_type>::type::value_type&  
-        operator()(T const& t) const {
-            return local_domain(t);
+        operator()(T const& ) const {
+            return *(boost::fusion::at<typename T::index_type>(local_iterators));
         }
 
         template <typename T>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename T::index>::type::value_type const& 
-        operator()(T const& t, int i, int j, int k) const {
-            return local_domain(t, i,j,k);
+        operator()(T const& , int i, int j, int k) const {
+            int offset = (boost::fusion::at<typename T::index_type>(local_domain.local_args))->offset(i,j,k);
+            return &(boost::fusion::at<typename T::index_type>(local_iterators)+offset);
         }
 
     };
