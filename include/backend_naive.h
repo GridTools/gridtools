@@ -50,14 +50,24 @@ namespace gridtools {
                 std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
 #endif
 
+                typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
+
                 for (int i = coords.i_low_bound() + range_type::iminus::value;
                      i < coords.i_high_bound() + range_type::iplus::value;
                      ++i)
                     for (int j = coords.j_low_bound() + range_type::jminus::value;
                          j < coords.j_high_bound() + range_type::jplus::value;
                          ++j) {
-                        local_domain.move_to(i,j, coords.template value_at<first_hit>());
-                        for_each<LoopIntervals>(_impl::run_f_on_interval<functor_type, interval_map,local_domain_type,Coords>(local_domain,coords));
+                        iterate_domain_type it_domain(local_domain, i,j, coords.template value_at<first_hit>()); 
+                        //                        local_domain.move_to(i,j, coords.template value_at<first_hit>());
+                        gridtools::for_each<LoopIntervals>
+                            (_impl::run_f_on_interval
+                             <functor_type, 
+                             interval_map,
+                             iterate_domain_type,
+                             Coords>
+                             (it_domain,coords)
+                             );
                     }
             }
 
@@ -80,7 +90,7 @@ namespace gridtools {
 
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
 
-            for_each<iter_range>(_impl_naive::run_functor
+            gridtools::for_each<iter_range>(_impl_naive::run_functor
                                              <
                                              FunctorList,
                                              LoopIntervals,
