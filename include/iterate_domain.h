@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/fusion/zip_view.hpp>
+#include <boost/fusion/view/zip_view.hpp>
 
 namespace gridtools {
 
