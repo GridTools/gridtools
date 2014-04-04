@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/fusion/zip_view.hpp>
+
 namespace gridtools {
 
     namespace iterate_domain_aux {
