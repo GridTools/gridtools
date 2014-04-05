@@ -321,7 +321,7 @@ namespace gridtools {
 #ifndef NDEBUG
                 printf("Setup computation\n");
 #endif
-                original_pointers = storage_pointers;
+                boost::fusion::copy(storage_pointers, original_pointers);
 
                 boost::fusion::for_each(storage_pointers, _impl::update_pointer());
 #ifndef NDEBUG
