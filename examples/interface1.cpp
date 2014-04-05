@@ -1,3 +1,4 @@
+#define noinline 
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <backend_cuda.h>
@@ -42,12 +43,9 @@ struct lap_function {
         dom.info(out());
 #endif
 #endif
-        // printf("dom(out()) => %e\n", dom(out()));
-        // printf("dom(in()) => %e\n", dom(in()));
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
-        // printf("dom(out()) <= %e\n", dom(out()));
     }
 };
 
@@ -236,7 +234,11 @@ int main(int argc, char** argv) {
     //       ),
     //      domain, coords);
 
+#ifdef __CUDACC__
+    gridtools::computation* horizontal_diffusion =
+#else
     boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+#endif
         gridtools::make_computation<gridtools::BACKEND>
         (
          gridtools::make_mss // mss_descriptor
@@ -263,7 +265,6 @@ int main(int argc, char** argv) {
     domain.storage_info<boost::mpl::int_<5> >();
 
     horizontal_diffusion->steady();
-    printf("\n\n\n\n\n\n");
     domain.clone_to_gpu();
     printf("CLONED\n");
     horizontal_diffusion->run();

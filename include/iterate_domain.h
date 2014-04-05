@@ -36,13 +36,12 @@ namespace gridtools {
     struct iterate_domain {
         typedef typename LocalDomain::local_iterators_type local_iterators_type;
 
-        size_t stride;
         LocalDomain const& local_domain;
         mutable local_iterators_type local_iterators;
 
+        GT_FUNCTION
         iterate_domain(LocalDomain const& local_domain, int i, int j, int k)
-            : stride(1)
-            , local_domain(local_domain)
+            : local_domain(local_domain)
         {
             typedef boost::fusion::vector<local_iterators_type&, typename LocalDomain::local_args_type const&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
@@ -50,6 +49,7 @@ namespace gridtools {
             boost::fusion::for_each(zipping(z), iterate_domain_aux::assign_iterators(i,j,k));
         }
 
+        GT_FUNCTION
         void increment() const {
             boost::fusion::for_each(local_iterators, iterate_domain_aux::increment());
         }

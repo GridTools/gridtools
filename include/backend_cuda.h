@@ -22,12 +22,16 @@ namespace gridtools {
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             int z = coords->template value_at<first_hit>();
 
-            //if (i==0 && j == 0) {
-            //     l_domain->info();
-            // }
             if ((i < nx) && (j < ny)) {
-                l_domain->move_to(i+starti,j+startj, z);
-                for_each<LoopIntervals>(_impl::run_f_on_interval<functor_type, interval_map,LDomain,Coords>(*l_domain,*coords));
+                typedef typename LDomain::iterate_domain_type iterate_domain_type;
+                iterate_domain_type it_domain(*l_domain, i+starti,j+startj, z); 
+                for_each<LoopIntervals>
+                    (_impl::run_f_on_interval
+                     <functor_type, 
+                     interval_map,
+                     iterate_domain_type,
+                     Coords>
+                     (it_domain,*coords));
             }
         }
 
@@ -91,9 +95,11 @@ namespace gridtools {
                 int nbz = 1;
                 dim3 blocks(nbx, nby, nbz);
 
+#ifndef NDEBUG
                 printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+#endif
 
                 do_it_on_gpu<first_hit, LoopIntervals, functor_type, interval_map><<<blocks, threads>>>
                     (local_domain_gp, 

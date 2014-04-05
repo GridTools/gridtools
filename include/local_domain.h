@@ -132,13 +132,14 @@ namespace gridtools {
             dom = _dom;
             g_dom = pointer_if_clonable<Domain, typename Domain::actually_clonable>::get(_dom);
 
-            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<Domain>(*g_dom));
+            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<Domain>(*dom));
 
         }
 
         __device__
         local_domain_base(local_domain_base const& other)
             : dom(other.g_dom)
+            , local_args(other.local_args)
             // , m_i(other.m_i)
             // , m_j(other.m_j)
             // , m_k(other.m_k)

@@ -51,7 +51,7 @@ namespace gridtools {
             printf("%X ", cpu_p);
             printf("%X ", gpu_p);
             printf("%X ", pointer_to_use);
-            printf("%X ", size);
+            printf("%d ", size);
             printf("\n");
 #endif
         } 
@@ -107,7 +107,7 @@ namespace gridtools {
             printf("%X ", cpu_p);
             printf("%X ", gpu_p);
             printf("%X ", pointer_to_use);
-            printf("%X ", size);
+            printf("%d ", size);
             printf("\n");
         }
 
