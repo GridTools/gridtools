@@ -6,6 +6,7 @@
 #include <domain_type.h>
 #include <storage.h>
 #include <boost/mpl/for_each.hpp>
+#include <boost/current_function.hpp>
 
 using namespace gridtools;
 
@@ -53,7 +54,7 @@ struct print_plchld {
 struct print_pretty {
     template <typename T>
     void operator()(T const& v) const {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << BOOST_CURRENT_FUNCTION << std::endl;
     }
 };
 
