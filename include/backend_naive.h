@@ -66,7 +66,7 @@ namespace gridtools {
                          j < coords.j_high_bound() + range_type::jplus::value;
                          ++j) {
                         iterate_domain_type it_domain(local_domain, i,j, coords.template value_at<first_hit>()); 
-                        //                        local_domain.move_to(i,j, coords.template value_at<first_hit>());
+
                         gridtools::for_each<LoopIntervals>
                             (_impl::run_f_on_interval
                              <functor_type, 
@@ -107,7 +107,6 @@ namespace gridtools {
                                              Coords
                                              >
                                              (local_domain_list,coords));
-            std::cout << std::endl;
         }
     };
 
