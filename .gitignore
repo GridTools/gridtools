@@ -19,6 +19,15 @@ nbproject
 /nbproject
 /Makefile
 /cmake_install.cmake
+examples/CMakeFiles/
+examples/CTestTestfile.cmake
+examples/Makefile
+examples/cmake_install.cmake
+include/workarounds/
+unit_tests/CMakeFiles/
+unit_tests/CTestTestfile.cmake
+unit_tests/Makefile
+unit_tests/cmake_install.cmake
 /build/
 
 /*
