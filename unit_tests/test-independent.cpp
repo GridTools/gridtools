@@ -180,7 +180,7 @@ int main() {
 
     std::cout << std::endl;
 
-    typedef typename boost::mpl::fold<
+    typedef boost::mpl::fold<
         typename decltype(mss)::esf_array,
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
@@ -190,7 +190,7 @@ int main() {
 
     std::cout << std::endl;
 
-    typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
+    typedef _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
 
     // typedef typename boost::mpl::fold<
     //     ranges_list,
