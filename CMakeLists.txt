@@ -6,6 +6,8 @@ enable_language( CXX )
 
 enable_testing()
 
+set(EXECUTABLE_OUTPUT_PATH "../build")
+
 include_directories( include/ ) ## Library header files
 include_directories( ${GPU_ENABLED_FUSION} ) ## Library header files
 
