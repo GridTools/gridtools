@@ -15,17 +15,22 @@ namespace gridtools {
                   typename FunctorsMap,
                   typename RangeSizes,
                   typename DomainList,
-                  typename Coords, int BI, int BJ>
+                  typename Coords>
         struct run_functor {
             Coords const &coords;
             DomainList &domain_list;
             int starti, startj;
+            const int BI, BJ;
 
-            explicit run_functor(DomainList & domain_list, Coords const& coords, int starti, int startj)
+            explicit run_functor(DomainList & domain_list, Coords const& coords, 
+                                  int starti, int startj, 
+                                  int BI, int BJ)
                 : coords(coords)
                 , domain_list(domain_list)
                 , starti(starti)
                 , startj(startj)
+                , BI(BI)
+                , BJ(BJ)
             {}
 
             template <typename Index>
@@ -37,7 +42,7 @@ namespace gridtools {
 
                 typedef typename boost::mpl::at<FunctorsMap, Index>::type interval_map;
 
-                local_domain_type local_domain = boost::fusion::at<Index>(domain_list);
+                local_domain_type& local_domain = boost::fusion::at<Index>(domain_list);
 
 #ifndef NDEBUG
                 std::cout << "Functor " << functor_type() << std::endl;
@@ -54,6 +59,8 @@ namespace gridtools {
                 std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
 #endif
 
+                typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
+
                 for (int i = starti + range_type::iminus::value;
                      i < starti + BI + range_type::iplus::value;
                      ++i)
@@ -66,13 +73,22 @@ namespace gridtools {
                                   << " (" << startj << "," << j << ") " << j << ", "
                                   << coords.template value_at<first_hit>() << std::endl;
 #endif
-                        local_domain.move_to(i,j, coords.template value_at<first_hit>());
-                        for_each<LoopIntervals>(run_f_on_interval<functor_type, interval_map,local_domain_type,Coords>(local_domain,coords));
+                        iterate_domain_type it_domain(local_domain, i,j, coords.template value_at<first_hit>()); 
+
+                        gridtools::for_each<LoopIntervals>
+                            (_impl::run_f_on_interval
+                             <functor_type, 
+                             interval_map,
+                             iterate_domain_type,
+                             Coords>
+                             (it_domain,coords)
+                             );
                     }
             }
 
         };
     }
+
 
     struct backend_block {
         static const int BI = 4;
@@ -124,19 +140,62 @@ namespace gridtools {
                 for (int bj = 0; bj < NBJ; ++bj) {
                     int starti = bi*BI+coords.i_low_bound();
                     int startj = bj*BJ+coords.j_low_bound();
-                    for_each<iter_range>(_impl::run_functor
+                    gridtools::for_each<iter_range>(_impl::run_functor
                                                      <
                                                      FunctorList,
                                                      LoopIntervals,
                                                      FunctorsMap,
                                                      range_sizes,
                                                      LocalDomainList,
-                                                     Coords, BI, BJ
+                                                     Coords
                                                      >
-                                                     (local_domain_list,coords,starti,startj));
+                                                     (local_domain_list,coords,starti,startj, BI, BJ));
                 }
             }
-            std::cout << std::endl;
+
+            for (int bj = 0; bj < NBJ; ++bj) {
+                int starti = NBI*BI+coords.i_low_bound();
+                int startj = bj*BJ+coords.j_low_bound();
+                gridtools::for_each<iter_range>(_impl::run_functor
+                                                <
+                                                FunctorList,
+                                                LoopIntervals,
+                                                FunctorsMap,
+                                                range_sizes,
+                                                LocalDomainList,
+                                                Coords
+                                                >
+                                                (local_domain_list,coords,starti,startj, n-NBI*BI, BJ));
+            }
+
+            for (int bi = 0; bi < NBI; ++bi) {
+                int starti = bi*BI+coords.i_low_bound();
+                int startj = NBJ*BJ+coords.j_low_bound();
+                gridtools::for_each<iter_range>(_impl::run_functor
+                                                <
+                                                FunctorList,
+                                                LoopIntervals,
+                                                FunctorsMap,
+                                                range_sizes,
+                                                LocalDomainList,
+                                                Coords
+                                                >
+                                                (local_domain_list,coords,starti,startj,BI, n-NBJ*BJ));
+            }
+
+            int starti = NBI*BI+coords.i_low_bound();
+            int startj = NBJ*BJ+coords.j_low_bound();
+            gridtools::for_each<iter_range>(_impl::run_functor
+                                            <
+                                            FunctorList,
+                                            LoopIntervals,
+                                            FunctorsMap,
+                                            range_sizes,
+                                            LocalDomainList,
+                                            Coords
+                                            >
+                                            (local_domain_list,coords,starti,startj,n-NBI*BI,n-NBJ*BJ));
+
         }
     };
 } // namespace gridtools
