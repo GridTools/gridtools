@@ -4,12 +4,43 @@
 
 namespace gridtools {
 
-    template < typename derived,
+    namespace _impl
+    {
+        template <int I, typename OtherLayout, int X>
+        struct get_stride_
+        {
+            GT_FUNCTION
+            static int get(const int* s) {
+                return s[OtherLayout::template at_<I>::value];
+            }
+        };
+
+        template <int I, typename OtherLayout>
+        struct get_stride_<I, OtherLayout, 2>
+        {
+            GT_FUNCTION
+            static int get(const int* ) {
+#ifndef __CUDACC__
+#ifndef NDEBUG
+                //                std::cout << "U" ;//<< std::endl;
+#endif
+#endif
+                return 1;
+            }
+        };
+
+        template <int I, typename OtherLayout>
+        struct get_stride
+          : get_stride_<I, OtherLayout, OtherLayout::template at_<I>::value>
+        {};
+    }
+
+    template < typename Derived,
                typename ValueType,
                typename Layout,
                bool IsTemporary = false
                >
-    struct base_storage : public clonable_to_gpu<derived> {
+    struct base_storage : public clonable_to_gpu<Derived> {
         typedef Layout layout;
         typedef ValueType value_type;
         typedef value_type* iterator_type;
@@ -68,7 +99,7 @@ namespace gridtools {
         template <int I>
         GT_FUNCTION
         int stride_along() const {
-            return get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
+            return _impl::get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
         // template <typename Offset>
@@ -118,50 +149,6 @@ namespace gridtools {
             }
             std::cout << std::endl;
         }
-
-        template <typename Dummy, int X>
-        struct _is_0: public boost::false_type
-        {};
-
-        template <typename Dummy>
-        struct _is_0<Dummy,0>: public boost::true_type
-        { };
-
-        template <typename Dummy, int X>
-        struct _is_2: public boost::false_type
-        {};
-
-        template <typename Dummy>
-        struct _is_2<Dummy,2>: public boost::true_type
-        { };
-
-        template <int I, typename OtherLayout, typename ENABLE=void>
-        struct get_stride;
-
-        template <int I, typename OtherLayout>
-        struct get_stride<I, OtherLayout, typename boost::enable_if<
-                                            _is_2< void, OtherLayout::template at_<I>::value >
-                                            >::type> {
-            GT_FUNCTION
-            static int get(const int* ) {
-#ifndef __CUDACC__
-#ifndef NDEBUG
-                //                std::cout << "U" ;//<< std::endl;
-#endif
-#endif
-                return 1;
-            }
-        };
-
-        template <int I, typename OtherLayout>
-        struct get_stride<I, OtherLayout, typename boost::disable_if<
-                                            _is_2<void, OtherLayout::template at_<I>::value>
-                                            >::type> {
-            GT_FUNCTION
-            static int get(const int* s) {
-                return s[OtherLayout::template at_<I>::value];
-            }
-        };
 
         GT_FUNCTION
         int _index(int i, int j, int k) const {

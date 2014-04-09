@@ -17,6 +17,7 @@
 #include <cuda_storage.h>
 #include <domain_type.h>
 #include <arg_type.h>
+#include <boost/current_function.hpp>
 
 struct out_value {
     template <typename T>
@@ -50,7 +51,7 @@ struct out_value_ {
     template <typename T>
     __host__ __device__
     void operator()(T const& stor) const {
-        //std::cout << __PRETTY_FUNCTION__ << std::endl;
+        //std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         printf(" > %X %X\n", &stor, stor.data.pointer_to_use);
         for (int i=0; i<3; ++i) {
             for (int j=0; j<3; ++j) {

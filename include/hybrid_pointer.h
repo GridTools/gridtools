@@ -3,6 +3,7 @@
 #include <gt_assert.h>
 #include <iostream>
 #include <stdio.h>
+#include <boost/current_function.hpp>
 
 namespace gridtools {
 
@@ -61,7 +62,7 @@ namespace gridtools {
             int err = cudaMalloc(&gpu_p, size*sizeof(T));
             if (err != cudaSuccess) {
                 std::cout << "Error allocating storage in "
-                          << __PRETTY_FUNCTION__
+                          << BOOST_CURRENT_FUNCTION
                           << " : size = "
                           << size*sizeof(T)
                           << " bytes "
