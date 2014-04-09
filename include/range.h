@@ -5,8 +5,8 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/reverse_fold.hpp>
 #include <boost/mpl/vector.hpp>
+#include <boost/mpl/assert.hpp>
 #include <boost/mpl/push_front.hpp>
-#include <boost/static_assert.hpp>
 
 namespace gridtools { 
     /**
@@ -53,14 +53,15 @@ namespace gridtools {
       : boost::true_type
     {};
 
+    template<typename T> struct undef_t;
     /**
      * Metafunction taking two ranges and yielding a range containing them
      */
     template <typename Range1,
               typename Range2>
     struct enclosing_range {
-        BOOST_STATIC_ASSERT(is_range<Range1>::type::value);
-        BOOST_STATIC_ASSERT(is_range<Range2>::type::value);
+        BOOST_MPL_ASSERT((is_range<Range1>));
+        BOOST_MPL_ASSERT((is_range<Range2>));
 
         typedef range<boost::mpl::min<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::max<typename Range1::iplus,  typename Range2::iplus>::type::value,
@@ -75,8 +76,8 @@ namespace gridtools {
     template <typename Range1,
               typename Range2>
     struct sum_range {
-        BOOST_STATIC_ASSERT(is_range<Range1>::type::value);
-        BOOST_STATIC_ASSERT(is_range<Range2>::type::value);
+        BOOST_MPL_ASSERT((is_range<Range1>));
+        BOOST_MPL_ASSERT((is_range<Range2>));
 
         typedef range<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::plus<typename Range1::iplus,  typename Range2::iplus>::type::value,

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/current_function.hpp>
 #include "base_storage.h"
 #include "hybrid_pointer.h"
 
@@ -71,7 +72,7 @@ namespace gridtools {
         { }
 
         static void text() {
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }
 
         ~cuda_storage() { }
