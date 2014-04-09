@@ -150,7 +150,6 @@ namespace gridtools {
                                              Coords
                                              >
                                              (local_domain_list,coords));
-            //std::cout << std::endl;
         }
     };
 
