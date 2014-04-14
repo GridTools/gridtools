@@ -15,6 +15,7 @@
 #include "host_device.h"
 #define BOOST_MPL_GPU_ENABLED __host__ __device__
 
+#include <boost/static_assert.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/apply.hpp>
@@ -95,7 +96,7 @@ namespace gridtools {
     inline
     void for_each(F f, Sequence* = 0)
     {
-        BOOST_MPL_ASSERT(( boost::mpl::is_sequence<Sequence> ));
+        BOOST_STATIC_ASSERT( boost::mpl::is_sequence<Sequence>::value );
 
         typedef typename boost::mpl::begin<Sequence>::type first;
         typedef typename boost::mpl::end<Sequence>::type last;

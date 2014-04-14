@@ -153,6 +153,40 @@ struct print_ {
     }
 };
 
+template<typename MSS>
+void print_mss(MSS)
+{
+    boost::mpl::for_each<typename MSS::linear_esf>(print(std::string(">")));
+
+    std::cout << std::endl;
+
+    boost::mpl::for_each<typename MSS::esf_array>(print(std::string(">")));
+
+    std::cout << std::endl;
+
+    typedef boost::mpl::fold<
+        typename MSS::esf_array,
+        boost::mpl::vector<>,
+        _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
+    >::type ranges_list;
+
+    boost::mpl::for_each<ranges_list>(print_());
+
+    std::cout << std::endl;
+
+	typedef _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
+
+    // typedef typename boost::mpl::fold<
+    //     ranges_list,
+    //     boost::mpl::vector<>,
+    //     prefix_on_ranges<boost::mpl::_1,boost::mpl::_2>
+    //     >::type ranges_list;
+
+    boost::mpl::for_each<prefix_ranges>(print_());
+
+    std::cout << std::endl;
+}
+
 int main() {
     typedef storage<double, gridtools::layout_map<0,1,2> > storage_type;
 
@@ -172,35 +206,7 @@ int main() {
                       make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
                       );
 
-    boost::mpl::for_each<typename decltype(mss)::linear_esf>(print(std::string(">")));
-
-    std::cout << std::endl;
-
-    boost::mpl::for_each<typename decltype(mss)::esf_array>(print(std::string(">")));
-
-    std::cout << std::endl;
-
-    typedef boost::mpl::fold<
-        typename decltype(mss)::esf_array,
-        boost::mpl::vector<>,
-        _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
-        >::type ranges_list;
-
-    boost::mpl::for_each<ranges_list>(print_());
-
-    std::cout << std::endl;
-
-    typedef _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
-
-    // typedef typename boost::mpl::fold<
-    //     ranges_list,
-    //     boost::mpl::vector<>,
-    //     prefix_on_ranges<boost::mpl::_1,boost::mpl::_2>
-    //     >::type ranges_list;
-
-    boost::mpl::for_each<prefix_ranges>(print_());
-
-    std::cout << std::endl;
+    print_mss(mss);
 
     return 0;
 }

@@ -34,5 +34,10 @@ else()
    message("GTest not found. GTest targets will not be compiled. (Try setting GTEST_ROOT in the env.)")
 endif()
 
+# Set some project-wide MSVC compile flags
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_VARIADIC_MAX=10")
+endif()
+
 add_subdirectory( examples )
 add_subdirectory( unit_tests )
