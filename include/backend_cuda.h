@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>

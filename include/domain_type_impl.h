@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #ifndef __CUDACC__
 #include <boost/lexical_cast.hpp>
 #endif
