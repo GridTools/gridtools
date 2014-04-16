@@ -102,21 +102,6 @@ namespace gridtools {
             return _impl::get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
-        // template <typename Offset>
-        // GT_FUNCTION
-        // int compute_offset(Offset const& offset) const {
-        //     return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-        //         * layout::template find<0>(offset.offset_ptr()) +
-        //         layout::template find<2>(m_dims) * layout::template find<1>(offset.offset_ptr()) +
-        //         layout::template find<2>(offset.offset_ptr());
-        // }
-
-        template <typename Offset>
-        GT_FUNCTION
-        int offset(int i, int j, int k) const {
-            return _index(i,j,k);
-        }
-
     protected:
         template <typename derived_t>
         void print(derived_t* that) const {
