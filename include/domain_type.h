@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "gt_assert.h"
 
+#include <stdio.h>
 #include <boost/mpl/vector.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/mpl/push_back.hpp>
