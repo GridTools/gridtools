@@ -164,7 +164,7 @@ void print_mss(MSS)
 
     std::cout << std::endl;
 
-    typedef boost::mpl::fold<
+    typedef typename boost::mpl::fold<
         typename MSS::esf_array,
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
@@ -174,7 +174,7 @@ void print_mss(MSS)
 
     std::cout << std::endl;
 
-	typedef _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
+	typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
 
     // typedef typename boost::mpl::fold<
     //     ranges_list,
