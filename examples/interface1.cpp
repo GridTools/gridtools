@@ -1,4 +1,3 @@
-#define noinline 
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <backend_cuda.h>
@@ -8,7 +7,7 @@
 #endif
 
 #include <stdlib.h>
-
+#include <sys/time.h>
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
@@ -267,7 +266,19 @@ int main(int argc, char** argv) {
     horizontal_diffusion->steady();
     domain.clone_to_gpu();
     printf("CLONED\n");
+
+    struct timeval start_tv;
+    struct timeval stop_tv;
+    gettimeofday(&start_tv, NULL);
+
     horizontal_diffusion->run();
+
+    gettimeofday(&stop_tv, NULL);
+    double lapse_time = ((static_cast<double>(stop_tv.tv_sec)+
+                          1/1.e6*static_cast<double>(stop_tv.tv_usec)) 
+                         - (static_cast<double>(start_tv.tv_sec)+
+                            1/1.e6*static_cast<double>(start_tv.tv_usec))) * 1.e3;
+
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
@@ -277,6 +288,8 @@ int main(int argc, char** argv) {
     //    in.print();
     out.print();
     //    lap.print();
+
+    std::cout << "TIME " << lapse_time << std::endl;
 
     return 0;
 }
