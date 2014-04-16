@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 #include <new>
 #include "host_device.h"
 #include <string>
