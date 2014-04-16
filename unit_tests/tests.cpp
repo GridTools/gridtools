@@ -1,9 +1,14 @@
 #include "gtest/gtest.h"
 
 #include "test_domain_indices.h"
+#include "test_smallstorage_indices.h"
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
+}
+
+TEST(testsmallstorage, testindices) {
+    EXPECT_EQ(test_smallstorage_indices(), true);
 }
 
 
