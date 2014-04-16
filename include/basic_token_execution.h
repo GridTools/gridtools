@@ -4,6 +4,15 @@ namespace gridtools {
     /**
        This class implements the basic operation of iterating over a "column" in a interval.
     */
+    // namespace _impl {
+    //     struct inc {
+    //         template <typename T>
+    //         void operator()(T & x) const {
+    //             ++x;
+    //         }
+    //     };
+    // }
+
     namespace _impl {
         template <typename FunctorType,
                   typename IntervalMap,
@@ -31,6 +40,7 @@ namespace gridtools {
                     for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
                         typedef typename boost::mpl::at<IntervalMap, Interval>::type interval_type;
                         FunctorType::Do(domain, interval_type());
+                        //boost::fusion::for_each(domain.local_iterators, _impl::inc());
                         domain.increment();
                     }
                 }
