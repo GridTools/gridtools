@@ -7,6 +7,7 @@
 #endif
 
 #include <stdlib.h>
+#include <sys/time.h>
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -34,101 +35,11 @@ struct lap_function {
     template <typename t_domain>
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
-#ifndef CUDA_EXAMPLE
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "out    ";
-        dom.info(out());
-#endif
-        // printf("dom(out()) => %e\n", dom(out()));
-        // printf("dom(in()) => %e\n", dom(in()));
-        dom(out()) = 3*dom(in()) -
+
+        dom(out()) = 4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
-        // printf("dom(out()) <= %e\n", dom(out()));
-    }
-};
 
-struct flx_function {
-    static const int n_args = 3;
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 1, 0, 0> > in;
-    typedef const arg_type<2, range<0, 1, 0, 0> > lap;
-
-    typedef boost::mpl::vector<out, in, lap> arg_list;
-
-    template <typename t_domain>
-    GT_FUNCTION
-    static void Do(t_domain const & dom, x_flx) {
-#ifndef CUDA_EXAMPLE
-        std::cout << "out    ";
-        dom.info(out());
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "lap    ";
-        dom.info(lap());
-#endif
-        dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
-            dom(out()) = 0.;
-        }
-    }
-};
-
-struct fly_function {
-    static const int n_args = 3;
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 0, 0, 1> > in;
-    typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-    typedef boost::mpl::vector<out, in, lap> arg_list;
-
-    template <typename t_domain>
-    GT_FUNCTION
-    static void Do(t_domain const & dom, x_flx) {
-#ifndef CUDA_EXAMPLE
-        std::cout << "out    ";
-        dom.info(out());
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "lap    ";
-        dom.info(lap());
-#endif
-        dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
-            dom(out()) = 0.;
-        }
-    }
-};
-
-struct out_function {
-    static const int n_args = 5;
-    typedef arg_type<0> out;
-    typedef const arg_type<1> in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> > fly;
-    typedef const arg_type<4> coeff;
-    typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
-
-    template <typename t_domain>
-    GT_FUNCTION
-    static void Do(t_domain const & dom, x_out) {
-#ifndef CUDA_EXAMPLE
-        std::cout << "out    ";
-        dom.info(out());
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "flx    ";
-        dom.info(flx());
-        std::cout << "fly    ";
-        dom.info(fly());
-        std::cout << "coeff  ";
-        dom.info(coeff());
-#endif
-        dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx()) - dom(flx(-1,0,0)) +
-             dom(fly()) - dom(fly(0,-1,0))
-             );
-        // printf("final dom(out()) => %e\n", dom(out()));
     }
 };
 
@@ -137,15 +48,6 @@ struct out_function {
  */
 std::ostream& operator<<(std::ostream& s, lap_function const) {
     return s << "lap_function";
-}
-std::ostream& operator<<(std::ostream& s, flx_function const) {
-    return s << "flx_function";
-}
-std::ostream& operator<<(std::ostream& s, fly_function const) {
-    return s << "fly_function";
-}
-std::ostream& operator<<(std::ostream& s, out_function const) {
-    return s << "out_function";
 }
 
 int main(int argc, char** argv) {
@@ -164,28 +66,23 @@ int main(int argc, char** argv) {
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
     out.print();
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, gridtools::temporary<storage_type> > p_lap;
-    typedef arg<1, gridtools::temporary<storage_type> > p_flx;
-    typedef arg<2, gridtools::temporary<storage_type> > p_fly;
-    typedef arg<3, storage_type > p_coeff;
-    typedef arg<4, storage_type > p_in;
-    typedef arg<5, storage_type > p_out;
+    typedef arg<0, storage_type > p_in;
+    typedef arg<1, storage_type > p_out;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_in, p_out> arg_type_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
+        (boost::fusion::make_vector(&in, &out));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -213,28 +110,18 @@ int main(int argc, char** argv) {
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
-    // gridtools::intermediate::run<gridtools::BACKEND>
-    //     (
-    //      gridtools::make_mss
-    //      (
-    //       gridtools::execute_upward,
-    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
-    //       gridtools::make_independent
-    //       (
-    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-    //        ),
-    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-    //       ),
-    //      domain, coords);
 
-    gridtools::computation *horizontal_diffusion =
+#ifdef __CUDACC__
+    gridtools::computation* horizontal_diffusion =
+#else
+    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+#endif
         gridtools::make_computation<gridtools::BACKEND>
         (
          gridtools::make_mss
          (
           gridtools::execute_upward,
-          gridtools::make_esf<lap_function>(p_out(), p_in()),
+          gridtools::make_esf<lap_function>(p_out(), p_in())
           ),
          domain, coords);
 
@@ -242,16 +129,24 @@ int main(int argc, char** argv) {
 
     domain.storage_info<boost::mpl::int_<0> >();
     domain.storage_info<boost::mpl::int_<1> >();
-    domain.storage_info<boost::mpl::int_<2> >();
-    domain.storage_info<boost::mpl::int_<3> >();
-    domain.storage_info<boost::mpl::int_<4> >();
-    domain.storage_info<boost::mpl::int_<5> >();
 
     horizontal_diffusion->steady();
     printf("\n\n\n\n\n\n");
     domain.clone_to_gpu();
     printf("CLONED\n");
+
+    struct timeval start_tv;
+    struct timeval stop_tv;
+    gettimeofday(&start_tv, NULL);
+
     horizontal_diffusion->run();
+
+    gettimeofday(&stop_tv, NULL);
+    double lapse_time = ((static_cast<double>(stop_tv.tv_sec)+
+                          1/1.e6*static_cast<double>(stop_tv.tv_usec)) 
+                         - (static_cast<double>(start_tv.tv_sec)+
+                            1/1.e6*static_cast<double>(start_tv.tv_usec))) * 1.e3;
+
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
@@ -261,6 +156,8 @@ int main(int argc, char** argv) {
     //    in.print();
     out.print();
     //    lap.print();
+
+    std::cout << "TIME " << lapse_time << std::endl;
 
     return 0;
 }
