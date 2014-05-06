@@ -7,12 +7,30 @@
 
 namespace gridtools {
     /**
+     * Flag to indicate that value_type will be known later
+     */
+    struct no_type_yet {};
+
+    /**
+     * Flag to indicate that storage will be instantiated later
+     */
+    struct no_storage_yet {
+        typedef no_type_yet value_type;
+    };
+
+    /**
      * Flag type to identify data fields that must be treated as temporary
      */
     template <typename StorageType>
     struct temporary {
         typedef StorageType storage_type;
         typedef typename storage_type::value_type value_type;
+    };
+
+    template <>
+    struct temporary<no_storage_yet> {
+        typedef no_storage_yet storage_type;
+        typedef storage_type::value_type value_type;
     };
 
 

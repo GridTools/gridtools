@@ -86,6 +86,8 @@ int main(int argc, char** argv) {
               << a.data.cpu_p << " "
               << a.data.gpu_p << " "
               << a.data.pointer_to_use << " "
+              << a.m_size << " "
+              << a.data.size << " "
               << std::dec
               << std::endl;
 
@@ -98,7 +100,7 @@ int main(int argc, char** argv) {
     a.clone_from_gpu();
     a.data.update_cpu();
 
-    printwhatever(&a);
+    //    printwhatever(&a);
 
     std::cout << "Printing End " << std::hex
               << a.data.cpu_p << " "

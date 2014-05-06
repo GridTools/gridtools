@@ -4,6 +4,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/find_if.hpp>
+#include "storage.h"
 #include "basic_token_execution.h"
 
 namespace gridtools {
@@ -85,6 +86,16 @@ namespace gridtools {
         static const int BI = 0;
         static const int BJ = 0;
         static const int BK = 0;
+
+        template <typename ValueType, typename Layout>
+        struct storage_type {
+            typedef storage<ValueType, Layout> type;
+        };
+
+        template <typename ValueType, typename Layout>
+        struct temporary_storage_type {
+            typedef temporary<storage<ValueType, Layout> > type;
+        };
 
         template <typename FunctorList, // List of functors to execute (in order)
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>
