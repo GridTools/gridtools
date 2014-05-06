@@ -93,7 +93,7 @@ namespace cloningstuff_test {
 
         a.p.update_cpu();
 
-        if (strcmp((char*)(a.p.pointer_to_use), "The World will end ... now") != 0) {
+        if (strcmp(static_cast<char*>(a.p.pointer_to_use), "The World will end ... now") != 0) {
             std::cout << "here" << std::endl;
             result = false;
         }

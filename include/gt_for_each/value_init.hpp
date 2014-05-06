@@ -110,16 +110,19 @@ class initialized
       new (wrapper_address()) wrapper();
     }
 
+    BOOST_MPL_GPU_ENABLED
     initialized(initialized const & arg)
     {
       new (wrapper_address()) wrapper( static_cast<wrapper const &>(*(arg.wrapper_address())));
     }
 
+    BOOST_MPL_GPU_ENABLED
     explicit initialized(T const & arg)
     {
       new (wrapper_address()) wrapper(arg);
     }
 
+    BOOST_MPL_GPU_ENABLED
     initialized & operator=(initialized const & arg)
     {
       // Assignment is only allowed when T is non-const.
@@ -146,16 +149,19 @@ class initialized
       return wrapper_address()->data;
     }
 
+    BOOST_MPL_GPU_ENABLED
     void swap(initialized & arg)
     {
       ::boost::swap( this->data(), arg.data() );
     }
 
+    BOOST_MPL_GPU_ENABLED
     operator T const &() const
     {
       return wrapper_address()->data;
     }
 
+    BOOST_MPL_GPU_ENABLED
     operator T&()
     {
       return wrapper_address()->data;
@@ -178,6 +184,7 @@ T& get ( initialized<T>& x )
 }
 
 template<class T>
+BOOST_MPL_GPU_ENABLED
 void swap ( initialized<T> & lhs, initialized<T> & rhs )
 {
   lhs.swap(rhs) ;
@@ -199,6 +206,7 @@ class value_initialized
     m_data()
     { }
     
+    BOOST_MPL_GPU_ENABLED
     T const & data() const
     {
       return m_data.data();
@@ -210,16 +218,19 @@ class value_initialized
       return m_data.data();
     }
 
+    BOOST_MPL_GPU_ENABLED
     void swap(value_initialized & arg)
     {
       m_data.swap(arg.m_data);
     }
 
+    BOOST_MPL_GPU_ENABLED
     operator T const &() const
     {
       return m_data;
     }
 
+    BOOST_MPL_GPU_ENABLED
     operator T&()
     {
       return m_data;
@@ -242,6 +253,7 @@ T& get ( value_initialized<T>& x )
 }
 
 template<class T>
+BOOST_MPL_GPU_ENABLED
 void swap ( value_initialized<T> & lhs, value_initialized<T> & rhs )
 {
   lhs.swap(rhs) ;
@@ -252,7 +264,7 @@ class initialized_value_t
 {
   public :
     
-    template <class T> operator T() const
+    template <class T> BOOST_MPL_GPU_ENABLED operator T() const
     {
       return initialized<T>().data();
     }

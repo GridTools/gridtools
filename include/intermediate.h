@@ -237,14 +237,14 @@ namespace gridtools {
             template <typename MplVector>
             void operator()(MplVector const&) const {
                 std::cout << "Independent" << std::endl;
-                for_each<MplVector>(print__(std::string("    ")));
+                gridtools::for_each<MplVector>(print__(std::string("    ")));
                 std::cout << "End Independent" << std::endl;
             }
 
             template <typename MplVector>
             void operator()(_impl::wrap_type<MplVector> const&) const {
                 printf("Independent*\n"); // this whould not be necessary but nvcc s#$ks
-                for_each<MplVector>(print__(std::string("    ")));
+                gridtools::for_each<MplVector>(print__(std::string("    ")));
                 printf("End Independent*\n");
             }
         };
@@ -312,7 +312,7 @@ namespace gridtools {
 #ifndef NDEBUG
 #ifndef __CUDACC__
             std::cout << "Actual loop bounds ";
-            for_each<LoopIntervals>(_debug::show_pair<Coords>(coords));
+            gridtools::for_each<LoopIntervals>(_debug::show_pair<Coords>(coords));
             std::cout << std::endl;
 #endif
 #endif
@@ -323,17 +323,17 @@ namespace gridtools {
 
 #ifndef NDEBUG
             std::cout << "ranges list" << std::endl;
-            for_each<ranges_list>(_debug::print__());
+            gridtools::for_each<ranges_list>(_debug::print__());
 #endif
         
 #ifndef NDEBUG
             std::cout << "range sizes" << std::endl;
-            for_each<structured_range_sizes>(_debug::print__());
+            gridtools::for_each<structured_range_sizes>(_debug::print__());
             std::cout << "end1" <<std::endl;
 #endif
         
 #ifndef NDEBUG
-            for_each<range_sizes>(_debug::print__());
+            gridtools::for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
 

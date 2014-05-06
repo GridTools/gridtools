@@ -4,8 +4,16 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
+#include <boost/mpl/size.hpp>
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/deref.hpp>
+#include <boost/mpl/find_if.hpp>
+#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/value_at.hpp>
 #include "basic_token_execution.h"
 
 namespace gridtools {
@@ -79,7 +87,14 @@ namespace gridtools {
 #endif
 
 
-                typedef typename index_to_level<typename boost::mpl::deref<typename boost::mpl::find_if<LoopIntervals, boost::mpl::has_key<interval_map, boost::mpl::_1> >::type>::type::first>::type first_hit;
+                typedef typename index_to_level<
+                    typename boost::mpl::deref<
+                        typename boost::mpl::find_if<
+                            LoopIntervals,
+                            boost::mpl::has_key<interval_map, boost::mpl::_1>
+                        >::type
+                    >::type::first
+                >::type first_hit;
 #ifndef NDEBUG
                 printf(" ********************\n", first_hit());
                 printf(" ********************\n", coords.template value_at<first_hit>());

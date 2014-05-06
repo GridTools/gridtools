@@ -12,6 +12,14 @@
 // $Date: 2009-08-18 01:16:53 -0400 (Tue, 18 Aug 2009) $
 // $Revision: 55648 $
 
+#include <boost/version.hpp>
+
+#if BOOST_VERSION >= 105600
+#include <boost/mpl/for_each.hpp>
+namespace gridtools {
+    using boost::mpl::for_each;
+}
+#else
 #include "host_device.h"
 #define BOOST_MPL_GPU_ENABLED __host__ __device__
 
@@ -104,7 +112,5 @@ namespace gridtools {
         gt_aux::for_each_impl< boost::is_same<first,last>::value >
             ::execute(static_cast<first*>(0), static_cast<last*>(0), static_cast<boost::mpl::identity<>*>(0), f);
     }
-
 }
-
-
+#endif
