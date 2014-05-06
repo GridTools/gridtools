@@ -28,10 +28,10 @@ struct A: gridtools::clonable_to_gpu<A> {
 __global__
 void reverse(A* p, int n) {
 #ifndef NDEBUG
-    printf("%X ", p->p.cpu_p);
-    printf("%X ", p->p.gpu_p);
-    printf("%X ", p->p.pointer_to_use);
-    printf("%X ", p->p.size);
+    printf(" cpu_p %X ", p->p.cpu_p);
+    printf(" gpu_p %X ", p->p.gpu_p);
+    printf(" to_use %X ", p->p.pointer_to_use);
+    printf(" siez %X ", p->p.size);
     printf("\n");
 #endif
     for (int i = 0; i < p->p.size; ++i)

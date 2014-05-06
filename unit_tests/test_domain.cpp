@@ -39,7 +39,11 @@ struct out_value {
 #endif
                     (*x)(i,j,k) = 1+2*((*x)(i,j,k));
 #ifndef NDEBUG
-                    printf("%e ", (*x)(i,j,k));
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 3200)
+                    printf("GPU 1+2* that is: %e ", (*x)(i,j,k));
+#else
+                    printf("CPU 1+2* that is: %e ", (*x)(i,j,k));
+#endif
                     printf("\n");
 #endif
                 }
@@ -79,6 +83,14 @@ bool the_same(One const& storage1, Two const& storage2) {
         for (int j=0; j<3; ++j) {
             for (int k=0; k<3; ++k) {
                 same &= (storage1(i,j,k) == storage2(i,j,k));
+                if ((storage1(i,j,k) != storage2(i,j,k))) {
+                    std::cout << i << ", "
+                              << j << ", "
+                              << k << ": "
+                              << storage1(i,j,k) << " != "
+                              << storage2(i,j,k)
+                              << std::endl;
+                }
             }
         }
     }
@@ -139,11 +151,11 @@ bool test_domain() {
 
 
 #ifndef NDEBUG
-    printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    printf("coeff > %X %X\n", &coeff, coeff.data.pointer_to_use);
     out_value_()(coeff);
-    printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    printf("in    > %X %X\n", &in, in.data.pointer_to_use);
     out_value_()(in);
-    printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    printf("out   > %X %X\n", &out, out.data.pointer_to_use);
     out_value_()(out);
 #endif
 
@@ -167,11 +179,11 @@ bool test_domain() {
     out.data.update_cpu();
 
 #ifndef NDEBUG
-    printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    printf("back coeff > %X %X\n", coeff.data.cpu_p, coeff.data.pointer_to_use);
     out_value_()(coeff);
-    printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    printf("back in    > %X %X\n", in.data.cpu_p, in.data.pointer_to_use);
     out_value_()(in);
-    printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    printf("back out   > %X %X\n", out.data.cpu_p, out.data.pointer_to_use);
     out_value_()(out);
 
     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
@@ -196,11 +208,11 @@ bool test_domain() {
     out.data.update_cpu();
 
 #ifndef NDEBUG
-    printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    printf(" > %X %X\n", coeff.data.cpu_p, coeff.data.pointer_to_use);
     out_value_()(coeff);
-    printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    printf(" > %X %X\n", in.data.cpu_p, in.data.pointer_to_use);
     out_value_()(in);
-    printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    printf(" > %X %X\n", out.data.cpu_p, out.data.pointer_to_use);
     out_value_()(out);
 #endif
 
