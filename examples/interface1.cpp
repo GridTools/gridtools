@@ -160,12 +160,19 @@ int main(int argc, char** argv) {
     int d3 = atoi(argv[3]);
 
 #ifdef CUDA_EXAMPLE
-#define STORAGE cuda_storage
+#define BACKEND backend_cuda
 #else
-#define STORAGE storage
+#ifdef BACKEND_BLOCK
+#define BACKEND backend_block
+#else
+#define BACKEND backend_naive
+#endif
 #endif
 
-    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
+    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
+
+    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
@@ -176,9 +183,9 @@ int main(int argc, char** argv) {
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, gridtools::temporary<storage_type> > p_lap;
-    typedef arg<1, gridtools::temporary<storage_type> > p_flx;
-    typedef arg<2, gridtools::temporary<storage_type> > p_fly;
+    typedef arg<0, tmp_storage_type > p_lap;
+    typedef arg<1, tmp_storage_type > p_flx;
+    typedef arg<2, tmp_storage_type > p_fly;
     typedef arg<3, storage_type > p_coeff;
     typedef arg<4, storage_type > p_in;
     typedef arg<5, storage_type > p_out;
@@ -199,16 +206,6 @@ int main(int argc, char** argv) {
     gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend_block
-#else
-#define BACKEND backend_naive
-#endif
-#endif
 
     /*
       Here we do lot of stuff

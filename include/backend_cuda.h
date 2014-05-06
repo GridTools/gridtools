@@ -7,6 +7,7 @@
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.h"
+#include "cuda_storage.h"
 
 namespace gridtools {
     namespace _impl_cuda {
@@ -129,6 +130,16 @@ namespace gridtools {
         static const int BI = 0;
         static const int BJ = 0;
         static const int BK = 0;
+
+        template <typename ValueType, typename Layout>
+        struct storage_type {
+            typedef cuda_storage<ValueType, Layout> type;
+        };
+
+        template <typename ValueType, typename Layout>
+        struct temporary_storage_type {
+            typedef temporary<cuda_storage<ValueType, Layout> > type;
+        };
 
         template <typename FunctorList, // List of functors to execute (in order)
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>

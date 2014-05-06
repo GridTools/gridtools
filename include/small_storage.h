@@ -48,6 +48,12 @@ namespace gridtools {
             return decreasing_stride_order<Layout, _N0, _N1, _N2>::straight_strides::template at_<I>::value;
         }
 
+        GT_FUNCTION
+        int offset(int i, int j, int k) const {
+            return _index(i,j,k);
+        }
+
+        GT_FUNCTION
         int _index(int i, int j, int k) const {
             return i*strides::template at_<0>::value + j*strides::template at_<1>::value + k*strides::template at_<2>::value;
         }

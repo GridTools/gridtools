@@ -95,6 +95,16 @@ namespace gridtools {
         static const int BJ = 4;
         static const int BK = 0;
 
+        template <typename ValueType, typename Layout>
+        struct storage_type {
+            typedef storage<ValueType, Layout> type;
+        };
+
+        template <typename ValueType, typename Layout>
+        struct temporary_storage_type {
+            typedef temporary<storage<ValueType, Layout> > type;
+        };
+
         template <typename FunctorList, // List of functors to execute (in order)
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>
                   typename LoopIntervals, // List of intervals on which functors are defined
