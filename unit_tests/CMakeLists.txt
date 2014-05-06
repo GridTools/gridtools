@@ -13,28 +13,27 @@ endif()
 add_test(tests.test_independent test-independent)
 
 if (GTEST_FOUND)
-   add_executable(tests tests.cpp test_domain_indices.cpp)
-   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-     set_target_properties(tests PROPERTIES COMPILE_FLAGS "/MTd")
-     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
-   else()
-     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread)
-   endif()
-   add_test(test.tests tests)
+  add_executable(tests tests.cpp test_domain_indices.cpp)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
+  else()
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread)
+  endif()
+  add_test(test.tests tests)
 
-    if (CUDA_FOUND)
-        cuda_add_executable( tests_gpu
-            tests.cu
-            test_domain.cu
-            test_cuda_storage.cu
-            test_hybrid_pointer.cu
-            gpu_clone.cu
-            cloningstuff.cu
-        )
-        target_link_libraries( tests_gpu ${GTEST_BOTH_LIBRARIES} )
-        add_test(tests.tests_gpu tests_gpu)
+  if (CUDA_FOUND)
+    cuda_add_executable( tests_gpu
+      tests.cu
+      test_domain.cu
+      test_cuda_storage.cu
+      test_hybrid_pointer.cu
+      gpu_clone.cu
+      cloningstuff.cu
+    )
+    target_link_libraries( tests_gpu ${GTEST_BOTH_LIBRARIES} )
+    add_test(tests.tests_gpu tests_gpu)
 
-        cuda_add_executable( cloning_derived cloning_derived.cu )
-        add_test( tests.cloning_derived cloning_derived)
-    endif()
+    cuda_add_executable( cloning_derived cloning_derived.cu )
+    add_test( tests.cloning_derived cloning_derived 42 )
+  endif()
 endif()

@@ -6,21 +6,31 @@ enable_language( CXX )
 
 enable_testing()
 
-set(EXECUTABLE_OUTPUT_PATH "../build")
+# Not sure why it's desirable to specify the build directory, but it seems
+# to break testing with MSVC, so disabling it conditionally.
+if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set(EXECUTABLE_OUTPUT_PATH "../build")
+endif()
 
 include_directories( include/ ) ## Library header files
-include_directories( ${GPU_ENABLED_FUSION} ) ## Library header files
+
+# Find boost
+find_package( Boost REQUIRED )
+
+# If the version is less than 1.56, we need a special version of Fusion
+if (Boost_VERSION LESS 105600)
+  set( GPU_ENABLED_FUSION "../fusion/include" CACHE STRING "Path to...")
+  include_directories( SYSTEM ${GPU_ENABLED_FUSION} ) ## Library header files
+endif()
 
 # include boost
-set( GPU_ENABLED_FUSION "../fusion/include" CACHE STRING "Path to...")
-find_package( Boost REQUIRED )
-include_directories( ${Boost_INCLUDE_DIRS} )
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 if( "${USE_GPU}" STREQUAL "ON" )
   find_package(CUDA REQUIRED)
-  include_directories(${CUDA_INCLUDE_DIRS})
+  include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
 else()
   set (CUDA_LIBRARIES "")
@@ -29,14 +39,14 @@ endif()
 # find GTest
 find_package(GTest)
 if (GTEST_FOUND)
-   include_directories(${GTEST_INCLUDE_DIRS})
+  include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
 else()
-   message("GTest not found. GTest targets will not be compiled. (Try setting GTEST_ROOT in the env.)")
+  message("GTest not found. GTest targets will not be compiled. (Try setting GTEST_ROOT in the env.)")
 endif()
 
 # Set some project-wide MSVC compile flags
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_VARIADIC_MAX=10")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_VARIADIC_MAX=10 /MTd")
 endif()
 
 add_subdirectory( examples )

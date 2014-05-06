@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     >::type FunctorDoMethods;
         
     std::cout << "Print the Functor0, Functor1 and Functor2 loop intervals:" << std::endl;
-    for_each<
+    gridtools::for_each<
         compute_loop_intervals<
             FunctorDoMethods,
             AxisInterval

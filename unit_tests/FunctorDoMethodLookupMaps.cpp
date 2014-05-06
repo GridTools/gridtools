@@ -105,7 +105,7 @@ struct PrintDoMethodLookupMap
         }
 
         // print the map
-        for_each<
+        gridtools::for_each<
             TLoopIntervals
         >(PrintLoopInterval<DoMethodLookUpMap>());
     }
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
     // print all loop intervals of functor 0, 1 and 2
     std::cout << "Print the Functor0, Functor1 and Functor2 do method lookup maps:" << std::endl;
-    for_each<
+    gridtools::for_each<
         boost::mpl::range_c<int, 0, boost::mpl::size<FunctorsDoMethods>::value>
     >(PrintDoMethodLookupMap<Functors, LoopIntervals, FunctorDoMethodLookupMaps>());
     std::cout << "Done!" << std::endl;

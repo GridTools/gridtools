@@ -257,7 +257,7 @@ namespace gridtools {
         
 #ifndef NDEBUG
             std::cout << "BEGIN TMPS" << std::endl;
-            for_each<list_of_temporaries>(_debug::print_index());
+            gridtools::for_each<list_of_temporaries>(_debug::print_index());
             std::cout << "END TMPS" << std::endl;
 #endif
         
@@ -274,15 +274,15 @@ namespace gridtools {
 
 #ifndef NDEBUG
             std::cout << "BEGIN TMPS/F" << std::endl;
-            for_each<temps_per_functor>(_debug::print_tmps());
+            gridtools::for_each<temps_per_functor>(_debug::print_tmps());
             std::cout << "END TMPS/F" << std::endl;
 
             std::cout << "BEGIN RANGES/F" << std::endl;
-            for_each<list_of_ranges>(_debug::print_ranges());
+            gridtools::for_each<list_of_ranges>(_debug::print_ranges());
             std::cout << "END RANGES/F" << std::endl;
 
             std::cout << "BEGIN Fs" << std::endl;
-            for_each<typename MssType::linear_esf>(_debug::print_ranges());
+            gridtools::for_each<typename MssType::linear_esf>(_debug::print_ranges());
             std::cout << "END Fs" << std::endl;
 #endif
         
