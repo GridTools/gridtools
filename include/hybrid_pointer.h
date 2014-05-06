@@ -44,7 +44,11 @@ namespace gridtools {
         hybrid_pointer(hybrid_pointer const& other)
             : cpu_p(other.cpu_p)
             , gpu_p(other.gpu_p)
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 3200)
             , pointer_to_use(gpu_p)
+#else
+            , pointer_to_use(cpu_p)
+#endif 
             , size(other.size)
         {
 #ifndef NDEBUG
