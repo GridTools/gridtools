@@ -59,26 +59,6 @@ namespace gridtools {
             }
         };
 
-        struct call_h2d {
-            template <typename Arg>
-            GT_FUNCTION
-            void operator()(Arg * arg) const {
-#ifndef __CUDA_ARCH__
-                arg->h2d_update();
-#endif
-            }
-        };
-
-        struct call_d2h {
-            template <typename Arg>
-            GT_FUNCTION
-            void operator()(Arg * arg) const {
-#ifndef __CUDA_ARCH__
-                arg->d2h_update();
-#endif
-            }
-        };
-
     } // namespace _impl
 
     template <typename Backend>
@@ -190,8 +170,7 @@ namespace gridtools {
         */
         template <typename Domain>
         static void finalize_computation(Domain & domain) {
-            boost::fusion::for_each(domain.original_pointers, _impl::call_d2h());
-            boost::fusion::copy(domain.original_pointers, domain.storage_pointers);
+            domain.finalize_computation();
         }
 
     };
