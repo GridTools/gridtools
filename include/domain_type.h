@@ -257,6 +257,11 @@ namespace gridtools {
             return GT_NO_ERRORS;
         }
 
+        void finalize_computation() {
+            boost::fusion::for_each(original_pointers, _impl::call_d2h());
+            boost::fusion::copy(original_pointers, storage_pointers);
+        }
+
         template <typename T>
         GT_FUNCTION
         typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&
