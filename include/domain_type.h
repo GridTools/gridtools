@@ -224,91 +224,7 @@ namespace gridtools {
             typedef boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
             tmp_view_type fview(storage_pointers);
-            boost::fusion::for_each(fview, _impl::delete_tmps());
-
-        }
-
-        /**
-         * This function is to be called by intermediate representation or back-end
-         * 
-         * @tparam MssType The multistage stencil type as passed to the back-end
-         * @tparam RangeSizes mpl::vector with the sizes of the extents of the 
-         *         access for each functor listed as linear_esf in MssType
-         * @tparam BackEnd This is not currently used and may be dropped in future
-         * 
-         * @param tileI Tile size in the first dimension as used by the back-end
-         * @param tileJ Tile size in the second dimension as used by the back-end
-         * @param tileK Tile size in the third dimension as used by the back-end
-         */
-        template <typename MssType, typename RangeSizes>
-        void prepare_temporaries(int tileI, int tileJ, int tileK) {
-#ifndef NDEBUG
-            std::cout << "Prepare ARGUMENTS" << std::endl;
-#endif
-
-            // Got to find temporary indices
-            typedef typename boost::mpl::fold<placeholders,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                   is_plchldr_to_temp<boost::mpl::_2>,
-                       boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-                       boost::mpl::_1>
-                >::type list_of_temporaries;
-        
-#ifndef NDEBUG
-            std::cout << "BEGIN TMPS" << std::endl;
-            for_each<list_of_temporaries>(_debug::print_index());
-            std::cout << "END TMPS" << std::endl;
-#endif
-        
-            // Compute a vector of vectors of temp indices of temporaris initialized by each functor
-            typedef typename boost::mpl::fold<typename MssType::linear_esf,
-                    boost::mpl::vector<>,
-                    boost::mpl::push_back<boost::mpl::_1, _impl::get_temps_per_functor<boost::mpl::_2> >
-                    >::type temps_per_functor;
-
-             typedef typename boost::mpl::transform<
-                list_of_temporaries,
-                _impl::associate_ranges<temps_per_functor, RangeSizes>
-                >::type list_of_ranges;
-
-#ifndef NDEBUG
-            std::cout << "BEGIN TMPS/F" << std::endl;
-            for_each<temps_per_functor>(_debug::print_tmps());
-            std::cout << "END TMPS/F" << std::endl;
-
-            std::cout << "BEGIN RANGES/F" << std::endl;
-            for_each<list_of_ranges>(_debug::print_ranges());
-            std::cout << "END RANGES/F" << std::endl;
-
-            std::cout << "BEGIN Fs" << std::endl;
-            for_each<typename MssType::linear_esf>(_debug::print_ranges());
-            std::cout << "END Fs" << std::endl;
-#endif
-        
-            typedef boost::fusion::filter_view<arg_list, 
-                is_temporary_storage<boost::mpl::_> > tmp_view_type;
-            tmp_view_type fview(storage_pointers);
-
-#ifndef NDEBUG
-            std::cout << "BEGIN VIEW" << std::endl;
-            boost::fusion::for_each(fview, _debug::print_view());
-            std::cout << "END VIEW" << std::endl;
-#endif
-        
-            list_of_ranges lor;
-            typedef boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
-            zipper zzip(fview, lor);
-            boost::fusion::zip_view<zipper> zip(zzip); 
-            boost::fusion::for_each(zip, _impl::instantiate_tmps(tileI, tileJ, tileK));
-
-#ifndef NDEBUG
-            std::cout << "BEGIN VIEW DOPO" << std::endl;
-            boost::fusion::for_each(fview, _debug::print_view_());
-            std::cout << "END VIEW DOPO" << std::endl;
-#endif        
-
-            is_ready = true;
+            //boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
         /**
@@ -339,15 +255,6 @@ namespace gridtools {
             }
 
             return GT_NO_ERRORS;
-        }
-
-        /**
-           This function calls d2h_update on all storages, in order to
-           get the data back to the host after a computation.
-        */
-        void finalize_computation() {
-            boost::fusion::for_each(original_pointers, _impl::call_d2h());
-            boost::fusion::copy(original_pointers, storage_pointers);
         }
 
         template <typename T>
