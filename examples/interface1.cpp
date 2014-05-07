@@ -155,6 +155,12 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 }
 
 int main(int argc, char** argv) {
+
+    if (argc != 4) {
+        std::cout << "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+        return 1;
+    }
+
     int d1 = atoi(argv[1]);
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
