@@ -5,6 +5,7 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/range_c.hpp>
 #include "level.h"
+#include "host_device.h"
 
 namespace gridtools {
     /**

@@ -224,7 +224,6 @@ namespace gridtools {
             typedef boost::fusion::filter_view<arg_list, 
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
             tmp_view_type fview(storage_pointers);
-            //boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
         /**

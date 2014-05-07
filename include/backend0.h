@@ -1,5 +1,18 @@
 #pragma once
 
+#include <iostream>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/vector/vector0.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/fusion/include/at.hpp>
+
 namespace gridtools {
     namespace _impl {
         template <typename Interval, typename FunctorList, typename FunctorsMap, typename DomainList>
