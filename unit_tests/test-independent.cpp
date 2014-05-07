@@ -1,17 +1,17 @@
 #include <iostream>
-#include "gt_assert.h"
-#include "make_stencils.h"
-#include "arg_type.h"
-#include "storage.h"
-#include "execution_types.h"
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
-#include "range.h"
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
+#include "gt_assert.h"
+#include "make_stencils.h"
+#include "arg_type.h"
+#include "storage.h"
+#include "execution_types.h"
+#include "range.h"
 #include "intermediate.h"
 
 using namespace gridtools;

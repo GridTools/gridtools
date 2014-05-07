@@ -1,5 +1,8 @@
+#include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
+#include <iomanip>
 #include <gpu_clone.h>
 #include <hybrid_pointer.h>
 
@@ -67,6 +70,18 @@ void print_on_gpu(the_type * ptr) {
 
 int main(int argc, char** argv) {
 
+    if(argc < 2) {
+        printf("ERROR: must pass a buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    char *pend = 0;
+    int buffer_size = strtol(argv[1], &pend, 10);
+    if(buffer_size == 0 || pend == 0 || *pend != '\0' || errno == ERANGE) {
+        printf("ERROR: invalid buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
     SIZE(int);
     SIZE(int*);
     SIZE(derived<int>*);
@@ -75,11 +90,15 @@ int main(int argc, char** argv) {
     SIZE(hybrid_pointer<int>);
 
     std::cout << "Initialize" << std::endl;
+    int res = EXIT_SUCCESS;
 
-    derived<int> a(atoi(argv[1]));
+    derived<int> a(buffer_size);
+    for(int i = 0; i < a.data.size; ++i) {
+        if(a.data[i] != buffer_size - i)
+            res = EXIT_FAILURE;
+    }
 
     a.clone_to_gpu();
-
     a.data.update_gpu();
 
     std::cout << "Printing Beginning " << std::hex
@@ -92,15 +111,27 @@ int main(int argc, char** argv) {
               << std::endl;
 
     printwhatever(&a);
+    for(int i = 0; i < a.data.size; ++i) {
+        if(a.data[i] != buffer_size - i)
+            res = EXIT_FAILURE;
+    }
 
     print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
+    for(int i = 0; i < a.data.size; ++i) {
+        if(a.data[i] != buffer_size - i)
+            res = EXIT_FAILURE;
+    }
 
     std::cout << "Synchronize" << std::endl;
     cudaDeviceSynchronize();
     a.clone_from_gpu();
     a.data.update_cpu();
 
-    //    printwhatever(&a);
+    printwhatever(&a);
+    for(int i = 0; i < a.data.size; ++i) {
+        if(a.data[i] != buffer_size - i + 1)
+            res = EXIT_FAILURE;
+    }
 
     std::cout << "Printing End " << std::hex
               << a.data.cpu_p << " "
@@ -111,5 +142,5 @@ int main(int argc, char** argv) {
               << std::dec
               << std::endl;
 
-    return 0;
+    return res;
 }
