@@ -8,6 +8,7 @@
 #include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.h"
 #include "cuda_storage.h"
+#include "heap_allocated_temps.h"
 
 namespace gridtools {
     namespace _impl_cuda {
@@ -126,7 +127,7 @@ namespace gridtools {
         };
     }
 
-    struct backend_cuda {
+    struct backend_cuda: public heap_allocated_temps<backend_cuda> {
         static const int BI = 0;
         static const int BJ = 0;
         static const int BK = 0;
