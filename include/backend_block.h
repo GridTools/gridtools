@@ -6,6 +6,7 @@
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/back.hpp>
 #include "basic_token_execution.h"
+#include "heap_allocated_temps.h"
 
 namespace gridtools {
     namespace _impl {
@@ -90,7 +91,7 @@ namespace gridtools {
     }
 
 
-    struct backend_block {
+    struct backend_block: public heap_allocated_temps<backend_block> {
         static const int BI = 4;
         static const int BJ = 4;
         static const int BK = 0;
