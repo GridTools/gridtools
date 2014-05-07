@@ -337,42 +337,10 @@ namespace gridtools {
             std::cout << "end2" <<std::endl;
 #endif
 
-            tileI = (Backend::BI)?
-                (Backend::BI):
-                (coords.i_high_bound()-coords.i_low_bound()+1);
-        
-            tileJ = (Backend::BJ)?
-                (Backend::BJ):
-                (coords.j_high_bound()-coords.j_low_bound()+1);
-
-#ifndef NDEBUG
-            std::cout << "tileI " << tileI << " "
-                      << "tileK " << tileJ
-                      << std::endl;
-#endif
-
-            /*******
-                    The following couple of calls should be decoupled from <run>
-                    since it may be costly to do that work everytime a stencil
-                    is executed.
-             *******/
-            // Prepare domain's temporary fields to proper storage sizes
-            // domain.template prepare_temporaries<MssType, range_sizes>
-            //     (tileI,
-            //      tileJ, 
-            //      coords.value_at_top()-coords.value_at_bottom()+1);
-
-            // domain.setup_computation();
-            // // Now run!
-            // Backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(domain, coords, local_domain_list);
-            // domain.finalize_computation();
         }    
 
         void ready () {
-            m_domain.template prepare_temporaries<MssType, range_sizes>
-                (tileI,
-                 tileJ, 
-                 m_coords.value_at_top()-m_coords.value_at_bottom());
+            Backend::template prepare_temporaries<MssType, range_sizes>(m_domain, m_coords);
         }
 
         void steady () {
@@ -389,16 +357,12 @@ namespace gridtools {
         }
 
         void finalize () {
-            m_domain.finalize_computation();
+            Backend::finalize_computation(m_domain);
         }
 
         void run () {
             Backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
         }
-
-    private:
-        int tileI, tileJ;
-
 
     };
 
