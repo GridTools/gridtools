@@ -1,6 +1,6 @@
 #pragma once
 
-#include <host_device.h>
+#include "host_device.h"
 
 namespace gridtools {
     GT_FUNCTION

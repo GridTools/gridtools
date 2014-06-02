@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gt_assert.h>
+#include "gt_assert.h"
 #include <iostream>
 #include <stdio.h>
 #include <boost/current_function.hpp>
