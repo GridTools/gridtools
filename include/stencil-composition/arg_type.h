@@ -1,7 +1,7 @@
 #pragma once
 
-#include "storage.h"
-#include "layout_map.h"
+#include "../storage/storage.h"
+#include "../common/layout_map.h"
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
 

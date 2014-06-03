@@ -6,13 +6,13 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
-#include "gt_assert.h"
-#include "make_stencils.h"
-#include "arg_type.h"
-#include "storage.h"
-#include "execution_types.h"
-#include "range.h"
-#include "intermediate.h"
+#include <common/gt_assert.h>
+#include <stencil-composition/make_stencils.h>
+#include <stencil-composition/arg_type.h>
+#include <storage/storage.h>
+#include <stencil-composition/execution_types.h>
+#include <stencil-composition/range.h>
+#include <stencil-composition/intermediate.h>
 
 using namespace gridtools;
 
