@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <iomanip>
-#include <gpu_clone.h>
-#include <hybrid_pointer.h>
+#include <common/gpu_clone.h>
+#include <storage/hybrid_pointer.h>
 
 using namespace gridtools;
 #define _BLABLA(y) #y

@@ -1,10 +1,10 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #include <stdio.h>
-#include <gt_assert.h>
-#include <arg_type.h>
-#include <domain_type.h>
-#include <storage.h>
+#include <common/gt_assert.h>
+#include <stencil-composition/arg_type.h>
+#include <stencil-composition/domain_type.h>
+#include <storage/storage.h>
 #include <boost/mpl/for_each.hpp>
 #include <boost/current_function.hpp>
 

@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <gpu_clone.h>
-#include <hybrid_pointer.h>
-#include <cuda_storage.h>
-#include <layout_map.h>
+#include <common/gpu_clone.h>
+#include <storage/hybrid_pointer.h>
+#include <storage/cuda_storage.h>
+#include <common/layout_map.h>
 
 #ifdef __CUDACC__
 template <typename T>

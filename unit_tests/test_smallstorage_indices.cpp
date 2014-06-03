@@ -1,4 +1,4 @@
-#include <small_storage.h>
+#include <storage/small_storage.h>
 #include <iostream>
 
 #define PRINT(x) std::cout << #x << " " << x << std::endl

@@ -1,7 +1,7 @@
-#include <gpu_clone.h>
+#include <common/gpu_clone.h>
 #include <stdio.h>
 #include <string.h>
-#include <hybrid_pointer.h>
+#include <storage/hybrid_pointer.h>
 #include <algorithm>
 
 #ifndef __CUDACC__

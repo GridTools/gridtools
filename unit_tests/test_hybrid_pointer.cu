@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <gpu_clone.h>
-#include <hybrid_pointer.h>
+#include <common/gpu_clone.h>
+#include <storage/hybrid_pointer.h>
 
 struct A: gridtools::clonable_to_gpu<A> {
     gridtools::hybrid_pointer<int> p;
