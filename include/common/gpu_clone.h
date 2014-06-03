@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <new>
-#include "host_device.h"
+#include "../common/host_device.h"
 #include <string>
 #include <boost/type_traits/integral_constant.hpp>
 

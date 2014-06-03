@@ -4,7 +4,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/find_if.hpp>
-#include "storage.h"
+#include "../storage/storage.h"
 #include "basic_token_execution.h"
 #include "heap_allocated_temps.h"
 

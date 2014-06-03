@@ -1,6 +1,6 @@
 #pragma once
-#include "basic_utils.h"
-#include "gpu_clone.h"
+#include "../common/basic_utils.h"
+#include "../common/gpu_clone.h"
 
 namespace gridtools {
 

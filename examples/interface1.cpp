@@ -1,4 +1,4 @@
-#include <stencil-composition/gridtools.h>
+#include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else

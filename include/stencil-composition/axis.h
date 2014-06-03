@@ -3,8 +3,8 @@
 #include <boost/mpl/minus.hpp>
 #include <boost/mpl/plus.hpp>
 #include "loopintervals.h"
-#include "array.h"
-#include "gpu_clone.h"
+#include "../common/array.h"
+#include "../common/gpu_clone.h"
 
 namespace gridtools {
     template <typename MinLevel, typename MaxLevel>

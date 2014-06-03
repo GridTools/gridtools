@@ -1,9 +1,9 @@
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
-#include <backend_cuda.h>
+#include <stencil-composition/backend_cuda.h>
 #else
-#include <backend_block.h>
-#include <backend_naive.h>
+#include <stencil-composition/backend_block.h>
+#include <stencil-composition/backend_naive.h>
 #endif
 
 #include <stdio.h>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "defs.h"
-#include "gt_assert.h"
+#include "../common/defs.h"
+#include "../common/gt_assert.h"
 
 #include <stdio.h>
 #include <boost/mpl/vector.hpp>
@@ -38,8 +38,8 @@
 #include <boost/type_traits/remove_reference.hpp>
 
 #include "arg_type.h"
-#include "storage.h"
-#include "layout_map.h"
+#include "../storage/storage.h"
+#include "../common/layout_map.h"
 #include "domain_type_impl.h"
 
 namespace gridtools {

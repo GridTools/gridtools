@@ -20,7 +20,7 @@ namespace gridtools {
     using boost::mpl::for_each;
 }
 #else
-#include "../stencil-composition/host_device.h"
+#include "../common/host_device.h"
 #define BOOST_MPL_GPU_ENABLED __host__ __device__
 
 #include <boost/static_assert.hpp>

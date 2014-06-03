@@ -15,7 +15,7 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/value_at.hpp>
 #include "basic_token_execution.h"
-#include "cuda_storage.h"
+#include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 
 namespace gridtools {

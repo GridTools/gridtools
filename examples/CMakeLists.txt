@@ -10,6 +10,11 @@ add_executable(interface1_block   interface1.cpp )
 set_target_properties(interface1_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
 
+add_executable(boundary-condition_naive   boundary-condition.cpp )
+add_executable(boundary-condition_block   boundary-condition.cpp )
+set_target_properties(boundary-condition_block
+        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+
 add_executable(laplacian_naive   laplacian.cpp )
 add_executable(laplacian_block   laplacian.cpp )
 set_target_properties(laplacian_block
