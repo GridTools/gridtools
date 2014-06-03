@@ -1,7 +1,7 @@
 #pragma once
 
-#include "layout_map.h"
-#include "array.h"
+#include "../common/layout_map.h"
+#include "../common/array.h"
 
 namespace gridtools {
 
