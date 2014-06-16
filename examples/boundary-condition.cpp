@@ -20,80 +20,23 @@
 #endif
 #endif
 
-// struct bc_input {
-//     template <int I, int J, int K> // relative coordinates
-//     struct apply {
-//         template <typename DataField>
-//         void operator()(DataField & data_field, int i, int j, int k) const {
-//             printf("General implementation\n");
-//             data_field(i,j,k) = -1;
-//         }
-//     };
-
-//     template <int I, int K> // relative coordinates
-//     struct apply<I, -1, K> {
-//         template <typename DataField>
-//             void operator()(DataField & data_field, int i, int j, int k) const {
-//             printf("Implementation going on J upward\n");
-//             data_field(i,j,k) = 88;
-//         }
-//     };
-
-//     template <int K> // relative coordinates
-//     struct apply<-1, -1, K> {
-//         template <typename DataField>
-//             void operator()(DataField & data_field, int i, int j, int k) const {
-//             printf("Implementation going on J upward\n");
-//             data_field(i,j,k) = 77777;
-//         }
-//     };
-// }
-
-struct bc_input {
-    template <int I, int J, int K, typename dummy=void> // relative coordinates
-    struct apply {
-        template <typename DataField>
-        void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("General implementation\n");
-            data_field(i,j,k) = -1;
-        }
-    };
-
-    template <int I, int K, typename dummy> // relative coordinates
-    struct apply<I, -1, K, dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 88;
-        }
-    };
-
-    template <int K, typename dummy> // relative coordinates
-    struct apply<-1, -1, K, dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 77777;
-        }
-    };
-
-    template <typename dummy> // relative coordinates
-    struct apply<-1, -1, -1,dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 55555;
-        }
-    };
+enum sign {any=-2, minus=-1, zero, plus};
+template <sign _I, sign _J, sign _K>
+struct direction {
+    static const sign I = _I;
+    static const sign J = _J;
+    static const sign K = _K;
+    // operator direction<any, any>() const {
+    //     return direction<any, any>();
+    // }
 };
-
 
 namespace gridtools {
     template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3> >
-    struct boundary_apply {
+    struct naive_boundary_apply {
         HaloDescriptors halo_descriptors;
 
-        boundary_apply(HaloDescriptors const& hd)
+        naive_boundary_apply(HaloDescriptors const& hd)
             : halo_descriptors(hd)
         {}
 
@@ -154,7 +97,238 @@ namespace gridtools {
             loop<DataField,  1, 1, 1>(data_field);
         }
     };
+
+    template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3> >
+    struct direction_boundary_apply {
+        HaloDescriptors halo_descriptors;
+
+        direction_boundary_apply(HaloDescriptors const& hd)
+            : halo_descriptors(hd)
+        {}
+
+        template <typename DataField, typename Direction>
+        void loop(DataField & data_field) const {
+            for (int i=halo_descriptors[0].loop_low_bound_outside(Direction::I);
+                 i<=halo_descriptors[0].loop_high_bound_outside(Direction::I);
+                 ++i) {
+                for (int j=halo_descriptors[1].loop_low_bound_outside(Direction::J);
+                     j<=halo_descriptors[1].loop_high_bound_outside(Direction::J);
+                     ++j) {
+                    for (int k=halo_descriptors[2].loop_low_bound_outside(Direction::K);
+                         k<=halo_descriptors[2].loop_high_bound_outside(Direction::K);
+                         ++k) {
+                        typename BoundaryFunction:: template apply<Direction>()(data_field,i,j,k);
+                    }
+                }
+            }
+        }
+
+        template <typename DataField>
+        void apply(DataField & data_field) const {
+      
+            loop<DataField, direction<minus,minus,minus> >(data_field);
+            loop<DataField, direction<minus,minus, zero> >(data_field);
+            loop<DataField, direction<minus,minus, plus> >(data_field);
+
+            loop<DataField, direction<minus, zero,minus> >(data_field);
+            loop<DataField, direction<minus, zero, zero> >(data_field);
+            loop<DataField, direction<minus, zero, plus> >(data_field);
+	  
+            loop<DataField, direction<minus, plus,minus> >(data_field);
+            loop<DataField, direction<minus, plus, zero> >(data_field);
+            loop<DataField, direction<minus, plus, plus> >(data_field);
+
+            loop<DataField, direction< zero,minus,minus> >(data_field);
+            loop<DataField, direction< zero,minus, zero> >(data_field);
+            loop<DataField, direction< zero,minus, plus> >(data_field);
+
+            //     loop<DataField, direction< zero, zero,minus> >(data_field);
+            //     loop<DataField, direction< zero, zero, zero> >(data_field);
+            //     loop<DataField, direction< zero, zero, plus> >(data_field);
+	  
+            loop<DataField, direction< zero, plus,minus> >(data_field);
+            loop<DataField, direction< zero, plus, zero> >(data_field);
+            loop<DataField, direction< zero, plus, plus> >(data_field);
+
+            loop<DataField, direction< plus,minus,minus> >(data_field);
+            loop<DataField, direction< plus,minus, zero> >(data_field);
+            loop<DataField, direction< plus,minus, plus> >(data_field);
+
+            loop<DataField, direction< plus, zero,minus> >(data_field);
+            loop<DataField, direction< plus, zero, zero> >(data_field);
+            loop<DataField, direction< plus, zero, plus> >(data_field);
+	  
+            loop<DataField, direction< plus, plus,minus> >(data_field);
+            loop<DataField, direction< plus, plus, zero> >(data_field);
+            loop<DataField, direction< plus, plus, plus> >(data_field);
+        }
+    };
 } // namespace gridtools
+
+
+// struct bc_input {
+//     template <int I, int J, int K> // relative coordinates
+//     struct apply {
+//         template <typename DataField>
+//         void operator()(DataField & data_field, int i, int j, int k) const {
+//             printf("General implementation\n");
+//             data_field(i,j,k) = -1;
+//         }
+//     };
+
+//     template <int I, int K> // relative coordinates
+//     struct apply<I, -1, K> {
+//         template <typename DataField>
+//             void operator()(DataField & data_field, int i, int j, int k) const {
+//             printf("Implementation going on J upward\n");
+//             data_field(i,j,k) = 88;
+//         }
+//     };
+
+//     template <int K> // relative coordinates
+//     struct apply<-1, -1, K> {
+//         template <typename DataField>
+//             void operator()(DataField & data_field, int i, int j, int k) const {
+//             printf("Implementation going on J upward\n");
+//             data_field(i,j,k) = 77777;
+//         }
+//     };
+// }
+
+
+template <typename T>
+struct naive_bc_input {
+
+    template <int I, int J, int K, typename dummy=void> // relative coordinates
+    struct apply {
+        template <typename DataField>
+        void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("General implementation\n");
+            data_field(i,j,k) = -1;
+        }
+    };
+
+    template <int I, int K, typename dummy> // relative coordinates
+    struct apply<I, -1, K, dummy> {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going on J upward\n");
+            data_field(i,j,k) = 88;
+        }
+    };
+
+    template <int K, typename dummy> // relative coordinates
+    struct apply<-1, -1, K, dummy> {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going on J upward\n");
+            data_field(i,j,k) = 77777;
+        }
+    };
+
+    template <typename dummy> // relative coordinates
+    struct apply<-1, -1, -1,dummy> {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going on J upward\n");
+            data_field(i,j,k) = 55555;
+        }
+    };
+
+};
+
+template <typename T>
+struct direction_bc_input {
+
+    template <typename AnyDirection, typename Dummy = void> // relative coordinates
+    struct apply {
+        template <typename DataField>
+        void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("General implementation AAA\n");
+            data_field(i,j,k) = -1;
+        }
+    };
+
+    template <sign I, sign K, typename Dummy> // relative coordinates
+    struct apply<direction<I, minus, K>, Dummy > {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going A-A\n");
+            data_field(i,j,k) = 88;
+        }
+    };
+
+    template <int K, typename Dummy> // relative coordinates
+    struct apply<direction<minus, minus, K>, Dummy > {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going --A\n");
+            data_field(i,j,k) = 77777;
+        }
+    };
+
+    template <typename Dummy>
+    struct apply<direction<minus, minus, minus>, Dummy > {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going ---\n");
+            data_field(i,j,k) = 55555;
+        }
+    };
+
+};
+
+
+template <typename T>
+struct bc_input {
+
+    T data;
+
+    explicit bc_input(T a)
+        : data(a)
+    {}
+
+    template <int I, int J, int K, typename dummy=void> // relative coordinates
+    struct apply {
+        template <typename DataField>
+        void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("General implementation\n");
+            data_field(i,j,k) = -1;
+        }
+    };
+
+    template <int I, int K, typename dummy> // relative coordinates
+    struct apply<I, -1, K, dummy> {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going on J upward\n");
+            data_field(i,j,k) = 88;
+        }
+    };
+
+    template <int K, typename dummy> // relative coordinates
+    struct apply<-1, -1, K, dummy> {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going on J upward\n");
+            data_field(i,j,k) = 77777;
+        }
+    };
+
+    template <typename dummy> // relative coordinates
+    struct apply<-1, -1, -1,dummy> {
+        template <typename DataField>
+            void operator()(DataField & data_field, int i, int j, int k) const {
+            printf("Implementation going on J upward\n");
+            data_field(i,j,k) = 55555;
+        }
+    };
+
+private:
+    bc_input();
+};
+
+
 
 int main(int argc, char** argv) {
     if (argc != 4) {
@@ -166,7 +340,7 @@ int main(int argc, char** argv) {
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
@@ -183,7 +357,8 @@ int main(int argc, char** argv) {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-    gridtools::boundary_apply<bc_input>(halos).apply(in);
+    gridtools::naive_boundary_apply<naive_bc_input<int> >(naive_bc_input(1000), halos).apply(in);
+    gridtools::direction_boundary_apply<direction_bc_input<int> >(halos).apply(in);
 
     for (int i=0; i<d1; ++i) {
         for (int j=0; j<d2; ++j) {
