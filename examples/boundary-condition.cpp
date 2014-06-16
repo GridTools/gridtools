@@ -26,78 +26,14 @@ struct direction {
     static const sign I = _I;
     static const sign J = _J;
     static const sign K = _K;
-    // operator direction<any, any>() const {
-    //     return direction<any, any>();
-    // }
 };
 
+#define CALL_DIRECTION(x,y,z)                                           \
+    std::cout << "<" << #x << "," << #y << "," << #z << ">" << " calling : "; \
+    loop<DataField, direction<x,y,z> >(data_field);
+ 
+
 namespace gridtools {
-    template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3> >
-    struct naive_boundary_apply {
-        HaloDescriptors halo_descriptors;
-
-        naive_boundary_apply(HaloDescriptors const& hd)
-            : halo_descriptors(hd)
-        {}
-
-        template <typename DataField, int I, int J, int K>
-        void loop(DataField & data_field) const {
-            for (int i=halo_descriptors[0].loop_low_bound_outside(I);
-                 i<=halo_descriptors[0].loop_high_bound_outside(I);
-                 ++i) {
-                for (int j=halo_descriptors[1].loop_low_bound_outside(J);
-                     j<=halo_descriptors[1].loop_high_bound_outside(J);
-                     ++j) {
-                    for (int k=halo_descriptors[2].loop_low_bound_outside(K);
-                         k<=halo_descriptors[2].loop_high_bound_outside(K);
-                         ++k) {
-                        typename BoundaryFunction:: template apply<I,J,K>()(data_field,i,j,k);
-                    }
-                }
-            }
-        }
-
-        template <typename DataField>
-        void apply(DataField & data_field) const {
-      
-            loop<DataField, -1,-1,-1>(data_field);
-            loop<DataField, -1,-1, 0>(data_field);
-            loop<DataField, -1,-1, 1>(data_field);
-
-            loop<DataField, -1, 0,-1>(data_field);
-            loop<DataField, -1, 0, 0>(data_field);
-            loop<DataField, -1, 0, 1>(data_field);
-	  
-            loop<DataField, -1, 1,-1>(data_field);
-            loop<DataField, -1, 1, 0>(data_field);
-            loop<DataField, -1, 1, 1>(data_field);
-
-            loop<DataField,  0,-1,-1>(data_field);
-            loop<DataField,  0,-1, 0>(data_field);
-            loop<DataField,  0,-1, 1>(data_field);
-
-            //     loop<DataField,  0, 0,-1>(data_field);
-            //     loop<DataField,  0, 0, 0>(data_field);
-            //     loop<DataField,  0, 0, 1>(data_field);
-	  
-            loop<DataField,  0, 1,-1>(data_field);
-            loop<DataField,  0, 1, 0>(data_field);
-            loop<DataField,  0, 1, 1>(data_field);
-
-            loop<DataField,  1,-1,-1>(data_field);
-            loop<DataField,  1,-1, 0>(data_field);
-            loop<DataField,  1,-1, 1>(data_field);
-
-            loop<DataField,  1, 0,-1>(data_field);
-            loop<DataField,  1, 0, 0>(data_field);
-            loop<DataField,  1, 0, 1>(data_field);
-	  
-            loop<DataField,  1, 1,-1>(data_field);
-            loop<DataField,  1, 1, 0>(data_field);
-            loop<DataField,  1, 1, 1>(data_field);
-        }
-    };
-
     template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3> >
     struct direction_boundary_apply {
         HaloDescriptors halo_descriptors;
@@ -125,42 +61,42 @@ namespace gridtools {
 
         template <typename DataField>
         void apply(DataField & data_field) const {
-      
-            loop<DataField, direction<minus,minus,minus> >(data_field);
-            loop<DataField, direction<minus,minus, zero> >(data_field);
-            loop<DataField, direction<minus,minus, plus> >(data_field);
 
-            loop<DataField, direction<minus, zero,minus> >(data_field);
-            loop<DataField, direction<minus, zero, zero> >(data_field);
-            loop<DataField, direction<minus, zero, plus> >(data_field);
+            CALL_DIRECTION(minus,minus,minus);
+            CALL_DIRECTION(minus,minus, zero);
+            CALL_DIRECTION(minus,minus, plus);
+
+            CALL_DIRECTION(minus, zero,minus);
+            CALL_DIRECTION(minus, zero, zero);
+            CALL_DIRECTION(minus, zero, plus);
 	  
-            loop<DataField, direction<minus, plus,minus> >(data_field);
-            loop<DataField, direction<minus, plus, zero> >(data_field);
-            loop<DataField, direction<minus, plus, plus> >(data_field);
+            CALL_DIRECTION(minus, plus,minus);
+            CALL_DIRECTION(minus, plus, zero);
+            CALL_DIRECTION(minus, plus, plus);
 
-            loop<DataField, direction< zero,minus,minus> >(data_field);
-            loop<DataField, direction< zero,minus, zero> >(data_field);
-            loop<DataField, direction< zero,minus, plus> >(data_field);
+            CALL_DIRECTION( zero,minus,minus);
+            CALL_DIRECTION( zero,minus, zero);
+            CALL_DIRECTION( zero,minus, plus);
 
-            //     loop<DataField, direction< zero, zero,minus> >(data_field);
-            //     loop<DataField, direction< zero, zero, zero> >(data_field);
-            //     loop<DataField, direction< zero, zero, plus> >(data_field);
+            CALL_DIRECTION( zero, zero,minus);
+            //     CALL_DIRECTION( zero, zero, zero);
+            CALL_DIRECTION( zero, zero, plus);
 	  
-            loop<DataField, direction< zero, plus,minus> >(data_field);
-            loop<DataField, direction< zero, plus, zero> >(data_field);
-            loop<DataField, direction< zero, plus, plus> >(data_field);
+            CALL_DIRECTION( zero, plus,minus);
+            CALL_DIRECTION( zero, plus, zero);
+            CALL_DIRECTION( zero, plus, plus);
 
-            loop<DataField, direction< plus,minus,minus> >(data_field);
-            loop<DataField, direction< plus,minus, zero> >(data_field);
-            loop<DataField, direction< plus,minus, plus> >(data_field);
+            CALL_DIRECTION( plus,minus,minus);
+            CALL_DIRECTION( plus,minus, zero);
+            CALL_DIRECTION( plus,minus, plus);
 
-            loop<DataField, direction< plus, zero,minus> >(data_field);
-            loop<DataField, direction< plus, zero, zero> >(data_field);
-            loop<DataField, direction< plus, zero, plus> >(data_field);
+            CALL_DIRECTION( plus, zero,minus);
+            CALL_DIRECTION( plus, zero, zero);
+            CALL_DIRECTION( plus, zero, plus);
 	  
-            loop<DataField, direction< plus, plus,minus> >(data_field);
-            loop<DataField, direction< plus, plus, zero> >(data_field);
-            loop<DataField, direction< plus, plus, plus> >(data_field);
+            CALL_DIRECTION( plus, plus,minus);
+            CALL_DIRECTION( plus, plus, zero);
+            CALL_DIRECTION( plus, plus, plus);
         }
     };
 } // namespace gridtools
@@ -197,54 +133,13 @@ namespace gridtools {
 
 
 template <typename T>
-struct naive_bc_input {
-
-    template <int I, int J, int K, typename dummy=void> // relative coordinates
-    struct apply {
-        template <typename DataField>
-        void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("General implementation\n");
-            data_field(i,j,k) = -1;
-        }
-    };
-
-    template <int I, int K, typename dummy> // relative coordinates
-    struct apply<I, -1, K, dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 88;
-        }
-    };
-
-    template <int K, typename dummy> // relative coordinates
-    struct apply<-1, -1, K, dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 77777;
-        }
-    };
-
-    template <typename dummy> // relative coordinates
-    struct apply<-1, -1, -1,dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 55555;
-        }
-    };
-
-};
-
-template <typename T>
 struct direction_bc_input {
 
     template <typename AnyDirection, typename Dummy = void> // relative coordinates
     struct apply {
         template <typename DataField>
         void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("General implementation AAA\n");
+            std::cout << "General implementation AAA" << std::endl;
             data_field(i,j,k) = -1;
         }
     };
@@ -253,16 +148,16 @@ struct direction_bc_input {
     struct apply<direction<I, minus, K>, Dummy > {
         template <typename DataField>
             void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going A-A\n");
+            std::cout << "Implementation going A-A" << std::endl;
             data_field(i,j,k) = 88;
         }
     };
 
-    template <int K, typename Dummy> // relative coordinates
+    template <sign K, typename Dummy> // relative coordinates
     struct apply<direction<minus, minus, K>, Dummy > {
         template <typename DataField>
             void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going --A\n");
+            std::cout << "Implementation going --A" << std::endl;
             data_field(i,j,k) = 77777;
         }
     };
@@ -271,61 +166,11 @@ struct direction_bc_input {
     struct apply<direction<minus, minus, minus>, Dummy > {
         template <typename DataField>
             void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going ---\n");
+            std::cout << "Implementation going ---" << std::endl;
             data_field(i,j,k) = 55555;
         }
     };
 
-};
-
-
-template <typename T>
-struct bc_input {
-
-    T data;
-
-    explicit bc_input(T a)
-        : data(a)
-    {}
-
-    template <int I, int J, int K, typename dummy=void> // relative coordinates
-    struct apply {
-        template <typename DataField>
-        void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("General implementation\n");
-            data_field(i,j,k) = -1;
-        }
-    };
-
-    template <int I, int K, typename dummy> // relative coordinates
-    struct apply<I, -1, K, dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 88;
-        }
-    };
-
-    template <int K, typename dummy> // relative coordinates
-    struct apply<-1, -1, K, dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 77777;
-        }
-    };
-
-    template <typename dummy> // relative coordinates
-    struct apply<-1, -1, -1,dummy> {
-        template <typename DataField>
-            void operator()(DataField & data_field, int i, int j, int k) const {
-            printf("Implementation going on J upward\n");
-            data_field(i,j,k) = 55555;
-        }
-    };
-
-private:
-    bc_input();
 };
 
 
@@ -352,18 +197,27 @@ int main(int argc, char** argv) {
             for (int k=0; k<d3; ++k)
                 in(i,j,k) = 0.0;
 
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-    gridtools::naive_boundary_apply<naive_bc_input<int> >(naive_bc_input(1000), halos).apply(in);
     gridtools::direction_boundary_apply<direction_bc_input<int> >(halos).apply(in);
 
     for (int i=0; i<d1; ++i) {
         for (int j=0; j<d2; ++j) {
             for (int k=0; k<d3; ++k) {
-                printf("%e ", in(i,j,k));
+                printf("%d ", in(i,j,k));
             }
             printf("\n");
         }
