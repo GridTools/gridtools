@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -6,9 +9,7 @@
 #include <stencil-composition/backend_naive.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
+#include "./timer.h"
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -138,17 +139,9 @@ int main(int argc, char** argv) {
     domain.clone_to_gpu();
     printf("CLONED\n");
 
-    struct timeval start_tv;
-    struct timeval stop_tv;
-    gettimeofday(&start_tv, NULL);
-
+    timer time;
     horizontal_diffusion->run();
-
-    gettimeofday(&stop_tv, NULL);
-    double lapse_time = ((static_cast<double>(stop_tv.tv_sec)+
-                          1/1.e6*static_cast<double>(stop_tv.tv_usec)) 
-                         - (static_cast<double>(start_tv.tv_sec)+
-                            1/1.e6*static_cast<double>(start_tv.tv_usec))) * 1.e3;
+    std::chrono::milliseconds lapse_time = time.elapsed();
 
     horizontal_diffusion->finalize();
 
@@ -160,7 +153,7 @@ int main(int argc, char** argv) {
     out.print();
     //    lap.print();
 
-    std::cout << "TIME " << lapse_time << std::endl;
+    std::cout << "TIME " << lapse_time.count() << std::endl;
 
     return 0;
 }

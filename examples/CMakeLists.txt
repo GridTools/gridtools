@@ -27,3 +27,11 @@ if(CUDA_FOUND)
 
     cuda_add_executable( laplacian_cuda laplacian.cu )
 endif()
+
+# For use of std::crono
+if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set_target_properties(
+        interface1_naive interface1_block laplacian_naive laplacian_block
+        PROPERTIES
+        COMPILE_FLAGS "-std=gnu++0x")
+endif()
