@@ -15,7 +15,13 @@ endif()
 include_directories( include/ ) ## Library header files
 
 # Find boost
-find_package( Boost REQUIRED )
+if(WIN32)
+  # Auto-linking happens on Windows, so we don't need to specify specific components
+  find_package( Boost REQUIRED )
+else()
+  # On other platforms, me must be specific about which libs are required
+  find_package( Boost COMPONENTS timer system chrono REQUIRED )
+endif()
 
 # If the version is less than 1.56, we need a special version of Fusion
 if (Boost_VERSION LESS 105600)

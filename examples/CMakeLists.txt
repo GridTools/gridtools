@@ -9,8 +9,8 @@ add_executable(interface1_naive   interface1.cpp )
 add_executable(interface1_block   interface1.cpp )
 set_target_properties(interface1_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-target_link_libraries(interface1_naive ${Boost_TIMER_LIBRARY})
-target_link_libraries(interface1_block ${Boost_TIMER_LIBRARY})
+target_link_libraries(interface1_naive ${Boost_LIBRARIES})
+target_link_libraries(interface1_block ${Boost_LIBRARIES})
 
 add_executable(boundary-condition_naive   boundary-condition.cpp )
 add_executable(boundary-condition_block   boundary-condition.cpp )
@@ -21,8 +21,8 @@ add_executable(laplacian_naive   laplacian.cpp )
 add_executable(laplacian_block   laplacian.cpp )
 set_target_properties(laplacian_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-target_link_libraries(laplacian_block ${Boost_TIMER_LIBRARY})
-target_link_libraries(laplacian_block ${Boost_TIMER_LIBRARY})
+target_link_libraries(laplacian_naive ${Boost_LIBRARIES})
+target_link_libraries(laplacian_block ${Boost_LIBRARIES})
 
 if(CUDA_FOUND)
     cuda_add_executable( interface1_cuda interface1.cu )
