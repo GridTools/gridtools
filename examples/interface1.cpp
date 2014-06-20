@@ -9,7 +9,7 @@
 #include <stencil-composition/backend_naive.h>
 #endif
 
-#include "./timer.h"
+#include <boost/timer/timer.hpp>
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -273,9 +273,9 @@ int main(int argc, char** argv) {
     domain.clone_to_gpu();
     printf("CLONED\n");
 
-    timer time;
+    boost::timer::cpu_timer time;
     horizontal_diffusion->run();
-    std::chrono::milliseconds lapse_time = time.elapsed();
+    boost::timer::cpu_times lapse_time = time.elapsed();
 
     horizontal_diffusion->finalize();
 
@@ -287,7 +287,7 @@ int main(int argc, char** argv) {
     out.print();
     //    lap.print();
 
-    std::cout << "TIME " << lapse_time.count() << std::endl;
+    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }
