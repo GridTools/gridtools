@@ -25,29 +25,22 @@
 #endif
 
 enum sign {any=-2, minus=-1, zero, plus};
-template <sign _I, sign _J, sign _K>
-struct direction {
-    static const sign I = _I;
-    static const sign J = _J;
-    static const sign K = _K;
-};
 
-#define CALL_DIRECTION(x,y,z)                                           \
-    std::cout << "<" << #x << "," << #y << "," << #z << ">" << " calling : "; \
-    loop<DataField, direction<x,y,z> >(data_field);
- 
+template <sign I_, sign J_, sign K_>
+struct direction {
+    static const sign I = I_;
+    static const sign J = J_;
+    static const sign K = K_;
+};
 
 namespace gridtools {
     template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3> >
     struct direction_boundary_apply {
+    private:
         HaloDescriptors halo_descriptors;
 
-        direction_boundary_apply(HaloDescriptors const& hd)
-            : halo_descriptors(hd)
-        {}
-
 #define GTLOOP(z, n, nil)                                               \
-        template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField), typename Direction> \
+        template <typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void loop(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field)) const { \
             for (int i=halo_descriptors[0].loop_low_bound_outside(Direction::I); \
                  i<=halo_descriptors[0].loop_high_bound_outside(Direction::I); \
@@ -58,7 +51,8 @@ namespace gridtools {
                     for (int k=halo_descriptors[2].loop_low_bound_outside(Direction::K); \
                          k<=halo_descriptors[2].loop_high_bound_outside(Direction::K); \
                          ++k) {                                         \
-                        typename BoundaryFunction:: template apply<Direction>()(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field),i,j,k); \
+                        BoundaryFunction()(Direction(),\
+                            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field), i, j, k); \
                     }                                                   \
                 }                                                       \
             }                                                           \
@@ -66,48 +60,52 @@ namespace gridtools {
 
         BOOST_PP_REPEAT(2, GTLOOP, _)
 
+    public:
+        explicit direction_boundary_apply(HaloDescriptors const& hd)
+            : halo_descriptors(hd)
+        {}
+
 #define GTAPPLY(z, n, nil)                                                \
         template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void apply(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field) ) const { \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<minus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<minus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<zero, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<zero, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            loop<BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), DataField), direction<plus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            this->loop<direction<plus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
         }
 
         BOOST_PP_REPEAT(2, GTAPPLY, _)
-
     };
 
 } // namespace gridtools
@@ -146,50 +144,49 @@ namespace gridtools {
 template <typename T>
 struct direction_bc_input {
 
-    template <typename AnyDirection, typename Dummy = void> // relative coordinates
-    struct apply {
-        template <typename DataField0, typename DataField1>
-        void operator()(DataField0 & data_field0, DataField1 & data_field1, int i, int j, int k) const {
-            std::cout << "General implementation AAA" << std::endl;
-            data_field0(i,j,k) = data_field1(i,j,k);
-        }
-    };
+    // relative coordinates
+    template <sign I, sign J, sign K, typename DataField0, typename DataField1>
+    void operator()(direction<I, J, K>,
+                    DataField0 & data_field0, DataField1 const & data_field1,
+                    int i, int j, int k) const {
+        std::cout << "General implementation AAA" << std::endl;
+        data_field0(i,j,k) = data_field1(i,j,k);
+    }
 
-    template <sign I, sign K, typename Dummy> // relative coordinates
-    struct apply<direction<I, minus, K>, Dummy > {
-        template <typename DataField0, typename DataField1>
-            void operator()(DataField0 & data_field0, DataField1 const & data_field1, int i, int j, int k) const {
-            std::cout << "Implementation going A-A" << std::endl;
-            data_field0(i,j,k) = 88;
-        }
-    };
+    // relative coordinates
+    template <sign I, sign K, typename DataField0, typename DataField1>
+    void operator()(direction<I, minus, K>,
+                    DataField0 & data_field0, DataField1 const & data_field1,
+                    int i, int j, int k) const {
+        std::cout << "Implementation going A-A" << std::endl;
+        data_field0(i,j,k) = 88;
+    }
 
-    template <sign K, typename Dummy> // relative coordinates
-    struct apply<direction<minus, minus, K>, Dummy > {
-        template <typename DataField0, typename DataField1>
-            void operator()(DataField0 & data_field0, DataField1 const & data_field1, int i, int j, int k) const {
-            std::cout << "Implementation going --A" << std::endl;
-            data_field0(i,j,k) = 77777;
-        }
-    };
+    // relative coordinates
+    template <sign K, typename DataField0, typename DataField1>
+    void operator()(direction<minus, minus, K>,
+                    DataField0 & data_field0, DataField1 const & data_field1,
+                    int i, int j, int k) const {
+        std::cout << "Implementation going --A" << std::endl;
+        data_field0(i,j,k) = 77777;
+    }
 
-    template <typename Dummy>
-    struct apply<direction<minus, minus, minus>, Dummy > {
-        template <typename DataField0, typename DataField1>
-            void operator()(DataField0 & data_field0, DataField1 const & data_field1, int i, int j, int k) const {
-            std::cout << "Implementation going ---" << std::endl;
-            data_field0(i,j,k) = 55555;
-        }
-    };
-
+    template <typename DataField0, typename DataField1>
+    void operator()(direction<minus, minus, minus>,
+                    DataField0 & data_field0, DataField1 const & data_field1,
+                    int i, int j, int k) const {
+        std::cout << "Implementation going ---" << std::endl;
+        data_field0(i,j,k) = 55555;
+    }
 };
 
 
 
 int main(int argc, char** argv) {
     if (argc != 4) {
-        std::cout << "Usage: " << argv[0] << " dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
-        return 1;
+        std::cout << "Usage: " << argv[0] << " dimx dimy dimz\n"
+               " where args are integer sizes of the data fields" << std::endl;
+        return EXIT_FAILURE;
     }
 
     int d1 = atoi(argv[1]);
@@ -206,7 +203,7 @@ int main(int argc, char** argv) {
     for (int i=0; i<d1; ++i) {
         for (int j=0; j<d2; ++j) {
             for (int k=0; k<d3; ++k) {
-                in(i,j,k) = 0.0;
+                in(i,j,k) = 0;
                 out(i,j,k) = i+j+k;
             }
         }
@@ -238,6 +235,4 @@ int main(int argc, char** argv) {
         }
         printf("\n");
     }
-
-    return 0;
 }
