@@ -25,6 +25,7 @@ endif()
 
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
 
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
@@ -46,7 +47,7 @@ endif()
 
 # Set some project-wide MSVC compile flags
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_VARIADIC_MAX=10 /MTd")
+  add_definitions( -D_VARIADIC_MAX=10 )
 endif()
 
 add_subdirectory( examples )
