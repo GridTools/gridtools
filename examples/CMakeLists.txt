@@ -30,4 +30,6 @@ if(CUDA_FOUND)
     #target_link_libraries( interface1_cuda ${CUDA_MPI_LIB} )
 
     cuda_add_executable( laplacian_cuda laplacian.cu )
+    target_link_libraries(interface1_cuda ${Boost_LIBRARIES})
+    target_link_libraries(laplacian_cuda ${Boost_LIBRARIES})
 endif()
