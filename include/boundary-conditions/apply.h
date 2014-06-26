@@ -1,23 +1,9 @@
 #pragma once
 
 #include "../common/defs.h"
+#include "direction.h"
 
 namespace gridtools {
-    /**
-       Enum defining the directions in a discrete Cartesian grid
-     */
-    enum sign {any=-2, minus=-1, zero, plus};
-
-    /**
-       Class defining a direction in a cartesian 3D grid.
-     */
-    template <sign I_, sign J_, sign K_>
-    struct direction {
-        static const sign I = I_;
-        static const sign J = J_;
-        static const sign K = K_;
-    };
-
 
     /**
        Struct to apply user specified boundary condition cases on data fields.
@@ -105,5 +91,7 @@ namespace gridtools {
 
         BOOST_PP_REPEAT(2, GTAPPLY, _)
     };
+
+
 
 } // namespace gridtools
