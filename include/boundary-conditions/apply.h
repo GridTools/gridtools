@@ -36,7 +36,7 @@ namespace gridtools {
             }                                                           \
         }
 
-        BOOST_PP_REPEAT(2, GTLOOP, _)
+        BOOST_PP_REPEAT(GT_MAX_ARGS, GTLOOP, _)
 
         public:
         boundary_apply(HaloDescriptors const& hd)
@@ -89,9 +89,10 @@ namespace gridtools {
             this->loop<direction<plus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
         }
 
-        BOOST_PP_REPEAT(2, GTAPPLY, _)
+        BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY, _)
     };
 
-
+#undef GTLOOP
+#undef GTAPPLY
 
 } // namespace gridtools
