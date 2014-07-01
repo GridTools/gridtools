@@ -1,0 +1,2 @@
+bool basic();
+bool predicate();
