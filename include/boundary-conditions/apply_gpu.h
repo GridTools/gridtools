@@ -33,7 +33,7 @@ namespace gridtools {
        \tparam BoundaryFunction The user class defining the operations on the boundary. It must be copy constructible.
        \tparam HaloDescriptors  The type behaving as a read only array of halo descriptors
      */
-    template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3>, typename Predicate = default_predicate  >
+    template <typename BoundaryFunction, typename Predicate = default_predicate, typename HaloDescriptors = array<halo_descriptor, 3>  >
     struct boundary_apply_gpu {
     private:
         HaloDescriptors halo_descriptors;

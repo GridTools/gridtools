@@ -2,6 +2,7 @@
 
 #include "test_domain_indices.h"
 #include "test_smallstorage_indices.h"
+#include "boundary_conditions_test.h"
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
@@ -9,6 +10,14 @@ TEST(testdomain, testindices) {
 
 TEST(testsmallstorage, testindices) {
     EXPECT_EQ(test_smallstorage_indices(), true);
+}
+
+TEST(boundaryconditions, basic) {
+    EXPECT_EQ(basic(), true);
+}
+
+TEST(boundaryconditions, predicate) {
+    EXPECT_EQ(predicate(), true);
 }
 
 
