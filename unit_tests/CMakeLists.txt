@@ -13,7 +13,7 @@ endif()
 add_test(tests.test_independent test-independent)
 
 if (GTEST_FOUND)
-  add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp)
+  add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
   else()
