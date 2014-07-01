@@ -2,6 +2,7 @@
 
 #include "../common/defs.h"
 #include "direction.h"
+#include "predicate.h"
 #include <boost/preprocessor/facilities/intercept.hpp>
 
 namespace gridtools {
@@ -32,25 +33,28 @@ namespace gridtools {
        \tparam BoundaryFunction The user class defining the operations on the boundary. It must be copy constructible.
        \tparam HaloDescriptors  The type behaving as a read only array of halo descriptors
      */
-    template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3> >
+    template <typename BoundaryFunction, typename HaloDescriptors = array<halo_descriptor, 3>, typename Predicate = default_predicate  >
     struct boundary_apply_gpu {
     private:
         HaloDescriptors halo_descriptors;
         BoundaryFunction const boundary_function;
+        Predicate predicate;
         static const int ntx = 8, nty = 32, ntz = 1;
         const dim3 threads;
 
 
         public:
-        boundary_apply_gpu(HaloDescriptors const& hd)
+        boundary_apply_gpu(HaloDescriptors const& hd, Predicate predicate = Predicate() )
             : halo_descriptors(hd)
             , boundary_function(BoundaryFunction())
+            , predicate(predicate)
             , threads(ntx, nty, ntz)
         {}
 
-        boundary_apply_gpu(HaloDescriptors const& hd, BoundaryFunction const & bf)
+        boundary_apply_gpu(HaloDescriptors const& hd, BoundaryFunction const & bf, Predicate predicate = Predicate() )
             : halo_descriptors(hd)
             , boundary_function(bf)
+            , predicate(predicate)
             , threads(ntx, nty, ntz)
         {}
 
@@ -79,43 +83,43 @@ namespace gridtools {
         BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY_IT, _)
 
 #define GTAPPLY(z, n, nil)                                                \
-        template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
+        template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) > \
         void apply(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field) ) const { \
                                                                         \
-            apply_it<direction<minus, minus, minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<minus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<minus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus,minus,minus>()); apply_it<direction<minus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus,minus, zero>()); apply_it<direction<minus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus,minus, plus>()); apply_it<direction<minus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<minus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<minus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<minus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus, zero,minus>()); apply_it<direction<minus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus, zero, zero>()); apply_it<direction<minus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus, zero, plus>()); apply_it<direction<minus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<minus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<minus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<minus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus, plus,minus>()); apply_it<direction<minus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus, plus, zero>()); apply_it<direction<minus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<minus, plus, plus>()); apply_it<direction<minus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<zero,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<zero,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<zero,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero,minus,minus>()); apply_it<direction<zero,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero,minus, zero>()); apply_it<direction<zero,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero,minus, plus>()); apply_it<direction<zero,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<zero, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<zero, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero, zero,minus>()); apply_it<direction<zero, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero, zero, plus>()); apply_it<direction<zero, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<zero, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<zero, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<zero, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero, plus,minus>()); apply_it<direction<zero, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero, plus, zero>()); apply_it<direction<zero, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<zero, plus, plus>()); apply_it<direction<zero, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<plus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<plus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<plus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus,minus,minus>()); apply_it<direction<plus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus,minus, zero>()); apply_it<direction<plus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus,minus, plus>()); apply_it<direction<plus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<plus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<plus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<plus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus, zero,minus>()); apply_it<direction<plus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus, zero, zero>()); apply_it<direction<plus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus, zero, plus>()); apply_it<direction<plus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
-            apply_it<direction<plus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<plus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            apply_it<direction<plus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus, plus,minus>()); apply_it<direction<plus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus, plus, zero>()); apply_it<direction<plus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            predicate(direction<plus, plus, plus>()); apply_it<direction<plus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                         \
             cudaDeviceSynchronize();                                    \
         }
