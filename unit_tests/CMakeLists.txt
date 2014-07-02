@@ -29,6 +29,7 @@ if (GTEST_FOUND)
       test_hybrid_pointer.cu
       gpu_clone.cu
       cloningstuff.cu
+      boundary_conditions_test.cu
     )
     target_link_libraries( tests_gpu ${GTEST_BOTH_LIBRARIES} )
     add_test(tests.tests_gpu tests_gpu)
