@@ -27,6 +27,8 @@ using gridtools::plus;
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <boost/utility/enable_if.hpp>
+
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend_cuda
 #else
@@ -59,37 +61,53 @@ struct bc_basic {
     }
 
 
+template <sign X>
+struct is_minus {
+    static const bool value = X == minus;
+};
+
+template <typename T, typename U>
+struct is_one_of {
+    static const bool value = T::value || U::value;
+};
+
 struct bc_two {
 
-    SET_TO_ZERO
+    template <typename Direction, typename DataField0>  
+    void operator()(Direction,                          
+                    DataField0 & data_field0,           
+                    int i, int j, int k) const {        
+        data_field0(i,j,k) = 0;                         
+    }
 
-    template <sign I, sign J, typename DataField0>
-    void operator()(direction<I,J,minus>,
+    template <sign I, sign J, sign K, typename DataField0>
+    void operator()(direction<I,J,K>,
                     DataField0 & data_field0,
-                    int i, int j, int k) const {
+                    int i, int j, int k,
+                    typename boost::enable_if_c<is_one_of<is_minus<J>, is_minus<K> >::value, direction<I,J,K> >::type *dummy = 0) const {
         data_field0(i,j,k) = i+j+k+1;
     }
 
-    template <sign I, sign K, typename DataField0>
-    void operator()(direction<I,minus,K>,
-                    DataField0 & data_field0,
-                    int i, int j, int k) const {
-        data_field0(i,j,k) = i+j+k+1;
-    }
+    // template <sign I, sign K, typename DataField0>
+    // void operator()(direction<I,minus,K>,
+    //                 DataField0 & data_field0,
+    //                 int i, int j, int k) const {
+    //     data_field0(i,j,k) = i+j+k+1;
+    // }
 
-    template <sign I, typename DataField0>
-    void operator()(direction<I,minus,minus>,
-                    DataField0 & data_field0,
-                    int i, int j, int k) const {
-        data_field0(i,j,k) = i+j+k+1;
-    }
+    // template <sign I, typename DataField0>
+    // void operator()(direction<I,minus,minus>,
+    //                 DataField0 & data_field0,
+    //                 int i, int j, int k) const {
+    //     data_field0(i,j,k) = i+j+k+1;
+    // }
 
-    template <typename DataField0>
-    void operator()(direction<minus,minus,minus>,
-                    DataField0 & data_field0,
-                    int i, int j, int k) const {
-        data_field0(i,j,k) = i+j+k+1;
-    }
+    // template <typename DataField0>
+    // void operator()(direction<minus,minus,minus>,
+    //                 DataField0 & data_field0,
+    //                 int i, int j, int k) const {
+    //     data_field0(i,j,k) = i+j+k+1;
+    // }
 };
 
 struct minus_predicate {
