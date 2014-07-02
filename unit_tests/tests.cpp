@@ -20,6 +20,10 @@ TEST(boundaryconditions, predicate) {
     EXPECT_EQ(predicate(), true);
 }
 
+TEST(boundaryconditions, twosurfaces) {
+    EXPECT_EQ(twosurfaces(), true);
+}
+
 
 
 int main(int argc, char** argv) {
