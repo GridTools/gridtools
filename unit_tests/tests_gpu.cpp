@@ -55,6 +55,9 @@ TEST(boundaryconditions, usingvalue2) {
     EXPECT_EQ(usingvalue_2(), true);
 }
 
+TEST(boundaryconditions, usingcopy3) {
+    EXPECT_EQ(usingcopy_3(), true);
+}
 
 int main(int argc, char** argv) {
 
