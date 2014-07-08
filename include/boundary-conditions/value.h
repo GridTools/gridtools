@@ -3,7 +3,7 @@
 namespace gridtools {
 
     /**
-       On all boundary the values ares set to DataField::value_type(),
+       On all boundary the values ares set to a fixed value,
        which is zero for basic data types.
 
        \tparam T The type of the value to be assigned
@@ -11,12 +11,16 @@ namespace gridtools {
     template <typename T>
     struct value_boundary {
 
-        T value;
-
+        /**
+           Constructor that assigns the value to set the boundaries
+         */
         value_boundary(T const& a)
             : value(a)
         {}
 
+        /**
+           Constructor that assigns the default constructed value to set the boundaries
+         */
         value_boundary()
             : value()
         {}
@@ -50,6 +54,9 @@ namespace gridtools {
             data_field1(i,j,k) = value;
             data_field2(i,j,k) = value;
         }
+
+    private:
+        T value;
     };
 
 
