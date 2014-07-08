@@ -24,6 +24,21 @@ TEST(boundaryconditions, twosurfaces) {
     EXPECT_EQ(twosurfaces(), true);
 }
 
+TEST(boundaryconditions, usingzero1) {
+    EXPECT_EQ(usingzero_1(), true);
+}
+
+TEST(boundaryconditions, usingzero2) {
+    EXPECT_EQ(usingzero_2(), true);
+}
+
+TEST(boundaryconditions, usingvalue2) {
+    EXPECT_EQ(usingvalue_2(), true);
+}
+
+TEST(boundaryconditions, usingcopy3) {
+    EXPECT_EQ(usingcopy_3(), true);
+}
 
 
 int main(int argc, char** argv) {
