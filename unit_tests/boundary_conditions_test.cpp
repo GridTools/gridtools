@@ -63,7 +63,7 @@ struct bc_basic {
 
 template <sign X>
 struct is_minus {
-    static const bool value = X == minus;
+    static const bool value = (X == minus);
 };
 
 template <typename T, typename U>
@@ -74,6 +74,7 @@ struct is_one_of {
 struct bc_two {
 
     template <typename Direction, typename DataField0>  
+    GT_FUNCTION
     void operator()(Direction,                          
                     DataField0 & data_field0,           
                     int i, int j, int k) const {        
@@ -81,15 +82,26 @@ struct bc_two {
     }
 
     template <sign I, sign J, sign K, typename DataField0>
+    GT_FUNCTION
     void operator()(direction<I,J,K>,
                     DataField0 & data_field0,
                     int i, int j, int k,
-                    typename boost::enable_if_c<is_one_of<is_minus<J>, is_minus<K> >::value, direction<I,J,K> >::type *dummy = 0) const {
-        data_field0(i,j,k) = i+j+k+1;
+                    typename boost::enable_if<is_one_of<is_minus<J>, is_minus<K> > >::type *dummy = 0) const {
+        data_field0(i,j,k) = (i+j+k+1);
     }
+
+    // THE CODE ABOVE IS A REPLACEMENT OF THE FOLLOWING 4 DIFFERENT SPECIALIZATIONS
+    // IT IS UGLY BUT CAN SAVE QUITE A BIT OF CODE
 
     // template <sign I, sign K, typename DataField0>
     // void operator()(direction<I,minus,K>,
+    //                 DataField0 & data_field0,
+    //                 int i, int j, int k) const {
+    //     data_field0(i,j,k) = i+j+k+1;
+    // }
+
+    // template <sign J, sign K, typename DataField0>
+    // void operator()(direction<minus,J,K>,
     //                 DataField0 & data_field0,
     //                 int i, int j, int k) const {
     //     data_field0(i,j,k) = i+j+k+1;
