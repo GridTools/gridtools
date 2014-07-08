@@ -7,6 +7,9 @@
 #include <boundary-conditions/apply.h>
 #endif
 
+#include <boundary-conditions/zero.h>
+#include <boundary-conditions/value.h>
+
 using gridtools::direction;
 using gridtools::sign;
 using gridtools::minus;
@@ -19,10 +22,6 @@ using gridtools::plus;
 #include <stencil-composition/backend_block.h>
 #include <stencil-composition/backend_naive.h>
 #endif
-
-#include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
-#include <boost/preprocessor/arithmetic/inc.hpp>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -617,3 +616,460 @@ bool twosurfaces() {
 
 }
 
+bool usingzero_1() {
+
+    int d1 = 5;
+    int d2 = 5;
+    int d3 = 5;
+
+    typedef gridtools::BACKEND::storage_type<int, gridtools::layout_map<0,1,2> >::type storage_type;
+
+    // Definition of the actual data fields that are used for input/output
+    storage_type in(d1,d2,d3,-1, std::string("in"));
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                in(i,j,k) = -1;
+            }
+        }
+    }
+
+#ifndef NDEBUG
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+#endif
+
+    gridtools::array<gridtools::halo_descriptor, 3> halos;
+    halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
+    halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
+    halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
+
+#ifdef CUDA_EXAMPLE
+    in.clone_to_gpu();
+    out.clone_to_gpu();
+    in.h2d_update();
+    out.h2d_update();
+
+    gridtools::boundary_apply_gpu<typename gridtools::zero_boundary>(halos).apply(in);
+
+    in.d2h_update();
+#else
+    gridtools::boundary_apply<typename gridtools::zero_boundary>(halos).apply(in);
+#endif
+
+#ifndef NDEBUG
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+#endif
+
+    bool result = true;
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<1; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=d3-1; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<1; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=d2-1; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=d1-1; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=1; i<d1-1; ++i) {
+        for (int j=1; j<d2-1; ++j) {
+            for (int k=1; k<d3-1; ++k) {
+                if (in(i,j,k) != -1) {
+                    result = false;
+                }
+            }
+        }
+    }
+    
+    return result;
+
+}
+
+bool usingzero_2() {
+
+    int d1 = 5;
+    int d2 = 5;
+    int d3 = 5;
+
+    typedef gridtools::BACKEND::storage_type<int, gridtools::layout_map<0,1,2> >::type storage_type;
+
+    // Definition of the actual data fields that are used for input/output
+    storage_type in(d1,d2,d3,-1, std::string("in"));
+    storage_type out(d1,d2,d3,-1, std::string("out"));
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                in(i,j,k) = -1;
+                out(i,j,k) = -1;
+            }
+        }
+    }
+
+#ifndef NDEBUG
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+#endif
+
+    gridtools::array<gridtools::halo_descriptor, 3> halos;
+    halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
+    halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
+    halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
+
+#ifdef CUDA_EXAMPLE
+    in.clone_to_gpu();
+    out.clone_to_gpu();
+    in.h2d_update();
+    out.h2d_update();
+
+    gridtools::boundary_apply_gpu<typename gridtools::zero_boundary>(halos).apply(in, out);
+
+    in.d2h_update();
+#else
+    gridtools::boundary_apply<typename gridtools::zero_boundary>(halos).apply(in, out);
+#endif
+
+#ifndef NDEBUG
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+#endif
+
+    bool result = true;
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<1; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+                if (out(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=d3-1; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+                if (out(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<1; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+                if (out(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=d2-1; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+                if (out(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+                if (out(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=d1-1; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 0) {
+                    result = false;
+                }
+                if (out(i,j,k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=1; i<d1-1; ++i) {
+        for (int j=1; j<d2-1; ++j) {
+            for (int k=1; k<d3-1; ++k) {
+                if (in(i,j,k) != -1) {
+                    result = false;
+                }
+                if (out(i,j,k) != -1) {
+                    result = false;
+                }
+            }
+        }
+    }
+    
+    return result;
+
+}
+
+
+bool usingvalue_2() {
+
+    int d1 = 5;
+    int d2 = 5;
+    int d3 = 5;
+
+    typedef gridtools::BACKEND::storage_type<int, gridtools::layout_map<0,1,2> >::type storage_type;
+
+    // Definition of the actual data fields that are used for input/output
+    storage_type in(d1,d2,d3,-1, std::string("in"));
+    storage_type out(d1,d2,d3,-1, std::string("out"));
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                in(i,j,k) = -1;
+                out(i,j,k) = -1;
+            }
+        }
+    }
+
+#ifndef NDEBUG
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+#endif
+
+    gridtools::array<gridtools::halo_descriptor, 3> halos;
+    halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
+    halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
+    halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
+
+#ifdef CUDA_EXAMPLE
+    in.clone_to_gpu();
+    out.clone_to_gpu();
+    in.h2d_update();
+    out.h2d_update();
+
+    gridtools::boundary_apply_gpu<typename gridtools::value_boundary<int> >(halos, gridtools::value_boundary<int>(101)).apply(in, out);
+
+    in.d2h_update();
+#else
+    gridtools::boundary_apply<typename gridtools::value_boundary<int> >(halos, gridtools::value_boundary<int>(101)).apply(in, out);
+#endif
+
+#ifndef NDEBUG
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+#endif
+
+    bool result = true;
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<1; ++k) {
+                if (in(i,j,k) != 101) {
+                    result = false;
+                }
+                if (out(i,j,k) != 101) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=d3-1; k<d3; ++k) {
+                if (in(i,j,k) != 101) {
+                    result = false;
+                }
+                if (out(i,j,k) != 101) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<1; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 101) {
+                    result = false;
+                }
+                if (out(i,j,k) != 101) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<d1; ++i) {
+        for (int j=d2-1; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 101) {
+                    result = false;
+                }
+                if (out(i,j,k) != 101) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 101) {
+                    result = false;
+                }
+                if (out(i,j,k) != 101) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=d1-1; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                if (in(i,j,k) != 101) {
+                    result = false;
+                }
+                if (out(i,j,k) != 101) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (int i=1; i<d1-1; ++i) {
+        for (int j=1; j<d2-1; ++j) {
+            for (int k=1; k<d3-1; ++k) {
+                if (in(i,j,k) != -1) {
+                    result = false;
+                }
+                if (out(i,j,k) != -1) {
+                    result = false;
+                }
+            }
+        }
+    }
+    
+    return result;
+
+}
