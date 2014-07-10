@@ -55,7 +55,7 @@ namespace gridtools {
                 typedef LocalDomain<T, Dom> type;
             };
         };
-    
+
         /* Functor used to instantiate the local domains to be passed to each
            elementary stencil function */
         template <typename Dom>
@@ -153,22 +153,22 @@ namespace gridtools {
                     boost::mpl::vector<>,
                     boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
                     >::type raw_ranges;
-            
-            typedef typename boost::mpl::fold<
-                IndVector,
-                range<0,0,0,0>,
-                enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
+
+                typedef typename boost::mpl::fold<
+                        IndVector,
+                        range<0,0,0,0>,
+                        enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
                 >::type final_range;
 
-            typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
+                typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
 
-            typedef state<new_list, final_range> type;
-        };
+                typedef state<new_list, final_range> type;
+            };
 
-        typedef typename boost::mpl::reverse_fold<
-            ListOfRanges,
-            state<boost::mpl::vector<>, range<0,0,0,0> >,
-            update_state<boost::mpl::_1, boost::mpl::_2> >::type final_state;
+            typedef typename boost::mpl::reverse_fold<
+                ListOfRanges,
+                state<boost::mpl::vector<>, range<0,0,0,0> >,
+                update_state<boost::mpl::_1, boost::mpl::_2> >::type final_state;
 
             typedef typename final_state::list type;
         };
@@ -260,7 +260,7 @@ namespace gridtools {
         // functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
         typedef typename boost::mpl::transform<typename MssType::linear_esf,
                                                _impl::extract_functor>::type functors_list;
-        
+
         // compute the functor do methods - This is the most computationally intensive part
         typedef typename boost::mpl::transform<
             functors_list,
@@ -277,7 +277,7 @@ namespace gridtools {
         typedef typename boost::mpl::transform<
                 FunctorDoMethods,
                 compute_functor_do_method_lookup_map<boost::mpl::_, LoopIntervals>
-                >::type FunctorDoMethodLookupMaps; // vector of maps, indexed by functors indices in Functor vector. 
+                >::type FunctorDoMethodLookupMaps; // vector of maps, indexed by functors indices in Functor vector.
 
 
         // Create a fusion::vector of domains for each functor
@@ -316,7 +316,7 @@ namespace gridtools {
             std::cout << std::endl;
 #endif
 #endif
-        
+
             // Extract the ranges from functors to determine iteration spaces bounds
 
             // For each functor collect the minimum enclosing box of the ranges for the arguments
@@ -325,19 +325,19 @@ namespace gridtools {
             std::cout << "ranges list" << std::endl;
             gridtools::for_each<ranges_list>(_debug::print__());
 #endif
-        
+
 #ifndef NDEBUG
             std::cout << "range sizes" << std::endl;
             gridtools::for_each<structured_range_sizes>(_debug::print__());
             std::cout << "end1" <<std::endl;
 #endif
-        
+
 #ifndef NDEBUG
             gridtools::for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
 
-        }    
+        }
 
         void ready () {
             Backend::template prepare_temporaries<MssType, range_sizes>(m_domain, m_coords);
@@ -346,7 +346,7 @@ namespace gridtools {
         void steady () {
             m_domain.setup_computation();
 
-            boost::fusion::for_each(local_domain_list, 
+            boost::fusion::for_each(local_domain_list,
                                     _impl::instantiate_local_domain<DomainType>
                                     (const_cast<typename boost::remove_const<DomainType>::type*>(&m_domain)));
 
