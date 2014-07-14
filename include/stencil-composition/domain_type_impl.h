@@ -7,7 +7,7 @@
 
 namespace gridtools {
     namespace _debug {
-    
+
         struct print_index {
             template <typename T>
             void operator()(T& ) const {
@@ -52,7 +52,7 @@ namespace gridtools {
             void operator()(StorageType* s) const {
                 printf("CIAOOO TATATA %x\n", s);
             }
-            
+
 #ifdef __CUDACC__
             template <typename T, typename U, bool B
 #ifndef NDEBUG
@@ -69,7 +69,7 @@ namespace gridtools {
             }
 #endif
         };
-        
+
         struct print_domain_info {
             template <typename StorageType>
             GT_FUNCTION
@@ -112,7 +112,7 @@ namespace gridtools {
             template <typename StorageType>
             GT_FUNCTION_WARNING
             void operator()(StorageType* s) const {}
-            
+
 #ifdef __CUDACC__
             template <typename T, typename U, bool B
 #ifndef NDEBUG
@@ -127,8 +127,8 @@ namespace gridtools {
                             > *& s) const {
                 if (s) {
 #ifndef NDEBUG
-                    // std::cout << "UPDATING " 
-                    //           << std::hex << s->gpu_object_ptr 
+                    // std::cout << "UPDATING "
+                    //           << std::hex << s->gpu_object_ptr
                     //           << " " << s
                     //           << " " << sizeof(cuda_storage<T,U,B>)
                     //           << std::dec << std::endl;
@@ -140,7 +140,7 @@ namespace gridtools {
             }
 #endif
         };
-            
+
         struct call_h2d {
             template <typename Arg>
             GT_FUNCTION
@@ -164,7 +164,7 @@ namespace gridtools {
         struct moveto_functor {
             int i,j,k;
             GT_FUNCTION
-            moveto_functor(int i, int j, int k) 
+            moveto_functor(int i, int j, int k)
                 : i(i)
                 , j(j)
                 , k(k)
@@ -192,47 +192,6 @@ namespace gridtools {
             }
         };
 
-        template <typename Esf>
-        struct is_written_temp {
-            template <typename Index>
-            struct apply {
-                // TODO: boolean logic, replace with mpl::and_ and mpl::or_
-                typedef typename boost::mpl::if_<
-                    is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
-                    typename boost::mpl::if_<
-                        boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
-                        boost::false_type,
-                        boost::true_type
-                        >::type,
-                            boost::false_type
-                            >::type type;
-            };
-        };
-
-        template <typename Esf>
-        struct get_it {
-            template <typename Index>
-            struct apply {
-                typedef typename boost::mpl::at<typename Esf::args, Index>::type type;
-            };
-        };
-
-        template <typename EsfF>
-        struct get_temps_per_functor {
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename EsfF::args>::type::value> range;
-            typedef typename boost::mpl::fold<
-                range,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
-                    boost::mpl::push_back<
-                        boost::mpl::_1, 
-                        typename _impl::get_it<EsfF>::template apply<boost::mpl::_2> >,
-                   boost::mpl::_1
-               >
-            >::type type;
-        };
-
         template <typename TempsPerFunctor, typename RangeSizes>
         struct associate_ranges {
 
@@ -245,7 +204,7 @@ namespace gridtools {
                         Temp >::type type;
                 };
             };
-        
+
             template <typename Temp>
             struct apply {
 
@@ -255,10 +214,10 @@ namespace gridtools {
 
                 BOOST_MPL_ASSERT_MSG( ( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,WHATTTTTTTTT_, (iter) );
 
-                typedef typename boost::mpl::at<RangeSizes, typename iter::pos>::type type;               
+                typedef typename boost::mpl::at<RangeSizes, typename iter::pos>::type type;
             };
         };
-    
+
     } // namespace _impl
 
 } // namespace gridtoold

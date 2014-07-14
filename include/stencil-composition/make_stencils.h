@@ -4,75 +4,10 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
 
+#include "stencil-composition/esf.h"
+#include "stencil-composition/mss.h"
+
 namespace gridtools {
-
-    // Descriptors for ESF
-    template <typename ESF, typename ArgArray>
-    struct esf_descriptor {
-        typedef ESF esf_function;
-        typedef ArgArray args;
-    };
-
-    template <typename T, typename V>
-    std::ostream& operator<<(std::ostream& s, esf_descriptor<T,V> const7) {
-        return s << "esf_desctiptor< " << T() << " , somevector > ";
-    }
-
-    // Descriptors for ES
-    template <typename ExecutionEngine,
-              typename EsfDescr>
-    struct es_descriptor {};
-
-    template <typename ArgArray>
-    struct independent_esf {
-        typedef ArgArray esf_list;
-    };
-
-    template <typename T>
-    struct is_independent 
-      : boost::false_type
-    {};
-
-    template <typename T>
-    struct is_independent<independent_esf<T> >
-      : boost::true_type
-    {};
-
-
-    // Descriptors for MSS
-    template <typename ExecutionEngine,
-              typename ArrayEsfDescr>
-    struct mss_descriptor {
-        template <typename State, typename SubArray>
-        struct keep_scanning
-          : boost::mpl::fold<
-                typename SubArray::esf_list,
-                State,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-            >
-        {};
-
-        template <typename Array>
-        struct linearize_esf_array
-          : boost::mpl::fold<
-                Array,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    is_independent<boost::mpl::_2>,
-                    keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-                >
-            >
-        {};
-
-        typedef ArrayEsfDescr esf_array; // may contain independent constructs
-        typedef ExecutionEngine execution_engine;
-
-        // Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
-        // esf structs. Independent functors are listed one after the other.
-        typedef typename linearize_esf_array<esf_array>::type linear_esf;
-    };
-
 
     template <typename ESF,
               typename A0>
@@ -122,13 +57,6 @@ namespace gridtools {
     make_esf(A0, A1, A2, A3, A4) {
         BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 5);
         return esf_descriptor<ESF, boost::mpl::vector5<A0, A1, A2, A3, A4> >();
-    }
-
-    template <typename ExecutionEngine,
-              typename EsfDescr>
-    es_descriptor<ExecutionEngine, EsfDescr>
-    make_es(ExecutionEngine const&, EsfDescr const&) {
-        return es_descriptor<ExecutionEngine, EsfDescr>();
     }
 
     template <typename ExecutionEngine,
