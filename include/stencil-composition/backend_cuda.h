@@ -18,14 +18,19 @@
 #include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 
+/**
+ * @file
+ * \brief implements the stencil operations for a GPU backend
+ */
+
 namespace gridtools {
     namespace _impl_cuda {
 
         template <typename first_hit, 
-                  typename LoopIntervals, 
+                  typename LoopIntervals,
                   typename functor_type,
                   typename interval_map,
-                  typename LDomain, 
+                  typename LDomain,
                   typename Coords>
         __global__
         void do_it_on_gpu(LDomain * l_domain, Coords const* coords, int starti, int startj, int nx, int ny) {
@@ -35,10 +40,10 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
                 typedef typename LDomain::iterate_domain_type iterate_domain_type;
-                iterate_domain_type it_domain(*l_domain, i+starti,j+startj, z); 
+                iterate_domain_type it_domain(*l_domain, i+starti,j+startj, z);
                 for_each<LoopIntervals>
                     (_impl::run_f_on_interval
-                     <functor_type, 
+                     <functor_type,
                      interval_map,
                      iterate_domain_type,
                      Coords>
@@ -46,6 +51,9 @@ namespace gridtools {
             }
         }
 
+        /**
+         * \brief this struct is the core of the ESF functor
+         */
         template <typename FunctorList,
                   typename LoopIntervals,
                   typename FunctorsMap,
@@ -61,6 +69,9 @@ namespace gridtools {
                 , domain_list(domain_list)
             {}
 
+            /**
+             * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
+             */
             template <typename Index>
             void operator()(Index const&) const {
                 typedef typename boost::mpl::at<RangeSizes, Index>::type range_type;
@@ -157,6 +168,17 @@ namespace gridtools {
             typedef temporary<cuda_storage<ValueType, Layout> > type;
         };
 
+        /**
+         * \brief calls the \ref gridtools::run_functor for each functor in the FunctorList.
+         * the loop over the functors list is unrolled at compile-time using the for_each construct.
+         * \tparam FunctorList  List of functors to execute (in order)
+         * \tparam range_sizes computed range sizes to know where to compute functot at<i>
+         * \tparam LoopIntervals List of intervals on which functors are defined
+         * \tparam FunctorsMap Map between interval and actual arguments to pass to Do methods
+         * \tparam Domain Domain class (not really useful maybe)
+         * \tparam Coords Coordinate class with domain sizes and splitter coordinates
+         * \tparam LocalDomainList List of local domain to be pbassed to functor at<i>
+         */
         template <typename FunctorList, // List of functors to execute (in order)
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>
                   typename LoopIntervals, // List of intervals on which functors are defined
