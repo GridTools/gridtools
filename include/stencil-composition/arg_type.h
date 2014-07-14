@@ -122,7 +122,7 @@ namespace gridtools {
 
         template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
         struct halo {
-            typedef arg_type<I> type;
+	  typedef arg_type<I> type;
         };
 
         int offset[3];
