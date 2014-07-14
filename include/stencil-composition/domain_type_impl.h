@@ -192,47 +192,6 @@ namespace gridtools {
             }
         };
 
-        template <typename Esf>
-        struct is_written_temp {
-            template <typename Index>
-            struct apply {
-                // TODO: boolean logic, replace with mpl::and_ and mpl::or_
-                typedef typename boost::mpl::if_<
-                    is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
-                    typename boost::mpl::if_<
-                        boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
-                        boost::false_type,
-                        boost::true_type
-                    >::type,
-                    boost::false_type
-                >::type type;
-            };
-        };
-
-        template <typename Esf>
-        struct get_it {
-            template <typename Index>
-            struct apply {
-                typedef typename boost::mpl::at<typename Esf::args, Index>::type type;
-            };
-        };
-
-        template <typename EsfF>
-        struct get_temps_per_functor {
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename EsfF::args>::type::value> range;
-            typedef typename boost::mpl::fold<
-                range,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
-                    boost::mpl::push_back<
-                        boost::mpl::_1,
-                        typename _impl::get_it<EsfF>::template apply<boost::mpl::_2> >,
-                   boost::mpl::_1
-               >
-            >::type type;
-        };
-
         template <typename TempsPerFunctor, typename RangeSizes>
         struct associate_ranges {
 
