@@ -39,7 +39,7 @@ namespace gridtools {
        \brief Function to create a list of independent Elementary Styencil Functions
 
        \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as independent
-       
+
        Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
      */
 
@@ -67,12 +67,6 @@ namespace gridtools {
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_MSS, _)
 #undef _MAKE_MSS
 
-
-    /** Takes two esf_descriptors ( created with make_esf ) and
-        specify they are independent. This is used to make the
-        computation of the block sizes tight during compile time
-        analysis
-     */
 
 #define _MAKE_INDEPENDENT(z, ITN, nil)          \
     template <typename EsfDescr,                                        \
