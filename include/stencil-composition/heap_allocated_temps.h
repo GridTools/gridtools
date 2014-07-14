@@ -111,20 +111,16 @@ namespace gridtools {
             std::cout << "END TMPS" << std::endl;
 #endif
 
-            // Compute a vector of vectors of temp indices of temporaries initialized by each functor
-            typedef typename boost::mpl::fold<typename MssType::linear_esf,
-                    boost::mpl::vector<>,
-                    boost::mpl::push_back<boost::mpl::_1, _impl::get_temps_per_functor<boost::mpl::_2> >
-                >::type temps_per_functor;
+            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
 
             typedef typename boost::mpl::transform<
                 list_of_temporaries,
-                _impl::associate_ranges<temps_per_functor, RangeSizes>
+                _impl::associate_ranges<written_temps_per_functor, RangeSizes>
             >::type list_of_ranges;
 
 #ifndef NDEBUG
             std::cout << "BEGIN TMPS/F" << std::endl;
-            for_each<temps_per_functor>(_debug::print_tmps());
+            for_each<written_temps_per_functor>(_debug::print_tmps());
             std::cout << "END TMPS/F" << std::endl;
 
             std::cout << "BEGIN RANGES/F" << std::endl;
