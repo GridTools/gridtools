@@ -265,19 +265,19 @@ namespace gridtools {
         typedef typename boost::mpl::transform<
             functors_list,
             compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
-            >::type FunctorDoMethods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
+            >::type functor_do_methods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 
         // compute the loop intervals
         typedef typename compute_loop_intervals<
-            FunctorDoMethods,
+            functor_do_methods,
             typename Coords::axis_type
             >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
 
         // compute the do method lookup maps
         typedef typename boost::mpl::transform<
-                FunctorDoMethods,
+                functor_do_methods,
                 compute_functor_do_method_lookup_map<boost::mpl::_, LoopIntervals>
-                >::type FunctorDoMethodLookupMaps; // vector of maps, indexed by functors indices in Functor vector.
+                >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
 
 
         // Create a fusion::vector of domains for each functor
@@ -361,7 +361,7 @@ namespace gridtools {
         }
 
         void run () {
-            Backend::template run<functors_list, range_sizes, LoopIntervals, FunctorDoMethodLookupMaps>(m_domain, m_coords, local_domain_list);
+            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
         }
 
     };
