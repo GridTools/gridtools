@@ -4,111 +4,85 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
 
+#include <boost/preprocessor/repetition/repeat.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/repetition/enum_binary_params.hpp>
+#include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/facilities/intercept.hpp>
+
+#include "common/defs.h"
 #include "stencil-composition/esf.h"
 #include "stencil-composition/mss.h"
 
 namespace gridtools {
 
-    template <typename ESF,
-              typename A0>
-    esf_descriptor<ESF, boost::mpl::vector1<A0> >
-    make_esf(A0) {
-        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 1);
-        return esf_descriptor<ESF, boost::mpl::vector1<A0> >();
+    /*!
+       \fn esf_descriptor<ESF, ...> make_esf(plc1, plc2, plc3, ...)
+       \brief Function to create a Elementary Stencil Function
+       \param plc{i} placeholder which represents the i-th argument to the functor ESF
+
+       Use this function to associate a stencil functor (stage) to
+       arguments (actually, placeholders to arguments)
+     */
+
+    /*!
+       \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
+       \brief Function to create a Multistage Stencil that can then be executed
+       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs created with make independent
+
+       Use this function to create a multi-stage stencil computation
+     */
+
+    /*!
+       \fn independent_esf<...> make_independent(esf1, esf2, ...)
+       \brief Function to create a list of independent Elementary Styencil Functions
+
+       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as independent
+       
+       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
+     */
+
+#define _MAKE_ESF(z, n, nil)                                            \
+    template <typename ESF,                                             \
+              BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename A)>        \
+    esf_descriptor<ESF, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)> > \
+    make_esf(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)) {                \
+        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, BOOST_PP_INC(n)); \
+        return esf_descriptor<ESF, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)> >(); \
     }
 
-    template <typename ESF,
-              typename A0,
-              typename A1>
-    esf_descriptor<ESF, boost::mpl::vector2<A0, A1> >
-    make_esf(A0, A1) {
-        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 2);
-        return esf_descriptor<ESF, boost::mpl::vector2<A0, A1> >();
-    }
-
-    template <typename ESF,
-              typename A0,
-              typename A1,
-              typename A2>
-    esf_descriptor<ESF, boost::mpl::vector3<A0, A1, A2> >
-    make_esf(A0, A1, A2) {
-        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 3);
-        return esf_descriptor<ESF, boost::mpl::vector3<A0, A1, A2> >();
-    }
-
-    template <typename ESF,
-              typename A0,
-              typename A1,
-              typename A2,
-              typename A3>
-    esf_descriptor<ESF, boost::mpl::vector4<A0, A1, A2, A3> >
-    make_esf(A0, A1, A2, A3) {
-        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 4);
-        return esf_descriptor<ESF, boost::mpl::vector4<A0, A1, A2, A3> >();
-    }
-
-    template <typename ESF,
-              typename A0,
-              typename A1,
-              typename A2,
-              typename A3,
-              typename A4>
-    esf_descriptor<ESF, boost::mpl::vector5<A0, A1, A2, A3, A4> >
-    make_esf(A0, A1, A2, A3, A4) {
-        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, 5);
-        return esf_descriptor<ESF, boost::mpl::vector5<A0, A1, A2, A3, A4> >();
-    }
-
-    template <typename ExecutionEngine,
-              typename EsfDescr0>
-    mss_descriptor<ExecutionEngine, boost::mpl::vector1<EsfDescr0> >
-    make_mss(ExecutionEngine const&, EsfDescr0 const&) {
-        return mss_descriptor<ExecutionEngine, boost::mpl::vector1<EsfDescr0> >();
-    }
-
-    template <typename ExecutionEngine,
-              typename EsfDescr0,
-              typename EsfDescr1>
-    mss_descriptor<ExecutionEngine, boost::mpl::vector2<EsfDescr0, EsfDescr1> >
-    make_mss(ExecutionEngine const&, EsfDescr0 const&, EsfDescr1 const&) {
-        return mss_descriptor<ExecutionEngine, boost::mpl::vector2<EsfDescr0, EsfDescr1> >();
-    }
-
-    template <typename ExecutionEngine,
-              typename EsfDescr0,
-              typename EsfDescr1,
-              typename EsfDescr2>
-    mss_descriptor<ExecutionEngine, boost::mpl::vector3<EsfDescr0, EsfDescr1, EsfDescr2> >
-    make_mss(ExecutionEngine const&, EsfDescr0 const&, EsfDescr1 const&, EsfDescr2 const&) {
-        return mss_descriptor<ExecutionEngine, boost::mpl::vector3<EsfDescr0, EsfDescr1, EsfDescr2> >();
-    }
-
-    template <typename ExecutionEngine,
-              typename EsfDescr0,
-              typename EsfDescr1,
-              typename EsfDescr2,
-              typename EsfDescr3>
-    mss_descriptor<ExecutionEngine, boost::mpl::vector4<EsfDescr0, EsfDescr1, EsfDescr2, EsfDescr3> >
-    make_mss(ExecutionEngine const&, EsfDescr0 const&, EsfDescr1 const&, EsfDescr2 const&, EsfDescr3 const&) {
-        return mss_descriptor<ExecutionEngine, boost::mpl::vector4<EsfDescr0, EsfDescr1, EsfDescr2, EsfDescr3> >();
-    }
-
-    template <typename ExecutionEngine,
-              typename EsfDescr0,
-              typename EsfDescr1,
-              typename EsfDescr2,
-              typename EsfDescr3,
-              typename EsfDescr4>
-    mss_descriptor<ExecutionEngine, boost::mpl::vector5<EsfDescr0, EsfDescr1, EsfDescr2, EsfDescr3, EsfDescr4> >
-    make_mss(ExecutionEngine const&, EsfDescr0 const&, EsfDescr1 const&, EsfDescr2 const&, EsfDescr3 const&, EsfDescr4 const&) {
-        return mss_descriptor<ExecutionEngine, boost::mpl::vector5<EsfDescr0, EsfDescr1, EsfDescr2, EsfDescr3, EsfDescr4> >();
-    }
+    BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_ESF, _)
+#undef _MAKE_ESF
 
 
-    template <typename EsfDescr0,
-              typename EsfDescr1>
-    independent_esf<boost::mpl::vector2<EsfDescr0, EsfDescr1> >
-    make_independent(EsfDescr0 const&, EsfDescr1 const&) {
-        return independent_esf<boost::mpl::vector2<EsfDescr0, EsfDescr1> >();
+#define _MAKE_MSS(z, ITN, nil)                                          \
+    template <typename ExecutionEngine,                                 \
+              BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) > \
+    mss_descriptor<ExecutionEngine, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > \
+    make_mss(ExecutionEngine const&, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const& BOOST_PP_INTERCEPT) ) { \
+        return mss_descriptor<ExecutionEngine, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN),EsfDescr)> >(); \
     }
+
+    BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_MSS, _)
+#undef _MAKE_MSS
+
+
+    /** Takes two esf_descriptors ( created with make_esf ) and
+        specify they are independent. This is used to make the
+        computation of the block sizes tight during compile time
+        analysis
+     */
+
+#define _MAKE_INDEPENDENT(z, ITN, nil)          \
+    template <typename EsfDescr,                                        \
+              BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) > \
+    independent_esf< BOOST_PP_CAT(boost::mpl::vector,BOOST_PP_INC(BOOST_PP_INC(ITN))) <EsfDescr, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr)> > \
+    make_independent(EsfDescr const&, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const& BOOST_PP_INTERCEPT) ) { \
+        return independent_esf<BOOST_PP_CAT(boost::mpl::vector,BOOST_PP_INC(BOOST_PP_INC(ITN)))<EsfDescr, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr)> >(); \
+    }
+
+    BOOST_PP_REPEAT(GT_MAX_INDEPENDENT, _MAKE_INDEPENDENT, _)
+#undef _MAKE_INDEPENDENT
+
 } // namespace gridtools
