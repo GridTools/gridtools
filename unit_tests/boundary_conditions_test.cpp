@@ -659,11 +659,11 @@ bool usingzero_1() {
     in.h2d_update();
     out.h2d_update();
 
-    gridtools::boundary_apply_gpu<typename gridtools::zero_boundary>(halos).apply(in);
+    gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<typename gridtools::zero_boundary>(halos).apply(in);
+    gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in);
 #endif
 
 #ifndef NDEBUG
@@ -798,11 +798,11 @@ bool usingzero_2() {
     in.h2d_update();
     out.h2d_update();
 
-    gridtools::boundary_apply_gpu<typename gridtools::zero_boundary>(halos).apply(in, out);
+    gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in, out);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<typename gridtools::zero_boundary>(halos).apply(in, out);
+    gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in, out);
 #endif
 
 #ifndef NDEBUG
@@ -959,11 +959,11 @@ bool usingvalue_2() {
     in.h2d_update();
     out.h2d_update();
 
-    gridtools::boundary_apply_gpu<typename gridtools::value_boundary<int> >(halos, gridtools::value_boundary<int>(101)).apply(in, out);
+    gridtools::boundary_apply_gpu<gridtools::value_boundary<int> >(halos, gridtools::value_boundary<int>(101)).apply(in, out);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<typename gridtools::value_boundary<int> >(halos, gridtools::value_boundary<int>(101)).apply(in, out);
+    gridtools::boundary_apply<gridtools::value_boundary<int> >(halos, gridtools::value_boundary<int>(101)).apply(in, out);
 #endif
 
 #ifndef NDEBUG
@@ -1121,11 +1121,11 @@ bool usingcopy_3() {
     in.h2d_update();
     out.h2d_update();
 
-    gridtools::boundary_apply_gpu<typename gridtools::copy_boundary>(halos).apply(one, two, src);
+    gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<typename gridtools::copy_boundary>(halos).apply(one, two, src);
+    gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(one, two, src);
 #endif
 
 #ifndef NDEBUG
