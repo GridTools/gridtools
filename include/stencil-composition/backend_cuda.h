@@ -14,18 +14,44 @@
 #include <boost/mpl/placeholders.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/value_at.hpp>
+
 #include "basic_token_execution.h"
 #include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 
+#include "backend.h"
+
 namespace gridtools {
+
+    namespace _impl{
+	template<>
+	    struct _impl::cout<_impl::Cuda>
+	    {
+		const cout& operator  << (char* string) const
+		    {
+			printf(string);
+		    }
+		const cout& operator << (int* number) const
+		    {
+			printf("%d", number);
+		    }
+		const cout& operator << (float* number) const
+		    {
+			printf("%f", number);
+		    }
+		//void endl() const {printf("%n");}
+	    };
+
+
+    }//namespace _impl
+
     namespace _impl_cuda {
 
-        template <typename first_hit, 
-                  typename LoopIntervals, 
+        template <typename first_hit,
+                  typename LoopIntervals,
                   typename functor_type,
-                  typename interval_map,
-                  typename LDomain, 
+	    typename interval_map,
+                  typename LDomain,
                   typename Coords>
         __global__
         void do_it_on_gpu(LDomain * l_domain, Coords const* coords, int starti, int startj, int nx, int ny) {
@@ -35,10 +61,10 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
                 typedef typename LDomain::iterate_domain_type iterate_domain_type;
-                iterate_domain_type it_domain(*l_domain, i+starti,j+startj, z); 
+                iterate_domain_type it_domain(*l_domain, i+starti,j+startj, z);
                 for_each<LoopIntervals>
                     (_impl::run_f_on_interval
-                     <functor_type, 
+                     <functor_type,
                      interval_map,
                      iterate_domain_type,
                      Coords>
@@ -46,101 +72,92 @@ namespace gridtools {
             }
         }
 
+
+
         template <typename FunctorList,
                   typename LoopIntervals,
                   typename FunctorsMap,
                   typename RangeSizes,
                   typename DomainList,
                   typename Coords>
-        struct run_functor {
-            Coords const &coords;
-            DomainList &domain_list;
+	    struct run_functor_cuda : public _impl::run_functor <run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+	{
 
-            explicit run_functor(DomainList & domain_list, Coords const& coords)
-                : coords(coords)
-                , domain_list(domain_list)
-            {}
-
-            template <typename Index>
-            void operator()(Index const&) const {
-                typedef typename boost::mpl::at<RangeSizes, Index>::type range_type;
-
-                typedef typename boost::mpl::at<FunctorList, Index>::type functor_type;
-                typedef typename boost::fusion::result_of::value_at<DomainList, Index>::type local_domain_type;
-
-                typedef typename boost::mpl::at<FunctorsMap, Index>::type interval_map;
-
-                local_domain_type &local_domain = boost::fusion::at<Index>(domain_list);
-
-                local_domain.clone_to_gpu();
-                coords.clone_to_gpu();
-
-                local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
-
-                Coords const *coords_gp = coords.gpu_object_ptr;
-
-#ifndef NDEBUG
-                local_domain.info();
-
-                printf("I loop %d ", coords.i_low_bound() + range_type::iminus::value);
-                printf("-> %d\n", coords.i_high_bound() + range_type::iplus::value);
-                printf("J loop %d ", coords.j_low_bound() + range_type::jminus::value);
-                printf("-> %d\n", coords.j_high_bound() + range_type::jplus::value);
-#endif
+	    typedef FunctorList functor_list_t;
+	    typedef LoopIntervals loop_intervals_t;
+	    typedef FunctorsMap functors_map_t;
+	    typedef RangeSizes range_sizes_t;
+	    typedef DomainList domain_list_t;
+	    typedef Coords coords_t;
 
 
-                typedef typename index_to_level<
-                    typename boost::mpl::deref<
-                        typename boost::mpl::find_if<
-                            LoopIntervals,
-                            boost::mpl::has_key<interval_map, boost::mpl::_1>
-                        >::type
-                    >::type::first
-                >::type first_hit;
-#ifndef NDEBUG
-                printf(" ********************\n", first_hit());
-                printf(" ********************\n", coords.template value_at<first_hit>());
-#endif
+	    //\todo usful if we can use constexpr
+	    // static const _impl::BACKEND m_backend=_impl::Cuda;
+	    // static const _impl::BACKEND backend() {return m_backend;} //constexpr
 
-                int nx = coords.i_high_bound() + range_type::iplus::value - (coords.i_low_bound() + range_type::iminus::value);
-                int ny = coords.j_high_bound() + range_type::jplus::value - (coords.j_low_bound() + range_type::jminus::value);
 
-                int ntx = 8, nty = 32, ntz = 1;
-                dim3 threads(ntx, nty, ntz);
+// This struct maybe should't be inside another struct. I can put it elswhere and effectively use overloading in order to distinguish between the backends.
+	    template < typename Traits >
+	    struct execute_kernel_functor
+	    {
+		typedef run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
 
-                int nbx = (nx + ntx - 1) / ntx;
-                int nby = (ny + nty - 1) / nty;
-                int nbz = 1;
-                dim3 blocks(nbx, nby, nbz);
+
+		//template<_impl::STRATEGY s>
+		static void wtf(){}
+
+		template<_impl::STRATEGY s>
+		static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f )
+	    // template < _impl::STRATEGY s, typename Traits >
+	    // void execute_kernel(  const typename Traits::local_domain_type& local_domain ) const
+		{
+		    typedef typename Traits::range_type range_type;
+            typedef typename Traits::functor_type functor_type;
+            typedef typename Traits::local_domain_type  local_domain_type;
+			typedef typename Traits::interval_map interval_map;
+		    typedef typename Traits::iterate_domain_type iterate_domain_type;
+
+		    local_domain.clone_to_gpu();
+		    f->coords.clone_to_gpu();
+
+		    local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
+
+		    Coords const *coords_gp = f->coords.gpu_object_ptr;
+
+		    int nx = f->coords.i_high_bound() + range_type::iplus::value - (f->coords.i_low_bound() + range_type::iminus::value);
+		    int ny = f->coords.j_high_bound() + range_type::jplus::value - (f->coords.j_low_bound() + range_type::jminus::value);
+
+		    int ntx = 8, nty = 32, ntz = 1;
+		    dim3 threads(ntx, nty, ntz);
+
+		    int nbx = (nx + ntx - 1) / ntx;
+		    int nby = (ny + nty - 1) / nty;
+		    int nbz = 1;
+		    dim3 blocks(nbx, nby, nbz);
 
 #ifndef NDEBUG
-                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
-                printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
-                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+		    printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+		    printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
+		    printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
+		do_it_on_gpu<typename Traits::first_hit, LoopIntervals, functor_type, interval_map><<<blocks, threads>>>
+		    (local_domain_gp,
+		     coords_gp,
+		     f->coords.i_low_bound() + range_type::iminus::value,
+			 f->coords.j_low_bound() + range_type::jminus::value,
+		     nx,
+		     ny);
+		cudaDeviceSynchronize();
 
-                do_it_on_gpu<first_hit, LoopIntervals, functor_type, interval_map><<<blocks, threads>>>
-                    (local_domain_gp, 
-                     coords_gp, 
-                     coords.i_low_bound() + range_type::iminus::value, 
-                     coords.j_low_bound() + range_type::jminus::value, 
-                     nx, 
-                     ny);
-                cudaDeviceSynchronize();
+ 		}
 
-            //     for (int i = coords.i_low_bound() + range_type::iminus::value;
-            //          i < coords.i_high_bound() + range_type::iplus::value;
-            //          ++i)
-            //         for (int j = coords.j_low_bound() + range_type::jminus::value;
-            //              j < coords.j_high_bound() + range_type::jplus::value;
-            //              ++j) {
-            //             local_domain.move_to(i,j, coords.template value_at<first_hit>());
-            //             for_each<LoopIntervals>(_impl::run_f_on_interval<functor_type, interval_map,local_domain_type,Coords>(local_domain,coords));
-            //         }
-            }
+	    };
+	    Coords const &coords;
+	    DomainList &domain_list;
+	};
 
-        };
     }
+
 
     struct backend_cuda: public heap_allocated_temps<backend_cuda> {
         static const int BI = 0;
@@ -168,7 +185,7 @@ namespace gridtools {
 
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
 
-            boost::mpl::for_each<iter_range>(_impl_cuda::run_functor
+            boost::mpl::for_each<iter_range>(_impl::run_functor<_impl_cuda::run_functor_cuda
                                              <
                                              FunctorList,
                                              LoopIntervals,
@@ -177,8 +194,25 @@ namespace gridtools {
                                              LocalDomainList,
                                              Coords
                                              >
+	    				        >
                                              (local_domain_list,coords));
         }
     };
+
+
+namespace _impl{
+
+//wasted code because of the lack of constexpr
+        template <typename FunctorList,
+                  typename LoopIntervals,
+                  typename FunctorsMap,
+                  typename RangeSizes,
+                  typename DomainList,
+                  typename Coords>
+	    struct backend_type< _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+	{
+	    static const BACKEND m_backend=Cuda;
+	};
+}
 
 } // namespace gridtools
