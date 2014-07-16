@@ -58,3 +58,11 @@ endif()
 
 add_subdirectory( examples )
 add_subdirectory( unit_tests )
+
+set (PAPI_WRAP_MODULE "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
+if ("${PAPI_WRAP_MODULE}" STREQUAL "ON")
+   add_subdirectory( include/external/perfcount )
+endif()
+
+set(PAPI_WRAP_AS_MODULE "ON")
+
