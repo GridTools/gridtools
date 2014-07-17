@@ -21,7 +21,7 @@ namespace gridtools {
 
     }//namespace _impl
 
-    namespace _impl_naive {
+    namespace _impl_host {
 
 
         template <typename FunctorList,
@@ -30,7 +30,7 @@ namespace gridtools {
                   typename RangeSizes,
                   typename DomainList,
                   typename Coords>
-        struct run_functor_naive : public _impl::run_functor < run_functor_naive<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords > >
+        struct run_functor_host : public _impl::run_functor < run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords > >
         {
 
             typedef FunctorList functor_list_t;
@@ -47,53 +47,32 @@ namespace gridtools {
             Coords const &coords;
             DomainList &domain_list;
 
-            explicit run_functor_naive(DomainList & domain_list, Coords const& coords)
+            explicit run_functor_host(DomainList & domain_list, Coords const& coords)
                 : coords(coords)
                 , domain_list(domain_list)
                 {}
 
-            template< typename Traits >
-            struct execute_kernel_functor
-            {
-                typedef run_functor_naive<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
-
-                // template<_impl::STRATEGY s>
-                static void wtf(){}
-
-                template<_impl::STRATEGY s>
-                static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f)
-                    {
-                        typedef typename Traits::range_type range_type;
-                        typedef typename Traits::functor_type functor_type;
-                        typedef typename Traits::local_domain_type  local_domain_type;
-                        typedef typename Traits::interval_map interval_map;
-                        typedef typename Traits::iterate_domain_type iterate_domain_type;
-
-                        for (int i = f->coords.i_low_bound() + range_type::iminus::value;
-                             i < f->coords.i_high_bound() + range_type::iplus::value;
-                             ++i)
-                            for (int j = f->coords.j_low_bound() + range_type::jminus::value;
-                                 j < f->coords.j_high_bound() + range_type::jplus::value;
-                                 ++j) {
-                                iterate_domain_type it_domain(local_domain, i,j, f->coords.template value_at<typename Traits::first_hit>());
-
-                                gridtools::for_each<LoopIntervals>
-                                    (_impl::run_f_on_interval
-                                     <functor_type,
-                                     interval_map,
-                                     iterate_domain_type,
-                                     Coords>
-                                     (it_domain,f->coords)
-                                        );
-                            }
-                    }
-
-            };
+                typedef run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
 
         };
-    }
 
-    struct backend_naive: public heap_allocated_temps<backend_naive> {
+        // template< _impl::STRATEGY Strategy, _impl::BACKEND Backend >
+        //     struct execute_kernel_functor
+        //     {
+        //         // template<_impl::STRATEGY s>
+        //         static void wtf(){}
+
+        //         template< typename Traits >
+        //         static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f);
+
+        //     };
+    } // namespace _impl_host
+
+
+/** Partial specialization: naive implementation for the host backend (2 policies specify strategy and backend)*/
+
+
+    struct backend_host: public heap_allocated_temps<backend_host> {
         static const int BI = 0;
         static const int BJ = 0;
         static const int BK = 0;
@@ -119,7 +98,7 @@ namespace gridtools {
 
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
 
-            gridtools::for_each<iter_range>(_impl::run_functor<_impl_naive::run_functor_naive
+            gridtools::for_each<iter_range>(_impl::run_functor<_impl_host::run_functor_host
                                             <
                                             FunctorList,
                                             LoopIntervals,
@@ -136,6 +115,47 @@ namespace gridtools {
 
     namespace _impl{
 
+        template <typename FunctorList,
+                  typename LoopIntervals,
+                  typename FunctorsMap,
+                  typename RangeSizes,
+                  typename DomainList,
+                  typename Coords>
+        struct execute_kernel_functor < _impl::Naive, _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords > >
+        {
+            typedef _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
+            template< typename Traits >
+            static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t * f )
+                {
+                    typedef typename Traits::range_type range_type;
+                    typedef typename Traits::functor_type functor_type;
+                    typedef typename Traits::local_domain_type  local_domain_type;
+                    typedef typename Traits::interval_map interval_map;
+                    typedef typename Traits::iterate_domain_type iterate_domain_type;
+
+                    for (int i = f->coords.i_low_bound() + range_type::iminus::value;
+                         i < f->coords.i_high_bound() + range_type::iplus::value;
+                         ++i)
+                        for (int j = f->coords.j_low_bound() + range_type::jminus::value;
+                             j < f->coords.j_high_bound() + range_type::jplus::value;
+                             ++j)
+                        {
+                            iterate_domain_type it_domain(local_domain, i,j, f->coords.template value_at<typename Traits::first_hit>());
+
+                            gridtools::for_each<LoopIntervals>
+                                (_impl::run_f_on_interval
+                                 <functor_type,
+                                 interval_map,
+                                 iterate_domain_type,
+                                 Coords>
+                                 (it_domain,f->coords)
+                                    );
+                        }
+                }
+
+        };
+
+
 //wasted code because of the lack of constexpr
         template <typename FunctorList,
                   typename LoopIntervals,
@@ -143,7 +163,7 @@ namespace gridtools {
                   typename RangeSizes,
                   typename DomainList,
                   typename Coords>
-        struct backend_type< _impl_naive::run_functor_naive<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+        struct backend_type< _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
         {
             static const BACKEND m_backend=Host;
         };
@@ -165,7 +185,7 @@ namespace gridtools {
                       typename Coords>
             struct execute_traits
             {
-                typedef _impl_naive::run_functor_naive<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> run_functor;
+                typedef _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> run_functor;
 
             };
 

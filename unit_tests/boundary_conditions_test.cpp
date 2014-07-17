@@ -30,12 +30,12 @@ using gridtools::plus;
 #include <boost/utility/enable_if.hpp>
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
+#define BACKEND backend<gridtools::_impl::Cuda>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend_block
 #else
-#define BACKEND backend_naive
+#define BACKEND backend<gridtools::_impl::Host>
 #endif
 #endif
 
@@ -73,12 +73,12 @@ struct is_one_of {
 
 struct bc_two {
 
-    template <typename Direction, typename DataField0>  
+    template <typename Direction, typename DataField0>
     GT_FUNCTION
-    void operator()(Direction,                          
-                    DataField0 & data_field0,           
-                    int i, int j, int k) const {        
-        data_field0(i,j,k) = 0;                         
+    void operator()(Direction,
+                    DataField0 & data_field0,
+                    int i, int j, int k) const {
+        data_field0(i,j,k) = 0;
     }
 
     template <sign I, sign J, sign K, typename DataField0>
@@ -297,7 +297,7 @@ bool basic() {
             }
         }
     }
-    
+
     return result;
 
 }
@@ -456,7 +456,7 @@ bool predicate() {
             }
         }
     }
-    
+
     return result;
 
 }
@@ -612,7 +612,7 @@ bool twosurfaces() {
                     }
                 }
             }
-    
+
             return result;
 
 }
@@ -749,7 +749,7 @@ bool usingzero_1() {
             }
         }
     }
-    
+
     return result;
 
 }
@@ -909,7 +909,7 @@ bool usingzero_2() {
             }
         }
     }
-    
+
     return result;
 
 }
@@ -1070,7 +1070,7 @@ bool usingvalue_2() {
             }
         }
     }
-    
+
     return result;
 
 }
@@ -1232,8 +1232,7 @@ bool usingcopy_3() {
             }
         }
     }
-    
+
     return result;
 
 }
-

@@ -6,17 +6,19 @@
 */
 
 namespace gridtools {
+
+
     namespace _impl {
 
         enum STRATEGY  {Naive, Block};
         enum BACKEND  {Cuda, Host};
 
 
+
         template <BACKEND Backend>
 	    struct cout{
             template <typename T>
             void operator <<(T t);
-            //void endl();
 	    };
 
 
@@ -25,6 +27,13 @@ namespace gridtools {
         struct backend_type
         {};
 
+
+    template< _impl::STRATEGY Strategy, typename Backend >
+    struct execute_kernel_functor
+    {
+        template< typename Traits >
+        static void execute_kernel( const typename Traits::local_domain_type& local_domain, const Backend * f);
+    };
 
 /**
    @brief traits struct for the run_functor
@@ -126,8 +135,8 @@ namespace gridtools {
                 // functor.template execute_kernel<_impl::Naive>(local_domain, static_cast<const derived_t*>(this));
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                typedef typename derived_traits::type::template execute_kernel_functor< typename derived_traits::template traits<Index> > functor_type;
-                functor_type::template execute_kernel<_impl::Naive>(local_domain, static_cast<const derived_t*>(this));
+                typedef execute_kernel_functor< Naive, derived_t > functor_type;
+                functor_type::template execute_kernel< typename derived_traits::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
 
             }
         };
@@ -140,14 +149,17 @@ namespace gridtools {
     }//namespace _impl
 
 
+
 /**this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case.*/
     template<_impl::BACKEND BackendType>
-    struct backend: public heap_allocated_temps<backend<BackendType> > {
+    struct backend: public heap_allocated_temps<backend<BackendType> >
+{
         static const int BI = 0;
         static const int BJ = 0;
         static const int BK = 0;
 
         typedef _impl::backend_from_id <BackendType> backend_traits;
+
 
         template <typename ValueType, typename Layout>
         struct storage_type {
@@ -195,6 +207,7 @@ namespace gridtools {
                                                           (local_domain_list,coords));
         }
     };
+
 
 
 
