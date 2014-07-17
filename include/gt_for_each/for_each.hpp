@@ -1,9 +1,9 @@
-#pragma once 
+#pragma once
 
 // Copyright Aleksey Gurtovoy 2000-2008
 //
-// Distributed under the Boost Software License, Version 1.0. 
-// (See accompanying file LICENSE_1_0.txt or copy at 
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 // See http://www.boost.org/libs/mpl for documentation.
@@ -74,18 +74,18 @@ namespace gridtools {
             static void execute(
                                 Iterator*
                                 , LastIterator*
-                                , TransformFunc* 
+                                , TransformFunc*
                                 , F f
                                 )
             {
                 typedef typename boost::mpl::deref<Iterator>::type item;
                 typedef typename boost::mpl::apply1<TransformFunc,item>::type arg;
-                
+
                 // dwa 2002/9/10 -- make sure not to invoke undefined behavior
                 // when we pass arg.
                 value_initialized<arg> x;
                 gt_aux::unwrap(f, 0)(get(x));
-        
+
                 typedef typename boost::mpl::next<Iterator>::type iter;
                 for_each_impl<boost::is_same<iter,LastIterator>::value>
                     ::execute( static_cast<iter*>(0), static_cast<LastIterator*>(0), static_cast<TransformFunc*>(0), f);
@@ -94,7 +94,7 @@ namespace gridtools {
 
     } // namespace gt_aux
 
-    // agurt, 17/mar/02: pointer default parameters are necessary to workaround 
+    // agurt, 17/mar/02: pointer default parameters are necessary to workaround
     // MSVC 6.5 function template signature's mangling bug
     template<
         typename Sequence
@@ -112,5 +112,6 @@ namespace gridtools {
         gt_aux::for_each_impl< boost::is_same<first,last>::value >
             ::execute(static_cast<first*>(0), static_cast<last*>(0), static_cast<boost::mpl::identity<>*>(0), f);
     }
+
 }
 #endif
