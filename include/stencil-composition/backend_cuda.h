@@ -87,27 +87,26 @@ namespace gridtools {
         /**
          * \brief this struct is the core of the ESF functor
          */
-        template <
-            typename FunctorList,
-            typename LoopIntervals,
-            typename FunctorsMap,
-            typename RangeSizes,
-            typename DomainList,
-            typename Coords>
-	    struct run_functor_cuda : public _impl::run_functor <run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+        template < typename Arguments >
+	    struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
+
+            //\todo move to the base class
 
             //\todo usful if we can use constexpr
             // static const _impl::BACKEND m_backend=_impl::Cuda;
             // static const _impl::BACKEND backend() {return m_backend;} //constexpr
 
-            explicit run_functor_cuda(DomainList & domain_list, Coords const& coords)
+            typedef typename Arguments::coords_t coords_t;
+            typedef typename Arguments::domain_list_t domain_list_t;
+            coords_t const &coords;
+            domain_list_t &domain_list;
+
+            explicit run_functor_cuda(domain_list_t & domain_list, coords_t const& coords)
                 : coords(coords)
                 , domain_list(domain_list)
-            {}
+                {}
 
-            Coords const &coords;
-            DomainList &domain_list;
         };
 
     }//namespace _impl_cuda
@@ -117,32 +116,29 @@ namespace gridtools {
     {
 
 /** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
-    template <
-        typename FunctorList,
-        typename LoopIntervals,
-        typename FunctorsMap,
-        typename RangeSizes,
-        typename DomainList,
-        typename Coords>
-    struct execute_kernel_functor <_impl::Naive,  _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+    template < typename Arguments >
+    struct execute_kernel_functor <_impl::Naive,  _impl_cuda::run_functor_cuda<Arguments> >
     {
-        typedef _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
+        typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
         template < typename Traits >
         static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t * f )
             {
+                typedef typename Arguments::coords_t coords_t;
+                typedef typename Arguments::loop_intervals_t loop_intervals_t;
                 typedef typename Traits::range_type range_type;
                 typedef typename Traits::functor_type functor_type;
                 typedef typename Traits::local_domain_type  local_domain_type;
                 typedef typename Traits::interval_map interval_map;
                 typedef typename Traits::iterate_domain_type iterate_domain_type;
+                typedef typename Traits::first_hit first_hit;
 
                 local_domain.clone_to_gpu();
                 f->coords.clone_to_gpu();
 
                 local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
 
-                Coords const *coords_gp = f->coords.gpu_object_ptr;
+                coords_t const *coords_gp = f->coords.gpu_object_ptr;
 
                 int nx = f->coords.i_high_bound() + range_type::iplus::value - (f->coords.i_low_bound() + range_type::iminus::value);
                 int ny = f->coords.j_high_bound() + range_type::jplus::value - (f->coords.j_low_bound() + range_type::jminus::value);
@@ -160,7 +156,7 @@ namespace gridtools {
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
-                _impl_cuda::do_it_on_gpu<typename Traits::first_hit, LoopIntervals, functor_type, interval_map><<<blocks, threads>>>
+                _impl_cuda::do_it_on_gpu<first_hit, loop_intervals_t, functor_type, interval_map><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
                      f->coords.i_low_bound() + range_type::iminus::value,
@@ -174,13 +170,8 @@ namespace gridtools {
 
 
 ///wasted code because of the lack of constexpr
-        template <typename FunctorList,
-                  typename LoopIntervals,
-                  typename FunctorsMap,
-                  typename RangeSizes,
-                  typename DomainList,
-                  typename Coords>
-	    struct backend_type< _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+        template <typename Arguments>
+	    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
         {
             static const BACKEND m_backend=Cuda;
         };
@@ -197,15 +188,10 @@ namespace gridtools {
                 typedef cuda_storage<ValueType, Layout> storage_type;
             };
 
-            template <typename FunctorList,
-                      typename LoopIntervals,
-                      typename FunctorsMap,
-                      typename RangeSizes,
-                      typename DomainList,
-                      typename Coords>
+            template <typename Arguments>
             struct execute_traits
             {
-                typedef _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> run_functor;
+                typedef _impl_cuda::run_functor_cuda<Arguments> run_functor;
 
             };
 
