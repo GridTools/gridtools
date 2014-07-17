@@ -113,6 +113,7 @@ namespace gridtools {
 
             typedef typename MssType::written_temps_per_functor written_temps_per_functor;
 
+
             typedef typename boost::mpl::transform<
                 list_of_temporaries,
                 _impl::associate_ranges<written_temps_per_functor, RangeSizes>
