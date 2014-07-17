@@ -1,0 +1,4 @@
+[submodule "include/external/perfcount"]
+	path = include/external/perfcount
+	url = https://github.com/bcumming/papi-wrap.git
+	ignore = dirty

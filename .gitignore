@@ -37,3 +37,4 @@ unit_tests/cmake_install.cmake
 !include
 !examples
 !unit_tests
+!.gitmodules
