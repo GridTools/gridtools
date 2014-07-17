@@ -34,23 +34,25 @@ namespace gridtools {
             const cout& operator  << (char* string) const
                 {
                     printf(string);
+                    return *this;
                 }
             const cout& operator << (int* number) const
                 {
                     printf("%d", number);
+                    return *this;
                 }
             const cout& operator << (float* number) const
                 {
                     printf("%f", number);
+                    return *this;
                 }
 
             template <typename T>
             const cout& operator << (T arg) const
                 {
-                    printf("You tried to print something");
+                    printf("You tried to print something, and I don't know yet how to print it");
+                    return *this;
                 }
-
-            //void endl() const {printf("%n");}
 	    };
 
     }//namespace _impl
@@ -106,73 +108,95 @@ namespace gridtools {
             // static const _impl::BACKEND m_backend=_impl::Cuda;
             // static const _impl::BACKEND backend() {return m_backend;} //constexpr
 
+            typedef run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
 
 // This struct maybe should't be inside another struct. I can put it elswhere and effectively use overloading in order to distinguish between the backends.
-            template < typename Traits >
-            struct execute_kernel_functor
-            {
-                typedef run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
+            // template < _impl::STRATEGY Strategy >
+            // struct execute_kernel_functor
+            // {
+
+            //     //template<_impl::STRATEGY s>
+            //     static void wtf(){}
+
+            //     template<typename Traits>
+            //     static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f );
+
+            // };
 
 
-                //template<_impl::STRATEGY s>
-                static void wtf(){}
+//            };
 
-                template<_impl::STRATEGY s>
-                static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f )
-                // template < _impl::STRATEGY s, typename Traits >
-                // void execute_kernel(  const typename Traits::local_domain_type& local_domain ) const
-                    {
-                        typedef typename Traits::range_type range_type;
-                        typedef typename Traits::functor_type functor_type;
-                        typedef typename Traits::local_domain_type  local_domain_type;
-                        typedef typename Traits::interval_map interval_map;
-                        typedef typename Traits::iterate_domain_type iterate_domain_type;
-
-                        local_domain.clone_to_gpu();
-                        f->coords.clone_to_gpu();
-
-                        local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
-
-                        Coords const *coords_gp = f->coords.gpu_object_ptr;
-
-                        int nx = f->coords.i_high_bound() + range_type::iplus::value - (f->coords.i_low_bound() + range_type::iminus::value);
-                        int ny = f->coords.j_high_bound() + range_type::jplus::value - (f->coords.j_low_bound() + range_type::jminus::value);
-
-                        int ntx = 8, nty = 32, ntz = 1;
-                        dim3 threads(ntx, nty, ntz);
-
-                        int nbx = (nx + ntx - 1) / ntx;
-                        int nby = (ny + nty - 1) / nty;
-                        int nbz = 1;
-                        dim3 blocks(nbx, nby, nbz);
-
-#ifndef NDEBUG
-                        printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
-                        printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
-                        printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
-#endif
-                        do_it_on_gpu<typename Traits::first_hit, LoopIntervals, functor_type, interval_map><<<blocks, threads>>>
-                            (local_domain_gp,
-                             coords_gp,
-                             f->coords.i_low_bound() + range_type::iminus::value,
-                             f->coords.j_low_bound() + range_type::jminus::value,
-                             nx,
-                             ny);
-                        cudaDeviceSynchronize();
-
-                    }
-
-            };
             Coords const &coords;
             DomainList &domain_list;
+
+
         };
+
+
 
     }//namespace _impl_cuda
 
 
     namespace _impl
     {
-//wasted code because of the lack of constexpr
+
+/** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
+    template <typename FunctorList,
+              typename LoopIntervals,
+              typename FunctorsMap,
+              typename RangeSizes,
+              typename DomainList,
+              typename Coords>
+    struct execute_kernel_functor <_impl::Naive,  _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+    {
+        typedef _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
+
+        template < typename Traits >
+        static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t * f )
+            {
+                typedef typename Traits::range_type range_type;
+                typedef typename Traits::functor_type functor_type;
+                typedef typename Traits::local_domain_type  local_domain_type;
+                typedef typename Traits::interval_map interval_map;
+                typedef typename Traits::iterate_domain_type iterate_domain_type;
+
+                local_domain.clone_to_gpu();
+                f->coords.clone_to_gpu();
+
+                local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
+
+                Coords const *coords_gp = f->coords.gpu_object_ptr;
+
+                int nx = f->coords.i_high_bound() + range_type::iplus::value - (f->coords.i_low_bound() + range_type::iminus::value);
+                int ny = f->coords.j_high_bound() + range_type::jplus::value - (f->coords.j_low_bound() + range_type::jminus::value);
+
+                int ntx = 8, nty = 32, ntz = 1;
+                dim3 threads(ntx, nty, ntz);
+
+                int nbx = (nx + ntx - 1) / ntx;
+                int nby = (ny + nty - 1) / nty;
+                int nbz = 1;
+                dim3 blocks(nbx, nby, nbz);
+
+#ifndef NDEBUG
+                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+                printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
+                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+#endif
+                _impl_cuda::do_it_on_gpu<typename Traits::first_hit, LoopIntervals, functor_type, interval_map><<<blocks, threads>>>
+                    (local_domain_gp,
+                     coords_gp,
+                     f->coords.i_low_bound() + range_type::iminus::value,
+                     f->coords.j_low_bound() + range_type::jminus::value,
+                     nx,
+                     ny);
+                cudaDeviceSynchronize();
+
+            }
+    };
+
+
+///wasted code because of the lack of constexpr
         template <typename FunctorList,
                   typename LoopIntervals,
                   typename FunctorsMap,
@@ -185,10 +209,11 @@ namespace gridtools {
         };
 
 
-/** traits struct defining the types chich are specific to the CUDA backend*/
+/** traits struct defining the types which are specific to the CUDA backend*/
         template<>
         struct backend_from_id<Cuda>
         {
+
             template <typename ValueType, typename Layout>
             struct storage_traits
             {
