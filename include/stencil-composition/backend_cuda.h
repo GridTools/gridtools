@@ -20,6 +20,10 @@
 #include "heap_allocated_temps.h"
 
 #include "backend.h"
+/**
+ * @file
+ * \brief implements the stencil operations for a GPU backend
+ */
 
 namespace gridtools {
 
@@ -78,8 +82,9 @@ namespace gridtools {
             }
         }
 
-
-
+        /**
+         * \brief this struct is the core of the ESF functor
+         */
         template <typename FunctorList,
                   typename LoopIntervals,
                   typename FunctorsMap,
@@ -96,6 +101,12 @@ namespace gridtools {
             typedef DomainList domain_list_t;
             typedef Coords coords_t;
 
+            /**
+             * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
+             */
+            template <typename Index>
+            void operator()(Index const&) const {
+                typedef typename boost::mpl::at<RangeSizes, Index>::type range_type;
 
             //\todo usful if we can use constexpr
             // static const _impl::BACKEND m_backend=_impl::Cuda;
@@ -214,5 +225,6 @@ namespace gridtools {
 
         };
     }//namespace _impl
+
 
 } // namespace gridtools

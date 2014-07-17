@@ -20,14 +20,22 @@
 #include "local_domain.h"
 #include "computation.h"
 
+/**
+ * @file
+ * \brief this file contains mainly helper metafunctions which simplify the interface for the application developer
+ * */
+
 namespace gridtools {
     namespace _impl{
-        /* wrap type to simplify specialization based on mpl::vectors */
+        /**@brief wrap type to simplify specialization based on mpl::vectors */
         template <typename MplArray>
         struct wrap_type {
             typedef MplArray type;
         };
 
+        /**
+         * @brief compile-time boolean operator returning true if the template argument is a wrap_type
+         * */
         template <typename T>
         struct is_wrap_type
           : boost::false_type
@@ -39,14 +47,18 @@ namespace gridtools {
         {};
 
 
-
-        /* Few short and abvious metafunctions */
+/*
+ *
+ * @name Few short and obvious metafunctions
+ * @{
+ * */
         struct extract_functor {
             template <typename T>
             struct apply {
                 typedef typename T::esf_function type;
             };
         };
+
 
         template <typename Dom, template <class A, class B> class LocalDomain>
         struct get_local_domain {
@@ -194,6 +206,9 @@ namespace gridtools {
             >::type type;
         };
 
+/**
+ * @}
+ * */
 
     } //namespace _impl
 
@@ -252,52 +267,81 @@ namespace gridtools {
     } // namespace _debug
 
 
-
+/**
+ * @class
+ * @brief structure collecting helper metafunctions
+ * */
     template <typename Backend, typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
-        // typename MssType::linear_esf is a list of all the esf nodes in the multi-stage descriptor.
-        // functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
+        /**
+         * typename MssType::linear_esf is a list of all the esf nodes in the multi-stage descriptor.
+         * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
+         */
         typedef typename boost::mpl::transform<typename MssType::linear_esf,
                                                _impl::extract_functor>::type functors_list;
-
-        // compute the functor do methods - This is the most computationally intensive part
+        
+        /**
+         *  compute the functor do methods - This is the most computationally intensive part
+         */
         typedef typename boost::mpl::transform<
             functors_list,
             compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
             >::type functor_do_methods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 
-        // compute the loop intervals
+        /**
+         * compute the loop intervals
+         */
         typedef typename compute_loop_intervals<
             functor_do_methods,
             typename Coords::axis_type
             >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
 
-        // compute the do method lookup maps
+        /**
+         * compute the do method lookup maps
+         *
+         */
         typedef typename boost::mpl::transform<
                 functor_do_methods,
                 compute_functor_do_method_lookup_map<boost::mpl::_, LoopIntervals>
                 >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
 
 
-        // Create a fusion::vector of domains for each functor
+        /**
+         * Create a fusion::vector of domains for each functor
+         *
+         */
         typedef typename boost::mpl::transform<
             typename MssType::linear_esf,
             _impl::get_local_domain<DomainType, local_domain> >::type mpl_local_domain_list;
 
+        /**
+         *
+         */
         typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type LocalDomainList;
 
+        /**
+         *
+         */
         LocalDomainList local_domain_list;
 
+        /**
+         *
+         */
         typedef typename boost::mpl::fold<typename MssType::esf_array,
                                           boost::mpl::vector<>,
                                           _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
                                           >::type ranges_list;
 
-        // Compute prefix sum to compute bounding boxes for calling a given functor
+        /*
+         *  Compute prefix sum to compute bounding boxes for calling a given functor
+         */
         typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
 
-        // linearize the data flow graph.
+        /**
+         * linearize the data flow graph
+         *
+         */
         typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
 
         DomainType & m_domain;
@@ -336,13 +380,22 @@ namespace gridtools {
             gridtools::for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
-
-        }
-
+        }    
+        /**
+           @brief This method allocates on the heap the temporary variables.
+           Calls heap_allocated_temps::prepare_temporaries(...).
+           It allocates the memory for the list of ranges defined in the temporary placeholders.
+         */
         void ready () {
             Backend::template prepare_temporaries<MssType, range_sizes>(m_domain, m_coords);
         }
-
+        /**
+           @brief calls setup_computation and creates the local domains.
+           The constructors of the local domains get called
+           (\ref gridtools::intermediate::instantiate_local_domain, which only initializes the dom public pointer variable)
+           @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer
+           is passed to the instantiate_local_domain struct
+         */
         void steady () {
             m_domain.setup_computation();
 
@@ -360,6 +413,10 @@ namespace gridtools {
             Backend::finalize_computation(m_domain);
         }
 
+        /**
+         * \brief the execution of the stencil operations take place in this call
+         *
+         */
         void run () {
             Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
         }
