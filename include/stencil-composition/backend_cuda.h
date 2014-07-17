@@ -101,12 +101,6 @@ namespace gridtools {
             typedef DomainList domain_list_t;
             typedef Coords coords_t;
 
-            /**
-             * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
-             */
-            template <typename Index>
-            void operator()(Index const&) const {
-                typedef typename boost::mpl::at<RangeSizes, Index>::type range_type;
 
             //\todo usful if we can use constexpr
             // static const _impl::BACKEND m_backend=_impl::Cuda;
