@@ -9,7 +9,7 @@ namespace gridtools {
     namespace _impl {
 
 	enum STRATEGY  {Naive, Block};
-	enum BACKEND  {Cuda, OpenMP};
+	enum BACKEND  {Cuda, Host};
 
 
 	template <BACKEND Backend>
@@ -74,10 +74,6 @@ template <
 	typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
 
     };
-
-
-
-//    static const BACKEND m_backend = Back<FunctorList,LoopIntervals,FunctorsMap,RangeSizes ,DomainList,Coords>::m_backend;
 };
 
 
@@ -108,12 +104,13 @@ template <
 #ifndef NDEBUG
 		static const BACKEND backend_t = backend_type<derived_t>::m_backend;
 
+        typedef typename derived_traits::template traits<Index>::range_type range_type;
 //\todo a generic cout is still on the way (have to implement all the '<<' operators)
-		cout< backend_t >() << "Functor " << /* functor_type() <<*/ "\n";
-		/* cout<derived_traits::m_backend>() << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> " */
-		/* 				      << (coords.i_high_bound() + range_type::iplus::value) << "\n"; */
-		/* cout<derived_traits::m_backend>() << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> " */
-		/* 		  << coords.j_high_bound() + range_type::jplus::value << "\n"; */
+		cout< backend_t >() << "Functor " <<  typename derived_traits::template traits<Index>::functor_type() << "\n";
+		cout< backend_t >() << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> "
+						      << (coords.i_high_bound() + range_type::iplus::value) << "\n";
+		cout< backend_t >() << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
+				  << coords.j_high_bound() + range_type::jplus::value << "\n";
 		cout< backend_t >() <<  " ******************** " /*<< first_hit()*/ << "\n";
 		cout< backend_t >() << " ******************** " /*<< coords.template value_at<first_hit>()*/ << "\n";
 #endif
@@ -123,12 +120,66 @@ template <
         /////////////////////////// splitting in 2 steps (using non static method) //////////////////////////////
 		// typename derived_traits::type::template execute_kernel_functor< typename derived_traits::template traits<Index> > functor;// temporary, possibly unnecessary
 		// functor.template execute_kernel<_impl::Naive>(local_domain, static_cast<const derived_t*>(this));
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		derived_traits::type::template execute_kernel_functor< typename derived_traits::template traits<Index> >::template execute_kernel<_impl::Naive>(local_domain, static_cast<const derived_t*>(this));
+		typedef typename derived_traits::type::template execute_kernel_functor< typename derived_traits::template traits<Index> > functor_type;
+        functor_type::template execute_kernel<_impl::Naive>(local_domain, static_cast<const derived_t*>(this));
 
 	    }
 	};
 
+        template<BACKEND Id>
+        struct backend_from_id
+        {
+        };
+
     }//namespace _impl
+
+
+    template<_impl::BACKEND BackendType>
+    struct backend: public heap_allocated_temps<backend<BackendType> > {
+        static const int BI = 0;
+        static const int BJ = 0;
+        static const int BK = 0;
+
+        typedef _impl::backend_from_id <BackendType> backend_traits;
+
+            template <typename ValueType, typename Layout>
+            struct storage_type {
+                typedef typename backend_traits::template storage_traits<ValueType, Layout>::storage_type type;
+            };
+
+            template <typename ValueType, typename Layout>
+            struct temporary_storage_type {
+                typedef temporary< typename backend_traits::template storage_traits<ValueType, Layout>::storage_type > type;
+            };
+
+
+        template <typename FunctorList, // List of functors to execute (in order)
+                  typename range_sizes, // computed range sizes to know where to compute functot at<i>
+                  typename LoopIntervals, // List of intervals on which functors are defined
+                  typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
+                  typename Domain, // Domain class (not really useful maybe)
+                  typename Coords, // Coordinate class with domain sizes and splitter coordinates
+                  typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
+        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
+
+            typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
+
+            backend_traits::template for_each<iter_range>(_impl::run_functor<typename backend_traits::template execute_traits
+                                             <
+                                             FunctorList,
+                                             LoopIntervals,
+                                             FunctorsMap,
+                                             range_sizes,
+                                             LocalDomainList,
+                                             Coords
+                                             >::run_functor
+	    				        >
+                                             (local_domain_list,coords));
+        }
+    };
+
+
+
 }//namespace gridtools

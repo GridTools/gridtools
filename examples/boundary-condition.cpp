@@ -28,12 +28,12 @@ using gridtools::plus;
 #include <stdio.h>
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
+#define BACKEND backend<gridtools::_impl::Cuda>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend_block
 #else
-#define BACKEND backend_naive
+#define BACKEND backend<gridtools::_impl::Host>
 #endif
 #endif
 

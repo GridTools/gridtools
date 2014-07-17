@@ -168,12 +168,12 @@ int main(int argc, char** argv) {
     int d3 = atoi(argv[3]);
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
+#define BACKEND backend<gridtools::_impl::Cuda>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend_block
 #else
-#define BACKEND backend_naive
+#define BACKEND backend<gridtools::_impl::Host>
 #endif
 #endif
 
@@ -291,4 +291,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
