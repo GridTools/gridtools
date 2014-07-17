@@ -24,22 +24,21 @@ namespace gridtools {
     namespace _impl_host {
 
 
-        template <typename FunctorList,
-                  typename LoopIntervals,
-                  typename FunctorsMap,
-                  typename RangeSizes,
-                  typename DomainList,
-                  typename Coords>
-        struct run_functor_host : public _impl::run_functor < run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords > >
+        template < typename Arguments >
+        struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
         {
+            //\todo move to the base class
+
             // useful if we can use constexpr
             // static const _impl::BACKEND m_backend=_impl::Host;
             // static const _impl::BACKEND backend() {return m_backend;} //constexpr
 
-            Coords const &coords;
-            DomainList &domain_list;
+            typedef typename Arguments::coords_t coords_t;
+            typedef typename Arguments::domain_list_t domain_list_t;
+            coords_t const &coords;
+            domain_list_t &domain_list;
 
-            explicit run_functor_host(DomainList & domain_list, Coords const& coords)
+            explicit run_functor_host(domain_list_t & domain_list, coords_t const& coords)
                 : coords(coords)
                 , domain_list(domain_list)
                 {}
@@ -66,26 +65,20 @@ namespace gridtools {
             typedef temporary<storage<ValueType, Layout> > type;
         };
 
-        template <typename FunctorList, // List of functors to execute (in order)
-                  typename range_sizes, // computed range sizes to know where to compute functot at<i>
-                  typename LoopIntervals, // List of intervals on which functors are defined
-                  typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
-                  typename Domain, // Domain class (not really useful maybe)
-                  typename Coords, // Coordinate class with domain sizes and splitter coordinates
-                  typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
-        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
+//* \todo redundant template arguments
+        template < typename Arguments, typename Domain, typename Coords, typename LocalDomainList > // FunctorList, // List of functors to execute (in order)
+        // typename range_sizes, // computed range sizes to know where to compute functot at<i>
+        // typename LoopIntervals, // List of intervals on which functors are defined
+        // typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
+        // typename Domain, // Domain class (not really useful maybe)
+        // typename Coords, // Coordinate class with domain sizes and splitter coordinates
+        // typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
+        static void run( Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
 
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
+            typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename Arguments::functor_list_t>::type::value> iter_range;
 
             gridtools::for_each<iter_range>(_impl::run_functor<_impl_host::run_functor_host
-                                            <
-                                            FunctorList,
-                                            LoopIntervals,
-                                            FunctorsMap,
-                                            range_sizes,
-                                            LocalDomainList,
-                                            Coords
-                                            >
+                                            < Arguments >
                                             >
                                             (local_domain_list,coords));
         }
@@ -94,18 +87,15 @@ namespace gridtools {
 
     namespace _impl{
 
-        template <typename FunctorList,
-                  typename LoopIntervals,
-                  typename FunctorsMap,
-                  typename RangeSizes,
-                  typename DomainList,
-                  typename Coords>
-        struct execute_kernel_functor < _impl::Naive, _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords > >
+        template <typename Arguments >
+        struct execute_kernel_functor < _impl::Naive, _impl_host::run_functor_host< Arguments > >
         {
-            typedef _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
+            typedef _impl_host::run_functor_host< Arguments > backend_t;
             template< typename Traits >
             static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t * f )
                 {
+                    typedef typename Arguments::coords_t coords_t;
+                    typedef typename Arguments::loop_intervals_t loop_intervals_t;
                     typedef typename Traits::range_type range_type;
                     typedef typename Traits::functor_type functor_type;
                     typedef typename Traits::local_domain_type  local_domain_type;
@@ -121,12 +111,12 @@ namespace gridtools {
                         {
                             iterate_domain_type it_domain(local_domain, i,j, f->coords.template value_at<typename Traits::first_hit>());
 
-                            gridtools::for_each<LoopIntervals>
+                            gridtools::for_each<loop_intervals_t>
                                 (_impl::run_f_on_interval
                                  <functor_type,
                                  interval_map,
                                  iterate_domain_type,
-                                 Coords>
+                                 coords_t>
                                  (it_domain,f->coords)
                                     );
                         }
@@ -136,13 +126,8 @@ namespace gridtools {
 
 
 //wasted code because of the lack of constexpr
-        template <typename FunctorList,
-                  typename LoopIntervals,
-                  typename FunctorsMap,
-                  typename RangeSizes,
-                  typename DomainList,
-                  typename Coords>
-        struct backend_type< _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+        template <typename Arguments >
+        struct backend_type< _impl_host::run_functor_host< Arguments > >
         {
             static const BACKEND m_backend=Host;
         };
@@ -156,16 +141,10 @@ namespace gridtools {
                 typedef storage<ValueType, Layout> storage_type;
             };
 
-            template <typename FunctorList,
-                      typename LoopIntervals,
-                      typename FunctorsMap,
-                      typename RangeSizes,
-                      typename DomainList,
-                      typename Coords>
+            template <typename Arguments>
             struct execute_traits
             {
-                typedef _impl_host::run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> run_functor;
-
+                typedef _impl_host::run_functor_host< Arguments > run_functor;
             };
 
             //function alias (pre C++11, std::bind or std::mem_fn)

@@ -10,6 +10,25 @@ namespace gridtools {
 
     namespace _impl {
 
+
+        template <
+            typename FunctorList,
+            typename LoopIntervals,
+            typename FunctorsMap,
+            typename RangeSizes,
+            typename DomainList,
+            typename Coords>
+        struct template_argument_traits
+        {
+            typedef FunctorList functor_list_t;
+            typedef LoopIntervals loop_intervals_t;
+            typedef FunctorsMap functors_map_t;
+            typedef RangeSizes range_sizes_t;
+            typedef DomainList domain_list_t;
+            typedef Coords coords_t;
+
+        };
+
         enum STRATEGY  {Naive, Block};
         enum BACKEND  {Cuda, Host};
 
@@ -46,24 +65,19 @@ namespace gridtools {
         struct run_functor_traits{};
 
         template <
-            typename FunctorList,
-            typename LoopIntervals,
-            typename FunctorsMap,
-            typename RangeSizes,
-            typename DomainList,
-            typename Coords,
-            template <typename FunctorList,typename  LoopIntervals,typename  FunctorsMap,typename  RangeSizes ,typename  DomainList,typename  Coords> class Back
+            typename Arguments,
+            template < typename Arguments > class Back
             >
-        struct run_functor_traits< Back<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
+        struct run_functor_traits< Back< Arguments > >
         {
 
-            typedef FunctorList functor_list_t;
-            typedef LoopIntervals loop_intervals_t;
-            typedef FunctorsMap functors_map_t;
-            typedef RangeSizes range_sizes_t;
-            typedef DomainList domain_list_t;
-            typedef Coords coords_t;
-            typedef Back<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> type;
+            typedef typename Arguments::functor_list_t functor_list_t;
+            typedef typename Arguments::loop_intervals_t loop_intervals_t;
+            typedef typename Arguments::functors_map_t functors_map_t;
+            typedef typename Arguments::range_sizes_t range_sizes_t;
+            typedef typename Arguments::domain_list_t domain_list_t;
+            typedef typename Arguments::coords_t coords_t;
+            typedef Back<Arguments> type;
 
             template <typename Index>
             struct traits{
@@ -81,7 +95,6 @@ namespace gridtools {
                     >::type first_hit;
 
                 typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
-
             };
         };
 
@@ -195,14 +208,14 @@ namespace gridtools {
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
 
             backend_traits::template for_each<iter_range>(_impl::run_functor<typename backend_traits::template execute_traits
-                                                          <
+                                                          <_impl::template_argument_traits<
                                                           FunctorList,
                                                           LoopIntervals,
                                                           FunctorsMap,
                                                           range_sizes,
                                                           LocalDomainList,
                                                           Coords
-                                                          >::run_functor
+                                                          > >::run_functor
                                                           >
                                                           (local_domain_list,coords));
         }
