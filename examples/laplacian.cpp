@@ -48,6 +48,22 @@ struct lap_function {
 /*
  * The following operators and structs are for debugging only
  */
+
+//namespace gridtools{
+// namespace _impl{
+//     enum BACKEND;
+//     template <BACKEND T>
+//     struct cout;
+// // {
+// //     cout<T>& operator<<(char* string);
+// //     };
+// }
+
+// //     template <_impl::BACKEND T>
+// // _impl::cout<T>& operator<<(_impl::cout<T>& s, lap_function const) {
+// //     return s << "lap_function";
+// }
+// }
 std::ostream& operator<<(std::ostream& s, lap_function const) {
     return s << "lap_function";
 }
@@ -64,15 +80,14 @@ int main(int argc, char** argv) {
     int d3 = atoi(argv[3]);
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
+#define BACKEND backend_cuda //backend<gridtools::_impl::Cuda>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend_block
 #else
-#define BACKEND backend_naive
+#define BACKEND backend<gridtools::_impl::OpenMP>
 #endif
 #endif
-
 
     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
@@ -157,4 +172,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-

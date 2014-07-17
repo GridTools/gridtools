@@ -147,6 +147,30 @@ namespace gridtools {
 	{
 	    static const BACKEND m_backend=OpenMP;
 	};
+
+        template<>
+        struct backend_from_id<OpenMP>
+        {
+            template <typename ValueType, typename Layout>
+            struct storage_traits{
+                typedef storage<ValueType, Layout> storage_type;
+            };
+
+            template <typename FunctorList,
+                      typename LoopIntervals,
+                      typename FunctorsMap,
+                      typename RangeSizes,
+                      typename DomainList,
+                      typename Coords>
+            struct execute_traits
+            {
+                typedef _impl_naive::run_functor_naive<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> run_functor;
+
+            };
+
+
+        };
+
     }
 
 } // namespace gridtools
