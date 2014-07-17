@@ -9,7 +9,7 @@
 #include "heap_allocated_temps.h"
 
 namespace gridtools {
-    namespace _impl {
+    namespace _impl_block {
 
         template <typename FunctorList,
                   typename LoopIntervals,
@@ -17,14 +17,14 @@ namespace gridtools {
                   typename RangeSizes,
                   typename DomainList,
                   typename Coords>
-        struct run_functor {
+        struct run_functor_block {
             Coords const &coords;
             DomainList &domain_list;
             int starti, startj;
             const int BI, BJ;
 
-            explicit run_functor(DomainList & domain_list, Coords const& coords, 
-                                  int starti, int startj, 
+            explicit run_functor_block(DomainList & domain_list, Coords const& coords,
+                                  int starti, int startj,
                                   int BI, int BJ)
                 : coords(coords)
                 , domain_list(domain_list)
@@ -74,11 +74,11 @@ namespace gridtools {
                                   << " (" << startj << "," << j << ") " << j << ", "
                                   << coords.template value_at<first_hit>() << std::endl;
 #endif
-                        iterate_domain_type it_domain(local_domain, i,j, coords.template value_at<first_hit>()); 
+                        iterate_domain_type it_domain(local_domain, i,j, coords.template value_at<first_hit>());
 
                         gridtools::for_each<LoopIntervals>
                             (_impl::run_f_on_interval
-                             <functor_type, 
+                             <functor_type,
                              interval_map,
                              iterate_domain_type,
                              Coords>
@@ -151,7 +151,7 @@ namespace gridtools {
                 for (int bj = 0; bj < NBJ; ++bj) {
                     int starti = bi*BI+coords.i_low_bound();
                     int startj = bj*BJ+coords.j_low_bound();
-                    gridtools::for_each<iter_range>(_impl::run_functor
+                    gridtools::for_each<iter_range>(_impl_block::run_functor_block
                                                      <
                                                      FunctorList,
                                                      LoopIntervals,
@@ -167,7 +167,7 @@ namespace gridtools {
             for (int bj = 0; bj < NBJ; ++bj) {
                 int starti = NBI*BI+coords.i_low_bound();
                 int startj = bj*BJ+coords.j_low_bound();
-                gridtools::for_each<iter_range>(_impl::run_functor
+                gridtools::for_each<iter_range>(_impl_block::run_functor_block
                                                 <
                                                 FunctorList,
                                                 LoopIntervals,
@@ -182,7 +182,7 @@ namespace gridtools {
             for (int bi = 0; bi < NBI; ++bi) {
                 int starti = bi*BI+coords.i_low_bound();
                 int startj = NBJ*BJ+coords.j_low_bound();
-                gridtools::for_each<iter_range>(_impl::run_functor
+                gridtools::for_each<iter_range>(_impl_block::run_functor_block
                                                 <
                                                 FunctorList,
                                                 LoopIntervals,
@@ -196,7 +196,7 @@ namespace gridtools {
 
             int starti = NBI*BI+coords.i_low_bound();
             int startj = NBJ*BJ+coords.j_low_bound();
-            gridtools::for_each<iter_range>(_impl::run_functor
+            gridtools::for_each<iter_range>(_impl_block::run_functor_block
                                             <
                                             FunctorList,
                                             LoopIntervals,

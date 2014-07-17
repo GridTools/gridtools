@@ -29,16 +29,23 @@ namespace gridtools {
 	    {
 		const cout& operator  << (char* string) const
 		    {
-			printf(string);
+                printf(string);
 		    }
 		const cout& operator << (int* number) const
 		    {
-			printf("%d", number);
+                printf("%d", number);
 		    }
 		const cout& operator << (float* number) const
 		    {
-			printf("%f", number);
+                printf("%f", number);
 		    }
+
+            template <typename T>
+		const cout& operator << (T arg) const
+		    {
+                printf("You tried to print something");
+		    }
+
 		//void endl() const {printf("%n");}
 	    };
 
@@ -213,6 +220,30 @@ namespace _impl{
 	{
 	    static const BACKEND m_backend=Cuda;
 	};
+
+
+        template<>
+        struct backend_from_id<Cuda>
+        {
+            template <typename ValueType, typename Layout>
+            struct storage_traits
+            {
+                typedef cuda_storage<ValueType, Layout> storage_type;
+            };
+
+            template <typename FunctorList,
+                      typename LoopIntervals,
+                      typename FunctorsMap,
+                      typename RangeSizes,
+                      typename DomainList,
+                      typename Coords>
+            struct execute_traits
+            {
+                typedef _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> run_functor;
+
+            };
+        };
+
 }
 
 } // namespace gridtools
