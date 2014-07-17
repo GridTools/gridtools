@@ -32,14 +32,6 @@ namespace gridtools {
                   typename Coords>
         struct run_functor_host : public _impl::run_functor < run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords > >
         {
-
-            typedef FunctorList functor_list_t;
-            typedef LoopIntervals loop_intervals_t;
-            typedef FunctorsMap functors_map_t;
-            typedef RangeSizes range_sizes_t;
-            typedef DomainList domain_list_t;
-            typedef Coords coords_t;
-
             // useful if we can use constexpr
             // static const _impl::BACKEND m_backend=_impl::Host;
             // static const _impl::BACKEND backend() {return m_backend;} //constexpr
@@ -51,21 +43,8 @@ namespace gridtools {
                 : coords(coords)
                 , domain_list(domain_list)
                 {}
-
-                typedef run_functor_host<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
-
         };
 
-        // template< _impl::STRATEGY Strategy, _impl::BACKEND Backend >
-        //     struct execute_kernel_functor
-        //     {
-        //         // template<_impl::STRATEGY s>
-        //         static void wtf(){}
-
-        //         template< typename Traits >
-        //         static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f);
-
-        //     };
     } // namespace _impl_host
 
 

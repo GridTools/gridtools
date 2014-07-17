@@ -87,52 +87,28 @@ namespace gridtools {
         /**
          * \brief this struct is the core of the ESF functor
          */
-        template <typename FunctorList,
-                  typename LoopIntervals,
-                  typename FunctorsMap,
-                  typename RangeSizes,
-                  typename DomainList,
-                  typename Coords>
+        template <
+            typename FunctorList,
+            typename LoopIntervals,
+            typename FunctorsMap,
+            typename RangeSizes,
+            typename DomainList,
+            typename Coords>
 	    struct run_functor_cuda : public _impl::run_functor <run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
         {
-
-            typedef FunctorList functor_list_t;
-            typedef LoopIntervals loop_intervals_t;
-            typedef FunctorsMap functors_map_t;
-            typedef RangeSizes range_sizes_t;
-            typedef DomainList domain_list_t;
-            typedef Coords coords_t;
-
 
             //\todo usful if we can use constexpr
             // static const _impl::BACKEND m_backend=_impl::Cuda;
             // static const _impl::BACKEND backend() {return m_backend;} //constexpr
 
-            typedef run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
-
-// This struct maybe should't be inside another struct. I can put it elswhere and effectively use overloading in order to distinguish between the backends.
-            // template < _impl::STRATEGY Strategy >
-            // struct execute_kernel_functor
-            // {
-
-            //     //template<_impl::STRATEGY s>
-            //     static void wtf(){}
-
-            //     template<typename Traits>
-            //     static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t* f );
-
-            // };
-
-
-//            };
+            explicit run_functor_cuda(DomainList & domain_list, Coords const& coords)
+                : coords(coords)
+                , domain_list(domain_list)
+            {}
 
             Coords const &coords;
             DomainList &domain_list;
-
-
         };
-
-
 
     }//namespace _impl_cuda
 
@@ -141,12 +117,13 @@ namespace gridtools {
     {
 
 /** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
-    template <typename FunctorList,
-              typename LoopIntervals,
-              typename FunctorsMap,
-              typename RangeSizes,
-              typename DomainList,
-              typename Coords>
+    template <
+        typename FunctorList,
+        typename LoopIntervals,
+        typename FunctorsMap,
+        typename RangeSizes,
+        typename DomainList,
+        typename Coords>
     struct execute_kernel_functor <_impl::Naive,  _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes , DomainList, Coords> >
     {
         typedef _impl_cuda::run_functor_cuda<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, DomainList, Coords> backend_t;
