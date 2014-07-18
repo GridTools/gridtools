@@ -75,13 +75,12 @@ endif()
 
 
 include_directories( L3/include/ ) ## Library header files
-include_directories( L3/src/ ) ## Library source files
 include_directories( L2/include/ ) ## Library header files
-include_directories( L2/src/ ) ## Library source files
+include_directories( ../../src/ ) ## Library source files
 include_directories( . ) ## Library header files
 
 ### Library
-ADD_LIBRARY( gcl L3/src/GCL.cpp L3/include/GCL.h L2/include/stats_collector.h)
+ADD_LIBRARY( gcl ../../src/GCL.cpp L3/include/GCL.h L2/include/stats_collector.h)
 
 set(EXECUTABLE_OUTPUT_PATH "build")
 set(LIBRARY_OUTPUT_PATH "lib")
