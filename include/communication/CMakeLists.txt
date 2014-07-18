@@ -78,6 +78,7 @@ include_directories( L3/include/ ) ## Library header files
 include_directories( L2/include/ ) ## Library header files
 include_directories( ../../src/ ) ## Library source files
 include_directories( . ) ## Library header files
+include_directories( ../../examples/communication ) ## Library header files
 
 ### Library
 ADD_LIBRARY( gcl ../../src/GCL.cpp L3/include/GCL.h L2/include/stats_collector.h)
@@ -108,8 +109,14 @@ if("${GCL_ONLY}" STREQUAL "OFF")
   ### L2
   if( "${GCL_MPI}" STREQUAL "ON" )
     #CPU 2D MPI tests
-    foreach(srcfile test_halo_exchange test_halo_exchange_2D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_async_progress_3D_generic test_halo_exchange_2D_generic test_halo_exchange_3D_generic_full test_all_to_all_halo test_all_to_all_ij_ji test_all_to_all_halo_3D test_descriptors test_descriptors_2D big_test test_descriptors_3D test_empty_descriptors_2D test_empty_descriptors_3D)
+    foreach(srcfile test_async_progress_3D_generic test_all_to_all_halo test_all_to_all_ij_ji test_all_to_all_halo_3D test_descriptors test_descriptors_2D big_test test_descriptors_3D test_empty_descriptors_2D test_empty_descriptors_3D)
       add_executable( ${srcfile} L2/test/${srcfile}.cpp)
+      add_dependencies(${srcfile} gcl)
+      set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS}")
+      target_link_libraries(${srcfile} gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+    endforeach(srcfile)
+    foreach(srcfile test_halo_exchange test_halo_exchange_2D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_2D_generic test_halo_exchange_3D_generic_full)
+      add_executable( ${srcfile} ../../examples/communication/${srcfile}.cpp)
       add_dependencies(${srcfile} gcl)
       set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS}")
       target_link_libraries(${srcfile} gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
