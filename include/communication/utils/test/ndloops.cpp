@@ -14,7 +14,7 @@ struct sumup {
   mutable double res;
   int N;
   double *storage;
-  sumup(int _N, double *st): res(0), N(_N), storage(st) { }
+  sumup(int N, double *st): res(0.0), N(N), storage(st) { }
 
   template <typename TUPLE>
   void operator()(TUPLE const &tuple) const {
@@ -26,9 +26,8 @@ struct sumup {
 struct sumup2 {
   mutable double res;
   int N;
-  //int i;
   double *storage;
-  sumup2(int _N, double *st): res(0), N(_N), /*i(0),*/ storage(st) { }
+  sumup2(int N, double *st): res(0.0), N(N), storage(st) { }
 
   void operator()(int idx) const {
     // std::cout << ++i << " " << idx << "\n";
@@ -139,7 +138,7 @@ int main(int argc, char** argv) {
         }
   gettimeofday(&stop_tv, NULL);
 
-  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
+  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec)
           - ((double)start_tv.tv_sec+1/1000000.0*(double)start_tv.tv_usec)) * 1000.0;
 
   std::cout << "result " << res << " time " << time << "\n";
@@ -159,7 +158,7 @@ int main(int argc, char** argv) {
   gridtools::utils::loop<4>()(ab,summ, tuple);
   gettimeofday(&stop_tv, NULL);
 
-  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
+  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec)
           - ((double)start_tv.tv_sec+1/1000000.0*(double)start_tv.tv_usec)) * 1000.0;
 
   std::cout << "result " << summ.res << " time " << time << "\n";
@@ -179,11 +178,11 @@ int main(int argc, char** argv) {
   gridtools::utils::access_loop<4,sumup2>()(ab,dimensions,summ2);
   gettimeofday(&stop_tv, NULL);
 
-  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
+  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec)
           - ((double)start_tv.tv_sec+1/1000000.0*(double)start_tv.tv_usec)) * 1000.0;
 
   std::cout << "result " << summ2.res << " time " << time << "\n";
 
   return 0;
 }
-      
+
