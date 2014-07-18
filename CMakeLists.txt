@@ -43,6 +43,11 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
+include(FindOpenMP)
+if(OPENMP_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif(OPENMP_FOUND)
+
 # find GTest
 find_package(GTest)
 if (GTEST_FOUND)
@@ -56,13 +61,16 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions( -D_VARIADIC_MAX=10 )
 endif()
 
+if(OPENMP_FOUND)
+    set (PAPI_WRAP_MODULE "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
+    if ( "${PAPI_WRAP_MODULE}" STREQUAL "ON" )
+        add_subdirectory( include/external/perfcount )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP")
+    endif()
+endif()
+
 add_subdirectory( examples )
 add_subdirectory( unit_tests )
 
-set (PAPI_WRAP_MODULE "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
-if ("${PAPI_WRAP_MODULE}" STREQUAL "ON")
-   add_subdirectory( include/external/perfcount )
-endif()
-
-set(PAPI_WRAP_AS_MODULE "ON")
+set( PAPI_WRAP_AS_MODULE "ON" )
 
