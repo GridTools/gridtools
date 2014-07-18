@@ -30,12 +30,12 @@ using gridtools::plus;
 #include <boost/utility/enable_if.hpp>
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<gridtools::_impl::Cuda>
+#define BACKEND backend<gridtools::_impl::Cuda, gridtools::_impl::Naive>
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend_block
+#define BACKEND backend<, gridtools::_impl::Host, , gridtools::_impl::Block>
 #else
-#define BACKEND backend<gridtools::_impl::Host>
+#define BACKEND backend<gridtools::_impl::Host, gridtools::_impl::Naive >
 #endif
 #endif
 

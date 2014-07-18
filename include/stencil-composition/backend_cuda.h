@@ -29,7 +29,7 @@ namespace gridtools {
 
     namespace _impl{
         template<>
-	    struct _impl::cout<_impl::Cuda>
+	    struct cout<_impl::Cuda>
 	    {
             const cout& operator  << (char* string) const
                 {
@@ -90,34 +90,19 @@ namespace gridtools {
         template < typename Arguments >
 	    struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
-
-            //\todo move to the base class
-
-            //\todo usful if we can use constexpr
-            // static const _impl::BACKEND m_backend=_impl::Cuda;
-            // static const _impl::BACKEND backend() {return m_backend;} //constexpr
-
-            typedef typename Arguments::coords_t coords_t;
-            typedef typename Arguments::domain_list_t domain_list_t;
-            coords_t const &coords;
-            domain_list_t &domain_list;
-
-            explicit run_functor_cuda(domain_list_t & domain_list, coords_t const& coords)
-                : coords(coords)
-                , domain_list(domain_list)
+            typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
+            explicit run_functor_cuda(typename super::derived_traits::domain_list_t & domain_list, typename super::derived_traits::coords_t const& coords)
+                : super(coords, domain_list)
                 {}
-
         };
-
     }//namespace _impl_cuda
 
 
     namespace _impl
     {
-
 /** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
     template < typename Arguments >
-    struct execute_kernel_functor <_impl::Naive,  _impl_cuda::run_functor_cuda<Arguments> >
+    struct execute_kernel_functor < _impl_cuda::run_functor_cuda<Arguments> >
     {
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
@@ -179,7 +164,7 @@ namespace gridtools {
 
 /** traits struct defining the types which are specific to the CUDA backend*/
         template<>
-        struct backend_from_id<Cuda>
+        struct backend_from_id< Cuda >
         {
 
             template <typename ValueType, typename Layout>
@@ -191,8 +176,7 @@ namespace gridtools {
             template <typename Arguments>
             struct execute_traits
             {
-                typedef _impl_cuda::run_functor_cuda<Arguments> run_functor;
-
+                typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
             };
 
             //function alias (pre C++11)
@@ -206,6 +190,8 @@ namespace gridtools {
                 }
 
         };
+
+
     }//namespace _impl
 
 

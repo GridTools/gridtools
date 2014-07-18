@@ -27,68 +27,22 @@ namespace gridtools {
         template < typename Arguments >
         struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
         {
-            //\todo move to the base class
-
-            // useful if we can use constexpr
-            // static const _impl::BACKEND m_backend=_impl::Host;
-            // static const _impl::BACKEND backend() {return m_backend;} //constexpr
-
-            typedef typename Arguments::coords_t coords_t;
-            typedef typename Arguments::domain_list_t domain_list_t;
-            coords_t const &coords;
-            domain_list_t &domain_list;
-
-            explicit run_functor_host(domain_list_t & domain_list, coords_t const& coords)
-                : coords(coords)
-                , domain_list(domain_list)
+            typedef _impl::run_functor < run_functor_host < Arguments > > super;
+            explicit run_functor_host(typename super::derived_traits::domain_list_t& domain_list, typename super::derived_traits::coords_t const& coords)
+                : super(coords, domain_list)
                 {}
         };
 
     } // namespace _impl_host
 
 
-/** Partial specialization: naive implementation for the host backend (2 policies specify strategy and backend)*/
-
-
-    struct backend_host: public heap_allocated_temps<backend_host> {
-        static const int BI = 0;
-        static const int BJ = 0;
-        static const int BK = 0;
-
-        template <typename ValueType, typename Layout>
-        struct storage_type {
-            typedef storage<ValueType, Layout> type;
-        };
-
-        template <typename ValueType, typename Layout>
-        struct temporary_storage_type {
-            typedef temporary<storage<ValueType, Layout> > type;
-        };
-
-//* \todo redundant template arguments
-        template < typename Arguments, typename Domain, typename Coords, typename LocalDomainList > // FunctorList, // List of functors to execute (in order)
-        // typename range_sizes, // computed range sizes to know where to compute functot at<i>
-        // typename LoopIntervals, // List of intervals on which functors are defined
-        // typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
-        // typename Domain, // Domain class (not really useful maybe)
-        // typename Coords, // Coordinate class with domain sizes and splitter coordinates
-        // typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
-        static void run( Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
-
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename Arguments::functor_list_t>::type::value> iter_range;
-
-            gridtools::for_each<iter_range>(_impl::run_functor<_impl_host::run_functor_host
-                                            < Arguments >
-                                            >
-                                            (local_domain_list,coords));
-        }
-    };
 
 
     namespace _impl{
 
+/** Partial specialization: naive and block implementation for the host backend (2 policies specify strategy and backend)*/
         template <typename Arguments >
-        struct execute_kernel_functor < _impl::Naive, _impl_host::run_functor_host< Arguments > >
+        struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
         {
             typedef _impl_host::run_functor_host< Arguments > backend_t;
             template< typename Traits >
@@ -102,24 +56,24 @@ namespace gridtools {
                     typedef typename Traits::interval_map interval_map;
                     typedef typename Traits::iterate_domain_type iterate_domain_type;
 
-                    for (int i = f->coords.i_low_bound() + range_type::iminus::value;
-                         i < f->coords.i_high_bound() + range_type::iplus::value;
-                         ++i)
-                        for (int j = f->coords.j_low_bound() + range_type::jminus::value;
-                             j < f->coords.j_high_bound() + range_type::jplus::value;
-                             ++j)
-                        {
-                            iterate_domain_type it_domain(local_domain, i,j, f->coords.template value_at<typename Traits::first_hit>());
+                for (int i = f->starti + range_type::iminus::value;
+                     i < f->starti + f->BI + range_type::iplus::value;
+                     ++i)
+                    for (int j = f->startj + range_type::jminus::value;
+                         j < f->startj + f->BJ + range_type::jplus::value;
+                         ++j)
+                    {
+                        iterate_domain_type it_domain(local_domain, i,j, f->coords.template value_at<typename Traits::first_hit>());
 
-                            gridtools::for_each<loop_intervals_t>
-                                (_impl::run_f_on_interval
-                                 <functor_type,
-                                 interval_map,
-                                 iterate_domain_type,
-                                 coords_t>
-                                 (it_domain,f->coords)
-                                    );
-                        }
+                        gridtools::for_each<loop_intervals_t>
+                            (_impl::run_f_on_interval
+                             <functor_type,
+                             interval_map,
+                             iterate_domain_type,
+                             coords_t>
+                             (it_domain,f->coords)
+                                );
+                    }
                 }
 
         };
@@ -131,6 +85,7 @@ namespace gridtools {
         {
             static const BACKEND m_backend=Host;
         };
+
 
         /**Traits struct, containing the types which are specific for the host backend*/
         template<>
@@ -144,7 +99,7 @@ namespace gridtools {
             template <typename Arguments>
             struct execute_traits
             {
-                typedef _impl_host::run_functor_host< Arguments > run_functor;
+                typedef _impl_host::run_functor_host< Arguments > backend_t;
             };
 
             //function alias (pre C++11, std::bind or std::mem_fn)
@@ -157,7 +112,9 @@ namespace gridtools {
                 {
                     gridtools::for_each<Sequence>(f);
                 }
+
         };
+
 
     }
 

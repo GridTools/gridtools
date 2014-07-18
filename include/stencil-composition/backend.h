@@ -1,5 +1,8 @@
 #pragma once
 
+#include "backend_traits.h"
+
+
 /**
    @file
 
@@ -9,94 +12,6 @@ namespace gridtools {
 
 
     namespace _impl {
-
-
-        template <
-            typename FunctorList,
-            typename LoopIntervals,
-            typename FunctorsMap,
-            typename RangeSizes,
-            typename DomainList,
-            typename Coords>
-        struct template_argument_traits
-        {
-            typedef FunctorList functor_list_t;
-            typedef LoopIntervals loop_intervals_t;
-            typedef FunctorsMap functors_map_t;
-            typedef RangeSizes range_sizes_t;
-            typedef DomainList domain_list_t;
-            typedef Coords coords_t;
-
-        };
-
-        enum STRATEGY  {Naive, Block};
-        enum BACKEND  {Cuda, Host};
-
-
-
-        template <BACKEND Backend>
-	    struct cout{
-            template <typename T>
-            void operator <<(T t);
-	    };
-
-
-//wasted code because of the lack of constexpr
-        template <class RunFunctor>
-        struct backend_type
-        {};
-
-
-    template< _impl::STRATEGY Strategy, typename Backend >
-    struct execute_kernel_functor
-    {
-        template< typename Traits >
-        static void execute_kernel( const typename Traits::local_domain_type& local_domain, const Backend * f);
-    };
-
-/**
-   @brief traits struct for the run_functor
-
-   This struct defines a type for all the template arguments in the run_functor subclasses. It is required because in the run_functor class definition the 'Derived'
-   template argument is an incomplete type (ans thus we can not access its template arguments).
-   This struct also contains all the type definitions common to all backends.
-*/
-        template <class Subclass>
-        struct run_functor_traits{};
-
-        template <
-            typename Arguments,
-            template < typename Arguments > class Back
-            >
-        struct run_functor_traits< Back< Arguments > >
-        {
-
-            typedef typename Arguments::functor_list_t functor_list_t;
-            typedef typename Arguments::loop_intervals_t loop_intervals_t;
-            typedef typename Arguments::functors_map_t functors_map_t;
-            typedef typename Arguments::range_sizes_t range_sizes_t;
-            typedef typename Arguments::domain_list_t domain_list_t;
-            typedef typename Arguments::coords_t coords_t;
-            typedef Back<Arguments> type;
-
-            template <typename Index>
-            struct traits{
-                typedef typename boost::mpl::at<range_sizes_t, Index>::type range_type;
-                typedef typename boost::mpl::at<functor_list_t, Index>::type functor_type;
-                typedef typename boost::fusion::result_of::value_at<domain_list_t, Index>::type local_domain_type;
-                typedef typename boost::mpl::at<functors_map_t, Index>::type interval_map;
-                typedef typename index_to_level<
-                    typename boost::mpl::deref<
-                        typename boost::mpl::find_if<
-                            loop_intervals_t,
-                            boost::mpl::has_key<interval_map, boost::mpl::_1>
-                            >::type
-                        >::type::first
-                    >::type first_hit;
-
-                typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
-            };
-        };
 
 
 
@@ -112,12 +27,26 @@ namespace gridtools {
             typename derived_traits::coords_t const &coords;
             typename derived_traits::domain_list_t &domain_list;
 
-            // this would be ok when using constexpr:
-            //static const BACKEND m_backend = derived_t::backend();
+            int starti, startj, BI, BJ;
 
-            explicit run_functor(typename derived_traits::domain_list_t& domain_list, typename derived_traits::coords_t const& coords)
+            // Block strategy
+            explicit run_functor(typename derived_traits::domain_list_t& dom_list, typename derived_traits::coords_t const& coords, int i, int j, int bi, int bj)
                 : coords(coords)
                 , domain_list(domain_list)
+                , starti(i)
+                , startj(j)
+                , BI(bi)
+                , BJ(bj)
+                {}
+
+            // Naive strategy
+            explicit run_functor(typename derived_traits::domain_list_t& dom_list, typename derived_traits::coords_t const& coords)
+                : coords(coords)
+                , domain_list(domain_list)
+                , starti(coords.i_low_bound())
+                , startj(coords.i_low_bound())
+                , BI(coords.i_high_bound()-coords.i_low_bound())
+                , BJ(coords.i_high_bound()-coords.i_low_bound())
                 {}
 
 
@@ -143,46 +72,36 @@ namespace gridtools {
 
                 typename derived_traits::template traits<Index>::local_domain_type& local_domain = boost::fusion::at<Index>(domain_list);
 
-                /////////////////////////// splitting in 2 steps (using non static method) //////////////////////////////
-                // typename derived_traits::type::template execute_kernel_functor< typename derived_traits::template traits<Index> > functor;// temporary, possibly unnecessary
-                // functor.template execute_kernel<_impl::Naive>(local_domain, static_cast<const derived_t*>(this));
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                typedef execute_kernel_functor< Naive, derived_t > functor_type;
+                typedef execute_kernel_functor<  derived_t > functor_type;
                 functor_type::template execute_kernel< typename derived_traits::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
 
             }
         };
 
-        template<BACKEND Id>
-        struct backend_from_id
-        {
-        };
 
     }//namespace _impl
 
 
 
 /**this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case.*/
-    template<_impl::BACKEND BackendType>
-    struct backend: public heap_allocated_temps<backend<BackendType> >
-{
-        static const int BI = 0;
-        static const int BJ = 0;
-        static const int BK = 0;
+    template< _impl::BACKEND BackendType, _impl::STRATEGY StrategyType >
+    struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >
+    {
+    typedef _impl::backend_from_id <BackendType> backend_traits;
+    typedef _impl::strategy_from_id <StrategyType> strategy_traits;
+    static const _impl::STRATEGY m_strategy_id=StrategyType;
+    static const _impl::BACKEND m_backend_id =BackendType;
 
-        typedef _impl::backend_from_id <BackendType> backend_traits;
+    template <typename ValueType, typename Layout>
+    struct storage_type {
+        typedef typename backend_traits::template storage_traits<ValueType, Layout>::storage_type type;
+    };
 
-
-        template <typename ValueType, typename Layout>
-        struct storage_type {
-            typedef typename backend_traits::template storage_traits<ValueType, Layout>::storage_type type;
-        };
-
-        template <typename ValueType, typename Layout>
-        struct temporary_storage_type {
-            typedef temporary< typename backend_traits::template storage_traits<ValueType, Layout>::storage_type > type;
-        };
+    template <typename ValueType, typename Layout>
+    struct temporary_storage_type {
+        typedef temporary< typename backend_traits::template storage_traits<ValueType, Layout>::storage_type > type;
+    };
 
 
         /**
@@ -206,18 +125,10 @@ namespace gridtools {
         static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
 
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
+            typedef _impl::template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments;
+            typedef typename backend_traits::template execute_traits< arguments >::backend_t backend_t;
 
-            backend_traits::template for_each<iter_range>(_impl::run_functor<typename backend_traits::template execute_traits
-                                                          <_impl::template_argument_traits<
-                                                          FunctorList,
-                                                          LoopIntervals,
-                                                          FunctorsMap,
-                                                          range_sizes,
-                                                          LocalDomainList,
-                                                          Coords
-                                                          > >::run_functor
-                                                          >
-                                                          (local_domain_list,coords));
+            _impl::strategy_from_id< m_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
         }
     };
 
