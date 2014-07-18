@@ -56,21 +56,21 @@ struct print_int {
 
 int main(int argc, char** argv) {
 
-  GCL::array<int, 4> indices; /*= {3, 4, 3, 2}; // enabled in C++0x */
+  gridtools::array<int, 4> indices; /*= {3, 4, 3, 2}; // enabled in C++0x */
   indices[0] = 3;
   indices[1] = 4;
   indices[2] = 3;
   indices[3] = 2;
-  GCL::array<int, 4> dimensions; /*= {5, 5, 5, 5};  // enabled in C++0x */
+  gridtools::array<int, 4> dimensions; /*= {5, 5, 5, 5};  // enabled in C++0x */
   dimensions[0] = 5;
   dimensions[1] = 5;
   dimensions[2] = 5;
   dimensions[3] = 5;
-  std::cout << GCL::utils::access_to<4>()(indices, dimensions) << "\n";
+  std::cout << gridtools::utils::access_to<4>()(indices, dimensions) << "\n";
 
   int N=atoi(argv[1]);
 
-  GCL::array<GCL::utils::bounds,4> ab;
+  gridtools::array<gridtools::utils::bounds,4> ab;
 //   ab[0].imin=2;
 //   ab[0].imax=dimensions[0]-1;
 //   ab[1].imin=3;
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
   ab[3].imax=N-1;
 
   print_int tmp;
-  GCL::utils::access_loop<4,print_int>()(ab,dimensions,tmp);
+  gridtools::utils::access_loop<4,print_int>()(ab,dimensions,tmp);
 
 
   struct timeval start_tv;
@@ -97,9 +97,9 @@ int main(int argc, char** argv) {
   double time;
 
   std::cout << "\n\n\n\n";
-  GCL::array<int,4> tuple;
+  gridtools::array<int,4> tuple;
   print_tuple tmp2;
-  GCL::utils::loop<4>()(ab,tmp2,tuple);
+  gridtools::utils::loop<4>()(ab,tmp2,tuple);
 
 
   double *storage = new double[N*N*N*N];
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
 
   sumup summ(N, storage);
   gettimeofday(&start_tv, NULL);
-  GCL::utils::loop<4>()(ab,summ, tuple);
+  gridtools::utils::loop<4>()(ab,summ, tuple);
   gettimeofday(&stop_tv, NULL);
 
   time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
 
   sumup2 summ2(N, storage);
   gettimeofday(&start_tv, NULL);
-  GCL::utils::access_loop<4,sumup2>()(ab,dimensions,summ2);
+  gridtools::utils::access_loop<4,sumup2>()(ab,dimensions,summ2);
   gettimeofday(&stop_tv, NULL);
 
   time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 

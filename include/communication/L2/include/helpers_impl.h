@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HELPERS_IMPL_H_
 #define _HELPERS_IMPL_H_
 
-namespace GCL {
+namespace gridtools {
   namespace _impl {
 
     template <typename T, typename arch/*=gcl_cpu*/>
@@ -98,7 +98,7 @@ namespace GCL {
                 = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(gcl_utils::make_array(ii,jj)));
               hm->recv_buffer[translate()(ii,jj)] 
                 = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(gcl_utils::make_array(ii,jj)));
-              //std::cout << "@" << GCL::PID << "@ " << hm->send_buffer[translate()(ii,jj)] << " -- " << hm->recv_buffer[translate()(ii,jj)] << "\n"; 
+              //std::cout << "@" << gridtools::PID << "@ " << hm->send_buffer[translate()(ii,jj)] << " -- " << hm->recv_buffer[translate()(ii,jj)] << "\n"; 
 
               hm->haloexch.register_send_to_buffer
                 (&(hm->send_buffer[translate()(ii,jj)][0]),
@@ -270,5 +270,5 @@ namespace GCL {
 
 
   } // namespace _impl
-} // namespace GCL
+} // namespace gridtools
 #endif

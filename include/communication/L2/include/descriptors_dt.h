@@ -60,7 +60,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/type_traits/remove_pointer.hpp>
 #include <access.h>
 
-namespace GCL {
+namespace gridtools {
 
   /** \class empty_field
       Class containint the information about a data field (grid). 
@@ -94,7 +94,7 @@ namespace GCL {
 
     const halo_descriptor* raw_array() const {return &(base_type::halos[0]);}
 
-    /** void pack(GCL::array<int, D> const& eta, iterator &it)
+    /** void pack(gridtools::array<int, D> const& eta, iterator &it)
         Pack the elements of a data field passed in input as iterator_in to be sent using the 
         iterator_out passed in that points to data buffers. At the end 
         the iterator_out points to the element next to the last inserted. In inout 
@@ -105,13 +105,13 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data.
     */
     template <typename iterator_in, typename iterator_out>
-    void pack(GCL::array<int, DIMS> const& eta, iterator_in const& field_ptr, iterator_out &it) const {
+    void pack(gridtools::array<int, DIMS> const& eta, iterator_in const& field_ptr, iterator_out &it) const {
       if (base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].second) {
         int ss2;
-        MPI_Pack_size(1, base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].first, GCL::GCL_WORLD, &ss2);
+        MPI_Pack_size(1, base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].first, gridtools::GCL_WORLD, &ss2);
 
         int I=0;
-        MPI_Pack(field_ptr, 1, base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].first, it, ss2, &I, GCL::GCL_WORLD);
+        MPI_Pack(field_ptr, 1, base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].first, it, ss2, &I, gridtools::GCL_WORLD);
 
         it += I/sizeof(typename boost::remove_pointer<typename boost::remove_reference<iterator_out>::type>::type);
       } else {
@@ -120,7 +120,7 @@ namespace GCL {
 
     }
 
-    /** void unpack(GCL::array<int, D> const& eta, iterator &it)
+    /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
         Unpack the elements into a data field passed in input as 
         iterator_in that have being received in data obtained by the 
         iterator_out passed in that points to data buffers. At the end 
@@ -133,11 +133,11 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data in buffers.
     */
     template <typename iterator_in, typename iterator_out>
-    void unpack(GCL::array<int, DIMS> const& eta, iterator_in const& field_ptr, iterator_out &it) const {
+    void unpack(gridtools::array<int, DIMS> const& eta, iterator_in const& field_ptr, iterator_out &it) const {
       if (base_type::MPDT_OUTSIDE[_impl::neigh_idx(eta)].second) {
         int I=0;
 
-        MPI_Unpack(it, base_type::recv_buffer_size(eta)*sizeof(DataType), &I, field_ptr, 1, base_type::MPDT_OUTSIDE[_impl::neigh_idx(eta)].first, GCL::GCL_WORLD);
+        MPI_Unpack(it, base_type::recv_buffer_size(eta)*sizeof(DataType), &I, field_ptr, 1, base_type::MPDT_OUTSIDE[_impl::neigh_idx(eta)].first, gridtools::GCL_WORLD);
 
         it += I/sizeof(typename boost::remove_pointer<typename boost::remove_reference<iterator_out>::type>::type);
       } else {
@@ -147,7 +147,7 @@ namespace GCL {
     }
 
     template <typename iterator>
-    void pack_all(GCL::array<int, DIMS> const&, iterator &it) const {}
+    void pack_all(gridtools::array<int, DIMS> const&, iterator &it) const {}
 
     /**
        This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -163,7 +163,7 @@ namespace GCL {
      */
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
     template <typename iterator, typename FIRST, typename... FIELDS>
-    void pack_all(GCL::array<int, DIMS> const& eta, 
+    void pack_all(gridtools::array<int, DIMS> const& eta, 
                   iterator &it, 
                   FIRST const & field, 
                   const FIELDS&... args) const {
@@ -174,7 +174,7 @@ namespace GCL {
 #define MACRO_IMPL(z, n, _)                                             \
     template <typename iterator,                                        \
               BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
-    void pack_all(GCL::array<int, DIMS> const& eta,                     \
+    void pack_all(gridtools::array<int, DIMS> const& eta,                     \
                   iterator &it,                                         \
                   BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &arg)) const { \
       pack_all(eta, it BOOST_PP_COMMA_IF(n)  BOOST_PP_ENUM_PARAMS_Z(z, n, arg)); \
@@ -186,7 +186,7 @@ namespace GCL {
 #endif
 
     template <typename iterator>
-    void unpack_all(GCL::array<int, DIMS> const&, iterator &it) const {}
+    void unpack_all(gridtools::array<int, DIMS> const&, iterator &it) const {}
 
     /**
        This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -202,7 +202,7 @@ namespace GCL {
      */
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
     template <typename iterator, typename FIRST, typename... FIELDS>
-    void unpack_all(GCL::array<int, DIMS> const& eta,
+    void unpack_all(gridtools::array<int, DIMS> const& eta,
                     iterator &it,
                     FIRST const & field,
                     const FIELDS&... args) const {
@@ -213,7 +213,7 @@ namespace GCL {
 #define MACRO_IMPL(z, n, _)                                             \
     template <typename iterator,                                        \
               BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
-    void unpack_all(GCL::array<int, DIMS> const& eta,                     \
+    void unpack_all(gridtools::array<int, DIMS> const& eta,                     \
                   iterator &it,                                         \
                   BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &arg)) const { \
       unpack_all(eta, it BOOST_PP_COMMA_IF(n)  BOOST_PP_ENUM_PARAMS_Z(z, n, arg)); \
@@ -265,7 +265,7 @@ namespace GCL {
     */
     explicit field_descriptor(DataType *_fp): fieldptr(_fp) {}
 
-    /** void pack(GCL::array<int, D> const& eta, iterator &it)
+    /** void pack(gridtools::array<int, D> const& eta, iterator &it)
         Pack the elements to be sent using the iterator passed in. At the end 
         the iterator points to the element next to the last inserted. In inout 
         the iterator points to the elements to be insered
@@ -274,11 +274,11 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data.
     */
     template <typename iterator>
-    void pack(GCL::array<int, DIMS> const& eta, iterator &it) const {
+    void pack(gridtools::array<int, DIMS> const& eta, iterator &it) const {
       base_type::pack(eta, fieldptr, it);
     }
 
-    /** void unpack(GCL::array<int, D> const& eta, iterator &it)
+    /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
         Unpack the elements received using the iterator passed in.. At the end 
         the iterator points to the element next to the last read element. In inout 
         the iterator points to the elements to be extracted from buffers and put 
@@ -288,7 +288,7 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data in buffers.
     */
     template <typename iterator>
-    void unpack(GCL::array<int, DIMS> const& eta, iterator &it) const {
+    void unpack(gridtools::array<int, DIMS> const& eta, iterator &it) const {
       base_type::unpack(eta, fieldptr, it);
     }
 
@@ -314,7 +314,7 @@ namespace GCL {
             int DIMS, 
             typename HaloExch, 
             typename proc_layout=typename default_layout_map<DIMS>::type,
-            typename Gcl_Arch = GCL::gcl_cpu,
+            typename Gcl_Arch = gridtools::gcl_cpu,
             int VERSION = 0>
   class hndlr_dynamic_ut  : public descriptor_base<HaloExch> {
     typedef hndlr_dynamic_ut<DataType,DIMS,HaloExch,proc_layout, Gcl_Arch, VERSION> this_type;
@@ -322,8 +322,8 @@ namespace GCL {
   public:
     empty_field<DataType, DIMS> halo;
   private:
-    GCL::array<DataType*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<DataType*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<DataType*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<DataType*, _impl::static_pow3<DIMS>::value> recv_buffer;
   public:
       typedef descriptor_base<HaloExch> base_type;
       typedef base_type pattern_type;
@@ -895,10 +895,10 @@ namespace GCL {
             int version>
   class hndlr_generic<3,HaloExch,proc_layout_abs,Gcl_Arch, version> : public descriptor_base<HaloExch> {
     static const int DIMS=3;
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
-    GCL::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
-    GCL::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
 
     typedef Gcl_Arch arch_type;
 
@@ -953,7 +953,7 @@ namespace GCL {
                field_on_the_fly<DataType, layomap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
-      GCL::array<int, DIMS> eta;
+      gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
@@ -1000,10 +1000,10 @@ namespace GCL {
        \tparam DataType This type is inferred by halo_example paramter
        \tparam layomap This type is inferred by halo_example paramter
 
-       \param[in] buffer_size_list Array (GCL::array) with the sizes of the buffers associated with the halos.
+       \param[in] buffer_size_list Array (gridtools::array) with the sizes of the buffers associated with the halos.
      */
     template <typename DataType, typename layomap>
-    void setup(GCL::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list) 
+    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list) 
     {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
@@ -1282,10 +1282,10 @@ namespace GCL {
             typename Gcl_Arch, int version>
   class hndlr_generic<2,HaloExch,proc_layout_abs,Gcl_Arch, version> : public descriptor_base<HaloExch> {
     static const int DIMS=2;
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
-    GCL::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
-    GCL::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
 
     typedef Gcl_Arch arch_type;
 
@@ -1340,7 +1340,7 @@ namespace GCL {
                field_on_the_fly<DataType, layomap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
-      GCL::array<int, DIMS> eta;
+      gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           if (i!=0 || j!=0) { 
@@ -1374,7 +1374,7 @@ namespace GCL {
     }
 
     template <typename DataType, typename layomap>
-    void setup(GCL::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list) 
+    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list) 
     {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {

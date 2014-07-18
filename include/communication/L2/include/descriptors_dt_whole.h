@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/type_traits/remove_pointer.hpp>
 #include <algorithm>
 
-namespace GCL {
+namespace gridtools {
 
   /** 
       Class containing the description of one halo and a communication
@@ -93,8 +93,8 @@ namespace GCL {
   public:
     empty_field<DataType, DIMS> halo;
   private:
-    GCL::array<MPI_Aint, MaxFields> offsets; // 20 is the max number of fields passed in
-    GCL::array<int, MaxFields> counts; // 20 is the max number of fields passed in
+    gridtools::array<MPI_Aint, MaxFields> offsets; // 20 is the max number of fields passed in
+    gridtools::array<int, MaxFields> counts; // 20 is the max number of fields passed in
 
     MPDT_t MPDT_INSIDE, MPDT_OUTSIDE;
 
@@ -285,8 +285,8 @@ namespace GCL {
   public:
     empty_field<DataType, DIMS> halo;
   private:
-    GCL::array<MPI_Aint, MaxFields> offsets; // 20 is the max number of fields passed in
-    GCL::array<int, MaxFields> counts; // 20 is the max number of fields passed in
+    gridtools::array<MPI_Aint, MaxFields> offsets; // 20 is the max number of fields passed in
+    gridtools::array<int, MaxFields> counts; // 20 is the max number of fields passed in
 
     MPDT_t MPDT_INSIDE, MPDT_OUTSIDE;
 

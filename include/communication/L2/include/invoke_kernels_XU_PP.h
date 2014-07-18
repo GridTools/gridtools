@@ -49,7 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         (field ## n.ptr,                                                \
          reinterpret_cast<typename FOTF_T ## n ::value_type**>(d_msgbufTab),  \
          wrap_argument(d_msgsize+27* n ),                               \
-         *(reinterpret_cast<const GCL::array<GCL::halo_descriptor,3>*>(&field ## n)), \
+         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&field ## n)), \
          ny,                                                            \
          nz,                                                            \
          0);                                                            \

@@ -3,18 +3,18 @@
 
 #include <utils/array.h>
 
-namespace GCL {
+namespace gridtools {
   namespace gcl_utils {
     __host__ __device__
-    inline GCL::array<int,2> make_array(int i1, int i2) { 
-      GCL::array<int,2> a;
+    inline gridtools::array<int,2> make_array(int i1, int i2) { 
+      gridtools::array<int,2> a;
       a[0]=i1;
       a[1]=i2;
       return a;
     }
     __host__ __device__
-    inline GCL::array<int,3> make_array(int i1, int i2, int i3) {
-      GCL::array<int,3> a;
+    inline gridtools::array<int,3> make_array(int i1, int i2, int i3) {
+      gridtools::array<int,3> a;
       a[0]=i1;
       a[1]=i2;
       a[2]=i3;

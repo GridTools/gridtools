@@ -93,13 +93,13 @@ double lapse_time3;
 double lapse_time4;
 
 #ifndef PACKING_TYPE
-#define PACKING_TYPE GCL::version_manual
+#define PACKING_TYPE gridtools::version_manual
 #endif
 
 #define B_ADD 1
 #define C_ADD 2
 
-typedef GCL::gcl_gpu arch_type;
+typedef gridtools::gcl_gpu arch_type;
 
 template <typename T, typename lmap>
 struct array {
@@ -163,7 +163,7 @@ void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-  typedef GCL::layout_map<I1,I2,I3> layoutmap;
+  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
   
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
@@ -178,9 +178,9 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
         c(ii,jj,kk) = triple_t<USE_DOUBLE>();
       }
     }
-//   a(0,0,0) = triple_t<USE_DOUBLE>(3000+GCL::PID, 4000+GCL::PID, 5000+GCL::PID);
-//   b(0,0,0) = triple_t<USE_DOUBLE>(3010+GCL::PID, 4010+GCL::PID, 5010+GCL::PID);
-//   c(0,0,0) = triple_t<USE_DOUBLE>(3020+GCL::PID, 4020+GCL::PID, 5020+GCL::PID);
+//   a(0,0,0) = triple_t<USE_DOUBLE>(3000+gridtools::PID, 4000+gridtools::PID, 5000+gridtools::PID);
+//   b(0,0,0) = triple_t<USE_DOUBLE>(3010+gridtools::PID, 4010+gridtools::PID, 5010+gridtools::PID);
+//   c(0,0,0) = triple_t<USE_DOUBLE>(3020+gridtools::PID, 4020+gridtools::PID, 5020+gridtools::PID);
 
 
   /* The pattern type is defined with the layouts, data types and
@@ -199,7 +199,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef GCL::halo_exchange_generic<GCL::layout_map<0,1,2>, 3, arch_type, PACKING_TYPE > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, PACKING_TYPE > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -210,21 +210,21 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   pattern_type he(typename pattern_type::grid_type::period_type(per0, per1, per2), CartComm);
 
 
-  GCL::array<GCL::halo_descriptor,3> halo_dsc;
-  halo_dsc[0] = GCL::halo_descriptor(H1, H1, H1, DIM1+H1-1, DIM1+2*H1);
-  halo_dsc[1] = GCL::halo_descriptor(H2, H2, H2, DIM2+H2-1, DIM2+2*H2);
-  halo_dsc[2] = GCL::halo_descriptor(H3, H3, H3, DIM3+H3-1, DIM3+2*H3);
+  gridtools::array<gridtools::halo_descriptor,3> halo_dsc;
+  halo_dsc[0] = gridtools::halo_descriptor(H1, H1, H1, DIM1+H1-1, DIM1+2*H1);
+  halo_dsc[1] = gridtools::halo_descriptor(H2, H2, H2, DIM2+H2-1, DIM2+2*H2);
+  halo_dsc[2] = gridtools::halo_descriptor(H3, H3, H3, DIM3+H3-1, DIM3+2*H3);
 
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
 
   /* Pattern is set up. This must be done only once per pattern. The
      parameter must me greater or equal to the largest number of
      arrays updated in a single step.
   */
   //he.setup(100, halo_dsc, sizeof(double));
-  he.setup(3, GCL::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,halo_dsc), sizeof(triple_t<USE_DOUBLE>)); // Estimates the size
+  he.setup(3, gridtools::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,halo_dsc), sizeof(triple_t<USE_DOUBLE>)); // Estimates the size
 
   file << "Proc: (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")\n";
 
@@ -285,10 +285,10 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   if( !checkCudaStatus( status ) ) return;
 
 
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_a), halo_dsc);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_b), halo_dsc);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_c), halo_dsc);
-  std::vector<GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_a), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_b), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_c), halo_dsc);
+  std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
 
 
   gettimeofday(&start_tv, NULL);
@@ -493,13 +493,13 @@ int main(int argc, char** argv) {
   /* this example is based on MPI Cart Communicators, so we need to
   initialize MPI. This can be done by GCL automatically
   */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
 
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
    */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   /* Here we compute the computing gris as in many applications
    */

@@ -42,13 +42,13 @@ std::ostream *filep;
 
 int _main(int pid, int nprocs) {
 
-  GCL::_3D_process_grid_t<GCL::gcl_utils::boollist<3> > pg(GCL::gcl_utils::boollist<3>(true,true,true), nprocs,pid);
+  gridtools::_3D_process_grid_t<gridtools::gcl_utils::boollist<3> > pg(gridtools::gcl_utils::boollist<3>(true,true,true), nprocs,pid);
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);
-  (*filep) << "@" << GCL::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";  
+  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";  
 
-  (*filep) << "@" << GCL::PID << "@ PROC GRID " 
+  (*filep) << "@" << gridtools::PID << "@ PROC GRID " 
     OUT(-1,-1,-1)
     OUT(0,-1,-1)
     OUT(1,-1,-1)
@@ -83,13 +83,13 @@ int _main(int pid, int nprocs) {
 
 int MPImain(MPI_Comm &comm) {
 
-  GCL::MPI_3D_process_grid_t<GCL::gcl_utils::boollist<3> > pg(GCL::gcl_utils::boollist<3>(true, true, true), comm);
+  gridtools::MPI_3D_process_grid_t<gridtools::gcl_utils::boollist<3> > pg(gridtools::gcl_utils::boollist<3>(true, true, true), comm);
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);
-  (*filep) << "@" << GCL::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";  
+  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";  
 
-  (*filep) << "@" << GCL::PID << "@ PROC GRID " 
+  (*filep) << "@" << gridtools::PID << "@ PROC GRID " 
     OUT(-1,-1,-1)
     OUT(0,-1,-1)
     OUT(1,-1,-1)
@@ -125,7 +125,7 @@ int MPImain(MPI_Comm &comm) {
 int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   int pid;
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
@@ -149,9 +149,9 @@ int main(int argc, char** argv) {
   MPI_Dims_create(nprocs, 3, dims);
   int period[3] = {1, 1, 1};
 
-  std::cout << "@" << GCL::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
+  std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
  
-  MPI_Cart_create(GCL::GCL_WORLD, 3, dims, period, false, &CartComm);
+  MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
   MPImain(CartComm);
 

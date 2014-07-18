@@ -2,7 +2,7 @@
 #include <GCL.h>
 
 #ifdef HOSTWORKAROUND
-namespace GCL
+namespace gridtools
 {
     namespace _impl
     {
@@ -73,6 +73,6 @@ namespace GCL
           }
         };
     } // namespace _impl
-} // namespace GCL
+} // namespace gridtools
 #endif
 

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 
-namespace GCL {
+namespace gridtools {
   namespace utils {
     template <int D>
     struct prod;
@@ -144,6 +144,6 @@ namespace GCL {
 
 
   } //namespace utils
-} //namespace GCL
+} //namespace gridtools
 
 #endif

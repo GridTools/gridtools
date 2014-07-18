@@ -45,9 +45,9 @@ int dims[2] = {0,0};
 int coords[2]={0,0};
 
 #ifdef _GCL_GPU_
-typedef GCL::gcl_gpu arch_type;
+typedef gridtools::gcl_gpu arch_type;
 #else
-typedef GCL::gcl_cpu arch_type;
+typedef gridtools::gcl_cpu arch_type;
 #endif
 
 #define VECTOR_INT
@@ -154,7 +154,7 @@ void printbuff(std::ostream &file, array_t const & a, int d1, int d2) {
 template <typename ST, int I1, int I2, bool per0, bool per1>
 void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> *_b, pair_t<type3> *_c) {
 
-  typedef GCL::layout_map<I1,I2> layoutmap;
+  typedef gridtools::layout_map<I1,I2> layoutmap;
   
   array<pair_t<type1>,    layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H));
   array<pair_t<type2>,  layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H));
@@ -186,7 +186,7 @@ void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> 
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef GCL::halo_exchange_generic<GCL::layout_map<0,1>, 2, arch_type > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1>, 2, arch_type > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -197,12 +197,12 @@ void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> 
   pattern_type he(typename pattern_type::grid_type::period_type(per0, per1), CartComm);
 
 
-  GCL::array<GCL::halo_descriptor,2> halo_dsc;
-  halo_dsc[0] = GCL::halo_descriptor(H, H, H, DIM1+H-1, DIM1+2*H);
-  halo_dsc[1] = GCL::halo_descriptor(H, H, H, DIM2+H-1, DIM2+2*H);
-  GCL::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> field1(a.ptr, halo_dsc);
-  GCL::field_on_the_fly<pair_t<type2>, layoutmap, pattern_type::traits> field2(b.ptr, halo_dsc);
-  GCL::field_on_the_fly<pair_t<type3>, layoutmap, pattern_type::traits> field3(c.ptr, halo_dsc);
+  gridtools::array<gridtools::halo_descriptor,2> halo_dsc;
+  halo_dsc[0] = gridtools::halo_descriptor(H, H, H, DIM1+H-1, DIM1+2*H);
+  halo_dsc[1] = gridtools::halo_descriptor(H, H, H, DIM2+H-1, DIM2+2*H);
+  gridtools::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> field1(a.ptr, halo_dsc);
+  gridtools::field_on_the_fly<pair_t<type2>, layoutmap, pattern_type::traits> field2(b.ptr, halo_dsc);
+  gridtools::field_on_the_fly<pair_t<type3>, layoutmap, pattern_type::traits> field3(c.ptr, halo_dsc);
 
 
   /* Pattern is set up. This must be done only once per pattern. The
@@ -210,7 +210,7 @@ void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> 
      arrays updated in a single step.
   */
   //he.setup(100, halo_dsc, sizeof(double));
-  he.setup(3, GCL::field_on_the_fly<int,layoutmap,pattern_type::traits>(NULL,halo_dsc), std::max(sizeof(pair_t<type1>), std::max(sizeof(pair_t<type2>),sizeof(pair_t<type3>)))); // Estimates the size
+  he.setup(3, gridtools::field_on_the_fly<int,layoutmap,pattern_type::traits>(NULL,halo_dsc), std::max(sizeof(pair_t<type1>), std::max(sizeof(pair_t<type2>),sizeof(pair_t<type3>)))); // Estimates the size
 
 
   file << "Proc: (" << coords[0] << ", " << coords[1] << ")\n";
@@ -265,12 +265,12 @@ void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> 
   if( !checkCudaStatus( status ) ) return;
 
 
-  GCL::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> field1_gpu(gpu_a, halo_dsc);
-  GCL::field_on_the_fly<pair_t<type2>, layoutmap, pattern_type::traits> field2_gpu(gpu_b, halo_dsc);
-  GCL::field_on_the_fly<pair_t<type3>, layoutmap, pattern_type::traits> field3_gpu(gpu_c, halo_dsc);
+  gridtools::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> field1_gpu(gpu_a, halo_dsc);
+  gridtools::field_on_the_fly<pair_t<type2>, layoutmap, pattern_type::traits> field2_gpu(gpu_b, halo_dsc);
+  gridtools::field_on_the_fly<pair_t<type3>, layoutmap, pattern_type::traits> field3_gpu(gpu_c, halo_dsc);
 
 #ifdef VECTOR_INT
-  std::vector<GCL::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> > vect(3);
+  std::vector<gridtools::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> > vect(3);
   vect[0] = field1_gpu;
   vect[1] = field2_gpu;
   vect[2] = field3_gpu;
@@ -316,7 +316,7 @@ void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> 
 #else
 
 #ifdef VECTOR_INT
-  std::vector<GCL::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> > vect(3);
+  std::vector<gridtools::field_on_the_fly<pair_t<type1>, layoutmap, pattern_type::traits> > vect(3);
   vect[0] = field1;
   vect[1] = field2;
   vect[2] = field3;
@@ -472,7 +472,7 @@ int main(int argc, char** argv) {
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
    */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   /* Here we compute the computing gris as in many applications
    */

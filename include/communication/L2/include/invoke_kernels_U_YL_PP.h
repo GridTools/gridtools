@@ -49,7 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         (field ## n.ptr,                                                \
          reinterpret_cast<typename FOTF_T ## n ::value_type**>(d_msgbufTab_r), \
          wrap_argument(d_msgsize_r+27* n ),                               \
-         *(reinterpret_cast<const GCL::array<GCL::halo_descriptor,3>*>(&field ## n)), \
+         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&field ## n)), \
          nx, nz,                                                        \
          (field ## n.halos[0].begin()-field ## n.halos[0].minus())      \
          + (field ## n.halos[1].begin()-field ## n.halos[1].minus())*field ##n.halos[0].total_length() \

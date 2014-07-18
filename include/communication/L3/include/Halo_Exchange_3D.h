@@ -88,7 +88,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \endcode
  */
 
-namespace GCL {
+namespace gridtools {
 
 
   /** \class Halo_Exchange_3D
@@ -287,7 +287,7 @@ namespace GCL {
     void post_receive() {
       if (m_recv_buffers.size(I,J,K)) {
 #ifndef NDEBUG
-        std::cout << "@" << GCL::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
+        std::cout << "@" << gridtools::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
                   << " P " << m_proc_grid.template proc<I,J,K>() << " - "
                   << " T " << TAG<-I,-J,-K>::value << " - " 
                   << " R " << translate()(-I,-J,-K) << " - "
@@ -335,7 +335,7 @@ namespace GCL {
     void perform_isend() {
       if (m_send_buffers.size(I,J,K)) {
 #ifndef NDEBUG
-        std::cout << "@" << GCL::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
+        std::cout << "@" << gridtools::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
                   << " P " << m_proc_grid.template proc<I,J,K>() << " - "
                   << " T " << TAG<I,J,K>::value << " - " 
                   << " R " << translate()(I,J,K) << " - "
@@ -416,7 +416,7 @@ namespace GCL {
     void wait() {
       if (m_recv_buffers.size(I,J,K)) {
 #ifndef NDEBUG
-        std::cout << "@" << GCL::PID << "@ WAIT  ("  << I << "," << J << "," << K << ") "
+        std::cout << "@" << gridtools::PID << "@ WAIT  ("  << I << "," << J << "," << K << ") "
                   << " R " << translate()(-I,-J,-K) << "\n";
 #endif
 
@@ -507,7 +507,7 @@ namespace GCL {
       assert(( K>=-1 && K<=1 ));
 
 #ifndef NDEBUG
-//       std::cout << "@" << GCL::PID 
+//       std::cout << "@" << gridtools::PID 
 //                 << "@ " << __PRETTY_FUNCTION__ 
 //                 << " : " << p << " size " << s 
 //                 << " I:" << I 
@@ -574,7 +574,7 @@ namespace GCL {
       assert(( K>=-1 && K<=1 ));
 
 #ifndef NDEBUG
-//       std::cout << "@" << GCL::PID 
+//       std::cout << "@" << gridtools::PID 
 //                 << "@ " << __PRETTY_FUNCTION__ 
 //                 << " : " << p << " size " << s 
 //                 << " I:" << I 
@@ -1179,13 +1179,13 @@ namespace GCL {
 
 
 
-      // MPI_Barrier(GCL::GCL_WORLD);
+      // MPI_Barrier(gridtools::GCL_WORLD);
     }
 
 
   };
 
 
-} // namespace GCL
+} // namespace gridtools
 
 #endif

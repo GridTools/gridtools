@@ -50,7 +50,7 @@ cudaStream_t XU_stream ;
 #endif
 #endif
 
-namespace GCL {
+namespace gridtools {
 #ifdef _GCL_MPI_
     MPI_Comm GCL_WORLD;
     int PID;
@@ -141,5 +141,5 @@ namespace GCL {
 #endif
 
 
-} // namespace GCL
+} // namespace gridtools
 

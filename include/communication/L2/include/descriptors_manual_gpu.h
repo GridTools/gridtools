@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "m_unpackXU.h"
 #endif
 
-namespace GCL {
+namespace gridtools {
   /** \class empty_field_no_dt_gpu
       Class containint the information about a data field (grid). 
       It doe not contains any reference to actual data of the field, 

@@ -98,7 +98,7 @@ inline bool checkCudaStatus( cudaError_t status ) {
 #endif
 #endif
 
-namespace GCL {
+namespace gridtools {
 
 enum packing_version {version_mpi_pack=0, version_datatype, version_manual};
 
@@ -116,7 +116,7 @@ enum packing_version {version_mpi_pack=0, version_datatype, version_manual};
 
   void GCL_Finalize();
 
-} // namespace GCL
+} // namespace gridtools
 
 
 #endif

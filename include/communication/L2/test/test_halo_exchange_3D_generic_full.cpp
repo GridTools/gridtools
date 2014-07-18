@@ -72,7 +72,7 @@ typedef double T2;
 typedef long long int T3;
 #endif
 
-typedef GCL::gcl_cpu arch_type;
+typedef gridtools::gcl_cpu arch_type;
 
 template <typename T, typename lmap>
 struct array {
@@ -151,7 +151,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
          int H1m3, int H1p3, int H2m3, int H2p3, int H3m3, int H3p3, 
          triple_t<USE_DOUBLE, T1> *_a, triple_t<USE_DOUBLE, T2> *_b, triple_t<USE_DOUBLE, T3> *_c) {
 
-  typedef GCL::layout_map<I1,I2,I3> layoutmap;
+  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
   
   array<triple_t<USE_DOUBLE, T1>, layoutmap > a(_a, (DIM1+H1m1+H1p1),(DIM2+H2m1+H2p1),(DIM3+H3m1+H3p1));
   array<triple_t<USE_DOUBLE, T2>, layoutmap > b(_b, (DIM1+H1m2+H1p2),(DIM2+H2m2+H2p2),(DIM3+H3m2+H3p2));
@@ -173,7 +173,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef GCL::halo_exchange_generic<GCL::layout_map<0,1,2>, 3, arch_type, GCL::version_manual > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -184,24 +184,24 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
   pattern_type he(typename pattern_type::grid_type::period_type(per0, per1, per2), CartComm);
 
 
-  GCL::array<GCL::halo_descriptor,3> halo_dsc1;
-  halo_dsc1[0] = GCL::halo_descriptor(H1m1, H1p1, H1m1, DIM1+H1m1-1, DIM1+H1m1+H1p1);
-  halo_dsc1[1] = GCL::halo_descriptor(H2m1, H2p1, H2m1, DIM2+H2m1-1, DIM2+H2m1+H2p1);
-  halo_dsc1[2] = GCL::halo_descriptor(H3m1, H3p1, H3m1, DIM3+H3m1-1, DIM3+H3m1+H3p1);
+  gridtools::array<gridtools::halo_descriptor,3> halo_dsc1;
+  halo_dsc1[0] = gridtools::halo_descriptor(H1m1, H1p1, H1m1, DIM1+H1m1-1, DIM1+H1m1+H1p1);
+  halo_dsc1[1] = gridtools::halo_descriptor(H2m1, H2p1, H2m1, DIM2+H2m1-1, DIM2+H2m1+H2p1);
+  halo_dsc1[2] = gridtools::halo_descriptor(H3m1, H3p1, H3m1, DIM3+H3m1-1, DIM3+H3m1+H3p1);
 
-  GCL::array<GCL::halo_descriptor,3> halo_dsc2;
-  halo_dsc2[0] = GCL::halo_descriptor(H1m2, H1p2, H1m2, DIM1+H1m2-1, DIM1+H1m2+H1p2);
-  halo_dsc2[1] = GCL::halo_descriptor(H2m2, H2p2, H2m2, DIM2+H2m2-1, DIM2+H2m2+H2p2);
-  halo_dsc2[2] = GCL::halo_descriptor(H3m2, H3p2, H3m2, DIM3+H3m2-1, DIM3+H3m2+H3p2);
+  gridtools::array<gridtools::halo_descriptor,3> halo_dsc2;
+  halo_dsc2[0] = gridtools::halo_descriptor(H1m2, H1p2, H1m2, DIM1+H1m2-1, DIM1+H1m2+H1p2);
+  halo_dsc2[1] = gridtools::halo_descriptor(H2m2, H2p2, H2m2, DIM2+H2m2-1, DIM2+H2m2+H2p2);
+  halo_dsc2[2] = gridtools::halo_descriptor(H3m2, H3p2, H3m2, DIM3+H3m2-1, DIM3+H3m2+H3p2);
 
-  GCL::array<GCL::halo_descriptor,3> halo_dsc3;
-  halo_dsc3[0] = GCL::halo_descriptor(H1m3, H1p3, H1m3, DIM1+H1m3-1, DIM1+H1m3+H1p3);
-  halo_dsc3[1] = GCL::halo_descriptor(H2m3, H2p3, H2m3, DIM2+H2m3-1, DIM2+H2m3+H2p3);
-  halo_dsc3[2] = GCL::halo_descriptor(H3m3, H3p3, H3m3, DIM3+H3m3-1, DIM3+H3m3+H3p3);
+  gridtools::array<gridtools::halo_descriptor,3> halo_dsc3;
+  halo_dsc3[0] = gridtools::halo_descriptor(H1m3, H1p3, H1m3, DIM1+H1m3-1, DIM1+H1m3+H1p3);
+  halo_dsc3[1] = gridtools::halo_descriptor(H2m3, H2p3, H2m3, DIM2+H2m3-1, DIM2+H2m3+H2p3);
+  halo_dsc3[2] = gridtools::halo_descriptor(H3m3, H3p3, H3m3, DIM3+H3m3-1, DIM3+H3m3+H3p3);
 
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE, T1>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE, T1>::data_type*>(a.ptr), halo_dsc1);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE, T2>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE, T2>::data_type*>(b.ptr), halo_dsc2);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE, T3>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE, T3>::data_type*>(c.ptr), halo_dsc3);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE, T1>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE, T1>::data_type*>(a.ptr), halo_dsc1);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE, T2>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE, T2>::data_type*>(b.ptr), halo_dsc2);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE, T3>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE, T3>::data_type*>(c.ptr), halo_dsc3);
 
   /* Pattern is set up. This must be done only once per pattern. The
      parameter must me greater or equal to the largest number of
@@ -209,25 +209,25 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
   */
   //he.setup(100, halo_dsc, sizeof(double));
 
-  GCL::array<GCL::halo_descriptor,3> h_example;
+  gridtools::array<gridtools::halo_descriptor,3> h_example;
 #define MAX3(a,b,c) std::max(a, std::max(b,c))
-  h_example[0] = GCL::halo_descriptor(MAX3(H1m1, H1m2, H1m3), 
+  h_example[0] = gridtools::halo_descriptor(MAX3(H1m1, H1m2, H1m3), 
                                       MAX3(H1p1, H1p2, H1p3), 
                                       MAX3(H1m1, H1m2, H1m3), 
                                       DIM1+MAX3(H1m1, H1m2, H1m3)-1, 
                                       DIM1+MAX3(H1m1, H1m2, H1m3)+MAX3(H1p1, H1p3, H1p3));
-  h_example[1] = GCL::halo_descriptor(MAX3(H2m1, H2m2, H2m3), 
+  h_example[1] = gridtools::halo_descriptor(MAX3(H2m1, H2m2, H2m3), 
                                       MAX3(H2p1, H2p2, H2p3), 
                                       MAX3(H2m1, H2m2, H2m3), 
                                       DIM2+MAX3(H2m1, H2m2, H2m3)-1, 
                                       DIM2+MAX3(H2m1, H2m2, H2m3)+MAX3(H2p1, H2p3, H2p3));
-  h_example[2] = GCL::halo_descriptor(MAX3(H3m1, H3m2, H3m3), 
+  h_example[2] = gridtools::halo_descriptor(MAX3(H3m1, H3m2, H3m3), 
                                       MAX3(H3p1, H3p2, H3p3), 
                                       MAX3(H3m1, H3m2, H3m3), 
                                       DIM3+MAX3(H3m1, H3m2, H3m3)-1, 
                                       DIM3+MAX3(H3m1, H3m2, H3m3)+MAX3(H3p1, H3p3, H3p3));
 #undef MAX3
-  he.setup(3, GCL::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,h_example), // BEWARE!!!! 
+  he.setup(3, gridtools::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,h_example), // BEWARE!!!! 
            std::max(sizeof(triple_t<USE_DOUBLE, T1>::data_type), 
                     std::max(sizeof(triple_t<USE_DOUBLE, T2>::data_type), 
                              sizeof(triple_t<USE_DOUBLE, T3>::data_type)
@@ -297,7 +297,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
 
 #ifdef VECTOR_INTERFACE
 
-  std::vector<GCL::field_on_the_fly<triple_t<USE_DOUBLE, T1>::data_type, layoutmap, pattern_type::traits> > vect(3);
+  std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE, T1>::data_type, layoutmap, pattern_type::traits> > vect(3);
 
   vect[0] = field1;
   vect[1] = field2;
@@ -512,7 +512,7 @@ int main(int argc, char** argv) {
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
    */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   /* Here we compute the computing gris as in many applications
    */

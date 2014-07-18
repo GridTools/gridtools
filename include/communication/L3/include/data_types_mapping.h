@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef DATA_TYPES_MAPPING_H_
 #define DATA_TYPES_MAPPING_H_
 
-namespace GCL {
+namespace gridtools {
   namespace _impl {
     template <typename v_type>
     struct compute_type {

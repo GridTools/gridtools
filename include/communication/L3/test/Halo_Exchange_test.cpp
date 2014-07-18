@@ -46,14 +46,14 @@ struct pgrid;
 template <>
 struct pgrid<T1> {
 
-  typedef GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(GCL::gcl_utils::boollist<2>(true,true), nprocs, pid);
+    return grid_type(gridtools::gcl_utils::boollist<2>(true,true), nprocs, pid);
   }
 
 };
@@ -61,14 +61,14 @@ struct pgrid<T1> {
 template <>
 struct pgrid<T2> {
 
-  typedef GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(GCL::gcl_utils::boollist<2>(false,false) ,nprocs, pid);
+    return grid_type(gridtools::gcl_utils::boollist<2>(false,false) ,nprocs, pid);
   }
 
 };
@@ -76,23 +76,23 @@ struct pgrid<T2> {
 template <>
 struct pgrid<T3> {
 
-  typedef GCL::MPI_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
-    MPI_Comm_rank(GCL::GCL_WORLD, &pid);
+    MPI_Comm_rank(gridtools::GCL_WORLD, &pid);
     int nprocs;
-    MPI_Comm_size(GCL::GCL_WORLD, &nprocs);
+    MPI_Comm_size(gridtools::GCL_WORLD, &nprocs);
     MPI_Comm CartComm;
     int dims[2] = {0,0};
     MPI_Dims_create(nprocs, 2, dims);
     int period[2] = {1, 1};
 
-    std::cout << "@" << GCL::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
+    std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
  
-    MPI_Cart_create(GCL::GCL_WORLD, 2, dims, period, false, &CartComm);
+    MPI_Cart_create(gridtools::GCL_WORLD, 2, dims, period, false, &CartComm);
 
-    return grid_type(GCL::gcl_utils::boollist<2>(true,true), CartComm);
+    return grid_type(gridtools::gcl_utils::boollist<2>(true,true), CartComm);
   }
 
 };
@@ -100,7 +100,7 @@ struct pgrid<T3> {
 template <>
 struct pgrid<T4> {
 
-  typedef GCL::MPI_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
@@ -112,11 +112,11 @@ struct pgrid<T4> {
     MPI_Dims_create(nprocs, 2, dims);
     int period[2] = {0, 0};
 
-    std::cout << "@" << GCL::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
+    std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
  
-    MPI_Cart_create(GCL::GCL_WORLD, 2, dims, period, false, &CartComm);
+    MPI_Cart_create(gridtools::GCL_WORLD, 2, dims, period, false, &CartComm);
 
-    return grid_type(GCL::gcl_utils::boollist<2>(false, false), CartComm);
+    return grid_type(gridtools::gcl_utils::boollist<2>(false, false), CartComm);
   }
 
 };
@@ -124,7 +124,7 @@ struct pgrid<T4> {
 int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   int iminus;
   int iplus;
@@ -148,9 +148,9 @@ int main(int argc, char** argv) {
 
   test_type::grid_type pg = test_type::instantiate(MPI_COMM_WORLD);
 
-  GCL::Halo_Exchange_2D<test_type::grid_type> he(pg);
+  gridtools::Halo_Exchange_2D<test_type::grid_type> he(pg);
 
-  std::cout << "@" << GCL::PID << "@ SEND " 
+  std::cout << "@" << gridtools::PID << "@ SEND " 
             << &iminus << " - " 
             << &iplus << " - " 
             << &jminus << " - " 
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
             << &iplusjminus << " - " 
             << &iminusjplus << " - " 
             << &iplusjplus << std::endl; 
-  std::cout << "@" << GCL::PID << "@ RECV " 
+  std::cout << "@" << gridtools::PID << "@ RECV " 
             << &iminus_r << " - " 
             << &iplus_r << " - " 
             << &jminus_r << " - " 
@@ -187,23 +187,23 @@ int main(int argc, char** argv) {
   he.register_receive_from_buffer< 0,-1>(&jminus_r, sizeof(int));
   he.register_receive_from_buffer< 0, 1>(&jplus_r, sizeof(int));
 
-  iminus = GCL::PID;
-  iplus = GCL::PID;
-  jminus = GCL::PID;
-  jplus = GCL::PID;
-  iminusjminus = GCL::PID;
-  iplusjminus = GCL::PID;
-  iminusjplus = GCL::PID;
-  iplusjplus = GCL::PID;
+  iminus = gridtools::PID;
+  iplus = gridtools::PID;
+  jminus = gridtools::PID;
+  jplus = gridtools::PID;
+  iminusjminus = gridtools::PID;
+  iplusjminus = gridtools::PID;
+  iminusjplus = gridtools::PID;
+  iplusjplus = gridtools::PID;
 
   he.exchange();
 
   printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ ----------------\n\n",
-         GCL::PID,
-         GCL::PID, iminusjminus_r, iminus_r, iminusjplus_r,
-         GCL::PID, jminus_r, GCL::PID, jplus_r,
-         GCL::PID, iplusjminus_r, iplus_r, iplusjplus_r,
-         GCL::PID);
+         gridtools::PID,
+         gridtools::PID, iminusjminus_r, iminus_r, iminusjplus_r,
+         gridtools::PID, jminus_r, gridtools::PID, jplus_r,
+         gridtools::PID, iplusjminus_r, iplus_r, iplusjplus_r,
+         gridtools::PID);
 
   int res = 1;
 
@@ -217,16 +217,16 @@ int main(int argc, char** argv) {
   res &= (pg.proc( 1, 1) == iplusjplus_r);
 
   int final;
-  MPI_Reduce(&res, &final, 1, MPI_INT, MPI_LAND, 0, GCL::GCL_WORLD);
+  MPI_Reduce(&res, &final, 1, MPI_INT, MPI_LAND, 0, gridtools::GCL_WORLD);
 
-  if (GCL::PID==0) {
+  if (gridtools::PID==0) {
     if (!final) {
-      std::cout << "@" << GCL::PID << "@ FAILED!\n";
+      std::cout << "@" << gridtools::PID << "@ FAILED!\n";
     } else
-      std::cout << "@" << GCL::PID << "@ PASSED!\n";
+      std::cout << "@" << gridtools::PID << "@ PASSED!\n";
   }
 
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
   MPI_Finalize();
   return !final;
 }

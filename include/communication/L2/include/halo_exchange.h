@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utils/boollist.h>
 
 #ifdef MANUAL_PACKING
-#error("Manual Packing is now turned on by setting versions to GCL::version_manual (or, equivalently) 2")
+#error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
 //#else
@@ -54,7 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <translate.h>
 #include <field_on_the_fly.h>
 
-namespace GCL {
+namespace gridtools {
 
   namespace _impl {
     template <int D, typename GT, int version>
@@ -111,7 +111,7 @@ namespace GCL {
      in which the data pointers are not known before hand and they are
      passed to the pattern when packing and unpacking is needed.
 
-     The interface requires two layout maps ( \link GCL::layout_map
+     The interface requires two layout maps ( \link gridtools::layout_map
      \endlink ) one for to specify the data layout, the other to
      specify the relation between data layout and processor grid. This
      is an important asepct that will be explained here and also in
@@ -126,7 +126,7 @@ namespace GCL {
      dimension is in the increasing stride order. For instance:
 
      \code
-     GCL::layout_map<1,0,2>
+     gridtools::layout_map<1,0,2>
      \endcode
 
      Indicates that the first dimension in the data (i) is the second
@@ -140,7 +140,7 @@ namespace GCL {
      grid coordinates. The following layout specification
 
      \code
-     GCL::layout_map<1,0,2>
+     gridtools::layout_map<1,0,2>
      \endcode
 
      would mean: The first dimension in data matches with the second
@@ -157,10 +157,10 @@ namespace GCL {
 
      The first template argument to the pattern would then be
      \code
-     GCL::layout_map<1,0>
+     gridtools::layout_map<1,0>
      \endcode
 
-     The second template argument is still a \link GCL::layout_map
+     The second template argument is still a \link gridtools::layout_map
      \endlink , but this time it indicates the mapping between data
      and processor grid. The data is still condidered in the user
      convention.
@@ -195,12 +195,12 @@ namespace GCL {
 
      In this case the map between data and the processor grid is:
      \code
-     GCL::layout_map<0,1>
+     gridtools::layout_map<0,1>
      \endcode
 
      On the other hand, having specified 
      \code
-     GCL::layout_map<1,0>
+     gridtools::layout_map<1,0>
      \endcode
      for this map, would imply a layout/distribution like the following:
 
@@ -229,8 +229,8 @@ namespace GCL {
      contained in the data arrays and the number of dimensions of
      data.
 
-     \tparam layout_map Layout_map \link GCL::layout_map \endlink specifying the data layout as the position of each dimension of the user data in the increasing stride order
-     \tparam layout2proc_map_abs Layout_map \link GCL::layout_map \endlink specifying which dimension in the data corresponds to the which dimension in the processor grid
+     \tparam layout_map Layout_map \link gridtools::layout_map \endlink specifying the data layout as the position of each dimension of the user data in the increasing stride order
+     \tparam layout2proc_map_abs Layout_map \link gridtools::layout_map \endlink specifying which dimension in the data corresponds to the which dimension in the processor grid
      \tparam DataType Value type the elements int the arrays
      \tparam DIMS Number of dimensions of data arrays (equal to the dimension of the processor grid)
      \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is. Possible coiches are defined in L3/include/gcl_arch.h .
@@ -283,7 +283,7 @@ namespace GCL {
         specified in the order chosen by the programmer for the data,
         as in the rest of the application. It is up tp the
         construnctor implementation to translate it into the right
-        order depending on the GCL::layout_map passed to the class.
+        order depending on the gridtools::layout_map passed to the class.
 
         \param[in] c Periodicity specification as in \link boollist_concept \endlink
         \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
@@ -529,12 +529,12 @@ namespace GCL {
 
   template <>
   struct pick_version<2> {
-    static const int value = GCL::version_mpi_pack;
+    static const int value = gridtools::version_mpi_pack;
   };
 
   template <>
   struct pick_version<3> {
-    static const int value = GCL::version_manual;
+    static const int value = gridtools::version_manual;
   };
 
   /**
@@ -544,19 +544,19 @@ namespace GCL {
      unpacking is needed. This is the most generic pattern available
      in GCL for halo exchange.
 
-     The interface requires one layout map ( \link GCL::layout_map
+     The interface requires one layout map ( \link gridtools::layout_map
      \endlink ) to specify the relation between data layout and
      processor grid. as follows The following layout specification
 
      \code
-     GCL::layout_map<1,0,2>
+     gridtools::layout_map<1,0,2>
      \endcode
 
      would mean: The first dimension in data matches with the second
      dimension of the computing grid, the second is the first, and the
      third one is the third one.
 
-     \tparam layout2proc_map_abs Layout_map \link GCL::layout_map \endlink specifying which dimension in the data corresponds to the which dimension in the processor grid
+     \tparam layout2proc_map_abs Layout_map \link gridtools::layout_map \endlink specifying which dimension in the data corresponds to the which dimension in the processor grid
      \tparam DIMS Number of dimensions of data arrays (equal to the dimension of the processor grid)
      \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is. Possible coiches are defined in L3/include/gcl_arch.h .
    */
@@ -596,7 +596,7 @@ namespace GCL {
         specified in the order chosen by the programmer for the data,
         as in the rest of the application. It is up tp the
         construnctor implementation to translate it into the right
-        order depending on the GCL::layout_map passed to the class.
+        order depending on the gridtools::layout_map passed to the class.
 
         \param[in] c Periodicity specification as in \link boollist_concept \endlink
         \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).

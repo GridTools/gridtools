@@ -45,7 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 
-namespace GCL {
+namespace gridtools {
 
 
   template <typename vtype>
@@ -150,7 +150,7 @@ namespace GCL {
     std::vector<packet<value_type> > from;
 
     /** Constructor that takes the number of process (this work with
-        MPI_COMM_WORLD, or GCL::GCL_WORLD communicators). The elements
+        MPI_COMM_WORLD, or gridtools::GCL_WORLD communicators). The elements
         of the arrays are then initialized with empty packets (that
         would not trigger any communication call).
 

@@ -4,7 +4,7 @@
 #include <boost/utility/enable_if.hpp>
 #include "GCL.h"
 
-namespace GCL {
+namespace gridtools {
 
     template <typename _grid_>
     struct has_communicator {
@@ -22,7 +22,7 @@ namespace GCL {
 
     template <typename _grid_>
     MPI_Comm get_communicator(_grid_ const& g, typename boost::disable_if<typename has_communicator<_grid_>::type >::type* =0) {
-        return GCL::GCL_WORLD;
+        return gridtools::GCL_WORLD;
     }
 
 #ifndef _GCL_MPI_

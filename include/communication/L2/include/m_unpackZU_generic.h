@@ -36,13 +36,13 @@ template <typename value_type>
 __global__ void m_unpackZUKernel_generic(value_type* __restrict__ d_data, 
                                          value_type** __restrict__ d_msgbufTab_r, 
                                          const wrap_argument d_msgsize_r,
-                                         const GCL::array<GCL::halo_descriptor,3> halo/*_g*/, 
+                                         const gridtools::array<gridtools::halo_descriptor,3> halo/*_g*/, 
                                          int const nx, int const ny,
                                          int const translation_const, int field_index){
  
    // per block shared buffer for storing destination buffers
    __shared__ value_type* msgbuf[27];
-   //__shared__ GCL::halo_descriptor halo[3];
+   //__shared__ gridtools::halo_descriptor halo[3];
 
    int idx = blockIdx.x * blockDim.x + threadIdx.x;  
    int idy = blockIdx.y * blockDim.y + threadIdx.y;  
@@ -145,7 +145,7 @@ void m_unpackZU_generic(array_t const & fields,
         (fields[i].ptr, 
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r), 
          wrap_argument(d_msgsize_r+27*i), 
-         *(reinterpret_cast<const GCL::array<GCL::halo_descriptor,3>*>(&fields[i])),
+         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
          nx, ny, 
          (fields[i].halos[0].begin()-fields[i].halos[0].minus()) 
          + (fields[i].halos[1].begin()-fields[i].halos[1].minus())*fields[i].halos[0].total_length() 

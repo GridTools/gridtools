@@ -76,7 +76,7 @@ void printbuff(std::ostream &file, pair_t* a) {
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
 
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   pair_t *a = new pair_t[DIM*DIM*DIM];
   pair_t *b = new pair_t[DIM*DIM*DIM];
@@ -84,9 +84,9 @@ int main(int argc, char** argv) {
 
   for (int ii=0; ii<=DIM; ++ii)
     for (int jj=0; jj<=DIM; ++jj) {
-      a[GCL::access(jj,ii,DIM,DIM)] = pair_t(0,0);
-      b[GCL::access(jj,ii,DIM,DIM)] = pair_t(0,0);                                      
-      c[GCL::access(jj,ii,DIM,DIM)] = pair_t(0,0);
+      a[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);
+      b[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);                                      
+      c[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);
     }      
   int I; 
 
@@ -116,10 +116,10 @@ int main(int argc, char** argv) {
  
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims, period, false, &CartComm);
 
-  typedef GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
-  GCL::hndlr_descriptor_ut<pair_t,2, 
-    GCL::Halo_Exchange_2D<grid_type> > hd(GCL::gcl_utils::boollist<2>(false, false), nprocs, pid);
+  gridtools::hndlr_descriptor_ut<pair_t,2, 
+    gridtools::Halo_Exchange_2D<grid_type> > hd(gridtools::gcl_utils::boollist<2>(false, false), nprocs, pid);
 
   I = hd.register_field(a);
   hd.register_halo(I, 1, 2, 1, 3, 6, DIM);
@@ -143,19 +143,19 @@ int main(int argc, char** argv) {
   for (int ii=3; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj) {
       // if (pid==6)
-      //   a[GCL::access(jj,ii,DIM,DIM)] = pair_t(-(ii-3+4*pj),-(jj-3+4*pi));
+      //   a[gridtools::access(jj,ii,DIM,DIM)] = pair_t(-(ii-3+4*pj),-(jj-3+4*pi));
       // else
-        a[GCL::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
+        a[gridtools::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
     }      
 
   for (int ii=3; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj) {
-        b[GCL::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
+        b[gridtools::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
     }      
 
   for (int ii=0; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj) {
-        c[GCL::access(jj,ii,DIM,DIM)] = pair_t(ii+7*pj,jj-3+4*pi);
+        c[gridtools::access(jj,ii,DIM,DIM)] = pair_t(ii+7*pj,jj-3+4*pi);
     }      
 
   printbuff(file,a);
@@ -180,36 +180,36 @@ int main(int argc, char** argv) {
   bool err=false;
   for (int ii=3-((pj>0)?2:0); ii<=6+((pj<PJ-1)?1:0); ++ii)
     for (int jj=3-((pi>0)?2:0); jj<=6+((pi<PI-1)?1:0); ++jj) {
-        if (a[GCL::access(jj,ii,DIM,DIM)] != pair_t(ii-3+4*pj,jj-3+4*pi)) {
+        if (a[gridtools::access(jj,ii,DIM,DIM)] != pair_t(ii-3+4*pj,jj-3+4*pi)) {
           err=true;
           file << " A " 
                     << ii << ", "
                     << jj << ", "
-                    << a[GCL::access(jj,ii,DIM,DIM)] << " != "
+                    << a[gridtools::access(jj,ii,DIM,DIM)] << " != "
                     << pair_t(ii-2+4*pj,jj-2+4*pi) << "\n";
         }
     }
 
   for (int ii=3-((pj>0)?3:0); ii<=6+((pj<PJ-1)?2:0); ++ii)
     for (int jj=3-((pi>0)?2:0); jj<=6+((pi<PI-1)?1:0); ++jj) {
-        if (b[GCL::access(jj,ii,DIM,DIM)] != pair_t(ii-3+4*pj,jj-3+4*pi)) {
+        if (b[gridtools::access(jj,ii,DIM,DIM)] != pair_t(ii-3+4*pj,jj-3+4*pi)) {
           err=true;
           file << " B "
                     << ii << ", "
                     << jj << ", "
-                    << b[GCL::access(jj,ii,DIM,DIM)] << " != "
+                    << b[gridtools::access(jj,ii,DIM,DIM)] << " != "
                     << pair_t(ii-3+4*pj,jj-3+4*pi) << "\n";
         }
     }
 
   for (int ii=0-((pj>0)?0:0); ii<=6+((pj<PJ-1)?3:0); ++ii)
     for (int jj=3-((pi>0)?2:0); jj<=6+((pi<PI-1)?1:0); ++jj) {
-        if (c[GCL::access(jj,ii,DIM,DIM)] != pair_t(ii+7*pj,jj-3+4*pi)) {
+        if (c[gridtools::access(jj,ii,DIM,DIM)] != pair_t(ii+7*pj,jj-3+4*pi)) {
           err=true;
           file << " C "
                     << ii << ", "
                     << jj << ", "
-                    << c[GCL::access(jj,ii,DIM,DIM)] << " != "
+                    << c[gridtools::access(jj,ii,DIM,DIM)] << " != "
                     << pair_t(ii+7*pj,jj-3+4*pi) << "\n";
         }
     }

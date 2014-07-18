@@ -1,7 +1,7 @@
 #ifndef _DESCRIPTOR_BASE_H_
 #define _DESCRIPTOR_BASE_H_
 
-namespace GCL {
+namespace gridtools {
     /**
        This defines the start_exchange, do_sends, etc, for all descriptors
     */
@@ -76,7 +76,7 @@ namespace GCL {
         pattern_type const & pattern() const {return haloexch;}
 
     };
-} // namespace GCL
+} // namespace gridtools
 
 
 

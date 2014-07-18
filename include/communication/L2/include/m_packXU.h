@@ -32,12 +32,12 @@ This code have been developed with the collaboration of Peter Messmer
 template <typename value_type>
 __global__ void m_packXUKernel(const value_type* __restrict__ d_data, 
                                value_type** __restrict__ d_msgbufTab, int* d_msgsize,
-                               const GCL::halo_descriptor* halo/*_g*/, int const ny, int const nz, 
+                               const gridtools::halo_descriptor* halo/*_g*/, int const ny, int const nz, 
                                int const field_index){
  
    // per block shared buffer for storing destination buffers
    __shared__ value_type* msgbuf[27];
-   //__shared__ GCL::halo_descriptor halo[3];
+   //__shared__ gridtools::halo_descriptor halo[3];
 
    int idx = blockIdx.x;
    int idy = blockIdx.y * blockDim.y + threadIdx.y;
@@ -90,8 +90,8 @@ __global__ void m_packXUKernel(const value_type* __restrict__ d_data,
 
 template <typename array_t, typename value_type>
 void m_packXU(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsize[27],
-            const GCL::halo_descriptor halo[3],
-            const GCL::halo_descriptor halo_d[3])
+            const gridtools::halo_descriptor halo[3],
+            const gridtools::halo_descriptor halo_d[3])
 {
   // threads per block. Should be at least one warp in x, could be wider in y
   const int ntx = 1;                 

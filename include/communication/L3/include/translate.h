@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/layout_map.h>
 
-namespace GCL {
+namespace gridtools {
 
   template <int D, typename map=typename default_layout_map<3>::type >
   struct translate_t;

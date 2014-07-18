@@ -50,11 +50,11 @@ struct proc_grid_2D_concept {
    */
   int proc(int I, int J) const { ... }
 
-  /** Returns the process ID of the process with absolute coordinates specified by the input GCL::array of coordinates
-      \param[in] crds GCL::aray of coordinates of the processor of which the ID is needed
+  /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
+      \param[in] crds gridtools::aray of coordinates of the processor of which the ID is needed
       
       \return The process ID of the required process
   */
-  int abs_proc(GCL::array<int,ndims> const & crds) const { ...  }
+  int abs_proc(gridtools::array<int,ndims> const & crds) const { ...  }
 
 };

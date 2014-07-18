@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _FIELD_ON_THE_FLY_H_
 #define _FIELD_ON_THE_FLY_H_
 
-namespace GCL {
+namespace gridtools {
   /**
      Struct that contains the information for an array with halo. It
      construct all necessary information to execute halo_exchange_generic
@@ -79,13 +79,13 @@ namespace GCL {
     }
 
     /**
-       Constructor that takes an GCL::array of halo descriptors. The order
+       Constructor that takes an gridtools::array of halo descriptors. The order
        of the elements are the logical order in which the user sees the
        dimensions. Layout map is used to permute the entries in the proper
        way.
 
        \param p Pointer to the array containing the data
-       \param halos Array (GCL::array) of array halos
+       \param halos Array (gridtools::array) of array halos
      */
     field_on_the_fly(DataType* p, array<halo_descriptor, DIMS> const & halos)
       : ptr(p)
@@ -102,13 +102,13 @@ namespace GCL {
       base_type::setup();
     }
     /**
-       Method to explicitly create a field_on_the_fly. It takes an GCL::array 
+       Method to explicitly create a field_on_the_fly. It takes an gridtools::array 
        of halo descriptors. The order of the elements are the logical order in 
        which the user sees the dimensions. Layout map is used to permute the 
        entries in the proper way.
 
        \param p Pointer to the array containing the data
-       \param halos Array (GCL::array) of array halos
+       \param halos Array (gridtools::array) of array halos
      */
     void create(DataType* p, array<halo_descriptor, DIMS> const & halos)
     {
@@ -165,13 +165,13 @@ namespace GCL {
   //   field_on_the_fly_man() {};
 
   //   /**
-  //      Constructor that takes an GCL::array of halo descriptors. The order
+  //      Constructor that takes an gridtools::array of halo descriptors. The order
   //      of the elements are the logical order in which the user sees the
   //      dimensions. Layout map is used to permute the entries in the proper
   //      way.
 
   //      \param p Pointer to the array containing the data
-  //      \param halos Array (GCL::array) of array halos
+  //      \param halos Array (gridtools::array) of array halos
   //    */
   //   field_on_the_fly_man(DataType* p, array<halo_descriptor, DIMS> const & halos)
   //     : ptr(p)
@@ -188,13 +188,13 @@ namespace GCL {
   //     base_type::setup();
   //   }
   //   /**
-  //      Method to explicitly create a field_on_the_fly. It takes an GCL::array 
+  //      Method to explicitly create a field_on_the_fly. It takes an gridtools::array 
   //      of halo descriptors. The order of the elements are the logical order in 
   //      which the user sees the dimensions. Layout map is used to permute the 
   //      entries in the proper way.
 
   //      \param p Pointer to the array containing the data
-  //      \param halos Array (GCL::array) of array halos
+  //      \param halos Array (gridtools::array) of array halos
   //    */
   //   void create(DataType* p, array<halo_descriptor, DIMS> const & halos)
   //   {

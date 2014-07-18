@@ -42,9 +42,9 @@ std::ostream *filep;
 
 int _main(int pid, int nprocs) {
 
-  GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > pg(GCL::gcl_utils::boollist<2>(true, true), nprocs,pid);
+  gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > pg(gridtools::gcl_utils::boollist<2>(true, true), nprocs,pid);
 
-  (*filep) << "@" << GCL::PID << "@ --- PROC GRID " 
+  (*filep) << "@" << gridtools::PID << "@ --- PROC GRID " 
     OUT(-1,-1)
     OUT(0,-1)
     OUT(1,0-1)
@@ -61,9 +61,9 @@ int _main(int pid, int nprocs) {
 
 int MPImain(MPI_Comm &comm) {
 
-  GCL::MPI_2D_process_grid_t<GCL::gcl_utils::boollist<2> > pg(GCL::gcl_utils::boollist<2>(true,true), comm);
+  gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > pg(gridtools::gcl_utils::boollist<2>(true,true), comm);
 
-  (*filep) << "@" << GCL::PID << "@ MPI PROC GRID " 
+  (*filep) << "@" << gridtools::PID << "@ MPI PROC GRID " 
     OUT(-1,-1)
     OUT(0,-1)
     OUT(1,0-1)
@@ -81,7 +81,7 @@ int MPImain(MPI_Comm &comm) {
 int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   int pid;
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
@@ -105,9 +105,9 @@ int main(int argc, char** argv) {
   MPI_Dims_create(nprocs, 2, dims);
   int period[2] = {1, 1};
 
-  file << "@" << GCL::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
+  file << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
  
-  MPI_Cart_create(GCL::GCL_WORLD, 2, dims, period, false, &CartComm);
+  MPI_Cart_create(gridtools::GCL_WORLD, 2, dims, period, false, &CartComm);
 
   MPImain(CartComm);
 

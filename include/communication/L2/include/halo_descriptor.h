@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assert.h>
 #include <utils/array.h>
 
-namespace GCL {
+namespace gridtools {
 
   /** \class halo_descriptor
       Given a dimension it is described like this:
@@ -234,7 +234,7 @@ namespace GCL {
              << hd.end() << ", "
              << hd.total_length() << ")";
   }
-} //namespace GCL
+} //namespace gridtools
 
 
 #endif

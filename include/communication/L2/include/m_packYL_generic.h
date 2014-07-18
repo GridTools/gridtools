@@ -35,13 +35,13 @@ template <typename value_type>
 __global__ void m_packYLKernel_generic(const value_type* __restrict__ d_data, 
                                        value_type** __restrict__ d_msgbufTab, 
                                        const wrap_argument  d_msgsize, 
-                                       const GCL::array<GCL::halo_descriptor,3> halo/*_g*/, 
+                                       const gridtools::array<gridtools::halo_descriptor,3> halo/*_g*/, 
                                        int const nx, int const nz, 
                                        int const field_index){
  
    // per block shared buffer for storing destination buffers
    __shared__ value_type* msgbuf[27];
-   //__shared__ GCL::halo_descriptor halo[3];
+   //__shared__ gridtools::halo_descriptor halo[3];
 
    int idx = blockIdx.x * blockDim.x + threadIdx.x;  
    int idy = blockIdx.y;
@@ -153,7 +153,7 @@ void m_packYL_generic(array_t const& fields,
         (fields[i].ptr, 
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab), 
          wrap_argument(d_msgsize+27*i), 
-         *(reinterpret_cast<const GCL::array<GCL::halo_descriptor,3>*>(&fields[i])),
+         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
          nx, 
          nz, 
          0); 

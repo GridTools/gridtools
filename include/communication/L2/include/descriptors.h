@@ -57,7 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "helpers_impl.h"
 #include <access.h>
 
-namespace GCL {
+namespace gridtools {
 
 
   /** \class empty_field_no_dt
@@ -94,7 +94,7 @@ namespace GCL {
 
     const halo_descriptor* raw_array() const {return &(base_type::halos[0]);}
 
-    /** void pack(GCL::array<int, D> const& eta, iterator &it)
+    /** void pack(gridtools::array<int, D> const& eta, iterator &it)
         Pack the elements of a data field passed in input as iterator_in to be sent using the 
         iterator_out passed in that points to data buffers. At the end 
         the iterator_out points to the element next to the last inserted. In inout 
@@ -105,14 +105,14 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data.
     */
     template <typename iterator_in, typename iterator_out>
-    void pack(GCL::array<int, 2> const& eta, iterator_in const* field_ptr, iterator_out *& it) const {
+    void pack(gridtools::array<int, 2> const& eta, iterator_in const* field_ptr, iterator_out *& it) const {
       for (int j=base_type::halos[1].loop_low_bound_inside(eta[1]);
            j<=base_type::halos[1].loop_high_bound_inside(eta[1]);
            ++j) {
         for (int i=base_type::halos[0].loop_low_bound_inside(eta[0]);
              i<=base_type::halos[0].loop_high_bound_inside(eta[0]);
              ++i) {
-          *(reinterpret_cast<iterator_in*>(it)) = field_ptr[GCL::access
+          *(reinterpret_cast<iterator_in*>(it)) = field_ptr[gridtools::access
                                                            (i,j,
                                                             base_type::halos[0].total_length()
                                                             ,base_type::halos[1].total_length())];
@@ -122,7 +122,7 @@ namespace GCL {
     }
 
     template <typename iterator_in, typename iterator_out>
-    void pack(GCL::array<int, 3> const& eta, iterator_in const* field_ptr, iterator_out *& it) const {
+    void pack(gridtools::array<int, 3> const& eta, iterator_in const* field_ptr, iterator_out *& it) const {
       for (int k=base_type::halos[2].loop_low_bound_inside(eta[2]);
            k<=base_type::halos[2].loop_high_bound_inside(eta[2]);
            ++k) {
@@ -133,7 +133,7 @@ namespace GCL {
                i<=base_type::halos[0].loop_high_bound_inside(eta[0]);
                ++i) {
 
-            *(reinterpret_cast<iterator_in*>(it)) = field_ptr[GCL::access
+            *(reinterpret_cast<iterator_in*>(it)) = field_ptr[gridtools::access
                                                              (i,j,k,
                                                               base_type::halos[0].total_length(),
                                                               base_type::halos[1].total_length(),
@@ -144,7 +144,7 @@ namespace GCL {
       }
     }
 
-    /** void unpack(GCL::array<int, D> const& eta, iterator &it)
+    /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
         Unpack the elements into a data field passed in input as 
         iterator_in that have being received in data obtained by the 
         iterator_out passed in that points to data buffers. At the end 
@@ -157,14 +157,14 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data in buffers.
     */
     template <typename iterator_in, typename iterator_out>
-    void unpack(GCL::array<int, 2> const& eta, iterator_in * field_ptr, iterator_out *& it) const {
+    void unpack(gridtools::array<int, 2> const& eta, iterator_in * field_ptr, iterator_out *& it) const {
       for (int j=base_type::halos[1].loop_low_bound_outside(eta[1]);
            j<=base_type::halos[1].loop_high_bound_outside(eta[1]);
            ++j) {
         for (int i=base_type::halos[0].loop_low_bound_outside(eta[0]);
              i<=base_type::halos[0].loop_high_bound_outside(eta[0]);
              ++i) {
-          field_ptr[GCL::access(i,j,
+          field_ptr[gridtools::access(i,j,
                                 base_type::halos[0].total_length(),
                                 base_type::halos[1].total_length())] = *(reinterpret_cast<iterator_in*>(it));
           reinterpret_cast<char*&>(it) += sizeof(iterator_in);
@@ -173,7 +173,7 @@ namespace GCL {
     }
 
     template <typename iterator_in, typename iterator_out>
-    void unpack(GCL::array<int, 3> const& eta, iterator_in * field_ptr, iterator_out* &it) const {
+    void unpack(gridtools::array<int, 3> const& eta, iterator_in * field_ptr, iterator_out* &it) const {
       for (int k=base_type::halos[2].loop_low_bound_outside(eta[2]);
            k<=base_type::halos[2].loop_high_bound_outside(eta[2]);
            ++k) {
@@ -183,7 +183,7 @@ namespace GCL {
           for (int i=base_type::halos[0].loop_low_bound_outside(eta[0]);
                i<=base_type::halos[0].loop_high_bound_outside(eta[0]);
                ++i) {
-            field_ptr[GCL::access(i,j,k,
+            field_ptr[gridtools::access(i,j,k,
                                   base_type::halos[0].total_length(),
                                   base_type::halos[1].total_length(),
                                   base_type::halos[2].total_length())] = *(reinterpret_cast<iterator_in*>(it));
@@ -194,7 +194,7 @@ namespace GCL {
     }
 
     template <typename iterator>
-    void pack_all(GCL::array<int, DIMS> const&, iterator &it) const {}
+    void pack_all(gridtools::array<int, DIMS> const&, iterator &it) const {}
 
     /**
        This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -210,7 +210,7 @@ namespace GCL {
      */
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
     template <typename iterator, typename FIRST, typename... FIELDS>
-    void pack_all(GCL::array<int, DIMS> const& eta, 
+    void pack_all(gridtools::array<int, DIMS> const& eta, 
                   iterator &it, 
                   FIRST const & field, 
                   const FIELDS&... args) const {
@@ -221,7 +221,7 @@ namespace GCL {
 #define MACRO_IMPL(z, n, _)                                             \
     template <typename iterator,                                        \
               BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
-    void pack_all(GCL::array<int, DIMS> const& eta,                     \
+    void pack_all(gridtools::array<int, DIMS> const& eta,                     \
                   iterator &it,                                         \
                   BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &arg)) const { \
       pack_all(eta, it BOOST_PP_COMMA_IF(n)  BOOST_PP_ENUM_PARAMS_Z(z, n, arg)); \
@@ -233,7 +233,7 @@ namespace GCL {
 #endif
 
     template <typename iterator>
-    void unpack_all(GCL::array<int, DIMS> const&, iterator &it) const {}
+    void unpack_all(gridtools::array<int, DIMS> const&, iterator &it) const {}
 
     /**
        This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -249,7 +249,7 @@ namespace GCL {
      */
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
     template <typename iterator, typename FIRST, typename... FIELDS>
-    void unpack_all(GCL::array<int, DIMS> const& eta,
+    void unpack_all(gridtools::array<int, DIMS> const& eta,
                     iterator &it,
                     FIRST const & field,
                     const FIELDS&... args) const {
@@ -260,7 +260,7 @@ namespace GCL {
 #define MACRO_IMPL(z, n, _)                                             \
     template <typename iterator,                                        \
               BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
-    void unpack_all(GCL::array<int, DIMS> const& eta,                     \
+    void unpack_all(gridtools::array<int, DIMS> const& eta,                     \
                   iterator &it,                                         \
                   BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &arg)) const { \
       unpack_all(eta, it BOOST_PP_COMMA_IF(n)  BOOST_PP_ENUM_PARAMS_Z(z, n, arg)); \
@@ -313,7 +313,7 @@ namespace GCL {
     */
     explicit field_descriptor_no_dt(DataType *_fp): fieldptr(_fp) {}
 
-    /** void pack(GCL::array<int, D> const& eta, iterator &it)
+    /** void pack(gridtools::array<int, D> const& eta, iterator &it)
         Pack the elements to be sent using the iterator passed in. At the end 
         the iterator points to the element next to the last inserted. In inout 
         the iterator points to the elements to be insered
@@ -322,11 +322,11 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data.
     */
     template <typename iterator>
-    void pack(GCL::array<int, DIMS> const& eta, iterator &it) const {
+    void pack(gridtools::array<int, DIMS> const& eta, iterator &it) const {
       base_type::pack(eta, fieldptr, it);
     }
 
-    /** void unpack(GCL::array<int, D> const& eta, iterator &it)
+    /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
         Unpack the elements received using the iterator passed in.. At the end 
         the iterator points to the element next to the last read element. In inout 
         the iterator points to the elements to be extracted from buffers and put 
@@ -336,7 +336,7 @@ namespace GCL {
         \param[in,out] it iterator pointing to the data in buffers.
     */
     template <typename iterator>
-    void unpack(GCL::array<int, DIMS> const& eta, iterator &it) const {
+    void unpack(gridtools::array<int, DIMS> const& eta, iterator &it) const {
       base_type::unpack(eta, fieldptr, it);
     }
 
@@ -365,8 +365,8 @@ namespace GCL {
 
     std::vector<field_descriptor_no_dt<DataType, DIMS> > field;
 
-    GCL::array<DataType*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<DataType*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<DataType*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<DataType*, _impl::static_pow3<DIMS>::value> recv_buffer;
   public:
       typedef descriptor_base<HaloExch> base_type;
       typedef typename base_type::pattern_type pattern_type;
@@ -554,8 +554,8 @@ namespace GCL {
   public:
     empty_field_no_dt<DIMS> halo;
   private:
-    GCL::array<DataType*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<DataType*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<DataType*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<DataType*, _impl::static_pow3<DIMS>::value> recv_buffer;
   public:
     typedef gcl_cpu arch_type;
       typedef descriptor_base<HaloExch> base_type;
