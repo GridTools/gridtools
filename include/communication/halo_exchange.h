@@ -17,7 +17,7 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL MAURO BIANCO, UGO VARETTO, OR 
+DISCLAIMED. IN NO EVENT SHALL MAURO BIANCO, UGO VARETTO, OR
 SWISS NATIONAL SUPERCOMPUTING CENTRE (CSCS), BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -31,28 +31,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HALO_EXCHANGE_H_
 #define _HALO_EXCHANGE_H_
 
-#include <Halo_Exchange_2D.h>
-#include <Halo_Exchange_2D_DT.h>
-#include <Halo_Exchange_3D.h>
-#include <Halo_Exchange_3D_DT.h>
-#include <proc_grids_2D.h>
-#include <proc_grids_3D.h>
-#include <utils/boollist.h>
+#include "L3/include/Halo_Exchange_2D.h"
+#include "L3/include/Halo_Exchange_2D_DT.h"
+#include "L3/include/Halo_Exchange_3D.h"
+#include "L3/include/Halo_Exchange_3D_DT.h"
+#include "L3/include/proc_grids_2D.h"
+#include "L3/include/proc_grids_3D.h"
+#include "utils/boollist.h"
 
 #ifdef MANUAL_PACKING
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
 //#else
-#include <descriptors_dt.h>
-#include <descriptors_dt_whole.h>
-#include <descriptors.h>
-#include <descriptors_manual_gpu.h>
-#include <descriptor_generic_manual.h>
+#include "L2/include/descriptors_dt.h"
+#include "L2/include/descriptors_dt_whole.h"
+#include "L2/include/descriptors.h"
+#include "L2/include/descriptors_manual_gpu.h"
+#include "L2/include/descriptor_generic_manual.h"
  //#endif
 
-#include <translate.h>
-#include <field_on_the_fly.h>
+#include "L3/include/translate.h"
+#include "L2/include/field_on_the_fly.h"
 
 namespace gridtools {
 
@@ -95,18 +95,18 @@ namespace gridtools {
 
     template <>
     struct get_grid<2> {
-      typedef MPI_2D_process_grid_t<gcl_utils::boollist<2> > type; 
+      typedef MPI_2D_process_grid_t<gcl_utils::boollist<2> > type;
     };
 
     template <>
     struct get_grid<3> {
       typedef MPI_3D_process_grid_t<gcl_utils::boollist<3> > type;
     };
-    
+
   }
 
 
-  /** 
+  /**
      This is the main class for the halo exchange pattern in the case
      in which the data pointers are not known before hand and they are
      passed to the pattern when packing and unpacking is needed.
@@ -198,7 +198,7 @@ namespace gridtools {
      gridtools::layout_map<0,1>
      \endcode
 
-     On the other hand, having specified 
+     On the other hand, having specified
      \code
      gridtools::layout_map<1,0>
      \endcode
@@ -219,10 +219,10 @@ namespace gridtools {
      ordering is the one the user choose to be the logical order in
      the application, not the increasing stride order.
 
-     To find an example in 2D refer to 
+     To find an example in 2D refer to
      test_halo_exchange_2D.cpp
 
-     while a 3D example can be found in 
+     while a 3D example can be found in
      test_halo_exchange.cpp
 
      The other template arguments are the type of the elements
@@ -245,7 +245,7 @@ namespace gridtools {
 
   private:
     typedef typename layout_transform<layout_map, layout2proc_map_abs>::type layout2proc_map;
-    
+
   public:
     /**
        Type of the computin grid associated to the pattern
@@ -253,14 +253,14 @@ namespace gridtools {
     typedef typename _impl::get_grid<DIMS>::type grid_type;
 
     /**
-       Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern. 
+       Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
        In the case the implementation is not using L3, the type is not available.
     */
     typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
 
   private:
     hndlr_dynamic_ut<DataType,
-                     DIMS, 
+                     DIMS,
                      pattern_type,
                      layout2proc_map,
                      Gcl_Arch,
@@ -357,7 +357,7 @@ namespace gridtools {
        introduction of the class, the ordering will be 0 for i and 1
        for j, no matter of the layout_map parameter passed during
        class instantiation.
- 
+
        \tparam DI index of the dimension to be set relative to the logical ordering chosen in the application, not the increasing stride ordering.
        \param[in] minus Please see field_descriptor, halo_descriptor or \link MULTI_DIM_ACCESS \endlink for details
        \param[in] plus Please see field_descriptor, halo_descriptor or \link MULTI_DIM_ACCESS \endlink for details
@@ -367,13 +367,13 @@ namespace gridtools {
      */
     template <int DI>
     void add_halo(int minus, int plus, int begin, int end, int t_len) {
-      
+
       hd.halo.add_halo(layout_map::template at<DI>(), minus, plus, begin, end, t_len);
     }
 
     /**
        Function to pack data to be sent
-       
+
        \param[in] _fields data fields to be packed
     */
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
@@ -387,7 +387,7 @@ namespace gridtools {
     void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
       hd.pack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));      \
     }
-  
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -408,7 +408,7 @@ namespace gridtools {
     void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
       hd.unpack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));    \
     }
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -576,13 +576,13 @@ namespace gridtools {
     typedef typename _impl::get_grid<DIMS>::type grid_type;
 
     /**
-       Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern. 
+       Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
        In the case the implementation is not using L3, the type is not available.
     */
     typedef typename _impl::get_pattern<DIMS, grid_type,version>::type pattern_type;
 
   private:
-    hndlr_generic<DIMS, 
+    hndlr_generic<DIMS,
                   pattern_type,
                   layout2proc_map,
                   Gcl_Arch, version> hd;
@@ -609,8 +609,8 @@ namespace gridtools {
       : hd(g)
     { }
 
-    // halo_exchange_generic(halo_exchange_generic const &src) 
-    //   : 
+    // halo_exchange_generic(halo_exchange_generic const &src)
+    //   :
     // {}
 
     /** Function to rerturn the L3 level pattern used inside the pattern itself.
@@ -627,7 +627,7 @@ namespace gridtools {
        \param typesize Maximum, or sufficiently large, size fo the types of values to be exchanged.
     */
     template <typename DataType, typename layomap, template <typename> class _traits>
-    void setup(int max_fields_n, 
+    void setup(int max_fields_n,
                field_on_the_fly<DataType, layomap, _traits> const & halo_example,
                int typesize) {
       hd.setup(max_fields_n, halo_example, typesize);
@@ -635,7 +635,7 @@ namespace gridtools {
 
     /**
        Function to pack data to be sent
-       
+
        \param[in] _fields data fields to be packed
     */
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
@@ -649,7 +649,7 @@ namespace gridtools {
     void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) { \
       hd.pack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));      \
     }
-  
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -670,7 +670,7 @@ namespace gridtools {
     void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) { \
       hd.unpack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));    \
     }
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -733,7 +733,7 @@ namespace gridtools {
     }
 
   };
- 
+
 
   template <typename layout2proc_map,
             int DIMS,
@@ -764,12 +764,12 @@ namespace gridtools {
     {}
 
   };
- 
+
 
   // different traits are needed
   template <typename layout2proc_map,
             int DIMS>
-  class halo_exchange_generic<layout2proc_map,DIMS,gcl_cpu,version_manual> 
+  class halo_exchange_generic<layout2proc_map,DIMS,gcl_cpu,version_manual>
     : public halo_exchange_generic_base<layout2proc_map,DIMS,gcl_cpu,version_manual> {
 
     //    typedef typename layout_transform<layout_map, layout2proc_map_abs>::type layout2proc_map;
