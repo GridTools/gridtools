@@ -97,7 +97,7 @@ of a high latency interconnect</b>.</span></p>
     \section L2-HALO_EX Halo Exchange for regular grids 
 
     The Halo exchange pattern is implemented by \link
-    GCL::halo_exchange_dynamic_ut \endlink class. This class takes 4
+    gridtools::halo_exchange_dynamic_ut \endlink class. This class takes 4
     template arguments, the first two of which are worthy being
     explored here in detail.
 
@@ -110,7 +110,7 @@ of a high latency interconnect</b>.</span></p>
     other similar solutions.
 
     The interface requires two layout maps template arguments ( \link
-    GCL::layout_map \endlink ) one to specify the data layout, the
+    gridtools::layout_map \endlink ) one to specify the data layout, the
     other to specify the relation between data layout and processor
     grid. This is an important asepct that will be explained here and
     also in the introduction.
@@ -124,7 +124,7 @@ of a high latency interconnect</b>.</span></p>
     dimension is in the increasing stride order. For instance:
 
     \code
-    GCL::layout_map<1,0,2>
+    gridtools::layout_map<1,0,2>
     \endcode
 
     Indicates that the first dimension in the data (i) is the second
@@ -138,7 +138,7 @@ of a high latency interconnect</b>.</span></p>
     grid coordinates. The following layout specification
 
     \code
-    GCL::layout_map<1,0,2>
+    gridtools::layout_map<1,0,2>
     \endcode
 
     would mean: The first dimension in data matches with the second
@@ -155,10 +155,10 @@ of a high latency interconnect</b>.</span></p>
 
     The first template argument to the pattern would then be
     \code
-    GCL::layout_map<1,0>
+    gridtools::layout_map<1,0>
     \endcode
 
-    The second template argument is still a \link GCL::layout_map
+    The second template argument is still a \link gridtools::layout_map
     \endlink , but this time it indicates the mapping between data
     and processor grid. The data is still condidered in the user
     convention.
@@ -193,12 +193,12 @@ of a high latency interconnect</b>.</span></p>
 
     In this case the map between data and the processor grid is:
     \code
-    GCL::layout_map<0,1>
+    gridtools::layout_map<0,1>
     \endcode
 
     On the other hand, having specified 
     \code
-    GCL::layout_map<1,0>
+    gridtools::layout_map<1,0>
     \endcode
     for this map, would imply a layout/distribution like the following:
 
@@ -238,7 +238,7 @@ of a high latency interconnect</b>.</span></p>
     to the previous example, is:
 
     \code
-    typedef GCL::halo_exchange_dynamic_ut<GCL::layout_map<1,0>, GCL::layout_map<1,0>, pair_t, 2, GCL::gcl_cpu > pattern_type;
+    typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0>, gridtools::layout_map<1,0>, pair_t, 2, gridtools::gcl_cpu > pattern_type;
 
     pattern_type he(pattern_type::grid_type::period_type(true, true), CartComm);
     \endcode
@@ -278,8 +278,8 @@ of a high latency interconnect</b>.</span></p>
     \subsection L2-NALO_EX_LOWLEVEL Halo Exchange for regular grids at lower level
 
     The halo exchange for regular grids is implemented at lower level
-    by classes \link GCL::hndlr_descriptor_ut \endlink , \link
-    GCL::hndlr_dynamic_ut \endlink .
+    by classes \link gridtools::hndlr_descriptor_ut \endlink , \link
+    gridtools::hndlr_dynamic_ut \endlink .
 
     The main idea behing the pattern is that users have a regular
     multidimensional array (called field sometimes here, but array is
@@ -325,9 +325,9 @@ of a high latency interconnect</b>.</span></p>
 
     There are currently to modalities to implement a Level 2 pattern
     using GCL. The first onecan be described as static and is
-    implemented by \link GCL::hndlr_descriptor_ut \endlink. In this
+    implemented by \link gridtools::hndlr_descriptor_ut \endlink. In this
     case each process must describe the halos by using \link
-    GCL::halo_descriptor \endlink. The halo descrition process
+    gridtools::halo_descriptor \endlink. The halo descrition process
     describes with 5 integer parameter each dimension of the arrays by
     increasing strides (the rationale behind this choice is discussed
     in \link MULTI_DIM_ACCESS \endlink ).
@@ -357,14 +357,14 @@ of a high latency interconnect</b>.</span></p>
     Before registering the halo, a pattern must be constructed as an object in the application. To do so
 
     \code
-    typedef GCL::Halo_Exchange_2D<PROC_GRID_TYPE> pattern_type;
+    typedef gridtools::Halo_Exchange_2D<PROC_GRID_TYPE> pattern_type;
 
     // This constructor can be used if an mpi cart communicator is already available
-    GCL::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true),MPI_COMMUNICATOR);
+    gridtools::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true),MPI_COMMUNICATOR);
 
     // or
     // this constructor can be used if not
-    GCL::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true), NPROCS, MY_PROC_ID);
+    gridtools::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true), NPROCS, MY_PROC_ID);
     \endcode
     
     The periodicity is specified in order of dimension in the
@@ -434,7 +434,7 @@ of a high latency interconnect</b>.</span></p>
 
     \subsection HE_DYNAMIC The dynamic version of the halo exchange
 
-    The implementation is found in \link GCL::hndlr_dynamic_ut
+    The implementation is found in \link gridtools::hndlr_dynamic_ut
     \endlink . The difference with the previousis that the actual
     pointers to data are assumed to be unknown at pattern
     instantiation, so that they have to be passed to it just before
@@ -480,11 +480,11 @@ of a high latency interconnect</b>.</span></p>
     constructed. The constructor takes the processing grid.
 
     \code
-    typedef GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+    typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
-    grid_type pgrid(GCL::gcl_utils::boollist<2>(true,true), GCL::PROCS, GCL::PID);
+    grid_type pgrid(gridtools::gcl_utils::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
 
-    GCL::all_to_all_halo<int, grid_type> a2a(pgrid);
+    gridtools::all_to_all_halo<int, grid_type> a2a(pgrid);
     \endcode
 
     Subsequently, the data to be sent and received must be specified.
@@ -497,8 +497,8 @@ of a high latency interconnect</b>.</span></p>
         crds[1] = j; // INCREASING STRIDES
 
         // INCREASING STRIDES
-        send_block[1] = GCL::halo_descriptor(0,0,j*N,(j+1)*N-1, PJ*N);
-        send_block[0] = GCL::halo_descriptor(0,0,i*N,(i+1)*N-1, N*PI);
+        send_block[1] = gridtools::halo_descriptor(0,0,j*N,(j+1)*N-1, PJ*N);
+        send_block[0] = gridtools::halo_descriptor(0,0,i*N,(i+1)*N-1, N*PI);
 
         a2a.register_block_to(&dataout[0], send_block, crds);
       }
@@ -527,8 +527,8 @@ of a high latency interconnect</b>.</span></p>
     call like the following one:
 
     \code
-    recv_block[0] = GCL::halo_descriptor(H,H,H,N+H-1, N+2*H);
-    recv_block[1] = GCL::halo_descriptor(H,H,H,N+H-1, N+2*H);
+    recv_block[0] = gridtools::halo_descriptor(H,H,H,N+H-1, N+2*H);
+    recv_block[1] = gridtools::halo_descriptor(H,H,H,N+H-1, N+2*H);
 
     a2a.register_block_from(&datain[0], recv_block, crds);
     \endcode

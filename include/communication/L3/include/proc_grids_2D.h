@@ -39,10 +39,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // This file needs to be changed
 
-/** \namespace GCL
+/** \namespace gridtools
  * All library classes, functions, and objects will reside in this namespace.
  */
-namespace GCL {
+namespace gridtools {
 
   /** \class _2D_process_grid_t
    Class that provides a generic 2D process grid from a linear
@@ -165,12 +165,12 @@ namespace GCL {
       return proc_idx(rr, cc);
     }
 
-    /** Returns the process ID of the process with absolute coordinates specified by the input GCL::array of coordinates
-        \param[in] crds GCL::aray of coordinates of the processor of which the ID is needed
+    /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
+        \param[in] crds gridtools::aray of coordinates of the processor of which the ID is needed
 
         \return The process ID of the required process
     */
-    int abs_proc(GCL::array<int,ndims> const & crds) const {
+    int abs_proc(gridtools::array<int,ndims> const & crds) const {
       return proc(crds[0]-r, crds[1]-c);
     }
 
@@ -298,12 +298,12 @@ namespace GCL {
       return res;
     }
 
-    /** Returns the process ID of the process with absolute coordinates specified by the input GCL::array of coordinates
-        \param[in] crds GCL::aray of coordinates of the processor of which the ID is needed
+    /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
+        \param[in] crds gridtools::aray of coordinates of the processor of which the ID is needed
 
         \return The process ID of the required process
     */
-    int abs_proc(GCL::array<int,ndims> const & crds) const {
+    int abs_proc(gridtools::array<int,ndims> const & crds) const {
       return proc(crds[0]-r, crds[1]-c);
     }
 
@@ -311,6 +311,6 @@ namespace GCL {
 
 #endif
 
-} //namespace GCL
+} //namespace gridtools
 
 #endif

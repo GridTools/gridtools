@@ -63,9 +63,9 @@ double lapse_time4;
 #define C_ADD 2
 
 #ifdef _GCL_GPU_
-typedef GCL::gcl_gpu arch_type;
+typedef gridtools::gcl_gpu arch_type;
 #else
-typedef GCL::gcl_cpu arch_type;
+typedef gridtools::gcl_cpu arch_type;
 #endif
 
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -132,7 +132,7 @@ void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-  typedef GCL::layout_map<I1,I2,I3> layoutmap;
+  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
   
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
@@ -147,9 +147,9 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
         c(ii,jj,kk) = triple_t<USE_DOUBLE>();
       }
     }
-//   a(0,0,0) = triple_t<USE_DOUBLE>(3000+GCL::PID, 4000+GCL::PID, 5000+GCL::PID);
-//   b(0,0,0) = triple_t<USE_DOUBLE>(3010+GCL::PID, 4010+GCL::PID, 5010+GCL::PID);
-//   c(0,0,0) = triple_t<USE_DOUBLE>(3020+GCL::PID, 4020+GCL::PID, 5020+GCL::PID);
+//   a(0,0,0) = triple_t<USE_DOUBLE>(3000+gridtools::PID, 4000+gridtools::PID, 5000+gridtools::PID);
+//   b(0,0,0) = triple_t<USE_DOUBLE>(3010+gridtools::PID, 4010+gridtools::PID, 5010+gridtools::PID);
+//   c(0,0,0) = triple_t<USE_DOUBLE>(3020+gridtools::PID, 4020+gridtools::PID, 5020+gridtools::PID);
 
 
   /* The pattern type is defined with the layouts, data types and
@@ -169,13 +169,13 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
      the others.
    */
 #ifndef PACKING_TYPE
-#define PACKING_TYPE GCL::version_manual
+#define PACKING_TYPE gridtools::version_manual
 #endif
 
   static const int version = PACKING_TYPE; // 0 is the usual version, 1 is the one that build the whole datatype (Only vector interface supported)
 
-  typedef GCL::halo_exchange_dynamic_ut<layoutmap, 
-    GCL::layout_map<0,1,2>, triple_t<USE_DOUBLE>::data_type, 3, arch_type, version > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<layoutmap, 
+    gridtools::layout_map<0,1,2>, triple_t<USE_DOUBLE>::data_type, 3, arch_type, version > pattern_type;
 
   /* The pattern is now instantiated with the periodicities and the
      communicator. The periodicity of the communicator is
@@ -300,7 +300,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
 
 
   cudaDeviceSynchronize();
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
 
   gettimeofday(&stop3_tv, NULL);
 
@@ -350,7 +350,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   vect[1] = b.ptr;
   vect[2] = c.ptr;
   cudaDeviceSynchronize();
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
   
   gettimeofday(&start_tv, NULL);
 
@@ -537,7 +537,7 @@ int main(int argc, char** argv) {
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
    */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   /* Here we compute the computing gris as in many applications
    */
@@ -595,7 +595,7 @@ int main(int argc, char** argv) {
 
   file << hnam << std::endl;
 #ifdef GCL_TRACE
-  GCL::stats_collector_3D.recording(true);
+  gridtools::stats_collector_3D.recording(true);
 #endif
 #ifdef BENCH
   for (int i=0; i<BENCH; ++i) {
@@ -773,7 +773,7 @@ int main(int argc, char** argv) {
 #endif
 
 #ifdef GCL_TRACE
-  GCL::stats_collector_3D.evaluate(std::cout);
+  gridtools::stats_collector_3D.evaluate(std::cout);
 #endif
 
   delete[] _a;

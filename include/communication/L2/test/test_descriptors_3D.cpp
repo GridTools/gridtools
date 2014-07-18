@@ -66,7 +66,7 @@ bool operator!=(triple_t const & a, triple_t const & b) {
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
 
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   triple_t *a = new triple_t[DIM*DIM*DIM];
   triple_t *b = new triple_t[DIM*DIM*DIM];
@@ -100,10 +100,10 @@ int main(int argc, char** argv) {
  
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-  typedef GCL::MPI_3D_process_grid_t<GCL::gcl_utils::boollist<3> > grid_type;
+  typedef gridtools::MPI_3D_process_grid_t<gridtools::gcl_utils::boollist<3> > grid_type;
 
-  GCL::hndlr_descriptor_ut<triple_t,3, 
-    GCL::Halo_Exchange_3D<grid_type> > hd(GCL::gcl_utils::boollist<3>(false,false,false),CartComm);
+  gridtools::hndlr_descriptor_ut<triple_t,3, 
+    gridtools::Halo_Exchange_3D<grid_type> > hd(gridtools::gcl_utils::boollist<3>(false,false,false),CartComm);
 
   I = hd.register_field(a);
   hd.register_halo(I, 2, 2, 1, 3, 6, DIM);
@@ -129,19 +129,19 @@ int main(int argc, char** argv) {
   for (int ii=3; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj)
       for (int kk=3; kk<=6; ++kk) {
-        a[GCL::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk);
+        a[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk);
     }      
 
   for (int ii=3; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj)
       for (int kk=4; kk<=6; ++kk) {
-        b[GCL::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk);
+        b[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk);
     }      
 
   for (int ii=0; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj)
       for (int kk=0; kk<=9; ++kk) {
-        c[GCL::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk);
+        c[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk);
     }      
 
   hd.allocate_buffers();
@@ -157,13 +157,13 @@ int main(int argc, char** argv) {
   for (int ii=3-((pi>0)?2:0); ii<=6+((pi<PI-1)?1:0); ++ii)
     for (int jj=3-((pj>0)?2:0); jj<=6+((pj<PJ-1)?1:0); ++jj)
       for (int kk=3-((pk>0)?2:0); kk<=6+((pk<PK-1)?1:0); ++kk) {
-        if (a[GCL::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk)) {
+        if (a[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk)) {
           err=true;
           file << " A " 
                     << ii << ", "
                     << jj << ", "
                     << kk << ", "
-                    << a[GCL::access(kk,jj,ii,DIM,DIM,DIM)] << " != "
+                    << a[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] << " != "
                     << triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk) << "\n";
         }
     }
@@ -171,13 +171,13 @@ int main(int argc, char** argv) {
   for (int ii=3-((pi>0)?3:0); ii<=6+((pi<PI-1)?2:0); ++ii)
     for (int jj=3-((pj>0)?2:0); jj<=6+((pj<PJ-1)?1:0); ++jj)
       for (int kk=4-((pk>0)?3:0); kk<=6+((pk<PK-1)?2:0); ++kk) {
-        if (b[GCL::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk)) {
+        if (b[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk)) {
           err=true;
           file << " B "
                     << ii << ", "
                     << jj << ", "
                     << kk << ", "
-                    << b[GCL::access(kk,jj,ii,DIM,DIM,DIM)] << " != "
+                    << b[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] << " != "
                     << triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk) << "\n";
         }
     }
@@ -185,13 +185,13 @@ int main(int argc, char** argv) {
   for (int ii=0-((pi>0)?0:0); ii<=6+((pi<PI-1)?2:0); ++ii)
     for (int jj=3-((pj>0)?3:0); jj<=6+((pj<PJ-1)?2:0); ++jj)
       for (int kk=0-((pk>0)?0:0); kk<=9+((pk<PK-1)?0:0); ++kk) {
-        if (c[GCL::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk)) {
+        if (c[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk)) {
           err=true;
           file << " C "
                     << ii << ", "
                     << jj << ", "
                     << kk << ", "
-                    << c[GCL::access(kk,jj,ii,DIM,DIM,DIM)] << " != "
+                    << c[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] << " != "
                     << triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk) << "\n";
         }
     }

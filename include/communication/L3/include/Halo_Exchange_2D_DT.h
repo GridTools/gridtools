@@ -58,10 +58,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \endcode
  */
 
-/** \namespace GCL
+/** \namespace gridtools
  * All library classes, functions, and objects will reside in this namespace.
  */
-namespace GCL {
+namespace gridtools {
 
   /** \class Halo_Exchange_2D
    * Class to instantiate, define and run a regular cyclic and acyclic
@@ -122,11 +122,11 @@ namespace GCL {
      int iminusjplus_r;
      int iplusjplus_r;
 
-     typedef GCL::_2D_proc_grid_t grid_type;
+     typedef gridtools::_2D_proc_grid_t grid_type;
 
      grid_type pg(P,my_id);
 
-     GCL::Halo_Exchange_2D<grid_type> he(pg);
+     gridtools::Halo_Exchange_2D<grid_type> he(pg);
 
      he.register_send_to_buffer<-1,-1>(&iminusjminus, sizeof(int));
      he.register_send_to_buffer<-1, 1>(&iminusjplus, sizeof(int));
@@ -213,7 +213,7 @@ namespace GCL {
     template <int I, int J>
     void post_receive() {
 #ifndef NDEBUG
-      std::cout << "@" << GCL::PID << "@ IRECV from (" << I << "," << J << ") "
+      std::cout << "@" << gridtools::PID << "@ IRECV from (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
                 << " T " << TAG<-I,-J>::value << " - " 
                 << " R " << translate()(-I,-J) << "\n";
@@ -224,14 +224,14 @@ namespace GCL {
                 m_recv_buffers.datatype(I,J),
                 m_proc_grid.template proc<I,J>(),
                 TAG<-I,-J>::value,
-                GCL::GCL_WORLD,  // FIXME: m_proc_grid.communicator();
+                gridtools::GCL_WORLD,  // FIXME: m_proc_grid.communicator();
                 &request(-I,-J));
     }
 
     template <int I, int J>
     void perform_isend() {
 #ifndef NDEBUG
-      std::cout << "@" << GCL::PID << "@ ISEND to   (" << I << "," << J << ") "
+      std::cout << "@" << gridtools::PID << "@ ISEND to   (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
                 << " T " << TAG<I,J>::value << " - " 
                 << " R " << translate()(I,J) << "\n";
@@ -241,14 +241,14 @@ namespace GCL {
                 m_send_buffers.datatype(I,J),
                 m_proc_grid.template proc<I,J>(),
                 TAG<I,J>::value,
-                GCL::GCL_WORLD,
+                gridtools::GCL_WORLD,
                 &send_request(I,J));
     }
 
     template <int I, int J>
     void wait() {
 #ifndef NDEBUG
-      std::cout << "@" << GCL::PID << "@ WAIT  ("  << I << "," << J << ") "
+      std::cout << "@" << gridtools::PID << "@ WAIT  ("  << I << "," << J << ") "
                 << " R " << translate()(-I,-J) << "\n";
 #endif
 
@@ -293,7 +293,7 @@ namespace GCL {
       assert(( J>=-1 && J<=1 ));
 
 #ifndef NDEBUG
-      std::cout << "@" << GCL::PID << "@ " << __PRETTY_FUNCTION__ << " : " << p << " size " << s << " I:" << I << " J:" << J << " (" << translate()(I,J) << ")\n";
+      std::cout << "@" << gridtools::PID << "@ " << __PRETTY_FUNCTION__ << " : " << p << " size " << s << " I:" << I << " J:" << J << " (" << translate()(I,J) << ")\n";
 #endif
 
       m_send_buffers.buffer(I,J) = reinterpret_cast<char*>(p);
@@ -330,7 +330,7 @@ namespace GCL {
       assert(( J>=-1 && J<=1 ));
 
 #ifndef NDEBUG
-      std::cout << "@" << GCL::PID << "@ " << __PRETTY_FUNCTION__ << " : " << p << " size " << s << " I:" << I << " J:" << J <<  " (" << translate()(I,J) << ")\n";
+      std::cout << "@" << gridtools::PID << "@ " << __PRETTY_FUNCTION__ << " : " << p << " size " << s << " I:" << I << " J:" << J <<  " (" << translate()(I,J) << ")\n";
 #endif
 
       m_recv_buffers.buffer(I,J) = reinterpret_cast<char*>(p);
@@ -561,12 +561,12 @@ namespace GCL {
           }
 
       
-          MPI_Barrier(GCL::GCL_WORLD);
+          MPI_Barrier(gridtools::GCL_WORLD);
       }
 
 
   };
 
-} // namespace GCL
+} // namespace gridtools
 
 #endif

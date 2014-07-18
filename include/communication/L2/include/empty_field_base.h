@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utils/numerics.h>
 #include <halo_descriptor.h>
 
-namespace GCL {
+namespace gridtools {
   namespace _impl {
     template <typename value_type>
     struct make_datatype_outin {
@@ -177,11 +177,11 @@ namespace GCL {
       generate_datatypes();
     }
 
-    std::pair<MPI_Datatype,bool> mpdt_inside(GCL::array<int, DIMS> const& eta) const {
+    std::pair<MPI_Datatype,bool> mpdt_inside(gridtools::array<int, DIMS> const& eta) const {
       return MPDT_INSIDE[_impl::neigh_idx(eta)];
     }
 
-    std::pair<MPI_Datatype,bool> mpdt_outside(GCL::array<int, DIMS> const& eta) const {
+    std::pair<MPI_Datatype,bool> mpdt_outside(gridtools::array<int, DIMS> const& eta) const {
       return MPDT_OUTSIDE[_impl::neigh_idx(eta)];
     }
 
@@ -193,7 +193,7 @@ namespace GCL {
 
         \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
     */
-    int send_buffer_size(GCL::array<int, DIMS> const& eta) const {
+    int send_buffer_size(gridtools::array<int, DIMS> const& eta) const {
       int S=1;
       for (int i=0; i<DIMS; ++i) {
         S *= halos[i].s_length(eta[i]);
@@ -208,7 +208,7 @@ namespace GCL {
 
         \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
     */
-    int recv_buffer_size(GCL::array<int, DIMS> const& eta) const {
+    int recv_buffer_size(gridtools::array<int, DIMS> const& eta) const {
       int S=1;
       for (int i=0; i<DIMS; ++i) {
         S *= halos[i].r_length(eta[i]);

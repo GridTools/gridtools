@@ -3,7 +3,7 @@
 
 #include <boost/static_assert.hpp>
 
-namespace GCL {
+namespace gridtools {
 
   /**
      namespace containing utility finctions to be used with GCL

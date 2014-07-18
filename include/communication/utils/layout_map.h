@@ -7,7 +7,7 @@
 #include <boost/mpl/at.hpp>
 #include <assert.h>
 
-namespace GCL {
+namespace gridtools {
 
     namespace _impl {
         template <unsigned int I>
@@ -156,7 +156,7 @@ namespace GCL {
        staically. The specification happens as
 
        \code
-       GCL::layout_map<a,b,c>
+       gridtools::layout_map<a,b,c>
        \endcode
 
        where a, b, and c are integer static constants. To access the
@@ -168,8 +168,8 @@ namespace GCL {
 
        For instance:
        \code
-       GCL::layout_map<3,4,1,5>::at<2> == 1
-       GCL::layout_map<3,4,1,5>::at<0> == 3
+       gridtools::layout_map<3,4,1,5>::at<2> == 1
+       gridtools::layout_map<3,4,1,5>::at<0> == 3
        etc.
        \endcode
     */
@@ -216,7 +216,7 @@ namespace GCL {
             at position 'I' in the map.
 
             \code
-            GCL::layout_map<1,2,0>::select<1>(a,b,c) == c
+            gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
             \endcode
 
             \tparam I Index to be queried
@@ -234,7 +234,7 @@ namespace GCL {
             corresponds to the position of 'I' in the map.
 
             \code
-            GCL::layout_map<2,0,1>::find<1>(a,b,c) == c
+            gridtools::layout_map<2,0,1>::find<1>(a,b,c) == c
             \endcode
 
             \tparam I Index to be searched in the map
@@ -263,7 +263,7 @@ namespace GCL {
         
             \code
             a[0] = a; a[1] = b; a[3] = c;
-            GCL::layout_map<2,0,1>::find<1>(a) == c
+            gridtools::layout_map<2,0,1>::find<1>(a) == c
             \endcode
 
             \tparam I Index to be searched in the map

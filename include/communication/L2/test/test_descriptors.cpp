@@ -52,7 +52,7 @@ void printbuff(std::ostream &file, char* a) {
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
 
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   char *a = new char[100];
   char *b = new char[100];
@@ -93,9 +93,9 @@ int main(int argc, char** argv) {
  
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims, period, false, &CartComm);
 
-  typedef GCL::Halo_Exchange_2D<GCL::MPI_2D_process_grid_t<GCL::gcl_utils::boollist<2> > > pattern_type;
+  typedef gridtools::Halo_Exchange_2D<gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > > pattern_type;
 
-  GCL::hndlr_descriptor_ut<char,2, pattern_type> hd(GCL::gcl_utils::boollist<2>(true,true), CartComm);
+  gridtools::hndlr_descriptor_ut<char,2, pattern_type> hd(gridtools::gcl_utils::boollist<2>(true,true), CartComm);
 
   I = hd.register_field(a);
   hd.register_halo(I, 0, 2, 1, 3, 6, 10);
@@ -142,24 +142,24 @@ int main(int argc, char** argv) {
             << "  0 12 3456 7 89" << "\n\n";
 
 
-  file << "DF 0 size 0: (-1,-1) x " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(-1,-1)) << "\n"
-            << "DF 0 size 1: (0,-1)  y " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(0,-1)) << "\n"
-            << "DF 0 size 2: (1,-1)  z " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(1,-1)) << "\n"
-            << "DF 0 size 3: (-1,0)  v " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(-1,0)) << "\n"
-            << "DF 0 size 4: (1,0)   w " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(1,0)) << "\n"
-            << "DF 0 size 5: (-1,1)  s " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(-1,1)) << "\n"
-            << "DF 0 size 6: (0,1)   t " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(0,1)) << "\n"
-            << "DF 0 size 7: (1,1)   u " << hd.data_field(0).send_buffer_size(GCL::gcl_utils::make_array(1,1)) << "\n"
+  file << "DF 0 size 0: (-1,-1) x " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(-1,-1)) << "\n"
+            << "DF 0 size 1: (0,-1)  y " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(0,-1)) << "\n"
+            << "DF 0 size 2: (1,-1)  z " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(1,-1)) << "\n"
+            << "DF 0 size 3: (-1,0)  v " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(-1,0)) << "\n"
+            << "DF 0 size 4: (1,0)   w " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(1,0)) << "\n"
+            << "DF 0 size 5: (-1,1)  s " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(-1,1)) << "\n"
+            << "DF 0 size 6: (0,1)   t " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(0,1)) << "\n"
+            << "DF 0 size 7: (1,1)   u " << hd.data_field(0).send_buffer_size(gridtools::gcl_utils::make_array(1,1)) << "\n"
             << "\n";
 
-  file << "DF 0 r size 0: (-1,-1) x " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(-1,-1)) << "\n"
-            << "DF 0 r size 1: (0,-1)  y " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(0,-1)) << "\n"
-            << "DF 0 r size 2: (1,-1)  z " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(1,-1)) << "\n"
-            << "DF 0 r size 3: (-1,0)  v " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(-1,0)) << "\n"
-            << "DF 0 r size 4: (1,0)   w " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(1,0)) << "\n"
-            << "DF 0 r size 5: (-1,1)  s " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(-1,1)) << "\n"
-            << "DF 0 r size 6: (0,1)   t " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(0,1)) << "\n"
-            << "DF 0 r size 7: (1,1)   u " << hd.data_field(0).recv_buffer_size(GCL::gcl_utils::make_array(1,1)) << "\n"
+  file << "DF 0 r size 0: (-1,-1) x " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(-1,-1)) << "\n"
+            << "DF 0 r size 1: (0,-1)  y " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(0,-1)) << "\n"
+            << "DF 0 r size 2: (1,-1)  z " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(1,-1)) << "\n"
+            << "DF 0 r size 3: (-1,0)  v " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(-1,0)) << "\n"
+            << "DF 0 r size 4: (1,0)   w " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(1,0)) << "\n"
+            << "DF 0 r size 5: (-1,1)  s " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(-1,1)) << "\n"
+            << "DF 0 r size 6: (0,1)   t " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(0,1)) << "\n"
+            << "DF 0 r size 7: (1,1)   u " << hd.data_field(0).recv_buffer_size(gridtools::gcl_utils::make_array(1,1)) << "\n"
             << "\n";
 
   file << " ---------------" << "\n"
@@ -181,24 +181,24 @@ int main(int argc, char** argv) {
             << "  012 3456 78 9" << "\n\n";
 
 
-  file << "DF 1 size 0: (-1,-1) x " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(-1,-1)) << "\n"
-            << "DF 1 size 1: (0,-1)  y " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(0,-1)) << "\n"
-            << "DF 1 size 2: (1,-1)  z " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(1,-1)) << "\n"
-            << "DF 1 size 3: (-1,0)  v " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(-1,0)) << "\n"
-            << "DF 1 size 4: (1,0)   w " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(1,0)) << "\n"
-            << "DF 1 size 5: (-1,1)  s " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(-1,1)) << "\n"
-            << "DF 1 size 6: (0,1)   t " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(0,1)) << "\n"
-            << "DF 1 size 7: (1,1)   u " << hd.data_field(1).send_buffer_size(GCL::gcl_utils::make_array(1,1)) << "\n"
+  file << "DF 1 size 0: (-1,-1) x " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(-1,-1)) << "\n"
+            << "DF 1 size 1: (0,-1)  y " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(0,-1)) << "\n"
+            << "DF 1 size 2: (1,-1)  z " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(1,-1)) << "\n"
+            << "DF 1 size 3: (-1,0)  v " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(-1,0)) << "\n"
+            << "DF 1 size 4: (1,0)   w " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(1,0)) << "\n"
+            << "DF 1 size 5: (-1,1)  s " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(-1,1)) << "\n"
+            << "DF 1 size 6: (0,1)   t " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(0,1)) << "\n"
+            << "DF 1 size 7: (1,1)   u " << hd.data_field(1).send_buffer_size(gridtools::gcl_utils::make_array(1,1)) << "\n"
             << "\n";
 
-  file << "DF 1 r size 0: (-1,-1) x " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(-1,-1)) << "\n"
-            << "DF 1 r size 1: (0,-1)  y " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(0,-1)) << "\n"
-            << "DF 1 r size 2: (1,-1)  z " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(1,-1)) << "\n"
-            << "DF 1 r size 3: (-1,0)  v " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(-1,0)) << "\n"
-            << "DF 1 r size 4: (1,0)   w " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(1,0)) << "\n"
-            << "DF 1 r size 5: (-1,1)  s " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(-1,1)) << "\n"
-            << "DF 1 r size 6: (0,1)   t " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(0,1)) << "\n"
-            << "DF 1 r size 7: (1,1)   u " << hd.data_field(1).recv_buffer_size(GCL::gcl_utils::make_array(1,1)) << "\n"
+  file << "DF 1 r size 0: (-1,-1) x " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(-1,-1)) << "\n"
+            << "DF 1 r size 1: (0,-1)  y " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(0,-1)) << "\n"
+            << "DF 1 r size 2: (1,-1)  z " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(1,-1)) << "\n"
+            << "DF 1 r size 3: (-1,0)  v " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(-1,0)) << "\n"
+            << "DF 1 r size 4: (1,0)   w " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(1,0)) << "\n"
+            << "DF 1 r size 5: (-1,1)  s " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(-1,1)) << "\n"
+            << "DF 1 r size 6: (0,1)   t " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(0,1)) << "\n"
+            << "DF 1 r size 7: (1,1)   u " << hd.data_field(1).recv_buffer_size(gridtools::gcl_utils::make_array(1,1)) << "\n"
             << "\n";
 
   file << " --------------" << "\n"
@@ -219,33 +219,33 @@ int main(int argc, char** argv) {
             << "  0123456 78 9" << "\n\n";
 
 
-  file << "DF 2 size 0: (-1,-1) x " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(-1,-1)) << "\n"
-            << "DF 2 size 1: (0,-1)  y " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(0,-1)) << "\n"
-            << "DF 2 size 2: (1,-1)  z " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(1,-1)) << "\n"
-            << "DF 2 size 3: (-1,0)  v " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(-1,0)) << "\n"
-            << "DF 2 size 4: (1,0)   w " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(1,0)) << "\n"
-            << "DF 2 size 5: (-1,1)  s " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(-1,1)) << "\n"
-            << "DF 2 size 6: (0,1)   t " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(0,1)) << "\n"
-            << "DF 2 size 7: (1,1)   u " << hd.data_field(2).send_buffer_size(GCL::gcl_utils::make_array(1,1)) << "\n"
+  file << "DF 2 size 0: (-1,-1) x " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(-1,-1)) << "\n"
+            << "DF 2 size 1: (0,-1)  y " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(0,-1)) << "\n"
+            << "DF 2 size 2: (1,-1)  z " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(1,-1)) << "\n"
+            << "DF 2 size 3: (-1,0)  v " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(-1,0)) << "\n"
+            << "DF 2 size 4: (1,0)   w " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(1,0)) << "\n"
+            << "DF 2 size 5: (-1,1)  s " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(-1,1)) << "\n"
+            << "DF 2 size 6: (0,1)   t " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(0,1)) << "\n"
+            << "DF 2 size 7: (1,1)   u " << hd.data_field(2).send_buffer_size(gridtools::gcl_utils::make_array(1,1)) << "\n"
             << "\n";
 
-  file << "DF 2 r size 0: (-1,-1) x " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(-1,-1)) << "\n"
-            << "DF 2 r size 1: (0,-1)  y " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(0,-1)) << "\n"
-            << "DF 2 r size 2: (1,-1)  z " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(1,-1)) << "\n"
-            << "DF 2 r size 3: (-1,0)  v " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(-1,0)) << "\n"
-            << "DF 2 r size 4: (1,0)   w " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(1,0)) << "\n"
-            << "DF 2 r size 5: (-1,1)  s " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(-1,1)) << "\n"
-            << "DF 2 r size 6: (0,1)   t " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(0,1)) << "\n"
-            << "DF 2 r size 7: (1,1)   u " << hd.data_field(2).recv_buffer_size(GCL::gcl_utils::make_array(1,1)) << "\n"
+  file << "DF 2 r size 0: (-1,-1) x " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(-1,-1)) << "\n"
+            << "DF 2 r size 1: (0,-1)  y " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(0,-1)) << "\n"
+            << "DF 2 r size 2: (1,-1)  z " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(1,-1)) << "\n"
+            << "DF 2 r size 3: (-1,0)  v " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(-1,0)) << "\n"
+            << "DF 2 r size 4: (1,0)   w " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(1,0)) << "\n"
+            << "DF 2 r size 5: (-1,1)  s " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(-1,1)) << "\n"
+            << "DF 2 r size 6: (0,1)   t " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(0,1)) << "\n"
+            << "DF 2 r size 7: (1,1)   u " << hd.data_field(2).recv_buffer_size(gridtools::gcl_utils::make_array(1,1)) << "\n"
             << "\n";
 
   for (int jj=-1; jj<=1; ++jj)
     for (int ii=-1; ii<=1; ++ii)
-      file << "Total pack size   " << ii << ", " << jj << " = " << hd.total_pack_size(GCL::gcl_utils::make_array(ii,jj)) << "\n";
+      file << "Total pack size   " << ii << ", " << jj << " = " << hd.total_pack_size(gridtools::gcl_utils::make_array(ii,jj)) << "\n";
 
   for (int jj=-1; jj<=1; ++jj)
     for (int ii=-1; ii<=1; ++ii)
-      file << "Total unpack size " << ii << ", " << jj << " = " << hd.total_unpack_size(GCL::gcl_utils::make_array(ii,jj)) << "\n";
+      file << "Total unpack size " << ii << ", " << jj << " = " << hd.total_unpack_size(gridtools::gcl_utils::make_array(ii,jj)) << "\n";
 
   hd.allocate_buffers();
 

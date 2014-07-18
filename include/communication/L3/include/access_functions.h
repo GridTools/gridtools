@@ -33,19 +33,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/array.h>
 
-namespace GCL {
+namespace gridtools {
   namespace _gcl_internal {
 
     template <typename T> 
-    inline int access(GCL::array<T,2> const& index, 
-                      GCL::array<T,2> const& size) 
+    inline int access(gridtools::array<T,2> const& index, 
+                      gridtools::array<T,2> const& size) 
     {
       return index[0]+index[1]*size[0];
     }
 
     template <typename T> 
-    inline int access(GCL::array<T,3> const& index, 
-                      GCL::array<T,3> const& size)
+    inline int access(gridtools::array<T,3> const& index, 
+                      gridtools::array<T,3> const& size)
     {
       return index[0]+index[1]*size[0] + index[2]*size[0]*size[1];
     }

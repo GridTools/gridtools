@@ -1,7 +1,7 @@
 #ifndef _NUMERICS_H_
 #define _NUMERICS_H_
 
-namespace GCL {
+namespace gridtools {
   namespace _impl {
     // Compute 3^I at compile time
     template <int I>

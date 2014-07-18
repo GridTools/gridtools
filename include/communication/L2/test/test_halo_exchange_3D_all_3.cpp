@@ -54,7 +54,7 @@ double lapse_time3;
 #define B_ADD 1
 #define C_ADD 2
 
-typedef GCL::gcl_cpu arch_type;
+typedef gridtools::gcl_cpu arch_type;
 
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
@@ -122,7 +122,7 @@ void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int H2p, int H3m, int H3p, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-  typedef GCL::layout_map<I1,I2,I3> layoutmap;
+  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
   
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+H1m+H1p),(DIM2+H2m+H2p),(DIM3+H3m+H3p));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+H1m+H1p),(DIM2+H2m+H2p),(DIM3+H3m+H3p));
@@ -156,10 +156,10 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  static const int version = GCL::version_mpi_pack; // 0 is the usual version, 1 is the one that build the whole datatype (Only vector interface supported)
+  static const int version = gridtools::version_mpi_pack; // 0 is the usual version, 1 is the one that build the whole datatype (Only vector interface supported)
 
-  typedef GCL::halo_exchange_dynamic_ut<layoutmap, 
-    GCL::layout_map<0,1,2>, triple_t<USE_DOUBLE>::data_type, 3, arch_type, version > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<layoutmap, 
+    gridtools::layout_map<0,1,2>, triple_t<USE_DOUBLE>::data_type, 3, arch_type, version > pattern_type;
 
   /* The pattern is now instantiated with the periodicities and the
      communicator. The periodicity of the communicator is
@@ -223,7 +223,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   vect[1] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr);
   vect[2] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr);
 
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
   
   gettimeofday(&start_tv, NULL);
 
@@ -363,7 +363,7 @@ int main(int argc, char** argv) {
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
    */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   /* Here we compute the computing gris as in many applications
    */

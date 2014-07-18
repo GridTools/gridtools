@@ -35,13 +35,13 @@ template <typename value_type>
 __global__ void m_unpackXUKernel_generic(value_type* __restrict__ d_data, 
                                          value_type** __restrict__ d_msgbufTab_r, 
                                          const wrap_argument d_msgsize_r,
-                                         const GCL::array<GCL::halo_descriptor,3> halo/*_g*/, 
+                                         const gridtools::array<gridtools::halo_descriptor,3> halo/*_g*/, 
                                          int const ny, int const nz,
                                          const int traslation_const, const int field_index){
  
    // per block shared buffer for storing destination buffers
    __shared__ value_type* msgbuf[27];
-   //__shared__ GCL::halo_descriptor halo[3];
+   //__shared__ gridtools::halo_descriptor halo[3];
 
    int idx = blockIdx.x;
    int idy = blockIdx.y * blockDim.y + threadIdx.y;
@@ -138,7 +138,7 @@ void m_unpackXU_generic(array_t const& fields,
         (fields[i].ptr, 
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r), 
          wrap_argument(d_msgsize_r+27*i), 
-         *(reinterpret_cast<const GCL::array<GCL::halo_descriptor,3>*>(&fields[i])),
+         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
          ny, nz,
          (fields[i].halos[0].end()+1) 
          + (fields[i].halos[1].begin())*fields[i].halos[0].total_length() 

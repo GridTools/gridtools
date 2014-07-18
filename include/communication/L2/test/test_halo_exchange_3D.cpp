@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
   */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
 
   /* Each process will hold a tile of size
@@ -181,8 +181,8 @@ int main(int argc, char** argv) {
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef GCL::halo_exchange_dynamic_ut<GCL::layout_map<1,0,2>, 
-    GCL::layout_map<0,1,2>, triple_t, 3, GCL::gcl_cpu, 1 > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0,2>, 
+    gridtools::layout_map<0,1,2>, triple_t, 3, gridtools::gcl_cpu, 1 > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the

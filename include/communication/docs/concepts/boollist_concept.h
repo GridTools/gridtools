@@ -18,11 +18,11 @@
 
        Additionally a boollist should provide a method to return a
        boollist with values permuted according to a \link
-       GCL::layout_map \endlink .
+       gridtools::layout_map \endlink .
 
        This method has the following signature:
        \code
-       boollist<N> B2 = B1.permute<GCL::layout_map<I1,I2,I3> >();
+       boollist<N> B2 = B1.permute<gridtools::layout_map<I1,I2,I3> >();
        \endcode
 
        Where I1, I2, and I3 specify a permutation of the numbers from
@@ -32,6 +32,6 @@
        B3.value0 is equal to B1.value<I> where I is the position of 3
        in the layout_map
 
-       An implementation is found in struct GCL::gcl_utils::boollist 
+       An implementation is found in struct gridtools::gcl_utils::boollist 
      */
     struct boollist_concept {}

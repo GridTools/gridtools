@@ -14,7 +14,7 @@
 #include <utils/boollist.h>
 #include <halo_descriptor.h>
 
-namespace GCL {
+namespace gridtools {
 
 // data structure for recording high-level communication events
 // high-level events correspond to api calls (pack, exchange, start_exchange, etc...)
@@ -570,7 +570,7 @@ private:
 extern stats_collector<2> &stats_collector_2D;
 extern stats_collector<3> &stats_collector_3D;
 
-} // namespace GCL
+} // namespace gridtools
 
 #endif
 

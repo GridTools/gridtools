@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Generic_All_to_All.h>
 #include <data_types_mapping.h>
 
-namespace GCL {
+namespace gridtools {
 
   template <typename vtype, typename pgrid>
   struct all_to_all_halo {
@@ -154,5 +154,5 @@ namespace GCL {
     }
 
   };
-} // namespace GCL
+} // namespace gridtools
 #endif

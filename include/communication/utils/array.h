@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
 #include <boost/utility/enable_if.hpp>
-namespace GCL {
+namespace gridtools {
 
   template <typename T, size_t D, class ENABLE=void>
   class array;

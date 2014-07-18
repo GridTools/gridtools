@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DESCRIPTORS_FWD_H_
 #define _DESCRIPTORS_FWD_H_
 
-namespace GCL {
+namespace gridtools {
   template <typename DataType, int DIMS, typename>
   class hndlr_descriptor_ut;
 

@@ -54,7 +54,7 @@ double lapse_time2;
 double lapse_time3;
 double lapse_time4;
 
-typedef GCL::gcl_cpu arch_type;
+typedef gridtools::gcl_cpu arch_type;
 
 //#define VECTOR_INT
 #ifdef VECTOR_INT
@@ -131,7 +131,7 @@ void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-  typedef GCL::layout_map<I1,I2,I3> layoutmap;
+  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
   
   array<triple_t<USE_DOUBLE>,    layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
   array<triple_t<USE_DOUBLE>,  layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
@@ -166,10 +166,10 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
      the others.
    */
 #ifndef PACKING_TYPE
-#define PACKING_TYPE GCL::version_manual
+#define PACKING_TYPE gridtools::version_manual
 #endif
 
-  typedef GCL::halo_exchange_generic<GCL::layout_map<0,1,2>, 3, arch_type, PACKING_TYPE > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, PACKING_TYPE > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -180,21 +180,21 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
   pattern_type he(typename pattern_type::grid_type::period_type(per0, per1, per2), CartComm);
 
 
-  GCL::array<GCL::halo_descriptor,3> halo_dsc;
-  halo_dsc[0] = GCL::halo_descriptor(H, H, H, DIM1+H-1, DIM1+2*H);
-  halo_dsc[1] = GCL::halo_descriptor(H, H, H, DIM2+H-1, DIM2+2*H);
-  halo_dsc[2] = GCL::halo_descriptor(H, H, H, DIM3+H-1, DIM3+2*H);
+  gridtools::array<gridtools::halo_descriptor,3> halo_dsc;
+  halo_dsc[0] = gridtools::halo_descriptor(H, H, H, DIM1+H-1, DIM1+2*H);
+  halo_dsc[1] = gridtools::halo_descriptor(H, H, H, DIM2+H-1, DIM2+2*H);
+  halo_dsc[2] = gridtools::halo_descriptor(H, H, H, DIM3+H-1, DIM3+2*H);
 
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
-  GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
 
   /* Pattern is set up. This must be done only once per pattern. The
      parameter must me greater or equal to the largest number of
      arrays updated in a single step.
   */
   //he.setup(100, halo_dsc, sizeof(double));
-  he.setup(3, GCL::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,halo_dsc), std::max(sizeof(triple_t<USE_DOUBLE>::data_type), std::max(sizeof(triple_t<USE_DOUBLE>::data_type),sizeof(triple_t<USE_DOUBLE>::data_type)))); // Estimates the size
+  he.setup(3, gridtools::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,halo_dsc), std::max(sizeof(triple_t<USE_DOUBLE>::data_type), std::max(sizeof(triple_t<USE_DOUBLE>::data_type),sizeof(triple_t<USE_DOUBLE>::data_type)))); // Estimates the size
 
 
   file << "Proc: (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")\n";
@@ -235,13 +235,13 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
    */
 
 #ifdef VECTOR_INT
-  std::vector<GCL::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
+  std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
   vect[0] = field1;
   vect[1] = field2;
   vect[2] = field3;
 
 
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
   
   gettimeofday(&start_tv, NULL);
 
@@ -442,7 +442,7 @@ int main(int argc, char** argv) {
   /* Now let us initialize GCL itself. If MPI is not initialized at
      this point, it will initialize it
    */
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   /* Here we compute the computing gris as in many applications
    */

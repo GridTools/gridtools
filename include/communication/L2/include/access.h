@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GCL_ACCESS_H_
 #define _GCL_ACCESS_H_
 
-namespace GCL {
+namespace gridtools {
 
   inline int access(int const i1, int const i2, int const N1, int const) {
     return i1+i2*N1;
@@ -41,7 +41,7 @@ namespace GCL {
   }
 
   template <int N>
-  inline int access(GCL::array<int,N> const& coords, GCL::array<int,N> const & sizes) {
+  inline int access(gridtools::array<int,N> const& coords, gridtools::array<int,N> const & sizes) {
     int index=0;
     for (int i=0; i<N; ++i) {
       int mul=1;

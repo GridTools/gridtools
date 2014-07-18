@@ -40,7 +40,7 @@ template <typename STREAM, typename T>
 void print(STREAM & cout, std::vector<T> const& v, int n, int m) {
   if ((n < 20) && (m < 20)) {
     for (int i=0; i<n; ++i) {
-      cout << "@" << GCL::PID << "@ ";
+      cout << "@" << gridtools::PID << "@ ";
       for (int j=0; j<m; ++j) {
         cout << v[i*m+j] << " ";
       }
@@ -54,34 +54,34 @@ void print(STREAM & cout, std::vector<T> const& v, int n, int m) {
 int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   std::stringstream ss;
-  ss << GCL::PID;
+  ss << gridtools::PID;
 
   std::string filename = "out" + ss.str() + ".txt";
   //filename[3] = '0'+pid;
   std::cout << filename << std::endl;
   std::ofstream file(filename.c_str());
 
-  GCL::all_to_all<int> a2a(GCL::PROCS);
+  gridtools::all_to_all<int> a2a(gridtools::PROCS);
 
   // Let's do a 2D scatter
   // Step 1: define data
-  typedef GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
 
-  grid_type pgrid(GCL::gcl_utils::boollist<2>(true,true), GCL::PROCS, GCL::PID);
+  grid_type pgrid(gridtools::gcl_utils::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
 
   int pi, pj;
   int PI, PJ;
   pgrid.coords(pi,pj);
   pgrid.dims(PI,PJ);
 
-  file << "@" << GCL::PID << "@ PROC GRID SIZE " << PI << "x" << PJ << "\n";
+  file << "@" << gridtools::PID << "@ PROC GRID SIZE " << PI << "x" << PJ << "\n";
 
   int N = atoi(argv[1]);
 
-  file << "@" << GCL::PID << "@ PARAMETER N " << N << "\n";
+  file << "@" << gridtools::PID << "@ PARAMETER N " << N << "\n";
 
   std::vector<int> dataout(PI*N*PJ*N);
   std::vector<int> datain(N*N);
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
   file << "Address of data: " << (void*)(&(dataout[0])) 
        << ", data in " << (void*)(&(datain[0])) << "\n";
 
-  if (GCL::PID == 0) {
+  if (gridtools::PID == 0) {
     file << "INITIALIZING DATA TO SEND\n";
     std::vector<int> out_sizes(2), out_subsizes(2), out_starts(2);
     std::vector<MPI_Datatype> DATAOUT(PI*PJ) ;
@@ -120,14 +120,14 @@ int main(int argc, char** argv) {
       for (int j=0; j<PJ; ++j) {
         int k=i*PJ+j;
         file << "Setting a2a " << k << "\n";
-        a2a.to[k] = GCL::packet<int>(DATAOUT[k], &dataout[0]);
+        a2a.to[k] = gridtools::packet<int>(DATAOUT[k], &dataout[0]);
       }
   } else {
     for(int i=0; i<PI; ++i)
       for (int j=0; j<PJ; ++j) {
         int k=i*PJ+j;
         file << "Setting a2a " << k << " to null\n";
-        a2a.to[k] = GCL::packet<int>(); // set pointer to NULL
+        a2a.to[k] = gridtools::packet<int>(); // set pointer to NULL
       }
   }
 
@@ -154,10 +154,10 @@ int main(int argc, char** argv) {
   for(int i=0; i<PI; ++i)
     for (int j=0; j<PJ; ++j) {
       int k=i*PJ+j;
-      a2a.from[k] = GCL::packet<int>();
+      a2a.from[k] = gridtools::packet<int>();
     }
 
-  a2a.from[0] = GCL::packet<int>(DATAIN, &datain[0]);
+  a2a.from[0] = gridtools::packet<int>(DATAIN, &datain[0]);
 
   for(int i=0; i<PI*N; ++i)
     for (int j=0; j<PJ*N; ++j) {
@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
   print(file, datain, N, N);
   file.flush();
 
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
 
   a2a.setup();
   a2a.start_exchange();
@@ -199,9 +199,9 @@ int main(int argc, char** argv) {
   file.flush();
   file.close();
 
-  MPI_Barrier(GCL::GCL_WORLD);
+  MPI_Barrier(gridtools::GCL_WORLD);
 
-  GCL::GCL_Finalize();
+  gridtools::GCL_Finalize();
 
   return 0;
 }

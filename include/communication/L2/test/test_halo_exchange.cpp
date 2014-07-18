@@ -82,7 +82,7 @@ bool operator!=(triple_t const & a, triple_t const & b) {
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
 
-  GCL::GCL_Init(argc, argv);
+  gridtools::GCL_Init(argc, argv);
 
   int DIM1 = atoi(argv[1]);
   int DIM2 = atoi(argv[2]);
@@ -127,17 +127,17 @@ int main(int argc, char** argv) {
  
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-  typedef GCL::gcl_utils::boollist<3> cyc;
-  typedef GCL::MPI_3D_process_grid_t<cyc> grid_type;
+  typedef gridtools::gcl_utils::boollist<3> cyc;
+  typedef gridtools::MPI_3D_process_grid_t<cyc> grid_type;
 
   cyc periodicity(true, true, true);
 
   int pi, pj, pk;
   int PI, PJ, PK;
 
-  typedef GCL::halo_exchange_dynamic_ut
-    <GCL::layout_map<0,1,2>,
-    GCL::layout_map<0,1,2>,
+  typedef gridtools::halo_exchange_dynamic_ut
+    <gridtools::layout_map<0,1,2>,
+    gridtools::layout_map<0,1,2>,
     triple_t,3> HD_TYPE;
 
 #ifdef SPLIT_PHASE
@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
     for (int i=H; i<DIM3-H; i++)
       for (int j=H; j<DIM2-H; j++)
         for (int k=H; k<DIM1-H; k++)
-          AA[l][GCL::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] = triple_t(i-H+(DIM3-2*H)*pi+l, 
+          AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] = triple_t(i-H+(DIM3-2*H)*pi+l, 
                                                                           j-H+(DIM2-2*H)*pj+l, 
                                                                           k-H+(DIM1-2*H)*pk+l);        
   }
@@ -249,7 +249,7 @@ int main(int argc, char** argv) {
     for (int i=((pi>0)?0:((periodicity.value2)?0:H)); i<((pi<PI-1)?DIM3:((periodicity.value2)?DIM3:DIM3-H)); i++)
       for (int j=((pj>0)?0:((periodicity.value1)?0:H)); j<((pj<PJ-1)?DIM2:((periodicity.value1)?DIM2:DIM2-H)); j++)
         for (int k=((pk>0)?0:((periodicity.value0)?0:H)); k<((pk<PK-1)?DIM1:((periodicity.value0)?DIM1:DIM1-H)); k++)
-          if (AA[l][GCL::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] != triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l, 
+          if (AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] != triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l, 
                                                                                modulus(j-H+(DIM2-2*H)*pj,maxj)+l, 
                                                                                modulus(k-H+(DIM1-2*H)*pk,maxk)+l))
             {
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
                    << i << " " 
                    << j << " " 
                    << k << " " 
-                   << AA[l][GCL::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] << " "
+                   << AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] << " "
                    << triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l, 
                                modulus(j-H+(DIM2-2*H)*pj,maxj)+l, 
                                modulus(k-H+(DIM1-2*H)*pk,maxk)+l)

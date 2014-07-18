@@ -72,16 +72,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef KERNEL_TYPE
 #endif
 
-namespace GCL {
+namespace gridtools {
 
   template <typename HaloExch,
             typename proc_layout_abs>
   class hndlr_generic<3,HaloExch,proc_layout_abs,gcl_cpu, version_manual> : public descriptor_base<HaloExch> {
     static const int DIMS=3;
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
-    GCL::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
-    GCL::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
 
   public:
       typedef descriptor_base<HaloExch> base_type;
@@ -135,7 +135,7 @@ namespace GCL {
                field_on_the_fly<DataType, t_layoutmap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
-      GCL::array<int, DIMS> eta;
+      gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
@@ -197,10 +197,10 @@ namespace GCL {
        \tparam DataType This type is inferred by halo_example paramter
        \tparam t_layoutmap This type is inferred by halo_example paramter
 
-       \param[in] buffer_size_list Array (GCL::array) with the sizes of the buffers associated with the halos.
+       \param[in] buffer_size_list Array (gridtools::array) with the sizes of the buffers associated with the halos.
      */
     template <typename DataType, typename t_layoutmap>
-    void setup(GCL::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list)
+    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list)
     {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
@@ -482,10 +482,10 @@ namespace GCL {
     typedef gcl_gpu arch_type;
 
     static const int DIMS=3;
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
-    GCL::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
-    GCL::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
-    GCL::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> send_buffer; //One entry will not be used...
+    gridtools::array<char*, _impl::static_pow3<DIMS>::value> recv_buffer;
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; //One entry will not be used...
+    gridtools::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
     char** d_send_buffer;
     char** d_recv_buffer;
 
