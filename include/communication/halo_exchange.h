@@ -31,12 +31,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HALO_EXCHANGE_H_
 #define _HALO_EXCHANGE_H_
 
-#include "L3/include/Halo_Exchange_2D.h"
-#include "L3/include/Halo_Exchange_2D_DT.h"
-#include "L3/include/Halo_Exchange_3D.h"
-#include "L3/include/Halo_Exchange_3D_DT.h"
-#include "L3/include/proc_grids_2D.h"
-#include "L3/include/proc_grids_3D.h"
+#include "low-level/Halo_Exchange_2D.h"
+#include "low-level/Halo_Exchange_2D_DT.h"
+#include "low-level/Halo_Exchange_3D.h"
+#include "low-level/Halo_Exchange_3D_DT.h"
+#include "low-level/proc_grids_2D.h"
+#include "low-level/proc_grids_3D.h"
 #include "utils/boollist.h"
 
 #ifdef MANUAL_PACKING
@@ -44,15 +44,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 //#else
-#include "high_level/descriptors_dt.h"
-#include "high_level/descriptors_dt_whole.h"
-#include "high_level/descriptors.h"
-#include "high_level/descriptors_manual_gpu.h"
-#include "high_level/descriptor_generic_manual.h"
+#include "high-level/descriptors_dt.h"
+#include "high-level/descriptors_dt_whole.h"
+#include "high-level/descriptors.h"
+#include "high-level/descriptors_manual_gpu.h"
+#include "high-level/descriptor_generic_manual.h"
  //#endif
 
-#include "L3/include/translate.h"
-#include "high_level/field_on_the_fly.h"
+#include "low-level/translate.h"
+#include "high-level/field_on_the_fly.h"
 
 namespace gridtools {
 
@@ -233,7 +233,7 @@ namespace gridtools {
      \tparam layout2proc_map_abs Layout_map \link gridtools::layout_map \endlink specifying which dimension in the data corresponds to the which dimension in the processor grid
      \tparam DataType Value type the elements int the arrays
      \tparam DIMS Number of dimensions of data arrays (equal to the dimension of the processor grid)
-     \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is. Possible coiches are defined in L3/include/gcl_arch.h .
+     \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is. Possible coiches are defined in low-level/gcl_arch.h .
    */
   template <typename layout_map,
             typename layout2proc_map_abs,
@@ -558,7 +558,7 @@ namespace gridtools {
 
      \tparam layout2proc_map_abs Layout_map \link gridtools::layout_map \endlink specifying which dimension in the data corresponds to the which dimension in the processor grid
      \tparam DIMS Number of dimensions of data arrays (equal to the dimension of the processor grid)
-     \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is. Possible coiches are defined in L3/include/gcl_arch.h .
+     \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is. Possible coiches are defined in low-level/gcl_arch.h .
    */
   template <typename layout2proc_map,
             int DIMS,

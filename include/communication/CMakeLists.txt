@@ -74,14 +74,14 @@ if( "${GCL_MPI}" STREQUAL "ON" )
 endif()
 
 
-include_directories( L3/include/ ) ## Library header files
+include_directories( low-level/ ) ## Library header files
 include_directories( high-level ) ## Library header files
 include_directories( ../../src/ ) ## Library source files
 include_directories( . ) ## Library header files
 include_directories( ../../examples/communication ) ## Library header files
 
 ### Library
-ADD_LIBRARY( gcl ../../src/GCL.cpp L3/include/GCL.h high_level/stats_collector.h)
+ADD_LIBRARY( gcl ../../src/GCL.cpp low-level/GCL.h high-level/stats_collector.h)
 
 set(EXECUTABLE_OUTPUT_PATH "build")
 set(LIBRARY_OUTPUT_PATH "lib")
