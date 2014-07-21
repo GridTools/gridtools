@@ -24,29 +24,31 @@ namespace gridtools {
 
             typedef Derived derived_t;
             typedef run_functor_traits<Derived> derived_traits;
-            typename derived_traits::coords_t const &coords;
-            typename derived_traits::domain_list_t &domain_list;
 
-            int starti, startj, BI, BJ;
+            typename derived_traits::coords_t const & m_coords;
+            typename derived_traits::domain_list_t & m_domain_list;
+            int m_starti, m_startj, m_BI, m_BJ;
 
             // Block strategy
             explicit run_functor(typename derived_traits::domain_list_t& dom_list, typename derived_traits::coords_t const& coords, int i, int j, int bi, int bj)
-                : coords(coords)
-                , domain_list(domain_list)
-                , starti(i)
-                , startj(j)
-                , BI(bi)
-                , BJ(bj)
+                :
+                  m_domain_list(dom_list)
+                , m_coords(coords)
+                , m_starti(i)
+                , m_startj(j)
+                , m_BI(bi)
+                , m_BJ(bj)
                 {}
 
             // Naive strategy
             explicit run_functor(typename derived_traits::domain_list_t& dom_list, typename derived_traits::coords_t const& coords)
-                : coords(coords)
-                , domain_list(domain_list)
-                , starti(coords.i_low_bound())
-                , startj(coords.i_low_bound())
-                , BI(coords.i_high_bound()-coords.i_low_bound())
-                , BJ(coords.i_high_bound()-coords.i_low_bound())
+                :
+                  m_domain_list(dom_list)
+                , m_coords(coords)
+                , m_starti(coords.i_low_bound())
+                , m_startj(coords.i_low_bound())
+                , m_BI(coords.i_high_bound()-coords.i_low_bound())
+                , m_BJ(coords.i_high_bound()-coords.i_low_bound())
                 {}
 
 
@@ -54,7 +56,7 @@ namespace gridtools {
              * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
              */
             template <typename Index>
-            void operator()(Index const&) const {
+            void operator()(Index const& ) const {
 
 #ifndef NDEBUG
                 static const BACKEND backend_t = backend_type<derived_t>::m_backend;
@@ -62,24 +64,21 @@ namespace gridtools {
                 typedef typename derived_traits::template traits<Index>::range_type range_type;
 //\todo a generic cout is still on the way (have to implement all the '<<' operators)
                 cout< backend_t >() << "Functor " <<  typename derived_traits::template traits<Index>::functor_type() << "\n";
-                cout< backend_t >() << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> "
-                                    << (coords.i_high_bound() + range_type::iplus::value) << "\n";
-                cout< backend_t >() << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
-                                    << coords.j_high_bound() + range_type::jplus::value << "\n";
+                cout< backend_t >() << "I loop " << m_coords.i_low_bound() + range_type::iminus::value << " -> "
+                                    << (m_coords.i_high_bound() + range_type::iplus::value) << "\n";
+                cout< backend_t >() << "J loop " << m_coords.j_low_bound() + range_type::jminus::value << " -> "
+                                    << m_coords.j_high_bound() + range_type::jplus::value << "\n";
                 cout< backend_t >() <<  " ******************** " /*<< first_hit()*/ << "\n";
                 cout< backend_t >() << " ******************** " /*<< coords.template value_at<first_hit>()*/ << "\n";
 #endif
 
-                typename derived_traits::template traits<Index>::local_domain_type& local_domain = boost::fusion::at<Index>(domain_list);
 
-
+                typename derived_traits::template traits<Index>::local_domain_type& local_domain = boost::fusion::at<Index>(m_domain_list);
                 typedef execute_kernel_functor<  derived_t > functor_type;
                 functor_type::template execute_kernel< typename derived_traits::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
 
             }
         };
-
-
     }//namespace _impl
 
 
@@ -88,20 +87,20 @@ namespace gridtools {
     template< _impl::BACKEND BackendType, _impl::STRATEGY StrategyType >
     struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >
     {
-    typedef _impl::backend_from_id <BackendType> backend_traits;
-    typedef _impl::strategy_from_id <StrategyType> strategy_traits;
-    static const _impl::STRATEGY m_strategy_id=StrategyType;
-    static const _impl::BACKEND m_backend_id =BackendType;
+        typedef _impl::backend_from_id <BackendType> backend_traits;
+        typedef _impl::strategy_from_id <StrategyType> strategy_traits;
+        static const _impl::STRATEGY m_strategy_id=StrategyType;
+        static const _impl::BACKEND m_backend_id =BackendType;
 
-    template <typename ValueType, typename Layout>
-    struct storage_type {
-        typedef typename backend_traits::template storage_traits<ValueType, Layout>::storage_type type;
-    };
+        template <typename ValueType, typename Layout>
+        struct storage_type {
+            typedef typename backend_traits::template storage_traits<ValueType, Layout>::storage_type type;
+        };
 
-    template <typename ValueType, typename Layout>
-    struct temporary_storage_type {
-        typedef temporary< typename backend_traits::template storage_traits<ValueType, Layout>::storage_type > type;
-    };
+        template <typename ValueType, typename Layout>
+        struct temporary_storage_type {
+            typedef temporary< typename backend_traits::template storage_traits<ValueType, Layout>::storage_type > type;
+        };
 
 
         /**
@@ -133,6 +132,4 @@ namespace gridtools {
     };
 
 
-
-
-}//namespace gridtools
+} // namespace gridtools

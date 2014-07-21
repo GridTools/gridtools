@@ -78,7 +78,7 @@ namespace gridtools{
 
         template <
             typename Arguments,
-            template < typename Arguments > class Back
+            template < typename Argument > class Back
             >
         struct run_functor_traits< Back< Arguments > >
         {
@@ -127,11 +127,11 @@ namespace gridtools{
                 typedef typename arguments_t::coords_t coords_t;
                 //typedef typename arguments_t::local_domain_t local_domain_t;
 
-                static void runLoop( domain_list_t local_domain_list, coords_t coords)
+                static void runLoop( domain_list_t& local_domain_list, const coords_t& coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::m_backend > backend_traits;
 
-                        backend_traits::template for_each< iter_range >(_impl::run_functor< Backend >(local_domain_list, coords));
+                        backend_traits::template for_each< iter_range >(Backend(local_domain_list, coords));
                     }
             };
         };

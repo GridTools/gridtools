@@ -91,9 +91,14 @@ namespace gridtools {
 	    struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
             typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
-            explicit run_functor_cuda(typename super::derived_traits::domain_list_t & domain_list, typename super::derived_traits::coords_t const& coords)
-                : super(coords, domain_list)
+            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+                : super( domain_list, coords)
                 {}
+
+            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj)
+                : super(domain_list, coords, i, j, bi, bj)
+                {}
+
         };
     }//namespace _impl_cuda
 
@@ -107,7 +112,7 @@ namespace gridtools {
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
         template < typename Traits >
-        static void execute_kernel( const typename Traits::local_domain_type& local_domain, const backend_t * f )
+        static void execute_kernel( typename Traits::local_domain_type& local_domain, const backend_t * f )
             {
                 typedef typename Arguments::coords_t coords_t;
                 typedef typename Arguments::loop_intervals_t loop_intervals_t;
@@ -119,14 +124,14 @@ namespace gridtools {
                 typedef typename Traits::first_hit first_hit;
 
                 local_domain.clone_to_gpu();
-                f->coords.clone_to_gpu();
+                f->m_coords.clone_to_gpu();
 
                 local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
 
-                coords_t const *coords_gp = f->coords.gpu_object_ptr;
+                coords_t const *coords_gp = f->m_coords.gpu_object_ptr;
 
-                int nx = f->coords.i_high_bound() + range_type::iplus::value - (f->coords.i_low_bound() + range_type::iminus::value);
-                int ny = f->coords.j_high_bound() + range_type::jplus::value - (f->coords.j_low_bound() + range_type::jminus::value);
+                int nx = f->m_coords.i_high_bound() + range_type::iplus::value - (f->m_coords.i_low_bound() + range_type::iminus::value);
+                int ny = f->m_coords.j_high_bound() + range_type::jplus::value - (f->m_coords.j_low_bound() + range_type::jminus::value);
 
                 int ntx = 8, nty = 32, ntz = 1;
                 dim3 threads(ntx, nty, ntz);
@@ -144,8 +149,8 @@ namespace gridtools {
                 _impl_cuda::do_it_on_gpu<first_hit, loop_intervals_t, functor_type, interval_map><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
-                     f->coords.i_low_bound() + range_type::iminus::value,
-                     f->coords.j_low_bound() + range_type::jminus::value,
+                     f->m_coords.i_low_bound() + range_type::iminus::value,
+                     f->m_coords.j_low_bound() + range_type::jminus::value,
                      nx,
                      ny);
                 cudaDeviceSynchronize();
