@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _ACCESS_FUNCTIONS_H_
 #define _ACCESS_FUNCTIONS_H_
 
-#include <utils/array.h>
+#include "../common/array.h"
 
 namespace gridtools {
   namespace _gcl_internal {

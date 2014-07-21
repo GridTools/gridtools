@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "low-level/Halo_Exchange_3D_DT.h"
 #include "low-level/proc_grids_2D.h"
 #include "low-level/proc_grids_3D.h"
-#include "utils/boollist.h"
+#include "../common/boollist.h"
 
 #ifdef MANUAL_PACKING
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")

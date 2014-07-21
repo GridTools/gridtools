@@ -10,9 +10,9 @@
 
 #include <mpi.h>
 
-#include <utils/array.h>
-#include <utils/boollist.h>
-#include <halo_descriptor.h>
+#include "../common/array.h"
+#include "../common/boollist.h"
+#include "halo_descriptor.h"
 
 namespace gridtools {
 

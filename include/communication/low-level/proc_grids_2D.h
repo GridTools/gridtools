@@ -33,8 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
 #include <cmath>
-#include <GCL.h>
-#include <utils/array.h>
+#include "GCL.h"
+#include "../common/array.h"
 #include <boost/type_traits/integral_constant.hpp>
 
 // This file needs to be changed
