@@ -31,34 +31,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DESCRIPTORS_DT_H_
 #define _DESCRIPTORS_DT_H_
 
-#include <utils/array.h>
+#include "../common/array.h"
 #include <vector>
-#include <proc_grids_2D.h>
-#include <Halo_Exchange_2D.h>
-#include <proc_grids_3D.h>
-#include <Halo_Exchange_3D.h>
-#include <utils/make_array.h>
+#include "./low-level/proc_grids_2D.h"
+#include "./low-level/Halo_Exchange_2D.h"
+#include "./low-level/proc_grids_3D.h"
+#include "./low-level/Halo_Exchange_3D.h"
+#include "../common/make_array.h"
 #include <assert.h>
 // #include <boost/type_traits.hpp>
 // #include <boost/utility/enable_if.hpp>
-#include <utils/boollist.h>
-#include <utils/ndloops.h>
-#include <data_types_mapping.h>
-#include <gcl_parameters.h>
-#include <utils/numerics.h>
-#include <empty_field_base.h>
-#include <utils/layout_map.h>
+#include "../common/boollist.h"
+#include "../common/ndloops.h"
+#include "./low-level/data_types_mapping.h"
+#include "gcl_parameters.h"
+#include "../common/numerics.h"
+#include "empty_field_base.h"
+#include "../common/layout_map.h"
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include <descriptors_fwd.h>
-#include <descriptor_base.h>
+#include "descriptors_fwd.h"
+#include "descriptor_base.h"
 #include "helpers_impl.h"
 #include <boost/type_traits/remove_pointer.hpp>
-#include <access.h>
+#include "access.h"
 
 namespace gridtools {
 

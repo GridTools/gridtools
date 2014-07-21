@@ -45,12 +45,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef GCL_TRACE
-#include <stats_collector.h>
+#include "stats_collector.h"
 #endif
 
 
-#include <utils/boollist.h>
-#include <gcl_arch.h>
+#include "../../common/boollist.h"
+#include "gcl_arch.h"
 
 
 #ifdef _GCL_GPU_
