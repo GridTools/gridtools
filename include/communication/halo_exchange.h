@@ -44,15 +44,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 //#else
-#include "L2/include/descriptors_dt.h"
-#include "L2/include/descriptors_dt_whole.h"
-#include "L2/include/descriptors.h"
-#include "L2/include/descriptors_manual_gpu.h"
-#include "L2/include/descriptor_generic_manual.h"
+#include "high_level/descriptors_dt.h"
+#include "high_level/descriptors_dt_whole.h"
+#include "high_level/descriptors.h"
+#include "high_level/descriptors_manual_gpu.h"
+#include "high_level/descriptor_generic_manual.h"
  //#endif
 
 #include "L3/include/translate.h"
-#include "L2/include/field_on_the_fly.h"
+#include "high_level/field_on_the_fly.h"
 
 namespace gridtools {
 
