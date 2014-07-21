@@ -35,8 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <halo_exchange.h>
 #include <string>
 #include <stdlib.h>
-#include <utils/layout_map.h>
-#include <utils/boollist.h>
+#include <common/layout_map.h>
+#include <common/boollist.h>
 
 int pid;
 int nprocs;

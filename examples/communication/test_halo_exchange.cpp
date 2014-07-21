@@ -34,8 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <halo_exchange.h>
 #include <string>
-#include <utils/boollist.h>
-#include <utils/layout_map.h>
+#include <common/boollist.h>
+#include <common/layout_map.h>
 #include <stdlib.h>
 
 #include <boost/preprocessor/arithmetic/dec.hpp>

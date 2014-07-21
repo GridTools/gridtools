@@ -34,8 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <utils/array.h>
-#include <utils/boollist.h>
+#include <common/array.h>
+#include <common/boollist.h>
 
 template <typename STREAM, typename T>
 void print(STREAM & cout, std::vector<T> const& v, int n, int m, int l) {
