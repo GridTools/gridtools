@@ -28,13 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#include <GCL.h>
+#include <communication/GCL.h>
 #include <mpi.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <descriptors_dt.h>
-#include <descriptors.h>
+#include <communication/high-level/descriptors_dt.h>
+#include <communication/high-level/descriptors.h>
 #include <string>
 #include <common/boollist.h>
 
@@ -99,10 +99,10 @@ int main(int argc, char** argv) {
  
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-  typedef gridtools::MPI_3D_process_grid_t<gridtools::gcl_utils::boollist<3> > grid_type;
+  typedef gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > grid_type;
 
   gridtools::hndlr_dynamic_ut<triple_t,3, 
-    gridtools::Halo_Exchange_3D<grid_type> > hd(gridtools::gcl_utils::boollist<3>(false,false,false), CartComm);
+    gridtools::Halo_Exchange_3D<grid_type> > hd(gridtools::boollist<3>(false,false,false), CartComm);
 
   hd.halo.add_halo(2, 2, 1, 3, 6, DIM);
   hd.halo.add_halo(1, 2, 1, 3, 6, DIM);

@@ -2,7 +2,7 @@
 
 #include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
-#include "GCL.h"
+#include "../GCL.h"
 
 namespace gridtools {
 

@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _HALO_DESCRIPTOR_H_
 
 #include <assert.h>
-#include "../common/array.h"
+#include "../../common/array.h"
 
 namespace gridtools {
 

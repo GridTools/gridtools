@@ -29,11 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include <mpi.h>
-#include <GCL.h>
+#include <communication/GCL.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <proc_grids_2D.h>
+#include <communication/low-level/proc_grids_2D.h>
 #include <common/boollist.h>
 
 #define OUT(I,J)  << "( " << I << ", " << J << ") <" << pg.proc<I,J>() << "> - "
@@ -42,7 +42,7 @@ std::ostream *filep;
 
 int _main(int pid, int nprocs) {
 
-  gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > pg(gridtools::gcl_utils::boollist<2>(true, true), nprocs,pid);
+  gridtools::_2D_process_grid_t<gridtools::boollist<2> > pg(gridtools::boollist<2>(true, true), nprocs,pid);
 
   (*filep) << "@" << gridtools::PID << "@ --- PROC GRID " 
     OUT(-1,-1)
@@ -61,7 +61,7 @@ int _main(int pid, int nprocs) {
 
 int MPImain(MPI_Comm &comm) {
 
-  gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > pg(gridtools::gcl_utils::boollist<2>(true,true), comm);
+  gridtools::MPI_2D_process_grid_t<gridtools::boollist<2> > pg(gridtools::boollist<2>(true,true), comm);
 
   (*filep) << "@" << gridtools::PID << "@ MPI PROC GRID " 
     OUT(-1,-1)

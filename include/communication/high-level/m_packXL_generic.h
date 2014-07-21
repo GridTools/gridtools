@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This code have been developed with the collaboration of Peter Messmer
 */
 
-#include <wrap_argument.h>
+#include "wrap_argument.h"
 
 template <typename value_type>
 __global__ void m_packXLKernel_generic(const value_type* __restrict__ d_data, 

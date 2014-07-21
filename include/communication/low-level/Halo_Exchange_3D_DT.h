@@ -33,8 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/mpl/assert.hpp>
 #include <assert.h>
-#include <GCL.h>
-#include <translate.h>
+#include "../GCL.h"
+#include "translate.h"
 #include "has_communicator.h"
 
 /** \file

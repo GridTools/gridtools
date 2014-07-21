@@ -74,6 +74,7 @@ if( "${GCL_MPI}" STREQUAL "ON" )
 endif()
 
 
+include_directories( ../include/ ) ## Library header files
 include_directories( low-level/ ) ## Library header files
 include_directories( high-level ) ## Library header files
 include_directories( ../../src/ ) ## Library source files

@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _TRANSLATE_H_
 #define _TRANSLATE_H_
 
-#include "../common/layout_map.h"
+#include "../../common/layout_map.h"
 
 namespace gridtools {
 

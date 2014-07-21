@@ -5,11 +5,6 @@
 
 namespace gridtools {
 
-  /**
-     namespace containing utility finctions to be used with GCL
-  */
-  namespace gcl_utils {
-
     /**
        The following class describes a boolean list of length N.
        This is used in proc_grids. 
@@ -145,7 +140,6 @@ namespace gridtools {
     };
 
 
-  }
 }
 
 

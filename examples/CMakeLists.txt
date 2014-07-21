@@ -43,3 +43,5 @@ if(CUDA_FOUND)
     target_link_libraries(laplacian_cuda ${exe_LIBS})
     target_link_libraries(boundary-condition_cuda ${exe_LIBS})
 endif()
+
+add_subdirectory( communication )
