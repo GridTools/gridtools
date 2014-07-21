@@ -37,8 +37,8 @@ std::ostream *filep;
 #include <halo_exchange.h>
 #include <string>
 #include <stdlib.h>
-#include <utils/layout_map.h>
-#include <utils/boollist.h>
+#include <common/layout_map.h>
+#include <common/boollist.h>
 #include <sys/time.h>
 
 #include "triplet.h"

@@ -37,8 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <algorithm>
 #include <stdlib.h>
-#include <utils/layout_map.h>
-#include <utils/boollist.h>
+#include <common/layout_map.h>
+#include <common/boollist.h>
 #include <sys/time.h>
 
 int pid;
