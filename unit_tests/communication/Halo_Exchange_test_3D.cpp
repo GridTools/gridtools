@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <proc_grids_3D.h>
 #include <Halo_Exchange_3D.h>
 #include <stdio.h>
-#include <utils/boollist.h>
+#include <common/boollist.h>
 
 struct T1 {}; // GCL CYCLIC
 struct T2 {}; // GCL not CYCLIC

@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <descriptors_dt.h>
 #include <descriptors.h>
 #include <string>
-#include <utils/boollist.h>
+#include <common/boollist.h>
 
 #define DIM 10
 

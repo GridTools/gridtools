@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
-#include <utils/boollist.h>
+#include <common/boollist.h>
 
 struct T1 {}; // GCL CYCLIC
 struct T2 {}; // GCL not CYCLIC
