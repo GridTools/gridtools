@@ -75,7 +75,7 @@ endif()
 
 
 include_directories( L3/include/ ) ## Library header files
-include_directories( high_level ) ## Library header files
+include_directories( high-level ) ## Library header files
 include_directories( ../../src/ ) ## Library source files
 include_directories( . ) ## Library header files
 include_directories( ../../examples/communication ) ## Library header files
