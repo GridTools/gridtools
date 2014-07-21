@@ -31,14 +31,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DESCRIPTORS_DT_WHOLE_H_
 #define _DESCRIPTORS_DT_WHOLE_H_
 
-#include "../common/array.h"
+#include "../../common/array.h"
 #include <vector>
-#include "../common/make_array.h"
+#include "../../common/make_array.h"
 #include <assert.h>
 
-#include "../common/boollist.h"
-#include "../common/ndloops.h"
-#include "low-level/data_types_mapping.h"
+#include "../../common/boollist.h"
+#include "../../common/ndloops.h"
+#include "../low-level/data_types_mapping.h"
 #include "gcl_parameters.h"
 #include "halo_descriptor.h"
 #include "../../common/layout_map.h"
@@ -48,9 +48,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include "./common/numerics.h"
+#include "../../common/numerics.h"
 #include "descriptors_fwd.h"
-#include "escriptor_base.h"
+#include "descriptor_base.h"
 #include "helpers_impl.h"
 #include <boost/type_traits/remove_pointer.hpp>
 #include <algorithm>
@@ -200,7 +200,7 @@ namespace gridtools {
 
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
-          array<int, DIMS> eta = gcl_utils::make_array(i,j);
+          array<int, DIMS> eta = make_array(i,j);
           MPI_Type_create_hindexed(fields.size(), 
                                    &(counts[0]), 
                                    &(offsets[0]), 
@@ -218,7 +218,7 @@ namespace gridtools {
       }
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
-          array<int, DIMS> eta = gcl_utils::make_array(i,j);
+          array<int, DIMS> eta = make_array(i,j);
           typedef translate_t<2,proc_layout> translate_P;
           typedef typename translate_P::map_type map_type;
           const int i_P = map_type().template select<0>(i,j);
@@ -240,7 +240,7 @@ namespace gridtools {
     void unpack(std::vector<DataType*> const& fields) {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
-          array<int, DIMS> eta = gcl_utils::make_array(i,j);
+          array<int, DIMS> eta = make_array(i,j);
           MPI_Type_free(&MPDT_INSIDE[_impl::neigh_idx(eta)]);
           MPI_Type_free(&MPDT_OUTSIDE[_impl::neigh_idx(eta)]);
         }
@@ -385,7 +385,7 @@ namespace gridtools {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
             if (i!=0 || j!=0 || k!=0) {
-              array<int, DIMS> eta = gcl_utils::make_array(i,j,k);
+              array<int, DIMS> eta = make_array(i,j,k);
               if (halo.mpdt_inside(eta).second) {
                 MPI_Type_create_hindexed(fields.size(), 
                                          &(counts[0]), 
@@ -412,7 +412,7 @@ namespace gridtools {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
             if (i!=0 || j!=0 || k!=0) {
-              array<int, DIMS> eta = gcl_utils::make_array(i,j,k);
+              array<int, DIMS> eta = make_array(i,j,k);
               if (halo.mpdt_inside(eta).second) {
                 typedef translate_t<3,proc_layout> translate_P;
                 typedef typename translate_P::map_type map_type;
@@ -469,7 +469,7 @@ namespace gridtools {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
             if (i!=0 || j!=0 || k!=0) {
-              array<int, DIMS> eta = gcl_utils::make_array(i,j,k);
+              array<int, DIMS> eta = make_array(i,j,k);
               if (halo.mpdt_inside(eta).second) {
                 MPI_Type_free(&MPDT_INSIDE[_impl::neigh_idx(eta)]);
               }

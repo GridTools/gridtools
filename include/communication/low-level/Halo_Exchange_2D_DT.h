@@ -33,8 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/mpl/assert.hpp>
 #include <assert.h>
-#include <GCL.h>
-#include <translate.h>
+#include "../GCL.h"
+#include "translate.h"
 
 /** \file
  * Pattern for regular cyclic and acyclic halo exchange pattern in 2D

@@ -28,13 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#include <GCL.h>
+#include <communication/GCL.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 std::ostream *filep;
 
-#include <halo_exchange.h>
+#include <communication/halo_exchange.h>
 #include <string>
 #include <stdlib.h>
 #include <common/layout_map.h>

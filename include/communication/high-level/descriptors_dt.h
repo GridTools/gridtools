@@ -31,23 +31,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DESCRIPTORS_DT_H_
 #define _DESCRIPTORS_DT_H_
 
-#include "../common/array.h"
+#include "../../common/array.h"
 #include <vector>
-#include "./low-level/proc_grids_2D.h"
-#include "./low-level/Halo_Exchange_2D.h"
-#include "./low-level/proc_grids_3D.h"
-#include "./low-level/Halo_Exchange_3D.h"
-#include "../common/make_array.h"
+#include "../low-level/proc_grids_2D.h"
+#include "../low-level/Halo_Exchange_2D.h"
+#include "../low-level/proc_grids_3D.h"
+#include "../low-level/Halo_Exchange_3D.h"
+#include "../../common/make_array.h"
 #include <assert.h>
 // #include <boost/type_traits.hpp>
 // #include <boost/utility/enable_if.hpp>
-#include "../common/boollist.h"
-#include "../common/ndloops.h"
-#include "./low-level/data_types_mapping.h"
+#include "../../common/boollist.h"
+#include "../../common/ndloops.h"
+#include "../low-level/data_types_mapping.h"
 #include "gcl_parameters.h"
-#include "../common/numerics.h"
+#include "../../common/numerics.h"
 #include "empty_field_base.h"
-#include "../common/layout_map.h"
+#include "../../common/layout_map.h"
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -533,7 +533,7 @@ namespace gridtools {
             const int jj_P = map_type().template select<1>(ii,jj);
             if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
               DataType *it = &(hm.send_buffer[translate()(ii,jj)][0]);
-              hm.halo.pack_all(gcl_utils::make_array(ii,jj), it, _fields...);
+              hm.halo.pack_all(make_array(ii,jj), it, _fields...);
             }
           }
         }
@@ -558,7 +558,7 @@ namespace gridtools {
             const int jj_P = map_type().template select<1>(ii,jj);      \
             if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) { \
               DataType *it = &(hm.send_buffer[translate()(ii,jj)][0]);  \
-              hm.halo.pack_all(gcl_utils::make_array(ii,jj), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
+              hm.halo.pack_all(make_array(ii,jj), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
             }                                                           \
           }                                                             \
         }                                                               \
@@ -585,7 +585,7 @@ namespace gridtools {
               const int kk_P = map_type().template select<2>(ii,jj,kk);
               if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
                 DataType *it = &(hm.send_buffer[translate()(ii,jj,kk)][0]);
-                hm.halo.pack_all(gcl_utils::make_array(ii,jj,kk), it, _fields...);
+                hm.halo.pack_all(make_array(ii,jj,kk), it, _fields...);
               }
             }
           }
@@ -612,7 +612,7 @@ namespace gridtools {
               const int kk_P = map_type().template select<2>(ii,jj,kk); \
               if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) { \
                 DataType *it = &(hm.send_buffer[translate()(ii,jj,kk)][0]); \
-                hm.halo.pack_all(gcl_utils::make_array(ii,jj,kk), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
+                hm.halo.pack_all(make_array(ii,jj,kk), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
               }                                                         \
             }                                                           \
           }                                                             \
@@ -643,7 +643,7 @@ namespace gridtools {
             const int jj_P = map_type().template select<1>(ii,jj);
             if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
               DataType *it = &(hm.recv_buffer[translate()(ii,jj)][0]);
-              hm.halo.unpack_all(gcl_utils::make_array(ii,jj), it, _fields...);
+              hm.halo.unpack_all(make_array(ii,jj), it, _fields...);
             }
           }
         }
@@ -667,7 +667,7 @@ namespace gridtools {
             const int jj_P = map_type().template select<1>(ii,jj);      \
             if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) { \
               DataType *it = &(hm.recv_buffer[translate()(ii,jj)][0]);  \
-              hm.halo.unpack_all(gcl_utils::make_array(ii,jj), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
+              hm.halo.unpack_all(make_array(ii,jj), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
             }                                                           \
           }                                                             \
         }                                                               \
@@ -695,7 +695,7 @@ namespace gridtools {
               const int kk_P = map_type().template select<2>(ii,jj,kk);
               if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
                 DataType *it = &(hm.recv_buffer[translate()(ii,jj,kk)][0]);
-                hm.halo.unpack_all(gcl_utils::make_array(ii,jj,kk), it, _fields...);
+                hm.halo.unpack_all(make_array(ii,jj,kk), it, _fields...);
               }
             }
           }
@@ -722,7 +722,7 @@ namespace gridtools {
               const int kk_P = map_type().template select<2>(ii,jj,kk); \
               if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) { \
                 DataType *it = &(hm.recv_buffer[translate()(ii,jj,kk)][0]); \
-                hm.halo.unpack_all(gcl_utils::make_array(ii,jj,kk), it,  BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
+                hm.halo.unpack_all(make_array(ii,jj,kk), it,  BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
               }                                                         \
             }                                                           \
           }                                                             \
@@ -752,7 +752,7 @@ namespace gridtools {
             for (size_t i=0; i<fields.size(); ++i) {
               if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
                 DataType *it = &(hm.send_buffer[translate()(ii,jj)][0]);
-                hm.halo.pack(gcl_utils::make_array(ii,jj), fields[i], it);
+                hm.halo.pack(make_array(ii,jj), fields[i], it);
               }
             }
           }
@@ -775,7 +775,7 @@ namespace gridtools {
               if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
                 DataType *it = &(hm.send_buffer[translate()(ii,jj,kk)][0]);
                 for (size_t i=0; i<fields.size(); ++i) {
-                  hm.halo.pack(gcl_utils::make_array(ii,jj,kk), fields[i], it);
+                  hm.halo.pack(make_array(ii,jj,kk), fields[i], it);
                 }
               }
             }
@@ -800,7 +800,7 @@ namespace gridtools {
             for (size_t i=0; i<fields.size(); ++i) {
               if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
                 DataType *it = &(hm.recv_buffer[translate()(ii,jj)][0]);
-                hm.halo.unpack(gcl_utils::make_array(ii,jj), fields[i], it);
+                hm.halo.unpack(make_array(ii,jj), fields[i], it);
               }
             }
           }
@@ -823,7 +823,7 @@ namespace gridtools {
               if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
                 DataType *it = &(hm.recv_buffer[translate()(ii,jj,kk)][0]);
                 for (size_t i=0; i<fields.size(); ++i) {
-                  hm.halo.unpack(gcl_utils::make_array(ii,jj,kk), fields[i], it);
+                  hm.halo.unpack(make_array(ii,jj,kk), fields[i], it);
                 }
               }
             }
@@ -1041,7 +1041,7 @@ namespace gridtools {
         for (int jj=-1; jj<=1; ++jj) {
           for (int kk=-1; kk<=1; ++kk) {
               char* it = reinterpret_cast<char*>(&(send_buffer[translate()(ii,jj,kk)][0]));
-              pack_dims<DIMS,0>()(*this, /*gcl_utils::make_array(*/ii,jj,kk/*)*/, it, _fields... );
+              pack_dims<DIMS,0>()(*this, /*make_array(*/ii,jj,kk/*)*/, it, _fields... );
             }
           }
         }
@@ -1152,7 +1152,7 @@ namespace gridtools {
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
         if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
-          first.pack(gcl_utils::make_array(ii,jj,kk), first.ptr, it);
+          first.pack(make_array(ii,jj,kk), first.ptr, it);
           operator()(hm, ii,jj,kk, it, _fields...);
         }
       }
@@ -1170,7 +1170,7 @@ namespace gridtools {
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);    \
         if ((ii!=0 || jj!=0 || kk!=0)                                   \
             && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) { \
-          _field0.pack(gcl_utils::make_array(ii,jj,kk), _field0.ptr, it); \
+          _field0.pack(make_array(ii,jj,kk), _field0.ptr, it); \
           operator()(hm, ii,jj,kk, it CALLNEXT_INST(n) );               \
         }                                                               \
       }
@@ -1200,7 +1200,7 @@ namespace gridtools {
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
         if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
-          first.unpack(gcl_utils::make_array(ii,jj,kk), first.ptr, it);
+          first.unpack(make_array(ii,jj,kk), first.ptr, it);
           operator()(hm, ii,jj,kk, it, _fields...);
         }
       }
@@ -1218,7 +1218,7 @@ namespace gridtools {
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);    \
         if ((ii!=0 || jj!=0 || kk!=0)                                   \
             && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) { \
-          _field0.unpack(gcl_utils::make_array(ii,jj,kk), _field0.ptr, it); \
+          _field0.unpack(make_array(ii,jj,kk), _field0.ptr, it); \
           operator()(hm, ii,jj,kk ,it CALLNEXT_INST(n) );               \
         }                                                               \
     }
@@ -1247,7 +1247,7 @@ namespace gridtools {
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
         if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
           for (unsigned int fi=0; fi < _fields.size(); ++fi) {
-            _fields[fi].pack(gcl_utils::make_array(ii,jj,kk), _fields[fi].ptr, it);
+            _fields[fi].pack(make_array(ii,jj,kk), _fields[fi].ptr, it);
           }
         }
       }
@@ -1268,7 +1268,7 @@ namespace gridtools {
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
         if ((ii!=0 || jj!=0 || kk!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1)) {
           for (unsigned int fi=0; fi < _fields.size(); ++fi) {
-            _fields[fi].unpack(gcl_utils::make_array(ii,jj,kk), _fields[fi].ptr, it);
+            _fields[fi].unpack(make_array(ii,jj,kk), _fields[fi].ptr, it);
           }
         }
       }
@@ -1507,7 +1507,7 @@ namespace gridtools {
         const int ii_P = proc_layout().template select<0>(ii,jj);
         const int jj_P = proc_layout().template select<1>(ii,jj);
         if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
-          first.pack(gcl_utils::make_array(ii,jj), first.ptr, it);
+          first.pack(make_array(ii,jj), first.ptr, it);
           operator()(hm, ii,jj, it, _fields...);
         }
       }
@@ -1524,7 +1524,7 @@ namespace gridtools {
         const int jj_P = proc_layout().template select<1>(ii,jj);       \
         if ((ii!=0 || jj!=0)                                            \
             && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {      \
-          _field0.pack(gcl_utils::make_array(ii,jj), _field0.ptr, it);  \
+          _field0.pack(make_array(ii,jj), _field0.ptr, it);  \
           operator()(hm, ii,jj, it CALLNEXT_INST(n) );                  \
         }                                                               \
       }
@@ -1553,7 +1553,7 @@ namespace gridtools {
         const int ii_P = proc_layout().template select<0>(ii,jj);
         const int jj_P = proc_layout().template select<1>(ii,jj);
         if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
-          first.unpack(gcl_utils::make_array(ii,jj), first.ptr, it);
+          first.unpack(make_array(ii,jj), first.ptr, it);
           operator()(hm, ii,jj, it, _fields...);
         }
       }
@@ -1570,7 +1570,7 @@ namespace gridtools {
         const int jj_P = proc_layout().template select<1>(ii,jj);    \
         if ((ii!=0 || jj!=0)                                         \
             && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {      \
-          _field0.unpack(gcl_utils::make_array(ii,jj), _field0.ptr, it); \
+          _field0.unpack(make_array(ii,jj), _field0.ptr, it); \
           operator()(hm, ii,jj ,it CALLNEXT_INST(n) );               \
         }                                                               \
     }
@@ -1597,7 +1597,7 @@ namespace gridtools {
         const int jj_P = proc_layout().template select<1>(ii,jj);
         if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
           for (unsigned int fi=0; fi < _fields.size(); ++fi) {
-            _fields[fi].pack(gcl_utils::make_array(ii,jj), _fields[fi].ptr, it);
+            _fields[fi].pack(make_array(ii,jj), _fields[fi].ptr, it);
           }
         }
       }
@@ -1617,7 +1617,7 @@ namespace gridtools {
         const int jj_P = proc_layout().template select<1>(ii,jj);
         if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii_P,jj_P) != -1)) {
           for (unsigned int fi=0; fi < _fields.size(); ++fi) {
-            _fields[fi].unpack(gcl_utils::make_array(ii,jj), _fields[fi].ptr, it);
+            _fields[fi].unpack(make_array(ii,jj), _fields[fi].ptr, it);
           }
         }
       }

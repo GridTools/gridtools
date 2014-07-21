@@ -29,11 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include <mpi.h>
-#include <GCL.h>
+#include <communication/GCL.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <proc_grids_3D.h>
+#include <communication/low-level/proc_grids_3D.h>
 #include <common/boollist.h>
 
 #define OUT(I,J,K)  << "( " << I << ", " << J << ", " << K << ") " << pg.proc<I,J,K>() << " - "
@@ -42,7 +42,7 @@ std::ostream *filep;
 
 int _main(int pid, int nprocs) {
 
-  gridtools::_3D_process_grid_t<gridtools::gcl_utils::boollist<3> > pg(gridtools::gcl_utils::boollist<3>(true,true,true), nprocs,pid);
+  gridtools::_3D_process_grid_t<gridtools::boollist<3> > pg(gridtools::boollist<3>(true,true,true), nprocs,pid);
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);
@@ -83,7 +83,7 @@ int _main(int pid, int nprocs) {
 
 int MPImain(MPI_Comm &comm) {
 
-  gridtools::MPI_3D_process_grid_t<gridtools::gcl_utils::boollist<3> > pg(gridtools::gcl_utils::boollist<3>(true, true, true), comm);
+  gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > pg(gridtools::boollist<3>(true, true, true), comm);
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);

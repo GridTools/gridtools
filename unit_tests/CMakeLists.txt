@@ -38,3 +38,5 @@ if (GTEST_FOUND)
     add_test( tests.cloning_derived cloning_derived 42 )
   endif()
 endif()
+
+add_subdirectory( communication )

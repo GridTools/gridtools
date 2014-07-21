@@ -1,4 +1,4 @@
-#pragma once_
+#pragma once
 
 #include "array.h"
 
@@ -21,5 +21,4 @@ namespace gridtools {
 }
 
 
-#endif
 

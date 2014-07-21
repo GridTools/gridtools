@@ -40,12 +40,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #ifdef GCL_TRACE
-#include "stats_collector.h"
+#include "high-level/stats_collector.h"
 #endif
 
 
-#include "../../common/boollist.h"
-#include "gcl_arch.h"
+#include "../common/boollist.h"
+#include "low-level/gcl_arch.h"
 
 
 #ifdef _GCL_GPU_

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#include <GCL.h>
+#include <communication/GCL.h>
 
 #ifdef _GCL_GPU_
 #ifdef GCL_MULTI_STREAMS

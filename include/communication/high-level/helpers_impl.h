@@ -95,18 +95,18 @@ namespace gridtools {
           for (int jj=-1; jj<=1; ++jj)
             if (ii!=0 || jj!=0) {
               hm->send_buffer[translate()(ii,jj)] 
-                = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(gcl_utils::make_array(ii,jj)));
+                = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(make_array(ii,jj)));
               hm->recv_buffer[translate()(ii,jj)] 
-                = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(gcl_utils::make_array(ii,jj)));
+                = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(make_array(ii,jj)));
               //std::cout << "@" << gridtools::PID << "@ " << hm->send_buffer[translate()(ii,jj)] << " -- " << hm->recv_buffer[translate()(ii,jj)] << "\n"; 
 
               hm->haloexch.register_send_to_buffer
                 (&(hm->send_buffer[translate()(ii,jj)][0]),
-                 hm->total_pack_size(gcl_utils::make_array(ii,jj))*sizeof(Datatype), ii,jj);
+                 hm->total_pack_size(make_array(ii,jj))*sizeof(Datatype), ii,jj);
 
               hm->haloexch.register_receive_from_buffer
                 (&(hm->recv_buffer[translate()(ii,jj)][0]),
-                 hm->total_unpack_size(gcl_utils::make_array(ii,jj))*sizeof(Datatype), ii, jj);
+                 hm->total_unpack_size(make_array(ii,jj))*sizeof(Datatype), ii, jj);
             }
       }
     };
@@ -121,9 +121,9 @@ namespace gridtools {
           for (int jj=-1; jj<=1; ++jj)
             if (ii!=0 || jj!=0) {
               hm->send_buffer[translate()(ii,jj)] 
-                = _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.send_buffer_size(gcl_utils::make_array(ii,jj))*mf);
+                = _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.send_buffer_size(make_array(ii,jj))*mf);
               hm->recv_buffer[translate()(ii,jj)] 
-                = _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.recv_buffer_size(gcl_utils::make_array(ii,jj))*mf);
+                = _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.recv_buffer_size(make_array(ii,jj))*mf);
 
               typedef typename translate_P::map_type map_type;
               int ii_P = map_type().template select<0>(ii,jj);
@@ -131,11 +131,11 @@ namespace gridtools {
 
               hm->haloexch.register_send_to_buffer
                 (&(hm->send_buffer[translate()(ii,jj)][0]),
-                 hm->halo.send_buffer_size(gcl_utils::make_array(ii,jj))*mf*sizeof(Datatype), ii_P, jj_P);
+                 hm->halo.send_buffer_size(make_array(ii,jj))*mf*sizeof(Datatype), ii_P, jj_P);
 
               hm->haloexch.register_receive_from_buffer
                 (&(hm->recv_buffer[translate()(ii,jj)][0]),
-                 hm->halo.recv_buffer_size(gcl_utils::make_array(ii,jj))*mf*sizeof(Datatype), ii_P, jj_P);
+                 hm->halo.recv_buffer_size(make_array(ii,jj))*mf*sizeof(Datatype), ii_P, jj_P);
             }
       }
     };      
@@ -148,19 +148,19 @@ namespace gridtools {
           for (int jj=-1; jj<=1; ++jj)
             for (int kk=-1; kk<=1; ++kk)
               if (ii!=0 || jj!=0 || kk!=0) {
-                //std::cout << hm->total_pack_size(gcl_utils::make_array(ii,jj,kk)) << " " << hm->total_unpack_size(gcl_utils::make_array(ii,jj,kk)) << "\n";
+                //std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " << hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
                 hm->send_buffer[translate()(ii,jj,kk)] = 
-                  _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(gcl_utils::make_array(ii,jj,kk)));
+                  _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(make_array(ii,jj,kk)));
                 hm->recv_buffer[translate()(ii,jj,kk)] = 
-                  _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(gcl_utils::make_array(ii,jj,kk)));
+                  _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(make_array(ii,jj,kk)));
 
                 hm->haloexch.register_send_to_buffer
                   (&(hm->send_buffer[translate()(ii,jj,kk)][0]),
-                   hm->total_pack_size(gcl_utils::make_array(ii,jj,kk))*sizeof(Datatype), ii, jj, kk);
+                   hm->total_pack_size(make_array(ii,jj,kk))*sizeof(Datatype), ii, jj, kk);
 
                 hm->haloexch.register_receive_from_buffer
                   (&(hm->recv_buffer[translate()(ii,jj,kk)][0]),
-                   hm->total_unpack_size(gcl_utils::make_array(ii,jj,kk))*sizeof(Datatype),ii,jj,kk);
+                   hm->total_unpack_size(make_array(ii,jj,kk))*sizeof(Datatype),ii,jj,kk);
               }
       }
     };   
@@ -175,11 +175,11 @@ namespace gridtools {
           for (int jj=-1; jj<=1; ++jj)
             for (int kk=-1; kk<=1; ++kk)
               if (ii!=0 || jj!=0 || kk!=0) {
-                //std::cout << hm->total_pack_size(gcl_utils::make_array(ii,jj,kk)) << " " << hm->total_unpack_size(gcl_utils::make_array(ii,jj,kk)) << "\n";
+                //std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " << hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
                 hm->send_buffer[translate()(ii,jj,kk)] = 
-                  _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.send_buffer_size(gcl_utils::make_array(ii,jj,kk))*mf);
+                  _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.send_buffer_size(make_array(ii,jj,kk))*mf);
                 hm->recv_buffer[translate()(ii,jj,kk)] = 
-                  _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.recv_buffer_size(gcl_utils::make_array(ii,jj,kk))*mf);
+                  _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.recv_buffer_size(make_array(ii,jj,kk))*mf);
 
                 typedef typename translate_P::map_type map_type;
                 const int ii_P = map_type().template select<0>(ii,jj,kk);
@@ -188,12 +188,12 @@ namespace gridtools {
 
                 hm->haloexch.register_send_to_buffer
                   (&(hm->send_buffer[translate()(ii,jj,kk)][0]),
-                   hm->halo.send_buffer_size(gcl_utils::make_array(ii,jj,kk))*sizeof(Datatype)*mf,
+                   hm->halo.send_buffer_size(make_array(ii,jj,kk))*sizeof(Datatype)*mf,
                    ii_P,jj_P,kk_P);
 
                 hm->haloexch.register_receive_from_buffer
                   (&(hm->recv_buffer[translate()(ii,jj,kk)][0]),
-                   hm->halo.recv_buffer_size(gcl_utils::make_array(ii,jj,kk))*sizeof(Datatype)*mf,
+                   hm->halo.recv_buffer_size(make_array(ii,jj,kk))*sizeof(Datatype)*mf,
                    ii_P,jj_P,kk_P);
               }
       }
@@ -211,7 +211,7 @@ namespace gridtools {
             if ((ii!=0 || jj!=0) && (hm->pattern().proc_grid().proc(ii,jj) != -1)) {
               Datatype *it = &(hm->send_buffer[translate()(ii,jj)][0]);
               for (int df = 0; df < hm->size(); ++df)
-                hm->data_field(df).pack(gcl_utils::make_array(ii,jj), it);
+                hm->data_field(df).pack(make_array(ii,jj), it);
             }
           }
         }
@@ -229,7 +229,7 @@ namespace gridtools {
               if ((ii!=0 || jj!=0 || kk!=0) && (hm->pattern().proc_grid().proc(ii,jj,kk) != -1)) {
                 Datatype *it = &(hm->send_buffer[translate()(ii,jj,kk)][0]);
                 for (int df = 0; df < hm->size(); ++df)
-                  hm->data_field(df).pack(gcl_utils::make_array(ii,jj,kk), it);
+                  hm->data_field(df).pack(make_array(ii,jj,kk), it);
               }
       }
     };
@@ -246,7 +246,7 @@ namespace gridtools {
             if ((ii!=0 || jj!=0) && (hm->pattern().proc_grid().proc(ii,jj) != -1)) {
               Datatype *it = &(hm->recv_buffer[translate()(ii,jj)][0]);
               for (int df = 0; df < hm->size(); ++df)
-                hm->data_field(df).unpack(gcl_utils::make_array(ii,jj), it);
+                hm->data_field(df).unpack(make_array(ii,jj), it);
             }
           }
         }
@@ -263,7 +263,7 @@ namespace gridtools {
               if ((ii!=0 || jj!=0 || kk!=0) && (hm->pattern().proc_grid().proc(ii,jj,kk) != -1)) {
                 Datatype *it = &(hm->recv_buffer[translate()(ii,jj,kk)][0]);
                 for (int df = 0; df < hm->size(); ++df)
-                  hm->data_field(df).unpack(gcl_utils::make_array(ii,jj,kk), it);
+                  hm->data_field(df).unpack(make_array(ii,jj,kk), it);
               }
       }
     };

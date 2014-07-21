@@ -30,11 +30,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _EMPTY_FIELD_BASE_H_
 #define _EMPTY_FIELD_BASE_H_
 
-#include "../common/boollist.h"
-#include "../common/ndloops.h"
-#include "data_types_mapping.h"
-#include "../common/numerics.h"
-#include "halo_descriptor.h>"
+#include "../../common/boollist.h"
+#include "../../common/ndloops.h"
+#include "../low-level/data_types_mapping.h"
+#include "../../common/numerics.h"
+#include "halo_descriptor.h"
 
 namespace gridtools {
   namespace _impl {
@@ -154,7 +154,7 @@ namespace gridtools {
     void generate_datatypes() {
       array<int,DIMS> tuple;
       _impl::set_mpdt<DataType, HALO_t, MPDT_t> set_function(halos,MPDT_OUTSIDE, MPDT_INSIDE);
-      utils::neigh_loop<DIMS> nl;
+      neigh_loop<DIMS> nl;
       nl(set_function, tuple);
     }
 

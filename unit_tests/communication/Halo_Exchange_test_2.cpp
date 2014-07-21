@@ -52,14 +52,14 @@ struct pgrid;
 template <>
 struct pgrid<T1> {
 
-  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(gridtools::gcl_utils::boollist<2>(true,true), nprocs, pid);
+    return grid_type(gridtools::boollist<2>(true,true), nprocs, pid);
   }
 
 };
@@ -67,14 +67,14 @@ struct pgrid<T1> {
 template <>
 struct pgrid<T2> {
 
-  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(gridtools::gcl_utils::boollist<2>(false,false) ,nprocs, pid);
+    return grid_type(gridtools::boollist<2>(false,false) ,nprocs, pid);
   }
 
 };
@@ -82,7 +82,7 @@ struct pgrid<T2> {
 template <>
 struct pgrid<T3> {
 
-  typedef gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::MPI_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
@@ -98,7 +98,7 @@ struct pgrid<T3> {
  
     MPI_Cart_create(gridtools::GCL_WORLD, 2, dims, period, false, &CartComm);
 
-    return grid_type(gridtools::gcl_utils::boollist<2>(true,true), CartComm);
+    return grid_type(gridtools::boollist<2>(true,true), CartComm);
   }
 
 };
@@ -106,7 +106,7 @@ struct pgrid<T3> {
 template <>
 struct pgrid<T4> {
 
-  typedef gridtools::MPI_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::MPI_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
@@ -122,7 +122,7 @@ struct pgrid<T4> {
  
     MPI_Cart_create(gridtools::GCL_WORLD, 2, dims, period, false, &CartComm);
 
-    return grid_type(gridtools::gcl_utils::boollist<2>(false, false), CartComm);
+    return grid_type(gridtools::boollist<2>(false, false), CartComm);
   }
 
 };

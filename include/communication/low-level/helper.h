@@ -1,5 +1,5 @@
 #pragma once
-#include <GCL.h>
+#include "../GCL.h"
 
 #ifdef HOSTWORKAROUND
 namespace gridtools
