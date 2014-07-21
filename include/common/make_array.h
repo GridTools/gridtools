@@ -1,10 +1,8 @@
-#ifndef _MAKE_ARRAY_H_
-#define _MAKE_ARRAY_H_
+#pragma once_
 
-#include <utils/array.h>
+#include "array.h"
 
 namespace gridtools {
-  namespace gcl_utils {
     __host__ __device__
     inline gridtools::array<int,2> make_array(int i1, int i2) { 
       gridtools::array<int,2> a;
@@ -20,7 +18,6 @@ namespace gridtools {
       a[2]=i3;
       return a;
     }
-  }
 }
 
 
