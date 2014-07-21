@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <fstream>
 #include <proc_grids_2D.h>
-#include <utils/boollist.h>
+#include <common/boollist.h>
 
 #define OUT(I,J)  << "( " << I << ", " << J << ") <" << pg.proc<I,J>() << "> - "
 
