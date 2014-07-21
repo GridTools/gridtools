@@ -30,11 +30,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _EMPTY_FIELD_BASE_H_
 #define _EMPTY_FIELD_BASE_H_
 
-#include <utils/boollist.h>
-#include <utils/ndloops.h>
-#include <data_types_mapping.h>
-#include <utils/numerics.h>
-#include <halo_descriptor.h>
+#include "../common/boollist.h"
+#include "../common/ndloops.h"
+#include "data_types_mapping.h"
+#include "../common/numerics.h"
+#include "halo_descriptor.h>"
 
 namespace gridtools {
   namespace _impl {

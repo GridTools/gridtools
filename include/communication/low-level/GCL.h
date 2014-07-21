@@ -36,13 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mpi.h>
 #endif
 
-#ifdef _GCL_GPU_
-#include <cuda_runtime.h>
-#else
-#define __host__
-#define __device__
+#include "../common/host_device.h"
 
-#endif
 
 #ifdef GCL_TRACE
 #include "stats_collector.h"

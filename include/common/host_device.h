@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __CUDACC__
+#ifdef _GCL_GPU_
 #include <cuda_runtime.h>
 #else
 #define __host__
