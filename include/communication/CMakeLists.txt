@@ -75,13 +75,13 @@ endif()
 
 
 include_directories( L3/include/ ) ## Library header files
-include_directories( L2/include/ ) ## Library header files
+include_directories( high_level ) ## Library header files
 include_directories( ../../src/ ) ## Library source files
 include_directories( . ) ## Library header files
 include_directories( ../../examples/communication ) ## Library header files
 
 ### Library
-ADD_LIBRARY( gcl ../../src/GCL.cpp L3/include/GCL.h L2/include/stats_collector.h)
+ADD_LIBRARY( gcl ../../src/GCL.cpp L3/include/GCL.h high_level/stats_collector.h)
 
 set(EXECUTABLE_OUTPUT_PATH "build")
 set(LIBRARY_OUTPUT_PATH "lib")
@@ -155,19 +155,19 @@ if("${GCL_ONLY}" STREQUAL "OFF")
     endif()
     if( "${GCL_MPI}" STREQUAL "ON" )
       if(NOT MSVC)
-        cuda_add_executable( cuda_test_halo_exchange_3D_all L2/test/test_halo_exchange_3D_all.cu )
+        cuda_add_executable( cuda_test_halo_exchange_3D_all ../../examples/communication/test_halo_exchange_3D_all.cu )
         add_dependencies( cuda_test_halo_exchange_3D_all gcl ) 
         target_link_libraries( cuda_test_halo_exchange_3D_all gcl ${CUDA_MPI_LIB} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_all_2 L2/test/test_halo_exchange_3D_all_2.cu )
+        cuda_add_executable( cuda_test_halo_exchange_3D_all_2 ../../examples/communication/test_halo_exchange_3D_all_2.cu )
         add_dependencies( cuda_test_halo_exchange_3D_all_2 gcl ) 
         target_link_libraries( cuda_test_halo_exchange_3D_all_2 gcl ${CUDA_MPI_LIB} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_all_3 L2/test/test_halo_exchange_3D_all_3.cu )
+        cuda_add_executable( cuda_test_halo_exchange_3D_all_3 ../../examples/communication/test_halo_exchange_3D_all_3.cu )
         add_dependencies( cuda_test_halo_exchange_3D_all_3 gcl ) 
         target_link_libraries( cuda_test_halo_exchange_3D_all_3 gcl ${CUDA_MPI_LIB} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_generic L2/test/test_halo_exchange_3D_generic.cu )
+        cuda_add_executable( cuda_test_halo_exchange_3D_generic ../../examples/communication/test_halo_exchange_3D_generic.cu )
         add_dependencies( cuda_test_halo_exchange_3D_generic gcl ) 
         target_link_libraries( cuda_test_halo_exchange_3D_generic gcl ${CUDA_MPI_LIB} )
 
@@ -175,11 +175,11 @@ if("${GCL_ONLY}" STREQUAL "OFF")
         add_dependencies( cuda_test_async_progress_3D_generic gcl ) 
         target_link_libraries( cuda_test_async_progress_3D_generic gcl ${CUDA_MPI_LIB} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_generic_full L2/test/test_halo_exchange_3D_generic_full.cu )
+        cuda_add_executable( cuda_test_halo_exchange_3D_generic_full ../../examples/communication/test_halo_exchange_3D_generic_full.cu )
         add_dependencies( cuda_test_halo_exchange_3D_generic_full gcl ) 
         target_link_libraries( cuda_test_halo_exchange_3D_generic_full gcl ${CUDA_MPI_LIB} )
 
-        cuda_add_executable( cuda_test_halo_exchange_2D_generic L2/test/test_halo_exchange_2D_generic.cu )
+        cuda_add_executable( cuda_test_halo_exchange_2D_generic ../../examples/communication/test_halo_exchange_2D_generic.cu )
         add_dependencies( cuda_test_halo_exchange_2D_generic gcl ) 
         target_link_libraries( cuda_test_halo_exchange_2D_generic gcl ${CUDA_MPI_LIB} )
 

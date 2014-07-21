@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "L2/include/non_vect_interface.h"))
+#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "non_vect_interface.h"))
 #include BOOST_PP_ITERATE()
 
 #endif 
