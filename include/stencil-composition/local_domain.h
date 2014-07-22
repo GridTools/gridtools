@@ -14,7 +14,7 @@ namespace gridtools {
         template <typename List, typename Index>
         struct get_index {
             typedef typename boost::mpl::at<
-                List, 
+                List,
                 Index
                 >::type type;
         };
@@ -46,7 +46,7 @@ namespace gridtools {
             void operator()(ZipElem const& ze) const {
                 typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
 
-                boost::fusion::at_c<1>(ze) = 
+                boost::fusion::at_c<1>(ze) =
                     boost::fusion::at<index>(domain.storage_pointers);
             }
         };
@@ -59,7 +59,7 @@ namespace gridtools {
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. There is one version which provide coordinates to the functor
      * and one that does not
-     * 
+     *
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
@@ -81,7 +81,7 @@ namespace gridtools {
                                               local_domain_aux::get_index<esf_args,  boost::mpl::_2>
                                               >
                                           >::type domain_indices;
-    
+
         typedef typename boost::mpl::transform<domain_indices,
                                                local_domain_aux::get_storage
                                                >::type mpl_storages;
@@ -92,8 +92,8 @@ namespace gridtools {
 
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_iterators>::type local_iterators_type;
-                                          
-        typedef iterate_domain<this_type> iterate_domain_type;
+
+        typedef iterate_domain<this_type> iterate_domain_t;
 
         local_args_type local_args;
 
@@ -120,9 +120,9 @@ namespace gridtools {
 
 
         local_domain_base() {}
-                    
+
         GT_FUNCTION
-        void init(Domain* _dom) 
+        void init(Domain* _dom)
         {
             typedef boost::fusion::vector<domain_indices const&, local_args_type&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
@@ -147,28 +147,28 @@ namespace gridtools {
 
         template <typename T>
         GT_FUNCTION
-        typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
+        typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&
         operator()(T const& t) const {
             return dom->template direct<typename boost::mpl::at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
         }
 
         template <typename T>
         GT_FUNCTION
-        typename boost::mpl::at<esf_args, typename T::index>::type::value_type const& 
+        typename boost::mpl::at<esf_args, typename T::index>::type::value_type const&
         operator()(T const&, int i, int j, int k) const {
             return dom->template direct<typename boost::mpl::at<esf_args, typename T::index>::type::index>();
         }
 
         template <typename T>
         GT_FUNCTION
-        typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
+        typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type&
         get(int i, int j, int k) const {
-            return dom->template direct<typename boost::mpl::at_c<esf_args, T::index>::type::index>();     
+            return dom->template direct<typename boost::mpl::at_c<esf_args, T::index>::type::index>();
         }
 
         template <typename T>
         GT_FUNCTION
-        typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type& 
+        typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type&
         operator[](T const&) const {
             return dom->template direct<boost::mpl::at_c<esf_args, T::index>::type::index>();
         }
@@ -190,7 +190,7 @@ namespace gridtools {
             T::info();
             std::cout << "[" << boost::mpl::at_c<esf_args, T::index_type::value>::type::index_type::value << "] ";
             dom->template storage_info<typename boost::mpl::at_c<esf_args, T::index_type::value>::type::index_type>();
-            //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&  
+            //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&
         }
 
         GT_FUNCTION
@@ -228,7 +228,7 @@ namespace gridtools {
      * This class extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. This version does not provide coordinates
      * to the function operator
-     * 
+     *
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
@@ -242,7 +242,7 @@ namespace gridtools {
 
         GT_FUNCTION
         local_domain() {}
-                
+
         __device__
         local_domain(local_domain const& other)
             : base_type(other)

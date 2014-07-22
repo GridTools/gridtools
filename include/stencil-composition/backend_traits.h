@@ -69,7 +69,7 @@ namespace gridtools{
     struct execute_kernel_functor
     {
         template< typename Traits >
-        static void execute_kernel( const typename Traits::local_domain_type& local_domain, const Backend * f);
+        static void execute_kernel( const typename Traits::local_domain_t& local_domain, const Backend * f);
     };
 
 /**
@@ -99,20 +99,20 @@ namespace gridtools{
 
             template <typename Index>
             struct traits{
-                typedef typename boost::mpl::at<range_sizes_t, Index>::type range_type;
-                typedef typename boost::mpl::at<functor_list_t, Index>::type functor_type;
-                typedef typename boost::fusion::result_of::value_at<domain_list_t, Index>::type local_domain_type;
-                typedef typename boost::mpl::at<functors_map_t, Index>::type interval_map;
+                typedef typename boost::mpl::at<range_sizes_t, Index>::type range_t;
+                typedef typename boost::mpl::at<functor_list_t, Index>::type functor_t;
+                typedef typename boost::fusion::result_of::value_at<domain_list_t, Index>::type local_domain_t;
+                typedef typename boost::mpl::at<functors_map_t, Index>::type interval_map_t;
                 typedef typename index_to_level<
                     typename boost::mpl::deref<
                         typename boost::mpl::find_if<
                             loop_intervals_t,
-                            boost::mpl::has_key<interval_map, boost::mpl::_1>
+                            boost::mpl::has_key<interval_map_t, boost::mpl::_1>
                             >::type
                         >::type::first
-                    >::type first_hit;
+                    >::type first_hit_t;
 
-                typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
+                typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
             };
         };
 
@@ -165,9 +165,9 @@ namespace gridtools{
                         typedef backend_from_id< backend_type< Backend >::m_backend > backend_traits;
                         backend_traits::template for_each<iter_range>(_impl::run_functor< Backend >(local_domain_list,coords));
 
-                        typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_type;
-                        int n = coords.i_high_bound() + range_type::iplus::value - (coords.i_low_bound() + range_type::iminus::value);
-                        int m = coords.j_high_bound() + range_type::jplus::value - (coords.j_low_bound() + range_type::jminus::value);
+                        typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
+                        int n = coords.i_high_bound() + range_t::iplus::value - (coords.i_low_bound() + range_t::iminus::value);
+                        int m = coords.j_high_bound() + range_t::jplus::value - (coords.j_low_bound() + range_t::jminus::value);
 
                         int NBI = n/BI;
                         int NBJ = m/BJ;
