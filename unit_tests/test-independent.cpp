@@ -1,4 +1,5 @@
 #include <iostream>
+#include <common/host_device.h>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -26,7 +27,7 @@ struct lap_function {
 
     template <typename Domain>
     static void Do(Domain const & dom, x_all) {
-        dom(out()) = 4*dom(in()) - 
+        dom(out()) = 4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
     }
@@ -197,7 +198,7 @@ int main() {
     typedef arg<1, storage_type > p_in;
     typedef arg<0, storage_type > p_out;
 
-    auto mss=make_mss(execute_upward, 
+    auto mss=make_mss(execute_upward,
                       make_esf<lap_function>(p_lap(), p_in()),
                       make_independent(
                                        make_esf<flx_function>(p_flx(), p_in(), p_lap()),

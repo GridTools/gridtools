@@ -10,6 +10,10 @@
 
 #include <boost/timer/timer.hpp>
 
+#ifdef USE_PAPI_WRAP
+#include <papi_wrap.h>
+#endif
+
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
@@ -162,6 +166,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+#ifdef USE_PAPI_WRAP
+  int collector_init = pw_new_collector("Init");
+  int collector_execute = pw_new_collector("Execute");
+#endif
+
     int d1 = atoi(argv[1]);
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
@@ -238,6 +247,9 @@ int main(int argc, char** argv) {
     //       ),
     //      domain, coords);
 
+#ifdef USE_PAPI_WRAP
+    pw_start_collector(collector_init);
+#endif
 #ifdef __CUDACC__
     gridtools::computation* horizontal_diffusion =
 #else
@@ -270,10 +282,19 @@ int main(int argc, char** argv) {
 
     horizontal_diffusion->steady();
     domain.clone_to_gpu();
-    printf("CLONED\n");
+
+#ifdef USE_PAPI_WRAP
+    pw_stop_collector(collector_init);
+#endif
 
     boost::timer::cpu_timer time;
+#ifdef USE_PAPI_WRAP
+    pw_start_collector(collector_execute);
+#endif
     horizontal_diffusion->run();
+#ifdef USE_PAPI_WRAP
+    pw_stop_collector(collector_execute);
+#endif
     boost::timer::cpu_times lapse_time = time.elapsed();
 
     horizontal_diffusion->finalize();
@@ -287,6 +308,10 @@ int main(int argc, char** argv) {
     //    lap.print();
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+
+#ifdef USE_PAPI_WRAP
+    pw_print();
+#endif
 
     return 0;
 }

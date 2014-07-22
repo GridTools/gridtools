@@ -12,7 +12,7 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(EXECUTABLE_OUTPUT_PATH "../build")
 endif()
 
-include_directories( include/ ) ## Library header files
+include_directories( include/ include/communication/high-level ) ## Library header files
 
 # Find boost
 if(WIN32)
@@ -43,6 +43,11 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
+include(FindOpenMP)
+if(OPENMP_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif(OPENMP_FOUND)
+
 # find GTest
 find_package(GTest)
 if (GTEST_FOUND)
@@ -56,15 +61,46 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions( -D_VARIADIC_MAX=10 )
 endif()
 
-add_subdirectory( examples )
-add_subdirectory( unit_tests )
-
-set (PAPI_WRAP_MODULE "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
-if ("${PAPI_WRAP_MODULE}" STREQUAL "ON")
-   add_subdirectory( include/external/perfcount )
+if(OPENMP_FOUND)
+    set (PAPI_WRAP_MODULE "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
+    if ( "${PAPI_WRAP_MODULE}" STREQUAL "ON" )
+        add_subdirectory( include/external/perfcount )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP")
+    endif()
 endif()
 
-set(PAPI_WRAP_AS_MODULE "ON")
+
+set( GCL_MPI "${USE_MPI}" )
+set( GCL_GPU "${USE_GPU}" )
+set( GCL_ONLY "ON" CACHE BOOL "If on only library is build but not the examples and tests" )
+set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
+set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
+
+
+if( "${GCL_GPU}" STREQUAL "ON" )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_GPU_")
+else()
+set (CUDA_LIBRARIES "")
+endif()
+
+set( USE_MPI "OFF" CACHE BOOL "Compile with MPI support" )
+
+if( "${USE_MPI}" STREQUAL "ON" )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
+  if( "${USE_MPI_COMPILER}" STREQUAL "ON" )
+    FIND_PACKAGE(MPI REQUIRED)
+    INCLUDE(CMakeForceCompiler)
+    CMAKE_FORCE_CXX_COMPILER(mpicxx "MPI C++ Compiler")
+  endif()
+endif()
+
+
+ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h)
+
+add_subdirectory( unit_tests )
+add_subdirectory( examples )
+
+set( PAPI_WRAP_AS_MODULE "ON" )
 
 
 
