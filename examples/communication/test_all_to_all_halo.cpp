@@ -17,7 +17,7 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL MAURO BIANCO, UGO VARETTO, OR 
+DISCLAIMED. IN NO EVENT SHALL MAURO BIANCO, UGO VARETTO, OR
 SWISS NATIONAL SUPERCOMPUTING CENTRE (CSCS), BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include <communication/low-level/proc_grids_2D.h>
-#include <communication/high-level/All_to_All_halo.h>
+#include <communication/all_to_all_halo.h>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
   std::vector<int> dataout(PI*N*PJ*N);
   std::vector<int> datain((N+2*H)*(N+2*H));
 
-  file << "Address of data: " << (void*)(&(dataout[0])) 
+  file << "Address of data: " << (void*)(&(dataout[0]))
        << ", data in " << (void*)(&(datain[0])) << "\n";
 
   gridtools::array<int,2> crds;
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     for (int j=0; j<PJ*N; ++j) {
       dataout[i*PJ*N+j] = i*PJ*N+j;
     }
-  
+
   for(int i=0; i<N+2*H; ++i)
     for (int j=0; j<N+2*H; ++j) {
       datain[i*N+j] = 0;
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
       // (dataout[(i-H+N*pi)*N*PJ+(j-H+N*pj)] != datain[i*N+j])
       // if (dataout[(i-H+N*pi)*PJ+(j-H+N*pj)] != datain[i*(N+2*H)+j]) {
       if (dataout[(i-H+N*pi)*N*PJ+(j-H+N*pj)] != datain[i*(N+2*H)+j]) {
-        file << "(" << i << "," << j 
+        file << "(" << i << "," << j
              << ") (" << i-H+N*pi << "," << j-H+N*pj
              << ") Expected " << dataout[(i-H+N*pi)*N*PJ+(j-H+N*pj)] << " got " << datain[i*(N+2*H)+j] << std::endl;
         correct = false;
