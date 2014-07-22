@@ -26,13 +26,16 @@ using gridtools::plus;
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace gridtools;
+using namespace enumtype;
+
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<gridtools::_impl::Cuda, gridtools::_impl::Naive>
+#define BACKEND backend<Cuda, Naive>
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<gridtools::_impl::Host, gridtools::_impl::Block>
+#define BACKEND backend<Host, Block>
 #else
-#define BACKEND backend<gridtools::_impl::Host, gridtools::_impl::Naive>
+#define BACKEND backend<Host, Naive>
 #endif
 #endif
 

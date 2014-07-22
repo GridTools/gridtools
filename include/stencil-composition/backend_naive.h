@@ -12,7 +12,7 @@
 namespace gridtools {
     namespace _impl{
         template <>
-        struct cout<_impl::Host>
+        struct cout<enumtype::Host>
         {
             template <typename T>
             const cout& operator << (T arg) const {std::cout<<arg; return *this;}
@@ -84,13 +84,13 @@ namespace gridtools {
         template <typename Arguments >
         struct backend_type< _impl_host::run_functor_host< Arguments > >
         {
-            static const BACKEND m_backend=Host;
+            static const enumtype::backend s_backend=enumtype::Host;
         };
 
 
         /**Traits struct, containing the types which are specific for the host backend*/
         template<>
-        struct backend_from_id<Host>
+        struct backend_from_id<enumtype::Host>
         {
             template <typename ValueType, typename Layout>
             struct storage_traits{

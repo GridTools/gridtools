@@ -7,25 +7,26 @@
 */
 
 namespace gridtools{
+    /** enum defining the strategy policy for distributing the work. */
+    namespace enumtype
+    {
+        enum strategy  {Naive, Block};
+    }
+
     namespace _impl{
 
 //forward declaration
         template<typename T>
         struct run_functor;
 
-/** enum defining the strategy policy for distributing the work. */
-        enum STRATEGY  {Naive, Block};
-/** enum specifying the type of backend we use */
-        enum BACKEND  {Cuda, Host};
-
 /** traits struct, specialized for the specific backends. */
-        template<BACKEND Id>
+        template<enumtype::backend Id>
         struct backend_from_id
         {
         };
 
 /** traits struct, specialized for the specific strategies */
-        template<STRATEGY Strategy>
+        template<enumtype::strategy Strategy>
         struct strategy_from_id
         {
         };
@@ -52,7 +53,7 @@ namespace gridtools{
 
 
 /** generic cout operator, specialised for the backends */
-        template <BACKEND Backend>
+        template <enumtype::backend Backend>
 	    struct cout{
             template <typename T>
             void operator <<(T t);
@@ -119,7 +120,7 @@ namespace gridtools{
 
 /**specialization for the \ref gridtools::_impl::Naive strategy*/
         template<>
-        struct strategy_from_id< Naive>
+        struct strategy_from_id< enumtype::Naive>
         {
             static const int BI=0;
             static const int BJ=0;
@@ -136,7 +137,7 @@ namespace gridtools{
 
                 static void runLoop( domain_list_t& local_domain_list, const coords_t& coords)
                     {
-                        typedef backend_from_id< backend_type< Backend >::m_backend > backend_traits;
+                        typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
                         backend_traits::template for_each< iter_range >(Backend(local_domain_list, coords));
                     }
@@ -146,7 +147,7 @@ namespace gridtools{
 
 /**specialization for the \ref gridtools::_impl::Block strategy*/
         template<>
-        struct strategy_from_id <Block>
+        struct strategy_from_id <enumtype::Block>
         {
             static const int BI=4;
             static const int BJ=4;
@@ -162,7 +163,7 @@ namespace gridtools{
 
                 static void runLoop(domain_list_t local_domain_list, coords_t coords)
                     {
-                        typedef backend_from_id< backend_type< Backend >::m_backend > backend_traits;
+                        typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
                         backend_traits::template for_each<iter_range>(_impl::run_functor< Backend >(local_domain_list,coords));
 
                         typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
