@@ -31,7 +31,7 @@ namespace gridtools {
 
 /** Specialization of the cout function for the CUDA backend \TODO finish */
         template<>
-	    struct cout<_impl::Cuda>
+	    struct cout<enumtype::Cuda>
 	    {
             const cout& operator  << (char* string) const
                 {
@@ -166,13 +166,13 @@ namespace gridtools {
         template <typename Arguments>
 	    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
         {
-            static const BACKEND m_backend=Cuda;
+            static const enumtype::backend s_backend=enumtype::Cuda;
         };
 
 
 /** traits struct defining the types which are specific to the CUDA backend*/
         template<>
-        struct backend_from_id< Cuda >
+        struct backend_from_id< enumtype::Cuda >
         {
 
             template <typename ValueType, typename Layout>

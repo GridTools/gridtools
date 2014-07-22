@@ -59,7 +59,7 @@ namespace gridtools {
             void operator()(Index const& ) const {
 
 #ifndef NDEBUG
-                static const BACKEND backend_t = backend_type<derived_t>::m_backend;
+                static const enumtype::backend backend_t = backend_type<derived_t>::s_backend;
 
                 typedef typename derived_traits_t::template traits<Index>::range_t range_t;
 // TODO a generic cout is still on the way (have to implement all the '<<' operators)
@@ -84,13 +84,13 @@ namespace gridtools {
 
 
 /**this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case.*/
-    template< _impl::BACKEND BackendType, _impl::STRATEGY StrategyType >
+    template< enumtype::backend BackendType, enumtype::strategy StrategyType >
     struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >
     {
         typedef _impl::backend_from_id <BackendType> backend_traits_t;
         typedef _impl::strategy_from_id <StrategyType> strategy_traits_t;
-        static const _impl::STRATEGY m_strategy_id=StrategyType;
-        static const _impl::BACKEND m_backend_id =BackendType;
+        static const enumtype::strategy s_strategy_id=StrategyType;
+        static const enumtype::backend s_backend_id =BackendType;
 
         template <typename ValueType, typename Layout>
         struct storage_type {
@@ -125,7 +125,7 @@ namespace gridtools {
             //wrapping all the template arguments in a single container
             typedef _impl::template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments_t;
             typedef typename backend_traits_t::template execute_traits< arguments_t >::backend_t backend_t;
-            _impl::strategy_from_id< m_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
+            _impl::strategy_from_id< s_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
         }
     };
 
