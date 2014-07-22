@@ -103,7 +103,8 @@ namespace gridtools {
                 typedef _impl_host::run_functor_host< Arguments > backend_t;
             };
 
-            //function alias (pre C++11, std::bind or std::mem_fn)
+            //function alias (pre C++11, std::bind or std::mem_fn,
+            //using function pointers looks very ugly)
             template<
                 typename Sequence
                 , typename F

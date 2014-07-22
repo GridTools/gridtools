@@ -104,21 +104,6 @@ struct lap_function {
  * @brief This operator is used for debugging only
  */
 
-//namespace gridtools{
-// namespace _impl{
-//     enum BACKEND;
-//     template <BACKEND T>
-//     struct cout;
-// // {
-// //     cout<T>& operator<<(char* string);
-// //     };
-// }
-
-// //     template <_impl::BACKEND T>
-// // _impl::cout<T>& operator<<(_impl::cout<T>& s, lap_function const) {
-// //     return s << "lap_function";
-// }
-// }
 std::ostream& operator<<(std::ostream& s, lap_function const) {
     return s << "lap_function";
 }
@@ -145,7 +130,7 @@ int main(int argc, char** argv) {
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<gridtools::_impl::Cuda, gridtools::_impl::Naive>
+#define BACKEND backend<gridtools::_impl::Cuda, gridtools::_impl::Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<gridtools::_impl::Host, gridtools::_impl::Block>

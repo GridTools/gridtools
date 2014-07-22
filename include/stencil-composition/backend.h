@@ -62,7 +62,7 @@ namespace gridtools {
                 static const BACKEND backend_t = backend_type<derived_t>::m_backend;
 
                 typedef typename derived_traits::template traits<Index>::range_type range_type;
-//\todo a generic cout is still on the way (have to implement all the '<<' operators)
+// TODO a generic cout is still on the way (have to implement all the '<<' operators)
                 cout< backend_t >() << "Functor " <<  typename derived_traits::template traits<Index>::functor_type() << "\n";
                 cout< backend_t >() << "I loop " << m_coords.i_low_bound() + range_type::iminus::value << " -> "
                                     << (m_coords.i_high_bound() + range_type::iplus::value) << "\n";
@@ -121,7 +121,7 @@ namespace gridtools {
                   typename Domain, // Domain class (not really useful maybe)
                   typename Coords, // Coordinate class with domain sizes and splitter coordinates
                   typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
-        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
+        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
 
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
             typedef _impl::template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments;

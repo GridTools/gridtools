@@ -9,22 +9,28 @@
 namespace gridtools{
     namespace _impl{
 
+//forward declaration
         template<typename T>
         struct run_functor;
 
+/** enum defining the strategy policy for distributing the work. */
         enum STRATEGY  {Naive, Block};
+/** enum specifying the type of backend we use */
         enum BACKEND  {Cuda, Host};
 
+/** traits struct, specialized for the specific backends. */
         template<BACKEND Id>
         struct backend_from_id
         {
         };
 
+/** traits struct, specialized for the specific strategies */
         template<STRATEGY Strategy>
         struct strategy_from_id
         {
         };
 
+/** the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation */
         template <
             typename FunctorList,
             typename LoopIntervals,
@@ -45,7 +51,7 @@ namespace gridtools{
 
 
 
-
+/** generic cout operator, specialised for the backends */
         template <BACKEND Backend>
 	    struct cout{
             template <typename T>
@@ -53,12 +59,12 @@ namespace gridtools{
 	    };
 
 
-//wasted code because of the lack of constexpr
+/** wasted code because of the lack of constexpr: its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .  */
         template <class RunFunctor>
         struct backend_type
         {};
 
-
+/** functor struct whose specializations are responsible of running the kernel, i.e. the computational intensive loops on the backend. The fact that is a functor (and not a templated method) allows for partial specialization (e.g. two backends may share the same strategy) */
     template< typename Backend >
     struct execute_kernel_functor
     {
@@ -111,6 +117,7 @@ namespace gridtools{
         };
 
 
+/**specialization for the \ref gridtools::_impl::Naive strategy*/
         template<>
         struct strategy_from_id< Naive>
         {
@@ -137,6 +144,7 @@ namespace gridtools{
         };
 
 
+/**specialization for the \ref gridtools::_impl::Block strategy*/
         template<>
         struct strategy_from_id <Block>
         {
