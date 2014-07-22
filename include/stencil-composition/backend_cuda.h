@@ -28,6 +28,8 @@
 namespace gridtools {
 
     namespace _impl{
+
+/** Specialization of the cout function for the CUDA backend \TODO finish */
         template<>
 	    struct cout<_impl::Cuda>
 	    {
@@ -57,6 +59,7 @@ namespace gridtools {
 
     }//namespace _impl
 
+/** Kernel function called from the GPU */
     namespace _impl_cuda {
 
         template <typename first_hit,
