@@ -46,31 +46,31 @@ namespace gridtools {
         {
             typedef _impl_host::run_functor_host< Arguments > backend_t;
             template< typename Traits >
-            static void execute_kernel( typename Traits::local_domain_type& local_domain, const backend_t * f )
+            static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
                 {
                     typedef typename Arguments::coords_t coords_t;
                     typedef typename Arguments::loop_intervals_t loop_intervals_t;
-                    typedef typename Traits::range_type range_type;
-                    typedef typename Traits::functor_type functor_type;
-                    typedef typename Traits::local_domain_type  local_domain_type;
-                    typedef typename Traits::interval_map interval_map;
-                    typedef typename Traits::iterate_domain_type iterate_domain_type;
+                    typedef typename Traits::range_t range_t;
+                    typedef typename Traits::functor_t functor_t;
+                    typedef typename Traits::local_domain_t  local_domain_t;
+                    typedef typename Traits::interval_map_t interval_map_t;
+                    typedef typename Traits::iterate_domain_t iterate_domain_t;
 
 
-                for (int i = f->m_starti + range_type::iminus::value;
-                     i < f->m_starti + f->m_BI + range_type::iplus::value;
+                for (int i = f->m_starti + range_t::iminus::value;
+                     i < f->m_starti + f->m_BI + range_t::iplus::value;
                      ++i)
-                    for (int j = f->m_startj + range_type::jminus::value;
-                         j < f->m_startj + f->m_BJ + range_type::jplus::value;
+                    for (int j = f->m_startj + range_t::jminus::value;
+                         j < f->m_startj + f->m_BJ + range_t::jplus::value;
                          ++j)
                     {
-                        iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit>());
+                        iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>());
 
                         gridtools::for_each<loop_intervals_t>
                             (_impl::run_f_on_interval
-                             <functor_type,
-                             interval_map,
-                             iterate_domain_type,
+                             <functor_t,
+                             interval_map_t,
+                             iterate_domain_t,
                              coords_t>
                              (it_domain,f->m_coords)
                                 );
@@ -94,7 +94,7 @@ namespace gridtools {
         {
             template <typename ValueType, typename Layout>
             struct storage_traits{
-                typedef storage<ValueType, Layout> storage_type;
+                typedef storage<ValueType, Layout> storage_t;
             };
 
             template <typename Arguments>

@@ -76,12 +76,12 @@ struct heap_allocated_temps {
         static void prepare_temporaries(Domain & domain, Coords const& coords) {
             int tileI, tileJ, tileK;
 
-            tileI = (Backend::strategy_traits::BI)?
-                (Backend::strategy_traits::BI):
+            tileI = (Backend::strategy_traits_t::BI)?
+                (Backend::strategy_traits_t::BI):
                 (coords.i_high_bound()-coords.i_low_bound()+1);
 
-            tileJ = (Backend::strategy_traits::BJ)?
-                (Backend::strategy_traits::BJ):
+            tileJ = (Backend::strategy_traits_t::BJ)?
+                (Backend::strategy_traits_t::BJ):
                 (coords.j_high_bound()-coords.j_low_bound()+1);
 
             tileK = coords.value_at_top()-coords.value_at_bottom();

@@ -62,26 +62,26 @@ namespace gridtools {
 /** Kernel function called from the GPU */
     namespace _impl_cuda {
 
-        template <typename first_hit,
+        template <typename FirstHit,
                   typename LoopIntervals,
-                  typename functor_type,
-                  typename interval_map,
+                  typename FunctorType,
+                  typename IntervalMap,
                   typename LDomain,
                   typename Coords>
         __global__
         void do_it_on_gpu(LDomain * l_domain, Coords const* coords, int starti, int startj, int nx, int ny) {
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             int j = blockIdx.y * blockDim.y + threadIdx.y;
-            int z = coords->template value_at<first_hit>();
+            int z = coords->template value_at<FirstHit>();
 
             if ((i < nx) && (j < ny)) {
-                typedef typename LDomain::iterate_domain_type iterate_domain_type;
-                iterate_domain_type it_domain(*l_domain, i+starti,j+startj, z);
+                typedef typename LDomain::iterate_domain_t iterate_domain_t;
+                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z);
                 for_each<LoopIntervals>
                     (_impl::run_f_on_interval
-                     <functor_type,
-                     interval_map,
-                     iterate_domain_type,
+                     <FunctorType,
+                     IntervalMap,
+                     iterate_domain_t,
                      Coords>
                      (it_domain,*coords));
             }
@@ -115,26 +115,26 @@ namespace gridtools {
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
         template < typename Traits >
-        static void execute_kernel( typename Traits::local_domain_type& local_domain, const backend_t * f )
+        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
             {
                 typedef typename Arguments::coords_t coords_t;
                 typedef typename Arguments::loop_intervals_t loop_intervals_t;
-                typedef typename Traits::range_type range_type;
-                typedef typename Traits::functor_type functor_type;
-                typedef typename Traits::local_domain_type  local_domain_type;
-                typedef typename Traits::interval_map interval_map;
-                typedef typename Traits::iterate_domain_type iterate_domain_type;
-                typedef typename Traits::first_hit first_hit;
+                typedef typename Traits::range_t range_t;
+                typedef typename Traits::functor_t functor_t;
+                typedef typename Traits::local_domain_t  local_domain_t;
+                typedef typename Traits::interval_map_t interval_map_t;
+                typedef typename Traits::iterate_domain_t iterate_domain_t;
+                typedef typename Traits::first_hit_t first_hit_t;
 
                 local_domain.clone_to_gpu();
                 f->m_coords.clone_to_gpu();
 
-                local_domain_type *local_domain_gp = local_domain.gpu_object_ptr;
+                local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
 
                 coords_t const *coords_gp = f->m_coords.gpu_object_ptr;
 
-                int nx = f->m_coords.i_high_bound() + range_type::iplus::value - (f->m_coords.i_low_bound() + range_type::iminus::value);
-                int ny = f->m_coords.j_high_bound() + range_type::jplus::value - (f->m_coords.j_low_bound() + range_type::jminus::value);
+                int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
+                int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
 
                 int ntx = 8, nty = 32, ntz = 1;
                 dim3 threads(ntx, nty, ntz);
@@ -149,11 +149,11 @@ namespace gridtools {
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
-                _impl_cuda::do_it_on_gpu<first_hit, loop_intervals_t, functor_type, interval_map><<<blocks, threads>>>
+                _impl_cuda::do_it_on_gpu<first_hit_t, loop_intervals_t, functor_t, interval_map_t><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
-                     f->m_coords.i_low_bound() + range_type::iminus::value,
-                     f->m_coords.j_low_bound() + range_type::jminus::value,
+                     f->m_coords.i_low_bound() + range_t::iminus::value,
+                     f->m_coords.j_low_bound() + range_t::jminus::value,
                      nx,
                      ny);
                 cudaDeviceSynchronize();
@@ -178,7 +178,7 @@ namespace gridtools {
             template <typename ValueType, typename Layout>
             struct storage_traits
             {
-                typedef cuda_storage<ValueType, Layout> storage_type;
+                typedef cuda_storage<ValueType, Layout> storage_t;
             };
 
             template <typename Arguments>
