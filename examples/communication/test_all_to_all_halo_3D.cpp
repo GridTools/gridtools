@@ -17,7 +17,7 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL MAURO BIANCO, UGO VARETTO, OR 
+DISCLAIMED. IN NO EVENT SHALL MAURO BIANCO, UGO VARETTO, OR
 SWISS NATIONAL SUPERCOMPUTING CENTRE (CSCS), BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#include <proc_grids_3D.h>
-#include <All_to_All_halo.h>
+#include <communication/low-level/proc_grids_3D.h>
+#include <communication/all_to_all_halo.h>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
   std::vector<int> dataout(PI*N*PJ*N*PK*N);
   std::vector<int> datain((N+2*H)*(N+2*H)*(N+2*H));
 
-  file << "Address of data: " << (void*)(&(dataout[0])) 
+  file << "Address of data: " << (void*)(&(dataout[0]))
        << ", data in " << (void*)(&(datain[0])) << "\n";
 
   gridtools::array<int,3> crds;
@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
       for (int k=0; k<PK*N; ++k) {
         dataout[k*PI*N*PJ*N + i*PJ*N + j] = k*PI*N*PJ*N + i*PJ*N + j;
       }
-  
+
   for(int i=0; i<N+2*H; ++i)
     for (int j=0; j<N+2*H; ++j)
       for (int k=0; k<N+2*H; ++k) {
@@ -172,13 +172,13 @@ int main(int argc, char** argv) {
       for (int k=H; k<N+H; ++k) {
         if (dataout[(i-H+N*pi)*N*PK*N*PJ + (j-H+N*pj)*N*PK + (k-H+N*pk)] != datain[i*(N+2*H)*(N+2*H) + j*(N+2*H) + k]) {
           file << "(" << i << "," << j << "," << k
-               << ") (" << (i-H+N*pi)*N*PK*N*PJ 
-               << "," << (j-H+N*pj)*N*PK 
+               << ") (" << (i-H+N*pi)*N*PK*N*PJ
+               << "," << (j-H+N*pj)*N*PK
                << "," << (k-H+N*pk)
                << ") Expected " << dataout[(i-H+N*pi)*N*PK*N*PJ + (j-H+N*pj)*N*PK + (k-H+N*pk)]
                << " got " << datain[i*(N+2*H)*(N+2*H) + j*(N+2*H) + k]
                << std::endl;
-          
+
           correct = false;
         }
     }
