@@ -31,10 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _ALL_TO_ALL_HALO_H_
 #define _ALL_TO_ALL_HALO_H_
 
-#include <access_functions.h>
-#include <halo_descriptor.h>
-#include <Generic_All_to_All.h>
-#include <data_types_mapping.h>
+#include "low-level/access_functions.h"
+#include "high-level/halo_descriptor.h"
+#include "low-level/Generic_All_to_All.h"
+#include "low-level/data_types_mapping.h"
 
 namespace gridtools {
 

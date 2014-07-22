@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GENERIC_ALL_TO_ALL_H_
 #define _GENERIC_ALL_TO_ALL_H_
 
-#include <GCL.h>
+#include "../GCL.h"
 #include <vector>
 #include <mpi.h>
 

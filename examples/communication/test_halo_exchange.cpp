@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <halo_exchange.h>
+#include <communication/halo_exchange.h>
 #include <string>
 #include <common/boollist.h>
 #include <common/layout_map.h>
@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
  
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-  typedef gridtools::gcl_utils::boollist<3> cyc;
+  typedef gridtools::boollist<3> cyc;
   typedef gridtools::MPI_3D_process_grid_t<cyc> grid_type;
 
   cyc periodicity(true, true, true);
