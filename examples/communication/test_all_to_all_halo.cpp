@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#include <proc_grids_2D.h>
-#include <All_to_All_halo.h>
+#include <communication/low-level/proc_grids_2D.h>
+#include <communication/high-level/All_to_All_halo.h>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>

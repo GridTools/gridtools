@@ -395,7 +395,7 @@ namespace gridtools {
 
               if (base_type::pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1) {
                 send_size[translate()(ii,jj,kk)] = 
-                  halo.send_buffer_size(gcl_utils::make_array(ii,jj,kk));
+                  halo.send_buffer_size(make_array(ii,jj,kk));
 
                 send_buffer[translate()(ii,jj,kk)] = 
                   _impl::gcl_alloc<DataType,arch_type>::alloc(send_size[translate()(ii,jj,kk)]*max_fields_n);
@@ -407,7 +407,7 @@ namespace gridtools {
 
 
                 recv_size[translate()(ii,jj,kk)] = 
-                  halo.recv_buffer_size(gcl_utils::make_array(ii,jj,kk));
+                  halo.recv_buffer_size(make_array(ii,jj,kk));
 
                 recv_buffer[translate()(ii,jj,kk)] = 
                   _impl::gcl_alloc<DataType,arch_type>::alloc(recv_size[translate()(ii,jj,kk)]*max_fields_n);

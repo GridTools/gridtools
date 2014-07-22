@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <halo_exchange.h>
+#include <communication/halo_exchange.h>
 #include <string>
 #include <stdlib.h>
 #include <common/layout_map.h>

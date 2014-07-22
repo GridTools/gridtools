@@ -95,12 +95,12 @@ namespace gridtools {
 
     template <>
     struct get_grid<2> {
-      typedef MPI_2D_process_grid_t<gcl_utils::boollist<2> > type;
+      typedef MPI_2D_process_grid_t<boollist<2> > type;
     };
 
     template <>
     struct get_grid<3> {
-      typedef MPI_3D_process_grid_t<gcl_utils::boollist<3> > type;
+      typedef MPI_3D_process_grid_t<boollist<3> > type;
     };
 
   }
