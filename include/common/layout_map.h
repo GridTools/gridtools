@@ -166,7 +166,6 @@ namespace gridtools {
                     return b;
                 }
             }
-            return -1; // killing warnings by nvcc
         }
     };
 

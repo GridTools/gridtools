@@ -12,7 +12,7 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(EXECUTABLE_OUTPUT_PATH "../build")
 endif()
 
-include_directories( include/ ) ## Library header files
+include_directories( include/ include/communication/high-level ) ## Library header files
 
 # Find boost
 if(WIN32)

@@ -64,7 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //std::cout << fields[ m ] << " is equal to (input) " << new_field ## m << std::endl;
 #define COPY_BACK(m) BOOST_PP_REPEAT(m, _COPY_BACK, nil)
 
-// #define _PREFIX_SEND(z, m, s) prefix_send_size[(m + 1 )*27+translate()(ii,jj,kk)] = prefix_send_size[( m )*27+translate()(ii,jj,kk)] + field ## m.send_buffer_size(gcl_utils::make_array(ii,jj,kk));
+// #define _PREFIX_SEND(z, m, s) prefix_send_size[(m + 1 )*27+translate()(ii,jj,kk)] = prefix_send_size[( m )*27+translate()(ii,jj,kk)] + field ## m.send_buffer_size(make_array(ii,jj,kk));
 // #define PREFIX_SEND(m) BOOST_PP_REPEAT(m, _PREFIX_SEND, nil)
 
 template <BOOST_PP_ENUM_PARAMS(n_o_i, typename FIELD)> 
@@ -169,7 +169,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) {
             //(*filep) << "prefix_send_size[l*27+translate()(ii,jj,kk)]=prefix_send_size[%d]=%d\n" << 0*27+translate()(ii,jj,kk) << prefix_send_size[0*27+translate()(ii,jj,kk)] << std::endl;
             for (int l=1; l<fields.size(); ++l) {
               prefix_send_size[l*27+translate()(ii,jj,kk)] = prefix_send_size[(l-1)*27+translate()(ii,jj,kk)]
-                + fields[l-1].send_buffer_size(gcl_utils::make_array(ii,jj,kk));
+                + fields[l-1].send_buffer_size(make_array(ii,jj,kk));
               //(*filep) << "prefix_send_size[l*27+translate()(ii,jj,kk)]=prefix_send_size[%d]=%d\n" << l*27+translate()(ii,jj,kk) << prefix_send_size[l*27+translate()(ii,jj,kk)] << std::endl;
             }
           }
@@ -331,7 +331,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) {
             prefix_recv_size[0+translate()(ii,jj,kk)] = 0;
             for (int l=1; l<fields.size(); ++l) {
               prefix_recv_size[l*27+translate()(ii,jj,kk)] = prefix_recv_size[(l-1)*27+translate()(ii,jj,kk)]
-                + fields[l-1].recv_buffer_size(gcl_utils::make_array(ii,jj,kk));
+                + fields[l-1].recv_buffer_size(make_array(ii,jj,kk));
             }
           }
         }
