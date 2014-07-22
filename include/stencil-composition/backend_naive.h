@@ -40,7 +40,7 @@ namespace gridtools {
 
     namespace _impl{
 
-/** Partial specialization: naive and block implementation for the host backend (2 policies specify strategy and backend)*/
+/** Partial specialization: naive and block implementation for the host backend */
         template <typename Arguments >
         struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
         {

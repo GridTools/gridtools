@@ -122,11 +122,10 @@ namespace gridtools {
                   typename Coords, // Coordinate class with domain sizes and splitter coordinates
                   typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
         static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
-
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
+            //wrapping all the template arguments in a single container
             typedef _impl::template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments;
             typedef typename backend_traits::template execute_traits< arguments >::backend_t backend_t;
-
             _impl::strategy_from_id< m_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
         }
     };

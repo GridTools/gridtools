@@ -50,7 +50,7 @@ namespace gridtools {
             template <typename StorageType>
             GT_FUNCTION_WARNING
             void operator()(StorageType* s) const {
-                printf("CIAOOO TATATA %x\n", (unsigned int) s);
+                printf("CIAOOO TATATA %x\n",  s);
             }
 
 #ifdef __CUDACC__
@@ -74,7 +74,7 @@ namespace gridtools {
             template <typename StorageType>
             GT_FUNCTION
             void operator()(StorageType* s) const {
-                printf("PTR %x\n", (unsigned int) s);
+                printf("PTR %x\n",  s);
             }
         };
     } // namespace _debug
