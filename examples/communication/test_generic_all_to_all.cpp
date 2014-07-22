@@ -1,0 +1,177 @@
+#include <communication/low-level/proc_grids_2D.h>
+#include <communication/low-level/Generic_All_to_All.h>
+#include <stdlib.h>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+
+template <typename STREAM, typename T>
+void print(STREAM & cout, std::vector<T> const& v, int n, int m) {
+  if ((n < 20) && (m < 20)) {
+    for (int i=0; i<n; ++i) {
+      cout << "@" << gridtools::PID << "@ ";
+      for (int j=0; j<m; ++j) {
+        cout << v[i*m+j] << " ";
+      }
+      cout << "\n";
+    }
+    cout << "\n\n";
+  }
+}
+
+
+int main(int argc, char** argv) {
+
+  MPI_Init(&argc, &argv);
+  gridtools::GCL_Init(argc, argv);
+
+  std::stringstream ss;
+  ss << gridtools::PID;
+
+  std::string filename = "out" + ss.str() + ".txt";
+  //filename[3] = '0'+pid;
+  std::cout << filename << std::endl;
+  std::ofstream file(filename.c_str());
+
+  gridtools::all_to_all<int> a2a(gridtools::PROCS);
+
+  // Let's do a 2D scatter
+  // Step 1: define data
+  typedef gridtools::_2D_process_grid_t<gridtools::boollist<2> > grid_type;
+
+  grid_type pgrid(gridtools::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
+
+  int pi, pj;
+  int PI, PJ;
+  pgrid.coords(pi,pj);
+  pgrid.dims(PI,PJ);
+
+  file << "@" << gridtools::PID << "@ PROC GRID SIZE " << PI << "x" << PJ << "\n";
+
+  int N = atoi(argv[1]);
+
+  file << "@" << gridtools::PID << "@ PARAMETER N " << N << "\n";
+
+  std::vector<int> dataout(PI*N*PJ*N);
+  std::vector<int> datain(N*N);
+
+  file << "Address of data: " << (void*)(&(dataout[0])) 
+       << ", data in " << (void*)(&(datain[0])) << "\n";
+
+  if (gridtools::PID == 0) {
+    file << "INITIALIZING DATA TO SEND\n";
+    std::vector<int> out_sizes(2), out_subsizes(2), out_starts(2);
+    std::vector<MPI_Datatype> DATAOUT(PI*PJ) ;
+
+    out_sizes[0] = N*PI;
+    out_sizes[1] = N*PJ;
+    out_subsizes[0] = N;
+    out_subsizes[1] = N;
+
+    for(int i=0; i<PI; ++i) {
+      for (int j=0; j<PJ; ++j) {
+        int k=i*PJ+j;
+        out_starts[0] = i*N;
+        out_starts[1] = j*N;
+        MPI_Type_create_subarray(2, 
+                                 &(out_sizes[0]), 
+                                 &(out_subsizes[0]), 
+                                 &(out_starts[0]), 
+                                 MPI_ORDER_C,
+                                 MPI_INT,
+                                 &(DATAOUT[k]));
+        MPI_Type_commit(&(DATAOUT[k]));
+      }
+    }
+
+  
+    for(int i=0; i<PI; ++i)
+      for (int j=0; j<PJ; ++j) {
+        int k=i*PJ+j;
+        file << "Setting a2a " << k << "\n";
+        a2a.to[k] = gridtools::packet<int>(DATAOUT[k], &dataout[0]);
+      }
+  } else {
+    for(int i=0; i<PI; ++i)
+      for (int j=0; j<PJ; ++j) {
+        int k=i*PJ+j;
+        file << "Setting a2a " << k << " to null\n";
+        a2a.to[k] = gridtools::packet<int>(); // set pointer to NULL
+      }
+  }
+
+  std::vector<int> in_sizes(2), in_subsizes(2), in_starts(2);
+
+  in_sizes[0] = N;
+  in_sizes[1] = N;
+  in_subsizes[0] = N;
+  in_subsizes[1] = N;
+  in_starts[0] = 0;
+  in_starts[1] = 0;
+
+  MPI_Datatype DATAIN;
+  MPI_Type_create_subarray(2, 
+                           &in_sizes[0], 
+                           &in_subsizes[0], 
+                           &in_starts[0], 
+                           MPI_ORDER_C,
+                           MPI_INT,
+                           &DATAIN);
+  MPI_Type_commit(&DATAIN);
+  
+
+  for(int i=0; i<PI; ++i)
+    for (int j=0; j<PJ; ++j) {
+      int k=i*PJ+j;
+      a2a.from[k] = gridtools::packet<int>();
+    }
+
+  a2a.from[0] = gridtools::packet<int>(DATAIN, &datain[0]);
+
+  for(int i=0; i<PI*N; ++i)
+    for (int j=0; j<PJ*N; ++j) {
+      dataout[i*PJ*N+j] = i*PJ*N+j;
+    }
+  
+  for(int i=0; i<N; ++i)
+    for (int j=0; j<N; ++j) {
+      datain[i*N+j] = 0;
+    }
+
+  print(file, dataout, PI*N, PJ*N);
+  print(file, datain, N, N);
+  file.flush();
+
+  MPI_Barrier(gridtools::GCL_WORLD);
+
+  a2a.setup();
+  a2a.start_exchange();
+  a2a.wait();
+
+  print(file, dataout, PI*N, PJ*N);
+  print(file, datain, N, N);
+
+  bool correct = true;
+  for(int i=0; i<N; ++i)
+    for (int j=0; j<N; ++j) {
+      if (dataout[(i+N*pi)*N*PJ+(j+N*pj)] != datain[i*N+j])
+        correct = false;
+    }
+
+  file << "RESULT: ";
+  if (correct) {
+    file << "PASSED!\n";
+  } else {
+    file << "FAILED!\n";
+  }
+
+  file.flush();
+  file.close();
+
+  MPI_Barrier(gridtools::GCL_WORLD);
+
+  gridtools::GCL_Finalize();
+
+  return 0;
+}
