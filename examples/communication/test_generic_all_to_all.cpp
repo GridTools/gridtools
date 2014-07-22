@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-#include <proc_grids_2D.h>
-#include <Generic_All_to_All.h>
+#include <communication/low-level/proc_grids_2D.h>
+#include <communication/low-level/Generic_All_to_All.h>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
@@ -68,9 +68,9 @@ int main(int argc, char** argv) {
 
   // Let's do a 2D scatter
   // Step 1: define data
-  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
-  grid_type pgrid(gridtools::gcl_utils::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
+  grid_type pgrid(gridtools::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
 
   int pi, pj;
   int PI, PJ;

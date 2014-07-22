@@ -67,9 +67,9 @@ int main(int argc, char** argv) {
 
   typedef gridtools::array<gridtools::halo_descriptor, 2> halo_block;;
 
-  typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+  typedef gridtools::_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
-  grid_type pgrid(gridtools::gcl_utils::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
+  grid_type pgrid(gridtools::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
 
   gridtools::all_to_all_halo<int, grid_type> a2a(pgrid);
 
