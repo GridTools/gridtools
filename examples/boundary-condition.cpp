@@ -16,7 +16,6 @@ using gridtools::plus;
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
-#include <stencil-composition/backend_block.h>
 #include <stencil-composition/backend_naive.h>
 #endif
 
@@ -27,13 +26,16 @@ using gridtools::plus;
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace gridtools;
+using namespace enumtype;
+
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
+#define BACKEND backend<Cuda, Naive>
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend_block
+#define BACKEND backend<Host, Block>
 #else
-#define BACKEND backend_naive
+#define BACKEND backend<Host, Naive>
 #endif
 #endif
 

@@ -5,7 +5,6 @@
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
-#include <stencil-composition/backend_block.h>
 #include <stencil-composition/backend_naive.h>
 #endif
 
@@ -176,13 +175,16 @@ int main(int argc, char** argv) {
     int d2 = atoi(argv[2]);
     int d3 = atoi(argv[3]);
 
+    using namespace gridtools;
+    using namespace enumtype;
+
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend_cuda
+#define BACKEND backend<Cuda, Naive >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend_block
+#define BACKEND backend<Host, Block >
 #else
-#define BACKEND backend_naive
+#define BACKEND backend<Host, Naive >
 #endif
 #endif
 

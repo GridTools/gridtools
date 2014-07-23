@@ -61,8 +61,8 @@ namespace gridtools {
 
     } // namespace _impl
 
-    template <typename Backend>
-    struct heap_allocated_temps {
+template <typename Backend>
+struct heap_allocated_temps {
         /**
          * This function is to be called by intermediate representation or back-end
          *
@@ -76,12 +76,12 @@ namespace gridtools {
         static void prepare_temporaries(Domain & domain, Coords const& coords) {
             int tileI, tileJ, tileK;
 
-            tileI = (Backend::BI)?
-                (Backend::BI):
+            tileI = (Backend::strategy_traits_t::BI)?
+                (Backend::strategy_traits_t::BI):
                 (coords.i_high_bound()-coords.i_low_bound()+1);
 
-            tileJ = (Backend::BJ)?
-                (Backend::BJ):
+            tileJ = (Backend::strategy_traits_t::BJ)?
+                (Backend::strategy_traits_t::BJ):
                 (coords.j_high_bound()-coords.j_low_bound()+1);
 
             tileK = coords.value_at_top()-coords.value_at_bottom();
@@ -112,6 +112,7 @@ namespace gridtools {
 #endif
 
             typedef typename MssType::written_temps_per_functor written_temps_per_functor;
+
 
             typedef typename boost::mpl::transform<
                 list_of_temporaries,
@@ -168,5 +169,3 @@ namespace gridtools {
 
     };
 } // namespace gridtools
-
-
