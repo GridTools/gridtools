@@ -50,7 +50,7 @@ namespace gridtools {
 
 #ifndef NDEBUG
 // TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                std::cout << "Functor " <<  Traits::functor_t() << "\n";
+                std::cout << "Functor " <<  functor_t() << "\n";
                 std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                                     << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
                 std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
