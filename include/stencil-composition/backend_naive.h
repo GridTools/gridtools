@@ -7,119 +7,118 @@
 #include "../storage/storage.h"
 #include "basic_token_execution.h"
 #include "heap_allocated_temps.h"
+#include "backend.h"
 
 namespace gridtools {
-    namespace _impl_naive {
 
-        template <typename FunctorList,
-                  typename LoopIntervals,
-                  typename FunctorsMap,
-                  typename RangeSizes,
-                  typename DomainList,
-                  typename Coords>
-        struct run_functor {
-            Coords const &coords;
-            DomainList &domain_list;
+    namespace _impl_host {
 
-            explicit run_functor(DomainList & domain_list, Coords const& coords)
-                : coords(coords)
-                , domain_list(domain_list)
+        template < typename Arguments >
+        struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
+        {
+
+            typedef _impl::run_functor < run_functor_host < Arguments > > super;
+            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+                : super(domain_list, coords)
             {}
 
-            template <typename Index>
-            void operator()(Index const&) const {
-                typedef typename boost::mpl::at<RangeSizes, Index>::type range_type;
-
-                typedef typename boost::mpl::at<FunctorList, Index>::type functor_type;
-                typedef typename boost::fusion::result_of::value_at<DomainList, Index>::type local_domain_type;
-
-                typedef typename boost::mpl::at<FunctorsMap, Index>::type interval_map;
-
-                local_domain_type& local_domain = boost::fusion::at<Index>(domain_list);
-
-#ifndef NDEBUG
-                std::cout << "Functor " << functor_type() << std::endl;
-                std::cout << "I loop " << coords.i_low_bound() + range_type::iminus::value << " -> "
-                          << coords.i_high_bound() + range_type::iplus::value << std::endl;
-                std::cout << "J loop " << coords.j_low_bound() + range_type::jminus::value << " -> "
-                          << coords.j_high_bound() + range_type::jplus::value << std::endl;
-#endif
-
-
-                typedef typename index_to_level<
-                    typename boost::mpl::deref<
-                        typename boost::mpl::find_if<
-                            LoopIntervals, 
-                            boost::mpl::has_key<interval_map, boost::mpl::_1> 
-                        >::type
-                    >::type::first
-                >::type first_hit;
-#ifndef NDEBUG
-                std::cout << " ******************** " << first_hit() << std::endl;
-                std::cout << " ******************** " << coords.template value_at<first_hit>() << std::endl;
-#endif
-
-                typedef typename local_domain_type::iterate_domain_type iterate_domain_type;
-
-                for (int i = coords.i_low_bound() + range_type::iminus::value;
-                     i < coords.i_high_bound() + range_type::iplus::value;
-                     ++i)
-                    for (int j = coords.j_low_bound() + range_type::jminus::value;
-                         j < coords.j_high_bound() + range_type::jplus::value;
-                         ++j) {
-                        iterate_domain_type it_domain(local_domain, i,j, coords.template value_at<first_hit>()); 
-
-                        gridtools::for_each<LoopIntervals>
-                            (_impl::run_f_on_interval
-                             <functor_type, 
-                             interval_map,
-                             iterate_domain_type,
-                             Coords>
-                             (it_domain,coords)
-                             );
-                    }
-            }
+            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj)
+                : super(domain_list, coords, i, j, bi, bj)
+            {}
 
         };
     }
 
-    struct backend_naive: public heap_allocated_temps<backend_naive> {
-        static const int BI = 0;
-        static const int BJ = 0;
-        static const int BK = 0;
+    namespace _impl{
 
-        template <typename ValueType, typename Layout>
-        struct storage_type {
-            typedef storage<ValueType, Layout> type;
+/** Partial specialization: naive and block implementation for the host backend */
+        template <typename Arguments >
+        struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
+        {
+            typedef _impl_host::run_functor_host< Arguments > backend_t;
+            template< typename Traits >
+            static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
+                {
+                    typedef typename Arguments::coords_t coords_t;
+                    typedef typename Arguments::loop_intervals_t loop_intervals_t;
+                    typedef typename Traits::range_t range_t;
+                    typedef typename Traits::functor_t functor_t;
+                    typedef typename Traits::local_domain_t  local_domain_t;
+                    typedef typename Traits::interval_map_t interval_map_t;
+                    typedef typename Traits::iterate_domain_t iterate_domain_t;
+
+
+#ifndef NDEBUG
+// TODO a generic cout is still on the way (have to implement all the '<<' operators)
+                std::cout << "Functor " <<  Traits::functor_t() << "\n";
+                std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
+                                    << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
+                std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
+                                    << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+                std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+                std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+#endif
+
+
+                for (int i = f->m_starti + range_t::iminus::value;
+                     i < f->m_starti + f->m_BI + range_t::iplus::value;
+                     ++i)
+                    for (int j = f->m_startj + range_t::jminus::value;
+                         j < f->m_startj + f->m_BJ + range_t::jplus::value;
+                         ++j)
+                    {
+                        iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>());
+
+                        gridtools::for_each<loop_intervals_t>
+                            (_impl::run_f_on_interval
+                             <functor_t,
+                             interval_map_t,
+                             iterate_domain_t,
+                             coords_t>
+                             (it_domain,f->m_coords)
+                                );
+                    }
+                }
+
         };
 
-        template <typename ValueType, typename Layout>
-        struct temporary_storage_type {
-            typedef temporary<storage<ValueType, Layout> > type;
+
+//wasted code because of the lack of constexpr
+        template <typename Arguments >
+        struct backend_type< _impl_host::run_functor_host< Arguments > >
+        {
+            static const enumtype::backend s_backend=enumtype::Host;
         };
 
-        template <typename FunctorList, // List of functors to execute (in order)
-                  typename range_sizes, // computed range sizes to know where to compute functot at<i>
-                  typename LoopIntervals, // List of intervals on which functors are defined
-                  typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
-                  typename Domain, // Domain class (not really useful maybe)
-                  typename Coords, // Coordinate class with domain sizes and splitter coordinates
-                  typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
-        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {
 
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<FunctorList>::type::value> iter_range;
+        /**Traits struct, containing the types which are specific for the host backend*/
+        template<>
+        struct backend_from_id<enumtype::Host>
+        {
+            template <typename ValueType, typename Layout>
+            struct storage_traits{
+                typedef storage<ValueType, Layout> storage_t;
+            };
 
-            gridtools::for_each<iter_range>(_impl_naive::run_functor
-                                             <
-                                             FunctorList,
-                                             LoopIntervals,
-                                             FunctorsMap,
-                                             range_sizes,
-                                             LocalDomainList,
-                                             Coords
-                                             >
-                                             (local_domain_list,coords));
-        }
-    };
+            template <typename Arguments>
+            struct execute_traits
+            {
+                typedef _impl_host::run_functor_host< Arguments > backend_t;
+            };
+
+            //function alias (pre C++11, std::bind or std::mem_fn,
+            //using function pointers looks very ugly)
+            template<
+                typename Sequence
+                , typename F
+                >
+            //unnecessary copies/indirections if the compiler is not smart (std::forward)
+            inline static void for_each(F f)
+                {
+                    gridtools::for_each<Sequence>(f);
+                }
+
+        };
+    } //namespace _impl
 
 } // namespace gridtools

@@ -35,7 +35,6 @@ target_link_libraries(laplacian_block ${exe_LIBS})
 if(CUDA_FOUND)
     cuda_add_executable( interface1_cuda interface1.cu )
     #add_dependencies(  )
-    #target_link_libraries( interface1_cuda ${CUDA_MPI_LIB} )
 
     cuda_add_executable( laplacian_cuda laplacian.cu )
     cuda_add_executable(boundary-condition_cuda   boundary-condition.cu )
