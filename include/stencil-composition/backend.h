@@ -58,21 +58,6 @@ namespace gridtools {
             template <typename Index>
             void operator()(Index const& ) const {
 
-#ifndef NDEBUG
-                static const enumtype::backend backend_t = backend_type<derived_t>::s_backend;
-
-                typedef typename derived_traits_t::template traits<Index>::range_t range_t;
-// TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                cout< backend_t >() << "Functor " <<  typename derived_traits_t::template traits<Index>::functor_t() << "\n";
-                cout< backend_t >() << "I loop " << m_coords.i_low_bound() + range_t::iminus::value << " -> "
-                                    << (m_coords.i_high_bound() + range_t::iplus::value) << "\n";
-                cout< backend_t >() << "J loop " << m_coords.j_low_bound() + range_t::jminus::value << " -> "
-                                    << m_coords.j_high_bound() + range_t::jplus::value << "\n";
-                cout< backend_t >() <<  " ******************** " /*<< first_hit_t()*/ << "\n";
-                cout< backend_t >() << " ******************** " /*<< coords.template value_at<first_hit_t>()*/ << "\n";
-#endif
-
-
                 typename derived_traits_t::template traits<Index>::local_domain_t& local_domain = boost::fusion::at<Index>(m_domain_list);
                 typedef execute_kernel_functor<  derived_t > functor_t;
                 functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));

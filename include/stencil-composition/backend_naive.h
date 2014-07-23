@@ -10,15 +10,6 @@
 #include "backend.h"
 
 namespace gridtools {
-    namespace _impl{
-        template <>
-        struct cout<enumtype::Host>
-        {
-            template <typename T>
-            const cout& operator << (T arg) const {std::cout<<arg; return *this;}
-        };
-
-    }//namespace _impl
 
     namespace _impl_host {
 
@@ -55,6 +46,18 @@ namespace gridtools {
                     typedef typename Traits::local_domain_t  local_domain_t;
                     typedef typename Traits::interval_map_t interval_map_t;
                     typedef typename Traits::iterate_domain_t iterate_domain_t;
+
+
+#ifndef NDEBUG
+// TODO a generic cout is still on the way (have to implement all the '<<' operators)
+                std::cout << "Functor " <<  Traits::functor_t() << "\n";
+                std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
+                                    << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
+                std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
+                                    << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+                std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+                std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+#endif
 
 
                 for (int i = f->m_starti + range_t::iminus::value;
