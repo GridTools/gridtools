@@ -38,11 +38,13 @@ namespace gridtools {
 
             Domain const& domain;
 
+            GT_FUNCTION_WARNING
             assign_base_pointers(Domain const& domain)
                 : domain(domain)
             {}
 
             template <typename ZipElem>
+            GT_FUNCTION_WARNING
             void operator()(ZipElem const& ze) const {
                 typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
 
@@ -118,7 +120,7 @@ namespace gridtools {
             }
         };
 
-
+        GT_FUNCTION_WARNING
         local_domain_base() {}
 
         GT_FUNCTION
