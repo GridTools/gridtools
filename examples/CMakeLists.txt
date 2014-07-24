@@ -5,14 +5,6 @@
 
 #add_executable(interface2   interface2.cpp ${SOURCES} )
 
-if ("${PAPI_WRAP_MODULE}" STREQUAL "ON")
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/../include/external/perfcount" )
-link_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/external/perfcount/lib" )
-set ( exe_LIBS ${Boost_LIBRARIES} papi_wrap )
-else()
-set ( exe_LIBS ${Boost_LIBRARIES} )
-endif()
-
 add_executable(interface1_naive   interface1.cpp )
 add_executable(interface1_block   interface1.cpp )
 set_target_properties(interface1_block
