@@ -1,6 +1,7 @@
 #pragma once
 #include "../common/basic_utils.h"
 #include "../common/gpu_clone.h"
+#include "../common/gt_assert.h"
 
 namespace gridtools {
 
@@ -102,18 +103,27 @@ namespace gridtools {
             return _impl::get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
+        int offset(int i, int j, int k) const {
+            return _index(i,j,k);
+        }
+
     protected:
         template <typename derived_t>
         void print(derived_t* that) const {
+            print(that, std::cout);
+        }
+
+        template <typename derived_t, typename Stream>
+        void print(derived_t* that, Stream & stream) const {
             //std::cout << "Printing " << name << std::endl;
-            std::cout << "(" << m_dims[0] << "x"
+            stream << "(" << m_dims[0] << "x"
                       << m_dims[1] << "x"
                       << m_dims[2] << ")"
                       << std::endl;
-            std::cout << "| j" << std::endl;
-            std::cout << "| j" << std::endl;
-            std::cout << "v j" << std::endl;
-            std::cout << "---> k" << std::endl;
+            stream << "| j" << std::endl;
+            stream << "| j" << std::endl;
+            stream << "v j" << std::endl;
+            stream << "---> k" << std::endl;
 
             int MI=12;
             int MJ=12;
@@ -122,17 +132,17 @@ namespace gridtools {
             for (int i = 0; i < std::min(m_dims[0],MI); ++i) {
                 for (int j = 0; j < std::min(m_dims[1],MJ); ++j) {
                     for (int k = 0; k < std::min(m_dims[2],MK); ++k) {
-                        std::cout << "["/*("
+                        stream << "["/*("
                                           << i << ","
                                           << j << ","
                                           << k << ")"*/
                                   << that->operator()(i,j,k) << "] ";
                     }
-                    std::cout << std::endl;
+                    stream << std::endl;
                 }
-                std::cout << std::endl;
+                stream << std::endl;
             }
-            std::cout << std::endl;
+            stream << std::endl;
         }
 
         GT_FUNCTION
@@ -151,7 +161,7 @@ namespace gridtools {
                     layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
                     layout::template find<2>(i,j,k);
             }
-            assert(index >= 0);
+            //assert(index >= 0);
             assert(index <m_size);
             return index;
         }
