@@ -7,7 +7,9 @@
 #include "base_storage.h"
 //////// STORAGE
 
+#ifdef _GT_RANDOM_INPUT
 #include <stdlib.h>
+#endif
 
 namespace gridtools {
     template < typename ValueType
@@ -42,10 +44,16 @@ namespace gridtools {
             : base_type(m_dim1, m_dim2, m_dim3, init, s)
             , m_name(s)
         {
+#ifdef _GT_RANDOM_INPUT
             srand(12345);
+#endif
             data = new value_type[m_size];
             for (int i = 0; i < m_size; ++i)
-                data[i] = init* rand();
+#ifdef _GT_RANDOM_INPUT
+                data[i] = init * rand();
+#else
+                data[i] = init;
+#endif
         }
 
         std::string const& name() const {
