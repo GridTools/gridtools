@@ -24,6 +24,9 @@ set_target_properties(laplacian_block
 target_link_libraries(laplacian_naive ${exe_LIBS})
 target_link_libraries(laplacian_block ${exe_LIBS})
 
+add_executable(basic_laplacian basic_laplacian.cpp)
+target_link_libraries(basic_laplacian ${exe_LIBS})
+
 if(CUDA_FOUND)
     cuda_add_executable( interface1_cuda interface1.cu )
     #add_dependencies(  )
