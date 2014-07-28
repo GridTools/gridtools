@@ -62,11 +62,20 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_definitions( -D_VARIADIC_MAX=10 )
 endif()
 
+set ( exe_LIBS ${Boost_LIBRARIES} )
+
 if(OPENMP_FOUND)
-    set (PAPI_WRAP_MODULE "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
-    if ( "${PAPI_WRAP_MODULE}" STREQUAL "ON" )
-        add_subdirectory( include/external/perfcount )
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP")
+    set (PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
+    if ( "${PAPI_WRAP_LIBRARY}" STREQUAL "ON" )
+        if ( "$ENV{PAPI_WRAP_ROOT}" STREQUAL "" )
+            message ("papi-wrap not found. Please set PAPI_WRAP_ROOT to the root path of the papi-wrap library. papi-wrap not used!")
+        else()
+            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
+            set( PAPI_WRAP_MODULE "ON" )
+            include_directories( "$ENV{PAPI_WRAP_ROOT}" )
+            link_directories ( "$ENV{PAPI_WRAP_ROOT}/lib" )
+            set ( exe_LIBS "${exe_LIBS}" papi_wrap )
+        endif()
     endif()
 endif()
 
@@ -100,8 +109,6 @@ ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/h
 
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
-
-set( PAPI_WRAP_AS_MODULE "ON" )
 
 
 
