@@ -2,6 +2,7 @@
 #include <storage/storage.h>
 #include <common/layout_map.h>
 #include <fstream>
+#include <boost/timer/timer.hpp>
 
 int main(int argc, char** argv) {
 
@@ -27,18 +28,22 @@ int main(int argc, char** argv) {
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     out.print(file_i);
 
+    boost::timer::cpu_timer time;
     for (int i=2; i < d1-2; ++i) {
         for (int j=2; j < d2-2; ++j) {
             for (int k=0; k < d3; ++k) {
-                std::cout << in(i,j,k) << std::endl;
+                //std::cout << in(i,j,k) << std::endl;
                 out(i,j,k) = 4 * in(i,j,k) - 
                     (in( i+1, j, k) + in( i, j+1, k) +
                      in( i-1, j, k) + in( i, j-1, k));
             }
         }
     }
+    boost::timer::cpu_times lapse_time = time.elapsed();
 
     out.print(file_o);
+
+    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }
