@@ -27,7 +27,7 @@ namespace gridtools {
                                               ValueType,
                                               Layout,
                                               IsTemporary
-                                              > 
+                                              >
     {
         typedef cuda_storage<ValueType, Layout, IsTemporary
 #ifndef NDEBUG
@@ -77,10 +77,12 @@ namespace gridtools {
 
         ~cuda_storage() { }
 
+        /**@brief copy the pointer from the host to the device*/
         void h2d_update() {
             data.update_gpu();
         }
 
+        /**@brief copy the pointer from the device to the host*/
         void d2h_update() {
             data.update_cpu();
         }
@@ -97,12 +99,12 @@ namespace gridtools {
 
         GT_FUNCTION
         value_type& operator()(int i, int j, int k) {
-            return data[base_type::_index(i,j,k)];            
+            return data[base_type::_index(i,j,k)];
         }
 
         GT_FUNCTION
         value_type const & operator()(int i, int j, int k) const {
-            return data[base_type::_index(i,j,k)];            
+            return data[base_type::_index(i,j,k)];
         }
 
         void print() const {

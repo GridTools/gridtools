@@ -63,20 +63,39 @@ namespace gridtools {
     private:
         BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<original_placeholders>::type::value);
 
+        /**
+         * \brief Get a sequence of the same type of original_placeholders, but containing the storage types for each placeholder
+         * \todo I would call it instead of l_get_type l_get_storage_type
+         */
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_type
                                                >::type raw_storage_list;
 
+        /**
+         * \brief Get a sequence of the same type of original_placeholders, but containing the iterator types corresponding to the placeholder's storage type
+         */
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_it_type
                                                >::type raw_iterators_list;
 
     public:
+        /**
+         * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
+         * note that the static const indexes are transformed into types using mpl::integral_c
+         */
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_index
                                                >::type raw_index_list;
+
+        /**
+         * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
+         */
         typedef boost::mpl::range_c<int,0,len> range_t;
     private:    
+
+        /**
+         * \brief defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
+         */
         typedef typename boost::mpl::fold<range_t,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -86,10 +105,17 @@ namespace gridtools {
                                           >::type iter_list;
 
     public:
+
+        /**
+         * \brief Defines a mpl::vector of index::pos for the indexes in iter_list
+         */
         typedef typename boost::mpl::transform<iter_list,
                                                _impl::l_get_it_pos
                                                >::type index_list;
    
+        /**
+         * \brief creates an mpl::vector of all the storages in raw_storage_list corresponding to the indices in index_list
+         */
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -98,6 +124,9 @@ namespace gridtools {
                                               >
                                           >::type arg_list_mpl;
 
+        /**
+         * \brief defines a reordered mpl::vector of placeholders
+         */
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -256,6 +285,7 @@ namespace gridtools {
             return GT_NO_ERRORS;
         }
 
+        /** @brief copy the pointers from the hdevice to the host */
         void finalize_computation() {
             boost::fusion::for_each(original_pointers, _impl::call_d2h());
             boost::fusion::copy(original_pointers, storage_pointers);
