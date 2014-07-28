@@ -73,8 +73,8 @@ int main_block(int argc, char** argv) {
     out.print(file_i);
 
     boost::timer::cpu_timer time;
-    int BI = 16;
-    int BJ = 16;
+    int BI = 4;
+    int BJ = 4;
 
     int NBI = (d1-4)/BI;
     int NBJ = (d2-4)/BJ;
