@@ -7,7 +7,9 @@
 */
 
 namespace gridtools{
-    /** enum defining the strategy policy for distributing the work. */
+    /**
+       @brief enum defining the strategy policy for distributing the work.
+    */
     namespace enumtype
     {
         enum strategy  {Naive, Block};
@@ -19,19 +21,26 @@ namespace gridtools{
         template<typename T>
         struct run_functor;
 
-/** traits struct, specialized for the specific backends. */
+/**
+@brief traits struct, specialized for the specific backends.
+*/
         template<enumtype::backend Id>
         struct backend_from_id
         {
         };
 
-/** traits struct, specialized for the specific strategies */
+/**
+@brief traits struct, specialized for the specific strategies
+*/
         template<enumtype::strategy Strategy>
         struct strategy_from_id
         {
         };
 
-/** the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation */
+/**
+   @brief template arguments container
+   the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
+*/
         template <
             typename FunctorList,
             typename LoopIntervals,
@@ -52,20 +61,17 @@ namespace gridtools{
 
 
 
-/** generic cout operator, specialised for the backends */
-        template <enumtype::backend Backend>
-	    struct cout{
-            template <typename T>
-            void operator <<(T t);
-	    };
-
-
-/** wasted code because of the lack of constexpr: its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .  */
+/**
+   @brief wasted code because of the lack of constexpr
+   its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .
+*/
         template <class RunFunctor>
         struct backend_type
         {};
 
-/** functor struct whose specializations are responsible of running the kernel, i.e. the computational intensive loops on the backend. The fact that is a functor (and not a templated method) allows for partial specialization (e.g. two backends may share the same strategy) */
+/** @brief functor struct whose specializations are responsible of running the kernel
+    The kernel contains the computational intensive loops on the backend. The fact that it is a functor (and not a templated method) allows for partial specialization (e.g. two backends may share the same strategy)
+*/
     template< typename Backend >
     struct execute_kernel_functor
     {
@@ -76,13 +82,18 @@ namespace gridtools{
 /**
    @brief traits struct for the run_functor
 
-   This struct defines a type for all the template arguments in the run_functor subclasses. It is required because in the run_functor class definition the 'Derived'
-   template argument is an incomplete type (ans thus we can not access its template arguments).
-   This struct also contains all the type definitions common to all backends.
+   empty declaration
 */
         template <class Subclass>
         struct run_functor_traits{};
 
+/**
+   @brief traits struct for the run_functor
+   Specialization for all backend classes.
+   This struct defines a type for all the template arguments in the run_functor subclasses. It is required because in the run_functor class definition the 'Derived'
+   template argument is an incomplete type (ans thus we can not access its template arguments).
+   This struct also contains all the type definitions common to all backends.
+ */
         template <
             typename Arguments,
             template < typename Argument > class Back
@@ -98,6 +109,9 @@ namespace gridtools{
             typedef typename Arguments::coords_t coords_t;
             typedef Back<Arguments> backend_t;
 
+/**
+   @brief traits class to be used inside the functor \ref gridtools::_impl::execute_kernel_functor, which dependson an Index type.
+*/
             template <typename Index>
             struct traits{
                 typedef typename boost::mpl::at<range_sizes_t, Index>::type range_t;
@@ -118,7 +132,10 @@ namespace gridtools{
         };
 
 
-/**specialization for the \ref gridtools::_impl::Naive strategy*/
+/**
+   @brief specialization for the \ref gridtools::_impl::Naive strategy
+   A single loop spans all three directions, i, j and k
+*/
         template<>
         struct strategy_from_id< enumtype::Naive>
         {
@@ -145,7 +162,10 @@ namespace gridtools{
         };
 
 
-/**specialization for the \ref gridtools::_impl::Block strategy*/
+/**
+   @brief specialization for the \ref gridtools::_impl::Block strategy
+   The loops over i and j are split according to the values of BI and BJ
+*/
         template<>
         struct strategy_from_id <enumtype::Block>
         {

@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <boost/current_function.hpp>
 
+/** @file
+    @brief double pointer mapping host and device
+    implementation of a double pointer, living on both host and device, together with the algorithms to copy back/to the device. The device is supposed to be a GPU supporting CUDA.
+*/
 namespace gridtools {
 
     namespace workaround_ {
@@ -24,7 +28,8 @@ namespace gridtools {
         NEW_OP(float)
         NEW_OP(double)
     }
-    
+
+/**@struct*/
     template <typename T>
     struct hybrid_pointer {
         T * cpu_p;
@@ -48,18 +53,18 @@ namespace gridtools {
             , pointer_to_use(gpu_p)
 #else
             , pointer_to_use(cpu_p)
-#endif 
+#endif
             , size(other.size)
         {
 #ifndef NDEBUG
-            printf("cpy const hp "); 
+            printf("cpy const hp ");
             printf("%X ", cpu_p);
             printf("%X ", gpu_p);
             printf("%X ", pointer_to_use);
             printf("%d ", size);
             printf("\n");
 #endif
-        } 
+        }
 
         void allocate_it(int size) {
 #ifdef __CUDACC__
@@ -86,7 +91,7 @@ namespace gridtools {
             cudaFree(gpu_p);
 #endif
             delete cpu_p;
-        }        
+        }
 
         void update_gpu() {
 #ifdef __CUDACC__
@@ -108,7 +113,7 @@ namespace gridtools {
 
         __host__ __device__
         void out() const {
-            printf("out hp "); 
+            printf("out hp ");
             printf("%X ", cpu_p);
             printf("%X ", gpu_p);
             printf("%X ", pointer_to_use);

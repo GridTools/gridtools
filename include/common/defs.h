@@ -1,4 +1,8 @@
 #pragma once
+/**
+@file
+@brief global definitions
+*/
 
 #define GT_MAX_ARGS 8
 #define GT_MAX_INDEPENDENT 3
