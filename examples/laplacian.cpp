@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
 
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
@@ -69,9 +70,9 @@ Contains the stencil operators that compose the multistage stencil in this test
 struct lap_function {
     static const int n_args = 2; //!< public compile-time constant, \todo apparently useless?
 
-  /**
-     @brief placeholder for the output field, index 0. arg_type contains a vector of 3 offsets and defines a plus method summing values to the offsets
-  */
+    /**
+       @brief placeholder for the output field, index 0. arg_type contains a vector of 3 offsets and defines a plus method summing values to the offsets
+    */
     typedef arg_type<0> out;
     /**
        @brief  placeholder for the input field, index 1
@@ -116,7 +117,7 @@ std::ostream& operator<<(std::ostream& s, lap_function const) {
 int main(int argc, char** argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+        std::cout << "Usage: laplacian_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
         return 1;
     }
 
@@ -152,12 +153,15 @@ int main(int argc, char** argv) {
     */
     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
+    std::ofstream file_i("full_in");
+    std::ofstream file_o("full_out");
+
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    out.print();
+    out.print(file_i);
 
     /**
        - Definition of placeholders. The order of them reflect the order the user will deal with them
@@ -258,6 +262,7 @@ int main(int argc, char** argv) {
 
     //    in.print();
     out.print();
+    out.print(file_o);
     //    lap.print();
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
