@@ -46,9 +46,9 @@ namespace gridtools {
                   m_domain_list(dom_list)
                 , m_coords(coords)
                 , m_starti(coords.i_low_bound())
-                , m_startj(coords.i_low_bound())
+                , m_startj(coords.j_low_bound())
                 , m_BI(coords.i_high_bound()-coords.i_low_bound())
-                , m_BJ(coords.i_high_bound()-coords.i_low_bound())
+                , m_BJ(coords.j_high_bound()-coords.j_low_bound())
                 {}
 
 
