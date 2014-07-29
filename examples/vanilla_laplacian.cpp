@@ -52,8 +52,8 @@ int main_naive(int argc, char** argv) {
     int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    std::ofstream file_i("basic_naive_in");
-    std::ofstream file_o("basic_naive_out");
+    std::ofstream file_i("vanilla_naive_in");
+    std::ofstream file_o("vanilla_naive_out");
 
     double* in = new double[d1*d2*d3];
     double* out = new double[d1*d2*d3];
@@ -116,8 +116,8 @@ int main_naive_inc(int argc, char** argv) {
     int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    std::ofstream file_i("basic_naive_inc_in");
-    std::ofstream file_o("basic_naive_inc_out");
+    std::ofstream file_i("vanilla_naive_inc_in");
+    std::ofstream file_o("vanilla_naive_inc_out");
 
     double* in = new double[d1*d2*d3];
     double* out = new double[d1*d2*d3];
@@ -192,8 +192,8 @@ int main_block(int argc, char** argv) {
     int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    std::ofstream file_i("basic_block_in");
-    std::ofstream file_o("basic_block_out");
+    std::ofstream file_i("vanilla_block_in");
+    std::ofstream file_o("vanilla_block_out");
 
     double* in = new double[d1*d2*d3];
     double* out = new double[d1*d2*d3];
@@ -353,8 +353,8 @@ int main_block_inc(int argc, char** argv) {
     int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    std::ofstream file_i("basic_block_inc_in");
-    std::ofstream file_o("basic_block_inc_out");
+    std::ofstream file_i("vanilla_block_inc_in");
+    std::ofstream file_o("vanilla_block_inc_out");
 
     double* in = new double[d1*d2*d3];
     double* out = new double[d1*d2*d3];
