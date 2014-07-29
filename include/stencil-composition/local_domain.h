@@ -56,7 +56,6 @@ namespace gridtools {
     } // namespace gt_aux
 
 
-
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. There is one version which provide coordinates to the functor
@@ -120,6 +119,7 @@ namespace gridtools {
             }
         };
 
+
         GT_FUNCTION_WARNING
         local_domain_base() {}
 
@@ -177,7 +177,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void move_to(int i, int j, int k) const {
-            //printf("ADDR-- %X\n", dom);
             dom->move_to(i,j,k);
             //info();
         }
@@ -195,12 +194,19 @@ namespace gridtools {
             //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&
         }
 
+            struct show_local_args_info {
+                template <typename T>
+                void operator()(T const & e) const {
+                    e->info();
+                }
+            };
+
         GT_FUNCTION
         void info() const {
             dom->info();
-            std::cout << "         -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
+            std::cout << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
             boost::fusion::for_each(local_args, show_local_args_info());
-            std::cout << "         -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
+            std::cout << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
         }
     };
 
