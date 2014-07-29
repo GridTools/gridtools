@@ -68,6 +68,14 @@ namespace gridtools {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }
 
+        virtual void info() const {
+            std::cout << m_dims[0] << "x"
+                      << m_dims[1] << "x"
+                      << m_dims[2] << ", "
+                      << m_name
+                      << std::endl;
+        }
+
         ~storage() {
             if (is_set) {
                 //std::cout << "deleting " << std::hex << data << std::endl;

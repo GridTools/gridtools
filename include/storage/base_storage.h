@@ -89,11 +89,10 @@ namespace gridtools {
         virtual void h2d_update() {}
         virtual void d2h_update() {}
 
-        void info() const {
+        virtual void info() const {
             std::cout << m_dims[0] << "x"
                       << m_dims[1] << "x"
                       << m_dims[2] << ", "
-                //<< name 
                       << std::endl;
         }
 

@@ -164,7 +164,6 @@ namespace gridtools{
                 static void runLoop(domain_list_t local_domain_list, coords_t coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
-                        backend_traits::template for_each<iter_range>(_impl::run_functor< Backend >(local_domain_list,coords));
 
                         typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
                         int n = coords.i_high_bound() + range_t::iplus::value - (coords.i_low_bound() + range_t::iminus::value);
@@ -175,27 +174,29 @@ namespace gridtools{
                         {
                             for (int bi = 0; bi < NBI; ++bi) {
                                 for (int bj = 0; bj < NBJ; ++bj) {
-                                    int starti = bi*BI+coords.i_low_bound();
-                                    int startj = bj*BJ+coords.j_low_bound();
-                                    backend_traits::template for_each<iter_range>(_impl::run_functor< Backend > (local_domain_list,coords, starti, startj, BI, BJ));
+                                    int _starti = bi*BI+coords.i_low_bound();
+                                    int _startj = bj*BJ+coords.j_low_bound();
+                                    backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI, BJ));
                                 }
                             }
 
                             for (int bj = 0; bj < NBJ; ++bj) {
-                                int starti = NBI*BI+coords.i_low_bound();
-                                int startj = bj*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>(_impl::run_functor< Backend > (local_domain_list,coords,starti,startj, n-NBI*BI, BJ));
+                                int _starti = NBI*BI+coords.i_low_bound();
+                                int _startj = bj*BJ+coords.j_low_bound();
+                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ));
                             }
 
                             for (int bi = 0; bi < NBI; ++bi) {
-                                int starti = bi*BI+coords.i_low_bound();
-                                int startj = NBJ*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>(_impl::run_functor<Backend> (local_domain_list,coords,starti,startj,BI, n-NBJ*BJ));
+                                int _starti = bi*BI+coords.i_low_bound();
+                                int _startj = NBJ*BJ+coords.j_low_bound();
+                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ));
                             }
 
-                            int starti = NBI*BI+coords.i_low_bound();
-                            int startj = NBJ*BJ+coords.j_low_bound();
-                            backend_traits::template for_each<iter_range>(_impl::run_functor < Backend > (local_domain_list,coords,starti,startj,n-NBI*BI,n-NBJ*BJ));
+                            {
+                                int _starti = NBI*BI+coords.i_low_bound();
+                                int _startj = NBJ*BJ+coords.j_low_bound();
+                                backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ));
+                            }
                         }
                     }
             };
