@@ -161,7 +161,7 @@ namespace gridtools{
                 typedef typename arguments_t::domain_list_t domain_list_t;
                 typedef typename arguments_t::coords_t coords_t;
 
-                static void runLoop(domain_list_t local_domain_list, coords_t coords)
+                static void runLoop(domain_list_t& local_domain_list, coords_t const& coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
