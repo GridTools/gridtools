@@ -196,6 +196,9 @@ namespace gridtools {
         GT_FUNCTION
         void info() const {
             dom->info();
+            std::cout << "         -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
+            boost::fusion::for_each(local_args, show_local_args_info());
+            std::cout << "         -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
         }
     };
 
