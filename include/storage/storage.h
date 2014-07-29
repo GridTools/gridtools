@@ -68,6 +68,14 @@ namespace gridtools {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }
 
+        virtual void info() const {
+            std::cout << m_dims[0] << "x"
+                      << m_dims[1] << "x"
+                      << m_dims[2] << ", "
+                      << m_name
+                      << std::endl;
+        }
+
         ~storage() {
             if (is_set) {
                 //std::cout << "deleting " << std::hex << data << std::endl;
@@ -84,10 +92,14 @@ namespace gridtools {
         }
 
         value_type& operator()(int i, int j, int k) {
+            assert(base_type::_index(i,j,k) >= 0);
+            assert(base_type::_index(i,j,k) < m_size);
             return data[base_type::_index(i,j,k)];
         }
 
         value_type const & operator()(int i, int j, int k) const {
+            assert(base_type::_index(i,j,k) >= 0);
+            assert(base_type::_index(i,j,k) < m_size);
             return data[base_type::_index(i,j,k)];
         }
 
