@@ -271,6 +271,10 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #endif
 
     boost::timer::cpu_timer time;
+#ifdef USE_PAPI
+if( PAPI_start(event_set) != PAPI_OK)
+    handle_error(1);
+#endif
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
@@ -279,9 +283,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #ifdef USE_PAPI
 double dummy=0.5;
 double dummy2=0.8;
-if( PAPI_start(event_set) != PAPI_OK)
-    handle_error(1);
-    dummy+=dummy2;
 if( PAPI_read(event_set, values) != PAPI_OK)
     handle_error(1);
 printf("%f After reading the counters: %lld\n", dummy, values[0]);
@@ -310,7 +311,7 @@ PAPI_stop(event_set, values);
 
     return lapse_time.wall<5000000 &&
 #ifdef USE_PAPI
-        values[0]>10000 &&
+                    values[0]>1000 && //random value
 #endif
-                            true;
+                                true;
 }
