@@ -305,6 +305,39 @@ namespace gridtools {
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
+
+            This version works with const&
+
+            \code
+            GCL::layout_map<2,0,1>::find<1>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \param[in] a Reference to the first value
+            \param[in] b Reference to the second value
+            \param[in] c Reference to the third value
+        */
+        template <unsigned int I, typename T>
+        GT_FUNCTION
+        static T const& find(T const& a, T const& b, T const& c) {
+            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+                return a;
+            } else {
+                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                    return b;
+                } else {
+                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                        return c;
+                    }
+                }
+            }
+            assert(true);
+            return a; // killing warnings by nvcc
+        }
+
+        /** Given a tuple of values and a static index I, the function
+            returns the reference to the element whose position
+            corresponds to the position of 'I' in the map.
         
             \code
             a[0] = a; a[1] = b; a[3] = c;

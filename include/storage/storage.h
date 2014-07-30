@@ -165,4 +165,10 @@ namespace gridtools {
       : boost::true_type
     {};
 #endif
+
+    template <typename T, typename U, bool B>
+    std::ostream& operator<<(std::ostream &s, storage<T,U, B> ) {
+        return s << "storage <T,U," << " " << std::boolalpha << B << ">";
+    }
+
 } // namespace gridtools

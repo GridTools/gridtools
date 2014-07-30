@@ -8,10 +8,17 @@
 namespace gridtools {
     namespace _debug {
 
+        struct stdcoutstuff {
+            template <typename T>
+            void operator()(T& ) const {
+                std::cout << T() << " : " << typename T::storage_type() << std::endl;
+            }
+        };
+
         struct print_index {
             template <typename T>
             void operator()(T& ) const {
-                std::cout << " *" << T() << ", " << T::index_type::value << " * " << std::endl;
+                std::cout << " *" << T() << " " << typename T::storage_type() << ", " << T::index_type::value << " * " << std::endl;
             }
         };
 
@@ -19,7 +26,7 @@ namespace gridtools {
             template <typename T>
             void operator()(T& ) const {
                 for_each<T>(print_index());
-                std::cout << " ---" << std::endl;
+                std::cout << " --- " << std::endl;
             }
         };
 

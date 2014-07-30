@@ -1,38 +1,46 @@
 #pragma once
 
 #include "../storage/storage.h"
+#include "../storage/host_tmp_storage.h"
 #include "../common/layout_map.h"
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
 
 namespace gridtools {
-    /**
-     * Flag to indicate that value_type will be known later
-     */
-    struct no_type_yet {};
-
-    /**
-     * Flag to indicate that storage will be instantiated later
-     */
-    struct no_storage_yet {
-        typedef no_type_yet value_type;
-    };
 
     /**
      * Flag type to identify data fields that must be treated as temporary
      */
     template <typename StorageType>
-    struct temporary {
-        typedef StorageType storage_type;
+    struct temporary;//   {
+    //     typedef int storage_type;
+    // //     typedef typename storage_type::value_type value_type;
+    // };
+
+    template <typename T, typename U, bool B>
+    struct temporary<storage<T,U, B> > {
+        typedef host_tmp_storage<T,U> storage_type;
         typedef typename storage_type::value_type value_type;
     };
 
-    template <>
-    struct temporary<no_storage_yet> {
-        typedef no_storage_yet storage_type;
-        typedef storage_type::value_type value_type;
+    template <typename T, typename U, bool B, typename DebTag>
+        struct temporary<storage<T,U, B, DebTag> > {
+        typedef host_tmp_storage<T,U, DebTag> storage_type;
+        typedef typename storage_type::value_type value_type;
     };
 
+    template <typename T, typename U>
+    struct temporary<storage<T,U> > {
+        typedef host_tmp_storage<T,U> storage_type;
+        typedef typename storage_type::value_type value_type;
+    };
+
+
+    template <typename T, typename U>
+    struct temporary<host_tmp_storage<T,U> > {
+        typedef host_tmp_storage<T,U> storage_type;
+        typedef typename storage_type::value_type value_type;
+    };
 
     template <typename T>
     struct is_temporary {
@@ -81,7 +89,7 @@ namespace gridtools {
 
         template <typename VAL, typename LAYOUT, bool BOOL, typename OLD_TAG, template <typename, typename, bool, typename> class STORE, typename NEW_TAG>
         struct add_tag<STORE<VAL, LAYOUT, BOOL, OLD_TAG>, NEW_TAG> {
-            typedef STORE<VAL, LAYOUT, true, NEW_TAG> type;
+            typedef typename temporary<STORE<VAL, LAYOUT, true, NEW_TAG> >::storage_type type;
         };
 #else
         template <typename STORAGE>
@@ -89,7 +97,7 @@ namespace gridtools {
 
         template <typename VAL, typename LAYOUT, bool BOOL, template <typename, typename, bool> class STORE>
         struct make_it_temporary<STORE<VAL, LAYOUT, BOOL> > {
-            typedef STORE<VAL, LAYOUT, true> type;
+            typedef typename temporary<STORE<VAL, LAYOUT, true> >::storage_type type;
         };
 
 #endif
