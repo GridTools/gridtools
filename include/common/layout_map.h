@@ -193,7 +193,7 @@ namespace gridtools {
     */
     template <int I1, int I2, int I3>
     struct layout_map<I1, I2, I3, -1> {
-        static const unsigned int length=3;
+        static  const unsigned int length=3;
         typedef boost::mpl::vector3_c<int, I1, I2, I3> t;
 
         template <unsigned int I>
@@ -206,7 +206,7 @@ namespace gridtools {
         struct pos_ {
 
             template <int X, bool IsHere>
-            struct _find_pos 
+            struct _find_pos
             {
                 static const int value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
             };
@@ -305,7 +305,7 @@ namespace gridtools {
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
-        
+
             \code
             a[0] = a; a[1] = b; a[3] = c;
             GCL::layout_map<2,0,1>::find<1>(a) == c
@@ -435,4 +435,3 @@ namespace gridtools {
 
 
 #endif
-

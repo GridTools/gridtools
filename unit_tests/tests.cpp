@@ -3,6 +3,7 @@
 #include "test_domain_indices.h"
 #include "test_smallstorage_indices.h"
 #include "boundary_conditions_test.h"
+#include <../examples/interface1.h>
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
@@ -40,8 +41,13 @@ TEST(boundaryconditions, usingcopy3) {
     EXPECT_EQ(usingcopy_3(), true);
 }
 
+TEST(stencil, horizontaldiffusion) {
+    EXPECT_EQ(horizontal_diffusion(7, 13, 5), true);
+}
 
-int main(int argc, char** argv) {
+
+int main(int argc, char** argv)
+{
 
     ::testing::InitGoogleTest(&argc, argv);
 

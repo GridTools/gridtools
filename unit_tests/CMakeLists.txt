@@ -14,11 +14,17 @@ add_test(tests.test_independent test-independent)
 
 if (GTEST_FOUND)
   add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+  # include boost
+  include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+  link_directories( ${Boost_LIBRARY_DIRS} )
+
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
   else()
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread)
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
   endif()
+
+
   add_test(test.tests tests)
 
   if (CUDA_FOUND)
@@ -36,6 +42,20 @@ if (GTEST_FOUND)
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     add_test( tests.cloning_derived cloning_derived 42 )
+
+    set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
+    set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})
+
+if(GNU_COVERAGE)
+  add_custom_command(TARGET tests
+    POST_BUILD
+    COMMAND echo "running the coverage sampling"
+    COMMAND $ENV{BIN_DIR}/tests
+    COMMAND gcovr  -r $ENV{SRC_DIR}
+    COMMAND gcovr  --branches -r $ENV{SRC_DIR}
+    )
+endif()
+
   endif()
 endif()
 
