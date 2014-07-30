@@ -49,35 +49,35 @@ namespace gridtools {
 
 
 #ifndef NDEBUG
-// TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                std::cout << "Functor " <<  functor_t() << "\n";
-                std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
-                                    << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
-                std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
-                                    << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
-                std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-                std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+                    // TODO a generic cout is still on the way (have to implement all the '<<' operators)
+                    std::cout << "Functor " <<  functor_t() << "\n";
+                    std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
+                              << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
+                    std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
+                              << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+                    std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+                    std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 #endif
 
 
-                for (int i = f->m_starti + range_t::iminus::value;
-                     i < f->m_starti + f->m_BI + range_t::iplus::value;
-                     ++i)
-                    for (int j = f->m_startj + range_t::jminus::value;
-                         j < f->m_startj + f->m_BJ + range_t::jplus::value;
-                         ++j)
-                    {
-                        iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>());
+                    for (int i = f->m_starti + range_t::iminus::value;
+                         i < f->m_starti + f->m_BI + range_t::iplus::value;
+                         ++i)
+                        for (int j = f->m_startj + range_t::jminus::value;
+                             j < f->m_startj + f->m_BJ + range_t::jplus::value;
+                             ++j)
+                            {
+                                iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>());
 
-                        gridtools::for_each<loop_intervals_t>
-                            (_impl::run_f_on_interval
-                             <functor_t,
-                             interval_map_t,
-                             iterate_domain_t,
-                             coords_t>
-                             (it_domain,f->m_coords)
-                                );
-                    }
+                                gridtools::for_each<loop_intervals_t>
+                                    (_impl::run_f_on_interval
+                                     <functor_t,
+                                     interval_map_t,
+                                     iterate_domain_t,
+                                     coords_t>
+                                     (it_domain,f->m_coords)
+                                     );
+                            }
                 }
 
         };
