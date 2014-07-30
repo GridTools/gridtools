@@ -103,7 +103,10 @@ namespace gridtools {
         }
 
         int offset(int i, int j, int k) const {
-            return _index(i,j,k);
+            return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+            * layout::template find<0>(i,j,k) +
+            layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
+            layout::template find<2>(i,j,k);
         }
 
     protected:
