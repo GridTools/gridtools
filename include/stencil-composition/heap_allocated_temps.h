@@ -39,6 +39,9 @@ namespace gridtools {
                 boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
                                                              -range_type::jminus::value+range_type::jplus::value+tileJ,
                                                              tileK,
+                                                             -range_type::iminus::value,
+                                                             -range_type::jminus::value,
+                                                             0,
 #ifndef __CUDACC__
                                                              666,
                                                              s);

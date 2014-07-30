@@ -2,6 +2,7 @@
 #include "../common/basic_utils.h"
 #include "../common/gpu_clone.h"
 #include "../common/gt_assert.h"
+#include <iostream>
 
 namespace gridtools {
 
@@ -102,7 +103,7 @@ namespace gridtools {
             return _impl::get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
-        int offset(int i, int j, int k) const {
+        virtual int offset(int i, int j, int k) const {
             return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
             * layout::template find<0>(i,j,k) +
             layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
@@ -174,6 +175,10 @@ namespace gridtools {
         typedef boost::false_type type;
     };
 
+    template <typename Deriv, typename T, typename U, bool B>
+    std::ostream& operator<<(std::ostream &s, base_storage<Deriv,T,U, B> ) {
+        return s << "base_storage <T,U," << " " << std::boolalpha << B << ">";
+    }
 
 
 } //namespace gridtools

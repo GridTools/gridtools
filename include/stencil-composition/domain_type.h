@@ -161,6 +161,12 @@ namespace gridtools {
             , zip_vector(iterators, storage_pointers)
             , is_ready(false)
         {
+
+#ifndef NDEBUG
+            std::cout << "These are the original placeholders and their storages" << std::endl;
+            gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
+#endif
+
             typedef boost::fusion::filter_view<arg_list, 
                 boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > view_type;
 
