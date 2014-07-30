@@ -4,7 +4,23 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 project( GRIDTOOLS )
 enable_language( CXX )
 
-enable_testing()
+
+## enable to use ctest:
+## enable_testing()
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
+message("cmake module path " ${CMAKE_MODULE_PATH})
+
+if(GNU_COVERAGE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov" )
+message ("building executables for coverage tests")
+endif()
+
+if(GNU_PROFILE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
+message ("building profiled executables")
+endif()
+
 
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
@@ -66,19 +82,34 @@ set ( exe_LIBS ${Boost_LIBRARIES} )
 
 if(OPENMP_FOUND)
     set (PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
-    if ( "${PAPI_WRAP_LIBRARY}" STREQUAL "ON" )
-        if ( "$ENV{PAPI_WRAP_ROOT}" STREQUAL "" )
-            message ("papi-wrap not found. Please set PAPI_WRAP_ROOT to the root path of the papi-wrap library. papi-wrap not used!")
-        else()
-            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
-            set( PAPI_WRAP_MODULE "ON" )
-            include_directories( "$ENV{PAPI_WRAP_ROOT}" )
-            link_directories ( "$ENV{PAPI_WRAP_ROOT}/lib" )
-            set ( exe_LIBS "${exe_LIBS}" papi_wrap )
-        endif()
-    endif()
 endif()
 
+################# look for papi_wrap #############################
+if ( PAPI_WRAP_LIBRARY )
+  find_package(PapiWrap)
+  if ( PAPI_WRAP_FOUND )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
+    set( PAPI_WRAP_MODULE "ON" )
+    include_directories( "${PAPI_WRAP_INCLUDE_DIRS}" )
+    set ( exe_LIBS "${exe_LIBS}" "${PAPI_WRAP_LIBRARIES}" )
+  else()
+    message ("papi-wrap not found. Please set PAPI_WRAP_PREFIX to the root path of the papi-wrap library. papi-wrap not used!")
+  endif()
+endif()
+##################################################################
+
+################## look for PAPI library ######################
+if(USE_PAPI)
+  find_package(PAPI REQUIRED)
+  if(PAPI_FOUND)
+    include_directories( "${PAPI_INCLUDE_DIRS}" )
+    set ( exe_LIBS "${exe_LIBS}" "${PAPI_LIBRARIES}" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI" )
+  else()
+    message("PAPI library not found. set the PAPI_PREFIX")
+  endif()
+endif()
+##################################################################
 
 set( GCL_MPI "${USE_MPI}" )
 set( GCL_GPU "${USE_GPU}" )
