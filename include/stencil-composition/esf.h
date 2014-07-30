@@ -3,10 +3,13 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "stencil-composition/arg_type.h"
-
+/**
+   @file
+   @brief Descriptors for Elementary Stencil Function (ESF)
+*/
 namespace gridtools {
 
-    // Descriptors for ESF
+    /** @brief Descriptors for Elementary Stencil Function (ESF) */
     template <typename ESF, typename ArgArray>
     struct esf_descriptor {
         typedef ESF esf_function;
@@ -74,6 +77,5 @@ namespace gridtools {
             >
         >::type type;
     };
-
 
 } // namespace gridtools

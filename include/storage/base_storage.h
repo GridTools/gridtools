@@ -89,11 +89,10 @@ namespace gridtools {
         virtual void h2d_update() {}
         virtual void d2h_update() {}
 
-        void info() const {
+        virtual void info() const {
             std::cout << m_dims[0] << "x"
                       << m_dims[1] << "x"
                       << m_dims[2] << ", "
-                //<< name 
                       << std::endl;
         }
 
@@ -129,9 +128,9 @@ namespace gridtools {
             int MJ=12;
             int MK=12;
 
-            for (int i = 0; i < std::min(m_dims[0],MI); ++i) {
-                for (int j = 0; j < std::min(m_dims[1],MJ); ++j) {
-                    for (int k = 0; k < std::min(m_dims[2],MK); ++k) {
+            for (int i = 0; i < m_dims[0]; i += std::max(1,m_dims[0]/MI)) {
+                for (int j = 0; j < m_dims[1]; j += std::max(1,m_dims[1]/MJ)) {
+                    for (int k = 0; k < m_dims[2]; k += std::max(1,m_dims[2]/MK)) {
                         stream << "["/*("
                                           << i << ","
                                           << j << ","

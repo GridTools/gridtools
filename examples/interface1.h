@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
+
+#pragma once
 
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
@@ -41,14 +41,7 @@ struct lap_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
-#ifndef NDEBUG
-#ifndef CUDA_EXAMPLE
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "out    ";
-        dom.info(out());
-#endif
-#endif
+
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
@@ -66,16 +59,7 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-#ifndef NDEBUG
-#ifndef CUDA_EXAMPLE
-        std::cout << "out    ";
-        dom.info(out());
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "lap    ";
-        dom.info(lap());
-#endif
-#endif
+
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
@@ -93,16 +77,7 @@ struct fly_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-#ifndef NDEBUG
-#ifndef CUDA_EXAMPLE
-        std::cout << "out    ";
-        dom.info(out());
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "lap    ";
-        dom.info(lap());
-#endif
-#endif
+
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
@@ -122,20 +97,7 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-#ifndef NDEBUG
-#ifndef CUDA_EXAMPLE
-        std::cout << "out    ";
-        dom.info(out());
-        std::cout << "in     ";
-        dom.info(in());
-        std::cout << "flx    ";
-        dom.info(flx());
-        std::cout << "fly    ";
-        dom.info(fly());
-        std::cout << "coeff  ";
-        dom.info(coeff());
-#endif
-#endif
+
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx(-1,0,0)) +
              dom(fly()) - dom(fly(0,-1,0))
