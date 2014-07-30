@@ -7,6 +7,10 @@
 #include "base_storage.h"
 //////// STORAGE
 
+#ifdef _GT_RANDOM_INPUT
+#include <stdlib.h>
+#endif
+
 namespace gridtools {
     template < typename ValueType
              , typename Layout
@@ -40,9 +44,16 @@ namespace gridtools {
             : base_type(m_dim1, m_dim2, m_dim3, init, s)
             , m_name(s)
         {
+#ifdef _GT_RANDOM_INPUT
+            srand(12345);
+#endif
             data = new value_type[m_size];
             for (int i = 0; i < m_size; ++i)
+#ifdef _GT_RANDOM_INPUT
+                data[i] = init * rand();
+#else
                 data[i] = init;
+#endif
         }
 
         std::string const& name() const {
@@ -55,6 +66,14 @@ namespace gridtools {
 
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
+        }
+
+        virtual void info() const {
+            std::cout << m_dims[0] << "x"
+                      << m_dims[1] << "x"
+                      << m_dims[2] << ", "
+                      << m_name
+                      << std::endl;
         }
 
         ~storage() {
@@ -73,15 +92,24 @@ namespace gridtools {
         }
 
         value_type& operator()(int i, int j, int k) {
+            assert(base_type::_index(i,j,k) >= 0);
+            assert(base_type::_index(i,j,k) < m_size);
             return data[base_type::_index(i,j,k)];
         }
 
         value_type const & operator()(int i, int j, int k) const {
+            assert(base_type::_index(i,j,k) >= 0);
+            assert(base_type::_index(i,j,k) < m_size);
             return data[base_type::_index(i,j,k)];
         }
 
         void print() const {
             base_type::print(this);
+        }
+
+        template <typename Stream>
+        void print(Stream & stream) const {
+            base_type::print(this, stream);
         }
 
     };

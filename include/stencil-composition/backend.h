@@ -25,8 +25,8 @@ namespace gridtools {
             typedef Derived derived_t;
             typedef run_functor_traits<Derived> derived_traits_t;
 
-            typename derived_traits_t::coords_t const & m_coords;
             typename derived_traits_t::domain_list_t & m_domain_list;
+            typename derived_traits_t::coords_t const & m_coords;
             int m_starti, m_startj, m_BI, m_BJ;
 
             // Block strategy
@@ -46,9 +46,9 @@ namespace gridtools {
                   m_domain_list(dom_list)
                 , m_coords(coords)
                 , m_starti(coords.i_low_bound())
-                , m_startj(coords.i_low_bound())
+                , m_startj(coords.j_low_bound())
                 , m_BI(coords.i_high_bound()-coords.i_low_bound())
-                , m_BJ(coords.i_high_bound()-coords.i_low_bound())
+                , m_BJ(coords.j_high_bound()-coords.j_low_bound())
                 {}
 
 

@@ -200,9 +200,13 @@ namespace gridtools {
      * @return ostream
      */
     template <int I, typename R>
-    std::ostream& operator<<(std::ostream& s, arg_type<I,R> const&) {
+    std::ostream& operator<<(std::ostream& s, arg_type<I,R> const& x) {
         return s << "[ arg_type< " << I
-                 << ", " << R() << " > ]";
+                 << ", " << R() 
+                 << " (" << x.i()
+                 << ", " << x.j()
+                 << ", " << x.k()
+                 <<" ) > ]";
     }
 
     /**

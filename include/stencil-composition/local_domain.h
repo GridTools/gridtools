@@ -38,11 +38,13 @@ namespace gridtools {
 
             Domain const& domain;
 
+            GT_FUNCTION_WARNING
             assign_base_pointers(Domain const& domain)
                 : domain(domain)
             {}
 
             template <typename ZipElem>
+            GT_FUNCTION_WARNING
             void operator()(ZipElem const& ze) const {
                 typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
 
@@ -52,7 +54,6 @@ namespace gridtools {
         };
 
     } // namespace gt_aux
-
 
 
     /**
@@ -119,6 +120,7 @@ namespace gridtools {
         };
 
 
+        GT_FUNCTION_WARNING
         local_domain_base() {}
 
         GT_FUNCTION
@@ -175,7 +177,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void move_to(int i, int j, int k) const {
-            //printf("ADDR-- %X\n", dom);
             dom->move_to(i,j,k);
             //info();
         }
@@ -193,9 +194,19 @@ namespace gridtools {
             //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&
         }
 
+            struct show_local_args_info {
+                template <typename T>
+                void operator()(T const & e) const {
+                    e->info();
+                }
+            };
+
         GT_FUNCTION
         void info() const {
             dom->info();
+            std::cout << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
+            boost::fusion::for_each(local_args, show_local_args_info());
+            std::cout << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
         }
     };
 
