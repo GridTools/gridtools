@@ -45,6 +45,7 @@ namespace gridtools {
         {
             typedef boost::fusion::vector<local_iterators_type&, typename LocalDomain::local_args_type const&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
+
             to_zip z(local_iterators, local_domain.local_args);
             boost::fusion::for_each(zipping(z), iterate_domain_aux::assign_iterators(i,j,k));
         }
@@ -60,6 +61,7 @@ namespace gridtools {
             local_domain.info(x);
         }
 
+
         template <typename ArgType>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&  
@@ -69,6 +71,31 @@ namespace gridtools {
 //                       << std::hex << boost::fusion::at<typename ArgType::index_type>(local_iterators) << std::dec
 //                       << std::endl; // we can check access violation
             
+            // std::cout << " i " << arg.i()
+            //           << " j " << arg.j()
+            //           << " k " << arg.k()
+            //           << " offset " << std::hex << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << std::dec
+            //           << " base " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr()
+            //           << " max_addr " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr()
+            //           << " iterator " << boost::fusion::at<typename ArgType::index_type>(local_iterators)
+            //           << " actual address " << boost::fusion::at<typename ArgType::index_type>(local_iterators)+(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k())
+            //           << " size of " << sizeof(typename std::remove_pointer<typename std::remove_reference<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators))>::type>::type)
+            //           << " " << std::boolalpha << std::is_same<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators)), double*&>::type::value
+            //           << " name " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->name()
+            //     //                      << " " << std::boolalpha << is_temporary<typename std::remove_pointer<typename std::remove_reference<decltype(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type>::type>::type::value
+            //           << std::endl;
+            // boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->info();
+
+            assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr() <=
+                   boost::fusion::at<typename ArgType::index_type>(local_iterators)
+                   +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                   ->offset(arg.i(),arg.j(),arg.k()));
+
+            assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr() >
+                   boost::fusion::at<typename ArgType::index_type>(local_iterators)
+                   +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                   ->offset(arg.i(),arg.j(),arg.k()));
+
             return *(boost::fusion::at<typename ArgType::index_type>(local_iterators)
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                      ->offset(arg.i(),arg.j(),arg.k()));
