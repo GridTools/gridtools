@@ -9,6 +9,10 @@
 
 #ifdef __CUDACC__
 
+#ifdef _GT_RANDOM_INPUT
+#include <stdlib.h>
+#endif
+
 //////// STORAGE
 
 namespace gridtools {
@@ -54,8 +58,15 @@ namespace gridtools {
         : base_type(m_dim1, m_dim2, m_dim3, init, s)
         , data(m_size)
         {
+#ifdef _GT_RANDOM_INPUT
+            srand(12345);
+#endif
             for (int i = 0; i < m_size; ++i)
+#ifdef _GT_RANDOM_INPUT
+                data[i] = init * rand();
+#else
                 data[i] = init;
+#endif
             data.update_gpu();
         }
 
@@ -111,6 +122,10 @@ namespace gridtools {
             base_type::print(this);
         }
 
+        template <typename Stream>
+        void print(Stream & stream) const {
+            base_type::print(this, stream);
+        }
     };
 
 

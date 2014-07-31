@@ -60,20 +60,20 @@ namespace gridtools {
             local_domain.info(x);
         }
 
-        template <typename T>
+        template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename T::index_type>::type::value_type&  
-        operator()(T const& ) const {
-            return *(boost::fusion::at<typename T::index_type>(local_iterators));
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&  
+        operator()(ArgType const& arg) const {
+//             std::cout << arg << " ---- "
+//                       << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << " "
+//                       << std::hex << boost::fusion::at<typename ArgType::index_type>(local_iterators) << std::dec
+//                       << std::endl; // we can check access violation
+            
+            return *(boost::fusion::at<typename ArgType::index_type>(local_iterators)
+                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                     ->offset(arg.i(),arg.j(),arg.k()));
         }
 
-        template <typename T>
-        GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename T::index>::type::value_type const& 
-        operator()(T const& , int i, int j, int k) const {
-            int offset = (boost::fusion::at<typename T::index_type>(local_domain.local_args))->offset(i,j,k);
-            return &(boost::fusion::at<typename T::index_type>(local_iterators)+offset);
-        }
 
     };
 
