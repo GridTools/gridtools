@@ -55,8 +55,7 @@ namespace gridtools {
         //std::string name;
 
         explicit base_storage(int m_dim1, int m_dim2, int m_dim3,
-                         value_type init = value_type(),
-                         std::string const& s = std::string("default name") ) {
+                         value_type init = value_type() ) {
             m_dims[0] = m_dim1;
             m_dims[1] = m_dim2;
             m_dims[2] = m_dim3;
@@ -103,7 +102,7 @@ namespace gridtools {
             return _impl::get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
         }
 
-        virtual int offset(int i, int j, int k) const {
+        int offset(int i, int j, int k) const {
             return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
             * layout::template find<0>(i,j,k) +
             layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
@@ -148,6 +147,7 @@ namespace gridtools {
             stream << std::endl;
         }
 
+    public:
         GT_FUNCTION
         int _index(int i, int j, int k) const {
             int index;
@@ -177,7 +177,7 @@ namespace gridtools {
 
     template <typename Deriv, typename T, typename U, bool B>
     std::ostream& operator<<(std::ostream &s, base_storage<Deriv,T,U, B> ) {
-        return s << "base_storage <T,U," << " " << std::boolalpha << B << ">";
+        return s << "base_storage <T,U," << " " << std::boolalpha << B << "> (Derived is): " << Deriv();
     }
 
 
