@@ -36,11 +36,14 @@ namespace gridtools {
                     boost::lexical_cast<std::string>(range_type::jminus::value)+
                     boost::lexical_cast<std::string>(range_type::jplus::value);
 #endif
-                boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
-                                                             -range_type::jminus::value+range_type::jplus::value+tileJ,
+                boost::fusion::at_c<0>(e) = new storage_type(tileI,
+                                                             tileJ,
                                                              tileK,
                                                              -range_type::iminus::value,
                                                              -range_type::jminus::value,
+                                                             0,
+                                                             range_type::iplus::value,
+                                                             range_type::jplus::value,
                                                              0,
 #ifndef __CUDACC__
                                                              666,

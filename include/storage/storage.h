@@ -19,12 +19,32 @@ namespace gridtools {
              , typename TypeTag = int
 #endif
         >
-    struct storage : public base_storage<storage<ValueType, Layout, IsTemporary>,
-            ValueType,
-            Layout,
-            IsTemporary> {
-        typedef storage<ValueType, Layout, IsTemporary> this_type;
-        typedef base_storage<this_type, ValueType, Layout, IsTemporary> base_type;
+    struct storage : public base_storage<storage<
+                                             ValueType
+                                             , Layout
+                                             , IsTemporary
+#ifndef NDEBUG
+                                             , TypeTag
+#endif
+                                             >
+                                         , ValueType
+                                         , Layout
+                                         , IsTemporary
+                                         > 
+    {
+        typedef storage<ValueType
+                        , Layout
+                        , IsTemporary
+#ifndef NDEBUG
+                        , TypeTag
+#endif
+                        > this_type;
+
+        typedef base_storage<this_type
+                             , ValueType
+                             , Layout
+                             , IsTemporary
+                             > base_type;
         typedef Layout layout;
         typedef ValueType value_type;
         typedef value_type* iterator_type;
@@ -34,6 +54,7 @@ namespace gridtools {
         using base_type::strides;
         using base_type::m_size;
         using base_type::is_set;
+        using base_type::_index;
         std::string m_name;
 
         value_type* data;
@@ -41,7 +62,7 @@ namespace gridtools {
         explicit storage(int m_dim1, int m_dim2, int m_dim3,
                          value_type init = value_type(),
                          std::string const& s = std::string("default name") ) 
-            : base_type(m_dim1, m_dim2, m_dim3, init, s)
+            : base_type(m_dim1, m_dim2, m_dim3, init)
             , m_name(s)
         {
 #ifdef _GT_RANDOM_INPUT
@@ -92,15 +113,15 @@ namespace gridtools {
         }
 
         value_type& operator()(int i, int j, int k) {
-            assert(base_type::_index(i,j,k) >= 0);
-            assert(base_type::_index(i,j,k) < m_size);
-            return data[base_type::_index(i,j,k)];
+            assert(_index(i,j,k) >= 0);
+            assert(_index(i,j,k) < m_size);
+            return data[_index(i,j,k)];
         }
 
         value_type const & operator()(int i, int j, int k) const {
-            assert(base_type::_index(i,j,k) >= 0);
-            assert(base_type::_index(i,j,k) < m_size);
-            return data[base_type::_index(i,j,k)];
+            assert(_index(i,j,k) >= 0);
+            assert(_index(i,j,k) < m_size);
+            return data[_index(i,j,k)];
         }
 
         void print() const {
