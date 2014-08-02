@@ -274,6 +274,7 @@ namespace gridtools {
     template <typename Backend, typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
+
         /**
          * typename MssType::linear_esf is a list of all the esf nodes in the multi-stage descriptor.
          * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
@@ -308,24 +309,6 @@ namespace gridtools {
 
 
         /**
-         * Create a fusion::vector of domains for each functor
-         *
-         */
-        typedef typename boost::mpl::transform<
-            typename MssType::linear_esf,
-            _impl::get_local_domain<DomainType, local_domain> >::type mpl_local_domain_list;
-
-        /**
-         *
-         */
-        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type LocalDomainList;
-
-        /**
-         *
-         */
-        LocalDomainList local_domain_list;
-
-        /**
          *
          */
         typedef typename boost::mpl::fold<typename MssType::esf_array,
@@ -343,6 +326,33 @@ namespace gridtools {
          *
          */
         typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
+
+        /**
+         * Takes the domain list of storage pointer types and transform
+         * the no_storage_type_yet with the types provided by the
+         * backend with the interface that takes the range sizes. This
+         * must be done before getting the local_domain
+         */
+        boost::mpl::transform<DomainType::arg_list, _impl::obtain_type_from_backend<Backend, range_sizes> >::type actual_arg_list;
+
+        /**
+         * Create a fusion::vector of domains for each functor
+         *
+         */
+        typedef typename boost::mpl::transform<
+            typename MssType::linear_esf,
+            _impl::get_local_domain<DomainType, local_domain> >::type mpl_local_domain_list;
+
+        /**
+         *
+         */
+        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type LocalDomainList;
+
+        /**
+         *
+         */
+        LocalDomainList local_domain_list;
+
 
         DomainType & m_domain;
         Coords m_coords;

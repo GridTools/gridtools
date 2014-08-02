@@ -2,6 +2,7 @@
 #include "../common/basic_utils.h"
 #include "../common/gpu_clone.h"
 #include "../common/gt_assert.h"
+#include "is_temporary_storage.h"
 #include <iostream>
 
 namespace gridtools {
@@ -170,11 +171,6 @@ namespace gridtools {
         }
     };
     
-    template <typename T>
-    struct is_temporary_storage {
-        typedef boost::false_type type;
-    };
-
     template <typename Deriv, typename T, typename U, bool B>
     std::ostream& operator<<(std::ostream &s, base_storage<Deriv,T,U, B> ) {
         return s << "base_storage <T,U," << " " << std::boolalpha << B << "> (Derived is): " << Deriv();
