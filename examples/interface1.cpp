@@ -234,9 +234,9 @@ int main(int argc, char** argv) {
 
     horizontal_diffusion->ready();
 
-    domain.storage_info<boost::mpl::int_<0> >();
-    domain.storage_info<boost::mpl::int_<1> >();
-    domain.storage_info<boost::mpl::int_<2> >();
+    // domain.storage_info<boost::mpl::int_<0> >();
+    // domain.storage_info<boost::mpl::int_<1> >();
+    // domain.storage_info<boost::mpl::int_<2> >();
     domain.storage_info<boost::mpl::int_<3> >();
     domain.storage_info<boost::mpl::int_<4> >();
     domain.storage_info<boost::mpl::int_<5> >();
