@@ -60,11 +60,11 @@ namespace gridtools {
         };
 
 
-        template <typename Dom, template <class A, class B> class LocalDomain>
+        template <typename Dom, template <class A> class LocalDomain>
         struct get_local_domain {
             template <typename T>
             struct apply {
-                typedef LocalDomain<T, Dom> type;
+                typedef LocalDomain<T> type;
             };
         };
 
