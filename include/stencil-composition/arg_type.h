@@ -20,6 +20,8 @@ namespace gridtools {
             std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
         }
 
+        //std::string name() {return std::string("no_storage_yet NAMEname");}
+
         void info() const {
             std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl;
         }

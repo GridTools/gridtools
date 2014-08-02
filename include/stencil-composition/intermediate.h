@@ -47,11 +47,24 @@ namespace gridtools {
         {};
 
 
-/*
- *
- * @name Few short and obvious metafunctions
- * @{
- * */
+        template <typename Backend, typename RangeSizes>
+        struct obtain_type_from_backend {
+            template <typename ElemType>
+            struct apply {
+                typedef ElemType type;
+            };
+
+            template <typename StorageType>
+            struct apply<no_storage_type_yet<StorageType> > {
+                typedef host_tmp_storage< typename StorageType::value_type, typename StorageType::layout_type> type;;
+            };
+        };
+
+        /*
+         *
+         * @name Few short and obvious metafunctions
+         * @{
+         * */
         struct extract_functor {
             template <typename T>
             struct apply {
@@ -333,7 +346,7 @@ namespace gridtools {
          * backend with the interface that takes the range sizes. This
          * must be done before getting the local_domain
          */
-        boost::mpl::transform<DomainType::arg_list, _impl::obtain_type_from_backend<Backend, range_sizes> >::type actual_arg_list;
+        typedef typename boost::mpl::transform<typename DomainType::arg_list, typename _impl::obtain_type_from_backend<Backend, range_sizes> >::type actual_arg_list;
 
         /**
          * Create a fusion::vector of domains for each functor
