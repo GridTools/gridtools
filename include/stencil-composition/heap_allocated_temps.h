@@ -170,7 +170,7 @@ struct heap_allocated_temps {
         */
         template <typename Domain>
         static void finalize_computation(Domain & domain) {
-            domain.finalize_computation();
+            //domain.finalize_computation();
         }
 
     };
