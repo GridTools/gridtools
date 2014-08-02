@@ -84,7 +84,7 @@ namespace gridtools {
 
         template <typename ValueType, typename Layout>
         struct temporary_storage_type {
-            typedef temporary< typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t > type;
+            typedef no_storage_type_yet< typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t > type;
         };
 
 

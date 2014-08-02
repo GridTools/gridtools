@@ -5,6 +5,8 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+#include "arg_type.h"
+
 namespace gridtools {
     namespace _debug {
 
@@ -88,9 +90,14 @@ namespace gridtools {
 
     namespace _impl {
         struct l_get_type {
-            template <typename U>
+            template <typename U, typename Dummy = void>
             struct apply {
                 typedef typename U::storage_type* type;
+            };
+
+            template <typename TheStorage, typename Dummy>
+            struct apply<no_storage_type_yet<TheStorage>, Dummy> {
+                typedef no_storage_type_yet<TheStorage>* type;
             };
         };
 

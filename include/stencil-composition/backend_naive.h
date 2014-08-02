@@ -67,6 +67,8 @@ namespace gridtools {
                              j < f->m_startj + f->m_BJ + range_t::jplus::value;
                              ++j)
                             {
+                                std::cout << "Move to : " << i << ", " << j << std::endl;
+ 
                                 iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>());
 
                                 gridtools::for_each<loop_intervals_t>

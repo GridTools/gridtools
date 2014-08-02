@@ -5,8 +5,30 @@
 #include "../common/layout_map.h"
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
+#include "../stencil-composition/is_temporary_storage.h"
 
 namespace gridtools {
+
+    /**
+     * Type to indicate that the type is not decided yet
+     */
+    template <typename RegularStorageType>
+    struct no_storage_type_yet {
+        typedef typename RegularStorageType::iterator_type iterator_type;
+        typedef typename RegularStorageType::value_type value_type;
+        static void text() {
+            std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
+        }
+
+        void info() const {
+            std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl;
+        }
+    };
+
+    template <typename RST>
+    std::ostream& operator<<(std::ostream& s, no_storage_type_yet<RST>) {
+        return s << "no_storage_type_yet<" << RST() << ">" << std::endl;
+    }
 
     /**
      * Flag type to identify data fields that must be treated as temporary
@@ -49,6 +71,26 @@ namespace gridtools {
 
     template <typename U>
     struct is_temporary<temporary<U> > {
+        typedef boost::true_type type;
+    };
+
+    template <typename U>
+    struct is_temporary<no_storage_type_yet<U> > {
+        typedef boost::true_type type;
+    };
+
+    template <typename U>
+    struct is_temporary_storage<no_storage_type_yet<U> > {
+        typedef boost::true_type type;
+    };
+
+    template <typename U>
+    struct is_temporary_storage<no_storage_type_yet<U>* > {
+        typedef boost::true_type type;
+    };
+
+    template <typename U>
+    struct is_temporary_storage<no_storage_type_yet<U>& > {
         typedef boost::true_type type;
     };
 
