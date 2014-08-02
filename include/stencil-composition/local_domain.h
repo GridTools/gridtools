@@ -64,14 +64,13 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename Derived, typename EsfDescriptor, typename Domain>
+    template <typename Derived, typename EsfDescriptor>
     struct local_domain_base: public clonable_to_gpu<Derived> {
 
-        typedef local_domain_base<Derived, EsfDescriptor, Domain> this_type;
+        typedef local_domain_base<Derived, EsfDescriptor> this_type;
 
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
-        typedef typename Domain::placeholders dom_placeholders;
 
 
         typedef boost::mpl::range_c<int, 0, boost::mpl::size<esf_args>::type::value > the_range;
@@ -98,13 +97,6 @@ namespace gridtools {
 
         local_args_type local_args;
 
-        typedef Domain domain_type;
-
-        Domain *dom;
-        Domain *g_dom;
-
-        //int m_i,m_j,m_k;
-
         template <typename Dom, typename IsActuallyClonable, int DUMMY = 0>
         struct pointer_if_clonable {
             static Dom* get(Dom* d) {
@@ -123,6 +115,7 @@ namespace gridtools {
         GT_FUNCTION_WARNING
         local_domain_base() {}
 
+        template <typename Domain>
         GT_FUNCTION
         void init(Domain* _dom)
         {
@@ -131,79 +124,30 @@ namespace gridtools {
 
             to_zip z(domain_indices(), local_args);
 
-            dom = _dom;
-            g_dom = pointer_if_clonable<Domain, typename Domain::actually_clonable>::get(_dom);
-
-            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<Domain>(*dom));
+            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<Domain>(*_dom));
 
         }
 
         __device__
         local_domain_base(local_domain_base const& other)
-            : dom(other.g_dom)
-            , local_args(other.local_args)
-            // , m_i(other.m_i)
-            // , m_j(other.m_j)
-            // , m_k(other.m_k)
+            : local_args(other.local_args)
         { }
-
-        template <typename T>
-        GT_FUNCTION
-        typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&
-        operator()(T const& t) const {
-            return dom->template direct<typename boost::mpl::at<esf_args, typename T::index_type>::type::index_type>(/*typename T::index()*/);
-        }
-
-        template <typename T>
-        GT_FUNCTION
-        typename boost::mpl::at<esf_args, typename T::index>::type::value_type const&
-        operator()(T const&, int i, int j, int k) const {
-            return dom->template direct<typename boost::mpl::at<esf_args, typename T::index>::type::index>();
-        }
-
-        template <typename T>
-        GT_FUNCTION
-        typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type&
-        get(int i, int j, int k) const {
-            return dom->template direct<typename boost::mpl::at_c<esf_args, T::index>::type::index>();
-        }
-
-        template <typename T>
-        GT_FUNCTION
-        typename boost::fusion::result_of::at<esf_args, typename T::index>::value_type&
-        operator[](T const&) const {
-            return dom->template direct<boost::mpl::at_c<esf_args, T::index>::type::index>();
-        }
-
-        GT_FUNCTION
-        void move_to(int i, int j, int k) const {
-            dom->move_to(i,j,k);
-            //info();
-        }
-
-        GT_FUNCTION
-        void increment() const {
-            dom->template increment_along<2>();
-        }
 
         template <typename T>
         void info(T const&) const {
             T::info();
             std::cout << "[" << boost::mpl::at_c<esf_args, T::index_type::value>::type::index_type::value << "] ";
-            dom->template storage_info<typename boost::mpl::at_c<esf_args, T::index_type::value>::type::index_type>();
-            //            typename boost::mpl::at<esf_args, typename T::index_type>::type::value_type&
         }
 
-            struct show_local_args_info {
-                template <typename T>
-                void operator()(T const & e) const {
-                    e->info();
-                }
-            };
+        struct show_local_args_info {
+            template <typename T>
+            void operator()(T const & e) const {
+                e->info();
+            }
+        };
 
         GT_FUNCTION
         void info() const {
-            dom->info();
             std::cout << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
             boost::fusion::for_each(local_args, show_local_args_info());
             std::cout << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
@@ -243,13 +187,11 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename EsfDescriptor, typename Domain>
-    struct local_domain : public local_domain_base< local_domain<EsfDescriptor, Domain>, EsfDescriptor, Domain> {
-        typedef local_domain_base<local_domain<EsfDescriptor, Domain>, EsfDescriptor, Domain> base_type;
+    template <typename EsfDescriptor>
+    struct local_domain : public local_domain_base< local_domain<EsfDescriptor>, EsfDescriptor> {
+        typedef local_domain_base<local_domain<EsfDescriptor>, EsfDescriptor> base_type;
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
-        typedef typename Domain::placeholders dom_placeholders;
-        typedef Domain domain_type;
 
         GT_FUNCTION
         local_domain() {}
@@ -260,6 +202,7 @@ namespace gridtools {
         {}
 
         GT_FUNCTION
+        template <typename Domain>
         void init(Domain* dom, int, int, int)
         {
             base_type::init(dom);
