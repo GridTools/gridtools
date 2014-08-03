@@ -73,11 +73,11 @@ namespace gridtools {
         };
 
 
-        template <typename Dom, template <class A> class LocalDomain>
+        template <typename StoragePointers, typename Iterators, template <class A, class B, class C> class LocalDomain>
         struct get_local_domain {
             template <typename T>
             struct apply {
-                typedef LocalDomain<T> type;
+                typedef LocalDomain<StoragePointers,Iterators,T> type;
             };
         };
 
@@ -354,7 +354,7 @@ namespace gridtools {
          */
         typedef typename boost::mpl::transform<
             typename MssType::linear_esf,
-            _impl::get_local_domain<DomainType, local_domain> >::type mpl_local_domain_list;
+            _impl::get_local_domain<actual_arg_list, typename DomainType::iterator_list, local_domain> >::type mpl_local_domain_list;
 
         /**
          *
