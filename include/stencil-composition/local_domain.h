@@ -64,10 +64,10 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename Derived, typename EsfDescriptor>
+    template <typename Derived, typename StoragePointers, typename Iterators, typename EsfDescriptor>
     struct local_domain_base: public clonable_to_gpu<Derived> {
 
-        typedef local_domain_base<Derived, EsfDescriptor> this_type;
+        typedef local_domain_base<Derived, StoragePointers, Iterators, EsfDescriptor> this_type;
 
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
@@ -187,9 +187,12 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename EsfDescriptor>
-    struct local_domain : public local_domain_base< local_domain<EsfDescriptor>, EsfDescriptor> {
-        typedef local_domain_base<local_domain<EsfDescriptor>, EsfDescriptor> base_type;
+    template <typename StoragePointers, typename Iterators, typename EsfDescriptor>
+    struct local_domain : public local_domain_base< local_domain<StoragePointers,Iterators,EsfDescriptor>, StoragePointers, Iterators, EsfDescriptor > {
+        typedef local_domain_base<local_domain<StoragePointers,Iterators,EsfDescriptor>, StoragePointers, Iterators, EsfDescriptor > base_type;
+        typedef EsfDescriptor esf_descriptor;
+        typedef StoragePointers storage_pointers;
+        typedef Iterators iterators;
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
 
