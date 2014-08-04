@@ -3,54 +3,32 @@
 namespace gridtools {
     namespace _impl {
         struct instantiate_tmps {
-            int tileI;
-            int tileJ;
             int tileK;
 
             GT_FUNCTION
-            instantiate_tmps(int tileI, int tileJ, int tileK)
-                : tileI(tileI)
-                , tileJ(tileJ)
-                , tileK(tileK)
+            instantiate_tmps(int tileK)
+                : tileK(tileK)
             {}
 
             // ElemType: an element in the data field place-holders list
             template <typename ElemType>
             GT_FUNCTION
-            void operator()(ElemType  e) const {
-#ifndef __CUDA_ARCH__
-                typedef typename boost::fusion::result_of::value_at<ElemType, boost::mpl::int_<1> >::type range_type;
-                // TODO: computed storage_type should decide where to heap/cuda allocate or stack allocate.
-                typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<ElemType, boost::mpl::int_<0> >::type>::type>::type storage_type;
+            void operator()(ElemType*  e) const {
 
-#ifndef NDEBUG
-                std::cout << "Temporary: " << range_type() << " + ("
-                          << tileI << "x"
-                          << tileJ << "x"
-                          << tileK << ")"
-                          << std::endl;
-#endif
 #ifndef __CUDACC__
-                std::string s = boost::lexical_cast<std::string>(range_type::iminus::value)+
-                    boost::lexical_cast<std::string>(range_type::iplus::value)+
-                    boost::lexical_cast<std::string>(range_type::jminus::value)+
-                    boost::lexical_cast<std::string>(range_type::jplus::value);
+                std::string s = boost::lexical_cast<std::string>(ElemType::iminus)+
+                    boost::lexical_cast<std::string>(ElemType::iplus)+
+                    boost::lexical_cast<std::string>(ElemType::jminus)+
+                    boost::lexical_cast<std::string>(ElemType::jplus);
 #endif
-                boost::fusion::at_c<0>(e) = new storage_type(tileI,
-                                                             tileJ,
+                boost::fusion::at_c<0>(e) = new ElemType(
                                                              tileK,
-                                                             -range_type::iminus::value,
-                                                             -range_type::jminus::value,
-                                                             0,
-                                                             range_type::iplus::value,
-                                                             range_type::jplus::value,
-                                                             0,
+                                                             typename ElemType::value_type(),
 #ifndef __CUDACC__
                                                              666,
                                                              s);
 #else
                                                              666);
-#endif
 #endif
             }
         };
@@ -78,90 +56,17 @@ struct heap_allocated_temps {
          * @tparam Domain The user domain type - Deduced from argument list
          * @tparam coords The user coordinates type - Deduced from argument list
          */
-        template <typename MssType, typename RangeSizes, typename Domain, typename Coords>
-        static void prepare_temporaries(Domain & domain, Coords const& coords) {
-            int tileI, tileJ, tileK;
-
-            tileI = (Backend::strategy_traits_t::BI)?
-                (Backend::strategy_traits_t::BI):
-                (coords.i_high_bound()-coords.i_low_bound()+1);
-
-            tileJ = (Backend::strategy_traits_t::BJ)?
-                (Backend::strategy_traits_t::BJ):
-                (coords.j_high_bound()-coords.j_low_bound()+1);
-
-            tileK = coords.value_at_top()-coords.value_at_bottom();
-
-#ifndef NDEBUG
-            std::cout << "tileI " << tileI << " "
-                      << "tileJ " << tileJ
-                      << std::endl;
-#endif
+        template <typename ArgList, typename Coords>
+        static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
+            int tileK = coords.value_at_top()-coords.value_at_bottom();
 
 #ifndef NDEBUG
             std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
 
-            // Got to find temporary indices
-            typedef typename boost::mpl::fold<typename Domain::placeholders,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    is_plchldr_to_temp<boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-                    boost::mpl::_1>
-            >::type list_of_temporaries;
+            boost::fusion::for_each(arg_list, _impl::instantiate_tmps(tileK));
 
-#ifndef NDEBUG
-            std::cout << "BEGIN TMPS" << std::endl;
-            for_each<list_of_temporaries>(_debug::print_index());
-            std::cout << "END TMPS" << std::endl;
-#endif
-
-            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
-
-
-            typedef typename boost::mpl::transform<
-                list_of_temporaries,
-                _impl::associate_ranges<written_temps_per_functor, RangeSizes>
-            >::type list_of_ranges;
-
-#ifndef NDEBUG
-            std::cout << "BEGIN TMPS/F" << std::endl;
-            for_each<written_temps_per_functor>(_debug::print_tmps());
-            std::cout << "END TMPS/F" << std::endl;
-
-            std::cout << "BEGIN RANGES/F" << std::endl;
-            for_each<list_of_ranges>(_debug::print_ranges());
-            std::cout << "END RANGES/F" << std::endl;
-
-            std::cout << "BEGIN Fs" << std::endl;
-            for_each<typename MssType::linear_esf>(_debug::print_ranges());
-            std::cout << "END Fs" << std::endl;
-#endif
-
-            typedef boost::fusion::filter_view<typename Domain::arg_list,
-                is_temporary_storage<boost::mpl::_> > tmp_view_type;
-            tmp_view_type fview(domain.storage_pointers);
-
-#ifndef NDEBUG
-            std::cout << "BEGIN VIEW" << std::endl;
-            boost::fusion::for_each(fview, _debug::print_view());
-            std::cout << "END VIEW" << std::endl;
-#endif
-
-            list_of_ranges lor;
-            typedef boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
-            zipper zzip(fview, lor);
-            boost::fusion::zip_view<zipper> zip(zzip);
-            boost::fusion::for_each(zip, _impl::instantiate_tmps(tileI, tileJ, tileK));
-
-#ifndef NDEBUG
-            std::cout << "BEGIN VIEW DOPO" << std::endl;
-            boost::fusion::for_each(fview, _debug::print_view_());
-            std::cout << "END VIEW DOPO" << std::endl;
-#endif
-
-            domain.is_ready = true;
+            //            domain.is_ready = true;
         }
 
         /**

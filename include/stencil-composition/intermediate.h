@@ -335,7 +335,7 @@ namespace gridtools {
          */
         typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::type mpl_actual_arg_list;
 
-typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list;
+        typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list_type;
 
         /**
          * Create a fusion::vector of domains for each functor
@@ -343,7 +343,7 @@ typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type 
          */
         typedef typename boost::mpl::transform<
             typename MssType::linear_esf,
-            _impl::get_local_domain<actual_arg_list, typename DomainType::iterator_list, local_domain> >::type mpl_local_domain_list;
+            _impl::get_local_domain<actual_arg_list_type, typename DomainType::iterator_list, local_domain> >::type mpl_local_domain_list;
 
         /**
          *
@@ -358,6 +358,8 @@ typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type 
 
         DomainType & m_domain;
         Coords m_coords;
+
+        actual_arg_list_type actual_arg_list;
 
         intermediate(MssType const &, DomainType & domain, Coords const & coords)
             : m_domain(domain)
@@ -399,7 +401,7 @@ typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type 
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
         void ready () {
-            Backend::template prepare_temporaries<MssType, range_sizes, actual_arg_list>(m_domain, m_coords);
+            Backend::template prepare_temporaries(actual_arg_list, m_coords);
         }
         /**
            @brief calls setup_computation and creates the local domains.
