@@ -32,7 +32,7 @@ namespace gridtools {
                                                   , Layout
                                                   , true
                                                   > 
-{
+    {
 
         typedef base_storage<host_tmp_storage<
                                  ValueType
@@ -56,6 +56,11 @@ namespace gridtools {
         typedef ValueType value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
+
+        static const int iminus = MinusI;
+        static const int ijminus = MinusJ;
+        static const int iplus  = PlusI;
+        static const int jplus  = PlusJ;
 
         using base_type::m_dims;
         using base_type::strides;
