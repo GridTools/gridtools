@@ -206,6 +206,35 @@ namespace gridtools {
             >::type type;
         };
 
+
+        template <typename Index>
+        struct has_index_ {
+            template <typename Elem>
+            struct apply {
+                static const int a = Elem::second_____();
+                typedef typename boost::mpl::equal_to<Index, typename Elem::second>::type type;
+            };
+        };
+
+        template <typename Placeholders,
+                  typename TmpPairs>
+        struct select_storage {
+            template <typename Index>
+            struct apply {
+                typedef typename boost::mpl::if_<
+                    is_temporary_storage<
+                        typename boost::mpl::at<Placeholders, Index>::type::storage_type
+                        >,
+                    typename boost::mpl::deref<
+                        typename boost::mpl::find_if<
+                            TmpPairs, 
+                            has_index_<Index> 
+                            >::type
+                        >::type::first*,
+                    typename boost::mpl::at<Placeholders, Index>::type::storage_type*
+                    >::type type;
+            };
+        };
 /**
  * @}
  * */
@@ -264,9 +293,39 @@ namespace gridtools {
             }
         };
 
+
+        struct _print_the_storages {
+            template <typename T>
+            void operator()(T const& x) const {
+                //                int a =x;
+                std::cout << "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA  " << x << std::endl;
+            }
+        };
     } // namespace _debug
 
 
+    struct _print_____ {
+        template <typename T>
+        void operator()(T) const {
+            //int x = T();
+            std::cout << "ciccia e brufoli " << T() << std::endl;
+        }
+    };
+
+    struct _print______ {
+        template <typename T>
+        void operator()(T) const {
+            std::cout << "   ==== == == ===  = == == = " << std::endl;
+            gridtools::for_each<T>(_print_____());
+        }
+    };
+
+    struct printthose {
+        template <typename E>
+        void operator()(E const& e) const {
+            std::cout << typename std::remove_pointer<typename E::first>::type() << "std::hex" << std::hex << e << std::dec << "   " ;
+        }
+    };
 /**
  * @class
  * @brief structure collecting helper metafunctions
@@ -333,7 +392,25 @@ namespace gridtools {
          * backend with the interface that takes the range sizes. This
          * must be done before getting the local_domain
          */
-        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::type mpl_actual_arg_list;
+        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::type mpl_actual_tmp_pairs;
+
+        typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
+
+        typedef typename boost::mpl::fold<
+            iter_range,
+            boost::mpl::vector<>,
+            typename boost::mpl::push_back<
+                boost::mpl::_1, 
+                typename _impl::select_storage<
+                    typename DomainType::placeholders,
+                    mpl_actual_tmp_pairs
+                    >::template apply<boost::mpl::_2>
+                >
+            >::type mpl_actual_arg_list;
+
+        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::written_temps_per_functor temp_list;
+
+        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::temporaries tomp_list;
 
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list_type;
 
@@ -401,6 +478,7 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
         void ready () {
+            //boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries(actual_arg_list, m_coords);
         }
         /**
@@ -413,9 +491,9 @@ namespace gridtools {
         void steady () {
             m_domain.setup_computation();
 
-            boost::fusion::for_each(local_domain_list,
-                                    _impl::instantiate_local_domain<DomainType>
-                                    (const_cast<typename boost::remove_const<DomainType>::type*>(&m_domain)));
+            //boost::fusion::for_each(local_domain_list,
+            //                        _impl::instantiate_local_domain<DomainType>
+            //                        (const_cast<typename boost::remove_const<DomainType>::type*>(&m_domain)));
 
 #ifndef NDEBUG
             m_domain.info();
@@ -432,7 +510,19 @@ namespace gridtools {
          *
          */
         void run () {
-            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
+            std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " 
+                      << boost::mpl::size<mpl_actual_arg_list>::type::value
+                      << std::endl;
+
+            gridtools::for_each<typename DomainType::placeholders>(_print_____());
+            gridtools::for_each<temp_list>(_print______());
+            std::cout << "---" << std::endl;
+            gridtools::for_each<tomp_list>(_print_____());
+            std::cout << "--- ---" << std::endl;
+            gridtools::for_each<mpl_local_domain_list>(_print_____());
+
+            boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
+            //Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
         }
 
     };

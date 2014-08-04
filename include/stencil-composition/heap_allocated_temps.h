@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../storage/host_tmp_storage.h"
+
 namespace gridtools {
     namespace _impl {
         struct instantiate_tmps {
@@ -13,22 +15,22 @@ namespace gridtools {
             // ElemType: an element in the data field place-holders list
             template <typename ElemType>
             GT_FUNCTION
-            void operator()(ElemType*  e) const {
+            void operator()(ElemType*&  e) const {
 
 #ifndef __CUDACC__
-                std::string s = boost::lexical_cast<std::string>(ElemType::iminus)+
-                    boost::lexical_cast<std::string>(ElemType::iplus)+
-                    boost::lexical_cast<std::string>(ElemType::jminus)+
-                    boost::lexical_cast<std::string>(ElemType::jplus);
+                std::string s = boost::lexical_cast<std::string>(ElemType::minusi::value)+
+                    boost::lexical_cast<std::string>(ElemType::minusj::value)+
+                    boost::lexical_cast<std::string>(ElemType::plusi::value)+
+                    boost::lexical_cast<std::string>(ElemType::plusj::value);
 #endif
-                boost::fusion::at_c<0>(e) = new ElemType(
-                                                             tileK,
-                                                             typename ElemType::value_type(),
+                typename ElemType::value_type x = 5.7;
+                e = new ElemType(
+                                 tileK,
+                                 typename ElemType::value_type(),
 #ifndef __CUDACC__
-                                                             666,
-                                                             s);
+                                 s);
 #else
-                                                             666);
+                );
 #endif
             }
         };

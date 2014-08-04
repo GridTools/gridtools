@@ -176,26 +176,26 @@ namespace gridtools{
                                 for (int bj = 0; bj < NBJ; ++bj) {
                                     int _starti = bi*BI+coords.i_low_bound();
                                     int _startj = bj*BJ+coords.j_low_bound();
-                                    backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI, BJ));
+                                    backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI, BJ, bi, bj));
                                 }
                             }
 
                             for (int bj = 0; bj < NBJ; ++bj) {
                                 int _starti = NBI*BI+coords.i_low_bound();
                                 int _startj = bj*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ));
+                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ, NBI, bj));
                             }
 
                             for (int bi = 0; bi < NBI; ++bi) {
                                 int _starti = bi*BI+coords.i_low_bound();
                                 int _startj = NBJ*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ));
+                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ, bi, NBJ));
                             }
 
                             {
                                 int _starti = NBI*BI+coords.i_low_bound();
                                 int _startj = NBJ*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ));
+                                backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ, NBI, NBJ));
                             }
                         }
                     }
