@@ -6,7 +6,7 @@ enable_language( CXX )
 
 
 ## enable to use ctest:
-## enable_testing()
+enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 message("cmake module path " ${CMAKE_MODULE_PATH})
 
@@ -113,7 +113,7 @@ endif()
 
 set( GCL_MPI "${USE_MPI}" )
 set( GCL_GPU "${USE_GPU}" )
-set( GCL_ONLY "ON" CACHE BOOL "If on only library is build but not the examples and tests" )
+set( GCL_ONLY "OFF" CACHE BOOL "If on only library is build but not the examples and tests" )
 set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
 
@@ -126,9 +126,9 @@ endif()
 
 set( USE_MPI "OFF" CACHE BOOL "Compile with MPI support" )
 
-if( "${USE_MPI}" STREQUAL "ON" )
+if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
-  if( "${USE_MPI_COMPILER}" STREQUAL "ON" )
+  if( USE_MPI_COMPILER )
     FIND_PACKAGE(MPI REQUIRED)
     INCLUDE(CMakeForceCompiler)
     CMAKE_FORCE_CXX_COMPILER(mpicxx "MPI C++ Compiler")
