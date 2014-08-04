@@ -6,6 +6,8 @@
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/assert.hpp>
+#include <boost/mpl/bool.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/eval_if.hpp>
@@ -209,32 +211,76 @@ namespace gridtools {
 
         template <typename Index>
         struct has_index_ {
+            typedef boost::mpl::int_<Index::value> val1; 
             template <typename Elem>
             struct apply {
-                static const int a = Elem::second_____();
-                typedef typename boost::mpl::equal_to<Index, typename Elem::second>::type type;
+                typedef typename boost::mpl::int_<Elem::second::value> val2;
+                BOOST_MPL_ASSERT( (boost::mpl::bool_<(val1::value < 3)>) );
+                BOOST_MPL_ASSERT( (boost::mpl::bool_<(val2::value < 3)>) );
+                //typedef typename boost::mpl::equal_to<typename val1::ciao, val2>::type type;
+                typedef typename std::is_same<val1, val2>::type type;
             };
         };
+
+        // template <typename Placeholders,
+        //           typename TmpPairs>
+        // struct select_storage {
+        //     template <typename Index>
+        //     struct apply {
+        //         typedef typename boost::mpl::if_c<
+        //             is_temporary_storage<
+        //                 typename boost::mpl::at<Placeholders, Index>::type::storage_type
+        //                 >::type::value,
+        //             typename boost::mpl::deref<
+        //                 typename boost::mpl::find_if<
+        //                     TmpPairs,
+        //                     has_index_<Index>
+        //                     >::type
+        //                 >::type::first,
+        //             typename boost::mpl::at<Placeholders, Index>::type::storage_type
+        //             >::type type;
+
+        //     };
+        // };
 
         template <typename Placeholders,
                   typename TmpPairs>
         struct select_storage {
+            template <typename T, typename Dummy = void>
+            struct is_temp : public boost::false_type 
+            { };
+
+            template <typename T>
+            struct is_temp<no_storage_type_yet<T> > : public boost::true_type 
+            { };
+
+            template <bool b, typename Storage, typename tmppairs, typename index>
+            struct get_the_type {typedef int type;};
+
+            template <typename Storage, typename tmppairs, typename index>
+            struct get_the_type<true, Storage, tmppairs,index> {
+                typedef typename boost::mpl::deref<
+                    typename boost::mpl::find_if<
+                        tmppairs,
+                        has_index_<index>
+                        >::type
+                    >::type::first type;               
+            };
+
+            template <typename Storage, typename tmppairs, typename index>
+            struct get_the_type<false, Storage, tmppairs,index> {
+                typedef Storage type;
+            };
+
             template <typename Index>
             struct apply {
-                typedef typename boost::mpl::if_<
-                    is_temporary_storage<
-                        typename boost::mpl::at<Placeholders, Index>::type::storage_type
-                        >,
-                    typename boost::mpl::deref<
-                        typename boost::mpl::find_if<
-                            TmpPairs, 
-                            has_index_<Index> 
-                            >::type
-                        >::type::first*,
-                    typename boost::mpl::at<Placeholders, Index>::type::storage_type*
-                    >::type type;
+                typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
+                static const bool b = is_temp<storage_type>::value;
+                typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
+
             };
         };
+
 /**
  * @}
  * */
@@ -322,8 +368,8 @@ namespace gridtools {
 
     struct printthose {
         template <typename E>
-        void operator()(E const& e) const {
-            std::cout << typename std::remove_pointer<typename E::first>::type() << "std::hex" << std::hex << e << std::dec << "   " ;
+        void operator()(E * e) const {
+            std::cout << typename std::remove_pointer<typename std::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
         }
     };
 /**
@@ -478,7 +524,7 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
         void ready () {
-            //boost::fusion::for_each(actual_arg_list, printthose());
+            boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries(actual_arg_list, m_coords);
         }
         /**
@@ -522,7 +568,7 @@ namespace gridtools {
             gridtools::for_each<mpl_local_domain_list>(_print_____());
 
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
-            //Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
+            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
         }
 
     };

@@ -73,12 +73,12 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::at<Ranges, Index>::type range_type;
                 //typedef boost::mpl::at<Temporaries, Index>::type range_type;
-                typedef pair<host_tmp_storage<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>*, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+                typedef pair<host_tmp_storage<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
             };
         };
 
         template <typename PlcArgType>
-        struct is_temporary_arg : is_temporary<typename PlcArgType::storage_type>
+        struct is_temporary_arg : is_temporary_storage<typename PlcArgType::storage_type>
         {};
     }//namespace _impl
 
