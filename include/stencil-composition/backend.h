@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/mpl/filter_view.hpp>
 #include "backend_traits.h"
 
 
@@ -64,6 +65,18 @@ namespace gridtools {
 
             }
         };
+
+        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ>
+        struct get_storage_type {
+            template <typename Index>
+            struct apply {
+                typedef typename boost::mpl::at<Ranges, Index>::type range_type;
+                //typedef boost::mpl::at<Temporaries, Index>::type range_type;
+
+                typedef host_tmp_storage<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, -range_type::iplus::value, -range_type::jplus::value> type;
+            };
+        };
+
     }//namespace _impl
 
 
@@ -86,6 +99,55 @@ namespace gridtools {
         struct temporary_storage_type {
             typedef no_storage_type_yet< typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t > type;
         };
+
+        template <typename Domain
+                  , typename MssType
+                  , typename RangeSizes
+                  , typename ValueType = double
+                  , typename LayoutType = layout_map<0,1,2> >
+        struct obtain_storage_types {
+
+            static const int tileI = (strategy_traits_t::BI);
+
+            static const int tileJ = (strategy_traits_t::BJ);
+
+            typedef typename boost::mpl::fold<typename Domain::placeholders,
+                boost::mpl::vector<>,
+                boost::mpl::if_<
+                    is_plchldr_to_temp<boost::mpl::_2>,
+                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
+                    boost::mpl::_1>
+            >::type list_of_temporaries;
+
+            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
+            
+            typedef typename boost::mpl::transform<
+                list_of_temporaries,
+                _impl::associate_ranges<written_temps_per_functor, RangeSizes>
+            >::type list_of_ranges;
+
+            typedef boost::mpl::filter_view<typename Domain::placeholders, is_temporary_storage<boost::mpl::_> > temporaries;
+
+            typedef boost::mpl::range_c<int, 0, boost::mpl::size<temporaries>::type::value> iter_range;
+
+            typedef typename boost::mpl::fold<
+                iter_range,
+                boost::mpl::vector<>,
+                typename boost::mpl::push_back<
+                    typename boost::mpl::_1, 
+                    typename _impl::get_storage_type<
+                        temporaries,
+                        list_of_ranges,
+                        ValueType,
+                        LayoutType,
+                        tileI,
+                        tileJ
+                        >::template apply<boost::mpl::_2>
+                    > 
+                >::type type;
+ 
+        };
+
 
 
         /**
