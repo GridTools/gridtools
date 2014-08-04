@@ -22,8 +22,8 @@ namespace gridtools {
                 : super(domain_list, coords)
             {}
 
-            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj)
-                : super(domain_list, coords, i, j, bi, bj)
+            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj, int blki, int blkj)
+                : super(domain_list, coords, i, j, bi, bj, blki, blkj)
             {}
 
         };
@@ -69,7 +69,7 @@ namespace gridtools {
                             {
                                 std::cout << "Move to : " << i << ", " << j << std::endl;
  
-                                iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>());
+                                iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), 0, 0 );
 
                                 gridtools::for_each<loop_intervals_t>
                                     (_impl::run_f_on_interval

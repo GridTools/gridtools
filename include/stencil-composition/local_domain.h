@@ -53,6 +53,14 @@ namespace gridtools {
             }
         };
 
+        template <typename StorageList>
+        struct extract_types {
+            template <typename ElemType>
+            struct apply {
+                typedef typename boost::remove_reference<typename boost::fusion::result_of::at<StorageList, typename ElemType::index_type>::type>::type type;
+            };
+        };
+
     } // namespace gt_aux
 
 
@@ -82,9 +90,18 @@ namespace gridtools {
                                               >
                                           >::type domain_indices;
 
-        typedef typename boost::mpl::transform<domain_indices,
-                                               local_domain_aux::get_storage
-                                               >::type mpl_storages;
+        typedef typename boost::mpl::fold<domain_indices,
+                                          boost::mpl::vector<>,
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1,
+                                              typename local_domain_aux::extract_types<
+                                                  StoragePointers>::template apply<boost::mpl::_2>
+                                              >
+                                          >::type mpl_storages;
+
+        // typedef typename boost::mpl::transform<domain_indices,
+        //                                        local_domain_aux::get_storage
+        //                                        >::type mpl_storages;
 
         typedef typename boost::mpl::transform<domain_indices,
                                                local_domain_aux::get_iterator
@@ -95,7 +112,7 @@ namespace gridtools {
 
         typedef iterate_domain<this_type> iterate_domain_t;
 
-        local_args_type local_args;
+        StoragePointers/*local_args_type*/ local_args;
 
         template <typename Dom, typename IsActuallyClonable, int DUMMY = 0>
         struct pointer_if_clonable {
@@ -223,4 +240,9 @@ namespace gridtools {
         GT_FUNCTION
         int k() const {return -1; }
     };
+
+    template <typename StoragePointers, typename Iterators, typename EsfDescriptor>
+    std::ostream& operator<<(std::ostream& s, local_domain<StoragePointers,Iterators,EsfDescriptor> const&) {
+        return s << "local_domain<stuff>";
+    }
 }

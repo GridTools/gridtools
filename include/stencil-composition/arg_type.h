@@ -55,19 +55,16 @@ namespace gridtools {
     };
 
     template <typename U>
-    struct is_temporary_storage<no_storage_type_yet<U> > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<no_storage_type_yet<U> > : public boost::true_type
+    { };
 
     template <typename U>
-    struct is_temporary_storage<no_storage_type_yet<U>* > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<no_storage_type_yet<U>* > : public boost::true_type 
+    { };
 
     template <typename U>
-    struct is_temporary_storage<no_storage_type_yet<U>& > {
-        typedef boost::true_type type;
-    };
+    struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
+    { };
 
     /**
      * Type to create placeholders for data fields.
@@ -219,6 +216,13 @@ namespace gridtools {
     {};
 
     /**
+     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
+     */
+    template <int I, typename T>
+    struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
+    {};
+
+    /**
      * Printing type information for debug purposes
      * @param s The ostream
      * @param n/a Type selector for arg_type
@@ -242,6 +246,12 @@ namespace gridtools {
      */
     template <int I, typename R>
     std::ostream& operator<<(std::ostream& s, arg<I,temporary<R> > const&) {
+        return s << "[ arg< " << I
+                 << ", temporary<something>" << " > ]";
+    }
+
+    template <int I, typename R>
+    std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R> > const&) {
         return s << "[ arg< " << I
                  << ", temporary<something>" << " > ]";
     }

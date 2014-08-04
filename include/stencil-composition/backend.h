@@ -2,7 +2,7 @@
 
 #include <boost/mpl/filter_view.hpp>
 #include "backend_traits.h"
-
+#include "../common/pair.h"
 
 /**
    @file
@@ -28,18 +28,19 @@ namespace gridtools {
 
             typename derived_traits_t::coords_t const & m_coords;
             typename derived_traits_t::domain_list_t & m_domain_list;
-            int m_starti, m_startj, m_BI, m_BJ;
+            int m_starti, m_startj, m_BI, m_BJ, blk_idx_i, blk_idx_j;
 
             // Block strategy
-            explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords, int i, int j, int bi, int bj)
-                :
-                  m_domain_list(dom_list)
+            explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords, int i, int j, int bi, int bj, int blk_idx_i, int blk_idx_j)
+                : m_domain_list(dom_list)
                 , m_coords(coords)
                 , m_starti(i)
                 , m_startj(j)
                 , m_BI(bi)
                 , m_BJ(bj)
-                {}
+                , blk_idx_i(blk_idx_i)
+                , blk_idx_j(blk_idx_j)
+            {}
 
             // Naive strategy
             explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords)
@@ -72,11 +73,13 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::at<Ranges, Index>::type range_type;
                 //typedef boost::mpl::at<Temporaries, Index>::type range_type;
-
-                typedef host_tmp_storage<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, -range_type::iplus::value, -range_type::jplus::value> type;
+                typedef pair<host_tmp_storage<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>*, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
             };
         };
 
+        template <typename PlcArgType>
+        struct is_temporary_arg : is_temporary<typename PlcArgType::storage_type>
+        {};
     }//namespace _impl
 
 
@@ -126,7 +129,7 @@ namespace gridtools {
                 _impl::associate_ranges<written_temps_per_functor, RangeSizes>
             >::type list_of_ranges;
 
-            typedef boost::mpl::filter_view<typename Domain::placeholders, is_temporary_storage<boost::mpl::_> > temporaries;
+            typedef boost::mpl::filter_view<typename Domain::placeholders, _impl::is_temporary_arg<boost::mpl::_> > temporaries;
 
             typedef boost::mpl::range_c<int, 0, boost::mpl::size<temporaries>::type::value> iter_range;
 
@@ -145,7 +148,7 @@ namespace gridtools {
                         >::template apply<boost::mpl::_2>
                     > 
                 >::type type;
- 
+
         };
 
 

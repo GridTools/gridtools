@@ -42,10 +42,12 @@ namespace gridtools {
 #ifndef NDEBUG
                         , TypeTag
 #endif
-                        > const& storage) const {}
+                        > const* storage) const {
+                IteratorType::CACCHIO;
+            }
 
             GT_FUNCTION
-            assign_iterators(int i, int j, int k, int bi=0, int bj=0)
+            assign_iterators(int i, int j, int k, int bi, int bj)
                 : i(i)
                 , j(j)
                 , k(k)
@@ -56,12 +58,11 @@ namespace gridtools {
             template <typename ZipElem>
             GT_FUNCTION
             void operator()(ZipElem const& ze) const {
-                assign(*boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
                 std::cout << "Moving pointers **********************************************" << std::endl;
                 std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
                 (*(boost::fusion::at_c<1>(ze))).info();
 
-                boost::fusion::at_c<0>(ze) = &( (*(boost::fusion::at_c<1>(ze)))(i,j,k) );
+                assign(*boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
             }
 
         };
@@ -84,14 +85,14 @@ namespace gridtools {
         mutable local_iterators_type local_iterators;
 
         GT_FUNCTION
-        iterate_domain(LocalDomain const& local_domain, int i, int j, int k)
+        iterate_domain(LocalDomain const& local_domain, int i, int j, int k, int bi, int bj)
             : local_domain(local_domain)
         {
             typedef boost::fusion::vector<local_iterators_type&, typename LocalDomain::local_args_type const&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
 
             to_zip z(local_iterators, local_domain.local_args);
-            boost::fusion::for_each(zipping(z), iterate_domain_aux::assign_iterators(i,j,k));
+            boost::fusion::for_each(zipping(z), iterate_domain_aux::assign_iterators(i,j,k,bi,bj));
         }
 
         GT_FUNCTION

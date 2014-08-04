@@ -57,10 +57,15 @@ namespace gridtools {
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
 
-        static const int iminus = MinusI;
-        static const int ijminus = MinusJ;
-        static const int iplus  = PlusI;
-        static const int jplus  = PlusJ;
+        typedef boost::mpl::int_<MinusI> minusi;
+        typedef boost::mpl::int_<MinusJ> minusj;
+        typedef boost::mpl::int_<PlusI> plusi;
+        typedef boost::mpl::int_<PlusJ> plusj;
+
+        // static const int iminus = MinusI;
+        // static const int jminus = MinusJ;
+        // static const int iplus  = PlusI;
+        // static const int jplus  = PlusJ;
 
         using base_type::m_dims;
         using base_type::strides;
@@ -207,7 +212,43 @@ namespace gridtools {
         }
 
     };
-        
+
+    template <typename ValueType
+              , typename Layout
+              , int TileI
+              , int TileJ
+              , int MinusI
+              , int MinusJ
+              , int PlusI
+              , int PlusJ
+#ifndef NDEBUG
+              , typename TypeTag
+#endif
+              >
+    std::ostream& operator<<(std::ostream& s,
+                             host_tmp_storage<
+                             ValueType
+                             , Layout
+                             , TileI
+                             , TileJ
+                             , MinusI
+                             , MinusJ
+                             , PlusI
+                             , PlusJ
+#ifndef NDEBUG
+                             , TypeTag
+#endif
+                             > const & x) {
+        return s << "host_tmp_storage<...," 
+                 << TileI << ", "
+                 << TileJ << ", "
+                 << MinusI << ", "
+                 << MinusJ << ", "
+                 << PlusI << ", "
+                 << PlusJ << "> ";
+    }
+
+  
     template <typename ValueType
               , typename Layout
               , int TileI
