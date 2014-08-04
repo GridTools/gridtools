@@ -37,10 +37,10 @@
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-#include "arg_type.h"
 #include "../storage/storage.h"
 #include "../common/layout_map.h"
 #include "domain_type_impl.h"
+#include "arg_type.h"
 
 namespace gridtools {
 

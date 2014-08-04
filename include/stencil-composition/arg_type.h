@@ -6,7 +6,7 @@
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
 #include "../stencil-composition/is_temporary_storage.h"
-
+#include <boost/mpl/assert.hpp>
 namespace gridtools {
 
     /**
@@ -56,15 +56,15 @@ namespace gridtools {
 
     template <typename U>
     struct is_temporary_storage<no_storage_type_yet<U> > : public boost::true_type
-    { };
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     template <typename U>
     struct is_temporary_storage<no_storage_type_yet<U>* > : public boost::true_type 
-    { };
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     template <typename U>
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
-    { };
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     /**
      * Type to create placeholders for data fields.
@@ -95,41 +95,41 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam T The type of values to store in the actual storage for the temporary data-field
      */
-    template <int I, typename U>
-    struct arg<I, temporary<U> > {
-#ifndef NDEBUG
-        template <typename STORAGE, typename TAG>
-        struct add_tag {};
+//     template <int I, typename U>
+//     struct arg<I, temporary<U> > {
+// #ifndef NDEBUG
+//         template <typename STORAGE, typename TAG>
+//         struct add_tag {};
 
-        template <typename VAL, typename LAYOUT, bool BOOL, typename OLD_TAG, template <typename, typename, bool, typename> class STORE, typename NEW_TAG>
-        struct add_tag<STORE<VAL, LAYOUT, BOOL, OLD_TAG>, NEW_TAG> {
-            typedef typename temporary<STORE<VAL, LAYOUT, true, NEW_TAG> >::storage_type type;
-        };
-#else
-        template <typename STORAGE>
-        struct make_it_temporary {};
+//         template <typename VAL, typename LAYOUT, bool BOOL, typename OLD_TAG, template <typename, typename, bool, typename> class STORE, typename NEW_TAG>
+//         struct add_tag<STORE<VAL, LAYOUT, BOOL, OLD_TAG>, NEW_TAG> {
+//             typedef typename temporary<STORE<VAL, LAYOUT, true, NEW_TAG> >::storage_type type;
+//         };
+// #else
+//         template <typename STORAGE>
+//         struct make_it_temporary {};
 
-        template <typename VAL, typename LAYOUT, bool BOOL, template <typename, typename, bool> class STORE>
-        struct make_it_temporary<STORE<VAL, LAYOUT, BOOL> > {
-            typedef typename temporary<STORE<VAL, LAYOUT, true> >::storage_type type;
-        };
+//         template <typename VAL, typename LAYOUT, bool BOOL, template <typename, typename, bool> class STORE>
+//         struct make_it_temporary<STORE<VAL, LAYOUT, BOOL> > {
+//             typedef typename temporary<STORE<VAL, LAYOUT, true> >::storage_type type;
+//         };
 
-#endif
+// #endif
 
-#ifndef NDEBUG
-        typedef typename add_tag<U, arg<I, temporary<U> > >::type storage_type;
-#else
-        typedef typename make_it_temporary<U>::type storage_type;
-#endif
-        typedef typename storage_type::value_type value_type;
+// #ifndef NDEBUG
+//         typedef typename add_tag<U, arg<I, temporary<U> > >::type storage_type;
+// #else
+//         typedef typename make_it_temporary<U>::type storage_type;
+// #endif
+//         typedef typename storage_type::value_type value_type;
 
-        typedef typename storage_type::iterator_type iterator_type;
-        typedef boost::mpl::int_<I> index_type;
+//         typedef typename storage_type::iterator_type iterator_type;
+//         typedef boost::mpl::int_<I> index_type;
 
-        static void info() {
-            std::cout << "Arg on TEMP storage with index " << I;
-        }
-    };
+//         static void info() {
+//             std::cout << "Arg on TEMP storage with index " << I;
+//         }
+//     };
 
     /**
      * Type to be used in elementary stencil functions to specify argument mapping and ranges

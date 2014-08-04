@@ -5,9 +5,7 @@
 
 namespace gridtools {
     template <typename T>
-    struct is_temporary_storage {
-        typedef boost::false_type type;
-    };
+    struct is_temporary_storage;
 } // namespace gridtools
 
 #endif
