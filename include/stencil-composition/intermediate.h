@@ -56,7 +56,12 @@ namespace gridtools {
 
             template <typename StorageType>
             struct apply<no_storage_type_yet<StorageType> > {
-                typedef host_tmp_storage< typename StorageType::value_type, typename StorageType::layout_type> type;;
+                typedef host_tmp_storage< typename StorageType::value_type
+                                          , typename StorageType::layout_type
+                                          , Backend::BI
+                                          , Backend::BJ
+                                          
+                                          > type;;
             };
         };
 
@@ -346,7 +351,9 @@ namespace gridtools {
          * backend with the interface that takes the range sizes. This
          * must be done before getting the local_domain
          */
-        typedef typename boost::mpl::transform<typename DomainType::arg_list, typename _impl::obtain_type_from_backend<Backend, range_sizes> >::type actual_arg_list;
+        typedef typename boost::mpl::transform<typename DomainType::arg_list, typename _impl::obtain_type_from_backend<Backend, range_sizes> >::type mpl_actual_arg_list;
+
+typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list;
 
         /**
          * Create a fusion::vector of domains for each functor
@@ -410,7 +417,7 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
         void ready () {
-            Backend::template prepare_temporaries<MssType, range_sizes>(m_domain, m_coords);
+            Backend::template prepare_temporaries<MssType, range_sizes, actual_arg_list>(m_domain, m_coords);
         }
         /**
            @brief calls setup_computation and creates the local domains.

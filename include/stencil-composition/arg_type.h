@@ -33,38 +33,11 @@ namespace gridtools {
     }
 
     /**
-     * Flag type to identify data fields that must be treated as temporary
+     * Flag type to identify data fields that must be treated as temporary 
      */
+    // TODO: Remove?
     template <typename StorageType>
-    struct temporary;//   {
-    //     typedef int storage_type;
-    // //     typedef typename storage_type::value_type value_type;
-    // };
-
-    template <typename T, typename U, bool B>
-    struct temporary<storage<T,U, B> > {
-        typedef host_tmp_storage<T,U> storage_type;
-        typedef typename storage_type::value_type value_type;
-    };
-
-    template <typename T, typename U, bool B, typename DebTag>
-        struct temporary<storage<T,U, B, DebTag> > {
-        typedef host_tmp_storage<T,U, DebTag> storage_type;
-        typedef typename storage_type::value_type value_type;
-    };
-
-    template <typename T, typename U>
-    struct temporary<storage<T,U> > {
-        typedef host_tmp_storage<T,U> storage_type;
-        typedef typename storage_type::value_type value_type;
-    };
-
-
-    template <typename T, typename U>
-    struct temporary<host_tmp_storage<T,U> > {
-        typedef host_tmp_storage<T,U> storage_type;
-        typedef typename storage_type::value_type value_type;
-    };
+    struct temporary;
 
     template <typename T>
     struct is_temporary {

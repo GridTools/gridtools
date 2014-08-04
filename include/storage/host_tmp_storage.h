@@ -5,6 +5,12 @@
 namespace gridtools {
     template < typename ValueType
                , typename Layout
+               , int TileI
+               , int TileJ
+               , int MinusI
+               , int MinusJ
+               , int PlusI
+               , int PlusJ
 #ifndef NDEBUG
                , typename TypeTag = int
 #endif
@@ -12,18 +18,31 @@ namespace gridtools {
     struct host_tmp_storage : public base_storage<host_tmp_storage<
                                                       ValueType
                                                       , Layout
+                                                      , TileI
+                                                      , TileJ
+                                                      , MinusI
+                                                      , MinusJ
+                                                      , PlusI
+                                                      , PlusJ
 #ifndef NDEBUG
                                                       , TypeTag
 #endif
-                                                      >,
-                                                  ValueType,
-                                                  Layout,
-                                                  true
-                                                  > {
+                                                      >
+                                                  , ValueType
+                                                  , Layout
+                                                  , true
+                                                  > 
+{
 
         typedef base_storage<host_tmp_storage<
                                  ValueType
                                  , Layout
+                                 , TileI
+                                 , TileJ
+                                 , MinusI
+                                 , MinusJ
+                                 , PlusI
+                                 , PlusJ
 #ifndef NDEBUG
                                  , TypeTag
 #endif
@@ -32,11 +51,7 @@ namespace gridtools {
                              , Layout
                              , true> base_type;
 
-#ifndef NDEBUG
-        typedef host_tmp_storage<ValueType, Layout, TypeTag> this_type;
-#else
-        typedef host_tmp_storage<ValueType, Layout> this_type;
-#endif
+
         typedef Layout layout;
         typedef ValueType value_type;
         typedef value_type* iterator_type;
@@ -54,20 +69,18 @@ namespace gridtools {
 
         value_type* data;
 
-        explicit host_tmp_storage(int m_dim1, int m_dim2, int m_dim3,
-                                  int offs_i_m, int offs_j_m, int offs_k_m,
-                                  int offs_i_p, int offs_j_p, int offs_k_p,
+        explicit host_tmp_storage(int m_dim3,
                                   value_type init = value_type(),
                                   std::string const& s = std::string("default name") )
-            : base_type(m_dim1+offs_i_m+offs_i_p, m_dim2+offs_j_m+offs_j_p, m_dim3+offs_k_m+offs_k_p, init)
+            : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, m_dim3, init)
             , m_name(s)
         {
-            m_tile[0] = m_dim1;
-            m_tile[1] = m_dim2;
+            m_tile[0] = TileI;
+            m_tile[1] = TileJ;
             m_tile[2] = m_dim3;
-            offs[0]=offs_i_m;
-            offs[1]=offs_j_m;
-            offs[2]=offs_k_m;
+            offs[0]=MinusI;
+            offs[1]=MinusJ;
+            offs[2]=0;
             data = new value_type[m_size];
         }
 
@@ -96,17 +109,21 @@ namespace gridtools {
             return data+m_size;
         }
 
-        value_type& operator()(int i, int j, int k) {
-            assert(_index(i,j,k) >= 0);
-            assert(_index(i,j,k) < m_size);
-            return data[_index(i,j,k)];
+        value_type& move_to(int i,int j,int k, int bi, int bj) const {
+            return data[_index(i,j,k,bi,bj)];
         }
 
-        value_type const & operator()(int i, int j, int k) const {
-            assert(_index(i,j,k) >= 0);
-            assert(_index(i,j,k) < m_size);
-            return data[_index(i,j,k)];
-        }
+        // value_type& operator()(int i, int j, int k) {
+        //     assert(_index(i,j,k) >= 0);
+        //     assert(_index(i,j,k) < m_size);
+        //     return data[_index(i,j,k)];
+        // }
+
+        // value_type const & operator()(int i, int j, int k) const {
+        //     assert(_index(i,j,k) >= 0);
+        //     assert(_index(i,j,k) < m_size);
+        //     return data[_index(i,j,k)];
+        // }
 
         // int offset(int i, int j, int k) const {
         //     return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
@@ -186,52 +203,115 @@ namespace gridtools {
 
     };
         
+    template <typename ValueType
+              , typename Layout
+              , int TileI
+              , int TileJ
+              , int MinusI
+              , int MinusJ
+              , int PlusI
+               , int PlusJ
 #ifndef NDEBUG
-    template <typename X, typename Y, typename A>
-    struct is_temporary_storage<host_tmp_storage<X,Y,A>*& >
-      : boost::true_type
-    {};
-#else
-    template <typename X, typename Y>
-    struct is_temporary_storage<host_tmp_storage<X,Y>*& >
-      : boost::true_type
-    {};
+              , typename TypeTag
 #endif
-
+              >
+    struct is_temporary_storage<host_tmp_storage<
+                                    ValueType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
 #ifndef NDEBUG
-    template <typename X, typename Y,typename A>
-    struct is_temporary_storage<host_tmp_storage<X,Y,A>* >
-      : boost::true_type
-    {};
-#else
-    template <typename X, typename Y>
-    struct is_temporary_storage<host_tmp_storage<X,Y>* >
-      : boost::true_type
-    {};
+                                    , TypeTag
 #endif
+                                    >*& >
+      : boost::true_type
+    {};
 
+    template <typename ValueType
+              , typename Layout
+              , int TileI
+              , int TileJ
+              , int MinusI
+              , int MinusJ
+              , int PlusI
+              , int PlusJ
 #ifndef NDEBUG
-    template <typename X, typename Y, typename A>
-    struct is_temporary_storage<host_tmp_storage<X,Y,A> >
-      : boost::true_type
-    {};
-#else
-    template <typename X, typename Y>
-    struct is_temporary_storage<host_tmp_storage<X,Y> >
-      : boost::true_type
-    {};
+              , typename TypeTag
 #endif
-
+              >
+    struct is_temporary_storage<host_tmp_storage<
+                                    ValueType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
 #ifndef NDEBUG
-    template <typename T, typename U, typename TT>
-    std::ostream& operator<<(std::ostream &s, host_tmp_storage<T,U,TT> ) {
-        return s << "host_tmp_storage <T,U,TT>" ;
-    }
-#else
-    template <typename T, typename U>
-    std::ostream& operator<<(std::ostream &s, host_tmp_storage<T,U> ) {
-        return s << "host_tmp_storage <T,U>" ;
-    }
+                                    , TypeTag
 #endif
+                                    >* >
+      : boost::true_type
+    {};
 
+    template <typename ValueType
+              , typename Layout
+              , int TileI
+              , int TileJ
+              , int MinusI
+              , int MinusJ
+              , int PlusI
+              , int PlusJ
+#ifndef NDEBUG
+              , typename TypeTag
+#endif
+              >
+    struct is_temporary_storage<host_tmp_storage<
+                                    ValueType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+#ifndef NDEBUG
+                                    , TypeTag
+#endif
+                                    > &>
+    : boost::true_type
+    {};
+    
+    template <typename ValueType
+              , typename Layout
+              , int TileI
+              , int TileJ
+              , int MinusI
+              , int MinusJ
+              , int PlusI
+              , int PlusJ
+#ifndef NDEBUG
+              , typename TypeTag
+#endif
+              >
+    struct is_temporary_storage<host_tmp_storage<
+                                    ValueType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+#ifndef NDEBUG
+                                    , TypeTag
+#endif
+                                    > const& >
+    : boost::true_type
+    {};
 } // namespace gridtools
