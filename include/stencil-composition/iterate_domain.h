@@ -6,24 +6,64 @@ namespace gridtools {
 
     namespace iterate_domain_aux {
         struct assign_iterators {
-            int i, j, k;
+            const int i, j, k, bi, bj;
+
+            template <typename IteratorType, typename StoragePointer> const 
+            void assign (IteratorType & it, StoragePointer const& storage) {
+                std::cout << "Moving pointers **********************************************" << std::endl;
+                std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
+                storage.info();
+
+                it = &( storage(i,j,k) );
+            }
+
+            template <typename IteratorType,
+                      typename ValueType
+                      , typename Layout
+                      , int TileI
+                      , int TileJ
+                      , int MinusI
+                      , int MinusJ
+                      , int PlusI
+                      , int PlusJ
+#ifndef NDEBUG
+                      , typename TypeTag = int
+#endif
+                      >
+            void assign(IteratorType & it, 
+                        host_tmp_storage<ValueType
+                        , Layout
+                        , TileI
+                        , TileJ
+                        , MinusI
+                        , MinusJ
+                        , PlusI
+                        , PlusJ
+#ifndef NDEBUG
+                        , TypeTag
+#endif
+                        > const& storage) const {}
 
             GT_FUNCTION
-            assign_iterators(int i, int j, int k)
+            assign_iterators(int i, int j, int k, int bi=0, int bj=0)
                 : i(i)
                 , j(j)
                 , k(k)
+                , bi(bi)
+                , bj(bj)
             {}
 
             template <typename ZipElem>
             GT_FUNCTION
             void operator()(ZipElem const& ze) const {
+                assign(*boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
                 std::cout << "Moving pointers **********************************************" << std::endl;
                 std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
                 (*(boost::fusion::at_c<1>(ze))).info();
 
                 boost::fusion::at_c<0>(ze) = &( (*(boost::fusion::at_c<1>(ze)))(i,j,k) );
             }
+
         };
 
         struct increment {
