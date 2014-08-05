@@ -184,95 +184,96 @@ int main(int argc, char** argv) {
     coords.value_list[0] = 0;
     coords.value_list[1] = d3;
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual domain dimensions
-     */
-    // gridtools::intermediate::run<gridtools::BACKEND>
-    //     (
-    //      gridtools::make_mss
-    //      (
-    //       gridtools::execute_upward,
-    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
-    //       gridtools::make_independent
-    //       (
-    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-    //        ),
-    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-    //       ),
-    //      domain, coords);
-
-#ifdef USE_PAPI_WRAP
-    pw_start_collector(collector_init);
-#endif
-#ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
-#else
-    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
-#endif
-        gridtools::make_computation<gridtools::BACKEND>
-        (
-         gridtools::make_mss // mss_descriptor
-         (
-          gridtools::execute_upward,
-          gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
-          gridtools::make_independent // independent_esf
-          (
-           gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-           gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-          ),
-          gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-         ),
-         domain, coords
-        );
-
-    horizontal_diffusion->ready();
-
-    // domain.storage_info<boost::mpl::int_<0> >();
-    // domain.storage_info<boost::mpl::int_<1> >();
-    // domain.storage_info<boost::mpl::int_<2> >();
-    domain.storage_info<boost::mpl::int_<3> >();
-    domain.storage_info<boost::mpl::int_<4> >();
-    domain.storage_info<boost::mpl::int_<5> >();
-
-    horizontal_diffusion->steady();
-    domain.clone_to_gpu();
-
-#ifdef USE_PAPI_WRAP
-    pw_stop_collector(collector_init);
-#endif
-
-    boost::timer::cpu_timer time;
-#ifdef USE_PAPI_WRAP
-    pw_start_collector(collector_execute);
-#endif
-    horizontal_diffusion->run();
-#ifdef USE_PAPI_WRAP
-    pw_stop_collector(collector_execute);
-#endif
-    boost::timer::cpu_times lapse_time = time.elapsed();
-
-    horizontal_diffusion->finalize();
-
-#ifdef CUDA_EXAMPLE
-    out.data.update_cpu();
-#endif
-
-    //    in.print();
-    out.print();
-    //    lap.print();
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-
-#ifdef USE_PAPI_WRAP
-    pw_print();
-#endif
-
     return 0;
+//     /*
+//       Here we do lot of stuff
+//       1) We pass to the intermediate representation ::run function the description
+//       of the stencil, which is a multi-stage stencil (mss)
+//       The mss includes (in order of execution) a laplacian, two fluxes which are independent
+//       and a final step that is the out_function
+//       2) The logical physical domain with the fields to use
+//       3) The actual domain dimensions
+//      */
+//     // gridtools::intermediate::run<gridtools::BACKEND>
+//     //     (
+//     //      gridtools::make_mss
+//     //      (
+//     //       gridtools::execute_upward,
+//     //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
+//     //       gridtools::make_independent
+//     //       (
+//     //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+//     //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+//     //        ),
+//     //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+//     //       ),
+//     //      domain, coords);
+
+// #ifdef USE_PAPI_WRAP
+//     pw_start_collector(collector_init);
+// #endif
+// #ifdef __CUDACC__
+//     gridtools::computation* horizontal_diffusion =
+// #else
+//     boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+// #endif
+//         gridtools::make_computation<gridtools::BACKEND>
+//         (
+//          gridtools::make_mss // mss_descriptor
+//          (
+//           gridtools::execute_upward,
+//           gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
+//           gridtools::make_independent // independent_esf
+//           (
+//            gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+//            gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+//           ),
+//           gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+//          ),
+//          domain, coords
+//         );
+
+//     horizontal_diffusion->ready();
+
+//     // domain.storage_info<boost::mpl::int_<0> >();
+//     // domain.storage_info<boost::mpl::int_<1> >();
+//     // domain.storage_info<boost::mpl::int_<2> >();
+//     domain.storage_info<boost::mpl::int_<3> >();
+//     domain.storage_info<boost::mpl::int_<4> >();
+//     domain.storage_info<boost::mpl::int_<5> >();
+
+//     horizontal_diffusion->steady();
+//     domain.clone_to_gpu();
+
+// #ifdef USE_PAPI_WRAP
+//     pw_stop_collector(collector_init);
+// #endif
+
+//     boost::timer::cpu_timer time;
+// #ifdef USE_PAPI_WRAP
+//     pw_start_collector(collector_execute);
+// #endif
+//     horizontal_diffusion->run();
+// #ifdef USE_PAPI_WRAP
+//     pw_stop_collector(collector_execute);
+// #endif
+//     boost::timer::cpu_times lapse_time = time.elapsed();
+
+//     horizontal_diffusion->finalize();
+
+// #ifdef CUDA_EXAMPLE
+//     out.data.update_cpu();
+// #endif
+
+//     //    in.print();
+//     out.print();
+//     //    lap.print();
+
+//     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+
+// #ifdef USE_PAPI_WRAP
+//     pw_print();
+// #endif
+
+//     return 0;
 }

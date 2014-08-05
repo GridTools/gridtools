@@ -34,7 +34,14 @@ namespace gridtools {
 
         struct print_ranges {
             template <typename T>
-            void operator()(T& ) const {
+            void operator()(T const&) const {
+                std::cout << T() << std::endl;
+            }
+        };
+
+        struct print_deref {
+            template <typename T>
+            void operator()(T* const&) const {
                 std::cout << T() << std::endl;
             }
         };

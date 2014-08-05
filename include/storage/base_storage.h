@@ -2,7 +2,7 @@
 #include "../common/basic_utils.h"
 #include "../common/gpu_clone.h"
 #include "../common/gt_assert.h"
-#include "is_temporary_storage.h"
+#include "../common/is_temporary_storage.h"
 #include <iostream>
 
 namespace gridtools {

@@ -5,8 +5,9 @@
 #include "../common/layout_map.h"
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
-#include "../stencil-composition/is_temporary_storage.h"
 #include <boost/mpl/assert.hpp>
+#include "../common/is_temporary_storage.h"
+
 namespace gridtools {
 
     /**
@@ -14,6 +15,7 @@ namespace gridtools {
      */
     template <typename RegularStorageType>
     struct no_storage_type_yet {
+        typedef void storage_type;
         typedef typename RegularStorageType::iterator_type iterator_type;
         typedef typename RegularStorageType::value_type value_type;
         static void text() {
@@ -29,30 +31,30 @@ namespace gridtools {
 
     template <typename RST>
     std::ostream& operator<<(std::ostream& s, no_storage_type_yet<RST>) {
-        return s << "no_storage_type_yet<" << RST() << ">" << std::endl;
+        return s << "no_storage_type_yet<" << RST() << ">" ;
     }
 
     /**
      * Flag type to identify data fields that must be treated as temporary 
      */
     // TODO: Remove?
-    template <typename StorageType>
-    struct temporary;
+    // template <typename StorageType>
+    // struct temporary;
 
-    template <typename T>
-    struct is_temporary {
-        typedef boost::false_type type;
-    };
+    // template <typename T>
+    // struct is_temporary {
+    //     typedef boost::false_type type;
+    // };
 
-    template <typename U>
-    struct is_temporary<temporary<U> > {
-        typedef boost::true_type type;
-    };
+    // template <typename U>
+    // struct is_temporary<temporary<U> > {
+    //     typedef boost::true_type type;
+    // };
 
-    template <typename U>
-    struct is_temporary<no_storage_type_yet<U> > {
-        typedef boost::true_type type;
-    };
+    // template <typename U>
+    // struct is_temporary<no_storage_type_yet<U> > {
+    //     typedef boost::true_type type;
+    // };
 
     template <typename U>
     struct is_temporary_storage<no_storage_type_yet<U> > : public boost::true_type
@@ -211,9 +213,9 @@ namespace gridtools {
     /**
      * Struct to test if an argument is a temporary - Specialization yielding true
      */
-    template <int I, typename T>
-    struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
-    {};
+    // template <int I, typename T>
+    // struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
+    // {};
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
@@ -244,11 +246,11 @@ namespace gridtools {
      * @param n/a Type selector for arg to a temporary
      * @return ostream
      */
-    template <int I, typename R>
-    std::ostream& operator<<(std::ostream& s, arg<I,temporary<R> > const&) {
-        return s << "[ arg< " << I
-                 << ", temporary<something>" << " > ]";
-    }
+    // template <int I, typename R>
+    // std::ostream& operator<<(std::ostream& s, arg<I,temporary<R> > const&) {
+    //     return s << "[ arg< " << I
+    //              << ", temporary<something>" << " > ]";
+    // }
 
     template <int I, typename R>
     std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R> > const&) {
