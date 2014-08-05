@@ -109,7 +109,9 @@ namespace gridtools {
     private:
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
-                                          boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1,
+                                              boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
                                           >::type iterator_list_mpl;
     
     public:
@@ -174,10 +176,24 @@ namespace gridtools {
 
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
-            boost::fusion::copy(real_storage, fview);
+#ifndef NDEBUG
+            std::cout << "These are the actual placeholders and their storages" << std::endl;
+            gridtools::for_each<placeholders>(_debug::stdcoutstuff());
+#endif
+#ifndef NDEBUG
+            std::cout << "These are the real storages" << std::endl;
+            boost::fusion::for_each(real_storage, _debug::print_deref());
+            std::cout << "\nThese are the arg_list elems" << std::endl;
+            boost::fusion::for_each(arg_list(), _debug::print_deref());
+            std::cout << "\nThese are the storage_pointers elems" << std::endl;
+            boost::fusion::for_each(arg_list(), _debug::print_deref());
+            std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
+            boost::fusion::for_each(fview, _debug::print_deref());
+#endif
+            // boost::fusion::copy(real_storage, fview);
 
-            view_type original_fview(original_pointers);
-            boost::fusion::copy(real_storage, fview);
+            // view_type original_fview(original_pointers);
+            // boost::fusion::copy(real_storage, fview);
         }
 
 #ifdef __CUDACC__
