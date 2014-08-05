@@ -206,7 +206,7 @@ namespace gridtools {
         struct pos_ {
 
             template <int X, bool IsHere>
-            struct _find_pos 
+            struct _find_pos
             {
                 static const int value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
             };
@@ -217,7 +217,7 @@ namespace gridtools {
             };
 
             template <bool IsHere>
-            struct _find_pos<length, IsHere> {
+            struct _find_pos<3, IsHere> {
                 static const int value = -1;
             };
 
@@ -338,7 +338,7 @@ namespace gridtools {
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
-        
+
             \code
             a[0] = a; a[1] = b; a[3] = c;
             GCL::layout_map<2,0,1>::find<1>(a) == c
@@ -468,4 +468,3 @@ namespace gridtools {
 
 
 #endif
-

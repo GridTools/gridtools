@@ -76,7 +76,7 @@ namespace gridtools {
                                                _impl::l_get_index
                                                >::type raw_index_list;
         typedef boost::mpl::range_c<int,0,len> range_t;
-    private:    
+    private:
         typedef typename boost::mpl::fold<range_t,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -89,20 +89,20 @@ namespace gridtools {
         typedef typename boost::mpl::transform<iter_list,
                                                _impl::l_get_it_pos
                                                >::type index_list;
-   
+
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
-                                              boost::mpl::_1, 
-                                              boost::mpl::at<raw_storage_list, boost::mpl::_2> 
+                                              boost::mpl::_1,
+                                              boost::mpl::at<raw_storage_list, boost::mpl::_2>
                                               >
                                           >::type arg_list_mpl;
 
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
-                                              boost::mpl::_1, 
-                                              boost::mpl::at<original_placeholders, boost::mpl::_2> 
+                                              boost::mpl::_1,
+                                              boost::mpl::at<original_placeholders, boost::mpl::_2>
                                               >
                                           >::type placeholders;
 
@@ -113,7 +113,7 @@ namespace gridtools {
                                               boost::mpl::_1,
                                               boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
                                           >::type iterator_list_mpl;
-    
+
     public:
         /**
          * Type of fusion::vector of pointers to storages as indicated in Placeholders
@@ -123,7 +123,7 @@ namespace gridtools {
          * Type of fusion::vector of pointers to iterators as indicated in Placeholders
          */
         typedef typename boost::fusion::result_of::as_vector<iterator_list_mpl>::type iterator_list;
-    
+
         /**
          * fusion::vector of pointers to storages
          */
@@ -169,8 +169,8 @@ namespace gridtools {
             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
 #endif
 
-            typedef boost::fusion::filter_view<arg_list, 
-                boost::mpl::not_<is_temporary_storage<boost::mpl::_> > > view_type;
+            typedef boost::fusion::filter_view<arg_list ,
+                                               /*boost::mpl::not_<*/is_storage<boost::mpl::_1> /*>*/ > view_type;
 
             view_type fview(storage_pointers);
 
@@ -190,19 +190,19 @@ namespace gridtools {
             std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(fview, _debug::print_deref());
 #endif
-            // boost::fusion::copy(real_storage, fview);
+            boost::fusion::copy(real_storage, fview);
 
-            // view_type original_fview(original_pointers);
-            // boost::fusion::copy(real_storage, fview);
+            view_type original_fview(original_pointers);
+            boost::fusion::copy(real_storage, fview);
         }
 
 #ifdef __CUDACC__
         /** Copy constructor to be used when cloning to GPU
-         * 
+         *
          * @param The object to copy. Typically this will be *this
          */
         __device__
-        explicit domain_type(domain_type const& other) 
+        explicit domain_type(domain_type const& other)
             : storage_pointers(other.storage_pointers)
             , original_pointers(other.original_pointers)
             , iterators(other.iterators)
@@ -243,7 +243,7 @@ namespace gridtools {
         }
 
         ~domain_type() {
-            typedef boost::fusion::filter_view<arg_list, 
+            typedef boost::fusion::filter_view<arg_list,
                 is_temporary_storage<boost::mpl::_> > tmp_view_type;
             tmp_view_type fview(storage_pointers);
         }
@@ -292,9 +292,9 @@ namespace gridtools {
 
         /**
          * Function to access the data pointed to a specific iterator
-         * 
+         *
          * @tparam Index of the iterator in the iterator list
-         * 
+         *
          * @return Reference to the value pointed to Ith iterator
          */
         template <typename I>
@@ -327,7 +327,7 @@ namespace gridtools {
 
         /**
          * Move all iterators one position along one direction
-         * 
+         *
          * @\tparam DIR index of coordinate to increment by one
          */
         template <int DIR>
