@@ -16,12 +16,12 @@ namespace gridtools {
             template <typename ElemType>
             GT_FUNCTION
             void operator()(ElemType*&  e) const {
-
+                std::cout << " oooooooooooooo " << ElemType() << std::endl;
 #ifndef __CUDACC__
-                std::string s = boost::lexical_cast<std::string>(ElemType::minusi::value)+
-                    boost::lexical_cast<std::string>(ElemType::minusj::value)+
-                    boost::lexical_cast<std::string>(ElemType::plusi::value)+
-                    boost::lexical_cast<std::string>(ElemType::plusj::value);
+                std::string s("ciao");//  = boost::lexical_cast<std::string>(ElemType::minusi::value)+
+                // boost::lexical_cast<std::string>(ElemType::minusj::value)+
+                // boost::lexical_cast<std::string>(ElemType::plusi::value)+
+                // boost::lexical_cast<std::string>(ElemType::plusj::value);
 #endif
                 typename ElemType::value_type x = 5.7;
                 e = new ElemType(
@@ -30,10 +30,11 @@ namespace gridtools {
 #ifndef __CUDACC__
                                  s);
 #else
-                );
+                                 );
 #endif
             }
-        };
+            
+    };
 
         struct delete_tmps {
             template <typename Elem>
@@ -66,7 +67,12 @@ struct heap_allocated_temps {
             std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
 
-            boost::fusion::for_each(arg_list, _impl::instantiate_tmps(tileK));
+            typedef boost::fusion::filter_view<ArgList,
+                is_temporary_storage<boost::mpl::_1> > view_type;
+
+            view_type fview(arg_list);
+
+            boost::fusion::for_each(fview, _impl::instantiate_tmps(tileK));
 
             //            domain.is_ready = true;
         }

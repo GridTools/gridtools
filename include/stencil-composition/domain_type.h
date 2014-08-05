@@ -169,8 +169,8 @@ namespace gridtools {
             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
 #endif
 
-            typedef boost::fusion::filter_view<arg_list ,
-                                               /*boost::mpl::not_<*/is_storage<boost::mpl::_1> /*>*/ > view_type;
+            typedef boost::fusion::filter_view<arg_list,
+                is_storage<boost::mpl::_1> > view_type;
 
             view_type fview(storage_pointers);
 
