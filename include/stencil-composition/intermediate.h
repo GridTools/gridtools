@@ -211,7 +211,7 @@ namespace gridtools {
 
         template <typename Index>
         struct has_index_ {
-            typedef boost::mpl::int_<Index::value> val1; 
+            typedef boost::mpl::int_<Index::value> val1;
             template <typename Elem>
             struct apply {
                 typedef typename boost::mpl::int_<Elem::second::value> val2;
@@ -247,11 +247,11 @@ namespace gridtools {
                   typename TmpPairs>
         struct select_storage {
             template <typename T, typename Dummy = void>
-            struct is_temp : public boost::false_type 
+            struct is_temp : public boost::false_type
             { };
 
             template <typename T>
-            struct is_temp<no_storage_type_yet<T> > : public boost::true_type 
+            struct is_temp<no_storage_type_yet<T> > : public boost::true_type
             { };
 
             template <bool b, typename Storage, typename tmppairs, typename index>
@@ -264,7 +264,7 @@ namespace gridtools {
                         tmppairs,
                         has_index_<index>
                         >::type
-                    >::type::first type;               
+                    >::type::first type;
             };
 
             template <typename Storage, typename tmppairs, typename index>
@@ -277,7 +277,6 @@ namespace gridtools {
                 typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
                 static const bool b = is_temp<storage_type>::value;
                 typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
-
             };
         };
 
@@ -386,7 +385,7 @@ namespace gridtools {
          */
         typedef typename boost::mpl::transform<typename MssType::linear_esf,
                                                _impl::extract_functor>::type functors_list;
-        
+
         /**
          *  compute the functor do methods - This is the most computationally intensive part
          */
@@ -446,7 +445,7 @@ namespace gridtools {
             iter_range,
             boost::mpl::vector<>,
             typename boost::mpl::push_back<
-                boost::mpl::_1, 
+                boost::mpl::_1,
                 typename _impl::select_storage<
                     typename DomainType::placeholders,
                     mpl_actual_tmp_pairs
@@ -517,7 +516,7 @@ namespace gridtools {
             gridtools::for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
-        }    
+        }
         /**
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).
@@ -556,7 +555,7 @@ namespace gridtools {
          *
          */
         void run () {
-            std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " 
+            std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT "
                       << boost::mpl::size<mpl_actual_arg_list>::type::value
                       << std::endl;
 

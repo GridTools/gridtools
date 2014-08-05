@@ -35,7 +35,7 @@ namespace gridtools {
     }
 
     /**
-     * Flag type to identify data fields that must be treated as temporary 
+     * Flag type to identify data fields that must be treated as temporary
      */
     // TODO: Remove?
     // template <typename StorageType>
@@ -57,11 +57,38 @@ namespace gridtools {
     // };
 
     template <typename U>
-    struct is_temporary_storage<no_storage_type_yet<U> > : public boost::true_type
+    struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
+
+    // template<>
+    // struct is_temporary_storage<no_storage_type_yet<storage<double, layout_map<0, 1, 2, -1>, false, int> > *>: public boost::false_type
+    // {
+    // };
+
+    // template<>
+    // struct is_temporary_storage<storage<double,layout_map<0, 1, 2, -1>, false, int> *>
+    //     :public boost::true_type
+    // {};
+
+
+    template <typename T, typename U, bool A>
+    struct is_storage<storage<T,U,A>  *  > : public boost::true_type
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
+
+#ifndef NDEBUG
+    template <typename T, typename U, bool A, typename Tag>
+    struct is_storage<storage<T,U,A,Tag>  *  > : public boost::true_type
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
+#endif
+    template <typename U>
+    struct is_storage<no_storage_type_yet<U>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     template <typename U>
-    struct is_temporary_storage<no_storage_type_yet<U>* > : public boost::true_type 
+    struct is_temporary_storage<no_storage_type_yet<U>* > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     template <typename U>
@@ -233,7 +260,7 @@ namespace gridtools {
     template <int I, typename R>
     std::ostream& operator<<(std::ostream& s, arg_type<I,R> const& x) {
         return s << "[ arg_type< " << I
-                 << ", " << R() 
+                 << ", " << R()
                  << " (" << x.i()
                  << ", " << x.j()
                  << ", " << x.k()

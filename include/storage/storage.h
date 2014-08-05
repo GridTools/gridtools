@@ -30,7 +30,7 @@ namespace gridtools {
                                          , ValueType
                                          , Layout
                                          , IsTemporary
-                                         > 
+                                         >
     {
         typedef storage<ValueType
                         , Layout
@@ -61,7 +61,7 @@ namespace gridtools {
 
         explicit storage(int m_dim1, int m_dim2, int m_dim3,
                          value_type init = value_type(),
-                         std::string const& s = std::string("default name") ) 
+                         std::string const& s = std::string("default name") )
             : base_type(m_dim1, m_dim2, m_dim3, init)
             , m_name(s)
         {
@@ -81,7 +81,7 @@ namespace gridtools {
             return m_name;
         }
 
-        explicit storage() 
+        explicit storage()
             : base_type()
         { }
 
