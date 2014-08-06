@@ -62,11 +62,6 @@ namespace gridtools {
         typedef boost::mpl::int_<PlusI> plusi;
         typedef boost::mpl::int_<PlusJ> plusj;
 
-        // static const int iminus = MinusI;
-        // static const int jminus = MinusJ;
-        // static const int iplus  = PlusI;
-        // static const int jplus  = PlusJ;
-
         using base_type::m_dims;
         using base_type::strides;
         using base_type::m_size;
@@ -144,6 +139,15 @@ namespace gridtools {
         int _index(int i, int j, int k) const {
             int index;
             std::cout << "                                                  index " 
+                      << "m_dims_i "
+                      << m_dims[0]
+                      << " " 
+                      << "m_dims_j "
+                      << m_dims[1]
+                      << " " 
+                      << "m_dims_k "
+                      << m_dims[2] 
+                      << " - "
                       << "m_offs_i "
                       << m_offs[0]
                       << " " 
@@ -164,33 +168,26 @@ namespace gridtools {
                       << std::endl;
             info();
 
+            int _i = ((layout::template find<0>(i,j,k)) - layout::template find<0>(m_initial_offsets) + layout::template find<0>(m_offs));
+            std::cout << "int _i = ((" << layout::template find<0>(i,j,k) << ")-" << layout::template find<0>(m_initial_offsets) << "+" << layout::template find<0>(m_offs) << ")" << std::endl;
+            int _j = ((layout::template find<1>(i,j,k)) - layout::template find<1>(m_initial_offsets) + layout::template find<1>(m_offs));
+            std::cout << "int _j = ((" << layout::template find<1>(i,j,k) << ")-" << layout::template find<1>(m_initial_offsets) << "+" << layout::template find<1>(m_offs) << ")" << std::endl;
+            int _k = ((layout::template find<2>(i,j,k)) - layout::template find<2>(m_initial_offsets) + layout::template find<2>(m_offs));
 
             index =
-                layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-
-                * ( layout::template find<0>(i,j,k) - layout::template find<0>(m_initial_offsets) ) +
-
-                layout::template find<2>(m_dims) * 
-
-                (layout::template find<1>(i,j,k) - layout::template find<1>(m_initial_offsets) ) +
-
-                  (layout::template find<2>(i,j,k) - layout::template find<2>(m_initial_offsets) ); 
+                layout::template find<2>(m_dims) * layout::template find<1>(m_dims) * _i +
+                layout::template find<2>(m_dims) * _j + _k;
 
 
 
-            std::cout
-                // << "stride " << layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-                // << " * " (modulus(layout::template find<0>(i,j,k)-2,layout::template find<0>(m_tile)) 
-                //           + layout::template find<0>(m_offs)) << " + "
-                // << "stride2 " <<  layout::template find<2>(m_dims) << " * " 
-                // << (modulus(layout::template find<1>(i,j,k)-2,layout::template find<1>(m_tile))
-                //     + layout::template find<1>(m_offs)) << " + "
-                // << modulus(layout::template find<2>(i,j,k),layout::template find<2>(m_tile))
-                // + layout::template find<2>(m_offs)
-                << "   = " << index
-                << std::endl;
 
+            std::cout << " i  = " << _i
+                      << " j  = " << _j
+                      << " k  = " << _k
+                      << "   = " << index
+                      << std::endl;
 
+            assert(index >= 0);
             assert(index <m_size);
 
             return index;

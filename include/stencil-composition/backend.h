@@ -45,13 +45,15 @@ namespace gridtools {
             // Naive strategy
             explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords)
                 :
-                  m_domain_list(dom_list)
+                m_domain_list(dom_list)
                 , m_coords(coords)
                 , m_starti(coords.i_low_bound())
                 , m_startj(coords.j_low_bound())
                 , m_BI(coords.i_high_bound()-coords.i_low_bound())
                 , m_BJ(coords.j_high_bound()-coords.j_low_bound())
-                {}
+                , blk_idx_i(0)
+                , blk_idx_j(0)
+            {}
 
 
             /**
