@@ -184,7 +184,6 @@ int main(int argc, char** argv) {
     coords.value_list[0] = 0;
     coords.value_list[1] = d3;
 
-    return 0;
     /*
       Here we do lot of stuff
       1) We pass to the intermediate representation ::run function the description
