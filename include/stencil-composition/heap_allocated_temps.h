@@ -26,11 +26,11 @@ namespace gridtools {
                     boost::lexical_cast<std::string>(ElemType::plusi::value)+
                     boost::lexical_cast<std::string>(ElemType::plusj::value);
 #endif
-                typename ElemType::value_type x = 5.7;
                 e = new ElemType(
                                  tileK,
                                  initial_offset_i,
                                  initial_offset_j,
+                                 0, // offset in k is zero for now
                                  typename ElemType::value_type(),
 #ifndef __CUDACC__
                                  s);
@@ -85,13 +85,13 @@ struct heap_allocated_temps {
 
             view_type fview(arg_list);
 
-            std::cout << "   ECCO I PUNTATORI   " << std::endl;
-            boost::fusion::for_each(arg_list, printpointers());
+            // std::cout << "   ECCO I PUNTATORI   " << std::endl;
+            // boost::fusion::for_each(arg_list, printpointers());
 
             boost::fusion::for_each(fview, _impl::instantiate_tmps(tileK, initial_offset_i, initial_offset_j));
 
-            std::cout << "   ECCO I PUNTATORI   " << std::endl;
-            boost::fusion::for_each(arg_list, printpointers());
+            // std::cout << "   ECCO I PUNTATORI   " << std::endl;
+            // boost::fusion::for_each(arg_list, printpointers());
             
             //            domain.is_ready = true;
         }
@@ -102,6 +102,7 @@ struct heap_allocated_temps {
         */
         template <typename Domain>
         static void finalize_computation(Domain & domain) {
+            // todo: this must be replaced with something else
             //domain.finalize_computation();
         }
 

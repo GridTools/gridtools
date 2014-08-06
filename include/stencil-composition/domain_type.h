@@ -285,63 +285,6 @@ namespace gridtools {
             boost::fusion::copy(original_pointers, storage_pointers);
         }
 
-        template <typename T>
-        GT_FUNCTION
-        typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, typename T::index_type>::type>::type::value_type&
-        operator[](T const &) {
-            return *(boost::fusion::at<typename T::index_type>(iterators));
-        }
-
-        /**
-         * Function to access the data pointed to a specific iterator
-         *
-         * @tparam Index of the iterator in the iterator list
-         *
-         * @return Reference to the value pointed to Ith iterator
-         */
-        template <typename I>
-        GT_FUNCTION
-        typename boost::remove_pointer<typename boost::fusion::result_of::value_at<arg_list, I>::type>::type::value_type&
-        direct() const {
-            #ifndef NDEBUG
-            gt_aux::assert_in_range(
-                boost::fusion::at<I>(iterators),
-                std::make_pair(boost::fusion::at<I>(storage_pointers)->min_addr(),
-                               boost::fusion::at<I>(storage_pointers)->max_addr()));
-            #endif
-
-            return *(boost::fusion::at<I>(iterators));
-        }
-
-        /**
-         * Move all iterators of storages to (i,j,k) coordinates
-         */
-        GT_FUNCTION
-        void move_to(int i, int j, int k) const {
-            boost::fusion::for_each(zipping(zip_vector), _impl::moveto_functor(i,j,k));
-            // Simpler code:
-            // for (int l = 0; l < len; ++l) {
-            //     iterators[l] = &( (*(storage_pointers[l]))(i,j,k) );
-            //     assert(iterators[l] >= storage_pointers[l]->min_addr());
-            //     assert(iterators[l] < storage_pointers[l]->max_addr());
-            // }
-        }
-
-        /**
-         * Move all iterators one position along one direction
-         *
-         * @\tparam DIR index of coordinate to increment by one
-         */
-        template <int DIR>
-        GT_FUNCTION
-        void increment_along() const {
-            boost::fusion::for_each(zipping(zip_vector), _impl::increment_functor<DIR>());
-            // Simpler code:
-            // for (int l = 0; l < len; ++l) {
-            //     iterators[l] += (*(storage_pointers[l])).template stride_along<DIR>();
-            // }
-        }
-
     };
 
 } // namespace gridtools
