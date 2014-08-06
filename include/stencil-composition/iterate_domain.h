@@ -42,6 +42,8 @@ namespace gridtools {
                         , TypeTag
 #endif
                         > & storage) const {
+                std::cout << i << " - " << bi << " * " << TileI << std::endl;
+                std::cout << j << " - " << bj << " * " << TileJ << std::endl;
                 it = storage.move_to(i - bi * TileI, j - bj * TileJ, k);
             }
 

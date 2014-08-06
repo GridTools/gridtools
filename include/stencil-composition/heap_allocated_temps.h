@@ -21,10 +21,10 @@ namespace gridtools {
             GT_FUNCTION
             void operator()(ElemType*&  e) const {
 #ifndef __CUDACC__
-                std::string s("ciao");//  = boost::lexical_cast<std::string>(ElemType::minusi::value)+
-                // boost::lexical_cast<std::string>(ElemType::minusj::value)+
-                // boost::lexical_cast<std::string>(ElemType::plusi::value)+
-                // boost::lexical_cast<std::string>(ElemType::plusj::value);
+                std::string s = boost::lexical_cast<std::string>(ElemType::minusi::value)+
+                    boost::lexical_cast<std::string>(ElemType::minusj::value)+
+                    boost::lexical_cast<std::string>(ElemType::plusi::value)+
+                    boost::lexical_cast<std::string>(ElemType::plusj::value);
 #endif
                 typename ElemType::value_type x = 5.7;
                 e = new ElemType(
