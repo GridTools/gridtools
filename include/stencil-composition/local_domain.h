@@ -99,10 +99,6 @@ namespace gridtools {
                                               >
                                           >::type mpl_storages;
 
-        // typedef typename boost::mpl::transform<domain_indices,
-        //                                        local_domain_aux::get_storage
-        //                                        >::type mpl_storages;
-
         typedef typename boost::mpl::transform<domain_indices,
                                                local_domain_aux::get_iterator
                                                >::type mpl_iterators;
@@ -112,7 +108,7 @@ namespace gridtools {
 
         typedef iterate_domain<this_type> iterate_domain_t;
 
-        StoragePointers/*local_args_type*/ local_args;
+        local_args_type local_args;
 
         template <typename Dom, typename IsActuallyClonable, int DUMMY = 0>
         struct pointer_if_clonable {
