@@ -64,6 +64,13 @@ struct heap_allocated_temps {
          * @tparam Domain The user domain type - Deduced from argument list
          * @tparam coords The user coordinates type - Deduced from argument list
          */
+    struct printpointers {
+        template <typename T>
+        void operator()(T const& p) const {
+            std::cout << std::hex << p << std::dec << std::endl;
+        }
+    };
+
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
             int tileK = coords.value_at_top()-coords.value_at_bottom();
@@ -78,8 +85,14 @@ struct heap_allocated_temps {
 
             view_type fview(arg_list);
 
+            std::cout << "   ECCO I PUNTATORI   " << std::endl;
+            boost::fusion::for_each(arg_list, printpointers());
+
             boost::fusion::for_each(fview, _impl::instantiate_tmps(tileK, initial_offset_i, initial_offset_j));
 
+            std::cout << "   ECCO I PUNTATORI   " << std::endl;
+            boost::fusion::for_each(arg_list, printpointers());
+            
             //            domain.is_ready = true;
         }
 

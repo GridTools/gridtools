@@ -192,7 +192,7 @@ namespace gridtools {
 
 
             assert(index <m_size);
-            assert(index >= 0);
+
             return index;
         }
 
@@ -234,6 +234,35 @@ namespace gridtools {
     }
 
   
+    template <typename ValueType
+              , typename Layout
+              , int TileI
+              , int TileJ
+              , int MinusI
+              , int MinusJ
+              , int PlusI
+               , int PlusJ
+#ifndef NDEBUG
+              , typename TypeTag
+#endif
+              >
+    struct is_storage<host_tmp_storage<
+                          ValueType
+                          , Layout
+                          , TileI
+                          , TileJ
+                          , MinusI
+                          , MinusJ
+                          , PlusI
+                          , PlusJ
+#ifndef NDEBUG
+                          , TypeTag
+#endif
+                          >* >
+      : boost::false_type
+    {};
+
+
     template <typename ValueType
               , typename Layout
               , int TileI

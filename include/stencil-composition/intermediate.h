@@ -72,18 +72,20 @@ namespace gridtools {
 
         /* Functor used to instantiate the local domains to be passed to each
            elementary stencil function */
-        template <typename Dom>
+        template <typename Dom, typename ArgList>
         struct instantiate_local_domain {
-            Dom * dom;
+            Dom const& dom;
+            ArgList const& arg_list;
             GT_FUNCTION
-            instantiate_local_domain(Dom * dom)
+            instantiate_local_domain(Dom const& dom, ArgList const& arg_list)
                 : dom(dom)
+                , arg_list(arg_list)
             {}
 
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                elem.init(dom, 0,0,0);
+                elem.init(dom, arg_list, 0,0,0);
                 elem.clone_to_gpu();
             }
         };
@@ -483,6 +485,13 @@ namespace gridtools {
 
         actual_arg_list_type actual_arg_list;
 
+        struct printtypes {
+            template <typename T>
+            void operator()(T *) const {
+                std::cout << T() << "            ----------" << std::endl;
+            };
+        };
+
         intermediate(MssType const &, DomainType & domain, Coords const & coords)
             : m_domain(domain)
             , m_coords(coords)
@@ -516,6 +525,25 @@ namespace gridtools {
             gridtools::for_each<range_sizes>(_debug::print__());
             std::cout << "end2" <<std::endl;
 #endif
+
+            typedef boost::fusion::filter_view<typename DomainType::arg_list,
+                is_storage<boost::mpl::_1> > t_domain_view;
+
+            typedef boost::fusion::filter_view<actual_arg_list_type,
+                is_storage<boost::mpl::_1> > t_args_view;
+
+            t_domain_view domain_view(domain.storage_pointers);
+            t_args_view args_view(actual_arg_list);
+
+            boost::fusion::for_each(domain_view, printtypes());
+            boost::fusion::for_each(args_view, printtypes());
+
+            boost::fusion::copy(domain_view, args_view);
+
+            std::cout << "\n(1) These are the view values" << std::endl;
+            boost::fusion::for_each(domain.storage_pointers, _debug::print_pointer());
+            std::cout << "\n(2) These are the view values" << std::endl;
+            boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -525,6 +553,8 @@ namespace gridtools {
         void ready () {
             boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries(actual_arg_list, m_coords);
+            std::cout << "\n(3) These are the view values" << std::endl;
+            boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
         /**
            @brief calls setup_computation and creates the local domains.
@@ -534,11 +564,11 @@ namespace gridtools {
            is passed to the instantiate_local_domain struct
          */
         void steady () {
-            m_domain.setup_computation();
+            //m_domain.setup_computation();
 
-            //boost::fusion::for_each(local_domain_list,
-            //                        _impl::instantiate_local_domain<DomainType>
-            //                        (const_cast<typename boost::remove_const<DomainType>::type*>(&m_domain)));
+            boost::fusion::for_each(local_domain_list,
+                                    _impl::instantiate_local_domain<DomainType, actual_arg_list_type>
+                                    (m_domain, actual_arg_list));
 
 #ifndef NDEBUG
             m_domain.info();

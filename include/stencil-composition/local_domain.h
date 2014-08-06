@@ -33,14 +33,14 @@ namespace gridtools {
             };
         };
 
-        template <typename Domain>
+        template <typename ArgList>
         struct assign_base_pointers {
 
-            Domain const& domain;
+            ArgList const& arg_list;
 
             GT_FUNCTION_WARNING
-            assign_base_pointers(Domain const& domain)
-                : domain(domain)
+            assign_base_pointers(ArgList const& arg_list)
+                : arg_list(arg_list)
             {}
 
             template <typename ZipElem>
@@ -49,7 +49,7 @@ namespace gridtools {
                 typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
 
                 boost::fusion::at_c<1>(ze) =
-                    boost::fusion::at<index>(domain.storage_pointers);
+                    boost::fusion::at<index>(arg_list);
             }
         };
 
@@ -128,16 +128,16 @@ namespace gridtools {
         GT_FUNCTION_WARNING
         local_domain_base() {}
 
-        template <typename Domain>
+        template <typename Domain, typename ActualArgs>
         GT_FUNCTION
-        void init(Domain* _dom)
+        void init(Domain const& _dom, ActualArgs const& actual_args)
         {
             typedef boost::fusion::vector<domain_indices const&, local_args_type&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
 
             to_zip z(domain_indices(), local_args);
 
-            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<Domain>(*_dom));
+            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<ActualArgs>(actual_args));
 
         }
 
@@ -218,10 +218,10 @@ namespace gridtools {
         {}
 
         GT_FUNCTION
-        template <typename Domain>
-        void init(Domain* dom, int, int, int)
+        template <typename Domain, typename ArgList>
+        void init(Domain const& dom, ArgList const& arg_list, int, int, int)
         {
-            base_type::init(dom);
+            base_type::init(dom, arg_list);
 #ifndef NDEBUG
 #ifndef __CUDACC__
             std::cout << "LOCAL DOMAIN" << std::endl;
