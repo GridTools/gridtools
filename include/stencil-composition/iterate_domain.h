@@ -42,7 +42,7 @@ namespace gridtools {
 #ifndef NDEBUG
                         , TypeTag
 #endif
-                        > const* storage) const {
+                        > const& storage) const {
                 IteratorType::CACCHIO;
             }
 
