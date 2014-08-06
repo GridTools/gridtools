@@ -25,7 +25,7 @@ endif()
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(EXECUTABLE_OUTPUT_PATH "../build")
+  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "../build")
 endif()
 
 include_directories( include/ include/communication/high-level ) ## Library header files
@@ -54,6 +54,7 @@ set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 if( "${USE_GPU}" STREQUAL "ON" )
   find_package(CUDA REQUIRED)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
+  message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}  -Xcudafe \"--diag_suppress=dupl_calling_convention\" -Xcudafe \"--diag_suppress=code_is_unreachable\" -Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\" -Xcudafe \"--diag_suppress=calling_convention_not_allowed\" -Xcudafe \"--diag_suppress=conflicting_calling_conventions\"")
 else()
