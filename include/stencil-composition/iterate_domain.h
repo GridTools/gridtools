@@ -113,10 +113,6 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&  
         operator()(ArgType const& arg) const {
-//             std::cout << arg << " ---- "
-//                       << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << " "
-//                       << std::hex << boost::fusion::at<typename ArgType::index_type>(local_iterators) << std::dec
-//                       << std::endl; // we can check access violation
             
             std::cout << " i " << arg.i()
                       << " j " << arg.j()
@@ -129,8 +125,8 @@ namespace gridtools {
                       << " size of " << sizeof(typename std::remove_pointer<typename std::remove_reference<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators))>::type>::type)
                       << " " << std::boolalpha << std::is_same<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators)), double*&>::type::value
                       << " name " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->name()
-                //                      << " " << std::boolalpha << is_temporary<typename std::remove_pointer<typename std::remove_reference<decltype(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type>::type>::type::value
                       << std::endl;
+
             boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->info();
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr() <=

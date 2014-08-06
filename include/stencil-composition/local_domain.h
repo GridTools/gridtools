@@ -34,12 +34,12 @@ namespace gridtools {
         };
 
         template <typename ArgList>
-        struct assign_base_pointers {
+        struct assign_storage_pointers {
 
             ArgList const& arg_list;
 
             GT_FUNCTION_WARNING
-            assign_base_pointers(ArgList const& arg_list)
+            assign_storage_pointers(ArgList const& arg_list)
                 : arg_list(arg_list)
             {}
 
@@ -137,7 +137,7 @@ namespace gridtools {
 
             to_zip z(domain_indices(), local_args);
 
-            boost::fusion::for_each(zipping(z), local_domain_aux::assign_base_pointers<ActualArgs>(actual_args));
+            boost::fusion::for_each(zipping(z), local_domain_aux::assign_storage_pointers<ActualArgs>(actual_args));
 
         }
 

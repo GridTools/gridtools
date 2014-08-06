@@ -68,7 +68,7 @@ namespace gridtools {
         using base_type::is_set;
 
         int m_tile[3];
-        int m_offs[3];
+        int m_halo[3];
         int m_initial_offsets[3];
 
         std::string m_name;
@@ -78,6 +78,7 @@ namespace gridtools {
         explicit host_tmp_storage(int m_dim3,
                                   int initial_offset_i,
                                   int initial_offset_j,
+                                  int initial_offset_k=0,
                                   value_type init = value_type(),
                                   std::string const& s = std::string("default name") )
             : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, m_dim3, init)
@@ -86,12 +87,12 @@ namespace gridtools {
             m_tile[0] = TileI;
             m_tile[1] = TileJ;
             m_tile[2] = m_dim3;
-            m_offs[0]=MinusI;
-            m_offs[1]=MinusJ;
-            m_offs[2]=0;
+            m_halo[0]=MinusI;
+            m_halo[1]=MinusJ;
+            m_halo[2]=0;
             m_initial_offsets[0] = initial_offset_i;
             m_initial_offsets[1] = initial_offset_j;
-            m_initial_offsets[2] = 0;
+            m_initial_offsets[2] = initial_offset_k;
             data = new value_type[m_size];
         }
 
@@ -129,9 +130,9 @@ namespace gridtools {
                       << m_dims[0] << "x"
                       << m_dims[1] << "x"
                       << m_dims[2] << ", "
-                      << m_offs[0] << "x"
-                      << m_offs[1] << "x"
-                      << m_offs[2] << ", "
+                      << m_halo[0] << "x"
+                      << m_halo[1] << "x"
+                      << m_halo[2] << ", "
                       << m_name
                       << std::endl;
         }
@@ -148,14 +149,14 @@ namespace gridtools {
                       << "m_dims_k "
                       << m_dims[2] 
                       << " - "
-                      << "m_offs_i "
-                      << m_offs[0]
+                      << "m_halo_i "
+                      << m_halo[0]
                       << " " 
-                      << "m_offs_j "
-                      << m_offs[1]
+                      << "m_halo_j "
+                      << m_halo[1]
                       << " " 
-                      << "m_offs_k "
-                      << m_offs[2] 
+                      << "m_halo_k "
+                      << m_halo[2] 
                       << " - "
                       << "i "
                       << i 
@@ -168,16 +169,15 @@ namespace gridtools {
                       << std::endl;
             info();
 
-            int _i = ((layout::template find<0>(i,j,k)) - layout::template find<0>(m_initial_offsets) + layout::template find<0>(m_offs));
-            std::cout << "int _i = ((" << layout::template find<0>(i,j,k) << ")-" << layout::template find<0>(m_initial_offsets) << "+" << layout::template find<0>(m_offs) << ")" << std::endl;
-            int _j = ((layout::template find<1>(i,j,k)) - layout::template find<1>(m_initial_offsets) + layout::template find<1>(m_offs));
-            std::cout << "int _j = ((" << layout::template find<1>(i,j,k) << ")-" << layout::template find<1>(m_initial_offsets) << "+" << layout::template find<1>(m_offs) << ")" << std::endl;
-            int _k = ((layout::template find<2>(i,j,k)) - layout::template find<2>(m_initial_offsets) + layout::template find<2>(m_offs));
+            int _i = ((layout::template find<0>(i,j,k)) - layout::template find<0>(m_initial_offsets) + layout::template find<0>(m_halo));
+            std::cout << "int _i = ((" << layout::template find<0>(i,j,k) << ")-" << layout::template find<0>(m_initial_offsets) << "+" << layout::template find<0>(m_halo) << ")" << std::endl;
+            int _j = ((layout::template find<1>(i,j,k)) - layout::template find<1>(m_initial_offsets) + layout::template find<1>(m_halo));
+            std::cout << "int _j = ((" << layout::template find<1>(i,j,k) << ")-" << layout::template find<1>(m_initial_offsets) << "+" << layout::template find<1>(m_halo) << ")" << std::endl;
+            int _k = ((layout::template find<2>(i,j,k)) - layout::template find<2>(m_initial_offsets) + layout::template find<2>(m_halo));
 
             index =
                 layout::template find<2>(m_dims) * layout::template find<1>(m_dims) * _i +
                 layout::template find<2>(m_dims) * _j + _k;
-
 
 
 

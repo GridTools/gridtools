@@ -217,33 +217,10 @@ namespace gridtools {
             template <typename Elem>
             struct apply {
                 typedef typename boost::mpl::int_<Elem::second::value> val2;
-                BOOST_MPL_ASSERT( (boost::mpl::bool_<(val1::value < 3)>) );
-                BOOST_MPL_ASSERT( (boost::mpl::bool_<(val2::value < 3)>) );
-                //typedef typename boost::mpl::equal_to<typename val1::ciao, val2>::type type;
+
                 typedef typename std::is_same<val1, val2>::type type;
             };
         };
-
-        // template <typename Placeholders,
-        //           typename TmpPairs>
-        // struct select_storage {
-        //     template <typename Index>
-        //     struct apply {
-        //         typedef typename boost::mpl::if_c<
-        //             is_temporary_storage<
-        //                 typename boost::mpl::at<Placeholders, Index>::type::storage_type
-        //                 >::type::value,
-        //             typename boost::mpl::deref<
-        //                 typename boost::mpl::find_if<
-        //                     TmpPairs,
-        //                     has_index_<Index>
-        //                     >::type
-        //                 >::type::first,
-        //             typename boost::mpl::at<Placeholders, Index>::type::storage_type
-        //             >::type type;
-
-        //     };
-        // };
 
         template <typename Placeholders,
                   typename TmpPairs>
@@ -257,7 +234,7 @@ namespace gridtools {
             { };
 
             template <bool b, typename Storage, typename tmppairs, typename index>
-            struct get_the_type {typedef int type;};
+            struct get_the_type;
 
             template <typename Storage, typename tmppairs, typename index>
             struct get_the_type<true, Storage, tmppairs,index> {
@@ -455,9 +432,9 @@ namespace gridtools {
                 >
             >::type mpl_actual_arg_list;
 
-        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::written_temps_per_functor temp_list;
+        //typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::written_temps_per_functor temp_list;
 
-        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::temporaries tomp_list;
+        //typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::temporaries tomp_list;
 
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list_type;
 
@@ -535,15 +512,15 @@ namespace gridtools {
             t_domain_view domain_view(domain.storage_pointers);
             t_args_view args_view(actual_arg_list);
 
-            boost::fusion::for_each(domain_view, printtypes());
-            boost::fusion::for_each(args_view, printtypes());
+            // boost::fusion::for_each(domain_view, printtypes());
+            // boost::fusion::for_each(args_view, printtypes());
 
             boost::fusion::copy(domain_view, args_view);
 
-            std::cout << "\n(1) These are the view values" << std::endl;
-            boost::fusion::for_each(domain.storage_pointers, _debug::print_pointer());
-            std::cout << "\n(2) These are the view values" << std::endl;
-            boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
+            // std::cout << "\n(1) These are the view values" << std::endl;
+            // boost::fusion::for_each(domain.storage_pointers, _debug::print_pointer());
+            // std::cout << "\n(2) These are the view values" << std::endl;
+            // boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -551,10 +528,10 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
         void ready () {
-            boost::fusion::for_each(actual_arg_list, printthose());
+            // boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries(actual_arg_list, m_coords);
-            std::cout << "\n(3) These are the view values" << std::endl;
-            boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
+            // std::cout << "\n(3) These are the view values" << std::endl;
+            // boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
         /**
            @brief calls setup_computation and creates the local domains.
@@ -585,16 +562,16 @@ namespace gridtools {
          *
          */
         void run () {
-            std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT "
-                      << boost::mpl::size<mpl_actual_arg_list>::type::value
-                      << std::endl;
+            // std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT "
+            //           << boost::mpl::size<mpl_actual_arg_list>::type::value
+            //           << std::endl;
 
-            gridtools::for_each<typename DomainType::placeholders>(_print_____());
-            gridtools::for_each<temp_list>(_print______());
-            std::cout << "---" << std::endl;
-            gridtools::for_each<tomp_list>(_print_____());
-            std::cout << "--- ---" << std::endl;
-            gridtools::for_each<mpl_local_domain_list>(_print_____());
+            // gridtools::for_each<typename DomainType::placeholders>(_print_____());
+            // gridtools::for_each<temp_list>(_print______());
+            // std::cout << "---" << std::endl;
+            // gridtools::for_each<tomp_list>(_print_____());
+            // std::cout << "--- ---" << std::endl;
+            // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
             Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);

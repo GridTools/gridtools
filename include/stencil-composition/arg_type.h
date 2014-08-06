@@ -34,42 +34,9 @@ namespace gridtools {
         return s << "no_storage_type_yet<" << RST() << ">" ;
     }
 
-    /**
-     * Flag type to identify data fields that must be treated as temporary
-     */
-    // TODO: Remove?
-    // template <typename StorageType>
-    // struct temporary;
-
-    // template <typename T>
-    // struct is_temporary {
-    //     typedef boost::false_type type;
-    // };
-
-    // template <typename U>
-    // struct is_temporary<temporary<U> > {
-    //     typedef boost::true_type type;
-    // };
-
-    // template <typename U>
-    // struct is_temporary<no_storage_type_yet<U> > {
-    //     typedef boost::true_type type;
-    // };
-
     template <typename U>
     struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
-
-
-    // template<>
-    // struct is_temporary_storage<no_storage_type_yet<storage<double, layout_map<0, 1, 2, -1>, false, int> > *>: public boost::false_type
-    // {
-    // };
-
-    // template<>
-    // struct is_temporary_storage<storage<double,layout_map<0, 1, 2, -1>, false, int> *>
-    //     :public boost::true_type
-    // {};
 
 
     template <typename T, typename U, bool A>
@@ -116,49 +83,6 @@ namespace gridtools {
         }
     };
 
-    /**
-     * Type to create placeholders for data fields.
-     *
-     * Specialization for the case in which T is a temporary
-     *
-     * @tparam I Integer index (unique) of the data field to identify it
-     * @tparam T The type of values to store in the actual storage for the temporary data-field
-     */
-//     template <int I, typename U>
-//     struct arg<I, temporary<U> > {
-// #ifndef NDEBUG
-//         template <typename STORAGE, typename TAG>
-//         struct add_tag {};
-
-//         template <typename VAL, typename LAYOUT, bool BOOL, typename OLD_TAG, template <typename, typename, bool, typename> class STORE, typename NEW_TAG>
-//         struct add_tag<STORE<VAL, LAYOUT, BOOL, OLD_TAG>, NEW_TAG> {
-//             typedef typename temporary<STORE<VAL, LAYOUT, true, NEW_TAG> >::storage_type type;
-//         };
-// #else
-//         template <typename STORAGE>
-//         struct make_it_temporary {};
-
-//         template <typename VAL, typename LAYOUT, bool BOOL, template <typename, typename, bool> class STORE>
-//         struct make_it_temporary<STORE<VAL, LAYOUT, BOOL> > {
-//             typedef typename temporary<STORE<VAL, LAYOUT, true> >::storage_type type;
-//         };
-
-// #endif
-
-// #ifndef NDEBUG
-//         typedef typename add_tag<U, arg<I, temporary<U> > >::type storage_type;
-// #else
-//         typedef typename make_it_temporary<U>::type storage_type;
-// #endif
-//         typedef typename storage_type::value_type value_type;
-
-//         typedef typename storage_type::iterator_type iterator_type;
-//         typedef boost::mpl::int_<I> index_type;
-
-//         static void info() {
-//             std::cout << "Arg on TEMP storage with index " << I;
-//         }
-//     };
 
     /**
      * Type to be used in elementary stencil functions to specify argument mapping and ranges
@@ -238,13 +162,6 @@ namespace gridtools {
     {};
 
     /**
-     * Struct to test if an argument is a temporary - Specialization yielding true
-     */
-    // template <int I, typename T>
-    // struct is_plchldr_to_temp<arg<I, temporary<T> > > : boost::true_type
-    // {};
-
-    /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
      */
     template <int I, typename T>
@@ -266,18 +183,6 @@ namespace gridtools {
                  << ", " << x.k()
                  <<" ) > ]";
     }
-
-    /**
-     * Printing type information for debug purposes
-     * @param s The ostream
-     * @param n/a Type selector for arg to a temporary
-     * @return ostream
-     */
-    // template <int I, typename R>
-    // std::ostream& operator<<(std::ostream& s, arg<I,temporary<R> > const&) {
-    //     return s << "[ arg< " << I
-    //              << ", temporary<something>" << " > ]";
-    // }
 
     template <int I, typename R>
     std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R> > const&) {
