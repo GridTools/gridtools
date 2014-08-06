@@ -9,11 +9,10 @@ namespace gridtools {
             const int i, j, k, bi, bj;
 
             template <typename IteratorType, typename StoragePointer> const 
-            void assign (IteratorType & it, StoragePointer const& storage) const {
+            void assign (IteratorType & it, StoragePointer & storage) const {
                 std::cout << "Moving pointers **********************************************" << std::endl;
                 std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
                 storage.info();
-
                 it = &( storage(i,j,k) );
             }
 
@@ -42,8 +41,8 @@ namespace gridtools {
 #ifndef NDEBUG
                         , TypeTag
 #endif
-                        > const& storage) const {
-                IteratorType::CACCHIO;
+                        > & storage) const {
+                it = storage.move_to(i - bi * TileI, j - bj * TileJ, k);
             }
 
             GT_FUNCTION
@@ -57,12 +56,12 @@ namespace gridtools {
 
             template <typename ZipElem>
             GT_FUNCTION
-            void operator()(ZipElem const& ze) const {
+            void operator()(ZipElem const & ze) const {
                 std::cout << "Moving pointers **********************************************" << std::endl;
                 std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
                 (*(boost::fusion::at_c<1>(ze))).info();
 
-                assign(*boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
+                assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
             }
 
         };
@@ -88,11 +87,12 @@ namespace gridtools {
         iterate_domain(LocalDomain const& local_domain, int i, int j, int k, int bi, int bj)
             : local_domain(local_domain)
         {
-            typedef boost::fusion::vector<local_iterators_type&, typename LocalDomain::local_args_type const&> to_zip;
+            typedef boost::fusion::vector<local_iterators_type&, typename LocalDomain::local_args_type const &> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
 
             to_zip z(local_iterators, local_domain.local_args);
-            boost::fusion::for_each(zipping(z), iterate_domain_aux::assign_iterators(i,j,k,bi,bj));
+            zipping zipped(z);
+            boost::fusion::for_each(zipped, iterate_domain_aux::assign_iterators(i,j,k,bi,bj));
         }
 
         GT_FUNCTION
