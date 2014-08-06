@@ -6,17 +6,20 @@ namespace gridtools {
     namespace _impl {
         struct instantiate_tmps {
             int tileK;
+            int initial_offset_i;
+            int initial_offset_j;
 
             GT_FUNCTION
-            instantiate_tmps(int tileK)
+            instantiate_tmps(int tileK, int initial_offset_i, int initial_offset_j)
                 : tileK(tileK)
+                , initial_offset_i(initial_offset_i)
+                , initial_offset_j(initial_offset_j)
             {}
 
             // ElemType: an element in the data field place-holders list
             template <typename ElemType>
             GT_FUNCTION
             void operator()(ElemType*&  e) const {
-                std::cout << " oooooooooooooo " << ElemType() << std::endl;
 #ifndef __CUDACC__
                 std::string s("ciao");//  = boost::lexical_cast<std::string>(ElemType::minusi::value)+
                 // boost::lexical_cast<std::string>(ElemType::minusj::value)+
@@ -26,6 +29,8 @@ namespace gridtools {
                 typename ElemType::value_type x = 5.7;
                 e = new ElemType(
                                  tileK,
+                                 initial_offset_i,
+                                 initial_offset_j,
                                  typename ElemType::value_type(),
 #ifndef __CUDACC__
                                  s);
@@ -62,7 +67,8 @@ struct heap_allocated_temps {
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
             int tileK = coords.value_at_top()-coords.value_at_bottom();
-
+            int initial_offset_i = coords.i_low_bound();
+            int initial_offset_j = coords.j_low_bound();
 #ifndef NDEBUG
             std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
@@ -72,7 +78,7 @@ struct heap_allocated_temps {
 
             view_type fview(arg_list);
 
-            boost::fusion::for_each(fview, _impl::instantiate_tmps(tileK));
+            boost::fusion::for_each(fview, _impl::instantiate_tmps(tileK, initial_offset_i, initial_offset_j));
 
             //            domain.is_ready = true;
         }
