@@ -31,7 +31,7 @@ namespace gridtools {
                                                   , ValueType
                                                   , Layout
                                                   , true
-                                                  > 
+                                                  >
     {
 
         typedef base_storage<host_tmp_storage<
@@ -67,7 +67,9 @@ namespace gridtools {
         using base_type::m_size;
         using base_type::is_set;
 
-        int m_tile[3];
+        static const std::string info_string;
+
+        // int m_tile[3];
         int m_halo[3];
         int m_initial_offsets[3];
 
@@ -75,26 +77,24 @@ namespace gridtools {
 
         value_type* data;
 
-        explicit host_tmp_storage(int m_dim3,
-                                  int initial_offset_i,
+        explicit host_tmp_storage(int initial_offset_i,
                                   int initial_offset_j,
-                                  int initial_offset_k=0,
+                                  int dim3,
+                                  //int initial_offset_k=0,
                                   value_type init = value_type(),
                                   std::string const& s = std::string("default name") )
-            : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, m_dim3, init)
+            : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, dim3, init)
             , m_name(s)
         {
-            m_tile[0] = TileI;
-            m_tile[1] = TileJ;
-            m_tile[2] = m_dim3;
             m_halo[0]=MinusI;
             m_halo[1]=MinusJ;
             m_halo[2]=0;
             m_initial_offsets[0] = initial_offset_i;
             m_initial_offsets[1] = initial_offset_j;
-            m_initial_offsets[2] = initial_offset_k;
+            m_initial_offsets[2] = 0 /* initial_offset_k*/;
             data = new value_type[m_size];
         }
+
 
         host_tmp_storage() {}
 
@@ -136,36 +136,36 @@ namespace gridtools {
                       << m_name
                       << std::endl;
         }
-        
+
         int _index(int i, int j, int k) const {
             int index;
-            std::cout << "                                                  index " 
+            std::cout << "                                                  index "
                       << "m_dims_i "
                       << m_dims[0]
-                      << " " 
+                      << " "
                       << "m_dims_j "
                       << m_dims[1]
-                      << " " 
+                      << " "
                       << "m_dims_k "
-                      << m_dims[2] 
+                      << m_dims[2]
                       << " - "
                       << "m_halo_i "
                       << m_halo[0]
-                      << " " 
+                      << " "
                       << "m_halo_j "
                       << m_halo[1]
-                      << " " 
+                      << " "
                       << "m_halo_k "
-                      << m_halo[2] 
+                      << m_halo[2]
                       << " - "
                       << "i "
-                      << i 
-                      << " " 
+                      << i
+                      << " "
                       << "j "
-                      << j 
-                      << " " 
+                      << j
+                      << " "
                       << "k "
-                      << k 
+                      << k
                       << std::endl;
             info();
 
@@ -195,6 +195,22 @@ namespace gridtools {
 
     };
 
+//huge waste of space because the C++ standard doesn't want me to initialize static const inline
+    template < typename ValueType, typename Layout, int TileI, int TileJ, int MinusI, int MinusJ, int PlusI, int PlusJ
+#ifndef NDEBUG
+               , typename TypeTag
+#endif
+               >
+    const std::string host_tmp_storage<ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ
+#ifndef NDEBUG
+                                                      , TypeTag
+#endif
+                                                      >
+    ::info_string=boost::lexical_cast<std::string>(minusi::value)+
+                                             boost::lexical_cast<std::string>(minusj::value)+
+                                             boost::lexical_cast<std::string>(plusi::value)+
+                                             boost::lexical_cast<std::string>(plusj::value);
+
     template <typename ValueType
               , typename Layout
               , int TileI
@@ -221,7 +237,7 @@ namespace gridtools {
                              , TypeTag
 #endif
                              > const & x) {
-        return s << "host_tmp_storage<...," 
+        return s << "host_tmp_storage<...,"
                  << TileI << ", "
                  << TileJ << ", "
                  << MinusI << ", "
@@ -230,7 +246,7 @@ namespace gridtools {
                  << PlusJ << "> ";
     }
 
-  
+
     template <typename ValueType
               , typename Layout
               , int TileI
@@ -343,7 +359,7 @@ namespace gridtools {
                                     > &>
     : boost::true_type
     {};
-    
+
     template <typename ValueType
               , typename Layout
               , int TileI
@@ -371,4 +387,5 @@ namespace gridtools {
                                     > const& >
     : boost::true_type
     {};
+
 } // namespace gridtools

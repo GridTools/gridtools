@@ -39,14 +39,27 @@ namespace gridtools {
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
 
-    template <typename T, typename U, bool A>
-    struct is_storage<storage<T,U,A>  *  > : public boost::true_type
+
+    template <typename T, typename U>
+    struct is_storage<storage<T,U,true>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
 
 #ifndef NDEBUG
-    template <typename T, typename U, bool A, typename Tag>
-    struct is_storage<storage<T,U,A,Tag>  *  > : public boost::true_type
+    template <typename T, typename U, typename Tag>
+    struct is_storage<storage<T,U,true,Tag>  *  > : public boost::false_type
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
+#endif
+
+    template <typename T, typename U>
+    struct is_storage<storage<T,U,false>  *  > : public boost::true_type
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
+
+#ifndef NDEBUG
+    template <typename T, typename U, typename Tag>
+    struct is_storage<storage<T,U,false,Tag>  *  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
 #endif
@@ -158,14 +171,22 @@ namespace gridtools {
      * Struct to test if an argument is a temporary
      */
     template <typename T>
-    struct is_plchldr_to_temp : boost::false_type
-    {};
+    struct is_plchldr_to_temp; //: boost::false_type
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
      */
     template <int I, typename T>
     struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
+    {};
+
+
+    template <int I, typename T, typename U>
+    struct is_plchldr_to_temp<arg<I, storage<T, U, true> > > : boost::true_type
+    {};
+
+    template <int I, typename T, typename U>
+    struct is_plchldr_to_temp<arg<I, storage<T, U, false> > > : boost::false_type
     {};
 
     /**

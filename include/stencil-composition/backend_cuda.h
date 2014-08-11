@@ -155,10 +155,10 @@ namespace gridtools {
         struct backend_from_id< enumtype::Cuda >
         {
 
-            template <typename ValueType, typename Layout>
+            template <typename ValueType, typename Layout, bool Temp >
             struct storage_traits
             {
-                typedef cuda_storage<ValueType, Layout> storage_t;
+                typedef cuda_storage<ValueType, Layout, Temp> storage_t;
             };
 
             template <typename Arguments>

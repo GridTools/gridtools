@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #ifndef __CUDACC__
-#include <boost/lexical_cast.hpp>
 #endif
 
 #include "arg_type.h"

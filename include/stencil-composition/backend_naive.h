@@ -68,7 +68,7 @@ namespace gridtools {
                              ++j)
                             {
                                 std::cout << "Move to : " << i << ", " << j << std::endl;
- 
+
                                 iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 
                                 gridtools::for_each<loop_intervals_t>
@@ -97,9 +97,9 @@ namespace gridtools {
         template<>
         struct backend_from_id<enumtype::Host>
         {
-            template <typename ValueType, typename Layout>
+            template <typename ValueType, typename Layout, bool Temp=false>
             struct storage_traits{
-                typedef storage<ValueType, Layout> storage_t;
+                typedef storage<ValueType, Layout, Temp> storage_t;
             };
 
             template <typename Arguments>

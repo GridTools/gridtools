@@ -94,12 +94,14 @@ namespace gridtools {
         struct extract_ranges {
             typedef typename FunctorDesc::esf_function Functor;
 
+            /**here the ranges for the functors are calculated*/
             template <typename RangeState, typename ArgumentIndex>
             struct update_range {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
                 typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
             };
 
+            /**here the ranges for the functors are calculated*/
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<int, 0, Functor::n_args>,
                 range<0,0,0,0>,
@@ -392,7 +394,7 @@ namespace gridtools {
 
 
         /**
-         *
+         * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
          */
         typedef typename boost::mpl::fold<typename MssType::esf_array,
                                           boost::mpl::vector<>,
