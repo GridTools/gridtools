@@ -11,6 +11,14 @@ namespace gridtools{
     namespace enumtype
     {
         enum strategy  {Naive, Block};
+
+/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        template<strategy T>
+        struct strategy_type
+        {
+            enum {value=T};
+        };
+
     }
 
     namespace _impl{
@@ -54,7 +62,7 @@ namespace gridtools{
 
 /** generic cout operator, specialised for the backends */
         template <enumtype::backend Backend>
-	    struct cout{
+    struct cout{
             template <typename T>
             void operator <<(T t);
 	    };
@@ -142,6 +150,14 @@ namespace gridtools{
                         backend_traits::template for_each< iter_range >(Backend(local_domain_list, coords));
                     }
             };
+
+            //with the naive algorithms, the temporary storages are like the non temporary ones
+            template <typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
+            struct tmp
+                {
+                    typedef storage<ValueType, LayoutType, true> host_storage_t;
+                };
+
         };
 
 
@@ -200,6 +216,13 @@ namespace gridtools{
                         }
                     }
             };
+
+            template <typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
+            struct tmp
+                {
+                    typedef host_tmp_storage<ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
+                };
+
         };
     }//namespace _impl
 }//namespace gridtools

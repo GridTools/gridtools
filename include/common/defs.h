@@ -10,4 +10,14 @@
 namespace gridtools{  namespace enumtype{
 /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
-}}
+
+/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        template<backend T>
+        struct backend_type
+        {
+            enum {value=T};
+        };
+
+}
+
+}

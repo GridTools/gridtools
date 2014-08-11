@@ -53,6 +53,7 @@ namespace gridtools {
             }
         };
 
+        /**extract the real type (removing pointers and/or references) for all the element of a sequence (StorageList)*/
         template <typename StorageList>
         struct extract_types {
             template <typename ElemType>
@@ -90,6 +91,7 @@ namespace gridtools {
                                               >
                                           >::type domain_indices;
 
+        /** creates a vector of storage types from the StoragePointers sequence */
         typedef typename boost::mpl::fold<domain_indices,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<

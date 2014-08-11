@@ -57,6 +57,8 @@ namespace gridtools {
         using base_type::_index;
         std::string m_name;
 
+        static const std::string info_string;
+
         value_type* data;
 
         explicit storage(int m_dim1, int m_dim2, int m_dim3,
@@ -135,6 +137,17 @@ namespace gridtools {
 
     };
 
+//huge waste of space because the C++ standard doesn't want me to initialize static const inline
+    template < typename ValueType, typename Layout, bool IsTemporary
+#ifndef NDEBUG
+             , typename TypeTag
+#endif
+        >
+    const std::string storage<ValueType, Layout, IsTemporary
+#ifndef NDEBUG
+             , TypeTag
+#endif
+            >::info_string=boost::lexical_cast<std::string>(-1);
 
     template <typename X, typename Y>
     struct is_temporary_storage<storage<X,Y,false>*& >

@@ -180,7 +180,11 @@ int main(int argc, char** argv) {
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    int di[5] = {2, 2, 2, d1-2, d1};
+    int dj[5] = {2, 2, 2, d2-2, d2};
+
+    gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3;
 

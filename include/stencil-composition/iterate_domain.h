@@ -8,7 +8,7 @@ namespace gridtools {
         struct assign_iterators {
             const int i, j, k, bi, bj;
 
-            template <typename IteratorType, typename StoragePointer> const 
+            template <typename IteratorType, typename StoragePointer> const
             void assign (IteratorType & it, StoragePointer & storage) const {
                 std::cout << "Moving pointers **********************************************" << std::endl;
                 std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
@@ -29,7 +29,7 @@ namespace gridtools {
                       , typename TypeTag = int
 #endif
                       >
-            void assign(IteratorType & it, 
+            void assign(IteratorType & it,
                         host_tmp_storage<ValueType
                         , Layout
                         , TileI
@@ -76,7 +76,7 @@ namespace gridtools {
             }
         };
 
-    } // namespace iterate_domain_aux 
+    } // namespace iterate_domain_aux
 
     template <typename LocalDomain>
     struct iterate_domain {
@@ -111,9 +111,9 @@ namespace gridtools {
 
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&  
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
         operator()(ArgType const& arg) const {
-            
+
             std::cout << " i " << arg.i()
                       << " j " << arg.j()
                       << " k " << arg.k()

@@ -1,4 +1,6 @@
 #pragma once
+#include <boost/lexical_cast.hpp>
+
 #include "../common/basic_utils.h"
 #include "../common/gpu_clone.h"
 #include "../common/gt_assert.h"
@@ -170,7 +172,7 @@ namespace gridtools {
             return index;
         }
     };
-    
+
     template <typename Deriv, typename T, typename U, bool B>
     std::ostream& operator<<(std::ostream &s, base_storage<Deriv,T,U, B> ) {
         return s << "base_storage <T,U," << " " << std::boolalpha << B << "> (Derived is): " << Deriv();

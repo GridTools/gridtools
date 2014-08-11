@@ -15,7 +15,6 @@ namespace gridtools {
     namespace _impl {
 
 
-
 /**
    \brief "base" struct for all the backend
    This class implements static polimorphism by means of the CRTP pattern. It contains all what is common for all the backends.
@@ -69,16 +68,21 @@ namespace gridtools {
             }
         };
 
-        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ>
+        /**
+           \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
+           \tparam Temporaries is the vector of temporary placeholder types.
+         */
+        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ, typename StrategyTraits>
         struct get_storage_type {
             template <typename Index>
             struct apply {
                 typedef typename boost::mpl::at<Ranges, Index>::type range_type;
 
-                typedef pair<host_tmp_storage<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+                typedef pair<typename StrategyTraits::template tmp<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
             };
         };
 
+/** metafunction to check whether the storage_type inside the PlcArgType is temporary */
         template <typename PlcArgType>
         struct is_temporary_arg : is_temporary_storage<typename PlcArgType::storage_type>
         {};
@@ -86,7 +90,7 @@ namespace gridtools {
 
 
 
-/**this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case.*/
+/** this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case. */
     template< enumtype::backend BackendType, enumtype::strategy StrategyType >
     struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >
     {
@@ -100,13 +104,24 @@ namespace gridtools {
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
         };
 
+
         template <typename ValueType, typename Layout>
-        struct temporary_storage_type {
-            /** temporary storage must have the same iterator type than the regular storage
-             */
-            typedef no_storage_type_yet< typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t > type;
+        struct temporary_storage_type
+            {
+                /** temporary storage must have the same iterator type than the regular storage
+                 */
+            private:
+                typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
+            public:
+                typedef typename boost::mpl::if_<typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
+                                       temp_storage_t,
+                                       no_storage_type_yet< temp_storage_t > >::type type;
         };
 
+
+/**
+
+ */
         template <typename Domain
                   , typename MssType
                   , typename RangeSizes
@@ -127,7 +142,7 @@ namespace gridtools {
             >::type list_of_temporaries;
 
             typedef typename MssType::written_temps_per_functor written_temps_per_functor;
-            
+
             typedef typename boost::mpl::transform<
                 list_of_temporaries,
                 _impl::associate_ranges<written_temps_per_functor, RangeSizes>
@@ -141,16 +156,17 @@ namespace gridtools {
                 iter_range,
                 boost::mpl::vector<>,
                 typename boost::mpl::push_back<
-                    typename boost::mpl::_1, 
+                    typename boost::mpl::_1,
                     typename _impl::get_storage_type<
                         temporaries,
                         list_of_ranges,
                         ValueType,
                         LayoutType,
                         tileI,
-                        tileJ
+                        tileJ,
+                        strategy_traits_t
                         >::template apply<boost::mpl::_2>
-                    > 
+                    >
                 >::type type;
 
         };
@@ -181,6 +197,13 @@ namespace gridtools {
             typedef typename backend_traits_t::template execute_traits< arguments_t >::backend_t backend_t;
             _impl::strategy_from_id< s_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
         }
+
+
+        template <typename ArgList, typename Coords>
+        static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
+            {
+                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(std::forward<ArgList&>(arg_list), std::forward<Coords const&>(coords));
+            }
     };
 
 
