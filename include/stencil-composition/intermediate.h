@@ -352,6 +352,28 @@ namespace gridtools {
             std::cout << typename boost::remove_pointer<typename boost::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
         }
     };
+
+
+
+//\todo move inside the traits classes
+        template<enumtype::backend>
+        struct finalize_computation;
+
+        template<>
+        struct finalize_computation<enumtype::Cuda>{
+            template <typename DomainType>
+            static void apply(DomainType& dom)
+                {dom.finalize_computation();}
+        };
+
+
+        template<>
+        struct finalize_computation<enumtype::Host>{
+            template <typename DomainType>
+            static void apply(DomainType& dom)
+                {}
+        };
+
 /**
  * @class
  * @brief structure collecting helper metafunctions
@@ -531,7 +553,8 @@ namespace gridtools {
          */
         void ready () {
             // boost::fusion::for_each(actual_arg_list, printthose());
-            Backend::template prepare_temporaries(actual_arg_list, m_coords);
+            Backend::template prepare_temporaries( actual_arg_list, m_coords);
+            is_storage_ready=true;
             // std::cout << "\n(3) These are the view values" << std::endl;
             // boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
@@ -543,7 +566,8 @@ namespace gridtools {
            is passed to the instantiate_local_domain struct
          */
         void steady () {
-            //m_domain.setup_computation();
+            setup_computation( actual_arg_list, m_domain );
+
 
             boost::fusion::for_each(local_domain_list,
                                     _impl::instantiate_local_domain<DomainType, actual_arg_list_type>
@@ -555,9 +579,35 @@ namespace gridtools {
 
         }
 
-        void finalize () {
-            Backend::finalize_computation(m_domain);
+        int setup_computation(actual_arg_list_type& storage_pointers, DomainType &  domain){
+            if (is_storage_ready) {
+#ifndef NDEBUG
+                printf("Setup computation\n");
+#endif
+                boost::fusion::copy(storage_pointers, domain.original_pointers);
+
+                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+#ifndef NDEBUG
+                printf("POINTERS\n");
+                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+                printf("ORIGINAL\n");
+                boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
+#endif
+            } else {
+#ifndef NDEBUG
+                printf("Setup computation FAILED\n");
+#endif
+                return GT_ERROR_NO_TEMPS;
+            }
+
+            return GT_NO_ERRORS;
         }
+
+
+        void finalize () {
+            finalize_computation<Backend::s_backend_id>::apply(m_domain);
+        }
+
 
         /**
          * \brief the execution of the stencil operations take place in this call
@@ -576,9 +626,11 @@ namespace gridtools {
             // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
-            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
+            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>( m_coords, local_domain_list );
         }
 
+    private:
+        bool is_storage_ready;
     };
 
 } // namespace gridtools

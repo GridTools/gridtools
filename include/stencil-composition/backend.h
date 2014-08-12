@@ -188,10 +188,10 @@ namespace gridtools {
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>
                   typename LoopIntervals, // List of intervals on which functors are defined
                   typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
-                  typename Domain, // Domain class (not really useful maybe)
+                  //typename Domain, // Domain class (not really useful maybe)
                   typename Coords, // Coordinate class with domain sizes and splitter coordinates
                   typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
-        static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
+        static void run(/*Domain const& domain, */Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
             //wrapping all the template arguments in a single container
             typedef template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments_t;
             typedef typename backend_traits_t::template execute_traits< arguments_t >::backend_t backend_t;
