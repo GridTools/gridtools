@@ -136,13 +136,6 @@ struct heap_allocated_temps {
         }
     };
 
-        /**
-           This function calls d2h_update on all storages, in order to
-           get the data back to the host after a computation.
-        */
-        template <typename Domain>
-        static void finalize_computation(Domain & domain) {
-        }
 
     };
 
