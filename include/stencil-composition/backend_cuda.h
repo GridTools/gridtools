@@ -150,9 +150,4 @@ namespace gridtools {
             static const enumtype::backend s_backend=enumtype::Cuda;
         };
 
-
-
-
-
-
 } // namespace gridtools
