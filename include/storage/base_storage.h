@@ -86,9 +86,9 @@ namespace gridtools {
         __device__
         base_storage(base_storage const& other)
             : m_size(other.m_size)
-            , is_set(is_set)
-            , m_name("default_name")
-            , m_data(NULL)
+            , is_set(other.is_set)
+            , m_name(other.m_name)
+            , m_data(other.m_data)
         {
             m_dims[0] = other.m_dims[0];
             m_dims[1] = other.m_dims[1];
