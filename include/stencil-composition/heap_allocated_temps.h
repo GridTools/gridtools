@@ -28,19 +28,21 @@ namespace gridtools {
             template <typename ElemType>
             GT_FUNCTION
             void operator()(ElemType*&  e) const {
-#ifndef __CUDACC__
+//#ifndef __CUDACC__
                 std::string s = ElemType::info_string;
-#endif
+//#endif
+
+//calls the constructor of the storage
                 e = new ElemType(m_tile_i,
                                  m_tile_j,
                                  m_tile_k,
 //                                 0, // offset in k is zero for now
                                  typename ElemType::value_type(),
-#ifndef __CUDACC__
+//#ifndef __CUDACC__
                                  s);
-#else
-                                 );
-#endif
+//#else
+//                                 );
+//#endif
             }
     };
 

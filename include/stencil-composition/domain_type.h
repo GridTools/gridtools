@@ -226,22 +226,22 @@ namespace gridtools {
 
         template <typename Index>
         void storage_info() const {
-            std::cout << Index::value << " -|-> "
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->name()
-                      << " "
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[0]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[1]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[2]
-                      << ", "
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[0]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[1]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[2]
-                      << ", "
-                      << std::endl;
+            // std::cout << Index::value << " -|-> "
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->name()
+            //           << " "
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[0]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[1]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[2]
+            //           << ", "
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[0]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[1]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[2]
+            //           << ", "
+            //           << std::endl;
         }
 
         ~domain_type() {

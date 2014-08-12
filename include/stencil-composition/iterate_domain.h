@@ -10,14 +10,15 @@ namespace gridtools {
 
             template <typename IteratorType, typename StoragePointer> const
             void assign (IteratorType & it, StoragePointer & storage) const {
-                std::cout << "Moving pointers **********************************************" << std::endl;
-                std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
-                storage.info();
+                // std::cout << "Moving pointers **********************************************" << std::endl;
+                // std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
+                // storage.info();
                 it = &( storage(i,j,k) );
             }
 
-            template <typename IteratorType,
-                      typename ValueType
+            template <enumtype::backend Backend
+                      , typename IteratorType
+                      , typename ValueType
                       , typename Layout
                       , int TileI
                       , int TileJ
@@ -25,12 +26,11 @@ namespace gridtools {
                       , int MinusJ
                       , int PlusI
                       , int PlusJ
-#ifndef NDEBUG
-                      , typename TypeTag = int
-#endif
                       >
             void assign(IteratorType & it,
-                        host_tmp_storage<ValueType
+                        host_tmp_storage<
+                        Backend
+                        , ValueType
                         , Layout
                         , TileI
                         , TileJ
@@ -38,12 +38,9 @@ namespace gridtools {
                         , MinusJ
                         , PlusI
                         , PlusJ
-#ifndef NDEBUG
-                        , TypeTag
-#endif
                         > & storage) const {
-                std::cout << i << " - " << bi << " * " << TileI << std::endl;
-                std::cout << j << " - " << bj << " * " << TileJ << std::endl;
+                // std::cout << i << " - " << bi << " * " << TileI << std::endl;
+                // std::cout << j << " - " << bj << " * " << TileJ << std::endl;
                 it = storage.move_to(i - bi * TileI, j - bj * TileJ, k);
             }
 
@@ -59,9 +56,9 @@ namespace gridtools {
             template <typename ZipElem>
             GT_FUNCTION
             void operator()(ZipElem const & ze) const {
-                std::cout << "Moving pointers **********************************************" << std::endl;
-                std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
-                (*(boost::fusion::at_c<1>(ze))).info();
+                // std::cout << "Moving pointers **********************************************" << std::endl;
+                // std::cout << typename boost::remove_pointer<typename boost::remove_const<typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
+                // (*(boost::fusion::at_c<1>(ze))).info();
 
                 assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
             }
@@ -114,18 +111,18 @@ namespace gridtools {
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
         operator()(ArgType const& arg) const {
 
-            std::cout << " i " << arg.i()
-                      << " j " << arg.j()
-                      << " k " << arg.k()
-                      << " offset " << std::hex << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << std::dec
-                      << " base " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr()
-                      << " max_addr " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr()
-                      << " iterator " << boost::fusion::at<typename ArgType::index_type>(local_iterators)
-                      << " actual address " << boost::fusion::at<typename ArgType::index_type>(local_iterators)+(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k())
-                      << " size of " << sizeof(typename std::remove_pointer<typename std::remove_reference<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators))>::type>::type)
-                      << " " << std::boolalpha << std::is_same<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators)), double*&>::type::value
-                      << " name " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->name()
-                      << std::endl;
+//             std::cout << " i " << arg.i()
+//                       << " j " << arg.j()
+//                       << " k " << arg.k()
+//                       << " offset " << std::hex << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << std::dec
+//                       << " base " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr()
+//                       << " max_addr " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr()
+//                       << " iterator " << boost::fusion::at<typename ArgType::index_type>(local_iterators)
+//                       << " actual address " << boost::fusion::at<typename ArgType::index_type>(local_iterators)+(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k())
+// //                      << " size of " << sizeof(typename boost::remove_pointer<typename boost::remove_reference<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators))>::type>::type)
+//                 //<< " " << std::boolalpha << std::is_same<decltype(boost::fusion::at<typename ArgType::index_type>(local_iterators)), double*&>::type::value
+//                       << " name " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->name()
+//                       << std::endl;
 
             boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->info();
 
