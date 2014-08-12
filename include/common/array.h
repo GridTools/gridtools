@@ -13,7 +13,7 @@ namespace gridtools {
     class array;
 
     template <typename T, size_t D>
-    class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type > {
+    class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
 
         static const int _size = (D>0)?D:1;
 

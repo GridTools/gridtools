@@ -219,8 +219,8 @@ namespace gridtools {
             : base_type(other)
         {}
 
-        GT_FUNCTION
         template <typename Domain, typename ArgList>
+        GT_FUNCTION
         void init(Domain const& dom, ArgList const& arg_list, int, int, int)
         {
             base_type::init(dom, arg_list);

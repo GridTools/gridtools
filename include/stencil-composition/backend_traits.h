@@ -1,5 +1,8 @@
 #pragma once
 
+#include "backend_traits_cuda.h"
+#include "backend_traits_naive.h"
+#include <boost/fusion/include/value_at.hpp>
 /**
 @file
 
@@ -8,20 +11,8 @@
 
 namespace gridtools{
     /** enum defining the strategy policy for distributing the work. */
-    namespace enumtype
-    {
-        enum strategy  {Naive, Block};
 
-/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<strategy T>
-        struct strategy_type
-        {
-            enum {value=T};
-        };
-
-    }
-
-    namespace _impl{
+//    namespace _impl{
 
 //forward declaration
         template<typename T>
@@ -152,10 +143,10 @@ namespace gridtools{
             };
 
             //with the naive algorithms, the temporary storages are like the non temporary ones
-            template <typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
+            template <enumtype::backend Backend, typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
             struct tmp
                 {
-                    typedef storage<ValueType, LayoutType, true> host_storage_t;
+                    typedef base_storage<Backend, ValueType, LayoutType, true> host_storage_t;
                 };
 
         };
@@ -217,12 +208,12 @@ namespace gridtools{
                     }
             };
 
-            template <typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
+            template <enumtype::backend Backend, typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
             struct tmp
                 {
-                    typedef host_tmp_storage<ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
+                    typedef host_tmp_storage<  Backend, ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
                 };
 
         };
-    }//namespace _impl
+//    }//namespace _impl
 }//namespace gridtools

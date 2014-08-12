@@ -220,7 +220,7 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::int_<Elem::second::value> val2;
 
-                typedef typename std::is_same<val1, val2>::type type;
+                typedef typename boost::is_same<val1, val2>::type type;
             };
         };
 
@@ -349,7 +349,7 @@ namespace gridtools {
     struct printthose {
         template <typename E>
         void operator()(E * e) const {
-            std::cout << typename std::remove_pointer<typename std::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
+            std::cout << typename boost::remove_pointer<typename boost::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
         }
     };
 /**
@@ -468,7 +468,7 @@ namespace gridtools {
             template <typename T>
             void operator()(T *) const {
                 std::cout << T() << "            ----------" << std::endl;
-            };
+            }
         };
 
         intermediate(MssType const &, DomainType & domain, Coords const & coords)

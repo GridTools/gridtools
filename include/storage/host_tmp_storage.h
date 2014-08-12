@@ -3,7 +3,8 @@
 #include "base_storage.h"
 
 namespace gridtools {
-    template < typename ValueType
+    template < enumtype::backend Backend
+               , typename ValueType
                , typename Layout
                , int TileI
                , int TileJ
@@ -15,39 +16,15 @@ namespace gridtools {
                , typename TypeTag = int
 #endif
                >
-    struct host_tmp_storage : public base_storage<host_tmp_storage<
-                                                      ValueType
-                                                      , Layout
-                                                      , TileI
-                                                      , TileJ
-                                                      , MinusI
-                                                      , MinusJ
-                                                      , PlusI
-                                                      , PlusJ
-#ifndef NDEBUG
-                                                      , TypeTag
-#endif
-                                                      >
+    struct host_tmp_storage : public base_storage<Backend
                                                   , ValueType
                                                   , Layout
                                                   , true
                                                   >
     {
 
-        typedef base_storage<host_tmp_storage<
-                                 ValueType
-                                 , Layout
-                                 , TileI
-                                 , TileJ
-                                 , MinusI
-                                 , MinusJ
-                                 , PlusI
-                                 , PlusJ
-#ifndef NDEBUG
-                                 , TypeTag
-#endif
-                                 >
-                             ,ValueType
+        typedef base_storage<Backend
+                             , ValueType
                              , Layout
                              , true> base_type;
 
@@ -111,14 +88,6 @@ namespace gridtools {
 
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
-        }
-
-        value_type* min_addr() const {
-            return data ;
-        }
-
-        value_type* max_addr() const {
-            return data+m_size;
         }
 
         iterator_type move_to(int i,int j,int k) const {
@@ -196,12 +165,12 @@ namespace gridtools {
     };
 
 //huge waste of space because the C++ standard doesn't want me to initialize static const inline
-    template < typename ValueType, typename Layout, int TileI, int TileJ, int MinusI, int MinusJ, int PlusI, int PlusJ
+    template < enumtype::backend Backend, typename ValueType, typename Layout, int TileI, int TileJ, int MinusI, int MinusJ, int PlusI, int PlusJ
 #ifndef NDEBUG
                , typename TypeTag
 #endif
                >
-    const std::string host_tmp_storage<ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ
+    const std::string host_tmp_storage<Backend, ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ
 #ifndef NDEBUG
                                                       , TypeTag
 #endif
@@ -211,7 +180,8 @@ namespace gridtools {
                                              boost::lexical_cast<std::string>(plusi::value)+
                                              boost::lexical_cast<std::string>(plusj::value);
 
-    template <typename ValueType
+    template <enumtype::backend Backend,
+              typename ValueType
               , typename Layout
               , int TileI
               , int TileJ
@@ -225,7 +195,8 @@ namespace gridtools {
               >
     std::ostream& operator<<(std::ostream& s,
                              host_tmp_storage<
-                             ValueType
+                              Backend
+                             , ValueType
                              , Layout
                              , TileI
                              , TileJ
@@ -247,7 +218,8 @@ namespace gridtools {
     }
 
 
-    template <typename ValueType
+    template <enumtype::backend Backend
+              , typename ValueType
               , typename Layout
               , int TileI
               , int TileJ
@@ -260,7 +232,8 @@ namespace gridtools {
 #endif
               >
     struct is_storage<host_tmp_storage<
-                          ValueType
+                          Backend
+                          , ValueType
                           , Layout
                           , TileI
                           , TileJ
@@ -276,7 +249,8 @@ namespace gridtools {
     {};
 
 
-    template <typename ValueType
+    template <enumtype::backend Backend
+              , typename ValueType
               , typename Layout
               , int TileI
               , int TileJ
@@ -289,7 +263,8 @@ namespace gridtools {
 #endif
               >
     struct is_temporary_storage<host_tmp_storage<
-                                    ValueType
+                                    Backend
+                                    , ValueType
                                     , Layout
                                     , TileI
                                     , TileJ
@@ -304,7 +279,8 @@ namespace gridtools {
       : boost::true_type
     {};
 
-    template <typename ValueType
+    template <enumtype::backend Backend
+              , typename ValueType
               , typename Layout
               , int TileI
               , int TileJ
@@ -317,6 +293,7 @@ namespace gridtools {
 #endif
               >
     struct is_temporary_storage<host_tmp_storage<
+                                    Backend,
                                     ValueType
                                     , Layout
                                     , TileI
@@ -332,7 +309,8 @@ namespace gridtools {
       : boost::true_type
     {};
 
-    template <typename ValueType
+    template <enumtype::backend Backend
+              , typename ValueType
               , typename Layout
               , int TileI
               , int TileJ
@@ -345,7 +323,8 @@ namespace gridtools {
 #endif
               >
     struct is_temporary_storage<host_tmp_storage<
-                                    ValueType
+                                    Backend
+                                    , ValueType
                                     , Layout
                                     , TileI
                                     , TileJ
@@ -360,7 +339,8 @@ namespace gridtools {
     : boost::true_type
     {};
 
-    template <typename ValueType
+    template <enumtype::backend Backend
+              , typename ValueType
               , typename Layout
               , int TileI
               , int TileJ
@@ -373,7 +353,8 @@ namespace gridtools {
 #endif
               >
     struct is_temporary_storage<host_tmp_storage<
-                                    ValueType
+                                    Backend
+                                    , ValueType
                                     , Layout
                                     , TileI
                                     , TileJ

@@ -40,29 +40,16 @@ namespace gridtools {
 
 
 
-    template <typename T, typename U>
-    struct is_storage<storage<T,U,true>  *  > : public boost::false_type
+    template <enumtype::backend X, typename T, typename U>
+    struct is_storage<base_storage<X,T,U,true>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
 
-#ifndef NDEBUG
-    template <typename T, typename U, typename Tag>
-    struct is_storage<storage<T,U,true,Tag>  *  > : public boost::false_type
+
+    template <enumtype::backend X, typename T, typename U>
+    struct is_storage<base_storage<X,T,U,false>  *  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-#endif
-
-    template <typename T, typename U>
-    struct is_storage<storage<T,U,false>  *  > : public boost::true_type
-    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
-
-
-#ifndef NDEBUG
-    template <typename T, typename U, typename Tag>
-    struct is_storage<storage<T,U,false,Tag>  *  > : public boost::true_type
-    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
-
-#endif
     template <typename U>
     struct is_storage<no_storage_type_yet<U>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
@@ -181,12 +168,12 @@ namespace gridtools {
     {};
 
 
-    template <int I, typename T, typename U>
-    struct is_plchldr_to_temp<arg<I, storage<T, U, true> > > : boost::true_type
+    template <int I, enumtype::backend X, typename T, typename U>
+    struct is_plchldr_to_temp<arg<I, base_storage<X, T, U,  true> > > : boost::true_type
     {};
 
-    template <int I, typename T, typename U>
-    struct is_plchldr_to_temp<arg<I, storage<T, U, false> > > : boost::false_type
+    template <int I, enumtype::backend X, typename T, typename U>
+    struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
     {};
 
     /**

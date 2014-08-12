@@ -29,7 +29,7 @@ namespace gridtools {
         };
     }
 
-    namespace _impl{
+    // namespace _impl{
 
         /** Partial specialization: naive and block implementation for the host backend */
         template <typename Arguments >
@@ -92,35 +92,6 @@ namespace gridtools {
             static const enumtype::backend s_backend=enumtype::Host;
         };
 
-
-        /**Traits struct, containing the types which are specific for the host backend*/
-        template<>
-        struct backend_from_id<enumtype::Host>
-        {
-            template <typename ValueType, typename Layout, bool Temp=false>
-            struct storage_traits{
-                typedef storage<ValueType, Layout, Temp> storage_t;
-            };
-
-            template <typename Arguments>
-            struct execute_traits
-            {
-                typedef _impl_host::run_functor_host< Arguments > backend_t;
-            };
-
-            //function alias (pre C++11, std::bind or std::mem_fn,
-            //using function pointers looks very ugly)
-            template<
-                typename Sequence
-                , typename F
-                >
-            //unnecessary copies/indirections if the compiler is not smart (std::forward)
-            inline static void for_each(F f)
-                {
-                    gridtools::for_each<Sequence>(f);
-                }
-
-        };
-    } //namespace _impl
+    // } //namespace _impl
 
 } // namespace gridtools

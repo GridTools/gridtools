@@ -69,16 +69,10 @@ namespace gridtools {
             }
 
 #ifdef __CUDACC__
-            template <typename T, typename U, bool B
-#ifndef NDEBUG
-                      , typename TypeTag
-#endif
+            template < typename T, typename U, bool B
                       >
             GT_FUNCTION_WARNING
-            void operator()(cuda_storage<T,U,B
-#ifndef NDEBUG
-                            , TypeTag
-#endif
+            void operator()(base_storage<enumtype::Cuda,T,U,B
                             > *& s) const {
                 printf("CIAO POINTER %X\n", s);
             }
@@ -134,25 +128,12 @@ namespace gridtools {
             void operator()(StorageType* s) const {}
 
 #ifdef __CUDACC__
-            template <typename T, typename U, bool B
-#ifndef NDEBUG
-                      , typename TypeTag
-#endif
+            template < typename T, typename U, bool B
                       >
             GT_FUNCTION_WARNING
-            void operator()(cuda_storage<T,U,B
-#ifndef NDEBUG
-                      , TypeTag
-#endif
+            void operator()(base_storage<enumtype::Cuda,T,U,B
                             > *& s) const {
                 if (s) {
-#ifndef NDEBUG
-                    // std::cout << "UPDATING "
-                    //           << std::hex << s->gpu_object_ptr
-                    //           << " " << s
-                    //           << " " << sizeof(cuda_storage<T,U,B>)
-                    //           << std::dec << std::endl;
-#endif
                     s->data.update_gpu();
                     s->clone_to_gpu();
                     s = s->gpu_object_ptr;

@@ -6,7 +6,6 @@
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/find_if.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/find_if.hpp>
@@ -18,6 +17,7 @@
 #include "basic_token_execution.h"
 #include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
+#include "../storage/hybrid_pointer.h"
 
 #include "backend.h"
 /**
@@ -44,7 +44,7 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
                 typedef typename LDomain::iterate_domain_t iterate_domain_t;
-                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z);
+                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);//POL: implement block strategy
                 for_each<LoopIntervals>
                     (_impl::run_f_on_interval
                      <FunctorType,
@@ -74,8 +74,8 @@ namespace gridtools {
     }//namespace _impl_cuda
 
 
-    namespace _impl
-    {
+//    namespace _impl
+//    {
 /** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
     template < typename Arguments >
     struct execute_kernel_functor < _impl_cuda::run_functor_cuda<Arguments> >
@@ -141,6 +141,7 @@ namespace gridtools {
             }
     };
 
+//    }//namespace _impl
 
 ///wasted code because of the lack of constexpr
         template <typename Arguments>
@@ -150,37 +151,8 @@ namespace gridtools {
         };
 
 
-/** traits struct defining the types which are specific to the CUDA backend*/
-        template<>
-        struct backend_from_id< enumtype::Cuda >
-        {
-
-            template <typename ValueType, typename Layout, bool Temp >
-            struct storage_traits
-            {
-                typedef cuda_storage<ValueType, Layout, Temp> storage_t;
-            };
-
-            template <typename Arguments>
-            struct execute_traits
-            {
-                typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
-            };
-
-            //function alias (pre C++11)
-            template<
-                typename Sequence
-                , typename F
-                >
-            inline static void for_each(F f)
-                {
-                    boost::mpl::for_each<Sequence>(f);
-                }
-
-        };
 
 
-    }//namespace _impl
 
 
 } // namespace gridtools

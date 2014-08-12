@@ -54,7 +54,6 @@ namespace gridtools {
                 , blk_idx_j(0)
             {}
 
-
             /**
              * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
              */
@@ -72,13 +71,13 @@ namespace gridtools {
            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
            \tparam Temporaries is the vector of temporary placeholder types.
          */
-        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ, typename StrategyTraits>
+        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ, typename StrategyTraits, enumtype::backend BackendID>
         struct get_storage_type {
             template <typename Index>
             struct apply {
                 typedef typename boost::mpl::at<Ranges, Index>::type range_type;
 
-                typedef pair<typename StrategyTraits::template tmp<ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+                typedef pair<typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
             };
         };
 
@@ -94,8 +93,8 @@ namespace gridtools {
     template< enumtype::backend BackendType, enumtype::strategy StrategyType >
     struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >
     {
-        typedef _impl::backend_from_id <BackendType> backend_traits_t;
-        typedef _impl::strategy_from_id <StrategyType> strategy_traits_t;
+        typedef backend_from_id <BackendType> backend_traits_t;
+        typedef strategy_from_id <StrategyType> strategy_traits_t;
         static const enumtype::strategy s_strategy_id=StrategyType;
         static const enumtype::backend s_backend_id =BackendType;
 
@@ -164,7 +163,8 @@ namespace gridtools {
                         LayoutType,
                         tileI,
                         tileJ,
-                        strategy_traits_t
+                        strategy_traits_t,
+                        s_backend_id
                         >::template apply<boost::mpl::_2>
                     >
                 >::type type;
@@ -193,16 +193,16 @@ namespace gridtools {
                   typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
         static void run(Domain const& domain, Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
             //wrapping all the template arguments in a single container
-            typedef _impl::template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments_t;
+            typedef template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments_t;
             typedef typename backend_traits_t::template execute_traits< arguments_t >::backend_t backend_t;
-            _impl::strategy_from_id< s_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
+            strategy_from_id< s_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
         }
 
 
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
             {
-                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(std::forward<ArgList&>(arg_list), std::forward<Coords const&>(coords));
+                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(/*std::forward<ArgList&>*/(arg_list), /*std::forward<Coords const&>*/(coords));
             }
     };
 

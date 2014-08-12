@@ -18,6 +18,14 @@ namespace gridtools{  namespace enumtype{
             enum {value=T};
         };
 
+        enum strategy  {Naive, Block};
+
+/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        template<strategy T>
+        struct strategy_type
+        {
+            enum {value=T};
+        };
 }
 
 }
