@@ -99,7 +99,7 @@ namespace gridtools {
             strides[2] = other.strides[2];
         }
 
-        explicit base_storage(): m_name("default_name"), m_data(NULL) {
+        explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL) {
             is_set=false;
         }
 

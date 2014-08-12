@@ -36,7 +36,9 @@ namespace gridtools {
         T * pointer_to_use;
         int size;
 
-        hybrid_pointer(int size) : wrap_pointer<T>(size), size(size) {
+        explicit hybrid_pointer(T* p) : wrap_pointer<T>(p), gpu_p(NULL), pointer_to_use(p), size(0) {}
+
+        explicit hybrid_pointer(int size) : wrap_pointer<T>(size), size(size) {
             allocate_it(size);
             pointer_to_use = this->cpu_p;
 #ifndef NDEBUG
@@ -45,7 +47,7 @@ namespace gridtools {
         }
 
         __device__
-        hybrid_pointer(hybrid_pointer const& other)
+        explicit hybrid_pointer(hybrid_pointer const& other)
             : wrap_pointer<T>(other)
             , gpu_p(other.gpu_p)
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 3200)

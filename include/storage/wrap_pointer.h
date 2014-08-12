@@ -8,8 +8,13 @@ template <typename T>
 struct wrap_pointer{
 
     GT_FUNCTION
-    wrap_pointer(wrap_pointer const& other)
+    explicit wrap_pointer(wrap_pointer const& other)
         : cpu_p(other.cpu_p)
+        {}
+
+    GT_FUNCTION
+    explicit wrap_pointer(T* p)
+        : cpu_p(p)
         {}
 
     GT_FUNCTION

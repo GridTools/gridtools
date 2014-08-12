@@ -49,7 +49,7 @@ namespace gridtools{
             }
 
         template <typename T>
-        inline static void delete_storage(hybrid_pointer<T> data){ }
+        inline static void delete_storage(hybrid_pointer<T>& data){ }
 
         template <typename T>
         struct pointer
