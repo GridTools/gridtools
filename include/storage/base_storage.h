@@ -72,7 +72,7 @@ namespace gridtools {
 #ifdef _GT_RANDOM_INPUT
             srand(12345);
 #endif
-            // m_data = new value_type[m_size];
+            //m_data = new value_type[m_size];
             for (int i = 0; i < m_size; ++i)
 #ifdef _GT_RANDOM_INPUT
                     m_data[i] = init * rand();
@@ -107,6 +107,7 @@ namespace gridtools {
             if (is_set) {
                 //std::cout << "deleting " << std::hex << data << std::endl;
                 backend_traits_t::delete_storage( m_data );
+                //delete[] m_data;
             }
         }
 
@@ -119,12 +120,12 @@ namespace gridtools {
         }
 
         void h2d_update(){
-                m_data.update_gpu();
+            m_data.update_gpu();
             }
 
         void d2h_update(){
-                m_data.update_cpu();
-            }
+            m_data.update_cpu();
+        }
 
         void info() const {
             // std::cout << m_dims[0] << "x"
@@ -185,7 +186,8 @@ namespace gridtools {
     int m_size;
     bool is_set;
     const std::string& m_name;
-    typename backend_traits_t::template pointer<value_type>::type m_data;
+        typename backend_traits_t::template pointer<value_type>::type m_data;
+        //iterator_type m_data;
 
     protected:
 
@@ -239,11 +241,15 @@ namespace gridtools {
                     layout::template find<2>(i,j,k);
             }
             //assert(index >= 0);
-//POL
-//            assertion(index <m_size);
+            // assert(index <m_size);
             return index;
         }
     };
+
+    // template <typename T>
+    // struct is_temporary_storage {
+    //     typedef boost::false_type type;
+    // };
 
 
 //huge waste of space because the C++ standard doesn't want me to initialize static const inline

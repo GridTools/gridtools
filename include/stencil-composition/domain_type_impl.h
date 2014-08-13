@@ -127,6 +127,7 @@ namespace gridtools {
             GT_FUNCTION_WARNING
             void operator()(StorageType* s) const {}
 
+//TO REMOVE
 #ifdef __CUDACC__
             template < typename T, typename U, bool B
                       >
@@ -134,7 +135,7 @@ namespace gridtools {
             void operator()(base_storage<enumtype::Cuda,T,U,B
                             > *& s) const {
                 if (s) {
-                    s->data.update_gpu();
+                    s->m_data.update_gpu();
                     s->clone_to_gpu();
                     s = s->gpu_object_ptr;
                 }
