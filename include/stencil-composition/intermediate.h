@@ -374,6 +374,37 @@ namespace gridtools {
                 {}
         };
 
+
+//\todo move inside the traits classes
+        template<enumtype::backend>
+        struct setup_computation;
+
+        template<>
+        struct setup_computation<enumtype::Cuda>{
+            template<typename ArgListType, typename DomainType>
+            static int apply(ArgListType& storage_pointers, DomainType &  domain){
+                boost::fusion::copy(storage_pointers, domain.original_pointers);
+
+                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+#ifndef NDEBUG
+                printf("POINTERS\n");
+                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+                printf("ORIGINAL\n");
+                boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
+#endif
+                return GT_NO_ERRORS;
+        }
+        };
+
+        template<>
+        struct setup_computation<enumtype::Host>{
+            template<typename ArgListType, typename DomainType>
+            static int apply(ArgListType& storage_pointers, DomainType &  domain){
+                return GT_NO_ERRORS;
+        }
+        };
+
+
 /**
  * @class
  * @brief structure collecting helper metafunctions
@@ -566,8 +597,20 @@ namespace gridtools {
            is passed to the instantiate_local_domain struct
          */
         void steady () {
-            setup_computation( actual_arg_list, m_domain );
-
+            if(is_storage_ready)
+            {
+                setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
+#ifndef NDEBUG
+                printf("Setup computation\n");
+#endif
+            }
+            else
+            {
+#ifndef NDEBUG
+                printf("Setup computation FAILED\n");
+#endif
+                exit( GT_ERROR_NO_TEMPS );
+            }
 
             boost::fusion::for_each(local_domain_list,
                                     _impl::instantiate_local_domain<DomainType, actual_arg_list_type>
@@ -579,29 +622,6 @@ namespace gridtools {
 
         }
 
-        int setup_computation(actual_arg_list_type& storage_pointers, DomainType &  domain){
-            if (is_storage_ready) {
-#ifndef NDEBUG
-                printf("Setup computation\n");
-#endif
-                boost::fusion::copy(storage_pointers, domain.original_pointers);
-
-                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
-#ifndef NDEBUG
-                printf("POINTERS\n");
-                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-                printf("ORIGINAL\n");
-                boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
-#endif
-            } else {
-#ifndef NDEBUG
-                printf("Setup computation FAILED\n");
-#endif
-                return GT_ERROR_NO_TEMPS;
-            }
-
-            return GT_NO_ERRORS;
-        }
 
 
         void finalize () {
