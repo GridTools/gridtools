@@ -1,6 +1,11 @@
 #ifndef _GCL_ARRAY_H_
 #define _GCL_ARRAY_H_
 
+/**
+@file
+@briefImplementation of an array class
+*/
+
 #include <stddef.h>
 #include "gt_assert.h"
 #include "host_device.h"
