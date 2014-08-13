@@ -156,7 +156,7 @@ namespace gridtools{
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
-                        backend_traits::template for_each< iter_range >(Backend(local_domain_list, coords));
+                        backend_traits::template for_each< iter_range >(Backend (local_domain_list, coords));
                     }
             };
 

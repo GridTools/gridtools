@@ -4,12 +4,28 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 project( GRIDTOOLS )
 enable_language( CXX )
 
+
+## enable to use ctest:
 enable_testing()
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
+message("cmake module path " ${CMAKE_MODULE_PATH})
+
+if(GNU_COVERAGE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov" )
+message ("building executables for coverage tests")
+endif()
+
+if(GNU_PROFILE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
+message ("building profiled executables")
+endif()
+
 
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(EXECUTABLE_OUTPUT_PATH "../build")
+  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "../build")
 endif()
 
 include_directories( include/ include/communication/high-level ) ## Library header files
@@ -38,6 +54,7 @@ set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 if( "${USE_GPU}" STREQUAL "ON" )
   find_package(CUDA REQUIRED)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
+  message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}  -Xcudafe \"--diag_suppress=dupl_calling_convention\" -Xcudafe \"--diag_suppress=code_is_unreachable\" -Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\" -Xcudafe \"--diag_suppress=calling_convention_not_allowed\" -Xcudafe \"--diag_suppress=conflicting_calling_conventions\"")
 else()
@@ -66,23 +83,38 @@ set ( exe_LIBS ${Boost_LIBRARIES} )
 
 if(OPENMP_FOUND)
     set (PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
-    if ( "${PAPI_WRAP_LIBRARY}" STREQUAL "ON" )
-        if ( "$ENV{PAPI_WRAP_ROOT}" STREQUAL "" )
-            message ("papi-wrap not found. Please set PAPI_WRAP_ROOT to the root path of the papi-wrap library. papi-wrap not used!")
-        else()
-            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
-            set( PAPI_WRAP_MODULE "ON" )
-            include_directories( "$ENV{PAPI_WRAP_ROOT}" )
-            link_directories ( "$ENV{PAPI_WRAP_ROOT}/lib" )
-            set ( exe_LIBS "${exe_LIBS}" papi_wrap )
-        endif()
-    endif()
 endif()
 
+################# look for papi_wrap #############################
+if ( PAPI_WRAP_LIBRARY )
+  find_package(PapiWrap)
+  if ( PAPI_WRAP_FOUND )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
+    set( PAPI_WRAP_MODULE "ON" )
+    include_directories( "${PAPI_WRAP_INCLUDE_DIRS}" )
+    set ( exe_LIBS "${exe_LIBS}" "${PAPI_WRAP_LIBRARIES}" )
+  else()
+    message ("papi-wrap not found. Please set PAPI_WRAP_PREFIX to the root path of the papi-wrap library. papi-wrap not used!")
+  endif()
+endif()
+##################################################################
 
-set( GCL_MPI "${USE_MPI}" )
-set( GCL_GPU "${USE_GPU}" )
-set( GCL_ONLY "ON" CACHE BOOL "If on only library is build but not the examples and tests" )
+################## look for PAPI library ######################
+if(USE_PAPI)
+  find_package(PAPI REQUIRED)
+  if(PAPI_FOUND)
+    include_directories( "${PAPI_INCLUDE_DIRS}" )
+    set ( exe_LIBS "${exe_LIBS}" "${PAPI_LIBRARIES}" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI" )
+  else()
+    message("PAPI library not found. set the PAPI_PREFIX")
+  endif()
+endif()
+##################################################################
+
+set( GCL_MPI "${USE_MPI}" CACHE BOOL "internal: tells whether MPI is used" )
+set( GCL_GPU "${USE_GPU}"  CACHE BOOL "internal: tells whether GPUs are used")
+set( GCL_ONLY "OFF" CACHE BOOL "If on only library is build but not the examples and tests" )
 set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
 
@@ -95,9 +127,9 @@ endif()
 
 set( USE_MPI "OFF" CACHE BOOL "Compile with MPI support" )
 
-if( "${USE_MPI}" STREQUAL "ON" )
+if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
-  if( "${USE_MPI_COMPILER}" STREQUAL "ON" )
+  if( USE_MPI_COMPILER )
     FIND_PACKAGE(MPI REQUIRED)
     INCLUDE(CMakeForceCompiler)
     CMAKE_FORCE_CXX_COMPILER(mpicxx "MPI C++ Compiler")
