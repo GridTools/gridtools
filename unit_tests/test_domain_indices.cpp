@@ -7,6 +7,7 @@
 #include <storage/storage.h>
 #include <boost/mpl/for_each.hpp>
 #include <boost/current_function.hpp>
+#include <stencil-composition/backend.h>
 
 using namespace gridtools;
 
@@ -39,7 +40,7 @@ struct print_plchld {
     void operator()(T const& v) const {
 #ifndef NDEBUG
         T::info();
-        std::cout << " (count = " << count << ")" 
+        std::cout << " (count = " << count << ")"
                   << " (index = " << T::index_type::value << ")"
                   << std::endl;
 #endif
@@ -59,7 +60,8 @@ struct print_pretty {
 };
 
 bool test_domain_indices() {
-    typedef gridtools::storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
     int d1 = 10;
     int d2 = 10;
@@ -69,9 +71,9 @@ bool test_domain_indices() {
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
-    typedef arg<2, gridtools::temporary<storage_type> > p_lap;
-    typedef arg<1, gridtools::temporary<storage_type> > p_flx;
-    typedef arg<5, gridtools::temporary<storage_type> > p_fly;
+    typedef arg<2, tmp_storage_type > p_lap;
+    typedef arg<1, tmp_storage_type > p_flx;
+    typedef arg<5, tmp_storage_type > p_fly;
     typedef arg<0, storage_type > p_coeff;
     typedef arg<3, storage_type > p_in;
     typedef arg<4, storage_type > p_out;

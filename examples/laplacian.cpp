@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend<Cuda, Naive>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block>
@@ -191,7 +191,10 @@ int main(int argc, char** argv) {
 	  The coordinates constructor takes the horizontal plane dimensions,
 	  while the vertical ones are set according the the axis property soon after
        */
-       gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    int di[5] = {2, 2, 2, d1-2, d1};
+    int dj[5] = {2, 2, 2, d2-2, d2};
+
+       gridtools::coordinates<axis> coords(di,dj);
        coords.value_list[0] = 0;
        coords.value_list[1] = d3;
 
@@ -257,7 +260,7 @@ int main(int argc, char** argv) {
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.data.update_cpu();
+    out.m_data.update_cpu();
 #endif
 
     //    in.print();

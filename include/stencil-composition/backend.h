@@ -1,8 +1,13 @@
 #pragma once
 
 #include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/transform.hpp>
+
 #include "backend_traits.h"
 #include "../common/pair.h"
+#include "heap_allocated_temps.h"
+#include "arg_type.h"
+#include "domain_type.h"
 
 /**
    @file

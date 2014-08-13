@@ -189,8 +189,6 @@ namespace gridtools {
         typename backend_traits_t::template pointer<value_type>::type m_data;
         //iterator_type m_data;
 
-    protected:
-
         template <typename Stream>
         void print(Stream & stream) const {
             //std::cout << "Printing " << name << std::endl;
@@ -223,7 +221,6 @@ namespace gridtools {
             stream << std::endl;
         }
 
-    public:
         GT_FUNCTION
         int _index(int i, int j, int k) const {
             int index;

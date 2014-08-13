@@ -1,8 +1,11 @@
 #pragma once
 
+#include <boost/fusion/include/value_at.hpp>
+#include <boost/mpl/has_key.hpp>
+#include "level.h"
+
 #include "backend_traits_cuda.h"
 #include "backend_traits_naive.h"
-#include <boost/fusion/include/value_at.hpp>
 /**
 @file
 
@@ -167,6 +170,10 @@ namespace gridtools{
         };
 
 
+//forward declaration
+    template< enumtype::backend A,typename B,typename C,int D,int E,int F,int G,int H,int I >
+    struct host_tmp_storage;
+
 /**
    @brief specialization for the \ref gridtools::_impl::Block strategy
    The loops over i and j are split according to the values of BI and BJ
@@ -226,10 +233,11 @@ namespace gridtools{
                     }
             };
 
+
             template <enumtype::backend Backend, typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
             struct tmp
                 {
-                    typedef host_tmp_storage<  Backend, ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
+                    typedef host_tmp_storage <  Backend, ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
                 };
 
         };
