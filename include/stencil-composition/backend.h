@@ -5,7 +5,7 @@
 
 /**
    @file
-
+   @brief base class for all the backends. It is templated on the derived type (CRTP pattern) in order to use static polymorphism.
 */
 
 namespace gridtools {
