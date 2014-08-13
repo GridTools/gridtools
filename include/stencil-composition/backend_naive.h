@@ -9,10 +9,17 @@
 #include "heap_allocated_temps.h"
 #include "backend.h"
 
+/**
+   @file
+   @brief Implements the stencil operations for the host backend
+ */
+
 namespace gridtools {
 
     namespace _impl_host {
 
+/** @brief Host backend
+    Derived class of the CRTP pattern defined in \ref gridtools::_impl::run_functor */
         template < typename Arguments >
         struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
         {
@@ -31,10 +38,15 @@ namespace gridtools {
 
     // namespace _impl{
 
-        /** Partial specialization: naive and block implementation for the host backend */
+/** @brief Partial specialization: naive and block implementation for the host backend */
         template <typename Arguments >
         struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
         {
+
+/**
+   @brief core of the kernel execution
+   \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
+*/
             typedef _impl_host::run_functor_host< Arguments > backend_t;
             template< typename Traits >
             static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
@@ -85,7 +97,10 @@ namespace gridtools {
         };
 
 
-//wasted code because of the lack of constexpr
+/**
+   @brief given the backend \ref gridtools::_impl_host::run_functor_host returns the backend ID gridtools::enumtype::Host
+   wasted code because of the lack of constexpr
+*/
         template <typename Arguments >
         struct backend_type< _impl_host::run_functor_host< Arguments > >
         {

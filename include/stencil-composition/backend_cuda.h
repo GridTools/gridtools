@@ -82,6 +82,10 @@ namespace gridtools {
     {
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
+/**
+   @brief core of the kernel execution
+   \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
+*/
         template < typename Traits >
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
             {
@@ -143,7 +147,8 @@ namespace gridtools {
 
 //    }//namespace _impl
 
-///wasted code because of the lack of constexpr
+/**@brief given the backend \ref gridtools::_impl_cuda::run_functor_cuda returns the backend ID gridtools::enumtype::Cuda
+   wasted code because of the lack of constexpr*/
         template <typename Arguments>
 	    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
         {

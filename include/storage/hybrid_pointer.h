@@ -7,6 +7,10 @@
 #include "../common/gt_assert.h"
 #include "wrap_pointer.h"
 
+/** @file
+    @brief double pointer mapping host and device
+    implementation of a double pointer, living on both host and device, together with the algorithms to copy back/to the device. The device is supposed to be a GPU supporting CUDA.
+*/
 namespace gridtools {
 
     namespace workaround_ {
