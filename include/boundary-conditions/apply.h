@@ -7,6 +7,10 @@
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
 
+/**
+@file
+@brief  definition of the functions which apply the boundary conditions (arbitrary functions having as argument the direation, an arbitrary number of data fields, and the coordinates ID)
+*/
 namespace gridtools {
 
     /**
@@ -22,6 +26,10 @@ namespace gridtools {
         BoundaryFunction const boundary_function;
         Predicate predicate;
 
+/**
+   @brief loops on the halo region defined by the HaloDescriptor member parameter, and evaluates the boundary_function in the specified direction, in the specified halo node.
+   this macro expands to n definitions of the function loop, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+*/
 #define GTLOOP(z, n, nil)                                               \
         template <typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void loop(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field)) const { \
@@ -56,6 +64,12 @@ namespace gridtools {
             , predicate(predicate)
         {}
 
+
+/**
+   @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all possible directions.
+this macro expands to n definitions of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+
+*/
 #define GTAPPLY(z, n, nil)                                                \
         template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void apply(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field) ) const { \

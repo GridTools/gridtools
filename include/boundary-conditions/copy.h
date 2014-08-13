@@ -1,14 +1,15 @@
 #pragma once
 
+/**
+   @file
+   @brief On all boundary the values are copied from the last data field to the first. Minimum 2 fields.
+*/
+
 namespace gridtools {
 
-    /**
-       On all boundary the values are copied from the last data field to the first.
-       Minimum 2 fields.
-
-     */
     struct copy_boundary {
 
+/**   @brief On all boundary the values are copied from the last data field to the first. Minimum 2 fields. */
         template <typename Direction, typename DataField0, typename DataField1>
         GT_FUNCTION
         void operator()(Direction,
