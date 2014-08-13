@@ -32,7 +32,6 @@ namespace gridtools {
 
             typename derived_traits_t::domain_list_t & m_domain_list;
             typename derived_traits_t::coords_t const & m_coords;
-            typename derived_traits_t::domain_list_t & m_domain_list;
             const int m_starti, m_startj, m_BI, m_BJ, blk_idx_i, blk_idx_j;
 
             // Block strategy

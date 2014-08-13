@@ -132,9 +132,9 @@ bool horizontal_diffusion(int x, int y, int z) {
   int collector_execute = pw_new_collector("Execute");
 #endif
 
-    int d1 = atoi(argv[1]);
-    int d2 = atoi(argv[2]);
-    int d3 = atoi(argv[3]);
+    int d1 = x;
+    int d2 = y;
+    int d3 = z;
 
     using namespace gridtools;
     using namespace enumtype;
@@ -260,9 +260,9 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 
     horizontal_diffusion->ready();
 
-    domain.storage_info<boost::mpl::int_<0> >();
-    domain.storage_info<boost::mpl::int_<1> >();
-    domain.storage_info<boost::mpl::int_<2> >();
+    // domain.storage_info<boost::mpl::int_<0> >();
+    // domain.storage_info<boost::mpl::int_<1> >();
+    // domain.storage_info<boost::mpl::int_<2> >();
     domain.storage_info<boost::mpl::int_<3> >();
     domain.storage_info<boost::mpl::int_<4> >();
     domain.storage_info<boost::mpl::int_<5> >();
@@ -300,7 +300,7 @@ PAPI_stop(event_set, values);
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.data.update_cpu();
+    out.m_data.update_cpu();
 #endif
 
     //    in.print();
