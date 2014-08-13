@@ -86,6 +86,9 @@ struct wrap_pointer{
             return &cpu_p[i];
         }
 
+        GT_FUNCTION
+        const T* get_cpu_p(){return cpu_p;};
+
 protected:
     T * cpu_p;
 

@@ -58,6 +58,7 @@ namespace gridtools{
             typedef wrap_pointer<T> type;
         };
 
+        GT_FUNCTION
         static void assertion(bool const condition) {
             assert(condition);
         }

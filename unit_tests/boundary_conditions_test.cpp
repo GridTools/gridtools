@@ -13,9 +13,9 @@
 
 using gridtools::direction;
 using gridtools::sign;
-using gridtools::minus;
-using gridtools::zero;
-using gridtools::plus;
+using gridtools::minus_;
+using gridtools::zero_;
+using gridtools::plus_;
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -131,37 +131,37 @@ struct minus_predicate {
     }
 
     template <sign I, sign J>
-    bool operator()(direction<I,J,minus>) const {
+    bool operator()(direction<I,J,minus_>) const {
         return false;
     }
 
     template <sign I, sign K>
-    bool operator()(direction<I,minus,K>) const {
+    bool operator()(direction<I,minus_,K>) const {
         return false;
     }
 
     template <sign J, sign K>
-    bool operator()(direction<minus,J,K>) const {
+    bool operator()(direction<minus_,J,K>) const {
         return false;
     }
 
 
     template <sign I>
-    bool operator()(direction<I,minus,minus>) const {
+    bool operator()(direction<I,minus_,minus_>) const {
         return false;
     }
 
     template <sign I>
-    bool operator()(direction<minus,I,minus>) const {
+    bool operator()(direction<minus_,I,minus_>) const {
         return false;
     }
 
     template <sign I>
-    bool operator()(direction<minus,minus,I>) const {
+    bool operator()(direction<minus_,minus_,I>) const {
         return false;
     }
 
-    bool operator()(direction<minus,minus,minus>) const {
+    bool operator()(direction<minus_,minus_,minus_>) const {
         return false;
     }
 

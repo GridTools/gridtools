@@ -189,7 +189,7 @@ void print_mss(MSS)
 }
 
 int main() {
-    typedef storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef base_storage<enumtype::Host, double, gridtools::layout_map<0,1,2> > storage_type;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;

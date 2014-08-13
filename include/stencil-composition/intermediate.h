@@ -12,6 +12,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
 #include "level.h"
 #include "interval.h"
@@ -20,6 +21,7 @@
 #include "functor_do_method_lookup_maps.h"
 #include "axis.h"
 #include "local_domain.h"
+#include "domain_type.h"
 #include "computation.h"
 
 /**

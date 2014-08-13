@@ -3,6 +3,7 @@
 #include <common/layout_map.h>
 #include <fstream>
 #include <boost/timer/timer.hpp>
+#include <stencil-composition/backend.h>
 
 int main_naive(int argc, char** argv) {
 
@@ -20,7 +21,8 @@ int main_naive(int argc, char** argv) {
     int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    typedef gridtools::storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+
     std::ofstream file_i("basic_naive_in");
     std::ofstream file_o("basic_naive_out");
 
@@ -33,7 +35,7 @@ int main_naive(int argc, char** argv) {
         for (int j=2; j < d2-2; ++j) {
             for (int k=0; k < d3; ++k) {
                 //std::cout << in(i,j,k) << std::endl;
-                out(i,j,k) = 4 * in(i,j,k) - 
+                out(i,j,k) = 4 * in(i,j,k) -
                     (in( i+1, j, k) + in( i, j+1, k) +
                      in( i-1, j, k) + in( i, j-1, k));
             }
@@ -64,7 +66,8 @@ int main_block(int argc, char** argv) {
     int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    typedef gridtools::storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+
     std::ofstream file_i("basic_block_in");
     std::ofstream file_o("basic_block_out");
 
@@ -86,7 +89,7 @@ int main_block(int argc, char** argv) {
                 for (int i = starti; i < starti+BI; ++i) {
                     for (int j = startj; j < startj+BJ; ++j) {
 #ifndef NDEBUG
-                        std::cout << "B1" << " " 
+                        std::cout << "B1" << " "
                                   << "starti " << starti << " "
                                   << " i " << i
                                   << " end " << starti+BI
@@ -96,7 +99,7 @@ int main_block(int argc, char** argv) {
                                   << std::endl;
 #endif
                         for (int k = 0; k < d3; ++k) {
-                            out(i,j,k) = 4 * in(i,j,k) - 
+                            out(i,j,k) = 4 * in(i,j,k) -
                                 (in( i+1, j, k) + in( i, j+1, k) +
                                  in( i-1, j, k) + in( i, j-1, k));
                         }
@@ -111,7 +114,7 @@ int main_block(int argc, char** argv) {
             for (int i = starti; i < d1-2; ++i) {
                 for (int j = startj; j < startj+BJ; ++j) {
 #ifndef NDEBUG
-                    std::cout << "B2" << " " 
+                    std::cout << "B2" << " "
                               << "starti " << starti << " "
                               << " i " << i
                               << " end " << d1-2
@@ -121,7 +124,7 @@ int main_block(int argc, char** argv) {
                               << std::endl;
 #endif
                     for (int k = 0; k < d3; ++k) {
-                        out(i,j,k) = 4 * in(i,j,k) - 
+                        out(i,j,k) = 4 * in(i,j,k) -
                             (in( i+1, j, k) + in( i, j+1, k) +
                              in( i-1, j, k) + in( i, j-1, k));
                     }
@@ -135,7 +138,7 @@ int main_block(int argc, char** argv) {
             for (int i = starti; i < starti+BI; ++i) {
                 for (int j = startj; j < d2-2; ++j) {
 #ifndef NDEBUG
-                    std::cout << "B3" << " " 
+                    std::cout << "B3" << " "
                               << "starti " << starti << " "
                               << " i " << i
                               << " end " << starti+BI
@@ -145,7 +148,7 @@ int main_block(int argc, char** argv) {
                               << std::endl;
 #endif
                     for (int k = 0; k < d3; ++k) {
-                        out(i,j,k) = 4 * in(i,j,k) - 
+                        out(i,j,k) = 4 * in(i,j,k) -
                             (in( i+1, j, k) + in( i, j+1, k) +
                              in( i-1, j, k) + in( i, j-1, k));
                     }
@@ -158,7 +161,7 @@ int main_block(int argc, char** argv) {
         for (int i = starti; i < d1-2; ++i) {
             for (int j = startj; j < d2-2; ++j) {
 #ifndef NDEBUG
-                std::cout << "B4" << " " 
+                std::cout << "B4" << " "
                           << "starti " << starti << " "
                           << " i " << i
                           << " end " << d1-2
@@ -168,14 +171,14 @@ int main_block(int argc, char** argv) {
                           << std::endl;
 #endif
                 for (int k = 0; k < d3; ++k) {
-                    out(i,j,k) = 4 * in(i,j,k) - 
+                    out(i,j,k) = 4 * in(i,j,k) -
                         (in( i+1, j, k) + in( i, j+1, k) +
                          in( i-1, j, k) + in( i, j-1, k));
                 }
             }
         }
     }
-    
+
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
