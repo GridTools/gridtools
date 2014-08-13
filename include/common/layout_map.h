@@ -203,7 +203,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     */
     template <int I1, int I2, int I3>
     struct layout_map<I1, I2, I3, -1> {
-        static const unsigned int length=3;
+        static  const unsigned int length=3;
         typedef boost::mpl::vector3_c<int, I1, I2, I3> t;
 
         template <unsigned int I>

@@ -1,8 +1,11 @@
 #pragma once
-
+/**
+@file
+@brief descriptor of the Multi Stage Stencil (MSS)
+*/
 namespace gridtools {
 
-    // Descriptors for MSS
+    /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
               typename ArrayEsfDescr>
     struct mss_descriptor {
@@ -31,11 +34,11 @@ namespace gridtools {
         typedef ArrayEsfDescr esf_array; // may contain independent constructs
         typedef ExecutionEngine execution_engine;
 
-        // Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
-        // esf structs. Independent functors are listed one after the other.
+        /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
+            esf structs. Independent functors are listed one after the other.*/
         typedef typename linearize_esf_array<esf_array>::type linear_esf;
 
-        // Compute a vector of vectors of temp indices of temporaries initialized by each functor
+        /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
         typedef typename boost::mpl::fold<linear_esf,
                 boost::mpl::vector<>,
                 boost::mpl::push_back<boost::mpl::_1, get_temps_per_functor<boost::mpl::_2> >
