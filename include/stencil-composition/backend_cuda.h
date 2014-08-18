@@ -44,7 +44,7 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
                 typedef typename LDomain::iterate_domain_t iterate_domain_t;
-                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);//POL: implement block strategy
+                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
                 for_each<LoopIntervals>
                     (_impl::run_f_on_interval
                      <FunctorType,

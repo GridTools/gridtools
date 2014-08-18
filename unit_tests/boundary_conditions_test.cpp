@@ -65,7 +65,7 @@ struct bc_basic {
 
 template <sign X>
 struct is_minus {
-    static const bool value = (X == minus);
+    static const bool value = (X == minus_);
 };
 
 template <typename T, typename U>

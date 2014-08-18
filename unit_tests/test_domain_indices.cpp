@@ -1,13 +1,18 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <stdio.h>
-#include <common/gt_assert.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/domain_type.h>
 #include <storage/storage.h>
+#include <stencil-composition/backend.h>
+
+#include <stdio.h>
+#include <common/gt_assert.h>
+#include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/current_function.hpp>
-#include <stencil-composition/backend.h>
+
+#include <boost/fusion/include/nview.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 using namespace gridtools;
 
@@ -83,7 +88,7 @@ bool test_domain_indices() {
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
 
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
+       (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
 #ifndef NDEBUG
     boost::mpl::for_each<gridtools::domain_type<arg_type_list>::raw_index_list>(print());

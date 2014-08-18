@@ -32,7 +32,7 @@ namespace gridtools {
     }
 
 
-/**\todo Note that this struct will greatly simplify when the CUDA arch 3200 and inferior will be pobsolete (the "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
+/**\todo Note that this struct will greatly simplify when the CUDA arch 3200 and inferior will be obsolete (the "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
     template <typename T>
     struct hybrid_pointer : public wrap_pointer<T>{
 
@@ -166,7 +166,7 @@ namespace gridtools {
         T* get_pointer_to_use(){return pointer_to_use;}
 
         GT_FUNCTION
-        const int get_size(){return size;}
+        int get_size(){return size;}
 
     private:
         T * gpu_p;

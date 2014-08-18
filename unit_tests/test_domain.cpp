@@ -18,7 +18,12 @@
 #include <storage/cuda_storage.h>
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
+#include <stencil-composition/intermediate.h>
+
+
 #include <boost/current_function.hpp>
+#include <boost/fusion/include/nview.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 struct out_value {
     template <typename T>
@@ -160,8 +165,8 @@ bool test_domain() {
 #endif
 
     // THERE ARE NOT TEMPS HERE    domain.prepare_temporaries();
-    domain.is_ready=true;
-    domain.setup_computation();
+    // domain.is_ready=true;
+    // domain.setup_computation();
     domain.clone_to_gpu();
 
 #ifndef NDEBUG
@@ -189,7 +194,8 @@ bool test_domain() {
     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
 #endif
 
-    domain.setup_computation();
+    //domain.setup_computation();
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( boost::fusion::make_vector(&coeff, &in, &out), domain );
     domain.clone_to_gpu();
 
 #ifndef NDEBUG

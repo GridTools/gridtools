@@ -15,13 +15,11 @@
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
 #include "level.h"
-#include "interval.h"
 #include "loopintervals.h"
 #include "functor_do_methods.h"
 #include "functor_do_method_lookup_maps.h"
 #include "axis.h"
 #include "local_domain.h"
-#include "domain_type.h"
 #include "computation.h"
 
 /**
@@ -377,14 +375,22 @@ namespace gridtools {
         };
 
 
+
 //\todo move inside the traits classes
+
+        /**
+           This functor calls h2d_update on all storages, in order to
+           get the data prepared in the case of GPU execution.
+
+           Returns 0 (GT_NO_ERRORS) on success
+        */
         template<enumtype::backend>
         struct setup_computation;
 
         template<>
         struct setup_computation<enumtype::Cuda>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType& storage_pointers, DomainType &  domain){
+            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
                 boost::fusion::copy(storage_pointers, domain.original_pointers);
 
                 boost::fusion::for_each(storage_pointers, _impl::update_pointer());
@@ -401,7 +407,7 @@ namespace gridtools {
         template<>
         struct setup_computation<enumtype::Host>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType& storage_pointers, DomainType &  domain){
+            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
                 return GT_NO_ERRORS;
         }
         };
@@ -409,7 +415,7 @@ namespace gridtools {
 
 /**
  * @class
- * @brief structure collecting helper metafunctions
+*  @brief structure collecting helper metafunctions
  * */
     template <typename Backend, typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
