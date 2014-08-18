@@ -5,7 +5,7 @@
 #include "level.h"
 
 #include "backend_traits_cuda.h"
-#include "backend_traits_naive.h"
+#include "backend_traits_host.h"
 /**
 @file
 
