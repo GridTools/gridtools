@@ -61,23 +61,6 @@ namespace gridtools {
             }
         };
 
-        struct print_pointer {
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {
-                printf("CIAOOO TATATA %x\n",  s);
-            }
-
-#ifdef __CUDACC__
-            template < typename T, typename U, bool B
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(base_storage<enumtype::Cuda,T,U,B
-                            > *& s) const {
-                printf("CIAO POINTER %X\n", s);
-            }
-#endif
-        };
 
         struct print_domain_info {
             template <typename StorageType>
@@ -108,6 +91,9 @@ namespace gridtools {
             };
         };
 
+        /**
+           \brief returns the index chosen when the placeholder U was defined
+        */
         struct l_get_index {
             template <typename U>
             struct apply {
@@ -115,32 +101,14 @@ namespace gridtools {
             };
         };
 
+        /**
+           \brief returns the pointer to the storage for the specific domain placeholder U
+        */
         struct l_get_it_type {
             template <typename U>
             struct apply {
                 typedef typename U::storage_type::iterator_type type;
             };
-        };
-
-        struct update_pointer {
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {}
-
-//TO REMOVE
-#ifdef __CUDACC__
-            template < typename T, typename U, bool B
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(base_storage<enumtype::Cuda,T,U,B
-                            > *& s) const {
-                if (s) {
-                    s->m_data.update_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                }
-            }
-#endif
         };
 
         struct call_h2d {

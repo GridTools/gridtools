@@ -14,7 +14,7 @@ namespace gridtools {
     }
 #else
     template <typename Backend, typename MssType, typename Domain, typename Coords>
-    boost::shared_ptr<computation> make_computation(MssType const& mss, Domain & domain, Coords const& coords) {
+    boost::shared_ptr<intermediate<Backend, MssType, Domain, Coords>/*computation*/> make_computation(MssType const& mss, Domain & domain, Coords const& coords) {
         return boost::make_shared<intermediate<Backend, MssType, Domain, Coords> >(mss, boost::ref(domain), coords);
     }
 #endif

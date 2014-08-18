@@ -1,26 +1,12 @@
 #pragma once
 
 namespace gridtools {
-    /**
-       This class implements the basic operation of iterating over a "column" in a interval.
-    */
-    // namespace _impl {
-    //     struct inc {
-    //         template <typename T>
-    //         void operator()(T & x) const {
-    //             ++x;
-    //         }
-    //     };
-    // }
-
     namespace _impl {
         template <typename FunctorType,
                   typename IntervalMap,
                   typename LocalDomainType,
                   typename Coords>
         struct run_f_on_interval {
-            Coords const &coords;
-            LocalDomainType const &domain;
 
             GT_FUNCTION
             explicit run_f_on_interval(LocalDomainType & domain, Coords const& coords)
@@ -46,6 +32,9 @@ namespace gridtools {
                 }
 
             }
+        private:
+            Coords const &coords;
+            LocalDomainType const &domain;
         };
 
     } // namespace _impl

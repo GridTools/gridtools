@@ -1,5 +1,5 @@
 #pragma once
-
+// //\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
     struct computation {
         virtual void ready() = 0;

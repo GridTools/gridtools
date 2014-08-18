@@ -8,7 +8,7 @@ namespace gridtools {
         struct assign_iterators {
             const int i, j, k, bi, bj;
 
-            template <typename IteratorType, typename StoragePointer> const
+            template <typename IteratorType, typename StoragePointer>
             void assign (IteratorType & it, StoragePointer & storage) const {
                 // std::cout << "Moving pointers **********************************************" << std::endl;
                 // std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;

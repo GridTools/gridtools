@@ -41,7 +41,48 @@ namespace gridtools {
         struct get_stride
           : get_stride_<I, OtherLayout, OtherLayout::template at_<I>::value>
         {};
+
+
+        struct update_pointer {
+            template <typename StorageType>
+            GT_FUNCTION_WARNING
+            void operator()(StorageType* s) const {}
+
+#ifdef __CUDACC__
+            template < typename T, typename U, bool B
+                      >
+            GT_FUNCTION_WARNING
+            void operator()(base_storage<enumtype::Cuda,T,U,B
+                            > *& s) const {
+                if (s) {
+                    s->m_data.update_gpu();
+                    s->clone_to_gpu();
+                    s = s->gpu_object_ptr;
+                }
+            }
+#endif
+        };
     }//namespace _impl
+
+    namespace _debug{
+        struct print_pointer {
+            template <typename StorageType>
+            GT_FUNCTION_WARNING
+            void operator()(StorageType* s) const {
+                printf("CIAOOO TATATA %x\n",  s);
+            }
+
+#ifdef __CUDACC__
+            template < typename T, typename U, bool B
+                      >
+            GT_FUNCTION_WARNING
+            void operator()(base_storage<enumtype::Cuda,T,U,B
+                            > *& s) const {
+                printf("CIAO POINTER %X\n", s);
+            }
+#endif
+        };
+    }//namespace _debug
 
     template < enumtype::backend Backend,
                typename ValueType,

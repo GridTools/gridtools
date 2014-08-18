@@ -10,6 +10,7 @@
 #endif
 
 #include <boost/timer/timer.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 /*! @file
   @brief  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
