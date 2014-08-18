@@ -376,7 +376,7 @@ namespace gridtools {
 
 
 
-//\todo move inside the traits classes
+//\todo move inside the traits classes?
 
         /**
            This functor calls h2d_update on all storages, in order to

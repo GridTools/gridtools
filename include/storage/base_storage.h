@@ -5,7 +5,7 @@
 #include "../common/gpu_clone.h"
 #include "../common/gt_assert.h"
 #include "../common/is_temporary_storage.h"
-#include "../stencil-composition/backend_traits_naive.h"
+#include "../stencil-composition/backend_traits_host.h"
 #include "../stencil-composition/backend_traits_cuda.h"
 #include "hybrid_pointer.h"
 #include <iostream>

@@ -20,7 +20,7 @@ using gridtools::plus_;
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
-#include <stencil-composition/backend_naive.h>
+#include <stencil-composition/backend_host.h>
 #endif
 
 #include <stdlib.h>
