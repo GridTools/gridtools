@@ -390,7 +390,7 @@ namespace gridtools {
         template<>
         struct setup_computation<enumtype::Cuda>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
+            static int apply(ArgListType& storage_pointers, DomainType &  domain){
                 boost::fusion::copy(storage_pointers, domain.original_pointers);
 
                 boost::fusion::for_each(storage_pointers, _impl::update_pointer());
@@ -407,7 +407,7 @@ namespace gridtools {
         template<>
         struct setup_computation<enumtype::Host>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
+            static int apply(ArgListType& storage_pointers, DomainType &  domain){
                 return GT_NO_ERRORS;
         }
         };
