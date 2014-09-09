@@ -2,6 +2,7 @@
 
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/transform.hpp>
+#include <boost/mpl/reverse.hpp>
 
 #include "backend_traits.h"
 #include "../common/pair.h"
@@ -75,7 +76,7 @@ namespace gridtools {
         /**
            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
            \tparam Temporaries is the vector of temporary placeholder types.
-         */
+        */
         template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ, typename StrategyTraits, enumtype::backend BackendID>
         struct get_storage_type {
             template <typename Index>
@@ -193,14 +194,33 @@ namespace gridtools {
                   typename range_sizes, // computed range sizes to know where to compute functot at<i>
                   typename LoopIntervals, // List of intervals on which functors are defined
                   typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
+                  typename ExecutionEngine,
                   //typename Domain, // Domain class (not really useful maybe)
                   typename Coords, // Coordinate class with domain sizes and splitter coordinates
-                  typename LocalDomainList> // List of local domain to be pbassed to functor at<i>
+                  typename LocalDomainList
+                  > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
             //wrapping all the template arguments in a single container
-            typedef template_argument_traits< FunctorList, LoopIntervals, FunctorsMap, range_sizes, LocalDomainList, Coords > arguments_t;
-            typedef typename backend_traits_t::template execute_traits< arguments_t >::backend_t backend_t;
-            strategy_from_id< s_strategy_id >::template loop< backend_t >::runLoop(local_domain_list, coords);
+            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::upward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
+
+/**
+   @brief template arguments container
+   the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
+*/
+        struct arguments
+        {
+            typedef FunctorList functor_list_t;
+            typedef oriented_loop_intervals_t loop_intervals_t;
+            typedef FunctorsMap functors_map_t;
+            typedef range_sizes range_sizes_t;
+            typedef LocalDomainList domain_list_t;
+            typedef Coords coords_t;
+            typedef ExecutionEngine execution_type_t;
+        };
+
+//            typedef template_argument_traits< FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine > arguments_t;
+        typedef typename backend_traits_t::template execute_traits< arguments >::backend_t backend_t;
+        strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
         }
 
 

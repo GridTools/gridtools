@@ -1,4 +1,5 @@
 #pragma once
+#include "execution_types.h"
 /**
 @file
 @brief descriptor of the Multi Stage Stencil (MSS)
@@ -32,7 +33,7 @@ namespace gridtools {
         {};
 
         typedef ArrayEsfDescr esf_array; // may contain independent constructs
-        typedef ExecutionEngine execution_engine;
+        typedef ExecutionEngine execution_engine_t;
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/

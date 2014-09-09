@@ -38,30 +38,6 @@ namespace gridtools{
         };
 
 /**
-   @brief template arguments container
-   the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
-*/
-        template <
-            typename FunctorList,
-            typename LoopIntervals,
-            typename FunctorsMap,
-            typename RangeSizes,
-            typename DomainList,
-            typename Coords>
-        struct template_argument_traits
-        {
-            typedef FunctorList functor_list_t;
-            typedef LoopIntervals loop_intervals_t;
-            typedef FunctorsMap functors_map_t;
-            typedef RangeSizes range_sizes_t;
-            typedef DomainList domain_list_t;
-            typedef Coords coords_t;
-
-        };
-
-
-
-/**
    @brief wasted code because of the lack of constexpr
    its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .
 */
@@ -152,7 +128,7 @@ namespace gridtools{
                 typedef typename arguments_t::coords_t coords_t;
                 //typedef typename arguments_t::local_domain_t local_domain_t;
 
-                static void runLoop( domain_list_t& local_domain_list, const coords_t& coords)
+                static void run_loop( domain_list_t& local_domain_list, const coords_t& coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
@@ -193,7 +169,7 @@ namespace gridtools{
                 typedef typename arguments_t::domain_list_t domain_list_t;
                 typedef typename arguments_t::coords_t coords_t;
 
-                static void runLoop(domain_list_t& local_domain_list, coords_t const& coords)
+                static void run_loop(domain_list_t& local_domain_list, coords_t const& coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 

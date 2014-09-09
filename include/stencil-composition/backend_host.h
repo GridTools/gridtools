@@ -4,8 +4,9 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/find_if.hpp>
+
 #include "../storage/storage.h"
-#include "basic_token_execution.h"
+#include "execution_policy.h"
 #include "heap_allocated_temps.h"
 #include "backend.h"
 
@@ -39,15 +40,15 @@ namespace gridtools {
     // namespace _impl{
 
 /** @brief Partial specialization: naive and block implementation for the host backend */
-        template <typename Arguments >
-        struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
-        {
+    template <typename Arguments >
+    struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
+    {
+        typedef _impl_host::run_functor_host< Arguments > backend_t;
 
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
 */
-            typedef _impl_host::run_functor_host< Arguments > backend_t;
             template< typename Traits >
             static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
                 {
@@ -58,7 +59,7 @@ namespace gridtools {
                     typedef typename Traits::local_domain_t  local_domain_t;
                     typedef typename Traits::interval_map_t interval_map_t;
                     typedef typename Traits::iterate_domain_t iterate_domain_t;
-
+                    typedef typename Arguments::execution_type_t execution_type_t;
 
 #ifndef NDEBUG
                     // TODO a generic cout is still on the way (have to implement all the '<<' operators)
@@ -83,14 +84,20 @@ namespace gridtools {
 
                                 iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 
-                                gridtools::for_each<loop_intervals_t>
+                                struct extra_arguments{
+                                    typedef functor_t functor_t;
+                                    typedef interval_map_t interval_map_t;
+                                    typedef iterate_domain_t local_domain_t;
+                                    typedef coords_t coords_t;};
+
+                                gridtools::for_each< loop_intervals_t >
                                     (_impl::run_f_on_interval
-                                     <functor_t,
-                                     interval_map_t,
-                                     iterate_domain_t,
-                                     coords_t>
+                                     <
+                                     execution_type_t,
+                                     extra_arguments
+                                     >
                                      (it_domain,f->m_coords)
-                                     );
+                                        );
                             }
                 }
 

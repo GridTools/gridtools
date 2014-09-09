@@ -14,7 +14,7 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/value_at.hpp>
 
-#include "basic_token_execution.h"
+#include "execution_policy.h"
 #include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 #include "../storage/hybrid_pointer.h"
@@ -30,27 +30,24 @@ namespace gridtools {
 /** Kernel function called from the GPU */
     namespace _impl_cuda {
 
-        template <typename FirstHit,
-                  typename LoopIntervals,
-                  typename FunctorType,
-                  typename IntervalMap,
-                  typename LDomain,
-                  typename Coords>
+        template <typename Arguments,
+                  typename Traits,
+                  typename ExtraArguments>
         __global__
-        void do_it_on_gpu(LDomain * l_domain, Coords const* coords, int starti, int startj, int nx, int ny) {
+        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, int starti, int startj, int nx, int ny) {
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             int j = blockIdx.y * blockDim.y + threadIdx.y;
-            int z = coords->template value_at<FirstHit>();
+            int z = coords->template value_at<typename Traits::first_hit_t>();
 
             if ((i < nx) && (j < ny)) {
-                typedef typename LDomain::iterate_domain_t iterate_domain_t;
-                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
-                for_each<LoopIntervals>
+                typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+                typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
+                for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
-                     <FunctorType,
-                     IntervalMap,
-                     iterate_domain_t,
-                     Coords>
+                     <
+                     typename Arguments::execution_type_t,
+                     ExtraArguments
+                     >
                      (it_domain,*coords));
             }
         }
@@ -82,6 +79,18 @@ namespace gridtools {
     {
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
+        template<
+            typename FunctorType,
+            typename IntervalMap,
+            typename LocalDomainType,
+            typename Coords>
+        struct extra_arguments{
+            typedef FunctorType functor_type_t;
+            typedef IntervalMap interval_map_t;
+            typedef LocalDomainType local_domain_t;
+            typedef Coords coords_t;
+        };
+
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
@@ -90,16 +99,16 @@ namespace gridtools {
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
             {
                 typedef typename Arguments::coords_t coords_t;
-                typedef typename Arguments::loop_intervals_t loop_intervals_t;
+                // typedef typename Arguments::loop_intervals_t loop_intervals_t;
                 typedef typename Traits::range_t range_t;
                 typedef typename Traits::functor_t functor_t;
                 typedef typename Traits::local_domain_t  local_domain_t;
                 typedef typename Traits::interval_map_t interval_map_t;
                 typedef typename Traits::iterate_domain_t iterate_domain_t;
                 typedef typename Traits::first_hit_t first_hit_t;
+                typedef typename Arguments::execution_type_t execution_type_t;
 
 #ifndef NDEBUG
-// TODO a generic cout is still on the way (have to implement all the '<<' operators)
                 std::cout << "Functor " <<  functor_t() << "\n";
                 std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                                     << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
@@ -133,7 +142,13 @@ namespace gridtools {
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
-                _impl_cuda::do_it_on_gpu<first_hit_t, loop_intervals_t, functor_t, interval_map_t><<<blocks, threads>>>
+                struct extra_arguments{
+                    typedef functor_t functor_t;
+                    typedef interval_map_t interval_map_t;
+                    typedef iterate_domain_t local_domain_t;
+                    typedef coords_t coords_t;};
+
+                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,

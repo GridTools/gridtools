@@ -74,20 +74,23 @@ namespace gridtools {
            elementary stencil function */
         template <typename Dom, typename ArgList>
         struct instantiate_local_domain {
-            Dom const& dom;
-            ArgList const& arg_list;
             GT_FUNCTION
             instantiate_local_domain(Dom const& dom, ArgList const& arg_list)
-                : dom(dom)
-                , arg_list(arg_list)
+                : m_dom(dom)
+                , m_arg_list(arg_list)
             {}
 
+            /**method called in the Do methods of the functors. Elem is a local_domain*/
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                elem.init(dom, arg_list, 0,0,0);
+                elem.init(m_dom, m_arg_list, 0,0,0);
                 elem.clone_to_gpu();
             }
+
+        private:
+            Dom const& m_dom;
+            ArgList const& m_arg_list;
         };
 
         template <typename FunctorDesc>
@@ -407,7 +410,7 @@ namespace gridtools {
         template<>
         struct setup_computation<enumtype::Host>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType& storage_pointers, DomainType &  domain){
+            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
                 return GT_NO_ERRORS;
         }
         };
@@ -442,7 +445,7 @@ namespace gridtools {
         typedef typename compute_loop_intervals<
             functor_do_methods,
             typename Coords::axis_type
-            >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
+            >::type loop_intervals_t; // vector of pairs of indices - sorted and contiguous
 
         /**
          * compute the do method lookup maps
@@ -450,7 +453,7 @@ namespace gridtools {
          */
         typedef typename boost::mpl::transform<
                 functor_do_methods,
-                compute_functor_do_method_lookup_map<boost::mpl::_, LoopIntervals>
+                compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals_t>
                 >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
 
 
@@ -521,7 +524,7 @@ namespace gridtools {
 
 
         DomainType & m_domain;
-        Coords m_coords;
+        const Coords& m_coords;
 
         actual_arg_list_type actual_arg_list;
 
@@ -541,7 +544,7 @@ namespace gridtools {
 #ifndef NDEBUG
 #ifndef __CUDACC__
             std::cout << "Actual loop bounds ";
-            gridtools::for_each<LoopIntervals>(_debug::show_pair<Coords>(coords));
+            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Coords>(coords));
             std::cout << std::endl;
 #endif
 #endif
@@ -654,7 +657,7 @@ namespace gridtools {
             // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
-            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>( m_coords, local_domain_list );
+            Backend::template run<functors_list, range_sizes, loop_intervals_t, functor_do_method_lookup_maps, typename MssType::execution_engine_t>( m_coords, local_domain_list );
         }
 
     private:

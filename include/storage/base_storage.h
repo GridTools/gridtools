@@ -10,6 +10,9 @@
 #include "hybrid_pointer.h"
 #include <iostream>
 
+/**@file
+   @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
+ */
 namespace gridtools {
 
     namespace _impl
@@ -42,7 +45,7 @@ namespace gridtools {
           : get_stride_<I, OtherLayout, OtherLayout::template at_<I>::value>
         {};
 
-
+/**@brief Functor updating the pointers on the device */
         struct update_pointer {
             template <typename StorageType>
             GT_FUNCTION_WARNING
@@ -84,6 +87,9 @@ namespace gridtools {
         };
     }//namespace _debug
 
+/**
+   @biref main class for the storage
+ */
     template < enumtype::backend Backend,
                typename ValueType,
                typename Layout,

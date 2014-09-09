@@ -6,6 +6,10 @@
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <vector>
 #include "../common/is_temporary_storage.h"
 
 namespace gridtools {
@@ -83,6 +87,35 @@ namespace gridtools {
         }
     };
 
+#include<type_traits>
+    namespace enumtype
+    {
+        namespace{
+        template <int Coordinate>
+            struct T{
+            T(int val){ value=val;}
+            static const int direction=Coordinate;
+            int value;
+        };
+        }
+        using x=T<0>;
+        using y=T<1>;
+        using z=T<2>;
+    }
+
+
+    GT_FUNCTION
+    struct initialize
+    {
+        initialize(int* offset) : m_offset(offset)
+            {}
+
+        template<typename X>
+        inline void operator( )(X i) const {
+            m_offset[X::direction] = i.value;
+        }
+        int* m_offset;
+    };
 
     /**
      * Type to be used in elementary stencil functions to specify argument mapping and ranges
@@ -93,7 +126,7 @@ namespace gridtools {
      * @tparam Range Bounds over which the function access the argument
      */
     template <int I, typename Range=range<0,0,0,0> >
-    struct arg_type {
+    struct arg_type   {
 
         template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
         struct halo {
@@ -110,6 +143,14 @@ namespace gridtools {
             offset[1] = j;
             offset[2] = k;
         }
+
+        template <typename... X >
+        GT_FUNCTION
+        arg_type ( X... x){
+            boost::fusion::vector<X...> vec={x...};
+            boost::fusion::for_each(vec, initialize(offset));
+        }
+
 
         GT_FUNCTION
         arg_type() {

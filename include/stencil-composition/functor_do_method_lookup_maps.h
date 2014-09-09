@@ -28,11 +28,11 @@ namespace gridtools {
     template<
         typename TIndexPair1,
         typename TIndexPair2>
-    struct is_sub_interval : 
+    struct is_sub_interval :
         boost::mpl::bool_<
-        TIndexPair1::first::value >= TIndexPair2::first::value && 
-            TIndexPair1::second::value <= TIndexPair2::second::value 
-                                          > 
+        TIndexPair1::first::value >= TIndexPair2::first::value &&
+            TIndexPair1::second::value <= TIndexPair2::second::value
+                                          >
     {};
 
     /**
@@ -48,8 +48,9 @@ namespace gridtools {
         // extract the do method lookup map and the do method iterator
         typedef typename boost::mpl::first<TDoMethodLookupMap>::type DoMethodLookupMap;
         typedef typename boost::mpl::second<TDoMethodLookupMap>::type DoIterator;
-    
+
         // move the do method iterator forward until the associated do method includes the current loop interval
+
         typedef typename boost::mpl::if_<
             is_sub_interval<TLoopInterval, typename boost::mpl::deref<DoIterator>::type>,
             DoIterator,
@@ -63,7 +64,7 @@ namespace gridtools {
         // add the loop interval to the do method lookup map
         // (only add empty loop intervals if the functor loop interval is empty)
         typedef typename boost::mpl::insert<
-            DoMethodLookupMap, 
+            DoMethodLookupMap,
             boost::mpl::pair<
                 TLoopInterval,
                 typename make_interval<
@@ -72,7 +73,7 @@ namespace gridtools {
                     >::type
                     >
             >::type NextDoMethodLookupMap;
-  
+
         // return a do method lookup map iterator pair
         typedef boost::mpl::pair<NextDoMethodLookupMap, NextDoIterator> type;
     };
@@ -103,7 +104,7 @@ namespace gridtools {
             typename boost::mpl::back<TLoopIntervals>::type::second
             > LoopRange;
 
-        // make sure the do range is a sub interval of the loop range 
+        // make sure the do range is a sub interval of the loop range
         BOOST_STATIC_ASSERT((is_sub_interval<DoRange, LoopRange>::value));
 
         // extract all loop intervals inside the functor do method interval
@@ -116,12 +117,12 @@ namespace gridtools {
         BOOST_STATIC_ASSERT(boost::mpl::size<LoopIntervals>::value > 0);
 
         // iterate over all loop intervals and compute the do method lookup map
-        // (the state of the fold operation contains the map as well as an iterator 
+        // (the state of the fold operation contains the map as well as an iterator
         // pointing to the currently active do method which includes the current loop interval)
         typedef typename boost::mpl::fold<
             LoopIntervals,
             boost::mpl::pair<
-                boost::mpl::map0<>, 
+                boost::mpl::map0<>,
                 typename boost::mpl::begin<TDoMethods>::type
                 >,
                     do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
