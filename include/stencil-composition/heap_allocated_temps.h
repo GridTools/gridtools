@@ -67,10 +67,11 @@ namespace gridtools {
 
 
 
-    using namespace enumtype;
-
-    template< strategy Str >
-    struct policy;
+        namespace{
+            using namespace enumtype;
+            template< strategy Str >
+                struct policy;
+        }
 
 /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments to the constructor depending on the specific strategy */
     template <typename ArgList, typename Coords, enumtype::strategy StrategyType>
@@ -93,6 +94,7 @@ namespace gridtools {
 
     };
 
+        namespace{
 /**Policy for the \ref gridtools::domain_type constructor arguments. When the Block strategy is chosen the arguments value_i and value_j represent an offset index in the i and j dimensions. */
         template<>
         struct policy<Block>
@@ -117,6 +119,7 @@ namespace gridtools {
                 static int value_j(Coords& coords){ return coords.direction_j().total_length();}
         };
 
+        }
 
     } // namespace _impl
 

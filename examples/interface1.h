@@ -25,6 +25,9 @@ using gridtools::arg_type;
 using gridtools::range;
 using gridtools::arg;
 
+using namespace gridtools;
+using namespace enumtype;
+
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
@@ -45,7 +48,7 @@ struct lap_function {
 
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+             dom(in(x(-1), y(0), z(0))) + dom(in( 0,-1, 0)));
     }
 };
 
@@ -62,7 +65,7 @@ struct flx_function {
     static void Do(Domain const & dom, x_flx) {
 
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0)))) {
+        if (dom(out())*(dom(in(y(0),x(1),z(0)))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
         }
     }
@@ -100,8 +103,8 @@ struct out_function {
     static void Do(Domain const & dom, x_out) {
 
         dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx()) - dom(flx(-1,0,0)) +
-             dom(fly()) - dom(fly(0,-1,0))
+            (dom(flx()) - dom(flx( -1,0,0)) +
+             dom(fly()) - dom(fly( 0,-1,0))
              );
         // printf("final dom(out()) => %e\n", dom(out()));
     }
@@ -136,9 +139,6 @@ bool horizontal_diffusion(int x, int y, int z) {
     int d1 = x;
     int d2 = y;
     int d3 = z;
-
-    using namespace gridtools;
-    using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -187,6 +187,7 @@ bool horizontal_diffusion(int x, int y, int z) {
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     int di[5] = {2, 2, 2, d1-2, d1};
     int dj[5] = {2, 2, 2, d2-2, d2};
+    int dk[5] = {0, 0, 0, d3, d3};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
@@ -243,23 +244,23 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #ifdef __CUDACC__
     gridtools::computation* horizontal_diffusion =
 #else
-    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+        boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
         gridtools::make_computation<gridtools::BACKEND>
         (
-         gridtools::make_mss // mss_descriptor
-         (
-          gridtools::execute_upward,
-          gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
-          gridtools::make_independent // independent_esf
-          (
-           gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-           gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-          ),
-          gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-         ),
-         domain, coords
-        );
+            gridtools::make_mss // mss_descriptor
+            (
+                execute<parallel>(),
+                gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_independent // independent_esf
+                (
+                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+                    ),
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+                ),
+            domain, coords
+            );
 
     horizontal_diffusion->ready();
 
