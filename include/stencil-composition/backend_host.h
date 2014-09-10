@@ -52,18 +52,18 @@ namespace gridtools {
             template< typename Traits >
             static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
                 {
-                    typedef typename Arguments::coords_t coords_t;
+                    typedef typename Arguments::coords_t coords_type;
                     typedef typename Arguments::loop_intervals_t loop_intervals_t;
                     typedef typename Traits::range_t range_t;
-                    typedef typename Traits::functor_t functor_t;
+                    typedef typename Traits::functor_t functor_type;
                     typedef typename Traits::local_domain_t  local_domain_t;
-                    typedef typename Traits::interval_map_t interval_map_t;
-                    typedef typename Traits::iterate_domain_t iterate_domain_t;
+                    typedef typename Traits::interval_map_t interval_map_type;
+                    typedef typename Traits::iterate_domain_t iterate_domain_type;
                     typedef typename Arguments::execution_type_t execution_type_t;
 
 #ifndef NDEBUG
                     // TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                    std::cout << "Functor " <<  functor_t() << "\n";
+                    std::cout << "Functor " <<  functor_type() << "\n";
                     std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                               << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
                     std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
@@ -82,13 +82,13 @@ namespace gridtools {
                             {
                                 std::cout << "Move to : " << i << ", " << j << std::endl;
 
-                                iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
+                                iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 
                                 struct extra_arguments{
-                                    typedef functor_t functor_t;
-                                    typedef interval_map_t interval_map_t;
-                                    typedef iterate_domain_t local_domain_t;
-                                    typedef coords_t coords_t;};
+                                    typedef functor_type functor_t;
+                                    typedef interval_map_type interval_map_t;
+                                    typedef iterate_domain_type local_domain_t;
+                                    typedef coords_type coords_t;};
 
                                 gridtools::for_each< loop_intervals_t >
                                     (_impl::run_f_on_interval

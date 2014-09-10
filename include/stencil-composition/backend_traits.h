@@ -45,6 +45,19 @@ namespace gridtools{
         struct backend_type
         {};
 
+	/** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
+	template<typename FunctorList, typename oriented_loop_intervals_t, typename FunctorsMap, typename range_sizes, typename LocalDomainList, typename Coords, typename ExecutionEngine>
+        struct arguments
+        {
+            typedef FunctorList functor_list_t;
+            typedef oriented_loop_intervals_t loop_intervals_t;
+            typedef FunctorsMap functors_map_t;
+            typedef range_sizes range_sizes_t;
+            typedef LocalDomainList domain_list_t;
+            typedef Coords coords_t;
+            typedef ExecutionEngine execution_type_t;
+        };
+
 /** @brief functor struct whose specializations are responsible of running the kernel
     The kernel contains the computational intensive loops on the backend. The fact that it is a functor (and not a templated method) allows for partial specialization (e.g. two backends may share the same strategy)
 */

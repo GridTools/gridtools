@@ -9,6 +9,7 @@
 #include "heap_allocated_temps.h"
 #include "arg_type.h"
 #include "domain_type.h"
+#include "execution_types.h"
 
 /**
    @file
@@ -207,19 +208,21 @@ namespace gridtools {
    @brief template arguments container
    the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
 */
-        struct arguments
-        {
-            typedef FunctorList functor_list_t;
-            typedef oriented_loop_intervals_t loop_intervals_t;
-            typedef FunctorsMap functors_map_t;
-            typedef range_sizes range_sizes_t;
-            typedef LocalDomainList domain_list_t;
-            typedef Coords coords_t;
-            typedef ExecutionEngine execution_type_t;
-        };
+        /* struct arguments */
+        /* { */
+        /*     typedef FunctorList functor_list_t; */
+        /*     typedef oriented_loop_intervals_t loop_intervals_t; */
+        /*     typedef FunctorsMap functors_map_t; */
+        /*     typedef range_sizes range_sizes_t; */
+        /*     typedef LocalDomainList domain_list_t; */
+        /*     typedef Coords coords_t; */
+        /*     typedef ExecutionEngine execution_type_t; */
+        /* }; */
+
+	    typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
 
 //            typedef template_argument_traits< FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine > arguments_t;
-        typedef typename backend_traits_t::template execute_traits< arguments >::backend_t backend_t;
+        typedef typename backend_traits_t::template execute_traits< args >::backend_t backend_t;
         strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
         }
 

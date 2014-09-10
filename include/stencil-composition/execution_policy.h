@@ -38,7 +38,7 @@ namespace gridtools{
             template<typename IterationPolicy, typename IntervalType>
             void loop(int from, int to) const {
                 for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
-                    traits::functor_type_t::Do(this->m_domain, IntervalType());
+                    traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
             }
