@@ -1,5 +1,6 @@
 #pragma once
 #include "basic_token_execution.h"
+#include "cuda_profiler_api.h"
 
 /**
 @file Implementation of the k loop execution policy
@@ -28,20 +29,23 @@ namespace gridtools{
             typename ExtraArguments>
         struct run_f_on_interval< typename enumtype::execute<IterationType>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<IterationType>, ExtraArguments > >
         {
-            typedef run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<IterationType>, ExtraArguments > > super;
+	    typedef run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<IterationType>, ExtraArguments > > super;
             typedef typename enumtype::execute<IterationType>::type execution_engine;
             typedef ExtraArguments traits;
 
             GT_FUNCTION
             explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
 
+
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(int from, int to) const {
+	        cudaProfilerStart();
                 for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
+		cudaProfilerStop();
             }
         };
 
@@ -62,10 +66,12 @@ namespace gridtools{
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(int from, int to) const {
-                for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
+	      cudaProfilerStart();
+	      for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
+	      cudaProfilerStop();
             }
         };
     } // namespace _impl

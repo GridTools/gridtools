@@ -48,7 +48,7 @@ struct lap_function {
 
         dom(out()) = 3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(x(-1), y(0), z(0))) + dom(in( 0,-1, 0)));
+             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
     }
 };
 
@@ -65,7 +65,7 @@ struct flx_function {
     static void Do(Domain const & dom, x_flx) {
 
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(y(0),x(1),z(0)))-dom(in(0,0,0)))) {
+        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
             dom(out()) = 0.;
         }
     }

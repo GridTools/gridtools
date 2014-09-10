@@ -87,7 +87,6 @@ namespace gridtools {
         }
     };
 
-#include<type_traits>
     namespace enumtype
     {
         namespace{
@@ -98,9 +97,10 @@ namespace gridtools {
             int value;
         };
         }
-        using x=T<0>;
-        using y=T<1>;
-        using z=T<2>;
+        
+	typedef T<0> x;
+	typedef T<1> y;
+	typedef T<2> z;
     }
 
 
