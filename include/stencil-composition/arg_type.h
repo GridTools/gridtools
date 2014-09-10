@@ -175,8 +175,8 @@ namespace gridtools {
         template <typename... X >
         GT_FUNCTION
         arg_type ( X... x){
-            boost::fusion::vector<X...> vec={x...};
-            boost::fusion::for_each(vec, initialize(offset));
+	  boost::fusion::vector<X...> vec(x...);
+	  boost::fusion::for_each(vec, initialize(offset));
         }
 #endif
 
