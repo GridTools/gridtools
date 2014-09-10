@@ -36,6 +36,7 @@ namespace gridtools{
             explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
 
             template<typename IterationPolicy, typename IntervalType>
+            GT_FUNCTION
             void loop(int from, int to) const {
                 for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
@@ -59,6 +60,7 @@ namespace gridtools{
             explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
 
             template<typename IterationPolicy, typename IntervalType>
+            GT_FUNCTION
             void loop(int from, int to) const {
                 for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
