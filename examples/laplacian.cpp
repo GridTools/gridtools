@@ -216,16 +216,16 @@ int main(int argc, char** argv) {
      */
 
 #ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+    computation* horizontal_diffusion =
 #else
     boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+        make_computation<gridtools::BACKEND>
         (
-         gridtools::make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
+         make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
-          gridtools::execute_upward,//!\todo parameter used only for overloading purpose?
-          gridtools::make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
+          execute<upward>(),//!\todo parameter used only for overloading purpose?
+          make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           ),
          domain, coords);
 

@@ -144,13 +144,41 @@ namespace gridtools {
             offset[2] = k;
         }
 
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#warning "Obsolete version of the GCC compiler"
+      // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
+      // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
+      // we implement a suboptimal solution
+      template <typename X1, typename X2, typename X3 >
+        GT_FUNCTION
+	  arg_type ( X1 x, X2 y, X3 z){
+	boost::fusion::vector<X1, X2, X3> vec(x, y, z);
+            boost::fusion::for_each(vec, initialize(offset));
+        }
+
+      template <typename X1, typename X2 >
+        GT_FUNCTION
+	  arg_type ( X1 x, X2 y){
+	boost::fusion::vector<X1, X2> vec(x, y);
+            boost::fusion::for_each(vec, initialize(offset));
+        }
+
+      template <typename X1>
+        GT_FUNCTION
+	  arg_type ( X1 x){
+	boost::fusion::vector<X1> vec(x);
+            boost::fusion::for_each(vec, initialize(offset));
+        }
+
+#else
+      //if you get a compiler error here, use the version above
         template <typename... X >
         GT_FUNCTION
         arg_type ( X... x){
             boost::fusion::vector<X...> vec={x...};
             boost::fusion::for_each(vec, initialize(offset));
         }
-
+#endif
 
         GT_FUNCTION
         arg_type() {

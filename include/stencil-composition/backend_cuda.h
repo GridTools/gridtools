@@ -85,11 +85,19 @@ namespace gridtools {
             typename LocalDomainType,
             typename Coords>
         struct extra_arguments{
-            typedef FunctorType functor_type_t;
+            typedef FunctorType functor_t;
             typedef IntervalMap interval_map_t;
             typedef LocalDomainType local_domain_t;
             typedef Coords coords_t;
         };
+
+
+	// template<typename FunctorType, typename IntervalMapType, typename IterateDomainType, typename CoordsType>
+	// struct extra_arguments{
+	//   typedef FunctorType functor_t;
+	//   typedef IntervalMapType interval_map_t;
+	//   typedef IterateDomainType local_domain_t;
+	//   typedef CoordsType coords_t;};
 
 /**
    @brief core of the kernel execution
@@ -98,18 +106,25 @@ namespace gridtools {
         template < typename Traits >
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
             {
-                typedef typename Arguments::coords_t coords_t;
+                typedef typename Arguments::coords_t coords_type;
                 // typedef typename Arguments::loop_intervals_t loop_intervals_t;
                 typedef typename Traits::range_t range_t;
-                typedef typename Traits::functor_t functor_t;
+                typedef typename Traits::functor_t functor_type;
                 typedef typename Traits::local_domain_t  local_domain_t;
-                typedef typename Traits::interval_map_t interval_map_t;
+                typedef typename Traits::interval_map_t interval_map_type;
                 typedef typename Traits::iterate_domain_t iterate_domain_t;
                 typedef typename Traits::first_hit_t first_hit_t;
                 typedef typename Arguments::execution_type_t execution_type_t;
 
+
+                /* struct extra_arguments{ */
+                /*     typedef functor_type functor_t; */
+                /*     typedef interval_map_type interval_map_t; */
+                /*     typedef iterate_domain_t local_domain_t; */
+                /*     typedef coords_type coords_t;}; */
+
 #ifndef NDEBUG
-                std::cout << "Functor " <<  functor_t() << "\n";
+                std::cout << "Functor " <<  functor_type() << "\n";
                 std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                                     << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
                 std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
@@ -124,7 +139,7 @@ namespace gridtools {
 
                 local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
 
-                coords_t const *coords_gp = f->m_coords.gpu_object_ptr;
+                coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
                 int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
                 int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
@@ -142,13 +157,8 @@ namespace gridtools {
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
-                struct extra_arguments{
-                    typedef functor_t functor_t;
-                    typedef interval_map_t interval_map_t;
-                    typedef iterate_domain_t local_domain_t;
-                    typedef coords_t coords_t;};
 
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments><<<blocks, threads>>>
+                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
