@@ -1,6 +1,8 @@
 #pragma once
 #include "basic_token_execution.h"
+#ifdef __CUDACC__
 #include "cuda_profiler_api.h"
+#endif
 
 /**
 @file Implementation of the k loop execution policy
@@ -40,12 +42,16 @@ namespace gridtools{
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(int from, int to) const {
+#ifdef __CUDACC__
 	        cudaProfilerStart();
+#endif
                 for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
+#ifdef __CUDACC__
 		cudaProfilerStop();
+#endif
             }
         };
 
@@ -66,12 +72,16 @@ namespace gridtools{
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(int from, int to) const {
+#ifdef __CUDACC__
 	      cudaProfilerStart();
+#endif
 	      for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
+#ifdef __CUDACC__
 	      cudaProfilerStop();
+#endif
             }
         };
     } // namespace _impl
