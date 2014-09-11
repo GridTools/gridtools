@@ -45,6 +45,13 @@ namespace gridtools {
     {
         typedef _impl_host::run_functor_host< Arguments > backend_t;
 
+        template <typename FunctorType, typename IntervalMapType, typename IterateDomainType, typename CoordsType>
+        struct extra_arguments{
+            typedef FunctorType functor_t;
+            typedef IntervalMapType interval_map_t;
+            typedef IterateDomainType local_domain_t;
+            typedef CoordsType coords_t;};
+
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
@@ -84,17 +91,19 @@ namespace gridtools {
 
                                 iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 
-                                struct extra_arguments{
-                                    typedef functor_type functor_t;
-                                    typedef interval_map_type interval_map_t;
-                                    typedef iterate_domain_type local_domain_t;
-                                    typedef coords_type coords_t;};
+
+                                //local structs can be passed as template arguments in C++11 (would improve readability)
+                                // struct extra_arguments{
+                                //     typedef functor_type functor_t;
+                                //     typedef interval_map_type interval_map_t;
+                                //     typedef iterate_domain_type local_domain_t;
+                                //     typedef coords_type coords_t;};
 
                                 gridtools::for_each< loop_intervals_t >
                                     (_impl::run_f_on_interval
                                      <
                                      execution_type_t,
-                                     extra_arguments
+                                     extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
                                      >
                                      (it_domain,f->m_coords)
                                         );
