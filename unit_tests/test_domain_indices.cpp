@@ -1,20 +1,26 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <stdio.h>
-#include <common/gt_assert.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/domain_type.h>
 #include <storage/storage.h>
+#include <stencil-composition/backend.h>
+
+#include <stdio.h>
+#include <common/gt_assert.h>
+#include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/current_function.hpp>
 
 #include <gridtools.h>
 
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_naive.h>
-#endif
+// #ifdef CUDA_EXAMPLE
+// #include <stencil-composition/backend_cuda.h>
+// #else
+// #include <stencil-composition/backend_naive.h>
+// #endif
+
+#include <boost/fusion/include/nview.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -48,7 +54,7 @@ struct print_plchld {
     void operator()(T const& v) const {
 #ifndef NDEBUG
         T::info();
-        std::cout << " (count = " << count << ")" 
+        std::cout << " (count = " << count << ")"
                   << " (index = " << T::index_type::value << ")"
                   << std::endl;
 #endif
@@ -68,20 +74,24 @@ struct print_pretty {
 };
 
 bool test_domain_indices() {
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
+// #ifdef CUDA_EXAMPLE
+// #define BACKEND backend<Cuda, Naive >
+// #else
+// #ifdef BACKEND_BLOCK
+// #define BACKEND backend<Host, Block >
+// #else
+// #define BACKEND backend<Host, Naive >
+// #endif
+// #endif
 
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
+//     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+//     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+//     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+// =======
+    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+
 
     int d1 = 10;
     int d2 = 10;
@@ -103,7 +113,7 @@ bool test_domain_indices() {
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
 
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
+       (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
 #ifndef NDEBUG
     boost::mpl::for_each<gridtools::domain_type<arg_type_list>::raw_index_list>(print());

@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #ifndef __CUDACC__
-#include <boost/lexical_cast.hpp>
 #endif
 
 #include "arg_type.h"
@@ -62,29 +61,6 @@ namespace gridtools {
             }
         };
 
-        struct print_pointer {
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {
-                printf("CIAOOO TATATA %x\n",  s);
-            }
-
-#ifdef __CUDACC__
-            template <typename T, typename U, bool B
-#ifndef NDEBUG
-                      , typename TypeTag
-#endif
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(cuda_storage<T,U,B
-#ifndef NDEBUG
-                            , TypeTag
-#endif
-                            > *& s) const {
-                printf("CIAO POINTER %X\n", s);
-            }
-#endif
-        };
 
         struct print_domain_info {
             template <typename StorageType>
@@ -115,6 +91,9 @@ namespace gridtools {
             };
         };
 
+        /**
+           \brief returns the index chosen when the placeholder U was defined
+        */
         struct l_get_index {
             template <typename U>
             struct apply {
@@ -122,44 +101,14 @@ namespace gridtools {
             };
         };
 
+        /**
+           \brief returns the pointer to the storage for the specific domain placeholder U
+        */
         struct l_get_it_type {
             template <typename U>
             struct apply {
                 typedef typename U::storage_type::iterator_type type;
             };
-        };
-
-        struct update_pointer {
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {}
-
-#ifdef __CUDACC__
-            template <typename T, typename U, bool B
-#ifndef NDEBUG
-                      , typename TypeTag
-#endif
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(cuda_storage<T,U,B
-#ifndef NDEBUG
-                      , TypeTag
-#endif
-                            > *& s) const {
-                if (s) {
-#ifndef NDEBUG
-                    // std::cout << "UPDATING "
-                    //           << std::hex << s->gpu_object_ptr
-                    //           << " " << s
-                    //           << " " << sizeof(cuda_storage<T,U,B>)
-                    //           << std::dec << std::endl;
-#endif
-                    s->data.update_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                }
-            }
-#endif
         };
 
         struct call_h2d {

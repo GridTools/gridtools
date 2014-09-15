@@ -6,7 +6,6 @@
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/find_if.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/find_if.hpp>
@@ -15,9 +14,10 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/value_at.hpp>
 
-#include "basic_token_execution.h"
+#include "execution_policy.h"
 #include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
+#include "../storage/hybrid_pointer.h"
 
 #include "backend.h"
 /**
@@ -30,27 +30,24 @@ namespace gridtools {
 /** Kernel function called from the GPU */
     namespace _impl_cuda {
 
-        template <typename FirstHit,
-                  typename LoopIntervals,
-                  typename FunctorType,
-                  typename IntervalMap,
-                  typename LDomain,
-                  typename Coords>
+        template <typename Arguments,
+                  typename Traits,
+                  typename ExtraArguments>
         __global__
-        void do_it_on_gpu(LDomain * l_domain, Coords const* coords, int starti, int startj, int nx, int ny) {
+        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, int starti, int startj, int nx, int ny) {
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             int j = blockIdx.y * blockDim.y + threadIdx.y;
-            int z = coords->template value_at<FirstHit>();
+            int z = coords->template value_at<typename Traits::first_hit_t>();
 
             if ((i < nx) && (j < ny)) {
-                typedef typename LDomain::iterate_domain_t iterate_domain_t;
-                iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z);
-                for_each<LoopIntervals>
+                typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+                typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
+                for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
-                     <FunctorType,
-                     IntervalMap,
-                     iterate_domain_t,
-                     Coords>
+                     <
+                     typename Arguments::execution_type_t,
+                     ExtraArguments
+                     >
                      (it_domain,*coords));
             }
         }
@@ -74,29 +71,60 @@ namespace gridtools {
     }//namespace _impl_cuda
 
 
-    namespace _impl
-    {
+//    namespace _impl
+//    {
 /** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
     template < typename Arguments >
     struct execute_kernel_functor < _impl_cuda::run_functor_cuda<Arguments> >
     {
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
+        template<
+            typename FunctorType,
+            typename IntervalMap,
+            typename LocalDomainType,
+            typename Coords>
+        struct extra_arguments{
+            typedef FunctorType functor_t;
+            typedef IntervalMap interval_map_t;
+            typedef LocalDomainType local_domain_t;
+            typedef Coords coords_t;
+        };
+
+
+	// template<typename FunctorType, typename IntervalMapType, typename IterateDomainType, typename CoordsType>
+	// struct extra_arguments{
+	//   typedef FunctorType functor_t;
+	//   typedef IntervalMapType interval_map_t;
+	//   typedef IterateDomainType local_domain_t;
+	//   typedef CoordsType coords_t;};
+
+/**
+   @brief core of the kernel execution
+   \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
+*/
         template < typename Traits >
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
             {
-                typedef typename Arguments::coords_t coords_t;
-                typedef typename Arguments::loop_intervals_t loop_intervals_t;
+                typedef typename Arguments::coords_t coords_type;
+                // typedef typename Arguments::loop_intervals_t loop_intervals_t;
                 typedef typename Traits::range_t range_t;
-                typedef typename Traits::functor_t functor_t;
+                typedef typename Traits::functor_t functor_type;
                 typedef typename Traits::local_domain_t  local_domain_t;
-                typedef typename Traits::interval_map_t interval_map_t;
+                typedef typename Traits::interval_map_t interval_map_type;
                 typedef typename Traits::iterate_domain_t iterate_domain_t;
                 typedef typename Traits::first_hit_t first_hit_t;
+                typedef typename Arguments::execution_type_t execution_type_t;
+
+
+                /* struct extra_arguments{ */
+                /*     typedef functor_type functor_t; */
+                /*     typedef interval_map_type interval_map_t; */
+                /*     typedef iterate_domain_t local_domain_t; */
+                /*     typedef coords_type coords_t;}; */
 
 #ifndef NDEBUG
-// TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                std::cout << "Functor " <<  functor_t() << "\n";
+                std::cout << "Functor " <<  functor_type() << "\n";
                 std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                                     << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
                 std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
@@ -111,7 +139,7 @@ namespace gridtools {
 
                 local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
 
-                coords_t const *coords_gp = f->m_coords.gpu_object_ptr;
+                coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
                 int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
                 int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
@@ -129,7 +157,8 @@ namespace gridtools {
                 printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
-                _impl_cuda::do_it_on_gpu<first_hit_t, loop_intervals_t, functor_t, interval_map_t><<<blocks, threads>>>
+
+                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
@@ -141,46 +170,14 @@ namespace gridtools {
             }
     };
 
+//    }//namespace _impl
 
-///wasted code because of the lack of constexpr
+/**@brief given the backend \ref gridtools::_impl_cuda::run_functor_cuda returns the backend ID gridtools::enumtype::Cuda
+   wasted code because of the lack of constexpr*/
         template <typename Arguments>
 	    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
         {
             static const enumtype::backend s_backend=enumtype::Cuda;
         };
-
-
-/** traits struct defining the types which are specific to the CUDA backend*/
-        template<>
-        struct backend_from_id< enumtype::Cuda >
-        {
-
-            template <typename ValueType, typename Layout>
-            struct storage_traits
-            {
-                typedef cuda_storage<ValueType, Layout> storage_t;
-            };
-
-            template <typename Arguments>
-            struct execute_traits
-            {
-                typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
-            };
-
-            //function alias (pre C++11)
-            template<
-                typename Sequence
-                , typename F
-                >
-            inline static void for_each(F f)
-                {
-                    boost::mpl::for_each<Sequence>(f);
-                }
-
-        };
-
-
-    }//namespace _impl
-
 
 } // namespace gridtools

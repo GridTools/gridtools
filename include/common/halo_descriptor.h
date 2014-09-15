@@ -3,6 +3,11 @@
 
 #include "array.h"
 
+/**
+@file
+@brief defines the halo region
+*/
+
 namespace gridtools {
 
   /** \class halo_descriptor
@@ -22,7 +27,7 @@ namespace gridtools {
   private:
     int m_minus; // halo on the minus direction
     int m_plus; // halo on the plus direction
-    int m_begin; // index of the fisrt element of the active region 
+    int m_begin; // index of the fisrt element of the active region
     int m_end; // index of the last element of the active region
     int m_total_length; // minus+plus+(end-begin+1)+pads
 
@@ -196,7 +201,7 @@ namespace gridtools {
   };
 
   inline std::ostream& operator<<(std::ostream &s, halo_descriptor const& hd) {
-    return s << "hd(" 
+    return s << "hd("
              << hd.minus() << ", "
              << hd.plus() << ", "
              << hd.begin() << ", "

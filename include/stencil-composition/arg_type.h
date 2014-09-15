@@ -6,6 +6,10 @@
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <vector>
 #include "../common/is_temporary_storage.h"
 
 namespace gridtools {
@@ -39,17 +43,17 @@ namespace gridtools {
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
 
-    template <typename T, typename U, bool A>
-    struct is_storage<storage<T,U,A>  *  > : public boost::true_type
+
+    template <enumtype::backend X, typename T, typename U>
+    struct is_storage<base_storage<X,T,U,true>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
 
-#ifndef NDEBUG
-    template <typename T, typename U, bool A, typename Tag>
-    struct is_storage<storage<T,U,A,Tag>  *  > : public boost::true_type
+
+    template <enumtype::backend X, typename T, typename U>
+    struct is_storage<base_storage<X,T,U,false>  *  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-#endif
     template <typename U>
     struct is_storage<no_storage_type_yet<U>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
@@ -83,6 +87,35 @@ namespace gridtools {
         }
     };
 
+    namespace enumtype
+    {
+        namespace{
+        template <int Coordinate>
+            struct T{
+            T(int val){ value=val;}
+            static const int direction=Coordinate;
+            int value;
+        };
+        }
+        
+	typedef T<0> x;
+	typedef T<1> y;
+	typedef T<2> z;
+    }
+
+
+    GT_FUNCTION
+    struct initialize
+    {
+        initialize(int* offset) : m_offset(offset)
+            {}
+
+        template<typename X>
+        inline void operator( )(X i) const {
+            m_offset[X::direction] = i.value;
+        }
+        int* m_offset;
+    };
 
     /**
      * Type to be used in elementary stencil functions to specify argument mapping and ranges
@@ -93,7 +126,7 @@ namespace gridtools {
      * @tparam Range Bounds over which the function access the argument
      */
     template <int I, typename Range=range<0,0,0,0> >
-    struct arg_type {
+    struct arg_type   {
 
         template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
         struct halo {
@@ -110,6 +143,42 @@ namespace gridtools {
             offset[1] = j;
             offset[2] = k;
         }
+
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#warning "Obsolete version of the GCC compiler"
+      // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
+      // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
+      // we implement a suboptimal solution
+      template <typename X1, typename X2, typename X3 >
+        GT_FUNCTION
+	  arg_type ( X1 x, X2 y, X3 z){
+          boost::fusion::vector<X1, X2, X3> vec(x, y, z);
+          boost::fusion::for_each(vec, initialize(offset));
+        }
+
+      template <typename X1, typename X2 >
+        GT_FUNCTION
+	  arg_type ( X1 x, X2 y){
+          boost::fusion::vector<X1, X2> vec(x, y);
+          boost::fusion::for_each(vec, initialize(offset));
+      }
+
+      template <typename X1>
+        GT_FUNCTION
+	  arg_type ( X1 x){
+          boost::fusion::vector<X1> vec(x);
+          boost::fusion::for_each(vec, initialize(offset));
+        }
+
+#else
+      //if you get a compiler error here, use the version above
+        template <typename... X >
+        GT_FUNCTION
+        arg_type ( X... x){
+            boost::fusion::vector<X...> vec(x...);
+            boost::fusion::for_each(vec, initialize(offset));
+        }
+#endif
 
         GT_FUNCTION
         arg_type() {
@@ -158,14 +227,22 @@ namespace gridtools {
      * Struct to test if an argument is a temporary
      */
     template <typename T>
-    struct is_plchldr_to_temp : boost::false_type
-    {};
+    struct is_plchldr_to_temp; //: boost::false_type
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
      */
     template <int I, typename T>
     struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
+    {};
+
+
+    template <int I, enumtype::backend X, typename T, typename U>
+    struct is_plchldr_to_temp<arg<I, base_storage<X, T, U,  true> > > : boost::true_type
+    {};
+
+    template <int I, enumtype::backend X, typename T, typename U>
+    struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
     {};
 
     /**

@@ -1,5 +1,8 @@
 #pragma once
-
+/**
+@file
+@brief definition of macros for host/GPU
+*/
 #ifdef _GCL_GPU_
 #include <cuda_runtime.h>
 #else

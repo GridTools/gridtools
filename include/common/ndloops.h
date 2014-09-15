@@ -4,7 +4,14 @@
 #include <stdlib.h>
 #include <iostream>
 
+/** @file
+@brief serie of loops unrolled at compile time
+Recursive templates used to perform compile-time loop unrolling
+*/
+
 namespace gridtools {
+
+/** @brief Product of all the elements of a generic array accessed with the [] operator, whose dimension is a compile-time constant*/
     template <int D>
     struct prod;
 
@@ -26,7 +33,7 @@ namespace gridtools {
       }
     };
 
-
+/** @brief given two vectors \f$a\f$ and \f$b\f$ it implements: \f$\sum_i(a(i)\prod_{j=0}^{i-1}b(j))\f$ */
     template <int D>
     struct access_to;
 
@@ -64,7 +71,7 @@ namespace gridtools {
       int imax;
     };
 
-
+/**@brief of each element of an array it performs a loop between the array bounds defined in a template parameter, and it computes a function of type F */
     template <int I, typename F>
     struct access_loop;
 
@@ -93,7 +100,6 @@ namespace gridtools {
     };
 
 
-
     template <int I>
     struct loop;
 
@@ -118,7 +124,7 @@ namespace gridtools {
       }
     };
 
-
+/** @brief similar to the previous struct, given the upper and lower bound */
     template <int I, int LB=-1, int UB=1>
     struct neigh_loop;
 

@@ -4,15 +4,23 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/find_if.hpp>
+
 #include "../storage/storage.h"
-#include "basic_token_execution.h"
+#include "execution_policy.h"
 #include "heap_allocated_temps.h"
 #include "backend.h"
+
+/**
+   @file
+   @brief Implements the stencil operations for the host backend
+ */
 
 namespace gridtools {
 
     namespace _impl_host {
 
+/** @brief Host backend
+    Derived class of the CRTP pattern defined in \ref gridtools::_impl::run_functor */
         template < typename Arguments >
         struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
         {
@@ -29,28 +37,40 @@ namespace gridtools {
         };
     }
 
-    namespace _impl{
+    // namespace _impl{
 
-        /** Partial specialization: naive and block implementation for the host backend */
-        template <typename Arguments >
-        struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
-        {
-            typedef _impl_host::run_functor_host< Arguments > backend_t;
+/** @brief Partial specialization: naive and block implementation for the host backend */
+    template <typename Arguments >
+    struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
+    {
+        typedef _impl_host::run_functor_host< Arguments > backend_t;
+
+        template <typename FunctorType, typename IntervalMapType, typename IterateDomainType, typename CoordsType>
+        struct extra_arguments{
+            typedef FunctorType functor_t;
+            typedef IntervalMapType interval_map_t;
+            typedef IterateDomainType local_domain_t;
+            typedef CoordsType coords_t;};
+
+/**
+   @brief core of the kernel execution
+   \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
+*/
             template< typename Traits >
             static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
                 {
-                    typedef typename Arguments::coords_t coords_t;
+                    typedef typename Arguments::coords_t coords_type;
                     typedef typename Arguments::loop_intervals_t loop_intervals_t;
                     typedef typename Traits::range_t range_t;
-                    typedef typename Traits::functor_t functor_t;
+                    typedef typename Traits::functor_t functor_type;
                     typedef typename Traits::local_domain_t  local_domain_t;
-                    typedef typename Traits::interval_map_t interval_map_t;
-                    typedef typename Traits::iterate_domain_t iterate_domain_t;
-
+                    typedef typename Traits::interval_map_t interval_map_type;
+                    typedef typename Traits::iterate_domain_t iterate_domain_type;
+                    typedef typename Arguments::execution_type_t execution_type_t;
 
 #ifndef NDEBUG
                     // TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                    std::cout << "Functor " <<  functor_t() << "\n";
+                    std::cout << "Functor " <<  functor_type() << "\n";
                     std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                               << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
                     std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
@@ -68,59 +88,41 @@ namespace gridtools {
                              ++j)
                             {
                                 std::cout << "Move to : " << i << ", " << j << std::endl;
- 
-                                iterate_domain_t it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 
-                                gridtools::for_each<loop_intervals_t>
+                                iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
+
+
+                                //local structs can be passed as template arguments in C++11 (would improve readability)
+                                // struct extra_arguments{
+                                //     typedef functor_type functor_t;
+                                //     typedef interval_map_type interval_map_t;
+                                //     typedef iterate_domain_type local_domain_t;
+                                //     typedef coords_type coords_t;};
+
+                                gridtools::for_each< loop_intervals_t >
                                     (_impl::run_f_on_interval
-                                     <functor_t,
-                                     interval_map_t,
-                                     iterate_domain_t,
-                                     coords_t>
+                                     <
+                                     execution_type_t,
+                                     extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
+                                     >
                                      (it_domain,f->m_coords)
-                                     );
+                                        );
                             }
                 }
 
         };
 
 
-//wasted code because of the lack of constexpr
+/**
+   @brief given the backend \ref gridtools::_impl_host::run_functor_host returns the backend ID gridtools::enumtype::Host
+   wasted code because of the lack of constexpr
+*/
         template <typename Arguments >
         struct backend_type< _impl_host::run_functor_host< Arguments > >
         {
             static const enumtype::backend s_backend=enumtype::Host;
         };
 
-
-        /**Traits struct, containing the types which are specific for the host backend*/
-        template<>
-        struct backend_from_id<enumtype::Host>
-        {
-            template <typename ValueType, typename Layout>
-            struct storage_traits{
-                typedef storage<ValueType, Layout> storage_t;
-            };
-
-            template <typename Arguments>
-            struct execute_traits
-            {
-                typedef _impl_host::run_functor_host< Arguments > backend_t;
-            };
-
-            //function alias (pre C++11, std::bind or std::mem_fn,
-            //using function pointers looks very ugly)
-            template<
-                typename Sequence
-                , typename F
-                >
-            //unnecessary copies/indirections if the compiler is not smart (std::forward)
-            inline static void for_each(F f)
-                {
-                    gridtools::for_each<Sequence>(f);
-                }
-
-        };
-    } //namespace _impl
+    // } //namespace _impl
 
 } // namespace gridtools

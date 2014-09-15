@@ -6,10 +6,11 @@
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
-#include <stencil-composition/backend_naive.h>
+#include <stencil-composition/backend_host.h>
 #endif
 
 #include <boost/timer/timer.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 /*! @file
   @brief  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -134,7 +135,7 @@ int main(int argc, char** argv) {
     using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend<Cuda, Naive>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block>
@@ -191,7 +192,10 @@ int main(int argc, char** argv) {
 	  The coordinates constructor takes the horizontal plane dimensions,
 	  while the vertical ones are set according the the axis property soon after
        */
-       gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    int di[5] = {2, 2, 2, d1-2, d1};
+    int dj[5] = {2, 2, 2, d2-2, d2};
+
+       gridtools::coordinates<axis> coords(di,dj);
        coords.value_list[0] = 0;
        coords.value_list[1] = d3;
 
@@ -212,16 +216,16 @@ int main(int argc, char** argv) {
      */
 
 #ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+    computation* horizontal_diffusion =
 #else
     boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+        make_computation<gridtools::BACKEND>
         (
-         gridtools::make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
+         make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
-          gridtools::execute_upward,//!\todo parameter used only for overloading purpose?
-          gridtools::make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
+          execute<upward>(),//!\todo parameter used only for overloading purpose?
+          make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           ),
          domain, coords);
 
@@ -257,7 +261,7 @@ int main(int argc, char** argv) {
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.data.update_cpu();
+    out.m_data.update_cpu();
 #endif
 
     //    in.print();
