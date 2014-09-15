@@ -5,6 +5,7 @@
 #include "gt_for_each/for_each.hpp"
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/copy.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/bool.hpp>

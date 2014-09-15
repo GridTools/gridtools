@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base_storage.h"
+#include <boost/mpl/int.hpp>
 
 namespace gridtools {
     template < typename ValueType
