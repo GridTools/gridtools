@@ -125,46 +125,12 @@ struct bc_two {
 };
 
 struct minus_predicate {
-    template <typename Direction>
-    bool operator()(Direction) const {
+    template <sign I, sign J, sign K>
+    bool operator()(direction<I,J,K>) const {
+        if (I==minus || J==minus || K == minus)
+            return false;
         return true;
     }
-
-    template <sign I, sign J>
-    bool operator()(direction<I,J,minus>) const {
-        return false;
-    }
-
-    template <sign I, sign K>
-    bool operator()(direction<I,minus,K>) const {
-        return false;
-    }
-
-    template <sign J, sign K>
-    bool operator()(direction<minus,J,K>) const {
-        return false;
-    }
-
-
-    template <sign I>
-    bool operator()(direction<I,minus,minus>) const {
-        return false;
-    }
-
-    template <sign I>
-    bool operator()(direction<minus,I,minus>) const {
-        return false;
-    }
-
-    template <sign I>
-    bool operator()(direction<minus,minus,I>) const {
-        return false;
-    }
-
-    bool operator()(direction<minus,minus,minus>) const {
-        return false;
-    }
-
 };
 
 bool basic() {
