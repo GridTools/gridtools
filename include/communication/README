@@ -24,4 +24,4 @@ module add boost
 
 - Set CMAKE_BUILD_TYPE either to DEBUG or RELEASE
 
-- To see what's going on set CMAKE_VERBOSE_MAKEFILE ro ON
+- To see what's going on set CMAKE_VERBOSE_MAKEFILE to ON

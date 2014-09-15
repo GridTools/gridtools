@@ -13,9 +13,9 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
 #include "level.h"
-#include "interval.h"
 #include "loopintervals.h"
 #include "functor_do_methods.h"
 #include "functor_do_method_lookup_maps.h"
@@ -75,32 +75,37 @@ namespace gridtools {
            elementary stencil function */
         template <typename Dom, typename ArgList>
         struct instantiate_local_domain {
-            Dom const& dom;
-            ArgList const& arg_list;
             GT_FUNCTION
             instantiate_local_domain(Dom const& dom, ArgList const& arg_list)
-                : dom(dom)
-                , arg_list(arg_list)
+                : m_dom(dom)
+                , m_arg_list(arg_list)
             {}
 
+            /**method called in the Do methods of the functors. Elem is a local_domain*/
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                elem.init(dom, arg_list, 0,0,0);
+                elem.init(m_dom, m_arg_list, 0,0,0);
                 elem.clone_to_gpu();
             }
+
+        private:
+            Dom const& m_dom;
+            ArgList const& m_arg_list;
         };
 
         template <typename FunctorDesc>
         struct extract_ranges {
             typedef typename FunctorDesc::esf_function Functor;
 
+            /**here the ranges for the functors are calculated*/
             template <typename RangeState, typename ArgumentIndex>
             struct update_range {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
                 typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
             };
 
+            /**here the ranges for the functors are calculated*/
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<int, 0, Functor::n_args>,
                 range<0,0,0,0>,
@@ -219,7 +224,7 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::int_<Elem::second::value> val2;
 
-                typedef typename std::is_same<val1, val2>::type type;
+                typedef typename boost::is_same<val1, val2>::type type;
             };
         };
 
@@ -348,12 +353,73 @@ namespace gridtools {
     struct printthose {
         template <typename E>
         void operator()(E * e) const {
-            std::cout << typename std::remove_pointer<typename std::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
+            std::cout << typename boost::remove_pointer<typename boost::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
         }
     };
+
+
+
+//\todo move inside the traits classes
+        template<enumtype::backend>
+        struct finalize_computation;
+
+        template<>
+        struct finalize_computation<enumtype::Cuda>{
+            template <typename DomainType>
+            static void apply(DomainType& dom)
+                {dom.finalize_computation();}
+        };
+
+
+        template<>
+        struct finalize_computation<enumtype::Host>{
+            template <typename DomainType>
+            static void apply(DomainType& dom)
+                {}
+        };
+
+
+
+//\todo move inside the traits classes?
+
+        /**
+           This functor calls h2d_update on all storages, in order to
+           get the data prepared in the case of GPU execution.
+
+           Returns 0 (GT_NO_ERRORS) on success
+        */
+        template<enumtype::backend>
+        struct setup_computation;
+
+        template<>
+        struct setup_computation<enumtype::Cuda>{
+            template<typename ArgListType, typename DomainType>
+            static int apply(ArgListType& storage_pointers, DomainType &  domain){
+                boost::fusion::copy(storage_pointers, domain.original_pointers);
+
+                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+#ifndef NDEBUG
+                printf("POINTERS\n");
+                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+                printf("ORIGINAL\n");
+                boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
+#endif
+                return GT_NO_ERRORS;
+        }
+        };
+
+        template<>
+        struct setup_computation<enumtype::Host>{
+            template<typename ArgListType, typename DomainType>
+            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
+                return GT_NO_ERRORS;
+        }
+        };
+
+
 /**
  * @class
- * @brief structure collecting helper metafunctions
+*  @brief structure collecting helper metafunctions
  * */
     template <typename Backend, typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
@@ -380,7 +446,7 @@ namespace gridtools {
         typedef typename compute_loop_intervals<
             functor_do_methods,
             typename Coords::axis_type
-            >::type LoopIntervals; // vector of pairs of indices - sorted and contiguous
+            >::type loop_intervals_t; // vector of pairs of indices - sorted and contiguous
 
         /**
          * compute the do method lookup maps
@@ -388,12 +454,12 @@ namespace gridtools {
          */
         typedef typename boost::mpl::transform<
                 functor_do_methods,
-                compute_functor_do_method_lookup_map<boost::mpl::_, LoopIntervals>
+                compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals_t>
                 >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
 
 
         /**
-         *
+         * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
          */
         typedef typename boost::mpl::fold<typename MssType::esf_array,
                                           boost::mpl::vector<>,
@@ -459,7 +525,7 @@ namespace gridtools {
 
 
         DomainType & m_domain;
-        Coords m_coords;
+        const Coords& m_coords;
 
         actual_arg_list_type actual_arg_list;
 
@@ -467,7 +533,7 @@ namespace gridtools {
             template <typename T>
             void operator()(T *) const {
                 std::cout << T() << "            ----------" << std::endl;
-            };
+            }
         };
 
         intermediate(MssType const &, DomainType & domain, Coords const & coords)
@@ -479,7 +545,7 @@ namespace gridtools {
 #ifndef NDEBUG
 #ifndef __CUDACC__
             std::cout << "Actual loop bounds ";
-            gridtools::for_each<LoopIntervals>(_debug::show_pair<Coords>(coords));
+            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Coords>(coords));
             std::cout << std::endl;
 #endif
 #endif
@@ -530,7 +596,8 @@ namespace gridtools {
          */
         void ready () {
             // boost::fusion::for_each(actual_arg_list, printthose());
-            Backend::template prepare_temporaries(actual_arg_list, m_coords);
+            Backend::template prepare_temporaries( actual_arg_list, m_coords);
+            is_storage_ready=true;
             // std::cout << "\n(3) These are the view values" << std::endl;
             // boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
@@ -542,7 +609,20 @@ namespace gridtools {
            is passed to the instantiate_local_domain struct
          */
         void steady () {
-            //m_domain.setup_computation();
+            if(is_storage_ready)
+            {
+                setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
+#ifndef NDEBUG
+                printf("Setup computation\n");
+#endif
+            }
+            else
+            {
+#ifndef NDEBUG
+                printf("Setup computation FAILED\n");
+#endif
+                exit( GT_ERROR_NO_TEMPS );
+            }
 
             boost::fusion::for_each(local_domain_list,
                                     _impl::instantiate_local_domain<DomainType, actual_arg_list_type>
@@ -554,9 +634,12 @@ namespace gridtools {
 
         }
 
+
+
         void finalize () {
-            Backend::finalize_computation(m_domain);
+            finalize_computation<Backend::s_backend_id>::apply(m_domain);
         }
+
 
         /**
          * \brief the execution of the stencil operations take place in this call
@@ -575,9 +658,11 @@ namespace gridtools {
             // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
-            Backend::template run<functors_list, range_sizes, LoopIntervals, functor_do_method_lookup_maps>(m_domain, m_coords, local_domain_list);
+            Backend::template run<functors_list, range_sizes, loop_intervals_t, functor_do_method_lookup_maps, typename MssType::execution_engine_t>( m_coords, local_domain_list );
         }
 
+    private:
+        bool is_storage_ready;
     };
 
 } // namespace gridtools

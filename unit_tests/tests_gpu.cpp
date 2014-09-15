@@ -27,10 +27,6 @@ TEST(testgpuclone, testgpuclone) {
     EXPECT_EQ(gpu_clone_test::test_gpu_clone(), true);
 }
 
-TEST(testgpuclone, testcloningstuff) {
-    EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true);
-}
-
 TEST(boundaryconditions, basic) {
     EXPECT_EQ(basic(), true);
 }
@@ -57,6 +53,10 @@ TEST(boundaryconditions, usingvalue2) {
 
 TEST(boundaryconditions, usingcopy3) {
     EXPECT_EQ(usingcopy_3(), true);
+}
+
+TEST(testgpuclone, testcloningstuff) {
+    EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true);
 }
 
 int main(int argc, char** argv) {

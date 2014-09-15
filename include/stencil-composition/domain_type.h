@@ -4,55 +4,23 @@
 #include "../common/gt_assert.h"
 
 #include <stdio.h>
-#include <boost/mpl/vector.hpp>
 #include <boost/fusion/container/vector.hpp>
-#include <boost/mpl/push_back.hpp>
 #include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/include/value_at.hpp>
-#include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/mpl/fold.hpp>
-#include <boost/mpl/find_if.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/range_c.hpp>
-#include <boost/fusion/include/nview.hpp>
-#include <boost/fusion/include/zip_view.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/copy.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 #include "gt_for_each/for_each.hpp"
-#include <boost/type_traits/remove_pointer.hpp>
-#include <boost/type_traits/remove_reference.hpp>
-#include <boost/mpl/distance.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/type_traits/is_const.hpp>
-#include <boost/mpl/contains.hpp>
 
-#include <boost/type_traits/remove_pointer.hpp>
-#include <boost/type_traits/remove_reference.hpp>
-
-#include "../storage/storage.h"
-#include "../common/layout_map.h"
 #include "domain_type_impl.h"
-#include "arg_type.h"
 
 namespace gridtools {
-
-    namespace gt_aux {
-        template<typename Iterator, typename Bound>
-        GT_FUNCTION
-        static void assert_in_range(Iterator pos, std::pair<Bound, Bound> min_max)
-        {
-            assert(pos >= min_max.first);
-            assert(pos < min_max.second);
-        }
-    }
 
     /**
      * @tparam Placeholders list of placeholders of type arg<I,T>
@@ -63,20 +31,41 @@ namespace gridtools {
     private:
         BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<original_placeholders>::type::value);
 
+        /**
+         * \brief Get a sequence of the same type of original_placeholders, but containing the storage types for each placeholder
+         * \todo I would call it instead of l_get_type l_get_storage_type
+         */
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_type
                                                >::type raw_storage_list;
 
+        /**
+         * \brief Get a sequence of the same type of original_placeholders, but containing the iterator types corresponding to the placeholder's storage type
+         */
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_it_type
                                                >::type raw_iterators_list;
 
     public:
+        /**
+         * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
+         * note that the static const indexes are transformed into types using mpl::integral_c
+         */
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_index
                                                >::type raw_index_list;
+
+        /**
+         * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
+         e.g. [0,1,2,3,4]
+         */
         typedef boost::mpl::range_c<int,0,len> range_t;
     private:
+
+        /**\brief reordering vector
+         * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
+         e.g.[1,3,2,4,0]
+         */
         typedef typename boost::mpl::fold<range_t,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -86,10 +75,18 @@ namespace gridtools {
                                           >::type iter_list;
 
     public:
+
+        /**\brief reordered index_list
+         * Defines a mpl::vector of index::pos for the indexes in iter_list
+         */
         typedef typename boost::mpl::transform<iter_list,
                                                _impl::l_get_it_pos
                                                >::type index_list;
 
+        /**
+         * \brief reordering of raw_storage_list
+         creates an mpl::vector of all the storages in raw_storage_list corresponding to the indices in index_list
+         */
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -98,6 +95,9 @@ namespace gridtools {
                                               >
                                           >::type arg_list_mpl;
 
+        /**
+         * \brief defines a reordered mpl::vector of placeholders
+         */
         typedef typename boost::mpl::fold<index_list,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -134,22 +134,6 @@ namespace gridtools {
          */
         arg_list original_pointers;
 
-        /**
-         * fusion::vector of iterators used to access storage_pointers
-         */
-        iterator_list iterators;
-
-        /**
-         * States if the temporaries have been setup so the computation can start
-         */
-        bool is_ready;
-
-    private:
-        // Using zip view to associate iterators and storage_pointers in a single object.
-        // This is used to move iterators to coordinates relative to storage
-        typedef boost::fusion::vector<iterator_list&, arg_list&> zip_vector_type;
-        zip_vector_type zip_vector;
-        typedef boost::fusion::zip_view<zip_vector_type> zipping;
     public:
 
         /**
@@ -158,10 +142,7 @@ namespace gridtools {
          */
         template <typename RealStorage>
         explicit domain_type(RealStorage const & real_storage)
-            : storage_pointers()
-            , iterators()
-            , zip_vector(iterators, storage_pointers)
-            , is_ready(false)
+         : storage_pointers()
         {
 
 #ifndef NDEBUG
@@ -177,10 +158,8 @@ namespace gridtools {
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
 #ifndef NDEBUG
-            std::cout << "These are the actual placeholders and their storages" << std::endl;
-            gridtools::for_each<placeholders>(_debug::stdcoutstuff());
-#endif
-#ifndef NDEBUG
+            // std::cout << "These are the actual placeholders and their storages" << std::endl;
+            // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
             std::cout << "These are the real storages" << std::endl;
             boost::fusion::for_each(real_storage, _debug::print_deref());
             std::cout << "\nThese are the arg_list elems" << std::endl;
@@ -207,79 +186,45 @@ namespace gridtools {
         explicit domain_type(domain_type const& other)
             : storage_pointers(other.storage_pointers)
             , original_pointers(other.original_pointers)
-            , iterators(other.iterators)
-            , zip_vector(iterators, storage_pointers)
-            , is_ready(other.is_ready) // should no matter
         { }
 #endif
 
         GT_FUNCTION
         void info() {
-            printf("domain_type: Storage pointers\n");
-            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
-            printf("domain_type: Iterators\n");
-            boost::fusion::for_each(iterators, _debug::print_domain_info());
-            printf("domain_type: Original pointers\n");
-            boost::fusion::for_each(original_pointers, _debug::print_domain_info());
-            printf("domain_type: End info\n");
+            // printf("domain_type: Storage pointers\n");
+            // boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+            // printf("domain_type: Original pointers\n");
+            // boost::fusion::for_each(original_pointers, _debug::print_domain_info());
+            // printf("domain_type: End info\n");
         }
 
         template <typename Index>
         void storage_info() const {
-            std::cout << Index::value << " -|-> "
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->name()
-                      << " "
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[0]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[1]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[2]
-                      << ", "
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[0]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[1]
-                      << "x"
-                      << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[2]
-                      << ", "
-                      << std::endl;
+            // std::cout << Index::value << " -|-> "
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->name()
+            //           << " "
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[0]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[1]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->m_dims[2]
+            //           << ", "
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[0]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[1]
+            //           << "x"
+            //           << (boost::fusion::at_c<Index::value>(storage_pointers))->strides[2]
+            //           << ", "
+            //           << std::endl;
         }
 
-        ~domain_type() {
-            typedef boost::fusion::filter_view<arg_list,
-                is_temporary_storage<boost::mpl::_> > tmp_view_type;
-            tmp_view_type fview(storage_pointers);
-        }
+        // ~domain_type() {
+        //     typedef boost::fusion::filter_view<arg_list,
+        //         is_temporary_storage<boost::mpl::_> > tmp_view_type;
+        //     tmp_view_type fview(storage_pointers);
+        // }
 
-        /**
-           This function calls h2d_update on all storages, in order to
-           get the data prepared in the case of GPU execution.
-
-           Returns 0 (GT_NO_ERRORS) on success
-        */
-        int setup_computation() {
-            if (is_ready) {
-#ifndef NDEBUG
-                printf("Setup computation\n");
-#endif
-                boost::fusion::copy(storage_pointers, original_pointers);
-
-                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
-#ifndef NDEBUG
-                printf("POINTERS\n");
-                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-                printf("ORIGINAL\n");
-                boost::fusion::for_each(original_pointers, _debug::print_pointer());
-#endif
-            } else {
-#ifndef NDEBUG
-                printf("Setup computation FAILED\n");
-#endif
-                return GT_ERROR_NO_TEMPS;
-            }
-
-            return GT_NO_ERRORS;
-        }
-
+        /** @brief copy the pointers from the hdevice to the host */
         void finalize_computation() {
             boost::fusion::for_each(original_pointers, _impl::call_d2h());
             boost::fusion::copy(original_pointers, storage_pointers);

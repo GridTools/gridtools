@@ -32,8 +32,8 @@ struct derived: public base<derived<value_type> > {
         : base<derived<value_type> >(s)
         , data(s)
     {
-        for (int i = 0; i < data.size; ++i)
-            data[i] = data.size-i;
+        for (int i = 0; i < data.get_size(); ++i)
+            data[i] = data.get_size()-i;
         data.update_gpu();
     }
 
@@ -48,12 +48,12 @@ struct derived: public base<derived<value_type> > {
 __host__ __device__
 void printwhatever(derived<int> * ptr) {
     printf("Ecco %X ", ptr);
-    printf("%d ", ptr->m_size);
-    printf("%d ", ptr->data.size);
-    printf("%X ", ptr->data.pointer_to_use);
-    printf("%X ", ptr->data.cpu_p);
-    printf("%X\n", ptr->data.gpu_p);
-    for (int i = 0; i < ptr->data.size; ++i) {
+    // printf("%d ", ptr->m_size);
+    // printf("%d ", ptr->data.size);
+    // printf("%X ", ptr->data.pointer_to_use);
+    printf("%X ", ptr->data.get_cpu_p());
+    printf("%X\n", ptr->data.get_gpu_p());
+    for (int i = 0; i < ptr->data.get_size(); ++i) {
 #ifdef __CUDA_ARCH__
         ptr->data[i]++;
 #endif
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     int res = EXIT_SUCCESS;
 
     derived<int> a(buffer_size);
-    for(int i = 0; i < a.data.size; ++i) {
+    for(int i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
@@ -102,22 +102,22 @@ int main(int argc, char** argv) {
     a.data.update_gpu();
 
     std::cout << "Printing Beginning " << std::hex
-              << a.data.cpu_p << " "
-              << a.data.gpu_p << " "
-              << a.data.pointer_to_use << " "
-              << a.m_size << " "
-              << a.data.size << " "
+              << a.data.get_cpu_p() << " "
+              << a.data.get_gpu_p() << " "
+              // << a.data.pointer_to_use << " "
+              // << a.m_size << " "
+              // << a.data.size << " "
               << std::dec
               << std::endl;
 
     printwhatever(&a);
-    for(int i = 0; i < a.data.size; ++i) {
+    for(int i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
 
     print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
-    for(int i = 0; i < a.data.size; ++i) {
+    for(int i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
@@ -128,17 +128,17 @@ int main(int argc, char** argv) {
     a.data.update_cpu();
 
     printwhatever(&a);
-    for(int i = 0; i < a.data.size; ++i) {
+    for(int i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i + 1)
             res = EXIT_FAILURE;
     }
 
     std::cout << "Printing End " << std::hex
-              << a.data.cpu_p << " "
-              << a.data.gpu_p << " "
-              << a.data.pointer_to_use << " "
-              << a.m_size << " "
-              << a.data.size << " "
+              << a.data.get_cpu_p() << " "
+              << a.data.get_gpu_p() << " "
+              // << a.data.pointer_to_use << " "
+              // << a.m_size << " "
+              // << a.data.size << " "
               << std::dec
               << std::endl;
 
