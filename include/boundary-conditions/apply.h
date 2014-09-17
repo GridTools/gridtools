@@ -7,6 +7,10 @@
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
 
+/**
+@file
+@brief  definition of the functions which apply the boundary conditions (arbitrary functions having as argument the direation, an arbitrary number of data fields, and the coordinates ID)
+*/
 namespace gridtools {
 
     /**
@@ -22,6 +26,10 @@ namespace gridtools {
         BoundaryFunction const boundary_function;
         Predicate predicate;
 
+/**
+   @brief loops on the halo region defined by the HaloDescriptor member parameter, and evaluates the boundary_function in the specified direction, in the specified halo node.
+   this macro expands to n definitions of the function loop, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+*/
 #define GTLOOP(z, n, nil)                                               \
         template <typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void loop(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field)) const { \
@@ -56,44 +64,50 @@ namespace gridtools {
             , predicate(predicate)
         {}
 
+
+/**
+   @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all possible directions.
+this macro expands to n definitions of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+
+*/
 #define GTAPPLY(z, n, nil)                                                \
         template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void apply(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field) ) const { \
                                                                         \
-            if (predicate(direction<minus,minus,minus>())) this->loop<direction<minus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction<minus,minus, zero>())) this->loop<direction<minus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction<minus,minus, plus>())) this->loop<direction<minus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_,minus_,minus_>())) this->loop<direction<minus_,minus_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_,minus_, zero_>())) this->loop<direction<minus_,minus_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_,minus_, plus_>())) this->loop<direction<minus_,minus_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction<minus, zero,minus>())) this->loop<direction<minus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction<minus, zero, zero>())) this->loop<direction<minus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction<minus, zero, plus>())) this->loop<direction<minus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_, zero_,minus_>())) this->loop<direction<minus_, zero_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_, zero_, zero_>())) this->loop<direction<minus_, zero_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_, zero_, plus_>())) this->loop<direction<minus_, zero_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction<minus, plus,minus>())) this->loop<direction<minus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction<minus, plus, zero>())) this->loop<direction<minus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction<minus, plus, plus>())) this->loop<direction<minus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_, plus_,minus_>())) this->loop<direction<minus_, plus_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_, plus_, zero_>())) this->loop<direction<minus_, plus_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction<minus_, plus_, plus_>())) this->loop<direction<minus_, plus_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction< zero,minus,minus>())) this->loop<direction< zero,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< zero,minus, zero>())) this->loop<direction< zero,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< zero,minus, plus>())) this->loop<direction< zero,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_,minus_,minus_>())) this->loop<direction< zero_,minus_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_,minus_, zero_>())) this->loop<direction< zero_,minus_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_,minus_, plus_>())) this->loop<direction< zero_,minus_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction< zero, zero,minus>())) this->loop<direction< zero, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< zero, zero, plus>())) this->loop<direction< zero, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_, zero_,minus_>())) this->loop<direction< zero_, zero_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_, zero_, plus_>())) this->loop<direction< zero_, zero_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction< zero, plus,minus>())) this->loop<direction< zero, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< zero, plus, zero>())) this->loop<direction< zero, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< zero, plus, plus>())) this->loop<direction< zero, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_, plus_,minus_>())) this->loop<direction< zero_, plus_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_, plus_, zero_>())) this->loop<direction< zero_, plus_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< zero_, plus_, plus_>())) this->loop<direction< zero_, plus_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction< plus,minus,minus>())) this->loop<direction< plus,minus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< plus,minus, zero>())) this->loop<direction< plus,minus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< plus,minus, plus>())) this->loop<direction< plus,minus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_,minus_,minus_>())) this->loop<direction< plus_,minus_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_,minus_, zero_>())) this->loop<direction< plus_,minus_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_,minus_, plus_>())) this->loop<direction< plus_,minus_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction< plus, zero,minus>())) this->loop<direction< plus, zero,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< plus, zero, zero>())) this->loop<direction< plus, zero, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< plus, zero, plus>())) this->loop<direction< plus, zero, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_, zero_,minus_>())) this->loop<direction< plus_, zero_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_, zero_, zero_>())) this->loop<direction< plus_, zero_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_, zero_, plus_>())) this->loop<direction< plus_, zero_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
                                                                                                                     \
-            if (predicate(direction< plus, plus,minus>())) this->loop<direction< plus, plus,minus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< plus, plus, zero>())) this->loop<direction< plus, plus, zero> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
-            if (predicate(direction< plus, plus, plus>())) this->loop<direction< plus, plus, plus> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_, plus_,minus_>())) this->loop<direction< plus_, plus_,minus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_, plus_, zero_>())) this->loop<direction< plus_, plus_, zero_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
+            if (predicate(direction< plus_, plus_, plus_>())) this->loop<direction< plus_, plus_, plus_> >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \
         }
 
         BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY, _)

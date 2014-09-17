@@ -1,10 +1,14 @@
 #pragma once
 
+    /**
+       @file
+       @brief On all boundary the values ares set to DataField::value_type(), which is zero for basic data types.
+     */
+
 namespace gridtools {
 
     /**
-       On all boundary the values ares set to DataField::value_type(),
-       which is zero for basic data types.
+       @brief On all boundary the values ares set to DataField::value_type(), which is zero for basic data types.
      */
     struct zero_boundary {
 

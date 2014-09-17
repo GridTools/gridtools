@@ -1,31 +1,44 @@
 #pragma once
+#include "iteration_policy.h"
 
 namespace gridtools {
-    /**
-       This class implements the basic operation of iterating over a "column" in a interval.
-    */
-    // namespace _impl {
-    //     struct inc {
-    //         template <typename T>
-    //         void operator()(T & x) const {
-    //             ++x;
-    //         }
-    //     };
-    // }
-
     namespace _impl {
-        template <typename FunctorType,
-                  typename IntervalMap,
-                  typename LocalDomainType,
-                  typename Coords>
-        struct run_f_on_interval {
-            Coords const &coords;
-            LocalDomainType const &domain;
+
+        namespace{
+            /**
+               @brief generic forward declaration of the execution_policy struct.
+            */
+            template < typename RunF >
+                struct execution_policy;
+
+            /**
+               @brief forward declaration of the execution_policy struct
+            */
+            template <
+                typename Arguments, typename T,
+                template < typename U, typename Argument > class Back
+                >
+                struct execution_policy<Back<T,Arguments> >
+            {
+                typedef Arguments traits_t;
+                typedef T execution_engine_t;
+            };
+        }//unnamed namespace
+
+/**
+   @brief basic token of execution responsible of handling the discretization over the vertical dimension. This may be done with a loop over k or by partitoning the k axis and executing in parallel, depending on the execution_policy defined in the multi-stage stencil. The base class is then specialized using the CRTP pattern for the different policies.
+*/
+        template < typename Derived >
+        struct run_f_on_interval_base {
+
+            /**\brief necessary because the Derived class is an incomplete type at the moment of the instantiation of the base class*/
+            typedef typename execution_policy<Derived>::traits_t traits;
+            typedef typename execution_policy<Derived>::execution_engine_t execution_engine;
 
             GT_FUNCTION
-            explicit run_f_on_interval(LocalDomainType & domain, Coords const& coords)
-                : coords(coords)
-                , domain(domain)
+            explicit run_f_on_interval_base(typename traits::local_domain_t & domain, typename traits::coords_t const& coords)
+                : m_coords(coords)
+                , m_domain(domain)
             {}
 
             template <typename Interval>
@@ -33,19 +46,20 @@ namespace gridtools {
             void operator()(Interval const&) const {
                 typedef typename index_to_level<typename Interval::first>::type from;
                 typedef typename index_to_level<typename Interval::second>::type to;
-                if (boost::mpl::has_key<IntervalMap, Interval>::type::value) {
-                    // printf("K Loop: %d ", coords.template value_at<from>());
-                    // printf("-> %d\n", coords.template value_at<to>());
+                typedef iteration_policy<from, to, execution_engine::type::iteration> iteration_policy;
 
-                    for (int k=coords.template value_at<from>(); k < coords.template value_at<to>(); ++k) {
-                        typedef typename boost::mpl::at<IntervalMap, Interval>::type interval_type;
-                        FunctorType::Do(domain, interval_type());
-                        //boost::fusion::for_each(domain.local_iterators, _impl::inc());
-                        domain.increment();
-                    }
+                if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
+                    typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
+
+                    int from=m_coords.template value_at<typename iteration_policy::from>();
+                    int to=m_coords.template value_at<typename iteration_policy::to>();
+                    static_cast<const Derived*>(this)->template loop<iteration_policy, interval_type>(from, to);
                 }
 
             }
+        protected:
+            typename traits::coords_t const &m_coords;
+            typename traits::local_domain_t const &m_domain;
         };
 
     } // namespace _impl

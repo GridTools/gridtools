@@ -16,6 +16,7 @@
 #include <stencil-composition/intermediate.h>
 
 using namespace gridtools;
+using namespace enumtype;
 
 typedef int x_all;
 
@@ -189,7 +190,7 @@ void print_mss(MSS)
 }
 
 int main() {
-    typedef storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef base_storage<enumtype::Host, double, gridtools::layout_map<0,1,2> > storage_type;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;
@@ -198,7 +199,7 @@ int main() {
     typedef arg<1, storage_type > p_in;
     typedef arg<0, storage_type > p_out;
 
-    auto mss=make_mss(execute_upward,
+    auto mss=make_mss(execute<upward>(),
                       make_esf<lap_function>(p_lap(), p_in()),
                       make_independent(
                                        make_esf<flx_function>(p_flx(), p_in(), p_lap()),

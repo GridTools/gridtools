@@ -9,14 +9,14 @@
 
 using gridtools::direction;
 using gridtools::sign;
-using gridtools::minus;
-using gridtools::zero;
-using gridtools::plus;
+using gridtools::minus_;
+using gridtools::zero_;
+using gridtools::plus_;
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
-#include <stencil-composition/backend_naive.h>
+#include <stencil-composition/backend_host.h>
 #endif
 
 #include <boost/preprocessor/repetition/repeat.hpp>
@@ -68,7 +68,7 @@ struct direction_bc_input {
     // relative coordinates
     template <sign I, sign K, typename DataField0, typename DataField1>
     GT_FUNCTION
-    void operator()(direction<I, minus, K>,
+    void operator()(direction<I, minus_, K>,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     int i, int j, int k) const {
         // std::cout << "Implementation going A-A" << std::endl;
@@ -79,7 +79,7 @@ struct direction_bc_input {
     // relative coordinates
     template <sign K, typename DataField0, typename DataField1>
     GT_FUNCTION
-    void operator()(direction<minus, minus, K>,
+    void operator()(direction<minus_, minus_, K>,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     int i, int j, int k) const {
         //std::cout << "Implementation going --A" << std::endl;
@@ -89,7 +89,7 @@ struct direction_bc_input {
 
     template <typename DataField0, typename DataField1>
     GT_FUNCTION
-    void operator()(direction<minus, minus, minus>,
+    void operator()(direction<minus_, minus_, minus_>,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     int i, int j, int k) const {
         //std::cout << "Implementation going ---" << std::endl;
