@@ -131,45 +131,6 @@ struct minus_predicate {
             return false;
         return true;
     }
-// <<<<<<< HEAD
-// =======
-
-//     template <sign I, sign J>
-//     bool operator()(direction<I,J,minus_>) const {
-//         return false;
-//     }
-
-//     template <sign I, sign K>
-//     bool operator()(direction<I,minus_,K>) const {
-//         return false;
-//     }
-
-//     template <sign J, sign K>
-//     bool operator()(direction<minus_,J,K>) const {
-//         return false;
-//     }
-
-
-//     template <sign I>
-//     bool operator()(direction<I,minus_,minus_>) const {
-//         return false;
-//     }
-
-//     template <sign I>
-//     bool operator()(direction<minus_,I,minus_>) const {
-//         return false;
-//     }
-
-//     template <sign I>
-//     bool operator()(direction<minus_,minus_,I>) const {
-//         return false;
-//     }
-
-//     bool operator()(direction<minus_,minus_,minus_>) const {
-//         return false;
-//     }
-
-// >>>>>>> 4a3441bb033adbc66587dbc6cfbfcd5cac858a55
 };
 
 bool basic() {
