@@ -1,9 +1,9 @@
-/* 
+/*
  * File:   test_domain.cpp
  * Author: mbianco
  *
  * Created on February 5, 2014, 4:16 PM
- * 
+ *
  * Test domain features, especially the working on the GPU
  */
 
@@ -18,7 +18,12 @@
 #include <storage/cuda_storage.h>
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
+#include <stencil-composition/intermediate.h>
+
+
 #include <boost/current_function.hpp>
+#include <boost/fusion/include/nview.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 struct out_value {
     template <typename T>
@@ -26,10 +31,10 @@ struct out_value {
     void operator()(T *x) const {
 #ifndef NDEBUG
         printf("gigigi ");
-        printf("%X\n", x->data.pointer_to_use);
-        printf("%X\n", x->data.cpu_p);
-        printf("%X\n", x->data.gpu_p);
-        printf("%d\n", x->data.size);
+        printf("%X\n", x->m_data.get_pointer_to_use());
+        printf("%X\n", x->m_data.get_cpu_p());
+        printf("%X\n", x->m_data.get_gpu_p());
+        printf("%d\n", x->m_data.get_size());
 #endif
         for (int i=0; i<3; ++i) {
             for (int j=0; j<3; ++j) {
@@ -57,7 +62,7 @@ struct out_value_ {
     __host__ __device__
     void operator()(T const& stor) const {
         //std::cout << BOOST_CURRENT_FUNCTION << std::endl;
-        printf(" > %X %X\n", &stor, stor.data.pointer_to_use);
+        //printf(" > %X %X\n", &stor, stor.m_data.get_pointer_to_use());
         for (int i=0; i<3; ++i) {
             for (int j=0; j<3; ++j) {
                 for (int k=0; k<3; ++k) {
@@ -98,16 +103,16 @@ bool the_same(One const& storage1, Two const& storage2) {
 }
 
 /*
- * 
+ *
  */
 bool test_domain() {
 
-    typedef gridtools::cuda_storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > storage_type;
 
     int d1 = 3;
     int d2 = 3;
     int d3 = 3;
-    
+
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     storage_type coeff(d1,d2,d3,-3.4, std::string("coeff"));
@@ -151,17 +156,17 @@ bool test_domain() {
 
 
 #ifndef NDEBUG
-    printf("coeff > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    printf("coeff > %X %X\n", &coeff, coeff.m_data.get_pointer_to_use());
     out_value_()(coeff);
-    printf("in    > %X %X\n", &in, in.data.pointer_to_use);
+    printf("in    > %X %X\n", &in, in.m_data.get_pointer_to_use());
     out_value_()(in);
-    printf("out   > %X %X\n", &out, out.data.pointer_to_use);
+    printf("out   > %X %X\n", &out, out.m_data.get_pointer_to_use());
     out_value_()(out);
 #endif
 
     // THERE ARE NOT TEMPS HERE    domain.prepare_temporaries();
-    domain.is_ready=true;
-    domain.setup_computation();
+    // domain.is_ready=true;
+    // domain.setup_computation();
     domain.clone_to_gpu();
 
 #ifndef NDEBUG
@@ -174,22 +179,23 @@ bool test_domain() {
 #endif
     domain.finalize_computation();
 
-    coeff.data.update_cpu();
-    in.data.update_cpu();
-    out.data.update_cpu();
+    coeff.m_data.update_cpu();
+    in.m_data.update_cpu();
+    out.m_data.update_cpu();
 
 #ifndef NDEBUG
-    printf("back coeff > %X %X\n", coeff.data.cpu_p, coeff.data.pointer_to_use);
+    printf("back coeff > %X %X\n", coeff.m_data.get_cpu_p(), coeff.m_data.get_pointer_to_use());
     out_value_()(coeff);
-    printf("back in    > %X %X\n", in.data.cpu_p, in.data.pointer_to_use);
+    printf("back in    > %X %X\n", in.m_data.get_cpu_p(), in.m_data.get_pointer_to_use());
     out_value_()(in);
-    printf("back out   > %X %X\n", out.data.cpu_p, out.data.pointer_to_use);
+    printf("back out   > %X %X\n", out.m_data.get_cpu_p(), out.m_data.get_pointer_to_use());
     out_value_()(out);
 
     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
 #endif
 
-    domain.setup_computation();
+    //domain.setup_computation();
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( boost::fusion::make_vector(&coeff, &in, &out), domain );
     domain.clone_to_gpu();
 
 #ifndef NDEBUG
@@ -203,16 +209,16 @@ bool test_domain() {
 
     domain.finalize_computation();
 
-    coeff.data.update_cpu();
-    in.data.update_cpu();
-    out.data.update_cpu();
+    coeff.m_data.update_cpu();
+    in.m_data.update_cpu();
+    out.m_data.update_cpu();
 
 #ifndef NDEBUG
-    printf(" > %X %X\n", coeff.data.cpu_p, coeff.data.pointer_to_use);
+    printf(" > %X %X\n", coeff.m_data.get_cpu_p(), coeff.m_data.get_pointer_to_use());
     out_value_()(coeff);
-    printf(" > %X %X\n", in.data.cpu_p, in.data.pointer_to_use);
+    printf(" > %X %X\n", in.m_data.get_cpu_p(), in.m_data.get_pointer_to_use());
     out_value_()(in);
-    printf(" > %X %X\n", out.data.cpu_p, out.data.pointer_to_use);
+    printf(" > %X %X\n", out.m_data.get_cpu_p(), out.m_data.get_pointer_to_use());
     out_value_()(out);
 #endif
 
@@ -225,11 +231,11 @@ bool test_domain() {
 
 #ifndef NDEBUG
     printf("\n\nON THE HOST\n\n");
-    printf(" > %X %X\n", &coeff, coeff.data.pointer_to_use);
+    printf(" > %X %X\n", &coeff, coeff.m_data.get_pointer_to_use());
     out_value_()(coeff);
-    printf(" > %X %X\n", &in, in.data.pointer_to_use);
+    printf(" > %X %X\n", &in, in.m_data.get_pointer_to_use());
     out_value_()(in);
-    printf(" > %X %X\n", &out, out.data.pointer_to_use);
+    printf(" > %X %X\n", &out, out.m_data.get_pointer_to_use());
     out_value_()(out);
 #endif
 
@@ -244,4 +250,3 @@ bool test_domain() {
 
     return failed;
 }
-

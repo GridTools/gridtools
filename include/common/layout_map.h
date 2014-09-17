@@ -8,6 +8,11 @@
 #include "../common/gt_assert.h"
 #include "../common/host_device.h"
 
+/**
+@file
+@brief definifion of the data layout
+Here are defined the classes select_s and layout_map.
+ */
 namespace gridtools {
 
     namespace _impl {
@@ -87,6 +92,11 @@ namespace gridtools {
         };
     }
 
+/**
+@struct
+@brief Used as template argument in the storage.
+In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
+*/
     template <int, int=-1, int=-1, int=-1>
         struct layout_map;
 
@@ -171,10 +181,10 @@ namespace gridtools {
 
     /**
        Layout maps are simple sequences of integers specified
-       staically. The specification happens as
+       statically. The specification happens as
 
        \code
-       GCL::layout_map<a,b,c>
+       gridtools::layout_map<a,b,c>
        \endcode
 
        where a, b, and c are integer static constants. To access the
@@ -186,14 +196,14 @@ namespace gridtools {
 
        For instance:
        \code
-       GCL::layout_map<3,4,1,5>::at<2> == 1
-       GCL::layout_map<3,4,1,5>::at<0> == 3
+       gridtools::layout_map<3,4,1,5>::at<2> == 1
+       gridtools::layout_map<3,4,1,5>::at<0> == 3
        etc.
        \endcode
     */
     template <int I1, int I2, int I3>
     struct layout_map<I1, I2, I3, -1> {
-        static const unsigned int length=3;
+        static  const unsigned int length=3;
         typedef boost::mpl::vector3_c<int, I1, I2, I3> t;
 
         template <unsigned int I>
@@ -206,7 +216,7 @@ namespace gridtools {
         struct pos_ {
 
             template <int X, bool IsHere>
-            struct _find_pos 
+            struct _find_pos
             {
                 static const int value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
             };
@@ -217,7 +227,7 @@ namespace gridtools {
             };
 
             template <bool IsHere>
-            struct _find_pos<length, IsHere> {
+            struct _find_pos<3, IsHere> {
                 static const int value = -1;
             };
 
@@ -257,7 +267,7 @@ namespace gridtools {
             at position 'I' in the map.
 
             \code
-            GCL::layout_map<1,2,0>::select<1>(a,b,c) == c
+            gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
             \endcode
 
             \tparam I Index to be queried
@@ -276,7 +286,7 @@ namespace gridtools {
             corresponds to the position of 'I' in the map.
 
             \code
-            GCL::layout_map<2,0,1>::find<1>(a,b,c) == c
+            gridtools::layout_map<2,0,1>::find<1>(a,b,c) == c
             \endcode
 
             \tparam I Index to be searched in the map
@@ -305,10 +315,43 @@ namespace gridtools {
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
-        
+
+            This version works with const&
+
+            \code
+            GCL::layout_map<2,0,1>::find<1>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \param[in] a Reference to the first value
+            \param[in] b Reference to the second value
+            \param[in] c Reference to the third value
+        */
+        template <unsigned int I, typename T>
+        GT_FUNCTION
+        static T const& find(T const& a, T const& b, T const& c) {
+            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+                return a;
+            } else {
+                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                    return b;
+                } else {
+                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                        return c;
+                    }
+                }
+            }
+            assert(true);
+            return a; // killing warnings by nvcc
+        }
+
+        /** Given a tuple of values and a static index I, the function
+            returns the reference to the element whose position
+            corresponds to the position of 'I' in the map.
+
             \code
             a[0] = a; a[1] = b; a[3] = c;
-            GCL::layout_map<2,0,1>::find<1>(a) == c
+            gridtools::layout_map<2,0,1>::find<1>(a) == c
             \endcode
 
             \tparam I Index to be searched in the map
@@ -435,4 +478,3 @@ namespace gridtools {
 
 
 #endif
-

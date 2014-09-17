@@ -3,11 +3,15 @@
 
 #include <boost/static_assert.hpp>
 
+/*@file
+@bief  The following class describes a boolean list of length N.
+
+*/
 namespace gridtools {
 
     /**
        The following class describes a boolean list of length N.
-       This is used in proc_grids. 
+       This is used in proc_grids.
 
        \code
        boollist<4> bl(true, false, false, true);
@@ -20,14 +24,14 @@ namespace gridtools {
     struct boollist {}; // brackets to get it into documentation
 
     template <>
-    struct boollist<1> 
+    struct boollist<1>
     {
       const bool value0;
-      boollist(bool v0) 
-        :value0(v0) 
+      boollist(bool v0)
+        :value0(v0)
       {}
       boollist(boollist const& bl)
-        :value0(bl.value0) 
+        :value0(bl.value0)
       {}
 
       template <typename layoutmap>
@@ -43,17 +47,17 @@ namespace gridtools {
     };
 
     template <>
-    struct boollist<2> 
+    struct boollist<2>
     {
       const bool value0;
       const bool value1;
-      boollist(bool v0, bool v1) 
+      boollist(bool v0, bool v1)
         : value0(v0)
-        , value1(v1) 
+        , value1(v1)
       {}
       boollist(boollist const& bl)
-        :value0(bl.value0) 
-        ,value1(bl.value1) 
+        :value0(bl.value0)
+        ,value1(bl.value1)
       {}
 
 
@@ -71,20 +75,20 @@ namespace gridtools {
     };
 
     template <>
-    struct boollist<3> 
+    struct boollist<3>
     {
       const bool value0;
       const bool value1;
       const bool value2;
-      boollist(bool v0, bool v1, bool v2) 
+      boollist(bool v0, bool v1, bool v2)
         : value0(v0)
-        , value1(v1) 
+        , value1(v1)
         , value2(v2)
       {}
       boollist(boollist const& bl)
-        : value0(bl.value0) 
-        , value1(bl.value1) 
-        , value2(bl.value2) 
+        : value0(bl.value0)
+        , value1(bl.value1)
+        , value2(bl.value2)
       {}
 
       template <typename layoutmap>
@@ -103,23 +107,23 @@ namespace gridtools {
     };
 
     template <>
-    struct boollist<4> 
+    struct boollist<4>
     {
       const bool value0;
       const bool value1;
       const bool value2;
       const bool value3;
-      boollist(bool v0, bool v1, bool v2, bool v3) 
+      boollist(bool v0, bool v1, bool v2, bool v3)
         :value0(v0)
-        , value1(v1) 
-        , value2(v2) 
+        , value1(v1)
+        , value2(v2)
         , value3(v3)
       {}
       boollist(boollist const& bl)
-        : value0(bl.value0) 
-        , value1(bl.value1) 
-        , value2(bl.value2) 
-        , value3(bl.value3) 
+        : value0(bl.value0)
+        , value1(bl.value1)
+        , value2(bl.value2)
+        , value3(bl.value3)
       {}
 
       template <typename layoutmap>
