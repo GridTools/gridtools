@@ -6,6 +6,10 @@
 #include "low-level/Generic_All_to_All.h"
 #include "low-level/data_types_mapping.h"
 
+/**
+@file
+*/
+
 namespace gridtools {
 
   template <typename vtype, typename pgrid>
@@ -36,7 +40,7 @@ namespace gridtools {
     {}
 
     /** Constructor that takes the computing grid and initializes the
-        patern. It also takes a communicator that is inside the processor
+        pattern. It also takes a communicator that is inside the processor
         grid, if different from MPI_COMM_WORLD
      */
     all_to_all_halo(grid_type const& g, MPI_Comm& c)
@@ -55,7 +59,6 @@ namespace gridtools {
         \param field Pointer to the data do be sent
         \param Array or vector of type arraytype1 that contains the description of the data to be sent
         \param coords Array of vector of absolute coordinates of the process that will receive the data
-
      */
     template <typename arraytype1, typename arraytype2>
     void register_block_to(value_type* field,
@@ -110,7 +113,7 @@ namespace gridtools {
     void do_sends() {
         a2a.do_sends();
     }
-    
+
     /** This method starts the data exchange
      */
     void start_exchange() {

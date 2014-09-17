@@ -47,7 +47,7 @@ namespace cloningstuff_test {
         A(int a, int size) : a(a), b(a), p(size) {}
 
         __host__ __device__
-        A(A const& other) 
+        A(A const& other)
             : a(other.a)
             , b(a)
             , p(other.p)
@@ -75,7 +75,7 @@ namespace cloningstuff_test {
         A a(34, 30);
 
         // Copy the string to GPU
-        memcpy(a.p.pointer_to_use.pointer_to_use, s, 30);
+        memcpy(a.p.pointer_to_use.get_pointer_to_use(), s, 30);
         a.p.update_gpu();
 
         // Clone a (and b_object) to gpu

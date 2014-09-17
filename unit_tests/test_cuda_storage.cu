@@ -1,9 +1,9 @@
-/* 
+/*
  * File:   test_domain.cpp
  * Author: mbianco
  *
  * Created on February 14, 2014, 4:18 PM
- * 
+ *
  * Test cuda_storage features
  */
 
@@ -25,18 +25,18 @@ void add_on_gpu(T * ptr, int d1, int d2, int d3) {
                 (*ptr)(i,j,k) = -i-j-k;
             }
         }
-    }    
+    }
 }
 #endif
 
 bool test_cuda_storage() {
 
-    typedef gridtools::cuda_storage<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > storage_type;
 
     int d1 = 3;
     int d2 = 3;
     int d3 = 3;
-    
+
     storage_type data(d1,d2,d3,-1, std::string("data"));
 
     for (int i = 0; i < d1; ++i) {
@@ -52,7 +52,7 @@ bool test_cuda_storage() {
 #endif
         }
 #ifndef NDEBUG
-        std::cout << std::endl; 
+        std::cout << std::endl;
         std::cout << std::endl;
 #endif
     }
