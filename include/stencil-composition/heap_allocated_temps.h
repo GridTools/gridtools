@@ -1,53 +1,54 @@
 #pragma once
 
+#include "../storage/host_tmp_storage.h"
+#include "backend_traits.h"
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/filter_view.hpp>
+
 namespace gridtools {
     namespace _impl {
-        struct instantiate_tmps {
-            int tileI;
-            int tileJ;
-            int tileK;
+
+
+/**
+@brief instantiate the \ref gridtools::domain_type for the temporary storages
+*/
+        struct instantiate_tmps
+        {
+            int m_tile_i;// or offset along i
+            int m_tile_j;// or offset along j
+            int m_tile_k;// or offset along k
 
             GT_FUNCTION
-            instantiate_tmps(int tileI, int tileJ, int tileK)
-                : tileI(tileI)
-                , tileJ(tileJ)
-                , tileK(tileK)
+            instantiate_tmps(int tile_i, int tile_j, int tile_k)
+                :
+                  m_tile_i(tile_i)
+                , m_tile_j(tile_j)
+                , m_tile_k(tile_k)
             {}
 
             // ElemType: an element in the data field place-holders list
             template <typename ElemType>
             GT_FUNCTION
-            void operator()(ElemType  e) const {
-#ifndef __CUDA_ARCH__
-                typedef typename boost::fusion::result_of::value_at<ElemType, boost::mpl::int_<1> >::type range_type;
-                // TODO: computed storage_type should decide where to heap/cuda allocate or stack allocate.
-                typedef typename boost::remove_pointer<typename boost::remove_reference<typename boost::fusion::result_of::value_at<ElemType, boost::mpl::int_<0> >::type>::type>::type storage_type;
+            void operator()(ElemType*&  e) const {
+//#ifndef __CUDACC__
+                std::string s = ElemType::info_string;
+//#endif
 
-#ifndef NDEBUG
-                std::cout << "Temporary: " << range_type() << " + ("
-                          << tileI << "x"
-                          << tileJ << "x"
-                          << tileK << ")"
-                          << std::endl;
-#endif
-#ifndef __CUDACC__
-                std::string s = boost::lexical_cast<std::string>(range_type::iminus::value)+
-                    boost::lexical_cast<std::string>(range_type::iplus::value)+
-                    boost::lexical_cast<std::string>(range_type::jminus::value)+
-                    boost::lexical_cast<std::string>(range_type::jplus::value);
-#endif
-                boost::fusion::at_c<0>(e) = new storage_type(-range_type::iminus::value+range_type::iplus::value+tileI,
-                                                             -range_type::jminus::value+range_type::jplus::value+tileJ,
-                                                             tileK,
-#ifndef __CUDACC__
-                                                             666,
-                                                             s);
-#else
-                                                             666);
-#endif
-#endif
+//calls the constructor of the storage
+                e = new ElemType(m_tile_i,
+                                 m_tile_j,
+                                 m_tile_k,
+//                                 0, // offset in k is zero for now
+                                 typename ElemType::value_type(),
+//#ifndef __CUDACC__
+                                 s);
+//#else
+//                                 );
+//#endif
             }
-        };
+    };
+
+
 
         struct delete_tmps {
             template <typename Elem>
@@ -58,6 +59,67 @@ namespace gridtools {
 #endif
             }
         };
+
+
+
+
+
+
+
+
+        namespace{
+            using namespace enumtype;
+            template< strategy Str >
+                struct policy;
+        }
+
+/** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments to the constructor depending on the specific strategy */
+    template <typename ArgList, typename Coords, enumtype::strategy StrategyType>
+    struct prepare_temporaries_functor
+    {
+        static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
+
+#ifndef NDEBUG
+            std::cout << "Prepare ARGUMENTS" << std::endl;
+#endif
+
+            typedef boost::fusion::filter_view<ArgList,
+                                               is_temporary_storage<boost::mpl::_1> > view_type;
+
+            view_type fview(arg_list);
+
+            boost::fusion::for_each(fview, _impl::instantiate_tmps( policy<StrategyType>::value_i(coords), policy<StrategyType>::value_j(coords), policy<StrategyType>::value_k(coords)));
+
+        }
+
+    };
+
+        namespace{
+/**Policy for the \ref gridtools::domain_type constructor arguments. When the Block strategy is chosen the arguments value_i and value_j represent an offset index in the i and j dimensions. */
+        template<>
+        struct policy<Block>
+            {
+                template <typename Coords>
+                static int value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom();}
+                template <typename Coords>
+                static int value_i(Coords& coords){ return coords.i_low_bound();}
+                template <typename Coords>
+                static int value_j(Coords& coords){ return coords.j_low_bound();}
+        };
+
+/**Policy for the \ref gridtools::domain_type constructor arguments. When the Naive strategy is chosen the arguments value_i and value_j represent the total number of indices in the i and j directions. */
+        template<>
+        struct policy<Naive>
+            {
+                template <typename Coords>
+                static int value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom();}
+                template <typename Coords>
+                static int value_i(Coords& coords){ return coords.direction_i().total_length();}
+                template <typename Coords>
+                static int value_j(Coords& coords){ return coords.direction_j().total_length();}
+        };
+
+        }
 
     } // namespace _impl
 
@@ -72,100 +134,14 @@ struct heap_allocated_temps {
          * @tparam Domain The user domain type - Deduced from argument list
          * @tparam coords The user coordinates type - Deduced from argument list
          */
-        template <typename MssType, typename RangeSizes, typename Domain, typename Coords>
-        static void prepare_temporaries(Domain & domain, Coords const& coords) {
-            int tileI, tileJ, tileK;
-
-            tileI = (Backend::strategy_traits_t::BI)?
-                (Backend::strategy_traits_t::BI):
-                (coords.i_high_bound()-coords.i_low_bound()+1);
-
-            tileJ = (Backend::strategy_traits_t::BJ)?
-                (Backend::strategy_traits_t::BJ):
-                (coords.j_high_bound()-coords.j_low_bound()+1);
-
-            tileK = coords.value_at_top()-coords.value_at_bottom();
-
-#ifndef NDEBUG
-            std::cout << "tileI " << tileI << " "
-                      << "tileJ " << tileJ
-                      << std::endl;
-#endif
-
-#ifndef NDEBUG
-            std::cout << "Prepare ARGUMENTS" << std::endl;
-#endif
-
-            // Got to find temporary indices
-            typedef typename boost::mpl::fold<typename Domain::placeholders,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    is_plchldr_to_temp<boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-                    boost::mpl::_1>
-            >::type list_of_temporaries;
-
-#ifndef NDEBUG
-            std::cout << "BEGIN TMPS" << std::endl;
-            for_each<list_of_temporaries>(_debug::print_index());
-            std::cout << "END TMPS" << std::endl;
-#endif
-
-            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
-
-
-            typedef typename boost::mpl::transform<
-                list_of_temporaries,
-                _impl::associate_ranges<written_temps_per_functor, RangeSizes>
-            >::type list_of_ranges;
-
-#ifndef NDEBUG
-            std::cout << "BEGIN TMPS/F" << std::endl;
-            for_each<written_temps_per_functor>(_debug::print_tmps());
-            std::cout << "END TMPS/F" << std::endl;
-
-            std::cout << "BEGIN RANGES/F" << std::endl;
-            for_each<list_of_ranges>(_debug::print_ranges());
-            std::cout << "END RANGES/F" << std::endl;
-
-            std::cout << "BEGIN Fs" << std::endl;
-            for_each<typename MssType::linear_esf>(_debug::print_ranges());
-            std::cout << "END Fs" << std::endl;
-#endif
-
-            typedef boost::fusion::filter_view<typename Domain::arg_list,
-                is_temporary_storage<boost::mpl::_> > tmp_view_type;
-            tmp_view_type fview(domain.storage_pointers);
-
-#ifndef NDEBUG
-            std::cout << "BEGIN VIEW" << std::endl;
-            boost::fusion::for_each(fview, _debug::print_view());
-            std::cout << "END VIEW" << std::endl;
-#endif
-
-            list_of_ranges lor;
-            typedef boost::fusion::vector<tmp_view_type&, list_of_ranges const&> zipper;
-            zipper zzip(fview, lor);
-            boost::fusion::zip_view<zipper> zip(zzip);
-            boost::fusion::for_each(zip, _impl::instantiate_tmps(tileI, tileJ, tileK));
-
-#ifndef NDEBUG
-            std::cout << "BEGIN VIEW DOPO" << std::endl;
-            boost::fusion::for_each(fview, _debug::print_view_());
-            std::cout << "END VIEW DOPO" << std::endl;
-#endif
-
-            domain.is_ready = true;
+    struct printpointers {
+        template <typename T>
+        void operator()(T const& p) const {
+            std::cout << std::hex << p << std::dec << std::endl;
         }
+    };
 
-        /**
-           This function calls d2h_update on all storages, in order to
-           get the data back to the host after a computation.
-        */
-        template <typename Domain>
-        static void finalize_computation(Domain & domain) {
-            domain.finalize_computation();
-        }
 
     };
+
 } // namespace gridtools

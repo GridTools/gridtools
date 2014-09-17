@@ -57,7 +57,7 @@ namespace gridtools {
 
 
 #define _MAKE_MSS(z, ITN, nil)                                          \
-    template <typename ExecutionEngine,                                 \
+    template <typename ExecutionEngine,                               \
               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) > \
     mss_descriptor<ExecutionEngine, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > \
     make_mss(ExecutionEngine const&, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const& BOOST_PP_INTERCEPT) ) { \

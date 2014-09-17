@@ -2,16 +2,24 @@
 
 #include <stdio.h>
 #ifndef __CUDACC__
-#include <boost/lexical_cast.hpp>
 #endif
+
+#include "arg_type.h"
 
 namespace gridtools {
     namespace _debug {
 
+        struct stdcoutstuff {
+            template <typename T>
+            void operator()(T& ) const {
+                std::cout << T() << " : " << typename T::storage_type() << std::endl;
+            }
+        };
+
         struct print_index {
             template <typename T>
             void operator()(T& ) const {
-                std::cout << " *" << T() << ", " << T::index_type::value << " * " << std::endl;
+                std::cout << " *" << T() << " " << typename T::storage_type() << ", " << T::index_type::value << " * " << std::endl;
             }
         };
 
@@ -19,13 +27,20 @@ namespace gridtools {
             template <typename T>
             void operator()(T& ) const {
                 for_each<T>(print_index());
-                std::cout << " ---" << std::endl;
+                std::cout << " --- " << std::endl;
             }
         };
 
         struct print_ranges {
             template <typename T>
-            void operator()(T& ) const {
+            void operator()(T const&) const {
+                std::cout << T() << std::endl;
+            }
+        };
+
+        struct print_deref {
+            template <typename T>
+            void operator()(T* const&) const {
                 std::cout << T() << std::endl;
             }
         };
@@ -46,29 +61,6 @@ namespace gridtools {
             }
         };
 
-        struct print_pointer {
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {
-                printf("CIAOOO TATATA %x\n",  s);
-            }
-
-#ifdef __CUDACC__
-            template <typename T, typename U, bool B
-#ifndef NDEBUG
-                      , typename TypeTag
-#endif
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(cuda_storage<T,U,B
-#ifndef NDEBUG
-                            , TypeTag
-#endif
-                            > *& s) const {
-                printf("CIAO POINTER %X\n", s);
-            }
-#endif
-        };
 
         struct print_domain_info {
             template <typename StorageType>
@@ -81,9 +73,14 @@ namespace gridtools {
 
     namespace _impl {
         struct l_get_type {
-            template <typename U>
+            template <typename U, typename Dummy = void>
             struct apply {
                 typedef typename U::storage_type* type;
+            };
+
+            template <typename TheStorage, typename Dummy>
+            struct apply<no_storage_type_yet<TheStorage>, Dummy> {
+                typedef no_storage_type_yet<TheStorage>* type;
             };
         };
 
@@ -94,6 +91,9 @@ namespace gridtools {
             };
         };
 
+        /**
+           \brief returns the index chosen when the placeholder U was defined
+        */
         struct l_get_index {
             template <typename U>
             struct apply {
@@ -101,44 +101,14 @@ namespace gridtools {
             };
         };
 
+        /**
+           \brief returns the pointer to the storage for the specific domain placeholder U
+        */
         struct l_get_it_type {
             template <typename U>
             struct apply {
                 typedef typename U::storage_type::iterator_type type;
             };
-        };
-
-        struct update_pointer {
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {}
-
-#ifdef __CUDACC__
-            template <typename T, typename U, bool B
-#ifndef NDEBUG
-                      , typename TypeTag
-#endif
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(cuda_storage<T,U,B
-#ifndef NDEBUG
-                      , TypeTag
-#endif
-                            > *& s) const {
-                if (s) {
-#ifndef NDEBUG
-                    // std::cout << "UPDATING "
-                    //           << std::hex << s->gpu_object_ptr
-                    //           << " " << s
-                    //           << " " << sizeof(cuda_storage<T,U,B>)
-                    //           << std::dec << std::endl;
-#endif
-                    s->data.update_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                }
-            }
-#endif
         };
 
         struct call_h2d {

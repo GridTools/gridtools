@@ -1,5 +1,11 @@
 #pragma once
 
+#include <boost/fusion/include/value_at.hpp>
+#include <boost/mpl/has_key.hpp>
+#include "level.h"
+
+#include "backend_traits_cuda.h"
+#include "backend_traits_host.h"
 /**
 @file
 
@@ -8,64 +14,53 @@
 
 namespace gridtools{
     /** enum defining the strategy policy for distributing the work. */
-    namespace enumtype
-    {
-        enum strategy  {Naive, Block};
-    }
 
-    namespace _impl{
+//    namespace _impl{
 
 //forward declaration
         template<typename T>
         struct run_functor;
 
-/** traits struct, specialized for the specific backends. */
+/**
+@brief traits struct, specialized for the specific backends.
+*/
         template<enumtype::backend Id>
         struct backend_from_id
         {
         };
 
-/** traits struct, specialized for the specific strategies */
+/**
+@brief traits struct, specialized for the specific strategies
+*/
         template<enumtype::strategy Strategy>
         struct strategy_from_id
         {
         };
 
-/** the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation */
-        template <
-            typename FunctorList,
-            typename LoopIntervals,
-            typename FunctorsMap,
-            typename RangeSizes,
-            typename DomainList,
-            typename Coords>
-        struct template_argument_traits
+/**
+   @brief wasted code because of the lack of constexpr
+   its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .
+*/
+        template <class RunFunctor>
+        struct backend_type
+        {};
+
+	/** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
+	template<typename FunctorList, typename LoopIntervals, typename FunctorsMap, typename RangeSizes, typename LocalDomainList, typename Coords, typename ExecutionEngine>
+        struct arguments
         {
             typedef FunctorList functor_list_t;
             typedef LoopIntervals loop_intervals_t;
             typedef FunctorsMap functors_map_t;
             typedef RangeSizes range_sizes_t;
-            typedef DomainList domain_list_t;
+            typedef LocalDomainList domain_list_t;
             typedef Coords coords_t;
-
+            typedef ExecutionEngine execution_type_t;
         };
 
-
-
-/** generic cout operator, specialised for the backends */
-        template <enumtype::backend Backend>
-	    struct cout{
-            template <typename T>
-            void operator <<(T t);
-	    };
-
-
-/** wasted code because of the lack of constexpr: its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .  */
-        template <class RunFunctor>
-        struct backend_type
-        {};
-
-/** functor struct whose specializations are responsible of running the kernel, i.e. the computational intensive loops on the backend. The fact that is a functor (and not a templated method) allows for partial specialization (e.g. two backends may share the same strategy) */
+/** @brief functor struct whose specializations are responsible of running the kernel
+    The kernel contains the computational intensive loops on the backend. The fact that it is a functor (and not a templated method) allows for partial specialization (e.g. two backends may share the same strategy)
+*/
     template< typename Backend >
     struct execute_kernel_functor
     {
@@ -76,13 +71,18 @@ namespace gridtools{
 /**
    @brief traits struct for the run_functor
 
-   This struct defines a type for all the template arguments in the run_functor subclasses. It is required because in the run_functor class definition the 'Derived'
-   template argument is an incomplete type (ans thus we can not access its template arguments).
-   This struct also contains all the type definitions common to all backends.
+   empty declaration
 */
         template <class Subclass>
         struct run_functor_traits{};
 
+/**
+   @brief traits struct for the run_functor
+   Specialization for all backend classes.
+   This struct defines a type for all the template arguments in the run_functor subclasses. It is required because in the run_functor class definition the 'Derived'
+   template argument is an incomplete type (ans thus we can not access its template arguments).
+   This struct also contains all the type definitions common to all backends.
+ */
         template <
             typename Arguments,
             template < typename Argument > class Back
@@ -98,6 +98,9 @@ namespace gridtools{
             typedef typename Arguments::coords_t coords_t;
             typedef Back<Arguments> backend_t;
 
+/**
+   @brief traits class to be used inside the functor \ref gridtools::_impl::execute_kernel_functor, which dependson an Index type.
+*/
             template <typename Index>
             struct traits{
                 typedef typename boost::mpl::at<range_sizes_t, Index>::type range_t;
@@ -118,7 +121,10 @@ namespace gridtools{
         };
 
 
-/**specialization for the \ref gridtools::_impl::Naive strategy*/
+/**
+   @brief specialization for the \ref gridtools::_impl::Naive strategy
+   A single loop spans all three directions, i, j and k
+*/
         template<>
         struct strategy_from_id< enumtype::Naive>
         {
@@ -135,22 +141,37 @@ namespace gridtools{
                 typedef typename arguments_t::coords_t coords_t;
                 //typedef typename arguments_t::local_domain_t local_domain_t;
 
-                static void runLoop( domain_list_t& local_domain_list, const coords_t& coords)
+                static void run_loop( domain_list_t& local_domain_list, const coords_t& coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
-                        backend_traits::template for_each< iter_range >(Backend(local_domain_list, coords));
+                        backend_traits::template for_each< iter_range >(Backend (local_domain_list, coords));
                     }
             };
+
+            //with the naive algorithms, the temporary storages are like the non temporary ones
+            template <enumtype::backend Backend, typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
+            struct tmp
+                {
+                    typedef base_storage<Backend, ValueType, LayoutType, true> host_storage_t;
+                };
+
         };
 
 
-/**specialization for the \ref gridtools::_impl::Block strategy*/
+//forward declaration
+    template< enumtype::backend A,typename B,typename C,int D,int E,int F,int G,int H,int I >
+    struct host_tmp_storage;
+
+/**
+   @brief specialization for the \ref gridtools::_impl::Block strategy
+   The loops over i and j are split according to the values of BI and BJ
+*/
         template<>
         struct strategy_from_id <enumtype::Block>
         {
-            static const int BI=4;
-            static const int BJ=4;
+            static const int BI=2;
+            static const int BJ=2;
             static const int BK=0;
 
             template< typename Backend >
@@ -161,7 +182,7 @@ namespace gridtools{
                 typedef typename arguments_t::domain_list_t domain_list_t;
                 typedef typename arguments_t::coords_t coords_t;
 
-                static void runLoop(domain_list_t& local_domain_list, coords_t const& coords)
+                static void run_loop(domain_list_t& local_domain_list, coords_t const& coords)
                     {
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
@@ -176,30 +197,38 @@ namespace gridtools{
                                 for (int bj = 0; bj < NBJ; ++bj) {
                                     int _starti = bi*BI+coords.i_low_bound();
                                     int _startj = bj*BJ+coords.j_low_bound();
-                                    backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI, BJ));
+                                    backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI, BJ, bi, bj));
                                 }
                             }
 
                             for (int bj = 0; bj < NBJ; ++bj) {
                                 int _starti = NBI*BI+coords.i_low_bound();
                                 int _startj = bj*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ));
+                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ, NBI, bj));
                             }
 
                             for (int bi = 0; bi < NBI; ++bi) {
                                 int _starti = bi*BI+coords.i_low_bound();
                                 int _startj = NBJ*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ));
+                                backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ, bi, NBJ));
                             }
 
                             {
                                 int _starti = NBI*BI+coords.i_low_bound();
                                 int _startj = NBJ*BJ+coords.j_low_bound();
-                                backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ));
+                                backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ, NBI, NBJ));
                             }
                         }
                     }
             };
+
+
+            template <enumtype::backend Backend, typename ValueType, typename LayoutType , int BI, int BJ, int IMinus, int JMinus, int IPlus, int JPlus>
+            struct tmp
+                {
+                    typedef host_tmp_storage <  Backend, ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
+                };
+
         };
-    }//namespace _impl
+//    }//namespace _impl
 }//namespace gridtools

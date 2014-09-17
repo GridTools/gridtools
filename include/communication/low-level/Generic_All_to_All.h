@@ -91,7 +91,7 @@ namespace gridtools {
 
 
   /** This all to all class is explicitly designed to be a light
-      wrapper around MPI. The idea is that each process has a vecrtor
+      wrapper around MPI. The idea is that each process has a vector
       of things to send to each other process, and a vector of data to
       be received from each other process. The data to be send or
       received is one element of a certain MPI_Datatype that is part
