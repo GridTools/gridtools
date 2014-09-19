@@ -128,12 +128,16 @@ namespace gridtools {
 
         __host__ __device__
         T& operator[](int i) {
+            /* assert(i<size); */
+            /* assert(i>=0); */
             // printf(" [%d %e] ", i, pointer_to_use[i]);
             return pointer_to_use[i];
         }
 
         __host__ __device__
         T const& operator[](int i) const {
+            /* assert(i<size); */
+            /* assert(i>=0); */
             // printf(" [%d %e] ", i, pointer_to_use[i]);
 
             return pointer_to_use[i];
