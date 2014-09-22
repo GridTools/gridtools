@@ -5,6 +5,7 @@
 #include "gt_for_each/for_each.hpp"
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/copy.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/bool.hpp>
@@ -227,8 +228,10 @@ namespace gridtools {
             };
         };
 
+	/**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
+	   default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
         template <typename Placeholders,
-                  typename TmpPairs>
+	  typename TmpPairs=boost::mpl::na>
         struct select_storage {
             template <typename T, typename Dummy = void>
             struct is_temp : public boost::false_type
@@ -393,10 +396,11 @@ namespace gridtools {
         template<>
         struct setup_computation<enumtype::Cuda>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType& storage_pointers, DomainType &  domain){
-                boost::fusion::copy(storage_pointers, domain.original_pointers);
 
-                boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+	      static int apply(ArgListType& storage_pointers, DomainType &  domain){
+	      boost::fusion::copy(storage_pointers, domain.original_pointers);
+
+	      boost::fusion::for_each(storage_pointers, _impl::update_pointer());
 #ifndef NDEBUG
                 printf("POINTERS\n");
                 boost::fusion::for_each(storage_pointers, _debug::print_pointer());
@@ -493,7 +497,7 @@ namespace gridtools {
                 boost::mpl::_1,
                 typename _impl::select_storage<
                     typename DomainType::placeholders,
-                    mpl_actual_tmp_pairs
+              	    mpl_actual_tmp_pairs
                     >::template apply<boost::mpl::_2>
                 >
             >::type mpl_actual_arg_list;
@@ -569,9 +573,11 @@ namespace gridtools {
             std::cout << "end2" <<std::endl;
 #endif
 
+	    //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
                 is_storage<boost::mpl::_1> > t_domain_view;
 
+	    //filter the non temporary storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<actual_arg_list_type,
                 is_storage<boost::mpl::_1> > t_args_view;
 
