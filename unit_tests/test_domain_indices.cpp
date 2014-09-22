@@ -11,10 +11,19 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/current_function.hpp>
 
+#include <gridtools.h>
+
+// #ifdef CUDA_EXAMPLE
+// #include <stencil-composition/backend_cuda.h>
+// #else
+// #include <stencil-composition/backend_naive.h>
+// #endif
+
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 using namespace gridtools;
+using namespace enumtype;
 
 int count;
 bool result;
@@ -65,8 +74,24 @@ struct print_pretty {
 };
 
 bool test_domain_indices() {
+// #ifdef CUDA_EXAMPLE
+// #define BACKEND backend<Cuda, Naive >
+// #else
+// #ifdef BACKEND_BLOCK
+// #define BACKEND backend<Host, Block >
+// #else
+// #define BACKEND backend<Host, Naive >
+// #endif
+// #endif
+
+//     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
+
+//     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+//     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+// =======
     typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
     typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+
 
     int d1 = 10;
     int d2 = 10;
