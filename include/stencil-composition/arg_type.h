@@ -97,20 +97,21 @@ namespace gridtools {
             int value;
         };
         }
-        
+
 	typedef T<0> x;
 	typedef T<1> y;
 	typedef T<2> z;
     }
 
 
-    GT_FUNCTION
     struct initialize
     {
+        GT_FUNCTION
         initialize(int* offset) : m_offset(offset)
             {}
 
         template<typename X>
+        GT_FUNCTION
         inline void operator( )(X i) const {
             m_offset[X::direction] = i.value;
         }
