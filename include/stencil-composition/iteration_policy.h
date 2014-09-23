@@ -9,7 +9,7 @@ namespace gridtools{
 
 /**\brief specialization for the forward iteration loop over k*/
         template<typename From, typename To>
-        struct iteration_policy<From, To, enumtype::upward >
+        struct iteration_policy<From, To, enumtype::forward >
         {
             typedef From from;
             typedef To to;
@@ -19,7 +19,7 @@ namespace gridtools{
 
 /**\brief specialization for the backward iteration loop over k*/
         template<typename From,typename To>
-        struct iteration_policy<From, To, enumtype::downward >
+        struct iteration_policy<From, To, enumtype::backward >
         {
             typedef  To from;
             typedef From to;
