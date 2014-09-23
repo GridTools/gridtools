@@ -45,8 +45,11 @@ namespace gridtools{
 #ifdef __CUDACC__
 	        cudaProfilerStart();
 #endif
+            printf("forward/backward iterations \n");
                 for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
+                    printf("k=%d, \n", k);
+
                     this->m_domain.increment();
                 }
 #ifdef __CUDACC__
@@ -73,14 +76,14 @@ namespace gridtools{
             GT_FUNCTION
             void loop(int from, int to) const {
 #ifdef __CUDACC__
-	      cudaProfilerStart();
+                cudaProfilerStart();
 #endif
-	      for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
-                    traits::functor_t::Do(this->m_domain, IntervalType());
+                for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
+                    traits::functor_t::Do(this->m_domain, IntervalType(), k);
                     this->m_domain.increment();
                 }
 #ifdef __CUDACC__
-	      cudaProfilerStop();
+                cudaProfilerStop();
 #endif
             }
         };

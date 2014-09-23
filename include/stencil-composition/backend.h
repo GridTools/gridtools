@@ -202,7 +202,7 @@ namespace gridtools {
                   > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
             //wrapping all the template arguments in a single container
-            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::upward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
+            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
 
 /**
    @brief template arguments container

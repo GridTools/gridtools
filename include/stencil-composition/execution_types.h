@@ -3,9 +3,9 @@ namespace gridtools {
     namespace enumtype{
 
         enum isparallel {parallel_impl, serial} ;
-        enum execution  {upward, downward, parallel} ;
+        enum execution  {forward, backward, parallel} ;
 
-        template<enumtype::isparallel T, enumtype::execution U=upward>
+        template<enumtype::isparallel T, enumtype::execution U=forward>
         struct execute_impl{
             static const enumtype::execution iteration=U;
             static const enumtype::isparallel execution=T;
@@ -21,7 +21,7 @@ namespace gridtools {
         template<>
         struct execute<parallel>
         {
-        typedef execute_impl<parallel_impl, upward> type;
+        typedef execute_impl<parallel_impl, forward> type;
         };
 
 

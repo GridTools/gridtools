@@ -6,6 +6,8 @@
 #include "../common/halo_descriptor.h"
 #include "../common/gpu_clone.h"
 
+#include <boost/mpl/print.hpp>
+
 namespace gridtools {
     template <typename MinLevel, typename MaxLevel>
     struct make_axis {
@@ -37,6 +39,10 @@ namespace gridtools {
         boost::mpl::int_<1> >::type size_type;
 
         gridtools::array<int, size_type::value > value_list;
+
+        // static const auto blabla=boost::mpl::print<size_type>();
+        // static const auto blabla1=boost::mpl::print<typename Axis::ToLevel::Splitter>();
+        // static const auto blabla2=boost::mpl::print<typename Axis::FromLevel::Splitter>();
 
         GT_FUNCTION
         explicit coordinates(int il, int ih, int jl, int jh/*, int kl, int kh*/)
