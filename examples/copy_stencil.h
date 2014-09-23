@@ -17,7 +17,7 @@
 #endif
 
 /*
-  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
+  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
  */
 
 using gridtools::level;
@@ -29,107 +29,35 @@ using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_out;
-
+typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
-struct lap_function {
+struct copy_functor {
     static const int n_args = 2;
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> > in;
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef const arg_type<0> in;
+    typedef arg_type<1> out;
+    typedef boost::mpl::vector<in, out> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_lap) {
+    static void Do(Domain const & dom, x_interval) {
 
-        dom(out()) = 3*dom(in()) -
-            (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
-    }
-};
-
-struct flx_function {
-    static const int n_args = 3;
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 1, 0, 0> > in;
-    typedef const arg_type<2, range<0, 1, 0, 0> > lap;
-
-    typedef boost::mpl::vector<out, in, lap> arg_list;
-
-    template <typename Domain>
-    GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
-
-        dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
-            dom(out()) = 0.;
-        }
-    }
-};
-
-struct fly_function {
-    static const int n_args = 3;
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 0, 0, 1> > in;
-    typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-    typedef boost::mpl::vector<out, in, lap> arg_list;
-
-    template <typename Domain>
-    GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
-
-        dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
-            dom(out()) = 0.;
-        }
-    }
-};
-
-struct out_function {
-    static const int n_args = 5;
-    typedef arg_type<0> out;
-    typedef const arg_type<1> in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> > fly;
-    typedef const arg_type<4> coeff;
-    typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
-
-    template <typename Domain>
-    GT_FUNCTION
-    static void Do(Domain const & dom, x_out) {
-
-        dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx()) - dom(flx( -1,0,0)) +
-             dom(fly()) - dom(fly( 0,-1,0))
-             );
-        // printf("final dom(out()) => %e\n", dom(out()));
+        dom(out()) = dom(in());
     }
 };
 
 /*
  * The following operators and structs are for debugging only
  */
-std::ostream& operator<<(std::ostream& s, lap_function const) {
-    return s << "lap_function";
-}
-std::ostream& operator<<(std::ostream& s, flx_function const) {
-    return s << "flx_function";
-}
-std::ostream& operator<<(std::ostream& s, fly_function const) {
-    return s << "fly_function";
-}
-std::ostream& operator<<(std::ostream& s, out_function const) {
-    return s << "out_function";
+std::ostream& operator<<(std::ostream& s, copy_functor const) {
+    return s << "copy_functor";
 }
 
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool horizontal_diffusion(int x, int y, int z) {
+bool copy_stencil(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -150,36 +78,29 @@ bool horizontal_diffusion(int x, int y, int z) {
 #endif
 #endif
 
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
-
     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
     out.print();
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, tmp_storage_type > p_lap;
-    typedef arg<1, tmp_storage_type > p_flx;
-    typedef arg<2, tmp_storage_type > p_fly;
-    typedef arg<3, storage_type > p_coeff;
-    typedef arg<4, storage_type > p_in;
-    typedef arg<5, storage_type > p_out;
+    typedef arg<0, storage_type > p_in;
+    typedef arg<1, storage_type > p_out;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_in, p_out> arg_type_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
+        (boost::fusion::make_vector(&in, &out));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -201,20 +122,6 @@ bool horizontal_diffusion(int x, int y, int z) {
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
-    // gridtools::intermediate::run<gridtools::BACKEND>
-    //     (
-    //      gridtools::make_mss
-    //      (
-    //       gridtools::execute_upward,
-    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
-    //       gridtools::make_independent
-    //       (
-    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-    //        ),
-    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-    //       ),
-    //      domain, coords);
 
 #ifdef USE_PAPI
 int event_set = PAPI_NULL;
@@ -241,36 +148,23 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+    gridtools::computation* copy =
 #else
-        boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+        boost::shared_ptr<gridtools::computation> copy =
 #endif
         gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss // mss_descriptor
             (
                 execute<parallel>(),
-                gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
-                gridtools::make_independent // independent_esf
-                (
-                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-                    ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+                gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
                 ),
             domain, coords
             );
 
-    horizontal_diffusion->ready();
+    copy->ready();
 
-    // domain.storage_info<boost::mpl::int_<0> >();
-    // domain.storage_info<boost::mpl::int_<1> >();
-    // domain.storage_info<boost::mpl::int_<2> >();
-    domain.storage_info<boost::mpl::int_<3> >();
-    domain.storage_info<boost::mpl::int_<4> >();
-    domain.storage_info<boost::mpl::int_<5> >();
-
-    horizontal_diffusion->steady();
+    copy->steady();
     domain.clone_to_gpu();
 
 #ifdef USE_PAPI_WRAP
@@ -285,7 +179,7 @@ if( PAPI_start(event_set) != PAPI_OK)
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
-    horizontal_diffusion->run();
+    copy->run();
 
 #ifdef USE_PAPI
 double dummy=0.5;
@@ -300,15 +194,13 @@ PAPI_stop(event_set, values);
 #endif
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    horizontal_diffusion->finalize();
+    copy->finalize();
 
 #ifdef CUDA_EXAMPLE
     out.m_data.update_cpu();
 #endif
 
-    //    in.print();
     out.print();
-    //    lap.print();
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 

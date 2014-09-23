@@ -24,6 +24,13 @@ set_target_properties(laplacian_block
 target_link_libraries(laplacian_naive ${exe_LIBS})
 target_link_libraries(laplacian_block ${exe_LIBS})
 
+add_executable(copy_naive   copy_stencil.cpp )
+add_executable(copy_block   copy_stencil.cpp )
+set_target_properties(copy_block
+        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+target_link_libraries(copy_naive ${exe_LIBS})
+target_link_libraries(copy_block ${exe_LIBS})
+
 add_executable(basic_laplacian basic_laplacian.cpp)
 target_link_libraries(basic_laplacian ${exe_LIBS})
 
@@ -36,9 +43,11 @@ if(CUDA_FOUND)
 
     cuda_add_executable( laplacian_cuda laplacian.cu )
     cuda_add_executable(boundary-condition_cuda   boundary-condition.cu )
+    cuda_add_executable( copy_cuda copy_stencil.cu )
     target_link_libraries(interface1_cuda ${exe_LIBS})
     target_link_libraries(laplacian_cuda ${exe_LIBS})
     target_link_libraries(boundary-condition_cuda ${exe_LIBS})
+    target_link_libraries(copy_cuda ${exe_LIBS})
 endif()
 
 add_subdirectory( communication )
