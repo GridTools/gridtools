@@ -71,8 +71,8 @@ namespace gridtools {
             };
         };
 
-        /* Functor used to instantiate the local domains to be passed to each
-           elementary stencil function */
+        /** Functor used to instantiate the local domains to be passed to each
+            elementary stencil function */
         template <typename Dom, typename ArgList>
         struct instantiate_local_domain {
             GT_FUNCTION
@@ -81,7 +81,7 @@ namespace gridtools {
                 , m_arg_list(arg_list)
             {}
 
-            /**method called in the Do methods of the functors. Elem is a local_domain*/
+            /**Elem is a local_domain*/
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {

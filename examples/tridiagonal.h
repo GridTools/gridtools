@@ -17,7 +17,17 @@
 #endif
 
 /*
-  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
+  @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
+
+  Important convention: the linear system as usual is represented with 4 vectors: the main diagonal
+  (diag), the upper and lower first diagonals (sup and inf respectively), and the right hand side
+  (rhs). Note that the dimensions and the memory layout are, for an NxN system
+  rank(diag)=N       [xxxxxxxxxxxxxxxxxxxxxxxx]
+  rank(inf)=N-1      [0xxxxxxxxxxxxxxxxxxxxxxx]
+  rank(sup)=N-1      [xxxxxxxxxxxxxxxxxxxxxxx0]
+  rank(rhs)=N        [xxxxxxxxxxxxxxxxxxxxxxxx]
+  where x danote any numberm and 0 denotes the padding, a dummy value which is not used in
+  the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
  */
 
 using gridtools::level;
@@ -28,6 +38,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+using namespace expressions;
 
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-2> > x_internal;
@@ -49,8 +60,8 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static inline void shared_kernel(Domain const& dom) {
-        dom(sup()) = dom(sup())+100;///(dom(diag())-dom(sup(z(-1)))*dom(inf()));
-        dom(rhs()) = (dom(rhs()))+200;//-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+        dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
     }
 
     template <typename Domain>
@@ -68,8 +79,8 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_first) {
-        dom(sup()) = dom(sup())+1000;///dom(diag());
-        dom(rhs()) = dom(rhs())+2000;///dom(diag());
+        dom(sup()) = dom(sup()/diag());
+        dom(rhs()) = dom(rhs()/diag());
     }
 
 };
@@ -87,7 +98,8 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-        dom(out()) = dom(rhs())-5000;//-dom(sup())*dom(rhs(z(1)));
+        dom(out()) = dom(rhs())-dom(sup())*dom(out(z(1)));
+        //dom(out()) = (dom(rhs())-dom(sup())*dom(out(z(1))))/dom(diag());
     }
 
     template <typename Domain>
@@ -105,7 +117,8 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_last) {
-        dom(rhs()) = dom(rhs())-10000;///dom(diag());
+        dom(out())= dom(rhs());
+        // dom(out())= dom(rhs())/dom(diag());
     }
 };
 
@@ -146,10 +159,16 @@ bool tridiagonal(int x, int y, int z) {
      // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,0., std::string("out"));
-    storage_type inf(d1,d2,d3,3., std::string("inf"));
-    storage_type diag(d1,d2,d3,2., std::string("diag"));
+    storage_type inf(d1,d2,d3,-1., std::string("inf"));
+    storage_type diag(d1,d2,d3,3., std::string("diag"));
     storage_type sup(d1,d2,d3,1., std::string("sup"));
-    storage_type rhs(d1,d2,d3,4., std::string("rhs"));
+    storage_type rhs(d1,d2,d3,3., std::string("rhs"));
+    for(int i=0; i<d1; ++i)
+        for(int j=0; j<d2; ++j)
+        {
+            rhs(i, j, 2)=4.;
+            rhs(i, j, 5)=2.;
+        }
 // result is 1
     printf("Print OUT field\n");
     out.print();
@@ -286,12 +305,12 @@ PAPI_stop(event_set, values);
 
     forward_step->finalize();
 
-    printf("Print OUT field (forward)\n");
-    out.print();
-    printf("Print SUP field (forward)\n");
-    sup.print();
-    printf("Print RHS field (forward)\n");
-    rhs.print();
+    // printf("Print OUT field (forward)\n");
+    // out.print();
+    // printf("Print SUP field (forward)\n");
+    // sup.print();
+    // printf("Print RHS field (forward)\n");
+    // rhs.print();
 
     backward_step->ready();
     backward_step->steady();
