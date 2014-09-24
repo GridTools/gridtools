@@ -14,7 +14,9 @@ namespace gridtools{
             typedef From from;
             typedef To to;
             static inline int increment(int& k){return ++k;}
-            static inline bool condition(int const& a, int const& b){return a<b;}
+            template<typename Domain>
+            static inline void increment(Domain& dom){dom.increment();}
+            static inline bool condition(int const& a, int const& b){return a<=b;}
         };
 
 /**\brief specialization for the backward iteration loop over k*/
@@ -24,7 +26,9 @@ namespace gridtools{
             typedef  To from;
             typedef From to;
             static inline int increment(int& k){return --k;}
-            static inline bool condition(int const& a, int const& b){return a>b;}
+            template <typename Domain>
+            static inline void increment(Domain& dom){dom.decrement();}
+            static inline bool condition(int const& a, int const& b){return a>=b;}
         };
     } // namespace _impl
 } // namespace gridtools

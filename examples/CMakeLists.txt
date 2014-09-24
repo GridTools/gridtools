@@ -24,6 +24,11 @@ set_target_properties(laplacian_block
 target_link_libraries(laplacian_naive ${exe_LIBS})
 target_link_libraries(laplacian_block ${exe_LIBS})
 
+
+add_executable(test_interface   expressions.cpp )
+target_link_libraries(test_interface ${exe_LIBS})
+
+
 add_executable(copy_naive   copy_stencil.cpp )
 add_executable(copy_block   copy_stencil.cpp )
 set_target_properties(copy_block

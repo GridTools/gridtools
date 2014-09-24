@@ -46,6 +46,7 @@ namespace gridtools {
             void operator()(Interval const&) const {
                 typedef typename index_to_level<typename Interval::first>::type from;
                 typedef typename index_to_level<typename Interval::second>::type to;
+
                 typedef iteration_policy<from, to, execution_engine::type::iteration> iteration_policy;
 
                 if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
@@ -53,6 +54,8 @@ namespace gridtools {
 
                     int from=m_coords.template value_at<typename iteration_policy::from>();
                     int to=m_coords.template value_at<typename iteration_policy::to>();
+                    std::cout<<"from==> "<<from<<std::endl;
+                    std::cout<<"to==> "<<to<<std::endl;
                     static_cast<const Derived*>(this)->template loop<iteration_policy, interval_type>(from, to);
                 }
 

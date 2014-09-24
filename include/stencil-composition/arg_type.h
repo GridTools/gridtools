@@ -280,4 +280,56 @@ namespace gridtools {
                  << ", NON TEMP" << " > ]";
     }
 
+
+
+    template <typename ArgType1, typename ArgType2>
+    struct expr{
+        expr(ArgType1 first_operand, ArgType2 second_operand)
+            :
+            first_operand(first_operand),
+            second_operand(second_operand)
+            {}
+
+        ArgType1 first_operand;
+        ArgType2 second_operand;
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct expr_plus : public expr<ArgType1, ArgType2>{
+        typedef expr<ArgType1, ArgType2> super;
+        expr_plus(ArgType1 first_operand, ArgType2 second_operand):super(first_operand, second_operand){}
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct expr_minus : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        expr_minus(ArgType1 first_operand, ArgType2 second_operand):super(first_operand, second_operand){}
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct expr_times : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        expr_times(ArgType1 first_operand, ArgType2 second_operand):super(first_operand, second_operand){}
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct expr_divide : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        expr_divide(ArgType1 first_operand, ArgType2 second_operand):super(first_operand, second_operand){}
+    };
+
+    namespace expressions{
+        template<typename ArgType1, typename ArgType2>
+        expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(std::forward<ArgType1>(arg1), std::forward<ArgType2>(arg2));}
+
+        template<typename ArgType1, typename ArgType2>
+            expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
+
+        template<typename ArgType1, typename ArgType2>
+            expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
+
+        template<typename ArgType1, typename ArgType2>
+            expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
+    }//namespace expressions
+
 } // namespace gridtools
