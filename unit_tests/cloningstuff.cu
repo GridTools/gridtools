@@ -25,7 +25,7 @@ namespace cloningstuff_test {
         {}
 
         ~B() {
-	  // pointer_to_use.free_it();
+            //pointer_to_use.free_it();
         }
 
         void update_gpu() {
@@ -81,7 +81,7 @@ namespace cloningstuff_test {
         a.clone_to_gpu();
 
 #ifdef __CUDACC__
-	test<<<1,1>>>(a.gpu_object_ptr);
+        test<<<1,1>>>(a.gpu_object_ptr);
         cudaDeviceSynchronize();
 #endif
         a.clone_from_gpu();
@@ -100,6 +100,6 @@ namespace cloningstuff_test {
         if (a.b != 35)
             result = false;
 
-	return result;
+        return result;
     }
 } // namespace cloningstuff_test
