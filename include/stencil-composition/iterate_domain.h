@@ -182,29 +182,12 @@ namespace gridtools {
         template <typename ArgType1>
         double inline divide(expr_plus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) / arg.second_operand;}
 
-
-        // template <typename whatever>
-        // auto value(whatever arg) const -> decltype((*this)(arg.first_operand)) const {return (*this)(arg.first_operand);}
-
-        // double const value(const expr<gridtools::expr_times<gridtools::arg_type<3, gridtools::range<0, 0, 0, 0> >, gridtools::arg_type<1, gridtools::range<0, 0, 0, 0> > > > whatever) const {return 2.;}
-
 /** @brief method called in the Do methods of the functors. */
         template <typename Expression >
         GT_FUNCTION
-        auto operator() (Expression const& arg) const ->decltype(value(arg)) const {
+        auto operator() (Expression const& arg) const ->decltype(this->value(arg)) {
             return value(arg);
         }
-
-        // template <typename Expression >
-        // GT_FUNCTION
-        // double operator() (Expression const& arg)  const {
-        //     return value(arg);
-        // }
-
-
-        // template <typename whatever>
-        // double const value(whatever const arg) const {return 0.;}
-
 
     };
 
