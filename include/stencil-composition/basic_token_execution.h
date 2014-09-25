@@ -54,8 +54,8 @@ namespace gridtools {
 
                     int from=m_coords.template value_at<typename iteration_policy::from>();
                     int to=m_coords.template value_at<typename iteration_policy::to>();
-                    std::cout<<"from==> "<<from<<std::endl;
-                    std::cout<<"to==> "<<to<<std::endl;
+                    /* std::cout<<"from==> "<<from<<std::endl; */
+                    /* std::cout<<"to==> "<<to<<std::endl; */
                     static_cast<const Derived*>(this)->template loop<iteration_policy, interval_type>(from, to);
                 }
 
