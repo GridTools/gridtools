@@ -60,8 +60,8 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static inline void shared_kernel(Domain const& dom) {
-        dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
-        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+        dom(sup()) = dom(sup()/(diag()-sup(z(-1))*inf()));
+        dom(rhs()) = dom((rhs()-inf()*rhs(z(-1)))/(diag()-sup(z(-1))*inf()));
     }
 
     template <typename Domain>
@@ -79,8 +79,8 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_first) {
-        dom(sup()) = dom(sup()/diag());
-        dom(rhs()) = dom(rhs()/diag());
+        dom(sup()) = dom(sup())/dom(diag());
+        dom(rhs()) = dom(rhs())/dom(diag());
     }
 
 };
@@ -98,7 +98,7 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-        dom(out()) = dom(rhs())-dom(sup())*dom(out(z(1)));
+        dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
         //dom(out()) = (dom(rhs())-dom(sup())*dom(out(z(1))))/dom(diag());
     }
 
