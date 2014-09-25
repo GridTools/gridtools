@@ -159,28 +159,36 @@ namespace gridtools {
 
 
         template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
         auto inline value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
 
         template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
         auto inline value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
 
         template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
         auto inline value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
 
         template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
         auto inline value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
 
         template <typename ArgType1>
+        GT_FUNCTION
         double inline value(expr_plus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) + arg.second_operand;}
 
         template <typename ArgType1>
+        GT_FUNCTION
         double inline value(expr_minus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) - arg.second_operand;}
 
         template <typename ArgType1>
+        GT_FUNCTION
         double inline value(expr_times<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) * arg.second_operand;}
 
         template <typename ArgType1>
-        double inline divide(expr_plus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) / arg.second_operand;}
+        GT_FUNCTION
+        double inline value(expr_divide<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) / arg.second_operand;}
 
 /** @brief method called in the Do methods of the functors. */
         template <typename Expression >
