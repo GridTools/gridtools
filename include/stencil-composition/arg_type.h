@@ -103,7 +103,6 @@ namespace gridtools {
 	typedef T<2> z;
     }
 
-
     struct initialize
     {
         GT_FUNCTION
@@ -112,7 +111,7 @@ namespace gridtools {
 
         template<typename X>
         GT_FUNCTION
-        inline void operator( )(X i) const {
+        inline void operator( )(X const& i) const {
             m_offset[X::direction] = i.value;
         }
         int* m_offset;
@@ -134,7 +133,7 @@ namespace gridtools {
 	  typedef arg_type<I> type;
         };
 
-        int offset[3];
+        int offset[3]={0,0,0};
         typedef boost::mpl::int_<I> index_type;
         typedef Range range_type;
 
