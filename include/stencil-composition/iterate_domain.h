@@ -170,6 +170,18 @@ namespace gridtools {
         template <typename ArgType1, typename ArgType2>
         auto inline value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
 
+        template <typename ArgType1>
+        double inline value(expr_plus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) + arg.second_operand;}
+
+        template <typename ArgType1>
+        double inline value(expr_minus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) - arg.second_operand;}
+
+        template <typename ArgType1>
+        double inline value(expr_times<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) * arg.second_operand;}
+
+        template <typename ArgType1>
+        double inline divide(expr_plus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) / arg.second_operand;}
+
 
         // template <typename whatever>
         // auto value(whatever arg) const -> decltype((*this)(arg.first_operand)) const {return (*this)(arg.first_operand);}
