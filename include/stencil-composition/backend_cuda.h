@@ -123,6 +123,32 @@ namespace gridtools {
                                     << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+
+		int count;
+		cudaGetDeviceCount ( &count  );
+
+		if(count)
+		  {
+		    cudaDeviceProp prop;
+		    cudaGetDeviceProperties(&prop, 0);
+		    std::cout << "total global memory "<<       prop.totalGlobalMem<<std::endl;
+		    std::cout << "shared memory per block "<<   prop.sharedMemPerBlock<<std::endl;
+		    std::cout << "registers per block "<<       prop.regsPerBlock<<std::endl;
+		    std::cout << "maximum threads per block "<< prop.maxThreadsPerBlock <<std::endl;
+		    std::cout << "maximum threads dimension "<< prop.maxThreadsDim <<std::endl;
+		    std::cout << "clock rate "<<                prop.clockRate <<std::endl;
+		    std::cout << "total const memory "<<        prop.totalConstMem <<std::endl;
+		    std::cout << "compute capability "<<        prop.major<<"."<<prop.minor <<std::endl;
+		    std::cout << "multiprocessors count "<< prop.multiProcessorCount <<std::endl;
+		    std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "<< prop.computeMode <<std::endl;
+		    std::cout << "concurrent kernels "<< prop.concurrentKernels <<std::endl;
+		    std::cout << "Number of asynchronous engines  "<< prop.asyncEngineCount <<std::endl;
+		    std::cout << "unified addressing "<< prop.unifiedAddressing <<std::endl;
+		    std::cout << "memoryClockRate "<< prop.memoryClockRate <<std::endl;
+		    std::cout << "memoryBusWidth "<< prop.memoryBusWidth <<std::endl;
+		    std::cout << "l2CacheSize "<< prop.l2CacheSize <<std::endl;
+		    std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
+		  }
 #endif
 
 

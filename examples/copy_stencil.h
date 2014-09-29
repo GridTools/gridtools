@@ -29,7 +29,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
+typedef gridtools::interval<level<0,-1>, level<1,2> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
@@ -78,12 +78,11 @@ bool copy_stencil(int x, int y, int z) {
 #endif
 #endif
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<2,1,0> >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
+    storage_type out(d1,d2,d3,1.5, std::string("out"));
 
     out.print();
 
@@ -171,7 +170,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_stop_collector(collector_init);
 #endif
 
-    boost::timer::cpu_timer time;
+    /* boost::timer::cpu_timer time; */
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -192,7 +191,7 @@ PAPI_stop(event_set, values);
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_execute);
 #endif
-    boost::timer::cpu_times lapse_time = time.elapsed();
+    /* boost::timer::cpu_times lapse_time = time.elapsed(); */
 
     copy->finalize();
 
@@ -202,7 +201,7 @@ PAPI_stop(event_set, values);
 
     out.print();
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    /* std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl; */
 
 #ifdef USE_PAPI_WRAP
     pw_print();
