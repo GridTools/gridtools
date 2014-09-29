@@ -155,7 +155,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
         (
             gridtools::make_mss // mss_descriptor
             (
-                execute<parallel>(),
+                execute<forward>(),
                 gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
                 ),
             domain, coords
