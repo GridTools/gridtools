@@ -24,6 +24,7 @@
 #include <boost/current_function.hpp>
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/mpl/vector.hpp>
 
 struct out_value {
     template <typename T>
@@ -75,10 +76,10 @@ struct out_value_ {
     }
 };
 
-template <typename Domain>
+template <typename StoragePtrs>
 __global__
-void print_values(Domain const* domain) {
-    boost::fusion::for_each(domain->storage_pointers, out_value());
+void print_values(StoragePtrs const* storage_pointers) {
+    boost::fusion::for_each(*storage_pointers, out_value());
 }
 
 template <typename One, typename Two>
@@ -164,15 +165,32 @@ bool test_domain() {
     out_value_()(out);
 #endif
 
-    // THERE ARE NOT TEMPS HERE    domain.prepare_temporaries();
-    // domain.is_ready=true;
-    // domain.setup_computation();
-    domain.clone_to_gpu();
+    typedef boost::mpl::vector<
+  gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<0> >::type,
+    gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<1> >::type,
+    gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<2> >::type
+    > mpl_arg_type_list;
+
+    typedef typename boost::fusion::result_of::as_vector<mpl_arg_type_list>::type actual_arg_list_type;
+
+    actual_arg_list_type actual_arg_list;
+
+    boost::fusion::copy(domain.storage_pointers, actual_arg_list);
+
+#ifdef __CUDACC__
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, domain );
+#else
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
+#endif
+    
+    actual_arg_list_type* arg_list_device_ptr;
+    cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
+    cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
-    print_values<<<1,1>>>(domain.gpu_object_ptr);
+    print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
     cudaDeviceSynchronize();
 #ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
@@ -194,14 +212,23 @@ bool test_domain() {
     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
 #endif
 
-    //domain.setup_computation();
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( boost::fusion::make_vector(&coeff, &in, &out), domain );
-    domain.clone_to_gpu();
+
+    boost::fusion::copy(domain.storage_pointers, actual_arg_list);
+
+#ifdef __CUDACC__
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, domain );
+#else
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
+#endif
+    
+    // actual_arg_list_type* arg_list_device_ptr;
+    // cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
+    cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
-    print_values<<<1,1>>>(domain.gpu_object_ptr);
+    print_values<<<1,1>>>(arg_list_device_ptr);
     cudaDeviceSynchronize();
 #ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
@@ -213,6 +240,7 @@ bool test_domain() {
     in.m_data.update_cpu();
     out.m_data.update_cpu();
 
+    cudaFree(arg_list_device_ptr);
 #ifndef NDEBUG
     printf(" > %X %X\n", coeff.m_data.get_cpu_p(), coeff.m_data.get_pointer_to_use());
     out_value_()(coeff);

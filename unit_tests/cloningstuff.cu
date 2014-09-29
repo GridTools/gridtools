@@ -25,7 +25,7 @@ namespace cloningstuff_test {
         {}
 
         ~B() {
-            pointer_to_use.free_it();
+            //pointer_to_use.free_it();
         }
 
         void update_gpu() {
@@ -71,7 +71,6 @@ namespace cloningstuff_test {
 
     bool test_cloningstuff() {
         char s[30] = "The world will end ... now";
-
         A a(34, 30);
 
         // Copy the string to GPU
