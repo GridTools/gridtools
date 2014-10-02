@@ -28,6 +28,8 @@ target_link_libraries(laplacian_block ${exe_LIBS})
 add_executable(test_interface   expressions.cpp )
 target_link_libraries(test_interface ${exe_LIBS})
 
+add_executable( unstructured unstructured.cpp )
+target_link_libraries(unstructured ${exe_LIBS})
 
 add_executable(copy_naive   copy_stencil.cpp )
 add_executable(copy_block   copy_stencil.cpp )
