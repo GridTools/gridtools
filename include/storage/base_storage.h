@@ -154,7 +154,7 @@ namespace gridtools {
             if (is_set) {
                 //std::cout << "deleting " << std::hex << data << std::endl;
                 //backend_traits_t::delete_storage( m_data );
-	      m_data.free_it();
+	      //m_data.free_it();
                 //delete[] m_data;
             }
         }
