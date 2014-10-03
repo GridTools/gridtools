@@ -58,7 +58,7 @@ namespace gridtools {
                 // std::cout << "Moving pointers **********************************************" << std::endl;
                 // std::cout << typename boost::remove_pointer<typename boost::remove_const<typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
                 // (*(boost::fusion::at_c<1>(ze))).info();
-	      
+
 	      assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
             }
 
@@ -68,7 +68,7 @@ namespace gridtools {
             template <typename Iterator>
             GT_FUNCTION
             void operator()(Iterator & it) const {
-	      it.value+=it.stride;
+                it.value+=it.stride;
             }
         };
 
@@ -93,7 +93,7 @@ namespace gridtools {
 	    assign_storage<ID-1>::assign(l,r,i,j,k); //tail recursion
 	    }
 	};
-	
+
 	template<>
 	  struct assign_storage<0>{
 	  template<typename Left, typename Right>
@@ -123,7 +123,7 @@ namespace gridtools {
 	   /* boost::fusion::at_c<1>(local_iterators).value=&((*(boost::fusion::at_c<1>(local_domain.local_args)))(i,j,k)); */
 	   /* boost::fusion::at_c<0>(local_iterators).stride=(*boost::fusion::at_c<0>(local_domain.local_args)).stride_k(); */
 	   /* boost::fusion::at_c<1>(local_iterators).stride=(*boost::fusion::at_c<1>(local_domain.local_args)).stride_k(); */
-	  
+
 	   /* printf("strides: %d\n", boost::fusion::at_c<0>(local_domain.local_args)->stride_k()); */
 	   /* printf("strides: %d\n", boost::fusion::at_c<1>(local_domain.local_args)->stride_k()); */
 

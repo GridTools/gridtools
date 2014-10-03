@@ -1,3 +1,4 @@
+
 #pragma once
 #include <gt_for_each/for_each.hpp>
 
@@ -50,7 +51,7 @@ namespace gridtools{
             }
 
         template <typename T>
-        inline static void delete_storage(wrap_pointer<T>& data){ delete[] &data[0];}
+	  inline static void delete_storage(wrap_pointer<T>& data){ /*delete[] &data[0];*/}
 
         template <typename T>
         struct pointer

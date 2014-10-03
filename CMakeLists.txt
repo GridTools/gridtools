@@ -51,8 +51,10 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
+# compile to PTX assembly format
 set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
 if( USE_GPU )
+  MESSAGE("using GPU")
   find_package(CUDA REQUIRED)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
