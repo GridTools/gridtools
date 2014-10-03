@@ -6,6 +6,8 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/size.hpp>
+#include <boost/fusion/view/zip_view.hpp>
+
 #include "iterate_domain.h"
 
 namespace gridtools {
@@ -26,10 +28,18 @@ namespace gridtools {
             };
         };
 
+	// iterator decorator
+	template <typename U>
+	  struct strided_iterator  {
+	    typename U::iterator_type value; //double*
+	    int stride;
+	  };
+
         struct get_iterator {
             template <typename U>
             struct apply {
-                typedef typename U::iterator_type type;
+	      typedef strided_iterator<U> type;
+	      
             };
         };
 
@@ -125,7 +135,6 @@ namespace gridtools {
                 return d->gpu_object_ptr;
             }
         };
-
 
         GT_FUNCTION_WARNING
         local_domain_base() {}

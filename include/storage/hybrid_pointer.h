@@ -83,9 +83,9 @@ namespace gridtools {
 
         void free_it() {
 #ifdef __CUDACC__
-            cudaFree(gpu_p);
+	  cudaFree(gpu_p);
 #endif
-            this->free_it();
+	  wrap_pointer<T>::free_it();
         }
 
         void update_gpu() {

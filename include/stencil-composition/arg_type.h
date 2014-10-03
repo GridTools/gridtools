@@ -133,7 +133,12 @@ namespace gridtools {
 	  typedef arg_type<I> type;
         };
 
-        int offset[3]={0,0,0};
+        int offset[3]
+#if __cplusplus==201103L
+	={0,0,0}
+#endif
+	  ;
+
         typedef boost::mpl::int_<I> index_type;
         typedef Range range_type;
 
@@ -144,6 +149,7 @@ namespace gridtools {
             offset[2] = k;
         }
 
+#if __cplusplus==201103L
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
       // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
@@ -178,6 +184,7 @@ namespace gridtools {
             boost::fusion::vector<X...> vec(x...);
             boost::fusion::for_each(vec, initialize(offset));
         }
+#endif
 #endif
 
         GT_FUNCTION
@@ -279,7 +286,7 @@ namespace gridtools {
                  << ", NON TEMP" << " > ]";
     }
 
-
+#if __cplusplus>=201103L
 
     template <typename ArgType1, typename ArgType2>
     struct expr{
@@ -330,5 +337,7 @@ namespace gridtools {
         template<typename ArgType1, typename ArgType2>
         expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
     }//namespace expressions
+
+#endif
 
 } // namespace gridtools

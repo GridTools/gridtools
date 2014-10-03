@@ -43,23 +43,25 @@ namespace gridtools{
             GT_FUNCTION
             void loop(int from, int to) const {
 #ifdef __CUDACC__
-	        cudaProfilerStart();
+	      //cudaProfilerStart();
 #endif
-            printf("forward/backward iterations \n");
+		//IntervalType::static_info();
+		//printf("forward/backward iterations \n");
             for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
-                traits::functor_t::Do(this->m_domain, IntervalType());
-                printf("k=%d, \n", k);
-
-                IterationPolicy::increment(this->m_domain);
+	      /* printf("from=%d \n", from); */
+	      /* printf("to=%d \n", to); */
+	      /* printf("k=%d \n", k); */
+	      traits::functor_t::Do(this->m_domain, IntervalType());
+	      IterationPolicy::increment(this->m_domain);
             }
 #ifdef __CUDACC__
-		cudaProfilerStop();
+	    //cudaProfilerStop();
 #endif
             }
         };
 
 /**
-   @brief partial specialization for the parallel case
+   @brief partial specialization for the parallel case (to be implemented)
 */
         template<
             typename ExtraArguments>
