@@ -81,7 +81,7 @@ bool copy_stencil(int x, int y, int z) {
     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<2,1,0> >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-3.5, std::string("in"));
+    storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
 
     for(int i=0; i<d1; ++i)
         for(int j=0; j<d2; ++j)
@@ -91,7 +91,7 @@ bool copy_stencil(int x, int y, int z) {
 	    }
 
 
-    storage_type out(d1,d2,d3,1.5, std::string("out"));
+    storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
 
     //out.print();
 

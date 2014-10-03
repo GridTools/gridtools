@@ -183,7 +183,7 @@ namespace gpu_clone_test {
         A a2(w1, w2);
         a1.update_gpu_copy();
 
-        a1.update_gpu_copy();
+        a2.update_gpu_copy();
 
         mul2<<<1,1>>>(a1.gpu_object_ptr);
         a1.clone_from_gpu();

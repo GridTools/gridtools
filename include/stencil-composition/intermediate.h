@@ -83,7 +83,7 @@ namespace gridtools {
 
             /**Elem is a local_domain*/
             template <typename Elem>
-            GT_FUNCTION
+            //GT_FUNCTION
             void operator()(Elem & elem) const {
                 elem.init(m_dom, m_arg_list, 0,0,0);
                 elem.clone_to_gpu();
@@ -662,7 +662,7 @@ namespace gridtools {
             // std::cout << "--- ---" << std::endl;
             // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
-#ifndef NDEBUG 
+#ifndef NDEBUG
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
 #endif
             Backend::template run<functors_list, range_sizes, loop_intervals_t, functor_do_method_lookup_maps, typename MssType::execution_engine_t>( m_coords, local_domain_list );
