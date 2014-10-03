@@ -35,9 +35,13 @@ namespace gridtools {
                   typename ExtraArguments>
         __global__
         void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, int starti, int startj, int nx, int ny) {
-            int i = blockIdx.x * blockDim.x + threadIdx.x;
-            int j = blockIdx.y * blockDim.y + threadIdx.y;
+            /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
+            /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
             int z = coords->template value_at<typename Traits::first_hit_t>();
+
+	    int i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+	    int j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
+
 
             if ((i < nx) && (j < ny)) {
                 typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
@@ -50,6 +54,7 @@ namespace gridtools {
                      >
                      (it_domain,*coords));
             }
+
         }
 
         /**
@@ -176,13 +181,13 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>
+		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> >/*<<<blocks, threads>>>*/<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
                      f->m_coords.j_low_bound() + range_t::jminus::value,
-                     nx,
-                     ny);
+                     (nx+1),
+		     (ny+1));
                 cudaDeviceSynchronize();
 
             }

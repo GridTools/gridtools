@@ -113,9 +113,9 @@ namespace gridtools {
             m_dims[0]=( dim1 );
             m_dims[1]=( dim2 );
             m_dims[2]=( dim3 );
-            strides[0]=( layout::template find<2>(m_dims)*layout::template find<1>(m_dims) );
-            strides[1]=( layout::template find<2>(m_dims) );
-            strides[2]=( 1 );
+            m_strides[0]=( layout::template find<2>(m_dims)*layout::template find<1>(m_dims) );
+            m_strides[1]=( layout::template find<2>(m_dims) );
+            m_strides[2]=( 1 );
 #ifdef _GT_RANDOM_INPUT
             srand(12345);
 #endif
@@ -141,9 +141,9 @@ namespace gridtools {
             m_dims[1] = other.m_dims[1];
             m_dims[2] = other.m_dims[2];
 
-            strides[0] = other.strides[0];
-            strides[1] = other.strides[1];
-            strides[2] = other.strides[2];
+            m_strides[0] = other.m_strides[0];
+            m_strides[1] = other.m_strides[1];
+            m_strides[2] = other.m_strides[2];
         }
 
         explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL) {
@@ -153,7 +153,8 @@ namespace gridtools {
         ~base_storage() {
             if (is_set) {
                 //std::cout << "deleting " << std::hex << data << std::endl;
-                backend_traits_t::delete_storage( m_data );
+                //backend_traits_t::delete_storage( m_data );
+	      m_data.free_it();
                 //delete[] m_data;
             }
         }
@@ -195,9 +196,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(int i, int j, int k) {
             /* std::cout<<"indices= "<<i<<" "<<j<<" "<<k<<std::endl; */
-            backend_traits_t::assertion(_index(i,j,k) >= 0);
-            backend_traits_t::assertion(_index(i,j,k) < m_size);
-            return m_data[_index(i,j,k)];
+            /* backend_traits_t::assertion(_index(i,j,k) >= 0); */
+            /* backend_traits_t::assertion(_index(i,j,k) < m_size); */
+	  return m_data[_index(i,j,k)];
         }
 
 
@@ -211,7 +212,7 @@ namespace gridtools {
         template <int I>
         GT_FUNCTION
         int stride_along() const {
-            return _impl::get_stride<I, layout>::get(strides); /*layout::template at_<I>::value];*/
+            return _impl::get_stride<I, layout>::get(m_strides); /*layout::template at_<I>::value];*/
         }
 
         GT_FUNCTION
@@ -222,15 +223,21 @@ namespace gridtools {
             layout::template find<2>(i,j,k);
         }
 
+	GT_FUNCTION
+	inline int stride_k() const {
+	  return layout::find<2>(m_strides);//=512*512=262144
+	}
+
         void print() const {
             print(std::cout);
         }
+	void print_value(int i, int j, int k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, m_data[_index(i, j, k)], _index(i, j, k));}
 
     static const std::string info_string;
 
 //private:
     int m_dims[3];
-    int strides[3];
+    int m_strides[3];
     int m_size;
     bool is_set;
     const std::string& m_name;

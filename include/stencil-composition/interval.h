@@ -25,6 +25,10 @@ namespace gridtools {
         GT_FUNCTION
         interval(TFromLevel) {};
 
+      static void static_info(){
+	printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);
+	printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);      
+      }
         // check the parameters are of type level
         BOOST_STATIC_ASSERT(is_level<TFromLevel>::value);
         BOOST_STATIC_ASSERT(is_level<TToLevel>::value);
