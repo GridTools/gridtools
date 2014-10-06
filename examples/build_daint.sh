@@ -13,7 +13,12 @@ export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
 
-mkdir build; cd build; 
+if [ -d build ]
+then
+    rm -rf build
+fi
+mkdir build; 
+cd build; 
 
 cmake \
 -DCUDA_NVCC_FLAGS:STRING=-arch=sm_35 \
