@@ -31,6 +31,6 @@ cmake \
 -DUSE_MPI_COMPILER:BOOL=OFF  \
 -DPAPI_WRAP_PREFIX:PATH=~/builds/GridTools/gridtools/include/external/perfcount \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG -DUSE_PAPI_WRAP"  \
- ../test
+ ../
 
 make -j8; make test; rm -rf *
