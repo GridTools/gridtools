@@ -37,7 +37,7 @@ struct interface{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-      dom(in()) = dom(out()+in()/in(z(-1))*out(1,3,1)+0.8);//dom(out(z(-1))+in()+in()/(in()*in()));//in()+(in()/in()));
+      dom(in()) = dom(out()+in()/in(z(-1))*out(1,3,1));//dom(out(z(-1))+in()+in()/(in()*in()));//in()+(in()/in()));
     }
 };
 
