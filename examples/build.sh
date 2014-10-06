@@ -1,4 +1,7 @@
 #!/bin/bash
 
-if ( test -f "build_$1.sh" )
-    eval "echo \"/build_$1.sh\""
+if [ -f "build_$1.sh" ]
+then
+    echo \"/build_$1.sh\"
+    eval "./build_$1.sh"
+fi
