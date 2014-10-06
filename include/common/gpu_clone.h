@@ -59,7 +59,7 @@ The template argument T is supposed to be of mask_object type */
         __host__ __device__
         clonable_to_gpu() {
 #ifndef __CUDA_ARCH__
-            cudaMalloc(&gpu_object_ptr, sizeof(DerivedType));
+	  cudaMalloc(&gpu_object_ptr, sizeof(DerivedType));
 #endif
         }
 
@@ -74,21 +74,21 @@ The template argument T is supposed to be of mask_object type */
             construct<<<1,1>>>(*maskT);
             cudaDeviceSynchronize();
         }
-
-        /** Member function to update the object from the gpu calling the copy constructor of the
-            derived type.
-         */
-        void clone_from_gpu() {
+      
+      /** Member function to update the object from the gpu calling the copy constructor of the
+	  derived type.
+      */
+      void clone_from_gpu() {
             mask_object<DerivedType> space;
-
+	    
             cudaMemcpy(&space, gpu_object_ptr, sizeof(DerivedType), cudaMemcpyDeviceToHost);
-
+	    
             DerivedType *x = reconstruct(this, reinterpret_cast<const DerivedType*>(&space));
-        }
-
-        ~clonable_to_gpu() {
-            cudaFree(gpu_object_ptr);
-        }
+      }
+      
+      ~clonable_to_gpu() {
+	cudaFree(gpu_object_ptr);
+      }
     };
 #else
     template <typename DerivedType>
