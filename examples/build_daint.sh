@@ -34,5 +34,4 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG -DUSE_PAPI_WRAP"  \
  ../
 
-make -j8; make test;# rm -rf *
-#ctest -R Halo
+make -j8; make test; rm -rf *
