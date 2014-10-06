@@ -1,3 +1,5 @@
+#if __cplusplus>=201103L
+
 #pragma once
 
 
@@ -130,3 +132,5 @@ bool test_interface(int x, int y, int z) {
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
     return        true;
 }
+
+#endif //#if __cplusplus>=201103L

@@ -38,7 +38,7 @@ namespace gridtools {
         typedef boost::mpl::int_<PlusJ> plusj;
 
         using base_type::m_dims;
-        using base_type::strides;
+        using base_type::m_strides;
         using base_type::m_size;
         using base_type::is_set;
 

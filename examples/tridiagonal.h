@@ -1,3 +1,4 @@
+#if __cplusplus>=201103L
 #pragma once
 
 
@@ -368,3 +369,5 @@ PAPI_stop(event_set, values);
 // #endif
                                 true;
 }
+
+#endif //#if __cplusplus>=201103L
