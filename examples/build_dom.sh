@@ -18,6 +18,7 @@ cmake \
 -DCUDA_NVCC_FLAGS:STRING=-arch=sm_35 \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DUSE_GPU:BOOL=ON \
+-DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DBoost_INCLUDE_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473/include \
 -DBoost_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473  \
