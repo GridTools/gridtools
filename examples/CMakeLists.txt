@@ -74,6 +74,5 @@ if(CUDA_FOUND)
 
   endif(COMPILE_TO_PTX)
 endif()
-endif()
 
 add_subdirectory( communication )
