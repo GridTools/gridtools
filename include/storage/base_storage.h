@@ -225,7 +225,7 @@ namespace gridtools {
 
 	GT_FUNCTION
 	inline int stride_k() const {
-	  return layout::find<2>(m_strides);//=512*512=262144
+	  return layout::template find<2>(m_strides);//=512*512=262144
 	}
 
         void print() const {

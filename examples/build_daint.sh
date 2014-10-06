@@ -8,7 +8,7 @@ module load cudatoolkit
 module load papi
 module load gcc/4.8.2
 module unload cuda
-module load cuda/6.5
+module load cudatoolkit
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
@@ -30,8 +30,9 @@ cmake \
 -DGCL_ONLY:BOOL=OFF \
 -DUSE_MPI:BOOL=ON \
 -DUSE_MPI_COMPILER:BOOL=OFF  \
--DPAPI_WRAP_PREFIX:PATH=~/builds/GridTools/gridtools/include/external/perfcount \
+-DPAPI_WRAP_PREFIX:PATH=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG -DUSE_PAPI_WRAP"  \
  ../
 
-make -j8; make test; rm -rf *
+make -j8; make test;# rm -rf *
+#ctest -R Halo
