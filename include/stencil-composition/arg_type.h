@@ -336,6 +336,7 @@ namespace gridtools {
 
         template<typename ArgType1, typename ArgType2>
         expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
+
     }//namespace expressions
 
 #endif

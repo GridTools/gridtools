@@ -289,7 +289,6 @@ if( PAPI_start(event_set) != PAPI_OK)
 
 #ifdef USE_PAPI
 double dummy=0.5;
-double dummy2=0.8;
 if( PAPI_read(event_set, values) != PAPI_OK)
     handle_error(1);
 printf("%f After reading the counters: %lld\n", dummy, values[0]);
