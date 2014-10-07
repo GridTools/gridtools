@@ -66,6 +66,22 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
+    template<typename ArgType, typename Storage>
+    struct arg_storage_pair {
+        typedef ArgType arg_type;
+        typedef Storage storage_type;
+
+        Storage *ptr;
+
+        arg_storage_pair(Storage* p)
+            : ptr(p)
+        {}
+
+        Storage* operator*() {
+            return ptr;
+        }
+    };
+
     /**
      * Type to create placeholders for data fields.
      *
@@ -81,6 +97,12 @@ namespace gridtools {
         typedef typename T::value_type value_type;
         typedef boost::mpl::int_<I> index_type;
         typedef boost::mpl::int_<I> index;
+
+        template<typename Storage>
+        arg_storage_pair<arg<I,T>, Storage>
+        operator=(Storage& ref) {
+            return arg_storage_pair<arg<I,T>, Storage>(&ref);
+        }
 
         static void info() {
             std::cout << "Arg on real storage with index " << I;

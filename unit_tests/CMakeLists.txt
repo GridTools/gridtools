@@ -12,6 +12,11 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 
+add_executable(test-assign-placeholders test-assign-placeholders.cpp)
+add_test(tests.test-assign-placeholders "${CMAKE_BINARY_DIR}/build/test-assign-placeholders")
+set_target_properties(test-assign-placeholders PROPERTIES COMPILE_FLAGS "-std=c++11")
+
+
 if (GTEST_FOUND)
   add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
   # include boost

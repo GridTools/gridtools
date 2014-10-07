@@ -134,7 +134,37 @@ namespace gridtools {
          */
         arg_list original_pointers;
 
+        void assign_pointers() {}
+
+        template <typename Arg0, typename... OtherArgs>
+        void assign_pointers(Arg0 const& arg0, OtherArgs... other_args) 
+        {
+            boost::fusion::at<typename Arg0::arg_type::index_type>(storage_pointers) = arg0.ptr;
+            assign_pointers(other_args...);
+        }
+
     public:
+
+        template <typename... Args>
+        domain_type(Args... args) 
+            : storage_pointers()
+        {
+            int i = sizeof...(args);
+            std::cout << i << std::endl;
+
+#ifndef NDEBUG
+            std::cout << "These are the pointers before assignment" << std::endl;
+            boost::fusion::for_each(storage_pointers, _debug::print_deref());
+            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+#endif
+
+            assign_pointers(args...);
+
+#ifndef NDEBUG
+            std::cout << "These are the pointers after assignment" << std::endl;
+            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+#endif
+        }
 
         /**
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
@@ -142,7 +172,7 @@ namespace gridtools {
          */
         template <typename RealStorage>
         explicit domain_type(RealStorage const & real_storage)
-         : storage_pointers()
+            : storage_pointers()
         {
 
 #ifndef NDEBUG
