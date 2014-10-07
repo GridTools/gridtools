@@ -52,15 +52,15 @@ cmake \
 -DPAPI_WRAP_PREFIX:PATH=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
- ../../../../
+../
 
 make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/daint/$1/$2/build/tests_gpu"
+salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/build/tests_gpu"
 else
 make tests;
-salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/daint/$1/$2/build/tests"
+salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/build/tests"
 fi
-rm -rf *
+#rm -rf *
