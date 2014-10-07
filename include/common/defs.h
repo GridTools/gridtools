@@ -33,4 +33,16 @@ namespace gridtools{  namespace enumtype{
 }
 
 
+#ifndef FLOAT_PRECISION
+#define FLOAT_PRECISION 8
+#endif
+
+#if FLOAT_PRECISION == 4
+    typedef float float_type;
+#elif FLOAT_PRECISION == 8
+    typedef double float_type;
+#else
+#error float precision not properly set (4 or 8 bytes supported)
+#endif
+
 }

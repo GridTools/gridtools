@@ -150,10 +150,11 @@ bool horizontal_diffusion(int x, int y, int z) {
 #endif
 #endif
 
+    typedef gridtools::layout_map<0,1,2> layout_t;
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
@@ -245,7 +246,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+        gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (
