@@ -9,10 +9,10 @@ then
     fi
     git clone https://github.com/ericniebler/fusion.git ../fusion
 
-    if [ -d "build" ]
-    then
-        rm -rf "build"
-    fi
+#    if [ -d "build" ]
+#    then
+    rm -rf "build"
+#    fi
     mkdir -p "build";
     cd "build";
 
