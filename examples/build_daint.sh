@@ -65,6 +65,7 @@ aprun ./build/tests
 " > job
 
 if [ "x$TARGET" == "xgpu" ]
+then
 make tests_gpu;
 echo "
 aprun ./build/tests_gpu
