@@ -68,6 +68,7 @@ namespace gridtools {
     }//namespace _impl
 
     namespace _debug{
+#ifndef NDEBUG
         struct print_pointer {
             template <typename StorageType>
             GT_FUNCTION_WARNING
@@ -85,6 +86,7 @@ namespace gridtools {
             }
 #endif
         };
+#endif
     }//namespace _debug
 
 /**
@@ -104,11 +106,11 @@ namespace gridtools {
 
     public:
         explicit base_storage(int dim1, int dim2, int dim3,
-                              value_type init = value_type()/*, std::string const& s = std::string("default name")*/ ):
+                              value_type init = value_type(), std::string const& s = std::string("default name") ):
             m_size( dim1 * dim2 * dim3 ),
             is_set( true ),
-            m_data( m_size )//,
-            //m_name(s)
+            m_data( m_size ),
+            m_name(s)
             {
             m_dims[0]=( dim1 );
             m_dims[1]=( dim2 );
@@ -134,7 +136,7 @@ namespace gridtools {
         base_storage(base_storage const& other)
             : m_size(other.m_size)
             , is_set(other.is_set)
-              //, m_name(other.m_name)
+            , m_name(other.m_name)
             , m_data(other.m_data)
         {
             m_dims[0] = other.m_dims[0];
@@ -146,7 +148,7 @@ namespace gridtools {
             m_strides[2] = other.m_strides[2];
         }
 
-        explicit base_storage(): /*m_name("default_name"),*/ m_data((value_type*)NULL) {
+        explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL) {
             is_set=false;
         }
 
@@ -159,9 +161,9 @@ namespace gridtools {
             }
         }
 
-        // std::string const& name() const {
-        //     return m_name;
-        // }
+        std::string const& name() const {
+            return m_name;
+        }
 
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
@@ -236,11 +238,11 @@ namespace gridtools {
     static const std::string info_string;
 
 //private:
-    int m_dims[3];
-    int m_strides[3];
-    int m_size;
-    bool is_set;
-    // const std::string& m_name;
+        int m_dims[3];
+        int m_strides[3];
+        int m_size;
+        bool is_set;
+        const std::string& m_name;
         typename backend_traits_t::template pointer<value_type>::type m_data;
         //iterator_type m_data;
 
