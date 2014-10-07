@@ -219,5 +219,5 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return  true;
+    return  out(0,0,0)==0. && out(511,511,0)==1022. && out(511,0,59)==570. && out(0,511,59)==570. && out(511,511,59)==1081.;
 }

@@ -57,7 +57,7 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/build/tests_gpu"
+salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/gpu/build/build/tests_gpu"
 else
 make tests;
 ./build/tests
