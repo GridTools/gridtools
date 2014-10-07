@@ -34,7 +34,7 @@ export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
 echo "modules loaded: start compilation"
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING=-arch=sm_35 \
+-DCUDA_NVCC_FLAGS:STRING=-arch=sm_30 \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
