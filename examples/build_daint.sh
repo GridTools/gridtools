@@ -54,4 +54,16 @@ cmake \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
  ../../../../
 
-make -j8; make tests ; rm -rf *
+make -j8; make tests; make tests_gpu;
+echo "#!/bin/bash
+#SBATCH --time=00:05:00
+#SBATCH --nodes=1
+#SBATCH --output=out
+#SBATCH --error=err
+aprun ./build/tests
+aprun ./build/tests_gpu
+" > job
+sbatch job
+cat out
+cat err
+rm -rf *
