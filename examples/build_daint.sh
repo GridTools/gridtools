@@ -8,7 +8,7 @@ USE_GPU=ON
 else
 USE_GPU=OFF
 fi
-echo USE_GPU
+echo "USE_GPU=$USE_GPU"
 
 if [ "x$REAL_TYPE" == "xfloat" ]
 then
@@ -16,7 +16,8 @@ SINGLE_PRECISION=ON
 else
 INGLE_PRECISION=OFF
 fi
-
+echo "SINGLE_PRECISION=$SINGLE_PRECISION"
+pwd
 
 module load cmake
 module load boost
@@ -30,6 +31,7 @@ module load cudatoolkit
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
+echo"modules loaded: start compilation"
 
 cmake \
 -DCUDA_NVCC_FLAGS:STRING=-arch=sm_35 \
@@ -43,7 +45,6 @@ cmake \
 -DUSE_PAPI:BOOL=OFF \
 -DGNU_COVERAGE:BOOL=ON \
 -DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \
--DPAPI_PREFIX:PATH=/opt/cray/papi/5.2.0 \
 -DPAPI_WRAP_LIBRARY:BOOL=ON \
 -DGCL_ONLY:BOOL=OFF \
 -DUSE_MPI:BOOL=ON \
