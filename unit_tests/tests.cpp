@@ -4,6 +4,7 @@
 #include "test_smallstorage_indices.h"
 #include "boundary_conditions_test.h"
 #include <../examples/interface1.h>
+#include <../examples/copy_stencil.h>
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
@@ -45,6 +46,9 @@ TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion(7, 13, 5), true);
 }
 
+TEST(stencil, copy) {
+    EXPECT_EQ(copy_stencil(512, 512, 60), true);
+}
 
 int main(int argc, char** argv)
 {
