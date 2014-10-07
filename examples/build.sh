@@ -9,9 +9,9 @@ then
     fi
     git clone https://github.com/ericniebler/fusion.git ../fusion
 
-    if [ -d build ]
+    if [ -d "build/$1/$2/$3" ]
     then
-        rm -rf build
+        rm -rf "build/$1/$2/$3"
     fi
     mkdir -p "build/$1/$2/$3";
     cd "build/$1/$2/$3";
