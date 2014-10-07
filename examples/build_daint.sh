@@ -73,7 +73,6 @@ wait
 " >> job
 fi
 sbatch job
-sattach $SLURM_JOB_ID
 cat out
 cat err
 rm -rf *
