@@ -9,14 +9,14 @@ then
     fi
     git clone https://github.com/ericniebler/fusion.git ../fusion
 
-    if [ -d "build/$1/$2/$3" ]
+    if [ -d "build" ]
     then
-        rm -rf "build/$1/$2/$3"
+        rm -rf "build"
     fi
-    mkdir -p "build/$1/$2/$3";
-    cd "build/$1/$2/$3";
+    mkdir -p "build";
+    cd "build";
 
-    eval "../../../../examples/build_$1.sh $2 $3"
+    eval "../examples/build_$1.sh $2 $3"
 else
     echo "ERROR: node $1 not supported"
 fi
