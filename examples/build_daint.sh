@@ -34,7 +34,7 @@ export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
 echo "modules loaded: start compilation"
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING=-arch=sm_30 \
+-DCUDA_NVCC_FLAGS:STRING="-arch=sm_30  --ptxas-options -v" \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
@@ -48,7 +48,7 @@ cmake \
 -DPAPI_WRAP_LIBRARY:BOOL=ON \
 -DGCL_ONLY:BOOL=OFF \
 -DUSE_MPI:BOOL=ON \
--DUSE_MPI_COMPILER:BOOL=OFF  \
+-DUSE_MPI_COMPILER:BOOL=OFF \
 -DPAPI_WRAP_PREFIX:PATH=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
@@ -61,6 +61,6 @@ make tests_gpu;
 salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/build/tests_gpu"
 else
 make tests;
-salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/build/tests"
+./build/tests
 fi
 #rm -rf *
