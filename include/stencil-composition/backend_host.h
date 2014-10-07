@@ -83,13 +83,13 @@ namespace gridtools {
 
 
                     for (int i = f->m_starti + range_t::iminus::value;
-                         i < f->m_starti + f->m_BI + range_t::iplus::value;
+                         i <= f->m_starti + f->m_BI + range_t::iplus::value;
                          ++i)
                         for (int j = f->m_startj + range_t::jminus::value;
-                             j < f->m_startj + f->m_BJ + range_t::jplus::value;
+                             j <= f->m_startj + f->m_BJ + range_t::jplus::value;
                              ++j)
                             {
-                                std::cout << "Move to : " << i << ", " << j << std::endl;
+                                //std::cout << "Move to : " << i << ", " << j << std::endl;
 
                                 iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 

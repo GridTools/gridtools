@@ -8,5 +8,5 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return !copy_stencil(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return !copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 }

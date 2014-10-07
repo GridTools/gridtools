@@ -43,11 +43,11 @@ TEST(boundaryconditions, usingcopy3) {
 }
 
 TEST(stencil, horizontaldiffusion) {
-    EXPECT_EQ(horizontal_diffusion(7, 13, 5), true);
+    EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
 }
 
 TEST(stencil, copy) {
-    EXPECT_EQ(copy_stencil(512, 512, 60), true);
+    EXPECT_EQ(copy_stencil::test(512, 512, 60), true);
 }
 
 int main(int argc, char** argv)

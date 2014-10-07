@@ -28,6 +28,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
@@ -129,7 +130,7 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool horizontal_diffusion(int x, int y, int z) {
+bool test(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -322,3 +323,5 @@ PAPI_stop(event_set, values);
 // #endif
                                 true;
 }
+
+}//namespace horizontal_diffusion
