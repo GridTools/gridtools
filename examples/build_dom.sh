@@ -12,7 +12,7 @@ module load gcc/4.8.2
 
 pwd
 ls
-mkdir build; cd build; 
+mkdir build; cd build;
 
 cmake \
 -DCUDA_NVCC_FLAGS:STRING=-arch=sm_35 \
@@ -36,4 +36,13 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG -DUSE_PAPI_WRAP"  \
  ../
 
-make -j8; make test; rm -rf *
+make -j8;
+if [ "x$TARGET" == "xgpu" ]
+then
+make tests_gpu;
+salloc --gres=gpu:1 aprun "build/dom/$1/$2/build/tests_gpu"
+else
+make tests;
+salloc --gres=gpu:1 aprun "build/dom/$1/$2/build/tests"
+fi
+rm -rf *
