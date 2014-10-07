@@ -170,9 +170,11 @@ namespace gridtools {
             boost::fusion::for_each(fview, _debug::print_deref());
 #endif
             boost::fusion::copy(real_storage, fview);
+
+#ifndef NDEBUG
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-
+#endif
             view_type original_fview(original_pointers);
             boost::fusion::copy(real_storage, original_fview);
         }
@@ -189,14 +191,16 @@ namespace gridtools {
         { }
 #endif
 
+#ifndef NDEBUG
         GT_FUNCTION
         void info() {
-            // printf("domain_type: Storage pointers\n");
-            // boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
-            // printf("domain_type: Original pointers\n");
-            // boost::fusion::for_each(original_pointers, _debug::print_domain_info());
-            // printf("domain_type: End info\n");
+            printf("domain_type: Storage pointers\n");
+            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+            printf("domain_type: Original pointers\n");
+            boost::fusion::for_each(original_pointers, _debug::print_domain_info());
+            printf("domain_type: End info\n");
         }
+#endif
 
         template <typename Index>
         void storage_info() const {
@@ -217,12 +221,6 @@ namespace gridtools {
             //           << ", "
             //           << std::endl;
         }
-
-        // ~domain_type() {
-        //     typedef boost::fusion::filter_view<arg_list,
-        //         is_temporary_storage<boost::mpl::_> > tmp_view_type;
-        //     tmp_view_type fview(storage_pointers);
-        // }
 
         /** @brief copy the pointers from the hdevice to the host */
         void finalize_computation() {
