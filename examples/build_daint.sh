@@ -2,7 +2,7 @@
 
 TARGET=$1
 REAL_TYPE=$2
-if ["x$TARGET"=="xgpu"]
+if [ "x$TARGET" == "xgpu" ]
 then
 USE_GPU=ON
 else
@@ -10,7 +10,7 @@ USE_GPU=OFF
 fi
 echo USE_GPU
 
-if ["x$REAL_TYPE"=="xfloat"]
+if [ "x$REAL_TYPE" == "xfloat" ]
 then
 SINGLE_PRECISION=ON
 else
