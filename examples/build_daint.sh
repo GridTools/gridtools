@@ -54,25 +54,13 @@ cmake \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
  ../../../../
 
-make -j8; make tests;
-
-echo "#!/bin/bash
-#SBATCH --time=00:05:00
-#SBATCH --nodes=1
-#SBATCH --output=out
-#SBATCH --error=err
-srun ./build/tests&
-wait
-" > job
+make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-echo "
-srun ./build/tests_gpu&
-wait
-" >> job
+salloc --gres=gpu:1 aprun "build/daint/$1/$2/build/tests_gpu"
+else
+make tests;
+salloc --gres=gpu:1 aprun "build/daint/$1/$2/build/tests"
 fi
-sbatch job
-cat out
-cat err
 rm -rf *
