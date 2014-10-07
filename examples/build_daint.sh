@@ -10,7 +10,7 @@ USE_GPU=OFF
 fi
 echo USE_GPU
 
-if(RAL_TYPE=float)
+if(x$REAL_TYPE=xfloat)
 then
 SINGLE_PRECISION=ON
 else
