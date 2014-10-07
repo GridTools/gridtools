@@ -8,5 +8,5 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return !horizontal_diffusion(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return !horizontal_diffusion::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 }
