@@ -54,15 +54,22 @@ cmake \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
  ../../../../
 
-make -j8; make tests; make tests_gpu;
+make -j8; make tests;
+
 echo "#!/bin/bash
 #SBATCH --time=00:05:00
 #SBATCH --nodes=1
 #SBATCH --output=out
 #SBATCH --error=err
 aprun ./build/tests
-aprun ./build/tests_gpu
 " > job
+
+if [ "x$TARGET" == "xgpu" ]
+make tests_gpu;
+echo "
+aprun ./build/tests_gpu
+" >> job
+fi
 sbatch job
 cat out
 cat err
