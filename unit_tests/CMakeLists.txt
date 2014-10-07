@@ -47,12 +47,15 @@ if (GTEST_FOUND)
     set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})
 
 if(GNU_COVERAGE)
+  if(GCOVR_PATH)
+    set( GCOVR_PATH ${GCOVR_PATH}/ )
+  endif( GCOVR_PATH )
   add_custom_command(TARGET tests
     POST_BUILD
     COMMAND echo "running the coverage sampling"
     COMMAND $ENV{BIN_DIR}/tests
-    COMMAND gcovr  -r $ENV{SRC_DIR}
-    COMMAND gcovr  --branches -r $ENV{SRC_DIR}
+    COMMAND ${GCOVR_PATH}gcovr  -r $ENV{SRC_DIR}
+    COMMAND ${GCOVR_PATH}gcovr  --branches -r $ENV{SRC_DIR}
     )
 endif()
 

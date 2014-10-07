@@ -424,7 +424,7 @@ namespace gridtools {
  * @class
 *  @brief structure collecting helper metafunctions
  * */
-    template <typename Backend, typename MssType, typename DomainType, typename Coords>
+    template <typename Backend, typename LayoutType,  typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
 
@@ -486,7 +486,7 @@ namespace gridtools {
          * backend with the interface that takes the range sizes. This
          * must be done before getting the local_domain
          */
-        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::type mpl_actual_tmp_pairs;
+        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes, float_type, /*layout_map<0,1,2>*/LayoutType >::type mpl_actual_tmp_pairs;
 
         typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
