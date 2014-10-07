@@ -11,10 +11,10 @@ then
 
 #    if [ -d "build" ]
 #    then
-    rm -rf "build"
+    rm -rf build
 #    fi
-    mkdir -p "build";
-    cd "build";
+    mkdir -p build;
+    cd build;
 
     eval "../examples/build_$1.sh $2 $3"
 else

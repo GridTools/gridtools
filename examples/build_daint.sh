@@ -56,12 +56,12 @@ echo "modules loaded: start compilation"
 
 #make -j8;
 
-if [ "x$TARGET" == "xgpu" ]
-then
+#if [ "x$TARGET" == "xgpu" ]
+#then
 #make tests_gpu;
 #salloc --gres=gpu:1 aprun "/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/cpu/build/build/tests_gpu"
-else
+#else
 #make tests;
 #./build/tests
-fi
+#fi
 rm -rf *
