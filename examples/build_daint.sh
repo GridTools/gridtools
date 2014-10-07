@@ -61,17 +61,19 @@ echo "#!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --output=out
 #SBATCH --error=err
-aprun ./build/tests
+srun ./build/tests&
+wait
 " > job
-
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
 echo "
-aprun ./build/tests_gpu
+srun ./build/tests_gpu&
+wait
 " >> job
 fi
 sbatch job
+sattach $SLURM_JOB_ID
 cat out
 cat err
 rm -rf *
