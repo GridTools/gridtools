@@ -57,9 +57,9 @@ bool assign_placeholders() {
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
 
-    printf("coeff (3) pointer: %x\n", &coeff);
-    printf("in    (4) pointer: %x\n", &in);
-    printf("out   (5) pointer: %x\n", &out);
+    // printf("coeff (3) pointer: %x\n", &coeff);
+    // printf("in    (4) pointer: %x\n", &in);
+    // printf("out   (5) pointer: %x\n", &out);
 
     gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
 
