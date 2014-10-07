@@ -28,6 +28,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+namespace copy_stencil{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,2> > axis;
@@ -57,7 +58,7 @@ std::ostream& operator<<(std::ostream& s, copy_functor const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool copy_stencil(int x, int y, int z) {
+bool test(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -221,3 +222,5 @@ PAPI_stop(event_set, values);
 
     return  out(0,0,0)==0. && out(511,511,0)==1022. && out(511,0,59)==570. && out(0,511,59)==570. && out(511,511,59)==1081.;
 }
+
+}//namespace copy_stencil
