@@ -1,3 +1,5 @@
+#if __cplusplus>=201103L
+
 #pragma once
 
 
@@ -45,7 +47,6 @@ std::ostream& operator<<(std::ostream& s, interface const) {
     return s << "test_interface";
 }
 
-
 bool test_interface(int x, int y, int z) {
 
     int d1 = x;
@@ -54,7 +55,8 @@ bool test_interface(int x, int y, int z) {
 
 #define BACKEND backend<Host, Naive >
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+    typedef gridtools::layout_map<0,1,2> layout_t;
 
      // Definition of the actual data fields that are used for input/output
     storage_type out(d1,d2,d3,2., std::string("out"));
@@ -101,7 +103,7 @@ bool test_interface(int x, int y, int z) {
 
 // \todo simplify the following using the auto keyword from C++11
         boost::shared_ptr<gridtools::computation> forward_step =
-        gridtools::make_computation<gridtools::BACKEND>
+	  gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -130,3 +132,5 @@ bool test_interface(int x, int y, int z) {
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
     return        true;
 }
+
+#endif //#if __cplusplus>=201103L

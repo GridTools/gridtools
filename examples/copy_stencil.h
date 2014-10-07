@@ -78,7 +78,8 @@ bool copy_stencil(int x, int y, int z) {
 #endif
 #endif
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<2,1,0> >::type storage_type;
+    typedef gridtools::layout_map<2,1,0> layout_t;
+    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
@@ -160,7 +161,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> copy =
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+      gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (

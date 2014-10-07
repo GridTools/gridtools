@@ -8,17 +8,16 @@ enable_language( CXX )
 ## enable to use ctest:
 enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
-message("cmake module path " ${CMAKE_MODULE_PATH})
 
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov" )
-message ("building executables for coverage tests")
+message ("-- building executables for coverage tests")
 endif()
 
 if(GNU_PROFILE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
-message ("building profiled executables")
+message ("-- building profiled executables")
 endif()
 
 
@@ -112,6 +111,16 @@ if(USE_PAPI)
   else()
     message("PAPI library not found. set the PAPI_PREFIX")
   endif()
+endif()
+##################################################################
+
+######################### set the type of floats #################
+if(SINGLE_PRECISION)
+  add_definitions(-DFLOAT_PRECISION=4)
+  message("-- computations in single precision")
+else()
+  add_definitions(-DFLOAT_PRECISION=8)
+  message("-- computations in double precision")
 endif()
 ##################################################################
 

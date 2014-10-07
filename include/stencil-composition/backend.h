@@ -131,8 +131,8 @@ namespace gridtools {
         template <typename Domain
                   , typename MssType
                   , typename RangeSizes
-                  , typename ValueType = double
-                  , typename LayoutType = layout_map<0,1,2> >
+                  , typename ValueType/* = double*/
+                  , typename LayoutType/* = layout_map<0,1,2>*/ >
         struct obtain_storage_types {
 
             static const int tileI = (strategy_traits_t::BI);
