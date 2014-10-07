@@ -63,4 +63,4 @@ else
 make tests;
 ./build/tests
 fi
-#rm -rf *
+rm -rf *
