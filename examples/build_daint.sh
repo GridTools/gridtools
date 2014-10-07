@@ -61,6 +61,7 @@ make tests_gpu;
 salloc --gres=gpu:1 aprun "build/daint/$1/$2/build/tests_gpu"
 else
 make tests;
-salloc --gres=gpu:1 aprun "build/daint/$1/$2/build/tests"
+salloc --gres=gpu:1 aprun pwd
+#"build/daint/$1/$2/build/tests"
 fi
 rm -rf *
