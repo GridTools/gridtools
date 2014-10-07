@@ -2,7 +2,7 @@
 
 TARGET=$1
 REAL_TYPE=$2
-if (x$TARGET=xgpu)
+if ["x$TARGET"=="xgpu"]
 then
 USE_GPU=ON
 else
@@ -10,7 +10,7 @@ USE_GPU=OFF
 fi
 echo USE_GPU
 
-if(x$REAL_TYPE=xfloat)
+if ["x$REAL_TYPE"=="xfloat"]
 then
 SINGLE_PRECISION=ON
 else
@@ -32,7 +32,7 @@ export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/externa
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING=-arch=sm_30 \
+-DCUDA_NVCC_FLAGS:STRING=-arch=sm_35 \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DUSE_GPU:BOOL=USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
