@@ -144,15 +144,16 @@ int main(int argc, char** argv) {
 #endif
 #endif
 
+    typedef gridtools::layout_map<0,1,2> layout_t;
     /**
 	- definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
     /**
     - definition of the temporary storage type, also depends on the backend
 	\todo unused here?
     */
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
 
     std::ofstream file_i("full_in");
     std::ofstream file_o("full_out");
@@ -220,7 +221,7 @@ int main(int argc, char** argv) {
 #else
     boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        make_computation<gridtools::BACKEND>
+      make_computation<gridtools::BACKEND, layout_t>
         (
          make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
