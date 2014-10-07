@@ -134,7 +134,7 @@ namespace gridtools {
         };
 
         int offset[3]
-#if __cplusplus==201103L
+#if __cplusplus>=201103L
 	={0,0,0}
 #endif
 	  ;
@@ -149,7 +149,7 @@ namespace gridtools {
             offset[2] = k;
         }
 
-#if __cplusplus==201103L
+#if __cplusplus>=201103L
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
       // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested

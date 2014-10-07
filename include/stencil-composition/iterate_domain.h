@@ -58,7 +58,7 @@ namespace gridtools {
                 // std::cout << "Moving pointers **********************************************" << std::endl;
                 // std::cout << typename boost::remove_pointer<typename boost::remove_const<typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
                 // (*(boost::fusion::at_c<1>(ze))).info();
-	      
+
 	      assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
             }
 
@@ -93,7 +93,7 @@ namespace gridtools {
 	    assign_storage<ID-1>::assign(l,r,i,j,k); //tail recursion
 	    }
 	};
-	
+
 	template<>
 	  struct assign_storage<0>{
 	  template<typename Left, typename Right>
@@ -123,7 +123,7 @@ namespace gridtools {
 	   /* boost::fusion::at_c<1>(local_iterators).value=&((*(boost::fusion::at_c<1>(local_domain.local_args)))(i,j,k)); */
 	   /* boost::fusion::at_c<0>(local_iterators).stride=(*boost::fusion::at_c<0>(local_domain.local_args)).stride_k(); */
 	   /* boost::fusion::at_c<1>(local_iterators).stride=(*boost::fusion::at_c<1>(local_domain.local_args)).stride_k(); */
-	  
+
 	   /* printf("strides: %d\n", boost::fusion::at_c<0>(local_domain.local_args)->stride_k()); */
 	   /* printf("strides: %d\n", boost::fusion::at_c<1>(local_domain.local_args)->stride_k()); */
 
@@ -169,12 +169,12 @@ namespace gridtools {
             /* boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->info(); */
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr() <=
-                   boost::fusion::at<typename ArgType::index_type>(local_iterators)
+                   boost::fusion::at<typename ArgType::index_type>(local_iterators).value
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr() >
-                   boost::fusion::at<typename ArgType::index_type>(local_iterators)
+                   boost::fusion::at<typename ArgType::index_type>(local_iterators).value
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
@@ -206,21 +206,22 @@ namespace gridtools {
         GT_FUNCTION
         auto inline value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
 
+        //partial specialisations for double (or float)
         template <typename ArgType1>
         GT_FUNCTION
-        double inline value(expr_plus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) + arg.second_operand;}
+        auto inline value(expr_plus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
 
         template <typename ArgType1>
         GT_FUNCTION
-        double inline value(expr_minus<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) - arg.second_operand;}
+        auto inline value(expr_minus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
 
         template <typename ArgType1>
         GT_FUNCTION
-        double inline value(expr_times<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) * arg.second_operand;}
+        auto inline value(expr_times<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
 
         template <typename ArgType1>
         GT_FUNCTION
-        double inline value(expr_divide<ArgType1, double> const& arg) const {return (*this)(arg.first_operand) / arg.second_operand;}
+        auto inline value(expr_divide<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
 
 /** @brief method called in the Do methods of the functors. */
         template <typename Expression >
@@ -229,7 +230,6 @@ namespace gridtools {
             return value(arg);
         }
 #endif
-
     };
 
 } // namespace gridtools
