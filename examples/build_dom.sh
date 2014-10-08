@@ -35,12 +35,13 @@ cmake \
  ../
 
 make -j8;
+
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 aprun "build/dom/$1/$2/build/tests_gpu"
+salloc --gres=gpu:1 aprun "/scratch/dom/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"
 else
 make tests;
-salloc --gres=gpu:1 aprun "build/dom/$1/$2/build/tests"
+./build/tests
 fi
 rm -rf *
