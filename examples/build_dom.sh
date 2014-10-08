@@ -1,18 +1,17 @@
 #!/bin/bash
 
-module load cmake
-module load boost
-module load papi
-module unload cuda
-module load cuda/6.5
+# module load cmake
+# module load boost
+# module load papi
+# module unload cuda
+# module load cuda/6.5
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"module unload gcc
 module load gcc/4.8.2
 
 pwd
-ls
-mkdir build; cd build;
+#mkdir build; cd build;
 
 cmake \
 -DCUDA_NVCC_FLAGS:STRING="-arch=sm_35  -G -std=c++11 --ptxas-options -v " \
@@ -39,7 +38,7 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 aprun "/scratch/dom/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"
+salloc --gres=gpu:1 aprun "/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/gpu/build/build/tests_gpu"
 else
 make tests;
 ./build/tests
