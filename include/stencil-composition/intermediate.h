@@ -662,7 +662,9 @@ namespace gridtools {
             // std::cout << "--- ---" << std::endl;
             // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
+#ifndef NDEBUG
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
+#endif
             Backend::template run<functors_list, range_sizes, loop_intervals_t, functor_do_method_lookup_maps, typename MssType::execution_engine_t>( m_coords, local_domain_list );
         }
 

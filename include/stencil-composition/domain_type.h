@@ -200,8 +200,10 @@ namespace gridtools {
             boost::fusion::for_each(fview, _debug::print_deref());
 #endif
             boost::fusion::copy(real_storage, fview);
-            std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
-            boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+#ifndef NDEBUG
+            std::cout << "\nThese are the view values " << boost::fusion::size(fview) << std::endl;
+            boost::fusion::for_each(storage_pointers, _debug::print_pointer())
+#endif
 
             view_type original_fview(original_pointers);
             boost::fusion::copy(real_storage, original_fview);

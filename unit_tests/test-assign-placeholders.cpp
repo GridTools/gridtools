@@ -1,7 +1,6 @@
 
 #include <gridtools.h>
 
-#include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
@@ -68,12 +67,4 @@ bool assign_placeholders() {
             (boost::fusion::at_c<5>(domain.storage_pointers) == &out));
 }
 
-int main() {
-    if (assign_placeholders()) {
-        std::cout << "PASSED!" << std::endl;
-    } else {
-        std::cout << "PASSED!" << std::endl;
-    }
 
-    return 0;
-}
