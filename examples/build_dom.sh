@@ -15,34 +15,33 @@ ls
 mkdir build; cd build;
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING="-arch=sm_35 --ptxas-options -v " \
+-DCUDA_NVCC_FLAGS:STRING="-arch=sm_35  -G -std=c++11 --ptxas-options -v " \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DCMAKE_CXX_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/c++" \
 -DCMAKE_C_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/gcc" \
--DUSE_GPU:BOOL=ON \
+-DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
--DBoost_INCLUDE_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473/include \
--DBoost_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473  \
+-DBoost_DIR:PATH=/users/mbianco/boost_1_55_0 \
 -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF \
--DUSE_PAPI:BOOL=ON \
+-DUSE_PAPI:BOOL=OFF \
 -DGNU_COVERAGE:BOOL=ON \
--DPAPI_PREFIX:PATH=/opt/cray/papi/5.2.0 \
--DPAPI_WRAP_LIBRARY:BOOL=ON \
+-DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \
+-DPAPI_WRAP_LIBRARY:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
--DUSE_MPI:BOOL=ON \
+-DUSE_MPI:BOOL=OFF \
 -DUSE_MPI_COMPILER:BOOL=OFF  \
--DPAPI_WRAP_PREFIX:PATH=~/builds/GridTools/gridtools/include/external/perfcount \
--DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG -DUSE_PAPI_WRAP"  \
+-DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -std=c++11 -m64"  \
  ../
 
 make -j8;
+
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 aprun "build/dom/$1/$2/build/tests_gpu"
+salloc --gres=gpu:1 aprun "/scratch/dom/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"
 else
 make tests;
-salloc --gres=gpu:1 aprun "build/dom/$1/$2/build/tests"
+./build/tests
 fi
 rm -rf *
