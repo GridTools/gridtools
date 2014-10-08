@@ -22,7 +22,7 @@ namespace gridtools{
             static inline void increment(Domain& dom){dom.increment();}
 
             GT_FUNCTION
-            static inline bool condition(int const& a, int const& b){return a+1<=b-1;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)
+            static inline bool condition(int const& a, int const& b){return a<=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)
         };
 
 /**\brief specialization for the backward iteration loop over k*/
@@ -40,7 +40,7 @@ namespace gridtools{
             static inline void increment(Domain& dom){dom.decrement();}
 
             GT_FUNCTION
-            static inline bool condition(int const& a, int const& b){return a-1>=b+1;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)
+            static inline bool condition(int const& a, int const& b){return a>=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)
         };
     } // namespace _impl
 } // namespace gridtools
