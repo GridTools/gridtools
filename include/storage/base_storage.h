@@ -198,8 +198,8 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(int i, int j, int k) {
             /* std::cout<<"indices= "<<i<<" "<<j<<" "<<k<<std::endl; */
-            /* backend_traits_t::assertion(_index(i,j,k) >= 0); */
-            /* backend_traits_t::assertion(_index(i,j,k) < m_size); */
+	  backend_traits_t::assertion(_index(i,j,k) >= 0);
+	  backend_traits_t::assertion(_index(i,j,k) < m_size);
 	  return m_data[_index(i,j,k)];
         }
 

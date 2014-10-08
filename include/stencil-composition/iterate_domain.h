@@ -168,19 +168,17 @@ namespace gridtools {
 
             /* boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->info(); */
 
+
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr() <=
                    boost::fusion::at<typename ArgType::index_type>(local_iterators).value
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
+
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr() >
                    boost::fusion::at<typename ArgType::index_type>(local_iterators).value
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
-
-	    // printf("%x ", (boost::fusion::at<typename ArgType::index_type>(local_iterators).value
-            //          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-            //          ->offset(arg.i(),arg.j(),arg.k())));
 
             return *(boost::fusion::at<typename ArgType::index_type>(local_iterators).value
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
