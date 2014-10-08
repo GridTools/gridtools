@@ -47,13 +47,14 @@ namespace gridtools{
 #endif
 		//IntervalType::static_info();
 		//printf("forward/backward iterations \n");
+	      // printf("        from=%d ", from);
+	      // printf("to=%d : ", to);
             for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
-	      /* printf("from=%d \n", from); */
-	      /* printf("to=%d \n", to); */
-	      /* printf("k=%d \n", k); */
+	      // printf("k=%d ", k);
 	      traits::functor_t::Do(this->m_domain, IntervalType());
 	      IterationPolicy::increment(this->m_domain);
             }
+            // printf("\n");
 #ifdef __CUDACC__
 	    //cudaProfilerStop();
 #endif

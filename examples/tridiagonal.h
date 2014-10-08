@@ -205,7 +205,7 @@ bool tridiagonal(int x, int y, int z) {
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 3;
-    coords.value_list[1] = d3-3;
+    coords.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff

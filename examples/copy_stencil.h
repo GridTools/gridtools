@@ -30,8 +30,8 @@ using namespace enumtype;
 
 namespace copy_stencil{
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level<0,-1>, level<1,1> > x_interval;
-typedef gridtools::interval<level<0,-2>, level<1,2> > axis;
+typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
+typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
@@ -120,8 +120,8 @@ bool test(int x, int y, int z) {
     int dj[5] = {0, 0, 0, d2-1, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3;
+    coords.value_list[0] = 1;
+    coords.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff
