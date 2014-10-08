@@ -101,6 +101,7 @@ namespace gridtools {
         template<typename Storage>
         arg_storage_pair<arg<I,T>, Storage>
         operator=(Storage& ref) {
+            BOOST_MPL_ASSERT( (boost::is_same<Storage, T>) );
             return arg_storage_pair<arg<I,T>, Storage>(&ref);
         }
 

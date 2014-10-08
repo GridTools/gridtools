@@ -1,9 +1,11 @@
 #include "gtest/gtest.h"
 
+#define SILENT_RUN
 #include "test_domain_indices.h"
 #include "test_smallstorage_indices.h"
 #include "boundary_conditions_test.h"
 #include <../examples/interface1.h>
+#include "test-assign-placeholders.h"
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
@@ -45,6 +47,9 @@ TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion(7, 13, 5), true);
 }
 
+TEST(testdomain, assignplchdrs) {
+    EXPECT_EQ(assign_placeholders(), true);
+}
 
 int main(int argc, char** argv)
 {

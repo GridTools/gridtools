@@ -160,7 +160,9 @@ bool horizontal_diffusion(int x, int y, int z) {
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
+#ifndef SILENT_RUN
     out.print();
+#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -305,11 +307,13 @@ PAPI_stop(event_set, values);
     out.m_data.update_cpu();
 #endif
 
+#ifndef SILENT_RUN
     //    in.print();
     out.print();
     //    lap.print();
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
 
 #ifdef USE_PAPI_WRAP
     pw_print();
