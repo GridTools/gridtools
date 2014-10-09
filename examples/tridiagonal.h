@@ -1,4 +1,3 @@
-#if __cplusplus>=201103L
 #pragma once
 
 
@@ -389,4 +388,3 @@ PAPI_stop(event_set, values);
 #endif
 }
 }//namespace tridiagonal
-#endif //#if __cplusplus>=201103L

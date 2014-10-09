@@ -42,7 +42,7 @@ pwd
 #mkdir build; cd build;
 
 /apps/dom/cmake/repository/gnu_446/bin/cmake \
--DCUDA_NVCC_FLAGS:STRING="-arch=sm_35  -G -std=c++11 " \
+-DCUDA_NVCC_FLAGS:STRING="-arch=sm_35  -G " \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DCMAKE_CXX_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/c++" \
 -DCMAKE_C_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/gcc" \
@@ -58,7 +58,7 @@ pwd
 -DGCL_ONLY:BOOL=OFF \
 -DUSE_MPI:BOOL=OFF \
 -DUSE_MPI_COMPILER:BOOL=OFF  \
--DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -std=c++11 -m64"  \
+-DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g  -m64  -DBOOST_SYSTEM_NO_DEPRECATED"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
 -DENABLE_CXX11=ON \
  ../
