@@ -293,7 +293,10 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_stop_collector(collector_init);
 #endif
 
+#ifndef __CUDACC__
     boost::timer::cpu_timer time;
+#endif
+
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -314,8 +317,9 @@ PAPI_stop(event_set, values);
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_execute);
 #endif
+#ifndef __CUDACC__
     boost::timer::cpu_times lapse_time = time.elapsed();
-
+#endif
     forward_step->finalize();
 
     // printf("Print OUT field (forward)\n");
@@ -369,8 +373,9 @@ PAPI_stop(event_set, values);
     rhs.print();
     //    lap.print();
 
+#ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-
+#endif
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif
