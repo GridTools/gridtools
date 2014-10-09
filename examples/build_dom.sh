@@ -19,6 +19,25 @@ export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/externa
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"module unload gcc
 module load gcc/4.8.2
 
+
+TARGET=$1
+REAL_TYPE=$2
+if [ "x$TARGET" == "xgpu" ]
+then
+USE_GPU=ON
+else
+USE_GPU=OFF
+fi
+echo "USE_GPU=$USE_GPU"
+
+if [ "x$REAL_TYPE" == "xfloat" ]
+then
+SINGLE_PRECISION=ON
+else
+INGLE_PRECISION=OFF
+fi
+echo "SINGLE_PRECISION=$SINGLE_PRECISION"
+
 pwd
 #mkdir build; cd build;
 
@@ -40,6 +59,7 @@ pwd
 -DUSE_MPI:BOOL=OFF \
 -DUSE_MPI_COMPILER:BOOL=OFF  \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -std=c++11 -m64"  \
+-DSINGLE_PRECISION=$SINGLE_PRECISION \
  ../
 
 make -j8;
@@ -53,4 +73,3 @@ make tests;
 ./build/tests
 fi
 rm -rf *
-ls /bin
