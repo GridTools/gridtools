@@ -1,4 +1,5 @@
 #!/bin/bash
+export MODULEPATH="/apps/dom/Modules/versions:/apps/dom/Modules/$MODULE_VERSION/modulefiles:/apps/dom/Modules/modulefiles:/apps/dom/modulefiles"
 module() { eval `/apps/dom/Modules/3.2.10/bin/modulecmd bash $*`; }
 /apps/dom/Modules/3.2.10/bin/modulecmd bash avail
 module load cmake
