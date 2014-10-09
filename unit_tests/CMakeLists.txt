@@ -13,10 +13,16 @@ endif()
 add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 
 if (GTEST_FOUND)
-  add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+    if ( ENABLE_CXX11 )
+        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+    else()
+        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+    endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
   link_directories( ${Boost_LIBRARY_DIRS} )
+
+  set_target_properties(tests PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
 
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})

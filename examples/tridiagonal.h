@@ -38,7 +38,9 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+#ifdef CXX11_ENABLED
 using namespace expressions;
+#endif
 
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-2> > x_internal;
@@ -60,8 +62,13 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static inline void shared_kernel(Domain const& dom) {
+#ifdef CXX11_ENABLED
         dom(sup()) = dom(sup()/(diag()-sup(z(-1))*inf()));
         dom(rhs()) = dom((rhs()-inf()*rhs(z(-1)))/(diag()-sup(z(-1))*inf()));
+#else
+        dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+#endif
     }
 
     template <typename Domain>
@@ -98,8 +105,11 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
+#ifdef CXX11_ENABLED
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
-        //dom(out()) = (dom(rhs())-dom(sup())*dom(out(z(1))))/dom(diag());
+#else
+        dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
+#endif
     }
 
     template <typename Domain>

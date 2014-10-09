@@ -5,7 +5,9 @@
 #include "test_smallstorage_indices.h"
 #include "boundary_conditions_test.h"
 #include <../examples/interface1.h>
+#ifdef CXX11_ENABLED
 #include "test-assign-placeholders.h"
+#endif
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
@@ -47,9 +49,11 @@ TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion(7, 13, 5), true);
 }
 
+#ifdef CXX11_ENABLED
 TEST(testdomain, assignplchdrs) {
     EXPECT_EQ(assign_placeholders(), true);
 }
+#endif
 
 int main(int argc, char** argv)
 {

@@ -134,6 +134,7 @@ namespace gridtools {
          */
         arg_list original_pointers;
 
+#ifdef CXX11_ENABLED
         void assign_pointers() {}
 
         template <typename Arg0, typename... OtherArgs>
@@ -142,9 +143,10 @@ namespace gridtools {
             boost::fusion::at<typename Arg0::arg_type::index_type>(storage_pointers) = arg0.ptr;
             assign_pointers(other_args...);
         }
-
+#endif
     public:
 
+#ifdef CXX11_ENABLED
         template <typename... Args>
         domain_type(Args... args) 
             : storage_pointers()
@@ -165,6 +167,7 @@ namespace gridtools {
             boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
 #endif
         }
+#endif
 
         /**
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
