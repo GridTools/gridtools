@@ -1,10 +1,10 @@
 #!/bin/bash
-
-# module load cmake
-# module load boost
-# module load papi
-# module unload cuda
-# module load cuda/6.5
+. /apps/dom/Modules/3.2.10/init/bash
+module load cmake
+module load boost
+module load papi
+module unload cuda
+module load cuda/6.5
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"module unload gcc
@@ -44,3 +44,4 @@ make tests;
 ./build/tests
 fi
 rm -rf *
+ls /bin
