@@ -1,5 +1,6 @@
 #!/bin/bash
-. /apps/dom/Modules/3.2.10/init/bash
+module() { eval `/apps/dom/Modules/3.2.10/bin/modulecmd bash $*`; }
+/apps/dom/Modules/3.2.10/bin/modulecmd bash avail
 module load cmake
 module load boost
 module load papi
