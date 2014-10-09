@@ -50,6 +50,7 @@ cmake \
 -DPAPI_WRAP_PREFIX:PATH=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
+-DENABLE_CXX11=OFF \
 ../
 
 make -j8;

@@ -162,7 +162,9 @@ bool test(int x, int y, int z) {
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
+#ifndef SILENT_RUN
     out.print();
+#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -180,9 +182,11 @@ bool test(int x, int y, int z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
-
+#ifdef CXX11_ENABLE
+    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+#else
+    gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
+#endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
@@ -307,11 +311,13 @@ PAPI_stop(event_set, values);
     out.m_data.update_cpu();
 #endif
 
+#ifndef SILENT_RUN
     //    in.print();
     out.print();
     //    lap.print();
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
 
 #ifdef USE_PAPI_WRAP
     pw_print();

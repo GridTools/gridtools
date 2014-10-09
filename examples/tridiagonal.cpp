@@ -9,6 +9,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return !tridiagonal(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return tridiagonal::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 #endif //#if __cplusplus>=201103L
 }

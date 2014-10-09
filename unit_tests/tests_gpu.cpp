@@ -7,6 +7,9 @@
 #include "test_domain.h"
 #include "test_cuda_storage.h"
 #include "test_hybrid_pointer.h"
+#include <../examples/interface1.h>
+#include <../examples/copy_stencil.h>
+#include <../examples/tridiagonal.h>
 
 #define CUDA_EXAMPLE
 #include "boundary_conditions_test.h"
@@ -57,6 +60,18 @@ TEST(boundaryconditions, usingcopy3) {
 
 TEST(testgpuclone, testcloningstuff) {
     EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true);
+}
+
+TEST(stencil, horizontaldiffusion) {
+    EXPECT_EQ(horizontal_diffusion::test(16, 16, 5), true);
+}
+
+TEST(stencil, copy) {
+    EXPECT_EQ(copy_stencil::test(512, 512, 60), true);
+}
+
+TEST(stencil, tridiagonal) {
+    EXPECT_EQ(tridiagonal::solver(1, 1, 6), true);
 }
 
 int main(int argc, char** argv) {

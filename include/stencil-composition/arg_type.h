@@ -66,6 +66,22 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
+    template<typename ArgType, typename Storage>
+    struct arg_storage_pair {
+        typedef ArgType arg_type;
+        typedef Storage storage_type;
+
+        Storage *ptr;
+
+        arg_storage_pair(Storage* p)
+            : ptr(p)
+        {}
+
+        Storage* operator*() {
+            return ptr;
+        }
+    };
+
     /**
      * Type to create placeholders for data fields.
      *
@@ -81,6 +97,13 @@ namespace gridtools {
         typedef typename T::value_type value_type;
         typedef boost::mpl::int_<I> index_type;
         typedef boost::mpl::int_<I> index;
+
+        template<typename Storage>
+        arg_storage_pair<arg<I,T>, Storage>
+        operator=(Storage& ref) {
+            BOOST_MPL_ASSERT( (boost::is_same<Storage, T>) );
+            return arg_storage_pair<arg<I,T>, Storage>(&ref);
+        }
 
         static void info() {
             std::cout << "Arg on real storage with index " << I;
@@ -130,15 +153,14 @@ namespace gridtools {
 
         template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
         struct halo {
-	  typedef arg_type<I> type;
+            typedef arg_type<I> type;
         };
 
-        int offset[3]
-#if __cplusplus>=201103L
-	={0,0,0}
+#ifdef CXX11_ENABLED
+        int offset[3]={0,0,0};
+#else
+        int offset[3];
 #endif
-	  ;
-
         typedef boost::mpl::int_<I> index_type;
         typedef Range range_type;
 
@@ -149,7 +171,6 @@ namespace gridtools {
             offset[2] = k;
         }
 
-#if __cplusplus>=201103L
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
       // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
@@ -158,6 +179,9 @@ namespace gridtools {
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y, X3 z){
+#ifndef CXX11_ENABLED
+	offset={0,0,0};
+#endif
           boost::fusion::vector<X1, X2, X3> vec(x, y, z);
           boost::fusion::for_each(vec, initialize(offset));
         }
@@ -165,6 +189,9 @@ namespace gridtools {
       template <typename X1, typename X2 >
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y){
+#ifndef CXX11_ENABLED
+	offset={0,0,0};
+#endif
           boost::fusion::vector<X1, X2> vec(x, y);
           boost::fusion::for_each(vec, initialize(offset));
       }
@@ -172,11 +199,15 @@ namespace gridtools {
       template <typename X1>
         GT_FUNCTION
 	  arg_type ( X1 x){
-          boost::fusion::vector<X1> vec(x);
-          boost::fusion::for_each(vec, initialize(offset));
+#ifndef CXX11_ENABLED
+	offset={0,0,0};
+#endif
+	boost::fusion::vector<X1> vec(x);
+	boost::fusion::for_each(vec, initialize(offset));
         }
 
 #else
+      //#ifdef CXX11_ENABLED
       //if you get a compiler error here, use the version above
         template <typename... X >
         GT_FUNCTION
@@ -184,8 +215,8 @@ namespace gridtools {
             boost::fusion::vector<X...> vec(x...);
             boost::fusion::for_each(vec, initialize(offset));
         }
-#endif
-#endif
+      //#endif //CXX11_ENABLED
+#endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
         GT_FUNCTION
         arg_type() {
@@ -286,8 +317,6 @@ namespace gridtools {
                  << ", NON TEMP" << " > ]";
     }
 
-#if __cplusplus>=201103L
-
     template <typename ArgType1, typename ArgType2>
     struct expr{
         expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
@@ -324,6 +353,7 @@ namespace gridtools {
         expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
     };
 
+#ifdef CXX11_ENABLED
     namespace expressions{
         template<typename ArgType1, typename ArgType2>
         expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(std::forward<ArgType1>(arg1), std::forward<ArgType2>(arg2));}
@@ -340,5 +370,4 @@ namespace gridtools {
     }//namespace expressions
 
 #endif
-
 } // namespace gridtools

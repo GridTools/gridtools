@@ -36,10 +36,14 @@ using gridtools::arg_type;
 using gridtools::range;
 using gridtools::arg;
 
+namespace tridiagonal{
+
 using namespace gridtools;
 using namespace enumtype;
 
+#ifdef CXX11_ENABLED
 using namespace expressions;
+#endif
 
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,1>, level<1,-2> > x_internal;
@@ -61,8 +65,13 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static inline void shared_kernel(Domain const& dom) {
+#ifdef CXX11_ENABLED
         dom(sup()) = dom(sup()/(diag()-sup(z(-1))*inf()));
         dom(rhs()) = dom((rhs()-inf()*rhs(z(-1)))/(diag()-sup(z(-1))*inf()));
+#else
+        dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+#endif
     }
 
     template <typename Domain>
@@ -99,8 +108,11 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
+#ifdef CXX11_ENABLED
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
-        //dom(out()) = (dom(rhs())-dom(sup())*dom(out(z(1))))/dom(diag());
+#else
+        dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
+#endif
     }
 
     template <typename Domain>
@@ -131,7 +143,7 @@ std::ostream& operator<<(std::ostream& s, forward_thomas const) {
 }
 
 
-bool tridiagonal(int x, int y, int z) {
+bool solver(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -363,7 +375,13 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return [](storage_type& out) -> bool {bool retval; for(int i=0; i<out.size(); ++i) retval && out(0,0,i)==1.; return retval;}(out);
+#ifdef CXX11_ENABLED
+    auto coincide=[](double x, double y) -> double {return x*x-y*y<1e-15;};
+    bool retval = [&coincide](storage_type& out_) -> bool {bool retval; for(int i=0; i<out_.size(); ++i) retval && coincide(out_(0,0,i),1.); return retval;}(out); 
+#else
+    return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-15) &&
+      (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-15);
+#endif
 }
-
+}//namespace tridiagonal
 #endif //#if __cplusplus>=201103L
