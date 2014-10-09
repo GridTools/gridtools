@@ -42,10 +42,10 @@ using namespace enumtype;
 using namespace expressions;
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level<0,-1>, level<1,-2> > x_internal;
-typedef gridtools::interval<level<0,-2>, level<0,-2> > x_first;
+typedef gridtools::interval<level<0,1>, level<1,-2> > x_internal;
+typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
-typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
+typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
     static const int n_args = 5;
@@ -167,7 +167,7 @@ bool tridiagonal(int x, int y, int z) {
     for(int i=0; i<d1; ++i)
         for(int j=0; j<d2; ++j)
         {
-            rhs(i, j, 2)=4.;
+            rhs(i, j, 0)=4.;
             rhs(i, j, 5)=2.;
         }
 // result is 1
@@ -200,11 +200,11 @@ bool tridiagonal(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+    int di[5] = {0, 0, 0, d1, d1};
+    int dj[5] = {0, 0, 0, d2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 3;
+    coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
     /*
@@ -363,11 +363,7 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return // lapse_time.wall<5000000 &&
-// #ifdef USE_PAPI
-//                     values[0]>1000 && //random value
-// #endif
-                                true;
+    return [](storage_type& out) -> bool {bool retval; for(int i=0; i<out.size(); ++i) retval && out(0,0,i)==1.; return retval;}(out);
 }
 
 #endif //#if __cplusplus>=201103L
