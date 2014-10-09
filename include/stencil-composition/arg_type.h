@@ -179,9 +179,6 @@ namespace gridtools {
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y, X3 z){
-#ifndef CXX11_ENABLED
-	offset={0,0,0};
-#endif
           boost::fusion::vector<X1, X2, X3> vec(x, y, z);
           boost::fusion::for_each(vec, initialize(offset));
         }
@@ -190,7 +187,9 @@ namespace gridtools {
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y){
 #ifndef CXX11_ENABLED
-	offset={0,0,0};
+	offset[0]=0;
+	offset[1]=0;
+	offset[2]=0;
 #endif
           boost::fusion::vector<X1, X2> vec(x, y);
           boost::fusion::for_each(vec, initialize(offset));
@@ -200,7 +199,9 @@ namespace gridtools {
         GT_FUNCTION
 	  arg_type ( X1 x){
 #ifndef CXX11_ENABLED
-	offset={0,0,0};
+	offset[0]=0;
+	offset[1]=0;
+	offset[2]=0;
 #endif
 	boost::fusion::vector<X1> vec(x);
 	boost::fusion::for_each(vec, initialize(offset));
