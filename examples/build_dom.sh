@@ -1,12 +1,19 @@
 #!/bin/bash
 export MODULEPATH="/apps/dom/Modules/versions:/apps/dom/Modules/$MODULE_VERSION/modulefiles:/apps/dom/Modules/modulefiles:/apps/dom/modulefiles"
 module() { eval `/apps/dom/Modules/3.2.10/bin/modulecmd bash $*`; }
-/apps/dom/Modules/3.2.10/bin/modulecmd bash avail
+#/apps/dom/Modules/3.2.10/bin/modulecmd bash avail
+echo "loading cmake"
 module load cmake
+echo "loading boost"
 module load boost
-module load papi
+#echo "loading PAPI"
+#module load papi
+
+echo "loading cuda"
 module unload cuda
 module load cuda/6.5
+
+echo "exporting variables"
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"module unload gcc
