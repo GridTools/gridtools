@@ -382,6 +382,7 @@ PAPI_stop(event_set, values);
 #ifdef CXX11_ENABLED
     auto coincide=[](double x, double y) -> double {return x*x-y*y<1e-10;};
     bool retval = [&coincide](storage_type& out_) -> bool {bool retval; for(int i=0; i<out_.size(); ++i) retval && coincide(out_(0,0,i),1.); return retval;}(out); 
+    return retval;
 #else
     return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-10) &&
       (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-10);
