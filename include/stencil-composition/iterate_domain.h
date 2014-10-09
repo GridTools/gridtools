@@ -187,7 +187,7 @@ namespace gridtools {
 
 
 
-#if __cplusplus>=201103L
+#ifdef CXX11_ENABLED
         template <typename ArgType1, typename ArgType2>
         GT_FUNCTION
         auto inline value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
