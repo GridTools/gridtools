@@ -226,6 +226,11 @@ namespace gridtools {
         }
 
 	GT_FUNCTION
+	inline int size() const {
+	  return m_size;
+	}
+
+	GT_FUNCTION
 	inline int stride_k() const {
 	  return layout::template find<2>(m_strides);//e.g. (GPU test) =512*512=262144
 	}
