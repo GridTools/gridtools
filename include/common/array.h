@@ -7,11 +7,13 @@
 */
 
 #include <stddef.h>
+#include "defs.h"
 #include "gt_assert.h"
 #include "host_device.h"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
 #include <boost/utility/enable_if.hpp>
+
 namespace gridtools {
 
     template <typename T, size_t D, class ENABLE=void>
@@ -30,7 +32,7 @@ namespace gridtools {
         GT_FUNCTION
         array() {}
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef CXX11_ENABLED
         array(std::initializer_list<T> c) {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);

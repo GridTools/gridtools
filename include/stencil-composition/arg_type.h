@@ -153,10 +153,14 @@ namespace gridtools {
 
         template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
         struct halo {
-	  typedef arg_type<I> type;
+            typedef arg_type<I> type;
         };
 
+#ifdef CXX11_ENABLED
         int offset[3]={0,0,0};
+#else
+        int offset[3];
+#endif
         typedef boost::mpl::int_<I> index_type;
         typedef Range range_type;
 
@@ -340,6 +344,7 @@ namespace gridtools {
         expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
     };
 
+#ifdef CXX11_ENABLED
     namespace expressions{
         template<typename ArgType1, typename ArgType2>
         expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(std::forward<ArgType1>(arg1), std::forward<ArgType2>(arg2));}
@@ -353,5 +358,5 @@ namespace gridtools {
         template<typename ArgType1, typename ArgType2>
         expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
     }//namespace expressions
-
+#endif
 } // namespace gridtools
