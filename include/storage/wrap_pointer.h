@@ -37,7 +37,7 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void free_it() {
-        delete cpu_p;
+      //delete cpu_p;
     }
 
 

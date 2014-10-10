@@ -39,6 +39,10 @@ namespace gridtools {
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             int z = coords->template value_at<typename Traits::first_hit_t>();
 
+	    /* int i = (blockIdx.x * blockDim.x + threadIdx.x)%ny; */
+	    /* int j = (blockIdx.x * blockDim.x + threadIdx.x)/ny; */
+
+
             if ((i < nx) && (j < ny)) {
                 typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
                 typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
@@ -50,6 +54,7 @@ namespace gridtools {
                      >
                      (it_domain,*coords));
             }
+
         }
 
         /**
@@ -91,14 +96,6 @@ namespace gridtools {
             typedef Coords coords_t;
         };
 
-
-	// template<typename FunctorType, typename IntervalMapType, typename IterateDomainType, typename CoordsType>
-	// struct extra_arguments{
-	//   typedef FunctorType functor_t;
-	//   typedef IntervalMapType interval_map_t;
-	//   typedef IterateDomainType local_domain_t;
-	//   typedef CoordsType coords_t;};
-
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
@@ -131,6 +128,32 @@ namespace gridtools {
                                     << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+
+		int count;
+		cudaGetDeviceCount ( &count  );
+
+		if(count)
+		  {
+		    cudaDeviceProp prop;
+		    cudaGetDeviceProperties(&prop, 0);
+		    std::cout << "total global memory "<<       prop.totalGlobalMem<<std::endl;
+		    std::cout << "shared memory per block "<<   prop.sharedMemPerBlock<<std::endl;
+		    std::cout << "registers per block "<<       prop.regsPerBlock<<std::endl;
+		    std::cout << "maximum threads per block "<< prop.maxThreadsPerBlock <<std::endl;
+		    std::cout << "maximum threads dimension "<< prop.maxThreadsDim <<std::endl;
+		    std::cout << "clock rate "<<                prop.clockRate <<std::endl;
+		    std::cout << "total const memory "<<        prop.totalConstMem <<std::endl;
+		    std::cout << "compute capability "<<        prop.major<<"."<<prop.minor <<std::endl;
+		    std::cout << "multiprocessors count "<< prop.multiProcessorCount <<std::endl;
+		    std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "<< prop.computeMode <<std::endl;
+		    std::cout << "concurrent kernels "<< prop.concurrentKernels <<std::endl;
+		    std::cout << "Number of asynchronous engines  "<< prop.asyncEngineCount <<std::endl;
+		    std::cout << "unified addressing "<< prop.unifiedAddressing <<std::endl;
+		    std::cout << "memoryClockRate "<< prop.memoryClockRate <<std::endl;
+		    std::cout << "memoryBusWidth "<< prop.memoryBusWidth <<std::endl;
+		    std::cout << "l2CacheSize "<< prop.l2CacheSize <<std::endl;
+		    std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
+		  }
 #endif
 
 
@@ -158,13 +181,13 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>
+		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>/*<<<nbx*nby, ntx*nty>>>*/
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
                      f->m_coords.j_low_bound() + range_t::jminus::value,
-                     nx,
-                     ny);
+                     (nx),
+		     (ny));
                 cudaDeviceSynchronize();
 
             }

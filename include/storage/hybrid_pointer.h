@@ -67,6 +67,8 @@ namespace gridtools {
 #endif
         }
 
+      ~hybrid_pointer(){free_it();}
+
         void allocate_it(int size) {
 #ifdef __CUDACC__
             int err = cudaMalloc(&gpu_p, size*sizeof(T));
@@ -83,10 +85,10 @@ namespace gridtools {
 
         void free_it() {
 #ifdef __CUDACC__
-            cudaFree(gpu_p);
+	  cudaFree(gpu_p);
 #endif
-            this->free_it();
-        }
+	wrap_pointer<T>::free_it();
+      }
 
         void update_gpu() {
 #ifdef __CUDACC__

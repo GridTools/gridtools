@@ -8,17 +8,16 @@ enable_language( CXX )
 ## enable to use ctest:
 enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
-message("cmake module path " ${CMAKE_MODULE_PATH})
 
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov" )
-message ("building executables for coverage tests")
+message ("-- building executables for coverage tests")
 endif()
 
 if(GNU_PROFILE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
-message ("building profiled executables")
+message ("-- building profiled executables")
 endif()
 
 
@@ -49,16 +48,37 @@ endif()
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
+set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
+
+if ( ENABLE_CXX11 )
+   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
+else()
+   set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
+endif()
+
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
-if( "${USE_GPU}" STREQUAL "ON" )
+# compile to PTX assembly format
+set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
+if( USE_GPU )
+  MESSAGE("using GPU")
   find_package(CUDA REQUIRED)
+  if( ${CUDA_VERSION} VERSION_GREATER "6.0")
+      if ( ENABLE_CXX11 )
+          set(ADDITIONAL_NVCC_FLAGS "-std=c++11")
+      else()
+          set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
+      endif()
+  else()
+      set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
+  endif()
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
-  message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
+  ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}  -Xcudafe \"--diag_suppress=dupl_calling_convention\" -Xcudafe \"--diag_suppress=code_is_unreachable\" -Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\" -Xcudafe \"--diag_suppress=calling_convention_not_allowed\" -Xcudafe \"--diag_suppress=conflicting_calling_conventions\"")
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${ADDITIONAL_NVCC_FLAGS} ${CUDA_CPP11} -Xcudafe \"--diag_suppress=dupl_calling_convention\" -Xcudafe \"--diag_suppress=code_is_unreachable\" -Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\" -Xcudafe \"--diag_suppress=calling_convention_not_allowed\" -Xcudafe \"--diag_suppress=conflicting_calling_conventions\"")
 else()
   set (CUDA_LIBRARIES "")
+  set( CUDA_CXX11 " ")
 endif()
 
 include(FindOpenMP)
@@ -80,6 +100,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set ( exe_LIBS ${Boost_LIBRARIES} )
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+else()
+    set(exe_LIBS ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+endif()
 
 if(OPENMP_FOUND)
     set (PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
@@ -109,6 +135,16 @@ if(USE_PAPI)
   else()
     message("PAPI library not found. set the PAPI_PREFIX")
   endif()
+endif()
+##################################################################
+
+######################### set the type of floats #################
+if(SINGLE_PRECISION)
+  add_definitions(-DFLOAT_PRECISION=4)
+  message("-- computations in single precision")
+else()
+  add_definitions(-DFLOAT_PRECISION=8)
+  message("-- computations in double precision")
 endif()
 ##################################################################
 

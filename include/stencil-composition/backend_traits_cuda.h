@@ -49,7 +49,7 @@ namespace gridtools{
             }
 
         template <typename T>
-        inline static void delete_storage(hybrid_pointer<T>& data){ }
+	  inline static void delete_storage(hybrid_pointer<T>& data){ data.free_it();}
 
         template <typename T>
         struct pointer
@@ -57,6 +57,7 @@ namespace gridtools{
             typedef hybrid_pointer<T> type;
         };
 
+        GT_FUNCTION
         static void assertion(bool const condition)  {
         }
 

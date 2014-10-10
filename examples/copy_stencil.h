@@ -28,9 +28,10 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+namespace copy_stencil{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
+typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
@@ -43,7 +44,7 @@ struct copy_functor {
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
 
-        dom(out()) = dom(in());
+      dom(out()) = dom(in());
     }
 };
 
@@ -57,7 +58,7 @@ std::ostream& operator<<(std::ostream& s, copy_functor const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool copy_stencil(int x, int y, int z) {
+bool test(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -78,14 +79,23 @@ bool copy_stencil(int x, int y, int z) {
 #endif
 #endif
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::layout_map<2,1,0> layout_t;
+    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
+    storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
 
-    out.print();
+    for(int i=0; i<d1; ++i)
+        for(int j=0; j<d2; ++j)
+	  for(int k=0; k<d3; ++k)
+	    {
+	      in(i, j, k)=i+j+k;
+	    }
+
+
+    storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
+
+    //out.print();
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -106,12 +116,12 @@ bool copy_stencil(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+    int di[5] = {0, 0, 0, d1, d1};
+    int dj[5] = {0, 0, 0, d2, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
+     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
-    coords.value_list[1] = d3;
+    coords.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff
@@ -152,11 +162,11 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> copy =
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+      gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (
-                execute<parallel>(),
+                execute<forward>(),
                 gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
                 ),
             domain, coords
@@ -171,7 +181,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_stop_collector(collector_init);
 #endif
 
-    boost::timer::cpu_timer time;
+    /* boost::timer::cpu_timer time; */
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -192,7 +202,7 @@ PAPI_stop(event_set, values);
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_execute);
 #endif
-    boost::timer::cpu_times lapse_time = time.elapsed();
+    /* boost::timer::cpu_times lapse_time = time.elapsed(); */
 
     copy->finalize();
 
@@ -200,17 +210,17 @@ PAPI_stop(event_set, values);
     out.m_data.update_cpu();
 #endif
 
-    out.print();
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    out.print_value(0,0,0);
+    out.print_value(511,511,0);
+    out.print_value(511,0,59);
+    out.print_value(0,511,59);
+    out.print_value(511,511,59);
 
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif
 
-    return // lapse_time.wall<5000000 &&
-// #ifdef USE_PAPI
-//                     values[0]>1000 && //random value
-// #endif
-                                true;
+    return  out(0,0,0)==0. && out(511,511,0)==1022. && out(511,0,59)==570. && out(0,511,59)==570. && out(511,511,59)==1081.;
 }
+
+}//namespace copy_stencil

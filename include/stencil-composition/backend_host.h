@@ -10,6 +10,8 @@
 #include "heap_allocated_temps.h"
 #include "backend.h"
 
+#include<boost/mpl/print.hpp>
+
 /**
    @file
    @brief Implements the stencil operations for the host backend
@@ -87,7 +89,9 @@ namespace gridtools {
                              j < f->m_startj + f->m_BJ + range_t::jplus::value;
                              ++j)
                             {
-                                std::cout << "Move to : " << i << ", " << j << std::endl;
+			      //#ifndef NDEBUG
+			      //std::cout << "Move to : " << i << ", " << j << std::endl;
+			      //#endif
 
                                 iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 

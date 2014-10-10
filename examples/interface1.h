@@ -28,6 +28,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
@@ -129,7 +130,7 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool horizontal_diffusion(int x, int y, int z) {
+bool test(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -150,17 +151,20 @@ bool horizontal_diffusion(int x, int y, int z) {
 #endif
 #endif
 
+    typedef gridtools::layout_map<0,1,2> layout_t;
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
     storage_type coeff(d1,d2,d3,8, std::string("coeff"));
 
+#ifndef SILENT_RUN
     out.print();
+#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -178,9 +182,11 @@ bool horizontal_diffusion(int x, int y, int z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
-
+#ifdef CXX11_ENABLE
+    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+#else
+    gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
+#endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
@@ -245,7 +251,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+        gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -277,7 +283,9 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_stop_collector(collector_init);
 #endif
 
+#ifndef __CUDACC__
     boost::timer::cpu_timer time;
+#endif
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -289,7 +297,6 @@ if( PAPI_start(event_set) != PAPI_OK)
 
 #ifdef USE_PAPI
 double dummy=0.5;
-double dummy2=0.8;
 if( PAPI_read(event_set, values) != PAPI_OK)
     handle_error(1);
 printf("%f After reading the counters: %lld\n", dummy, values[0]);
@@ -298,19 +305,25 @@ PAPI_stop(event_set, values);
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_execute);
 #endif
-    boost::timer::cpu_times lapse_time = time.elapsed();
 
+#ifndef __CUDACC__
+    boost::timer::cpu_times lapse_time = time.elapsed();
+#endif
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
     out.m_data.update_cpu();
 #endif
 
+#ifndef SILENT_RUN
     //    in.print();
     out.print();
     //    lap.print();
 
+#ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
+#endif
 
 #ifdef USE_PAPI_WRAP
     pw_print();
@@ -322,3 +335,5 @@ PAPI_stop(event_set, values);
 // #endif
                                 true;
 }
+
+}//namespace horizontal_diffusion
