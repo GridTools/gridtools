@@ -3,6 +3,24 @@
 /** This class wraps a raw pointer*/
 namespace gridtools {
 
+    namespace workaround_ {
+        template <typename T>
+        struct new_op;
+
+#define NEW_OP(x) template <>                   \
+        struct new_op<x> {                      \
+            x* operator()(int size) const {     \
+                return new x[size];             \
+            }                                   \
+        };
+
+        NEW_OP(int)
+        NEW_OP(unsigned int)
+        NEW_OP(char)
+        NEW_OP(float)
+        NEW_OP(double)
+    }
+
 
 template <typename T>
 struct wrap_pointer{
@@ -32,7 +50,11 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void allocate_it(int size){
+#if (CUDA_VERSION > 5050)
         cpu_p = new T[size];
+#else
+        cpu_p = workaround_::new_op<T>()(size);
+#endif
     }
 
     GT_FUNCTION
