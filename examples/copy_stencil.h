@@ -119,7 +119,7 @@ bool test(int x, int y, int z) {
     int di[5] = {0, 0, 0, d1, d1};
     int dj[5] = {0, 0, 0, d2, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
+     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
