@@ -6,11 +6,12 @@ add_test(test.FunctorDoMethods "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
 
 add_executable(LoopIntervals LoopIntervals.cpp)
 add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
-add_executable(test-independent test-independent.cpp)
-if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set_target_properties(test-independent PROPERTIES COMPILE_FLAGS "-std=c++11")
+
+if ( ENABLE_CXX11 )
+    add_executable(test-independent test-independent.cpp)
+    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 endif()
-add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 
 if (GTEST_FOUND)
     if ( ENABLE_CXX11 )
@@ -43,8 +44,10 @@ if (GTEST_FOUND)
       cloningstuff.cu
       boundary_conditions_test.cu
     )
-    target_link_libraries( tests_gpu ${GTEST_BOTH_LIBRARIES} )
+
     add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
+
+    target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     add_test( tests.cloning_derived "${CMAKE_BINARY_DIR}/build/cloning_derived" 42 )

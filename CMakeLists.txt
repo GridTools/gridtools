@@ -101,6 +101,12 @@ endif()
 
 set ( exe_LIBS ${Boost_LIBRARIES} )
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+else()
+    set(exe_LIBS ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+endif()
+
 if(OPENMP_FOUND)
     set (PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project")
 endif()
