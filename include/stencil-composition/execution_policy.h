@@ -43,20 +43,26 @@ namespace gridtools{
             GT_FUNCTION
             void loop(int from, int to) const {
 #ifdef __CUDACC__
-	        cudaProfilerStart();
+	      //cudaProfilerStart();
 #endif
-                for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
-                    traits::functor_t::Do(this->m_domain, IntervalType());
-                    this->m_domain.increment();
-                }
+		//IntervalType::static_info();
+		//printf("forward/backward iterations \n");
+	      // printf("        from=%d ", from);
+	      // printf("to=%d : ", to);
+            for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
+	      // printf("k=%d ", k);
+	      traits::functor_t::Do(this->m_domain, IntervalType());
+	      IterationPolicy::increment(this->m_domain);
+            }
+            // printf("\n");
 #ifdef __CUDACC__
-		cudaProfilerStop();
+	    //cudaProfilerStop();
 #endif
             }
         };
 
 /**
-   @brief partial specialization for the parallel case
+   @brief partial specialization for the parallel case (to be implemented)
 */
         template<
             typename ExtraArguments>
@@ -73,14 +79,14 @@ namespace gridtools{
             GT_FUNCTION
             void loop(int from, int to) const {
 #ifdef __CUDACC__
-	      cudaProfilerStart();
+                cudaProfilerStart();
 #endif
-	      for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
+                for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
 #ifdef __CUDACC__
-	      cudaProfilerStop();
+                cudaProfilerStop();
 #endif
             }
         };

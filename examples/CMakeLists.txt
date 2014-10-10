@@ -5,49 +5,58 @@
 
 #add_executable(interface2   interface2.cpp ${SOURCES} )
 
-add_executable(interface1_naive   interface1.cpp )
-add_executable(interface1_block   interface1.cpp )
-set_target_properties(interface1_block
-        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-target_link_libraries(interface1_naive ${exe_LIBS})
-target_link_libraries(interface1_block ${exe_LIBS})
 
-add_executable(boundary-condition_naive   boundary-condition.cpp )
-add_executable(boundary-condition_block   boundary-condition.cpp )
-set_target_properties(boundary-condition_block
+# HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
+foreach(srcfile interface1 boundary-condition laplacian copy_stencil )
+    add_executable(${srcfile}_naive   ${srcfile}.cpp )
+    add_executable(${srcfile}_block   ${srcfile}.cpp )
+    set_target_properties(${srcfile}_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+    set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    target_link_libraries(${srcfile}_naive ${exe_LIBS})
+    target_link_libraries(${srcfile}_block ${exe_LIBS})
+endforeach(srcfile)
 
-add_executable(laplacian_naive   laplacian.cpp )
-add_executable(laplacian_block   laplacian.cpp )
-set_target_properties(laplacian_block
-        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-target_link_libraries(laplacian_naive ${exe_LIBS})
-target_link_libraries(laplacian_block ${exe_LIBS})
+# HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED ***ONLY*** WITH C++11
 
-add_executable(copy_naive   copy_stencil.cpp )
-add_executable(copy_block   copy_stencil.cpp )
-set_target_properties(copy_block
-        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-target_link_libraries(copy_naive ${exe_LIBS})
-target_link_libraries(copy_block ${exe_LIBS})
+if ( ENABLE_CXX11 )
+    foreach(srcfile tridiagonal )
+        add_executable(${srcfile}_naive   ${srcfile}.cpp )
+        add_executable(${srcfile}_block   ${srcfile}.cpp )
+        set_target_properties(${srcfile}_block
+            PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+        set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+        set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+        target_link_libraries(${srcfile}_naive ${exe_LIBS})
+        target_link_libraries(${srcfile}_block ${exe_LIBS})
+    endforeach(srcfile)
+
+    add_executable(test_interface   expressions.cpp )
+    target_link_libraries(test_interface ${exe_LIBS})
+    set_target_properties(test_interface PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+
+    add_executable( unstructured unstructured.cpp )
+    target_link_libraries(unstructured ${exe_LIBS})
+    set_target_properties(unstructured PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+
+endif()
 
 add_executable(basic_laplacian basic_laplacian.cpp)
 target_link_libraries(basic_laplacian ${exe_LIBS})
-
 add_executable(vanilla_laplacian vanilla_laplacian.cpp)
 target_link_libraries(vanilla_laplacian ${exe_LIBS})
 
 if(CUDA_FOUND)
-    cuda_add_executable( interface1_cuda interface1.cu )
-    #add_dependencies(  )
-
-    cuda_add_executable( laplacian_cuda laplacian.cu )
-    cuda_add_executable(boundary-condition_cuda   boundary-condition.cu )
-    cuda_add_executable( copy_cuda copy_stencil.cu )
-    target_link_libraries(interface1_cuda ${exe_LIBS})
-    target_link_libraries(laplacian_cuda ${exe_LIBS})
-    target_link_libraries(boundary-condition_cuda ${exe_LIBS})
-    target_link_libraries(copy_cuda ${exe_LIBS})
+    if(COMPILE_TO_PTX)
+        CUDA_COMPILE_PTX(generated_files interface1.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
+    else()
+        foreach(srcfile interface1 boundary-condition tridiagonal laplacian copy_stencil )
+            cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
+            set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+            target_link_libraries(${srcfile}_cuda ${exe_LIBS})
+        endforeach(srcfile)
+    endif()
 endif()
 
 add_subdirectory( communication )

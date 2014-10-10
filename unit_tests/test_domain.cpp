@@ -182,7 +182,7 @@ bool test_domain() {
 #else
     gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
 #endif
-    
+
     actual_arg_list_type* arg_list_device_ptr;
     cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
     cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
@@ -212,7 +212,6 @@ bool test_domain() {
     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
 #endif
 
-
     boost::fusion::copy(domain.storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
@@ -220,7 +219,7 @@ bool test_domain() {
 #else
     gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
 #endif
-    
+
     // actual_arg_list_type* arg_list_device_ptr;
     // cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
     cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);

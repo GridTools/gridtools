@@ -16,6 +16,8 @@
 #include "level.h"
 #include "interval.h"
 
+#include <boost/mpl/print.hpp>
+
 namespace gridtools {
     // implementation of the do method overload search
 
@@ -40,12 +42,12 @@ namespace gridtools {
                 boost::mpl::_1
                 >
         >::type DoMethods;
-    
+
     // check there is exactly one do method starting at the given from level index
     BOOST_MPL_ASSERT_MSG(
                          (boost::mpl::size<DoMethods>::value == 1),
                          DID_NOT_FIND_DO_METHOD_FOR_A_GIVEN_INTEVAL_FROM_LEVEL,
-                         (TFromIndex, DoMethods) 
+                         (TFromIndex, DoMethods)
                          );
 
     // define the do method
@@ -58,14 +60,14 @@ namespace gridtools {
     typedef typename index_to_level<
         typename boost::mpl::second<DoMethod>::type
     >::type::Offset ToOffset;
-    
+
         // check the do method from and to level offsets do not max out the level offset limits
         // (otherwise we cannot guarantee a correct loop level computation afterwards)
         BOOST_MPL_ASSERT_MSG(
                              (
-                              -cLevelOffsetLimit < FromOffset::value && 
+                              -cLevelOffsetLimit < FromOffset::value &&
                               FromOffset::value < cLevelOffsetLimit &&
-                              -cLevelOffsetLimit < ToOffset::value && 
+                              -cLevelOffsetLimit < ToOffset::value &&
                               ToOffset::value < cLevelOffsetLimit
                               ),
                              DO_METHOD_DEFINITION_REACHES_LEVEL_OFFSET_LIMIT,
@@ -88,19 +90,19 @@ namespace gridtools {
         // extract the do method from and to indexes
         typedef typename boost::mpl::second<TDoMethod1>::type DoMethod1ToIndex;
         typedef typename boost::mpl::first<TDoMethod2>::type DoMethod2FromIndex;
-    
+
         // make sure the second interval starts where the first ends
         // (check the index values are continuous and both indexes are associated to the same splitter)
-        BOOST_STATIC_CONSTANT(bool, value = 
+        BOOST_STATIC_CONSTANT(bool, value =
                               (
                                (
-                                DoMethod1ToIndex::value + 1 == 
+                                DoMethod1ToIndex::value + 1 ==
                                 DoMethod2FromIndex::value
-                                ) && ( 
-                                      index_to_level<DoMethod1ToIndex>::type::Splitter::value == 
+                                ) && (
+                                      index_to_level<DoMethod1ToIndex>::type::Splitter::value ==
                                       index_to_level<DoMethod2FromIndex>::type::Splitter::value
-                                       )            
-                               )    
+                                       )
+                               )
                               );
         typedef boost::mpl::integral_c<bool, value> type;
     };
@@ -114,11 +116,11 @@ namespace gridtools {
         typename TFunctor,
         typename TAxisInterval>
     struct compute_functor_do_methods
-    {   
+    {
         // define the from and to level indexes
         typedef typename interval_from_index<TAxisInterval>::type FromIndex;
         typedef typename interval_to_index<TAxisInterval>::type ToIndex;
-    
+
         // search all do method from levels
         typedef typename boost::mpl::fold<
             typename make_range<FromIndex, ToIndex>::type,
@@ -140,8 +142,10 @@ namespace gridtools {
         BOOST_MPL_ASSERT_MSG(
                              !boost::mpl::empty<DoMethods>::value,
                              NO_DO_METHOD_FOUND,
-                             (TFunctor, TAxisInterval, DoMethods) 
+                             (TFunctor, TAxisInterval, DoMethods)
                              );
+
+        // static const auto blabla=boost::mpl::print<DoMethods>();
 
         // check the do methods are continuous
         BOOST_MPL_ASSERT_MSG(
@@ -160,9 +164,9 @@ namespace gridtools {
                              >::type::value
                              ),
                              DO_METHOD_INTERVALS_ARE_NOT_CONTINOUS,
-                             (TFunctor, TAxisInterval, DoMethods) 
+                             (TFunctor, TAxisInterval, DoMethods)
                              );
-    
+
         typedef DoMethods type;
     };
 

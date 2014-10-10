@@ -71,8 +71,8 @@ namespace gridtools {
             };
         };
 
-        /* Functor used to instantiate the local domains to be passed to each
-           elementary stencil function */
+        /** @brief Functor used to instantiate the local domains to be passed to each
+            elementary stencil function */
         template <typename Dom, typename ArgList>
         struct instantiate_local_domain {
             GT_FUNCTION
@@ -81,9 +81,9 @@ namespace gridtools {
                 , m_arg_list(arg_list)
             {}
 
-            /**method called in the Do methods of the functors. Elem is a local_domain*/
+            /**Elem is a local_domain*/
             template <typename Elem>
-            GT_FUNCTION
+            //GT_FUNCTION
             void operator()(Elem & elem) const {
                 elem.init(m_dom, m_arg_list, 0,0,0);
                 elem.clone_to_gpu();
@@ -98,14 +98,14 @@ namespace gridtools {
         struct extract_ranges {
             typedef typename FunctorDesc::esf_function Functor;
 
-            /**here the ranges for the functors are calculated*/
+            /**@brief here the ranges for the functors are calculated: the resulting type will be the range (i,j) which is enclosing all the ranges of the field used by the specific functor*/
             template <typename RangeState, typename ArgumentIndex>
             struct update_range {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
                 typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
             };
 
-            /**here the ranges for the functors are calculated*/
+            /**@brief here the ranges for the functors are calculated: iterates over the fields and calls the metafunction above*/
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<int, 0, Functor::n_args>,
                 range<0,0,0,0>,
@@ -113,6 +113,7 @@ namespace gridtools {
                 >::type type;
         };
 
+	
         template <typename T>
         struct extract_ranges<independent_esf<T> >
         {
@@ -124,6 +125,7 @@ namespace gridtools {
             typedef boost::false_type type;
         };
 
+	/**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing ranges, one per functor*/
         template <typename T>
         struct from_independents<independent_esf<T> > {
             typedef typename boost::mpl::fold<
@@ -133,47 +135,47 @@ namespace gridtools {
                 >::type raw_type;
 
         typedef wrap_type<raw_type> type;
-    };
+	};
 
-    template <typename State, typename Elem>
-    struct traverse_ranges {
-
-        typedef typename boost::mpl::push_back<
+	/** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing ranges (in case of "independent" esf), or the single range enclosing all the ranges. */
+	template <typename State, typename Elem>
+	  struct traverse_ranges {
+	    typedef typename boost::mpl::push_back<
             State,
-            typename boost::mpl::if_<
-                is_independent<Elem>,
-                typename from_independents<Elem>::type,
-                typename extract_ranges<Elem>::type
-                >::type
-            >::type type;
-    };
+	      typename boost::mpl::if_<
+	      is_independent<Elem>,
+	      typename from_independents<Elem>::type,
+	      typename extract_ranges<Elem>::type
+	      >::type
+	      >::type type;
+	  };
 
 
-    // prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.
+	/**@brief prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.*/
         template <typename ListOfRanges>
-        struct prefix_on_ranges {
+	  struct prefix_on_ranges {
 
             template <typename List, typename Range/*, typename NextRange*/>
             struct state {
-                typedef List list;
-                typedef Range range;
-                // typedef NextRange next_range;
+	      typedef List list;
+	      typedef Range range;
+	      // typedef NextRange next_range;
             };
-
+	    
             template <typename PreviousState, typename CurrentElement>
-            struct update_state {
+	      struct update_state {
                 typedef typename sum_range<typename PreviousState::range,
                                            CurrentElement>::type new_range;
                 typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
                 typedef state<new_list, new_range> type;
-            };
-
+	      };
+	    
             template <typename PreviousState, typename IndVector>
             struct update_state<PreviousState, wrap_type<IndVector> > {
-                typedef typename boost::mpl::fold<
-                    IndVector,
-                    boost::mpl::vector<>,
-                    boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
+	      typedef typename boost::mpl::fold<
+		IndVector,
+		boost::mpl::vector<>,
+		boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
                     >::type raw_ranges;
 
                 typedef typename boost::mpl::fold<
@@ -424,7 +426,7 @@ namespace gridtools {
  * @class
 *  @brief structure collecting helper metafunctions
  * */
-    template <typename Backend, typename MssType, typename DomainType, typename Coords>
+    template <typename Backend, typename LayoutType,  typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
 
@@ -486,7 +488,7 @@ namespace gridtools {
          * backend with the interface that takes the range sizes. This
          * must be done before getting the local_domain
          */
-        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::type mpl_actual_tmp_pairs;
+        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes, float_type, /*layout_map<0,1,2>*/LayoutType >::type mpl_actual_tmp_pairs;
 
         typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
@@ -662,7 +664,9 @@ namespace gridtools {
             // std::cout << "--- ---" << std::endl;
             // gridtools::for_each<mpl_local_domain_list>(_print_____());
 
+#ifndef NDEBUG
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
+#endif
             Backend::template run<functors_list, range_sizes, loop_intervals_t, functor_do_method_lookup_maps, typename MssType::execution_engine_t>( m_coords, local_domain_list );
         }
 
