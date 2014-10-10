@@ -13,25 +13,6 @@
 */
 namespace gridtools {
 
-    namespace workaround_ {
-        template <typename T>
-        struct new_op;
-
-#define NEW_OP(x) template <>                   \
-        struct new_op<x> {                      \
-            x* operator()(int size) const {     \
-                return new x[size];             \
-            }                                   \
-        };
-
-        NEW_OP(int)
-        NEW_OP(unsigned int)
-        NEW_OP(char)
-        NEW_OP(float)
-        NEW_OP(double)
-    }
-
-
 /**\todo Note that this struct will greatly simplify when the CUDA arch 3200 and inferior will be obsolete (the "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
     template <typename T>
     struct hybrid_pointer : public wrap_pointer<T>{
