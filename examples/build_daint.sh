@@ -65,12 +65,13 @@ export MODULEPATH=\"/opt/totalview-support/1.1.4/modulefiles:/opt/cray/craype/de
 module() { eval `/opt/modules/3.2.6.7/bin/modulecmd bash $*`; }
 
 echo \"loading modules\"
-module load boost;
+module load boost
 echo \"modules loaded: start test execution\"
 
 aprun \"/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/gpu/build/build/tests_gpu\"" > /users/jenkins/runTest_daint.sh
 chmod +x /users/jenkins/runTest_daint.sh
-salloc --gres=gpu:1 /users/jenkins/runTest_daint.sh
+echo "disabled execution on GPUs because of an obscure problem with rpath/dynamic libraries"
+#salloc --gres=gpu:1 /users/jenkins/runTest_daint.sh
 else
 make tests;
 ./build/tests
