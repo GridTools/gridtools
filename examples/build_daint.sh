@@ -60,7 +60,7 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 ./runTest_daint.job
+salloc --gres=gpu:1 ../examples/runTest_daint.job
 else
 make tests;
 ./build/tests
