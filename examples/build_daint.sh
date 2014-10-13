@@ -66,14 +66,6 @@ module() { eval `/opt/modules/3.2.6.7/bin/modulecmd bash $*`; }
 
 echo \"loading modules\"
 module load boost;
-module unload  PrgEnv-cray
-module load  PrgEnv-gnu
-module load cudatoolkit
-module load papi
-module load gcc/4.8.2
-export PAPI_ROOT=/opt/cray/papi/5.2.0
-export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
-export CSCSPERF_EVENTS=\"SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP\"
 echo \"modules loaded: start test execution\"
 
 aprun \"/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/gpu/build/build/tests_gpu\"" > /users/jenkins/runTest_daint.sh
