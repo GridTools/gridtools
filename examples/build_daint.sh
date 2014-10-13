@@ -60,7 +60,7 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 module load boost; aprun "/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"
+salloc --gres=gpu:1 ./runTest_daint.job
 else
 make tests;
 ./build/tests
