@@ -65,9 +65,9 @@ export MODULEPATH="/opt/totalview-support/1.1.4/modulefiles:/opt/cray/craype/def
 module() { eval `/opt/modules/3.2.6.7/bin/modulecmd bash $*`; }
 
 module load boost;
-aprun "/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"' > runTest_daint.sh
-chmod +x runTest_daint.sh
-salloc --gres=gpu:1 pwd #./runTest_daint.sh
+aprun "/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"' > /users/jenkins/runTest_daint.sh
+chmod +x /users/jenkins/runTest_daint.sh
+salloc --gres=gpu:1 /users/jenkins/runTest_daint.sh
 else
 make tests;
 ./build/tests
