@@ -60,7 +60,14 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 ../examples/runTest_daint.job
+echo '#!/bin/bash
+export MODULEPATH="/opt/totalview-support/1.1.4/modulefiles:/opt/cray/craype/default/modulefiles:/opt/cray/ari/modulefiles:/opt/cray/modulefiles:/opt/modulefiles:/cm/local/modulefiles:/cm/shared/modulefiles:/apps/daint/modulefiles"
+module() { eval `/opt/modules/3.2.6.7/bin/modulecmd bash $*`; }
+
+module load boost;
+aprun "/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"'>runTest_daint.sh
+chmod +x runTest_daint.sh
+salloc --gres=gpu:1 ./runTest_daint.sh
 else
 make tests;
 ./build/tests
