@@ -45,8 +45,8 @@ namespace gridtools {
         static const std::string info_string;
 
         // int m_tile[3];
-        int m_halo[3];
-        int m_initial_offsets[3];
+        uint_t m_halo[3];
+        uint_t m_initial_offsets[3];
 
         // std::string m_name;
 

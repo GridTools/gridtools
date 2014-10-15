@@ -61,7 +61,7 @@ namespace gridtools{  namespace enumtype{
     //propagate the template everywhere! (which is one of the main motivations for the EPetra replacement in Trilinos)
     using int_t          =int ;
     using short_t        =int;
-    using uint_t         =long unsigned int;
+    using uint_t         =unsigned int;
     using ushort_t       =unsigned  char;
     template<int_t N>
     using  static_int=boost::mpl::integral_c<int_t,N>;

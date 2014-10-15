@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/timer/timer.hpp>
+#include <common/defs.h>
 
 #define offs_(i,j,k,n,m,l) ((i)*(m)*(l)+(j)*(l)+(k))
 
@@ -20,9 +21,9 @@ void print(double* that, uint_t n, uint_t m, uint_t l, Stream & stream) {
     uint_t MJ=12;
     uint_t MK=12;
 
-    for (uint_t i = 0; i < n; i += std::max(1,n/MI)) {
-        for (uint_t j = 0; j < m; j += std::max(1,m/MJ)) {
-            for (uint_t k = 0; k < l; k += std::max(1,l/MK)) {
+    for (uint_t i = 0; i < n; i += std::max((uint_t)1,n/MI)) {
+        for (uint_t j = 0; j < m; j += std::max((uint_t)1,m/MJ)) {
+            for (uint_t k = 0; k < l; k += std::max((uint_t)1,l/MK)) {
                 stream << "["/*("
                                << i << ","
                                << j << ","

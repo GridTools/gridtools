@@ -193,8 +193,8 @@ int main(int argc, char** argv) {
 	  The coordinates constructor takes the horizontal plane dimensions,
 	  while the vertical ones are set according the the axis property soon after
        */
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+    uint_t di[5] = {2, 2, 2, d1-2, d1};
+    uint_t dj[5] = {2, 2, 2, d2-2, d2};
 
        gridtools::coordinates<axis> coords(di,dj);
        coords.value_list[0] = 0;
