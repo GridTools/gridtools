@@ -51,9 +51,6 @@ typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
-    static const int n_args = 5;
-//for vectors: output, and the 3 diagonals
-
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b
@@ -95,8 +92,6 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
-    static const int n_args = 5;
-
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b
@@ -142,16 +137,16 @@ std::ostream& operator<<(std::ostream& s, forward_thomas const) {
 }
 
 
-bool solver(int x, int y, int z) {
+bool solver(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
 #endif
 
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -175,8 +170,8 @@ bool solver(int x, int y, int z) {
     storage_type diag(d1,d2,d3,3., std::string("diag"));
     storage_type sup(d1,d2,d3,1., std::string("sup"));
     storage_type rhs(d1,d2,d3,3., std::string("rhs"));
-    for(int i=0; i<d1; ++i)
-        for(int j=0; j<d2; ++j)
+    for(uint_t i=0; i<d1; ++i)
+        for(uint_t j=0; j<d2; ++j)
         {
             rhs(i, j, 0)=4.;
             rhs(i, j, 5)=2.;
@@ -211,8 +206,8 @@ bool solver(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {0, 0, 0, d1, d1};
-    int dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {0, 0, 0, d1, d1};
+    uint_t dj[5] = {0, 0, 0, d2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;

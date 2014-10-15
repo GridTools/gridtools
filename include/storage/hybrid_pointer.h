@@ -19,7 +19,7 @@ namespace gridtools {
 
         explicit hybrid_pointer(T* p) : wrap_pointer<T>(p), gpu_p(NULL), pointer_to_use(p), size(0) {}
 
-        explicit hybrid_pointer(int size) : wrap_pointer<T>(size), size(size) {
+        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), size(size) {
             allocate_it(size);
             pointer_to_use = this->cpu_p;
 #ifndef NDEBUG
@@ -50,7 +50,7 @@ namespace gridtools {
 
       ~hybrid_pointer(){free_it();}
 
-        void allocate_it(int size) {
+        void allocate_it(uint_t size) {
 #ifdef __CUDACC__
             int err = cudaMalloc(&gpu_p, size*sizeof(T));
             if (err != cudaSuccess) {
@@ -110,7 +110,7 @@ namespace gridtools {
         }
 
         __host__ __device__
-        T& operator[](int i) {
+        T& operator[](uint_t i) {
             /* assert(i<size); */
             /* assert(i>=0); */
             // printf(" [%d %e] ", i, pointer_to_use[i]);
@@ -118,7 +118,7 @@ namespace gridtools {
         }
 
         __host__ __device__
-        T const& operator[](int i) const {
+        T const& operator[](uint_t i) const {
             /* assert(i<size); */
             /* assert(i>=0); */
             // printf(" [%d %e] ", i, pointer_to_use[i]);
@@ -137,12 +137,12 @@ namespace gridtools {
         }
 
         __host__ __device__
-        T* operator+(int i) {
+        T* operator+(uint_t i) {
             return &pointer_to_use[i];
         }
 
         __host__ __device__
-        T* const& operator+(int i) const {
+        T* const& operator+(uint_t i) const {
             return &pointer_to_use[i];
         }
 
@@ -158,7 +158,7 @@ namespace gridtools {
     private:
         T * gpu_p;
         T * pointer_to_use;
-        int size;
+        uint_t size;
 
 
     };

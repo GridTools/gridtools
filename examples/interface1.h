@@ -38,7 +38,6 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    static const int n_args = 2;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
@@ -54,7 +53,6 @@ struct lap_function {
 };
 
 struct flx_function {
-    static const int n_args = 3;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
@@ -73,7 +71,6 @@ struct flx_function {
 };
 
 struct fly_function {
-    static const int n_args = 3;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
@@ -91,7 +88,6 @@ struct fly_function {
 };
 
 struct out_function {
-    static const int n_args = 5;
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
@@ -130,16 +126,16 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(int x, int y, int z) {
+bool test(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
 #endif
 
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -191,8 +187,8 @@ bool test(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+    uint_t di[5] = {2, 2, 2, d1-2, d1};
+    uint_t dj[5] = {2, 2, 2, d2-2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
@@ -272,9 +268,9 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     // domain.storage_info<boost::mpl::int_<0> >();
     // domain.storage_info<boost::mpl::int_<1> >();
     // domain.storage_info<boost::mpl::int_<2> >();
-    domain.storage_info<boost::mpl::int_<3> >();
-    domain.storage_info<boost::mpl::int_<4> >();
-    domain.storage_info<boost::mpl::int_<5> >();
+    domain.storage_info<static_int<3> >();
+    domain.storage_info<static_int<4> >();
+    domain.storage_info<static_int<5> >();
 
     horizontal_diffusion->steady();
     domain.clone_to_gpu();

@@ -34,10 +34,10 @@ namespace gridtools {
 
             typename derived_traits_t::domain_list_t & m_domain_list;
             typename derived_traits_t::coords_t const & m_coords;
-            const int m_starti, m_startj, m_BI, m_BJ, blk_idx_i, blk_idx_j;
+            const uint_t m_starti, m_startj, m_BI, m_BJ, blk_idx_i, blk_idx_j;
 
             // Block strategy
-            explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords, int i, int j, int bi, int bj, int blk_idx_i, int blk_idx_j)
+            explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blk_idx_i, uint_t blk_idx_j)
                 : m_domain_list(dom_list)
                 , m_coords(coords)
                 , m_starti(i)
@@ -78,7 +78,7 @@ namespace gridtools {
            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
            \tparam Temporaries is the vector of temporary placeholder types.
         */
-        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, int BI, int BJ, typename StrategyTraits, enumtype::backend BackendID>
+        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
         struct get_storage_type {
             template <typename Index>
             struct apply {
@@ -135,9 +135,9 @@ namespace gridtools {
                   , typename LayoutType/* = layout_map<0,1,2>*/ >
         struct obtain_storage_types {
 
-            static const int tileI = (strategy_traits_t::BI);
+            static const uint_t tileI = (strategy_traits_t::BI);
 
-            static const int tileJ = (strategy_traits_t::BJ);
+            static const uint_t tileJ = (strategy_traits_t::BJ);
 
             typedef typename boost::mpl::fold<typename Domain::placeholders,
                 boost::mpl::vector<>,
@@ -156,7 +156,7 @@ namespace gridtools {
 
             typedef boost::mpl::filter_view<typename Domain::placeholders, _impl::is_temporary_arg<boost::mpl::_> > temporaries;
 
-            typedef boost::mpl::range_c<int, 0, boost::mpl::size<temporaries>::type::value> iter_range;
+            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<temporaries>::type::value> iter_range;
 
             typedef typename boost::mpl::fold<
                 iter_range,

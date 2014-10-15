@@ -90,13 +90,13 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam T The type of the storage used to store data
      */
-    template <int I, typename T>
+    template <uint_t I, typename T>
     struct arg {
         typedef T storage_type;
         typedef typename T::iterator_type iterator_type;
         typedef typename T::value_type value_type;
-        typedef boost::mpl::int_<I> index_type;
-        typedef boost::mpl::int_<I> index;
+        typedef static_uint<I> index_type;
+        typedef static_uint<I> index;
 
         template<typename Storage>
         arg_storage_pair<arg<I,T>, Storage>
@@ -113,11 +113,11 @@ namespace gridtools {
     namespace enumtype
     {
         namespace{
-        template <int Coordinate>
+        template <ushort_t Coordinate>
             struct T{
-            T(int val){ value=val;}
-            static const int direction=Coordinate;
-            int value;
+            T(int_t val){ value=val;}
+            static const ushort_t direction=Coordinate;
+            int_t value;
         };
         }
 
@@ -129,7 +129,7 @@ namespace gridtools {
     struct initialize
     {
         GT_FUNCTION
-        initialize(int* offset) : m_offset(offset)
+        initialize(int_t* offset) : m_offset(offset)
             {}
 
         template<typename X>
@@ -137,7 +137,7 @@ namespace gridtools {
         inline void operator( )(X const& i) const {
             m_offset[X::direction] = i.value;
         }
-        int* m_offset;
+        int_t* m_offset;
     };
 
     /**
@@ -148,24 +148,24 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Range Bounds over which the function access the argument
      */
-    template <int I, typename Range=range<0,0,0,0> >
+    template <uint_t I, typename Range=range<0,0,0,0> >
     struct arg_type   {
 
-        template <int Im, int Ip, int Jm, int Jp, int Kp, int Km>
+        template <uint_t Im, uint_t Ip, uint_t Jm, uint_t Jp, uint_t Kp, uint_t Km>
         struct halo {
             typedef arg_type<I> type;
         };
 
 #ifdef CXX11_ENABLED
-        int offset[3]={0,0,0};
+        int_t offset[3]={0,0,0};
 #else
-        int offset[3];
+        int_t offset[3];
 #endif
-        typedef boost::mpl::int_<I> index_type;
+        typedef static_uint<I> index_type;
         typedef Range range_type;
 
         GT_FUNCTION
-        arg_type(int i, int j, int k) {
+        arg_type(int_t i, int_t j, int_t k) {
             offset[0] = i;
             offset[1] = j;
             offset[2] = k;
@@ -227,17 +227,17 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        int i() const {
+        int_t i() const {
             return offset[0];
         }
 
         GT_FUNCTION
-        int j() const {
+        int_t j() const {
             return offset[1];
         }
 
         GT_FUNCTION
-        int k() const {
+        int_t k() const {
             return offset[2];
         }
 
@@ -247,12 +247,12 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        const int* offset_ptr() const {
+        const int_t* offset_ptr() const {
             return offset;
         }
 
         GT_FUNCTION
-        arg_type<I> plus(int _i, int _j, int _k) const {
+        arg_type<I> plus(int_t _i, int_t _j, int_t _k) const {
             return arg_type<I>(i()+_i, j()+_j, k()+_k);
         }
 
@@ -271,16 +271,16 @@ namespace gridtools {
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
      */
-    template <int I, typename T>
+    template <uint_t I, typename T>
     struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
     {};
 
 
-    template <int I, enumtype::backend X, typename T, typename U>
+    template <uint_t I, enumtype::backend X, typename T, typename U>
     struct is_plchldr_to_temp<arg<I, base_storage<X, T, U,  true> > > : boost::true_type
     {};
 
-    template <int I, enumtype::backend X, typename T, typename U>
+    template <uint_t I, enumtype::backend X, typename T, typename U>
     struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
     {};
 
@@ -290,7 +290,7 @@ namespace gridtools {
      * @param n/a Type selector for arg_type
      * @return ostream
      */
-    template <int I, typename R>
+    template <uint_t I, typename R>
     std::ostream& operator<<(std::ostream& s, arg_type<I,R> const& x) {
         return s << "[ arg_type< " << I
                  << ", " << R()
@@ -300,7 +300,7 @@ namespace gridtools {
                  <<" ) > ]";
     }
 
-    template <int I, typename R>
+    template <uint_t I, typename R>
     std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R> > const&) {
         return s << "[ arg< " << I
                  << ", temporary<something>" << " > ]";
@@ -312,7 +312,7 @@ namespace gridtools {
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
-    template <int I, typename R>
+    template <uint_t I, typename R>
     std::ostream& operator<<(std::ostream& s, arg<I,R> const&) {
         return s << "[ arg< " << I
                  << ", NON TEMP" << " > ]";

@@ -35,7 +35,6 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
-    static const int n_args = 2;
     typedef const arg_type<0> in;
     typedef arg_type<1> out;
     typedef boost::mpl::vector<in, out> arg_list;
@@ -55,19 +54,19 @@ std::ostream& operator<<(std::ostream& s, copy_functor const) {
     return s << "copy_functor";
 }
 
-void handle_error(int)
+void handle_error(int_t)
 {std::cout<<"error"<<std::endl;}
 
-bool test(int x, int y, int z) {
+bool test(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
 #endif
 
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -85,9 +84,9 @@ bool test(int x, int y, int z) {
      // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
 
-    for(int i=0; i<d1; ++i)
-        for(int j=0; j<d2; ++j)
-	  for(int k=0; k<d3; ++k)
+    for(uint_t i=0; i<d1; ++i)
+        for(uint_t j=0; j<d2; ++j)
+	  for(uint_t k=0; k<d3; ++k)
 	    {
 	      in(i, j, k)=i+j+k;
 	    }
@@ -116,8 +115,8 @@ bool test(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {0, 0, 0, d1, d1};
-    int dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {0, 0, 0, d1, d1};
+    uint_t dj[5] = {0, 0, 0, d2, d2};
 
      gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;

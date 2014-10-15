@@ -12,10 +12,10 @@
 namespace cloningstuff_test {
     struct B: public gridtools::clonable_to_gpu<B> {
         gridtools::hybrid_pointer<char> pointer_to_use;
-        int size;
-        int &ref;
+        uint_t size;
+        uint_t &ref;
 
-        B(int size) : size(size), ref(size), pointer_to_use(size) { }
+        B(uint_t size) : size(size), ref(size), pointer_to_use(size) { }
 
         __host__ __device__
         B(B const& other)
@@ -40,11 +40,11 @@ namespace cloningstuff_test {
 
 
     struct A :public gridtools::clonable_to_gpu<A> {
-        int a;
-        int &b;
+        uint_t a;
+        uint_t &b;
         B p;
 
-        A(int a, int size) : a(a), b(a), p(size) {}
+        A(uint_t a, uint_t size) : a(a), b(a), p(size) {}
 
         __host__ __device__
         A(A const& other)

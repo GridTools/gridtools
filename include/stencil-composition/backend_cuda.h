@@ -34,13 +34,13 @@ namespace gridtools {
                   typename Traits,
                   typename ExtraArguments>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, int starti, int startj, int nx, int ny) {
-            int i = blockIdx.x * blockDim.x + threadIdx.x;
-            int j = blockIdx.y * blockDim.y + threadIdx.y;
-            int z = coords->template value_at<typename Traits::first_hit_t>();
+        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
+            uint_t i = blockIdx.x * blockDim.x + threadIdx.x;
+            uint_t j = blockIdx.y * blockDim.y + threadIdx.y;
+            uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-	    /* int i = (blockIdx.x * blockDim.x + threadIdx.x)%ny; */
-	    /* int j = (blockIdx.x * blockDim.x + threadIdx.x)/ny; */
+	    /* uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny; */
+	    /* uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny; */
 
 
             if ((i < nx) && (j < ny)) {
@@ -68,7 +68,7 @@ namespace gridtools {
                 : super( domain_list, coords)
                 {}
 
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj)
+            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
                 : super(domain_list, coords, i, j, bi, bj)
                 {}
 
@@ -129,7 +129,7 @@ namespace gridtools {
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
-		int count;
+		short_t count;
 		cudaGetDeviceCount ( &count  );
 
 		if(count)
@@ -164,15 +164,15 @@ namespace gridtools {
 
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
-                int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
-                int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
+                uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
+                uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
 
-                int ntx = 8, nty = 32, ntz = 1;
+                uint_t ntx = 8, nty = 32, ntz = 1;
                 dim3 threads(ntx, nty, ntz);
 
-                int nbx = (nx + ntx - 1) / ntx;
-                int nby = (ny + nty - 1) / nty;
-                int nbz = 1;
+                ushort_t nbx = (nx + ntx - 1) / ntx;
+                ushort_t nby = (ny + nty - 1) / nty;
+                ushort_t nbz = 1;
                 dim3 blocks(nbx, nby, nbz);
 
 #ifndef NDEBUG

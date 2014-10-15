@@ -17,20 +17,20 @@ namespace gridtools {
 
     namespace _impl
     {
-        template <int I, typename OtherLayout, int X>
+        template <ushort_t I, typename OtherLayout, int_t X>
         struct get_stride_
         {
             GT_FUNCTION
-            static int get(const int* s) {
+            static uint_t get(const uint_t* s) {
                 return s[OtherLayout::template at_<I>::value];
             }
         };
 
-        template <int I, typename OtherLayout>
+        template <ushort_t I, typename OtherLayout>
         struct get_stride_<I, OtherLayout, 2>
         {
             GT_FUNCTION
-            static int get(const int* ) {
+            static uint_t get(const uint_t* ) {
 #ifndef __CUDACC__
 #ifndef NDEBUG
                 //                std::cout << "U" ;//<< std::endl;
@@ -40,7 +40,7 @@ namespace gridtools {
             }
         };
 
-        template <int I, typename OtherLayout>
+        template <ushort_t I, typename OtherLayout>
         struct get_stride
           : get_stride_<I, OtherLayout, OtherLayout::template at_<I>::value>
         {};
@@ -105,7 +105,7 @@ namespace gridtools {
         typedef backend_from_id <Backend> backend_traits_t;
 
     public:
-        explicit base_storage(int dim1, int dim2, int dim3,
+        explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
             m_size( dim1 * dim2 * dim3 ),
             is_set( true ),
@@ -122,7 +122,7 @@ namespace gridtools {
             srand(12345);
 #endif
             //m_data = new value_type[m_size];
-            for (int i = 0; i < m_size; ++i)
+            for (uint_t i = 0; i < m_size; ++i)
 #ifdef _GT_RANDOM_INPUT
                     m_data[i] = init * rand();
 #else
@@ -196,7 +196,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        value_type& operator()(int i, int j, int k) {
+        value_type& operator()(uint_t i, uint_t j, uint_t k) {
             /* std::cout<<"indices= "<<i<<" "<<j<<" "<<k<<std::endl; */
 	  backend_traits_t::assertion(_index(i,j,k) >= 0);
 	  backend_traits_t::assertion(_index(i,j,k) < m_size);
@@ -205,20 +205,20 @@ namespace gridtools {
 
 
         GT_FUNCTION
-        value_type const & operator()(int i, int j, int k) const {
+        value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
             backend_traits_t::assertion(_index(i,j,k) >= 0);
             backend_traits_t::assertion(_index(i,j,k) < m_size);
             return m_data[_index(i,j,k)];
         }
 
-        template <int I>
+        template <ushort_t I>
         GT_FUNCTION
-        int stride_along() const {
+        uint_t stride_along() const {
             return _impl::get_stride<I, layout>::get(m_strides); /*layout::template at_<I>::value];*/
         }
 
         GT_FUNCTION
-        int offset(int i, int j, int k) const {
+        uint_t offset(int_t i, int_t j, int_t k) const {
             return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
             * layout::template find<0>(i,j,k) +
             layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
@@ -226,26 +226,26 @@ namespace gridtools {
         }
 
 	GT_FUNCTION
-	inline int size() const {
+	inline uint_t size() const {
 	  return m_size;
 	}
 
 	GT_FUNCTION
-	inline int stride_k() const {
+	inline uint_t stride_k() const {
 	  return layout::template find<2>(m_strides);//e.g. (GPU test) =512*512=262144
 	}
 
         void print() const {
             print(std::cout);
         }
-	void print_value(int i, int j, int k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, m_data[_index(i, j, k)], _index(i, j, k));}
+	void print_value(uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, m_data[_index(i, j, k)], _index(i, j, k));}
 
     static const std::string info_string;
 
 //private:
-        int m_dims[3];
-        int m_strides[3];
-        int m_size;
+        uint_t m_dims[3];
+        uint_t m_strides[3];
+        uint_t m_size;
         bool is_set;
         const std::string& m_name;
         typename backend_traits_t::template pointer<value_type>::type m_data;
@@ -263,13 +263,13 @@ namespace gridtools {
             stream << "v j" << std::endl;
             stream << "---> k" << std::endl;
 
-            int MI=12;
-            int MJ=12;
-            int MK=12;
+            ushort_t MI=12;
+            ushort_t MJ=12;
+            ushort_t MK=12;
 
-            for (int i = 0; i < m_dims[0]; i += std::max(1,m_dims[0]/MI)) {
-                for (int j = 0; j < m_dims[1]; j += std::max(1,m_dims[1]/MJ)) {
-                    for (int k = 0; k < m_dims[2]; k += std::max(1,m_dims[2]/MK)) {
+            for (uint_t i = 0; i < m_dims[0]; i += std::max((const uint_t)(1),m_dims[0]/MI)) {
+                for (uint_t j = 0; j < m_dims[1]; j += std::max((const uint_t)1,m_dims[1]/MJ)) {
+                    for (uint_t k = 0; k < m_dims[2]; k += std::max((const uint_t)1,m_dims[2]/MK)) {
                         stream << "["/*("
                                           << i << ","
                                           << j << ","
@@ -284,8 +284,8 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        int _index(int i, int j, int k) const {
-            int index;
+        uint_t _index(uint_t i, uint_t j, uint_t k) const {
+            uint_t index;
             if (IsTemporary) {
                 index =
                     layout::template find<2>(m_dims) * layout::template find<1>(m_dims)

@@ -37,9 +37,9 @@ struct out_value {
         printf("%X\n", x->m_data.get_gpu_p());
         printf("%d\n", x->m_data.get_size());
 #endif
-        for (int i=0; i<3; ++i) {
-            for (int j=0; j<3; ++j) {
-                for (int k=0; k<3; ++k) {
+        for (uint_t i=0; i<3; ++i) {
+            for (uint_t j=0; j<3; ++j) {
+                for (uint_t k=0; k<3; ++k) {
 #ifndef NDEBUG
                     printf("%e ", (*x)(i,j,k));
 #endif
@@ -64,9 +64,9 @@ struct out_value_ {
     void operator()(T const& stor) const {
         //std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         //printf(" > %X %X\n", &stor, stor.m_data.get_pointer_to_use());
-        for (int i=0; i<3; ++i) {
-            for (int j=0; j<3; ++j) {
-                for (int k=0; k<3; ++k) {
+        for (uint_t i=0; i<3; ++i) {
+            for (uint_t j=0; j<3; ++j) {
+                for (uint_t k=0; k<3; ++k) {
                     printf("%e, ", stor(i,j,k));
                 }
                 printf("\n");
@@ -85,9 +85,9 @@ void print_values(StoragePtrs const* storage_pointers) {
 template <typename One, typename Two>
 bool the_same(One const& storage1, Two const& storage2) {
     bool same = true;
-    for (int i=0; i<3; ++i) {
-        for (int j=0; j<3; ++j) {
-            for (int k=0; k<3; ++k) {
+    for (uint_t i=0; i<3; ++i) {
+        for (uint_t j=0; j<3; ++j) {
+            for (uint_t k=0; k<3; ++k) {
                 same &= (storage1(i,j,k) == storage2(i,j,k));
                 if ((storage1(i,j,k) != storage2(i,j,k))) {
                     std::cout << i << ", "
@@ -110,9 +110,9 @@ bool test_domain() {
 
     typedef gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > storage_type;
 
-    int d1 = 3;
-    int d2 = 3;
-    int d3 = 3;
+    uint_t d1 = 3;
+    uint_t d2 = 3;
+    uint_t d3 = 3;
 
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));
@@ -132,9 +132,9 @@ bool test_domain() {
     typedef gridtools::arg<2, storage_type > p_out;
 
 
-    for (int i = 0; i < d1; ++i) {
-        for (int j = 0; j < d2; ++j) {
-            for (int k = 0; k < d3; ++k) {
+    for (uint_t i = 0; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
                 coeff(i,j,k) = -1*(i+j+k)*3.4;
                 out(i,j,k) = -1*(i+j+k)*100;
                 in(i,j,k) = -1*(i+j+k)*0.45;
@@ -166,9 +166,9 @@ bool test_domain() {
 #endif
 
     typedef boost::mpl::vector<
-  gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<0> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<1> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<2> >::type
+  gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<0> >::type,
+    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<1> >::type,
+    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<2> >::type
     > mpl_arg_type_list;
 
     typedef typename boost::fusion::result_of::as_vector<mpl_arg_type_list>::type actual_arg_list_type;

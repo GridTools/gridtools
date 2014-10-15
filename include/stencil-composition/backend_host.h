@@ -32,7 +32,7 @@ namespace gridtools {
                 : super(domain_list, coords)
             {}
 
-            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj, int blki, int blkj)
+            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blki, uint_t blkj)
                 : super(domain_list, coords, i, j, bi, bj, blki, blkj)
             {}
 
@@ -82,10 +82,10 @@ namespace gridtools {
 #endif
 
 
-                    for (int i = f->m_starti + range_t::iminus::value;
+                    for (uint_t i = f->m_starti + range_t::iminus::value;
                          i < f->m_starti + f->m_BI + range_t::iplus::value;
                          ++i)
-                        for (int j = f->m_startj + range_t::jminus::value;
+                        for (uint_t j = f->m_startj + range_t::jminus::value;
                              j < f->m_startj + f->m_BJ + range_t::jplus::value;
                              ++j)
                             {

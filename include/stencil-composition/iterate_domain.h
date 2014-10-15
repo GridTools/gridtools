@@ -5,7 +5,7 @@ namespace gridtools {
 
     namespace iterate_domain_aux {
         struct assign_iterators {
-            const int i, j, k, bi, bj;
+            const uint_t i, j, k, bi, bj;
 
             template <typename IteratorType, typename StoragePointer>
             void assign (IteratorType & it, StoragePointer & storage) const {
@@ -19,12 +19,12 @@ namespace gridtools {
                       , typename IteratorType
                       , typename ValueType
                       , typename Layout
-                      , int TileI
-                      , int TileJ
-                      , int MinusI
-                      , int MinusJ
-                      , int PlusI
-                      , int PlusJ
+                      , uint_t TileI
+                      , uint_t TileJ
+                      , uint_t MinusI
+                      , uint_t MinusJ
+                      , uint_t PlusI
+                      , uint_t PlusJ
                       >
             void assign(IteratorType & it,
                         host_tmp_storage<
@@ -44,7 +44,7 @@ namespace gridtools {
             }
 
             GT_FUNCTION
-            assign_iterators(int i, int j, int k, int bi, int bj)
+            assign_iterators(uint_t i, uint_t j, uint_t k, uint_t bi, uint_t bj)
                 : i(i)
                 , j(j)
                 , k(k)
@@ -83,11 +83,11 @@ namespace gridtools {
     } // namespace iterate_domain_aux
 
       namespace{
-	template<int ID>
+	template<uint_t ID>
 	  struct assign_storage{
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
-	  static void inline assign(Left& l, Right & r, int i, int j, int k){
+	  static void inline assign(Left& l, Right & r, uint_t i, uint_t j, uint_t k){
 	    boost::fusion::at_c<ID>(l).value=&((*boost::fusion::at_c<ID>(r))(i,j,k));
 	    boost::fusion::at_c<ID>(l).stride=boost::fusion::at_c<ID>(r)->stride_k();
 	    assign_storage<ID-1>::assign(l,r,i,j,k); //tail recursion
@@ -98,7 +98,7 @@ namespace gridtools {
 	  struct assign_storage<0>{
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
-	  static void inline assign(Left & l, Right & r, int i, int j, int k){
+	  static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t k){
 	    boost::fusion::at_c<0>(l).value=&((*boost::fusion::at_c<0>(r))(i,j,k));
 	    boost::fusion::at_c<0>(l).stride=boost::fusion::at_c<0>(r)->stride_k();
 	  }
@@ -109,12 +109,12 @@ namespace gridtools {
     struct iterate_domain {
       typedef typename LocalDomain::local_iterators_type local_iterators_type;
       typedef typename LocalDomain::local_args_type local_args_type;
-      static const int N=boost::mpl::size<local_args_type>::value;
+      static const uint_t N=boost::mpl::size<local_args_type>::value;
         LocalDomain const& local_domain;
         mutable local_iterators_type local_iterators;
 
         GT_FUNCTION
-        iterate_domain(LocalDomain const& local_domain, int i, int j, int k, int bi, int bj)
+        iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t k, uint_t bi, uint_t bj)
             : local_domain(local_domain)
         {
           assign_storage< N-1 >::assign(local_iterators, local_domain.local_args, i, j, k);
@@ -147,7 +147,7 @@ namespace gridtools {
         }
 
 /** @brief method called in the Do methods of the functors. */
-        template <int Index, typename Range>
+        template <uint_t Index, typename Range>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
         operator()(arg_type<Index, Range> const& arg) const {

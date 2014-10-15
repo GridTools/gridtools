@@ -7,12 +7,12 @@ namespace gridtools {
     template < enumtype::backend Backend
                , typename ValueType
                , typename Layout
-               , int TileI
-               , int TileJ
-               , int MinusI
-               , int MinusJ
-               , int PlusI
-               , int PlusJ
+               , uint_t TileI
+               , uint_t TileJ
+               , uint_t MinusI
+               , uint_t MinusJ
+               , uint_t PlusI
+               , uint_t PlusJ
                >
     struct host_tmp_storage : public base_storage<Backend
                                                   , ValueType
@@ -32,10 +32,10 @@ namespace gridtools {
         typedef typename base_type::iterator_type  iterator_type;
         typedef typename base_type::const_iterator_type const_iterator_type;
 
-        typedef boost::mpl::int_<MinusI> minusi;
-        typedef boost::mpl::int_<MinusJ> minusj;
-        typedef boost::mpl::int_<PlusI> plusi;
-        typedef boost::mpl::int_<PlusJ> plusj;
+        typedef static_int<MinusI> minusi;
+        typedef static_int<MinusJ> minusj;
+        typedef static_int<PlusI> plusi;
+        typedef static_int<PlusJ> plusj;
 
         using base_type::m_dims;
         using base_type::m_strides;
@@ -52,9 +52,9 @@ namespace gridtools {
 
         // value_type* data;
 
-        explicit host_tmp_storage(int initial_offset_i,
-                                  int initial_offset_j,
-                                  int dim3,
+        explicit host_tmp_storage(uint_t initial_offset_i,
+                                  uint_t initial_offset_j,
+                                  uint_t dim3,
                                   //int initial_offset_k=0,
                                   value_type init = value_type(),
                                   std::string const& s = std::string("default name") )
@@ -90,25 +90,25 @@ namespace gridtools {
             //           << std::endl;
         }
 
-        iterator_type move_to(int i,int j,int k) const {
+        iterator_type move_to(uint_t i,uint_t j,uint_t k) const {
             return const_cast<iterator_type>(&(base_type::m_data[_index(i,j,k)]));
             //return &(base_type::m_data[_index(i,j,k)]);
         }
 
         GT_FUNCTION
-        value_type& operator()(int i, int j, int k) {
+        value_type& operator()(uint_t i, uint_t j, uint_t k) {
             return base_type::m_data[_index(i,j,k)];
         }
 
 
         GT_FUNCTION
-        value_type const & operator()(int i, int j, int k) const {
+        value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
             return base_type::m_data[_index(i,j,k)];
         }
 
 
-        int _index(int i, int j, int k) const {
-            int index;
+        uint_t _index(uint_t i, uint_t j, uint_t k) const {
+            uint_t index;
             // std::cout << "                                                  index "
             //           << "m_dims_i "
             //           << m_dims[0]
@@ -139,11 +139,11 @@ namespace gridtools {
             //           << std::endl;
             // info();
 
-            int _i = ((layout::template find<0>(i,j,k)) - layout::template find<0>(m_initial_offsets) + layout::template find<0>(m_halo));
-            std::cout << "int _i = ((" << layout::template find<0>(i,j,k) << ")-" << layout::template find<0>(m_initial_offsets) << "+" << layout::template find<0>(m_halo) << ")" << std::endl;
-            int _j = ((layout::template find<1>(i,j,k)) - layout::template find<1>(m_initial_offsets) + layout::template find<1>(m_halo));
-            std::cout << "int _j = ((" << layout::template find<1>(i,j,k) << ")-" << layout::template find<1>(m_initial_offsets) << "+" << layout::template find<1>(m_halo) << ")" << std::endl;
-            int _k = ((layout::template find<2>(i,j,k)) - layout::template find<2>(m_initial_offsets) + layout::template find<2>(m_halo));
+            uint_t _i = ((layout::template find<0>(i,j,k)) - layout::template find<0>(m_initial_offsets) + layout::template find<0>(m_halo));
+            std::cout << "uint_t _i = ((" << layout::template find<0>(i,j,k) << ")-" << layout::template find<0>(m_initial_offsets) << "+" << layout::template find<0>(m_halo) << ")" << std::endl;
+            uint_t _j = ((layout::template find<1>(i,j,k)) - layout::template find<1>(m_initial_offsets) + layout::template find<1>(m_halo));
+            std::cout << "uint_t _j = ((" << layout::template find<1>(i,j,k) << ")-" << layout::template find<1>(m_initial_offsets) << "+" << layout::template find<1>(m_halo) << ")" << std::endl;
+            uint_t _k = ((layout::template find<2>(i,j,k)) - layout::template find<2>(m_initial_offsets) + layout::template find<2>(m_halo));
 
             index =
                 layout::template find<2>(m_dims) * layout::template find<1>(m_dims) * _i +
@@ -166,7 +166,7 @@ namespace gridtools {
     };
 
 //huge waste of space because the C++ standard doesn't want me to initialize static const inline
-    template < enumtype::backend Backend, typename ValueType, typename Layout, int TileI, int TileJ, int MinusI, int MinusJ, int PlusI, int PlusJ
+    template < enumtype::backend Backend, typename ValueType, typename Layout, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ
                >
     const std::string host_tmp_storage<Backend, ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>
     ::info_string=boost::lexical_cast<std::string>(minusi::value)+
@@ -177,12 +177,12 @@ namespace gridtools {
     template <enumtype::backend Backend,
               typename ValueType
               , typename Layout
-              , int TileI
-              , int TileJ
-              , int MinusI
-              , int MinusJ
-              , int PlusI
-              , int PlusJ
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
               >
     std::ostream& operator<<(std::ostream& s,
                              host_tmp_storage<
@@ -209,12 +209,12 @@ namespace gridtools {
     template <enumtype::backend Backend
               , typename ValueType
               , typename Layout
-              , int TileI
-              , int TileJ
-              , int MinusI
-              , int MinusJ
-              , int PlusI
-               , int PlusJ
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+               , uint_t PlusJ
               >
     struct is_storage<host_tmp_storage<
                           Backend
@@ -234,12 +234,12 @@ namespace gridtools {
     template <enumtype::backend Backend
               , typename ValueType
               , typename Layout
-              , int TileI
-              , int TileJ
-              , int MinusI
-              , int MinusJ
-              , int PlusI
-               , int PlusJ
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+               , uint_t PlusJ
               >
     struct is_temporary_storage<host_tmp_storage<
                                     Backend
@@ -258,12 +258,12 @@ namespace gridtools {
     template <enumtype::backend Backend
               , typename ValueType
               , typename Layout
-              , int TileI
-              , int TileJ
-              , int MinusI
-              , int MinusJ
-              , int PlusI
-              , int PlusJ
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
               >
     struct is_temporary_storage<host_tmp_storage<
                                     Backend,
@@ -282,12 +282,12 @@ namespace gridtools {
     template <enumtype::backend Backend
               , typename ValueType
               , typename Layout
-              , int TileI
-              , int TileJ
-              , int MinusI
-              , int MinusJ
-              , int PlusI
-              , int PlusJ
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
               >
     struct is_temporary_storage<host_tmp_storage<
                                     Backend
@@ -306,12 +306,12 @@ namespace gridtools {
     template <enumtype::backend Backend
               , typename ValueType
               , typename Layout
-              , int TileI
-              , int TileJ
-              , int MinusI
-              , int MinusJ
-              , int PlusI
-              , int PlusJ
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
               >
     struct is_temporary_storage<host_tmp_storage<
                                     Backend

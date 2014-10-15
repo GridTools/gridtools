@@ -19,13 +19,13 @@ struct print {
 };
 
 
-int main() {
+int_t main() {
 
     std::cout << enclosing_range<range0, range1>::type() << std::endl;
     std::cout << enclosing_range<range1, range0>::type() << std::endl;
 
     std::cout << "input" << std::endl;
- 
+
     boost::mpl::for_each<input>(print());
 
     std::cout << std::endl;
@@ -35,5 +35,3 @@ int main() {
 
     return 0;
 }
-
-
