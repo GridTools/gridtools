@@ -421,6 +421,20 @@ namespace gridtools {
         };
 
 
+
+    // /** runtime function applying a lambda/functor with 2 arguments a const number of times (e.g. assignment of constant-sized arrays) */
+    //       template <int iterator >
+    //           struct associate
+    //       {
+    //           template<typename FieldType, template<int idx=iterator> class F(FieldType const& , FieldType& )>
+    //           void assign(FieldType const& from, FieldType & to){
+    //               F<iterator>(from, to);
+    //               associate::assign<iterator-1>(from, to);
+    //           }
+    //       };
+
+    //       template<> struct associate{template <typename FieldType> void apply(FieldType const& from, FieldType & to){F<0>(from,to);}}
+
 /**
  * @class
 *  @brief structure collecting helper metafunctions

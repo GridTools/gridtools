@@ -7,7 +7,7 @@
 
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
-foreach(srcfile interface1 boundary-condition laplacian copy_stencil )
+foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal vertical_advection )
     add_executable(${srcfile}_naive   ${srcfile}.cpp )
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block
@@ -18,20 +18,8 @@ foreach(srcfile interface1 boundary-condition laplacian copy_stencil )
     target_link_libraries(${srcfile}_block ${exe_LIBS})
 endforeach(srcfile)
 
-# HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED ***ONLY*** WITH C++11
-
-    foreach(srcfile tridiagonal )
-        add_executable(${srcfile}_naive   ${srcfile}.cpp )
-        add_executable(${srcfile}_block   ${srcfile}.cpp )
-        set_target_properties(${srcfile}_block
-            PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-        set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
-        set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
-        target_link_libraries(${srcfile}_naive ${exe_LIBS})
-        target_link_libraries(${srcfile}_block ${exe_LIBS})
-    endforeach(srcfile)
-
 if ( ENABLE_CXX11 )
+# HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED ***ONLY*** WITH C++11
     add_executable(test_interface   expressions.cpp )
     target_link_libraries(test_interface ${exe_LIBS})
     set_target_properties(test_interface PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")

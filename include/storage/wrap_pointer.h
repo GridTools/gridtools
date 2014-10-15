@@ -36,6 +36,9 @@ struct wrap_pointer{
         : cpu_p(p)
         {}
 
+    explicit constexpr wrap_pointer()  {
+    }
+
     GT_FUNCTION
     void update_gpu() {}//\todo find a way to remove this method
 
@@ -60,7 +63,7 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void free_it() {
-      //delete cpu_p;
+        delete[] cpu_p;
     }
 
 

@@ -152,14 +152,7 @@ namespace gridtools {
             is_set=false;
         }
 
-        ~base_storage() {
-            if (is_set) {
-                //std::cout << "deleting " << std::hex << data << std::endl;
-                //backend_traits_t::delete_storage( m_data );
-	      //m_data.free_it();
-                //delete[] m_data;
-            }
-        }
+        ~base_storage() {}
 
         std::string const& name() const {
             return m_name;
@@ -306,18 +299,10 @@ namespace gridtools {
         }
     };
 
-    // template <typename T>
-    // struct is_temporary_storage {
-    //     typedef boost::false_type type;
-    // };
-
-
-//huge waste of space because the C++ standard doesn't want me to initialize static const inline
     template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary
         >
     const std::string base_storage<B , ValueType, Layout, IsTemporary
-            >::info_string=boost::lexical_cast<std::string>(-1);
-
+            >::info_string=boost::lexical_cast<std::string>("-1");
 
     template <enumtype::backend B, typename ValueType, typename Y>
     struct is_temporary_storage<base_storage<B,ValueType,Y,false>*& >
@@ -348,7 +333,6 @@ namespace gridtools {
     struct is_temporary_storage<base_storage<X,ValueType,Y,true> >
       : boost::true_type
     {};
-
 
     template <enumtype::backend Backend, typename T, typename U, bool B>
     std::ostream& operator<<(std::ostream &s, base_storage<Backend,T,U, B> ) {
