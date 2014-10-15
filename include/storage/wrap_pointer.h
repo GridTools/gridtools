@@ -1,4 +1,5 @@
 #pragma once
+#include <common/defs.h>
 
 /** This class wraps a raw pointer*/
 namespace gridtools {
@@ -9,7 +10,7 @@ namespace gridtools {
 
 #define NEW_OP(x) template <>                   \
         struct new_op<x> {                      \
-            x* operator()(int size) const {     \
+            x* operator()(/*u*/int_t size) const {  \
                 return new x[size];             \
             }                                   \
         };
@@ -39,7 +40,7 @@ struct wrap_pointer{
     void update_gpu() {}//\todo find a way to remove this method
 
     GT_FUNCTION
-    wrap_pointer(int size) {
+    wrap_pointer(uint_t size) {
         allocate_it(size);
 
 
@@ -49,7 +50,7 @@ struct wrap_pointer{
         }
 
     GT_FUNCTION
-    void allocate_it(int size){
+    void allocate_it(uint_t size){
 #if (CUDA_VERSION > 5050)
         cpu_p = new T[size];
 #else
@@ -74,17 +75,12 @@ struct wrap_pointer{
         }
 
         __host__ __device__
-        T& operator[](int i) {
-            assert(i>=0);
-            // printf(" [%d %e] ", i, cpu_p[i]);
+        T& operator[](uint_t i) {
             return cpu_p[i];
         }
 
         __host__ __device__
-        T const& operator[](int i) const {
-            assert(i>=0);
-            // printf(" [%d %e] ", i, cpu_p[i]);
-
+        T const& operator[](uint_t i) const {
             return cpu_p[i];
         }
 
@@ -99,12 +95,12 @@ struct wrap_pointer{
         }
 
         __host__ __device__
-        T* operator+(int i) {
+        T* operator+(uint_t i) {
             return &cpu_p[i];
         }
 
         __host__ __device__
-        T* const& operator+(int i) const {
+        T* const& operator+(uint_t i) const {
             return &cpu_p[i];
         }
 

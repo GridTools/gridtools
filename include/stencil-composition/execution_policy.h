@@ -20,7 +20,7 @@ namespace gridtools{
 */
         template< typename ExecutionEngine, typename ExtraArguments >
         struct run_f_on_interval{
-            typedef int local_domain_t;
+            typedef uint_t local_domain_t;
         };
 
 /**
@@ -41,7 +41,7 @@ namespace gridtools{
 
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
-            void loop(int from, int to) const {
+            void loop(uint_t from, uint_t to) const {
 #ifdef __CUDACC__
 	      //cudaProfilerStart();
 #endif
@@ -49,7 +49,7 @@ namespace gridtools{
 		//printf("forward/backward iterations \n");
 	      // printf("        from=%d ", from);
 	      // printf("to=%d : ", to);
-            for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
+            for (uint_t k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
 	      // printf("k=%d ", k);
 	      traits::functor_t::Do(this->m_domain, IntervalType());
 	      IterationPolicy::increment(this->m_domain);
@@ -77,11 +77,11 @@ namespace gridtools{
 
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
-            void loop(int from, int to) const {
+            void loop(uint_t from, uint_t to) const {
 #ifdef __CUDACC__
                 cudaProfilerStart();
 #endif
-                for (int k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
+                for (uint_t k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }

@@ -53,3 +53,35 @@ namespace gridtools{  namespace enumtype{
 #endif
 
 }
+
+#include <boost/mpl/integral_c.hpp>
+#ifdef CXX11_ENABLED
+    //note: if we want to use in the same executable two stencils with different types for the ints
+    //(e.g. to index a very large stencil), then we can template the following type definitions and
+    //propagate the template everywhere! (which is one of the main motivations for the EPetra replacement in Trilinos)
+    using int_t          =int ;
+    using short_t        =int;
+    using uint_t         =long unsigned int;
+    using ushort_t       =unsigned  char;
+    template<int_t N>
+    using  static_int=boost::mpl::integral_c<int_t,N>;
+    template<uint_t N>
+    using  static_uint=boost::mpl::integral_c<uint_t,N>;
+    template<short_t N>
+    using  static_short=boost::mpl::integral_c<short_t,N>;
+    template<ushort_t N>
+    using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
+#else
+    typedef int            int_t;
+    typedef char           short_t;
+    typedef unsigned int   uint_t;
+    typedef unsigned short  ushort_t;
+    template<int_t N>
+    struct static_int : boost::mpl::integral_c<int_t,N>{};
+    template<uint_t N>
+    struct static_uint : boost::mpl::integral_c<uint_t,N>{};
+    template<short_t N>
+    struct static_short : boost::mpl::integral_c<short_t,N>{};
+    template<ushort_t N>
+    struct static_ushort : boost::mpl::integral_c<ushort_t,N>{};
+#endif

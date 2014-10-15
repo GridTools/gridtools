@@ -64,7 +64,7 @@ namespace gridtools {
 
     template <typename EsfF>
     struct get_temps_per_functor {
-        typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename EsfF::args>::type::value> range;
+        typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args>::type::value> range;
         typedef typename boost::mpl::fold<
             range,
             boost::mpl::vector<>,

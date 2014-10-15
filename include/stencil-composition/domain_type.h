@@ -29,7 +29,7 @@ namespace gridtools {
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
         typedef Placeholders original_placeholders;
     private:
-        BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<original_placeholders>::type::value);
+        BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
 
         /**
          * \brief Get a sequence of the same type of original_placeholders, but containing the storage types for each placeholder
@@ -59,7 +59,7 @@ namespace gridtools {
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
          e.g. [0,1,2,3,4]
          */
-        typedef boost::mpl::range_c<int,0,len> range_t;
+        typedef boost::mpl::range_c<uint_t ,0,len> range_t;
     private:
 
         /**\brief reordering vector
@@ -138,7 +138,7 @@ namespace gridtools {
         void assign_pointers() {}
 
         template <typename Arg0, typename... OtherArgs>
-        void assign_pointers(Arg0 const& arg0, OtherArgs... other_args) 
+        void assign_pointers(Arg0 const& arg0, OtherArgs... other_args)
         {
             boost::fusion::at<typename Arg0::arg_type::index_type>(storage_pointers) = arg0.ptr;
             assign_pointers(other_args...);
@@ -148,10 +148,10 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         template <typename... Args>
-        domain_type(Args... args) 
+        domain_type(Args... args)
             : storage_pointers()
         {
-            int i = sizeof...(args);
+            uint_t i = sizeof...(args);
 
 #ifndef NDEBUG
             std::cout << "n placeholders " << i << std::endl;

@@ -16,7 +16,7 @@ Here are defined the classes select_s and layout_map.
 namespace gridtools {
 
     namespace _impl {
-        template <unsigned int I>
+        template <uint_t I>
         struct select_s;
 
         template <>
@@ -97,23 +97,23 @@ namespace gridtools {
 @brief Used as template argument in the storage.
 In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-    template <int, int=-1, int=-1, int=-1>
+    template <int_t, int_t=-1, int_t=-1, int_t=-1>
         struct layout_map;
 
-    template <int I1>
+    template <int_t I1>
     struct layout_map<I1, -1, -1, -1> {
-        static const unsigned int length=1;
-        typedef boost::mpl::vector1_c<int, I1> t;
+        static const uint_t length=1;
+        typedef boost::mpl::vector1_c<int_t, I1> t;
 
-        template <unsigned int I>
+        template <uint_t I>
         GT_FUNCTION
-        static int at() {
+        static int_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-        int operator[](int i) {
+        int_t operator[](int_t i) {
             assert( i<length );
             switch (i) {
             case 0:
