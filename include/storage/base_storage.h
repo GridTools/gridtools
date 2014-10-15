@@ -217,8 +217,9 @@ namespace gridtools {
             return _impl::get_stride<I, layout>::get(m_strides); /*layout::template at_<I>::value];*/
         }
 
+        //note: offset returns a signed int because the layout map indexes are signed short ints
         GT_FUNCTION
-        uint_t offset(int_t i, int_t j, int_t k) const {
+        int_t offset(int_t i, int_t j, int_t k) const {
             return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
             * layout::template find<0>(i,j,k) +
             layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +

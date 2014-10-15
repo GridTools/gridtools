@@ -153,10 +153,10 @@ namespace gridtools {
         operator()(arg_type<Index, Range> const& arg) const {
             typedef arg_type<Index, Range> ArgType;
 
-//             std::cout << " i " << arg.i()
-//                       << " j " << arg.j()
-//                       << " k " << arg.k()
-//                       << " offset " << std::hex << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << std::dec
+            // std::cout << " i " << arg.i()
+            //           << " j " << arg.j()
+            //           << " k " << arg.k()
+            //           << " offset " << std::hex << (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k()) << std::dec;
 //                       << " base " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr()
 //                       << " max_addr " << boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr()
 //                       << " iterator " << boost::fusion::at<typename ArgType::index_type>(local_iterators)

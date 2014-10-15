@@ -139,14 +139,14 @@ struct print_ {
     template <typename MplVector>
     void operator()(MplVector const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<MplVector>(print_(std::string("    ")));
+        //boost::mpl::for_each<MplVector>(print_(std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 
     template <typename MplVector>
     void operator()(_impl::wrap_type<MplVector> const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<MplVector>(print_(std::string("    ")));
+        //boost::mpl::for_each<MplVector>(print_(std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 };
@@ -167,7 +167,6 @@ void print_mss(MSS)
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
     >::type ranges_list;
-
     boost::mpl::for_each<ranges_list>(print_());
 
     std::cout << std::endl;

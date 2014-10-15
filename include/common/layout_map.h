@@ -7,6 +7,7 @@
 #include <boost/mpl/at.hpp>
 #include "../common/gt_assert.h"
 #include "../common/host_device.h"
+#include "../common/defs.h"
 
 /**
 @file
@@ -97,23 +98,23 @@ namespace gridtools {
 @brief Used as template argument in the storage.
 In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-    template <int_t, int_t=-1, int_t=-1, int_t=-1>
+    template <short_t, short_t=-1, short_t=-1, short_t=-1>
         struct layout_map;
 
-    template <int_t I1>
+    template <short_t I1>
     struct layout_map<I1, -1, -1, -1> {
-        static const uint_t length=1;
-        typedef boost::mpl::vector1_c<int_t, I1> t;
+        static const ushort_t length=1;
+        typedef boost::mpl::vector1_c<short_t, I1> t;
 
-        template <uint_t I>
+        template <ushort_t I>
         GT_FUNCTION
-        static int_t at() {
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-        int_t operator[](int_t i) {
+        short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -122,34 +123,34 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return -1;
         }
 
-        template <unsigned int I, typename T>
+        template <ushort_t I, typename T>
         GT_FUNCTION
         static T select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
         }
 
-        template <unsigned int I, typename T>
+        template <ushort_t I, typename T>
         GT_FUNCTION
-        static T& find(T & a) {
+            static uint_t& find(uint_t & a) {
             return a;
         }
 
     };
 
-    template <int I1, int I2>
+    template <short_t I1, short_t I2>
     struct layout_map<I1, I2, -1, -1> {
-        static const unsigned int length=2;
-        typedef boost::mpl::vector2_c<int, I1, I2> t;
+        static const ushort_t length=2;
+        typedef boost::mpl::vector2_c<short_t, I1, I2> t;
 
-        template <unsigned int I>
+        template <ushort_t I>
         GT_FUNCTION
-        static int at() {
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-        int operator[](int i) {
+            short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -160,15 +161,15 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return -1;
         }
 
-        template <unsigned int I, typename T>
+        template <ushort_t I>
         GT_FUNCTION
-        static T& select(T & a, T & b) {
+            static uint_t& select(uint_t & a, uint_t & b) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
         }
 
-        template <unsigned int I, typename T>
+        template <ushort_t I>
         GT_FUNCTION
-        static T& find(T & a, T & b) {
+        static uint_t& find(uint_t & a, uint_t & b) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -201,37 +202,37 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
        etc.
        \endcode
     */
-    template <int I1, int I2, int I3>
+    template <short_t I1, short_t I2, short_t I3>
     struct layout_map<I1, I2, I3, -1> {
-        static  const unsigned int length=3;
-        typedef boost::mpl::vector3_c<int, I1, I2, I3> t;
+        static  const ushort_t length=3;
+        typedef boost::mpl::vector3_c<short_t, I1, I2, I3> t;
 
-        template <unsigned int I>
+        template <ushort_t I>
         struct at_ {
-            static const int value = boost::mpl::at_c<t, I >::type::value;
+            static const short_t value = boost::mpl::at_c<t, I >::type::value;
         };
 
         // Gives the position at which I is.
-        template <unsigned int I>
+        template <ushort_t I>
         struct pos_ {
 
-            template <int X, bool IsHere>
+            template <short_t X, bool IsHere>
             struct _find_pos
             {
-                static const int value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
+                static const short_t value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
             };
 
-            template <int X>
+            template <short_t X>
             struct _find_pos<X, true> {
-                static const int value = X;
+                static const short_t value = X;
             };
 
             template <bool IsHere>
             struct _find_pos<3, IsHere> {
-                static const int value = -1;
+                static const short_t value = -1;
             };
 
-            static const int value = _find_pos<0, boost::mpl::at_c<t, 0 >::type::value == I>::value;
+            static const short_t value = _find_pos<0, boost::mpl::at_c<t, 0 >::type::value == I>::value;
 
         };
 
@@ -241,15 +242,15 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
             \tparam I The index to be queried
         */
-        template <unsigned int I>
+        template <ushort_t I>
         GT_FUNCTION
-        static int at() {
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-        int operator[](int i) {
+        short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -275,7 +276,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <unsigned int I, typename T>
+        template <ushort_t I, typename T>
         GT_FUNCTION
         static T& select(T & a, T & b, T & c) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c);
@@ -294,9 +295,9 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <unsigned int I, typename T>
+        template <ushort_t I>
         GT_FUNCTION
-        static T& find(T & a, T & b, T & c) {
+            static uint_t& find(uint_t & a, uint_t & b, uint_t & c) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -327,9 +328,9 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <unsigned int I, typename T>
+        template <ushort_t I>
         GT_FUNCTION
-        static T const& find(T const& a, T const& b, T const& c) {
+        static uint_t const& find(uint_t const& a, uint_t const& b, uint_t const& c) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -341,7 +342,6 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
                     }
                 }
             }
-            assert(true);
             return a; // killing warnings by nvcc
         }
 
@@ -357,20 +357,20 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <unsigned int I, typename T>
+        template <ushort_t I>
         GT_FUNCTION
-        static T& find(T* a) {
+        static const uint_t& find (const uint_t* a)  {
             return find<I>(a[0], a[1], a[2]);
         }
 
     };
 
-    template <int I1, int I2, int I3, int I4>
+    template <short_t I1, short_t I2, short_t I3, short_t I4>
     struct layout_map {
-        static const unsigned int length=4;
-        typedef boost::mpl::vector4_c<int, I1, I2, I3, I4> t;
+        static const ushort_t length=4;
+        typedef boost::mpl::vector4_c<short_t, I1, I2, I3, I4> t;
 
-        template <unsigned int I>
+        template <ushort_t I>
         GT_FUNCTION
         static int at() {
             BOOST_STATIC_ASSERT( I<length );
@@ -378,7 +378,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         }
 
         GT_FUNCTION
-        int operator[](int i) {
+        int operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -393,13 +393,13 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return -1;
         }
 
-        template <unsigned int I, typename T>
+        template <ushort_t I, typename T>
         GT_FUNCTION
         static T& select(T & a, T & b, T & c, T & d) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c,d);
         }
 
-        template <unsigned int I, typename T>
+        template <ushort_t I, typename T>
         GT_FUNCTION
         static T& find(T & a, T & b, T & c, T & d) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
@@ -426,32 +426,32 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     template <typename DATALO, typename PROCLO>
     struct layout_transform;
 
-    template <int I1, int I2, int P1, int P2>
+    template <short_t I1, short_t I2, short_t P1, short_t P2>
     struct layout_transform<layout_map<I1,I2>, layout_map<P1,P2> > {
         typedef layout_map<I1,I2> L1;
         typedef layout_map<P1,P2> L2;
 
-        static const int N1 = boost::mpl::at_c<typename L1::t, P1>::type::value;
-        static const int N2 = boost::mpl::at_c<typename L1::t, P2>::type::value;
+        static const short_t N1 = boost::mpl::at_c<typename L1::t, P1>::type::value;
+        static const short_t N2 = boost::mpl::at_c<typename L1::t, P2>::type::value;
 
         typedef layout_map<N1,N2> type;
 
     };
 
-    template <int I1, int I2, int I3, int P1, int P2, int P3>
+    template <short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3>
     struct layout_transform<layout_map<I1,I2,I3>, layout_map<P1,P2,P3> > {
         typedef layout_map<I1,I2,I3> L1;
         typedef layout_map<P1,P2,P3> L2;
 
-        static const int N1 = boost::mpl::at_c<typename L1::t, P1>::type::value;
-        static const int N2 = boost::mpl::at_c<typename L1::t, P2>::type::value;
-        static const int N3 = boost::mpl::at_c<typename L1::t, P3>::type::value;
+        static const short_t N1 = boost::mpl::at_c<typename L1::t, P1>::type::value;
+        static const short_t N2 = boost::mpl::at_c<typename L1::t, P2>::type::value;
+        static const short_t N3 = boost::mpl::at_c<typename L1::t, P3>::type::value;
 
         typedef layout_map<N1,N2,N3> type;
 
     };
 
-    template <int D>
+    template <short_t D>
     struct default_layout_map;
 
     template <>
