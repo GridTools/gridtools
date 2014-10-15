@@ -51,6 +51,7 @@ typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
+//four vectors: output, and the 3 diagonals
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b

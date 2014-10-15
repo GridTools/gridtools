@@ -17,42 +17,52 @@ namespace gridtools {
     template <typename T>
     struct hybrid_pointer : public wrap_pointer<T>{
 
-        explicit hybrid_pointer(T* p) : wrap_pointer<T>(p), gpu_p(NULL), pointer_to_use(p), size(0) {}
+        explicit hybrid_pointer(T* p) : wrap_pointer<T>(p), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
-        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), size(size) {
+        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size) {
             allocate_it(size);
-            pointer_to_use = this->cpu_p;
+            m_pointer_to_use = this->cpu_p;
 #ifndef NDEBUG
-            printf(" - %X %X %X %d\n", this->cpu_p, gpu_p, pointer_to_use, size);
+            printf(" - %X %X %X %d\n", this->cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
         }
 
-        __device__
+        explicit constexpr hybrid_pointer(int const& size, int const& dummy)  {
+        }
+
+        // explicit constexpr hybrid_pointer(hybrid_pointer const & other)  {
+        // }
+
+
+// copy constructor passes on the ownership
+        __device__ __host__
         explicit hybrid_pointer(hybrid_pointer const& other)
             : wrap_pointer<T>(other)
-            , gpu_p(other.gpu_p)
+            , m_gpu_p(other.m_gpu_p)
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 3200)
-            , pointer_to_use(gpu_p)
+            , m_pointer_to_use(m_gpu_p)
 #else
-            , pointer_to_use(this->cpu_p)
+            , m_pointer_to_use(this->cpu_p)
 #endif
-            , size(other.size)
+            , m_size(other.m_size)
+            , m_owner(true)
         {
+            other.m_owner=false;
 #ifndef NDEBUG
             printf("cpy const hp ");
             printf("%X ", this->cpu_p);
-            printf("%X ", gpu_p);
-            printf("%X ", pointer_to_use);
-            printf("%d ", size);
+            printf("%X ", m_gpu_p);
+            printf("%X ", m_pointer_to_use);
+            printf("%d ", m_size);
             printf("\n");
 #endif
         }
 
-      ~hybrid_pointer(){free_it();}
+      ~hybrid_pointer(){ if(m_owner){ free_it(); }}
 
         void allocate_it(uint_t size) {
 #ifdef __CUDACC__
-            int err = cudaMalloc(&gpu_p, size*sizeof(T));
+            int err = cudaMalloc(&m_gpu_p, size*sizeof(T));
             if (err != cudaSuccess) {
                 std::cout << "Error allocating storage in "
                           << BOOST_CURRENT_FUNCTION
@@ -66,9 +76,9 @@ namespace gridtools {
 
         void free_it() {
 #ifdef __CUDACC__
-	  cudaFree(gpu_p);
+                cudaFree(m_gpu_p);
 #endif
-	wrap_pointer<T>::free_it();
+                wrap_pointer<T>::free_it();
       }
 
         void update_gpu() {
@@ -76,7 +86,7 @@ namespace gridtools {
 #ifndef NDEBUG
             printf("update gpu "); out();
 #endif
-            cudaMemcpy(gpu_p, this->cpu_p, size*sizeof(T), cudaMemcpyHostToDevice);
+            cudaMemcpy(m_gpu_p, this->cpu_p, m_size*sizeof(T), cudaMemcpyHostToDevice);
 #endif
         }
 
@@ -85,7 +95,7 @@ namespace gridtools {
 #ifndef NDEBUG
             printf("update cpu "); out();
 #endif
-            cudaMemcpy(this->cpu_p, gpu_p, size*sizeof(T), cudaMemcpyDeviceToHost);
+            cudaMemcpy(this->cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
 #endif
         }
 
@@ -93,74 +103,73 @@ namespace gridtools {
         void out() const {
             printf("out hp ");
             printf("%X ", this->cpu_p);
-            printf("%X ", gpu_p);
-            printf("%X ", pointer_to_use);
-            printf("%d ", size);
+            printf("%X ", m_gpu_p);
+            printf("%X ", m_pointer_to_use);
+            printf("%d ", m_size);
             printf("\n");
         }
 
         __host__ __device__
         operator T*() {
-            return pointer_to_use;
+            return m_pointer_to_use;
         }
 
         __host__ __device__
         operator T const*() const {
-            return pointer_to_use;
+            return m_pointer_to_use;
         }
 
         __host__ __device__
         T& operator[](uint_t i) {
             /* assert(i<size); */
             /* assert(i>=0); */
-            // printf(" [%d %e] ", i, pointer_to_use[i]);
-            return pointer_to_use[i];
+            // printf(" [%d %e] ", i, m_pointer_to_use[i]);
+            return m_pointer_to_use[i];
         }
 
         __host__ __device__
         T const& operator[](uint_t i) const {
             /* assert(i<size); */
             /* assert(i>=0); */
-            // printf(" [%d %e] ", i, pointer_to_use[i]);
+            // printf(" [%d %e] ", i, m_pointer_to_use[i]);
 
-            return pointer_to_use[i];
+            return m_pointer_to_use[i];
         }
 
         __host__ __device__
         T& operator*() {
-            return *pointer_to_use;
+            return *m_pointer_to_use;
         }
 
         __host__ __device__
         T const& operator*() const {
-            return *pointer_to_use;
+            return *m_pointer_to_use;
         }
 
         __host__ __device__
         T* operator+(uint_t i) {
-            return &pointer_to_use[i];
+            return &m_pointer_to_use[i];
         }
 
         __host__ __device__
         T* const& operator+(uint_t i) const {
-            return &pointer_to_use[i];
+            return &m_pointer_to_use[i];
         }
 
         GT_FUNCTION
-        T* get_gpu_p(){return gpu_p;};
+        T* get_gpu_p(){return m_gpu_p;};
 
         GT_FUNCTION
-        T* get_pointer_to_use(){return pointer_to_use;}
+        T* get_pointer_to_use(){return m_pointer_to_use;}
 
         GT_FUNCTION
-        int get_size(){return size;}
+        int get_size(){return m_size;}
 
     private:
-        T * gpu_p;
-        T * pointer_to_use;
-        uint_t size;
-
-
+        T * m_gpu_p;
+        T * m_pointer_to_use;
+        uint_t m_size;
+        bool m_owner;
     };
 
 } // namespace gridtools
