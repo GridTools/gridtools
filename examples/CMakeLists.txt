@@ -20,7 +20,6 @@ endforeach(srcfile)
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED ***ONLY*** WITH C++11
 
-if ( ENABLE_CXX11 )
     foreach(srcfile tridiagonal )
         add_executable(${srcfile}_naive   ${srcfile}.cpp )
         add_executable(${srcfile}_block   ${srcfile}.cpp )
@@ -32,6 +31,7 @@ if ( ENABLE_CXX11 )
         target_link_libraries(${srcfile}_block ${exe_LIBS})
     endforeach(srcfile)
 
+if ( ENABLE_CXX11 )
     add_executable(test_interface   expressions.cpp )
     target_link_libraries(test_interface ${exe_LIBS})
     set_target_properties(test_interface PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
