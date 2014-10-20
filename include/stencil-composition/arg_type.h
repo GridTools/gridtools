@@ -66,6 +66,12 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
+
+    //Decorator is the integrator
+    template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
+    struct is_storage<Decorator<BaseType, Order>  *  > : public is_storage<BaseType*>
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
     template<typename ArgType, typename Storage>
     struct arg_storage_pair {
         typedef ArgType arg_type;
@@ -112,18 +118,18 @@ namespace gridtools {
 
     namespace enumtype
     {
-        namespace{
+        namespace impl{
         template <ushort_t Coordinate>
             struct T{
-            T(int_t val){ value=val;}
+            T(short_t const& val){ value=val;}
             static const ushort_t direction=Coordinate;
-            int_t value;
+            short_t value;
         };
         }
 
-	typedef T<0> x;
-	typedef T<1> y;
-	typedef T<2> z;
+        typedef impl::T<0> x;
+        typedef impl::T<1> y;
+        typedef impl::T<2> z;
     }
 
     struct initialize
@@ -260,7 +266,91 @@ namespace gridtools {
             std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
         }
 
+        // Methods to stop the recursion when dealing with extra dimensions
+        static const ushort_t n_args=0;
+
+        template<ushort_t index>
+            GT_FUNCTION
+            int_t n() const {//stop recursion
+                printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", index+1);
+                exit (-1);
+            }
+
     };
+
+
+
+//################################################################################
+//                              Multidimensionality
+//################################################################################
+
+    namespace enumtype{
+// #ifdef CXX11_ENABLED
+//        template<ushort_t N>
+//        using Extra=impl::T<N>;
+// #else
+        template<ushort_t N>
+        struct Extra{// : public impl::T<N>{
+            Extra(short_t const& val){ value=val;}
+            static const ushort_t direction=N;
+            short_t value;
+         };
+// #endif
+    }
+
+    template< class ArgType>
+    struct arg_decorator : public ArgType{
+
+        typedef ArgType super;
+        static const ushort_t n_args=super::n_args+1;
+        typedef typename super::index_type index_type;
+
+#ifdef CXX11_ENABLED
+        template <ushort_t Idx, typename... Whatever>
+        GT_FUNCTION
+        arg_decorator ( enumtype::Extra<Idx> const& t, Whatever... x): super( x... ) {
+            //BOOST_STATIC_ASSERT(t.direction==n_args);
+
+            //there's no need to allow further flexibility on memory layout (?), i.e. extra dimensions memory location will be undefined
+            if(t.direction==n_args)
+            {
+                printf("offset %d was specified to be %d \n", n_args, t.value);
+                m_offset=t.value;
+            }
+            else
+            {
+                printf("no offset was specified for extra dimension %d \n", t.direction);
+                m_offset=0;
+            }
+        }
+
+        template <typename... Whatever>
+        arg_decorator ( Whatever... x ): super( x... ) {
+            printf("no offsets for extra dimension was specified (but there are %d) \n", n_args);
+            m_offset=0;
+        }//just forward
+
+#else //CXX11_ENABLED
+whatever not compiling
+#endif
+
+    /** @brief usage: n<3>() returns the offset of extra dimension 3 */
+    template<short_t index>
+    GT_FUNCTION
+    short_t n() const {//recursively travel the list of offsets
+    BOOST_STATIC_ASSERT( index>0 );
+    printf("index to the n method:%d \n", index);
+    // BOOST_STATIC_ASSERT( index<=n_args );
+    return index==1? m_offset : super::template n<index-1>();
+    }
+
+    private:
+        short_t m_offset;
+    };
+
+//################################################################################
+//                              Compile time checks
+//################################################################################
 
     /**
      * Struct to test if an argument is a temporary
@@ -275,13 +365,17 @@ namespace gridtools {
     struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
     {};
 
-
     template <uint_t I, enumtype::backend X, typename T, typename U>
     struct is_plchldr_to_temp<arg<I, base_storage<X, T, U,  true> > > : boost::true_type
     {};
 
     template <uint_t I, enumtype::backend X, typename T, typename U>
     struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
+    {};
+
+
+    template <uint_t I, typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
+    struct is_plchldr_to_temp<arg<I, Decorator<BaseType , Order> > > : is_plchldr_to_temp<arg<I, BaseType> >
     {};
 
     /**

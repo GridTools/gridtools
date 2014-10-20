@@ -17,6 +17,9 @@ namespace gridtools {
     template <typename T>
     struct hybrid_pointer : public wrap_pointer<T>{
 
+        typedef wrap_pointer<T> super;
+        typedef typename super::pointee_t pointee_t;
+
         explicit hybrid_pointer(T* p) : wrap_pointer<T>(p), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
         explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size) {
@@ -26,13 +29,6 @@ namespace gridtools {
             printf(" - %X %X %X %d\n", this->cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
         }
-
-        explicit constexpr hybrid_pointer(int const& size, int const& dummy)  {
-        }
-
-        // explicit constexpr hybrid_pointer(hybrid_pointer const & other)  {
-        // }
-
 
 // copy constructor passes on the ownership
         __device__ __host__
@@ -45,9 +41,7 @@ namespace gridtools {
             , m_pointer_to_use(this->cpu_p)
 #endif
             , m_size(other.m_size)
-            , m_owner(true)
         {
-            other.m_owner=false;
 #ifndef NDEBUG
             printf("cpy const hp ");
             printf("%X ", this->cpu_p);
@@ -58,7 +52,7 @@ namespace gridtools {
 #endif
         }
 
-      ~hybrid_pointer(){ if(m_owner){ free_it(); }}
+        virtual ~hybrid_pointer(){  };
 
         void allocate_it(uint_t size) {
 #ifdef __CUDACC__
@@ -76,9 +70,9 @@ namespace gridtools {
 
         void free_it() {
 #ifdef __CUDACC__
-                cudaFree(m_gpu_p);
+            cudaFree(m_gpu_p);
 #endif
-                wrap_pointer<T>::free_it();
+            wrap_pointer<T>::free_it();
       }
 
         void update_gpu() {
@@ -169,7 +163,6 @@ namespace gridtools {
         T * m_gpu_p;
         T * m_pointer_to_use;
         uint_t m_size;
-        bool m_owner;
     };
 
 } // namespace gridtools

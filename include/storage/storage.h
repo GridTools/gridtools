@@ -13,5 +13,7 @@ namespace gridtools {
                                          , IsTemporary
                                          >
     {
+        typedef base_storage< enumtype::Host, ValueType, Layout, IsTemporary> super;
     };
+
 }//namespace gridtools

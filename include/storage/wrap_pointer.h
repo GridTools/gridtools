@@ -25,9 +25,10 @@ namespace gridtools {
 
 template <typename T>
 struct wrap_pointer{
+        typedef T pointee_t;
 
     GT_FUNCTION
-    explicit wrap_pointer(wrap_pointer const& other)
+    wrap_pointer(wrap_pointer const& other)
         : cpu_p(other.cpu_p)
         {}
 
@@ -36,8 +37,18 @@ struct wrap_pointer{
         : cpu_p(p)
         {}
 
-    explicit constexpr wrap_pointer()  {
+    T& operator = (T const& p)
+        {
+            cpu_p=p;
+            return *this;
+        }
+
+    explicit wrap_pointer()  {
     }
+
+    pointee_t* get() const {return cpu_p;}
+
+    virtual ~wrap_pointer(){ }
 
     GT_FUNCTION
     void update_gpu() {}//\todo find a way to remove this method

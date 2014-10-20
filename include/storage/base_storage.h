@@ -103,6 +103,7 @@ namespace gridtools {
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
         typedef backend_from_id <Backend> backend_traits_t;
+        typedef typename backend_traits_t::template pointer<value_type>::type pointer_type;
 
     public:
         explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
@@ -242,8 +243,6 @@ namespace gridtools {
         uint_t m_size;
         bool is_set;
         const std::string& m_name;
-        typename backend_traits_t::template pointer<value_type>::type m_data;
-        //iterator_type m_data;
 
         template <typename Stream>
         void print(Stream & stream) const {
@@ -297,7 +296,79 @@ namespace gridtools {
             // assert(index <m_size);
             return index;
         }
+
+        GT_FUNCTION
+        pointer_type& data(){return m_data;}
+
+        GT_FUNCTION
+        typename pointer_type::pointee_t* get_address(short_t offset) const {
+            return m_data.get();}
+
+    protected:
+
+        pointer_type m_data;
+
     };
+
+
+/** @brief finite difference discretization struct
+    the goal of this struct is to gain ownership of the storage of the previous solutions,
+    and to implement a cash for the solutions, where the new one is stored in place of the
+    least recently used one (m_lru).*/
+
+    template < typename Storage, ushort_t AccuracyOrder>
+    struct integrator  : public Storage
+    {
+
+        typedef Storage super;
+        typedef typename super::iterator_type iterator_type;
+        typedef typename super::value_type value_type;
+        explicit integrator(uint_t dim1, uint_t dim2, uint_t dim3,
+                            value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s), m_lru(0), m_fields() {
+            advance(super::data());//first solution is the initialization by default
+        }
+
+        integrator() : m_lru(0), m_fields(){
+        };
+
+        //template <ushort_t Offset>
+        GT_FUNCTION
+        typename super::pointer_type::pointee_t* get_address(short_t offset) const {
+            //printf("the offset: %d\n", offset);
+            //printf("lru storage used: %d\n", (m_lru+offset)%n_args);
+            return m_fields[(m_lru+offset)%n_args].get();}
+        //super::pointer_type const& data(){return m_fields[lru];}
+        inline typename super::pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
+        //the time integration takes ownership over all the pointers?
+        inline void advance(/*smart<*/typename super::pointer_type/*>*/ & field){
+            //cycle in a ring
+            typename super::pointer_type swap(m_fields[m_lru]);
+            m_fields[m_lru]=field;
+            field = swap;
+            m_lru=(m_lru+1)%n_args;
+            this->m_data=m_fields[m_lru];
+        }
+
+        void print() {
+            print(std::cout);
+        }
+
+        template <typename Stream>
+        void print(Stream & stream) {
+            for(ushort_t i=0; i < n_args; ++i)
+            {
+                advance(this->m_data);
+                super::print(stream);
+            }
+        }
+
+    private:
+        static const ushort_t n_args = AccuracyOrder;
+        ushort_t m_lru;
+        //todo: create a smart<Pointer> adding the policy to whatever pointer.
+        /*smart<*/typename super::pointer_type/*>*/ m_fields[n_args];
+    };
+
 
     template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary
         >
@@ -332,6 +403,26 @@ namespace gridtools {
     template <enumtype::backend X, typename ValueType, typename Y>
     struct is_temporary_storage<base_storage<X,ValueType,Y,true> >
       : boost::true_type
+    {};
+
+    //Decorator is the integrator
+    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
+    struct is_temporary_storage<Decorator<BaseType, Order> > : is_temporary_storage< BaseType >
+    {};
+
+    //Decorator is the integrator
+    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
+    struct is_temporary_storage<Decorator<BaseType, Order>* > : is_temporary_storage< BaseType* >
+    {};
+
+    //Decorator is the integrator
+    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
+    struct is_temporary_storage<Decorator<BaseType, Order>& > : is_temporary_storage< BaseType& >
+    {};
+
+    //Decorator is the integrator
+    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
+    struct is_temporary_storage<Decorator<BaseType, Order>*& > : is_temporary_storage< BaseType*& >
     {};
 
     template <enumtype::backend Backend, typename T, typename U, bool B>
