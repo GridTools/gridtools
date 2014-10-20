@@ -56,13 +56,13 @@ namespace gridtools {
                     uint_t to=m_coords.template value_at<typename iteration_policy::to>();
                     // std::cout<<"from==> "<<from<<std::endl;
                     // std::cout<<"to==> "<<to<<std::endl;
-                    static_cast<const Derived*>(this)->template loop<iteration_policy, interval_type>(from, to);
+                    static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template loop<iteration_policy, interval_type>(from, to);
                 }
 
             }
         protected:
             typename traits::coords_t const &m_coords;
-            typename traits::local_domain_t const &m_domain;
+            typename traits::local_domain_t &m_domain;
         };
 
     } // namespace _impl

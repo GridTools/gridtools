@@ -93,6 +93,7 @@ namespace gridtools {
 			      //std::cout << "Move to : " << i << ", " << j << std::endl;
 			      //#endif
 
+                                /** setting an iterator to the address of the current i,j entry to be accessed */
                                 iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
 
 
@@ -103,6 +104,7 @@ namespace gridtools {
                                 //     typedef iterate_domain_type local_domain_t;
                                 //     typedef coords_type coords_t;};
 
+                                /** run the iteration on the k dimension */
                                 gridtools::for_each< loop_intervals_t >
                                     (_impl::run_f_on_interval
                                      <

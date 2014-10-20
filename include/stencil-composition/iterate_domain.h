@@ -4,65 +4,65 @@
 namespace gridtools {
 
     namespace iterate_domain_aux {
-        struct assign_iterators {
-            const uint_t i, j, k, bi, bj;
+        // struct assign_iterators {
+        //     const uint_t i, j, k, bi, bj;
 
-            template <typename IteratorType, typename StoragePointer>
-            void assign (IteratorType & it, StoragePointer & storage) const {
-                // std::cout << "Moving pointers **********************************************" << std::endl;
-                // std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
-                // storage.info();
-                it = &( storage(i,j,k) );
-            }
+        //     template <typename IteratorType, typename StoragePointer>
+        //     void assign (IteratorType & it, StoragePointer & storage) const {
+        //         // std::cout << "Moving pointers **********************************************" << std::endl;
+        //         // std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
+        //         // storage.info();
+        //         it = &( storage(i,j,k) );
+        //     }
 
-            template <enumtype::backend Backend
-                      , typename IteratorType
-                      , typename ValueType
-                      , typename Layout
-                      , uint_t TileI
-                      , uint_t TileJ
-                      , uint_t MinusI
-                      , uint_t MinusJ
-                      , uint_t PlusI
-                      , uint_t PlusJ
-                      >
-            void assign(IteratorType & it,
-                        host_tmp_storage<
-                        Backend
-                        , ValueType
-                        , Layout
-                        , TileI
-                        , TileJ
-                        , MinusI
-                        , MinusJ
-                        , PlusI
-                        , PlusJ
-                        > & storage) const {
-	       //std::cout << i << " - " << bi << " * " << TileI << std::endl;
-	       //std::cout << j << " - " << bj << " * " << TileJ << std::endl;
-	       it = storage.move_to(i - bi * TileI, j - bj * TileJ, k);
-            }
+        //     template <enumtype::backend Backend
+        //               , typename IteratorType
+        //               , typename ValueType
+        //               , typename Layout
+        //               , uint_t TileI
+        //               , uint_t TileJ
+        //               , uint_t MinusI
+        //               , uint_t MinusJ
+        //               , uint_t PlusI
+        //               , uint_t PlusJ
+        //               >
+        //     void assign(IteratorType & it,
+        //                 host_tmp_storage<
+        //                 Backend
+        //                 , ValueType
+        //                 , Layout
+        //                 , TileI
+        //                 , TileJ
+        //                 , MinusI
+        //                 , MinusJ
+        //                 , PlusI
+        //                 , PlusJ
+        //                 > & storage) const {
+	    //    //std::cout << i << " - " << bi << " * " << TileI << std::endl;
+	    //    //std::cout << j << " - " << bj << " * " << TileJ << std::endl;
+	    //    it = storage.move_to(i - bi * TileI, j - bj * TileJ, k);
+        //     }
 
-            GT_FUNCTION
-            assign_iterators(uint_t i, uint_t j, uint_t k, uint_t bi, uint_t bj)
-                : i(i)
-                , j(j)
-                , k(k)
-                , bi(bi)
-                , bj(bj)
-            {}
+        //     GT_FUNCTION
+        //     assign_iterators(uint_t i, uint_t j, uint_t k, uint_t bi, uint_t bj)
+        //         : i(i)
+        //         , j(j)
+        //         , k(k)
+        //         , bi(bi)
+        //         , bj(bj)
+        //     {}
 
-            template <typename ZipElem>
-            GT_FUNCTION
-            void operator()(ZipElem const & ze) const {
-                // std::cout << "Moving pointers **********************************************" << std::endl;
-                // std::cout << typename boost::remove_pointer<typename boost::remove_const<typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
-                // (*(boost::fusion::at_c<1>(ze))).info();
+        //     template <typename ZipElem>
+        //     GT_FUNCTION
+        //     void operator()(ZipElem const & ze) const {
+        //         // std::cout << "Moving pointers **********************************************" << std::endl;
+        //         // std::cout << typename boost::remove_pointer<typename boost::remove_const<typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
+        //         // (*(boost::fusion::at_c<1>(ze))).info();
 
-	      assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
-            }
+	    //   assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
+        //     }
 
-        };
+        // };
 
         struct increment {
             template <typename Iterator>
@@ -76,7 +76,7 @@ namespace gridtools {
             template <typename Iterator>
             GT_FUNCTION
             void operator()(Iterator & it) const {
-	      it.value-=it.stride;
+                it.value-=it.stride;
             }
         };
 
@@ -99,8 +99,8 @@ namespace gridtools {
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
 	  static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t k){
-	    boost::fusion::at_c<0>(l).value=&((*boost::fusion::at_c<0>(r))(i,j,k));
-	    boost::fusion::at_c<0>(l).stride=boost::fusion::at_c<0>(r)->stride_k();
+          boost::fusion::at_c<0>(l).value=&((*boost::fusion::at_c<0>(r))(i,j,k));
+          boost::fusion::at_c<0>(l).stride=boost::fusion::at_c<0>(r)->stride_k();
 	  }
 	};
       }
@@ -116,9 +116,12 @@ namespace gridtools {
         GT_FUNCTION
         iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t k, uint_t bi, uint_t bj)
             : local_domain(local_domain)
-        {
-          assign_storage< N-1 >::assign(local_iterators, local_domain.local_args, i, j, k);
-            // double*                                 &storage
+        {                                 // double*            &storage
+            m_i=i;
+            m_j=j;
+            m_k=k;
+            //assign_storage< N-1 >::assign(local_iterators, local_domain.local_args, m_i, m_j, k);
+            // DOUBLE*                                 &storage
 	   /* boost::fusion::at_c<0>(local_iterators).value=&((*(boost::fusion::at_c<0>(local_domain.local_args)))(i,j,k)); */
 	   /* boost::fusion::at_c<1>(local_iterators).value=&((*(boost::fusion::at_c<1>(local_domain.local_args)))(i,j,k)); */
 	   /* boost::fusion::at_c<0>(local_iterators).stride=(*boost::fusion::at_c<0>(local_domain.local_args)).stride_k(); */
@@ -131,13 +134,15 @@ namespace gridtools {
 
 
         GT_FUNCTION
-        void increment() const {
-            boost::fusion::for_each(local_iterators, iterate_domain_aux::increment());
+        void increment() {
+            //boost::fusion::for_each(local_iterators, iterate_domain_aux::increment());
+            m_k++;
         }
 
         GT_FUNCTION
-        void decrement() const {
-	boost::fusion::for_each(local_iterators, iterate_domain_aux::decrement());
+        void decrement() {
+            //boost::fusion::for_each(local_iterators, iterate_domain_aux::decrement());
+            m_k--;
         }
 
         template <typename T>
@@ -146,13 +151,10 @@ namespace gridtools {
             local_domain.info(x);
         }
 
-/** @brief method called in the Do methods of the functors. */
-        template <uint_t Index, typename Range>
-        GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
-        operator()(arg_type<Index, Range> const& arg) const {
-            typedef arg_type<Index, Range> ArgType;
 
+        template <typename ArgType>
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value(ArgType const& arg) const
+            {
             // std::cout << " i " << arg.i()
             //           << " j " << arg.j()
             //           << " k " << arg.k()
@@ -180,11 +182,48 @@ namespace gridtools {
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
-            return *(boost::fusion::at<typename ArgType::index_type>(local_iterators).value
+                return *(boost::fusion::at<typename ArgType::index_type>(local_iterators).value/*(arg.template n<arg.n_args>())*/
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                      ->offset(arg.i(),arg.j(),arg.k()));
+            }
+
+
+
+        template <typename ArgType>
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value_(ArgType const& arg) const
+            {
+                auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args);
+                typedef typename std::remove_reference<decltype(*storage_pointer)>::type storage_type;
+                // typename LocalDomain::iterator_type
+                typename storage_type::iterator_type iterator;
+                //set the storage iterator at the right position
+                /*consdtexpr*/
+
+                //printf("arg n function output (should be the offset) %d \n", arg.template n<arg.n_args>());
+                iterator=&(storage_pointer->template get_address(arg.template n<arg.n_args>())[ storage_pointer->_index(m_i, m_j, m_k)]);
+                //printf("i, j, k: %d, %d, %d\n", m_i, m_j, m_k);
+                return *(iterator/*(arg.template n<arg.n_args>())*/
+                     +storage_pointer->offset(arg.i(),arg.j(),arg.k()));
+            }
+
+
+/** @brief method called in the Do methods of the functors. */
+        template <uint_t Index, typename Range>
+        GT_FUNCTION
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
+        operator()(arg_type<Index, Range> const& arg) const {
+            // printf("normal \n\n\n\n");
+            return get_value_(arg);
         }
 
+/** @brief method called in the Do methods of the functors. */
+        template <typename ArgType>
+        GT_FUNCTION
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        operator()(gridtools::arg_decorator<ArgType> const& arg) const {
+            // printf("integrator \n\n\n\n");
+            return get_value_(arg);
+        }
 
 
 #ifdef CXX11_ENABLED
@@ -228,6 +267,12 @@ namespace gridtools {
             return value(arg);
         }
 #endif
+
+    private:
+        // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
+        uint_t m_i;
+        uint_t m_j;
+        uint_t m_k;
     };
 
 } // namespace gridtools

@@ -44,9 +44,6 @@ namespace gridtools{  namespace enumtype{
 #define FLOAT_PRECISION 8
 #endif
 
-    typedef float int_t;
-    typedef float short_t;
-    typedef float uint_t;
 #if FLOAT_PRECISION == 4
     typedef float float_type;
 #elif FLOAT_PRECISION == 8
@@ -62,10 +59,10 @@ namespace gridtools{  namespace enumtype{
     //note: if we want to use in the same executable two stencils with different types for the ints
     //(e.g. to index a very large stencil), then we can template the following type definitions and
     //propagate the template everywhere! (which is one of the main motivations for the EPetra replacement in Trilinos)
-    using int_t          =int ;
+    using int_t          =long int;
     using short_t        =int;
-    using uint_t         =unsigned int;
-    using ushort_t       =unsigned  char;
+    using uint_t         =long int;
+    using ushort_t       =unsigned int;
     template<int_t N>
     using  static_int=boost::mpl::integral_c<int_t,N>;
     template<uint_t N>
