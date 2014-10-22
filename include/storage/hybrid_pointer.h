@@ -157,6 +157,9 @@ namespace gridtools {
         T* get_pointer_to_use(){return m_pointer_to_use;}
 
         GT_FUNCTION
+	pointee_t* get() const {return m_gpu_p;}
+
+        GT_FUNCTION
         int get_size(){return m_size;}
 
     private:

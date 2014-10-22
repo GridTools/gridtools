@@ -54,11 +54,11 @@ namespace gridtools {
 #ifdef __CUDACC__
             template < typename T, typename U, bool B
                       >
-            //GT_FUNCTION_WARNING
+            GT_FUNCTION_WARNING
             void operator()(base_storage<enumtype::Cuda,T,U,B
                             > *& s) const {
                 if (s) {
-                    s->m_data.update_gpu();
+		  s->data().update_gpu();
                     s->clone_to_gpu();
                     s = s->gpu_object_ptr;
                 }
@@ -111,13 +111,14 @@ namespace gridtools {
             m_size( dim1 * dim2 * dim3 ),
             is_set( true ),
             m_data( m_size ),
-            m_name(s)
+	m_name(s)
             {
             m_dims[0]=( dim1 );
             m_dims[1]=( dim2 );
             m_dims[2]=( dim3 );
-            m_strides[0]=( layout::template find<2>(m_dims)*layout::template find<1>(m_dims) );
-            m_strides[1]=( layout::template find<2>(m_dims) );
+	    // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
+            m_strides[0]=( m_dims[layout::get(2)]*m_dims[layout::get(1)]);
+            m_strides[1]=( m_dims[layout::get(2)] );
             m_strides[2]=( 1 );
 #ifdef _GT_RANDOM_INPUT
             srand(12345);
@@ -149,7 +150,7 @@ namespace gridtools {
             m_strides[2] = other.m_strides[2];
         }
 
-        explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL) {
+        explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL){
             is_set=false;
         }
 
@@ -214,9 +215,10 @@ namespace gridtools {
         //note: offset returns a signed int because the layout map indexes are signed short ints
         GT_FUNCTION
         int_t offset(int_t i, int_t j, int_t k) const {
-            return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-            * layout::template find<0>(i,j,k) +
-            layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
+	  return //layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+            m_strides[0]* layout::template find<0>(i,j,k) +
+	  //layout::template find<2>(m_dims) 
+	  m_strides[1] * layout::template find<1>(i,j,k) +
             layout::template find<2>(i,j,k);
         }
 
@@ -224,6 +226,11 @@ namespace gridtools {
 	inline uint_t size() const {
 	  return m_size;
 	}
+
+
+	// GT_FUNCTION
+	// inline uint_t const* strides() const {return m_strides;}
+
 
 	GT_FUNCTION
 	inline uint_t stride_k() const {
@@ -281,34 +288,114 @@ namespace gridtools {
             uint_t index;
             if (IsTemporary) {
                 index =
-                    layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-                    * (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +
-                    layout::template find<2>(m_dims) * modulus(layout::template find<1>(i,j,k),layout::template find<1>(m_dims)) +
+		  //layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+                    m_strides[0]* (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +
+		  //layout::template find<2>(m_dims) 
+		  m_strides[1]*modulus(layout::template find<1>(i,j,k),layout::template find<1>(m_dims)) +
                     modulus(layout::template find<2>(i,j,k),layout::template find<2>(m_dims));
             } else {
                 index =
-                    layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+		//layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
+		m_strides[0]
                     * layout::template find<0>(i,j,k) +
-                    layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
+		//layout::template find<2>(m_dims) 
+		m_strides[1]* layout::template find<1>(i,j,k) +
                     layout::template find<2>(i,j,k);
+		  // m_strides[0]*layout::template find<0>(i,j,k)+m_strides[1]*layout::template find<1>(i,j,k)+m_strides[2]*layout::template find<2>(i,j,k);
             }
             //assert(index >= 0);
             // assert(index <m_size);
             return index;
         }
 
+      template <uint_t Coordinate>
+        GT_FUNCTION
+      void increment(uint_t* index){
+	/* printf("index before k increment = %d\n", *m_index); */
+	  *index+=layout::template find<Coordinate>(m_strides); 
+	  /* printf("coordinate = %d, index  = %d, address %lld, 0x%08x \n", Coordinate, *m_index, m_index, m_index);   */
+      }
+
+      template <uint_t Coordinate>
+        GT_FUNCTION
+	void decrement(uint_t const& coordinate, uint_t* index){
+	*index-=layout::template find<Coordinate>(m_strides); 
+      }
+
+      template <uint_t Coordinate>
+        GT_FUNCTION
+	void inline increment(uint_t const& dimension, uint_t* index){
+	//printf("index before = %d", *m_index);
+	*index+=layout::template find<Coordinate>(m_strides)*dimension; 
+	// printf("dimension = %d, coordinate = %d, index  = %d , address %lld, 0x%08x \n", dimension, Coordinate, *index, index, index);  
+      }
+
+      template <uint_t Coordinate>
+        GT_FUNCTION
+	void decrement(uint_t dimension, uint_t* index){
+	*index-=layout::template find<Coordinate>(m_strides)*dimension; 
+      }
+
         GT_FUNCTION
         pointer_type& data(){return m_data;}
 
         GT_FUNCTION
-        typename pointer_type::pointee_t* get_address(short_t offset) const {
+        typename pointer_type::pointee_t* get_address() const {
             return m_data.get();}
 
     protected:
 
-        pointer_type m_data;
+      pointer_type m_data;
 
     };
+
+    struct print_index{
+      template <typename BaseStorage>
+      GT_FUNCTION
+      void operator()(BaseStorage* b ) const {printf("index -> %d, address %lld, 0x%08x \n", b->index(), &b->index(), &b->index());}
+    };
+
+    // struct set_index{
+    //     GT_FUNCTION
+    // 	set_index(uint_t& index):m_index(index){  }
+
+    //   template <typename BaseStorage>
+    //   GT_FUNCTION
+    //   void operator()(BaseStorage* b ) const {b->set_index(m_index);}
+    // private:
+    //   uint_t& m_index;
+    // };
+
+  template <uint_t Coordinate>
+  struct incr{
+
+    GT_FUNCTION
+    incr(){};
+
+    template<typename BaseStorage>
+    GT_FUNCTION
+    void operator()(BaseStorage * b) const {b->template increment<Coordinate>();}
+  };
+
+  template <uint_t Coordinate>
+  struct incr_stateful{
+
+    GT_FUNCTION
+    incr_stateful(uint dimension):m_dimension(dimension){};
+
+    template<typename BaseStorage>
+    GT_FUNCTION
+    void operator()(BaseStorage * b) const {b->template increment<Coordinate>(m_dimension);}
+  private:
+    uint_t m_dimension;
+  };
+
+  template <uint_t Coordinate>
+  struct decr{
+    template<typename BaseStorage>
+    GT_FUNCTION
+    void operator()(BaseStorage * b) const {b->template decrement<Coordinate>();}
+  };
 
 
 /** @brief finite difference discretization struct
@@ -338,8 +425,10 @@ namespace gridtools {
             //printf("lru storage used: %d\n", (m_lru+offset)%n_args);
             return m_fields[(m_lru+offset)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
+        GT_FUNCTION
         inline typename super::pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
         //the time integration takes ownership over all the pointers?
+        GT_FUNCTION
         inline void advance(/*smart<*/typename super::pointer_type/*>*/ & field){
             //cycle in a ring
             typename super::pointer_type swap(m_fields[m_lru]);
