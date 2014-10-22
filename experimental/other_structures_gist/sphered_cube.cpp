@@ -23,12 +23,32 @@ struct neighbor_offsets_2D {
 };
 
 
+/**
+   This class implements a basic version of a sphered cube (no geometry)
+   It contains 6 faces as cartesian_2D storages found in cartesia_3D.cpp
+   but with a 2D neighbor offset.
+   Each face has a halo of width 1 all around to incorporate cells from
+   neighbor faces. The updated cells are obtained by first calling
+   extraxt_edges() followed by update_edges(). A Laplacian example is
+   shown in main()
+ */
 struct sphered_cube {
+    /** In order to describe neighbors we need something
+        to describe shared edges, and this is the role of
+        this struct.
+    */
     struct edge {
-        int face;
-        int edge_index;
-        bool forward;
-        std::vector<double> buffer;
+        int face; // Index of the neighbor face sharing the edge with the owner face
+        int edge_index; // Edges are sorted as follow
+                        // ----------
+                        // |   3    |
+                        // |1      2|
+                        // |    0   |
+                        // ----------
+                        // edge_index is the index of the edge in the neighbor face facing the
+                        // edge associated to this object
+        bool forward; // True if the neighor edge has same orientation or if has to be reversed
+        std::vector<double> buffer; // Storage area for putting the neighbor cells before putting them in place
 
         edge (int f, int e, bool d, int s)
             : face(f)
@@ -42,7 +62,9 @@ struct sphered_cube {
 
     structured_storage<neighbor_offsets_2D>* faces[6];
 
-    std::vector<std::vector<edge> > face_structure;
+    std::vector<std::vector<edge> > face_structure; // Keeping the structure. Element [f][e] holds
+                                                    // informantion for neighbors of face 'f' edge 'e' in
+                                                    // accord to the above schematic
 
     sphered_cube(int n, int m, int l)
     {
@@ -57,6 +79,8 @@ struct sphered_cube {
                 (std::vector<double>(ss.first*ss.second), neighbor_offsets_2D(ss.second+2));
         }
 
+
+        /** SETTING UP NEIGHBOR STRUCTURE */
         {
             int l_face = 0;
             int selector = l_face&1;
@@ -136,30 +160,6 @@ struct sphered_cube {
         return *faces[i];
     }
 
-    // structured_storage<neighbor_offsets_2D>& neighbor_face(int i, int side_index, int side_parity) {
-    //     int offset = (side_index==0)?2:4;
-    //     if (side_parity) {
-    //         std::cout << "    parity " << side_parity 
-    //                   << ", face " << i
-    //                   << " : ((i&110)+offset)%6 = "
-    //                   << "((" << i << "&110)+offset)%6 = "
-    //                   << "(" << (i&110) << "+offset)%6 = "
-    //                   << "(" << (i&110)+offset << ")%6 = "
-    //                   << ((i&110)+offset)%6
-    //                   << std::endl;;
-    //         return *faces[((i&110)+offset)%6];
-    //     } else {
-    //         std::cout << "    parity " << side_parity 
-    //                   << ", face " << i
-    //                   << " : ((i&110)+offset+1)%6 = "
-    //                   << "((" << i << "&110)+offset+1)%6 = "
-    //                   << "(" << (i&110) << "+offset+1)%6 = "
-    //                   << "(" << (i&110)+offset+1 << ")%6 = "
-    //                   << ((i&110)+offset+1)%6
-    //                   << std::endl;;
-    //         return *faces[((i&110)+offset+1)%6];
-    //     }
-    // }
 
     std::pair<int, int> sizes(int i) const {
         int size0, size1;
@@ -268,6 +268,7 @@ struct sphered_cube {
                             face_structure[f][e].buffer[k++];
                     }
                 }
+                face_structure[f][e].buffer.clear();
             }
 
             {
@@ -279,6 +280,7 @@ struct sphered_cube {
                             face_structure[f][e].buffer[k++];
                     }
                 }
+                face_structure[f][e].buffer.clear();
             }
 
             {
@@ -290,6 +292,7 @@ struct sphered_cube {
                             face_structure[f][e].buffer[k++];
                     }
                 }
+                face_structure[f][e].buffer.clear();
             }
 
             {
@@ -301,6 +304,7 @@ struct sphered_cube {
                             face_structure[f][e].buffer[k++];
                     }
                 }
+                face_structure[f][e].buffer.clear();
             }
         }
     }
@@ -404,6 +408,9 @@ int main(int argc, char** argv) {
     storage.update_edges();
     storage.print(1);
 
+    /** LAPLACIAN EXAMPLE. POINTS AT THE BOUNDARIES TAKEIN INTO ACCOUNT AUTOMATICALLY.
+        Probably not a fully general implementation, but should be good enough to understand few things
+    */
     for (int f = 0; f < 6; ++f) {
         auto& face = storage.face(f);
         auto& lap_face = lap.face(f);
