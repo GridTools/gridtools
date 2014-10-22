@@ -37,15 +37,20 @@ namespace gridtools {
         void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
             uint_t i = blockIdx.x * blockDim.x + threadIdx.x;
             uint_t j = blockIdx.y * blockDim.y + threadIdx.y;
-            uint_t z = coords->template value_at<typename Traits::first_hit_t>();
+            uint_t index = 0;//coords->template value_at<typename Traits::first_hit_t>();
 
 	    /* uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny; */
 	    /* uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny; */
 
 
             if ((i < nx) && (j < ny)) {
+	      /* uint_t index(0); */
+	      /* boost::fusion::for_each(l_domain->local_args, set_index(index)); */
+	      /* boost::fusion::for_each(l_domain->local_args, incr_stateful<0>(i)); */
+	      /* boost::fusion::for_each(l_domain->local_args, incr_stateful<1>(j)); */
+
                 typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-                typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
+                typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj, &index);
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
                      <

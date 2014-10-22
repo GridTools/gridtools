@@ -77,7 +77,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-
+    //                      dims  z y x
+    //                   strides xy x 1
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
@@ -206,20 +207,29 @@ PAPI_stop(event_set, values);
     copy->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
+#define NX 511
+#define NY 511
+#define NZ 59
 
     out.print_value(0,0,0);
-    out.print_value(511,511,0);
-    out.print_value(511,0,59);
-    out.print_value(0,511,59);
-    out.print_value(511,511,59);
+    out.print_value(0,4,0);
+    out.print_value(4,0,0);
+    out.print_value(0,0,4);
+    out.print_value(4,4,0);
+
+    out.print_value(NX,NY,0);
+    out.print_value(NX,0,NZ);
+    out.print_value(0,NY,NZ);
+
+    out.print_value(NX,NY,NZ);
 
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif
 
-    return  out(0,0,0)==0. && out(511,511,0)==1022. && out(511,0,59)==570. && out(0,511,59)==570. && out(511,511,59)==1081.;
+    return  out(0,0,0)==0. && out(NX,NY,0)==NX+NY && out(NX,0,NZ)==NX+NZ && out(0,NY,NZ)==NY+NZ && out(NX,NY,NZ)==NX+NY+NZ;
 }
 
 }//namespace copy_stencil

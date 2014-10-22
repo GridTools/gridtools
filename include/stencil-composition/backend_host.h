@@ -85,10 +85,13 @@ namespace gridtools {
                     for (uint_t i = f->m_starti + range_t::iminus::value;
                          i < f->m_starti + f->m_BI + range_t::iplus::value;
                          ++i)
+		      {
+			for_each<local_domain.local_args>(increment<0>);
                         for (uint_t j = f->m_startj + range_t::jminus::value;
                              j < f->m_startj + f->m_BJ + range_t::jplus::value;
                              ++j)
                             {
+			      for_each<local_domain.local_args>(increment<1>());
 			      //#ifndef NDEBUG
 			      //std::cout << "Move to : " << i << ", " << j << std::endl;
 			      //#endif
@@ -114,6 +117,7 @@ namespace gridtools {
                                      (it_domain,f->m_coords)
                                         );
                             }
+		      }
                 }
 
         };

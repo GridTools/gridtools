@@ -151,9 +151,8 @@ namespace gridtools {
         domain_type(Args... args)
             : storage_pointers()
         {
-            uint_t i = sizeof...(args);
-
 #ifndef NDEBUG
+            uint_t i = sizeof...(args);
             std::cout << "n placeholders " << i << std::endl;
             std::cout << "These are the pointers before assignment" << std::endl;
             boost::fusion::for_each(storage_pointers, _debug::print_deref());

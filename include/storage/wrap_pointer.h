@@ -10,6 +10,7 @@ namespace gridtools {
 
 #define NEW_OP(x) template <>                   \
         struct new_op<x> {                      \
+	  GT_FUNCTION                           \
             x* operator()(/*u*/int_t size) const {  \
                 return new x[size];             \
             }                                   \

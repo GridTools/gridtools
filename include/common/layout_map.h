@@ -207,6 +207,22 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         static  const ushort_t length=3;
         typedef boost::mpl::vector3_c<short_t, I1, I2, I3> t;
 
+        GT_FUNCTION
+        static short_t get(short_t i) {
+            assert( i<length );
+            switch (i) {
+            case 0:
+                return boost::mpl::at_c<t, 0 >::type::value;
+            case 1:
+                return boost::mpl::at_c<t, 1 >::type::value;
+            case 2:
+                return boost::mpl::at_c<t, 2 >::type::value;
+            case 3:
+	      return -1;
+            }
+            return -1;
+        }
+
         template <ushort_t I>
         struct at_ {
             static const short_t value = boost::mpl::at_c<t, I >::type::value;
@@ -379,6 +395,22 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
         GT_FUNCTION
         int operator[](short_t i) {
+            assert( i<length );
+            switch (i) {
+            case 0:
+                return boost::mpl::at_c<t, 0 >::type::value;
+            case 1:
+                return boost::mpl::at_c<t, 1 >::type::value;
+            case 2:
+                return boost::mpl::at_c<t, 2 >::type::value;
+            case 3:
+                return boost::mpl::at_c<t, 3 >::type::value;
+            }
+            return -1;
+        }
+
+        GT_FUNCTION
+        static int get(short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
