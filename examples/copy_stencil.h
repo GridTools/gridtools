@@ -35,15 +35,15 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
-    typedef const arg_type<0> in;
-    typedef arg_type<1> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef arg_decorator< arg_type<0> > in;
+  //typedef const arg_type<1> out;
+  typedef boost::mpl::vector<in/*, out*/> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
 
-      dom(out()) = dom(in());
+      dom(in(time(-1))) = dom(in());
     }
 };
 
@@ -83,7 +83,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
+    typedef integrator<storage_type, 2> integrator_type;
+    integrator_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
 
     for(uint_t i=0; i<d1; ++i)
         for(uint_t j=0; j<d2; ++j)
@@ -92,8 +93,10 @@ bool test(uint_t x, uint_t y, uint_t z) {
 	      in(i, j, k)=i+j+k;
 	    }
 
-
     storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
+    in.advance(out.data());
+
+
 
     //out.print();
 

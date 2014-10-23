@@ -71,7 +71,7 @@ namespace gridtools {
 	  GT_FUNCTION
 	  static void inline apply(LocalArgs& local_args, uint_t* index) {
 	    //it.value+=it.stride;
-	    boost::fusion::at_c<ID>(local_args)->template increment<2>(index);
+	    boost::fusion::at_c<ID>(local_args)->template increment<2>(&index[ID]);
 	    increment_k<ID-1>::apply(local_args, index);
 	  }
         };
@@ -95,7 +95,7 @@ namespace gridtools {
 	  GT_FUNCTION
 	  static void inline apply(LocalArgs& local_args, uint_t* index) {
 	      //it.value+=it.stride;
-	      boost::fusion::at_c<ID>(local_args)->template decrement<2>(index);
+	      boost::fusion::at_c<ID>(local_args)->template decrement<2>(&index[ID]);
 	      decrement_k<ID-1>::apply(local_args, index);
             }
         };
@@ -126,10 +126,10 @@ namespace gridtools {
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
 	  static void inline assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index){
+	    boost::fusion::at_c<ID>(r)->template increment<0>(i, &index[ID]);
+	    boost::fusion::at_c<ID>(r)->template increment<1>(j, &index[ID]);
 	    boost::fusion::at_c<ID>(l).value=boost::fusion::at_c<ID>(r)->get_address();
-	    // printf("setting i, j = %d, %d\n", i, j);
-	    //boost::fusion::at_c<ID>(r)->template increment<0>(i, index);
-	    //boost::fusion::at_c<ID>(r)->template increment<1>(j, index);
+	    //printf("setting i, j = %d, %d, index becomes %d  for ID: %d \n", i, j, index[ID], ID);
 	    //boost::fusion::at_c<ID>(l).stride=boost::fusion::at_c<ID>(r)->stride_k();
 	    assign_storage<ID-1>::assign(l,r,i,j,index); //tail recursion
 	    }
@@ -140,11 +140,26 @@ namespace gridtools {
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
 	  static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index){
+	    boost::fusion::at_c<0>(r)->template increment<0>(i, index);
+	    boost::fusion::at_c<0>(r)->template increment<1>(j, index);
 	    boost::fusion::at_c<0>(l).value=boost::fusion::at_c<0>(r)->get_address();
+	    //printf("setting i, j = %d, %d, index becomes %d \n", i, j, index[0]);
 	    //boost::fusion::at_c<0>(l).stride=boost::fusion::at_c<0>(r)->stride_k();
 	  }
 	};
       }
+
+
+  template <uint_t Number>
+  struct zero{
+    static const uint_t value[Number];
+  };
+
+  template <uint_t Number>
+  const uint_t zero<Number>::value[Number]={0, zero<Number-1>::value};
+
+  template <> 
+  struct zero<0>{static const uint_t value=0;};
 
     template <typename LocalDomain>
     struct iterate_domain {
@@ -155,15 +170,14 @@ namespace gridtools {
         mutable local_iterators_type local_iterators;
 
         GT_FUNCTION
-        iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t* index)
-	  : local_domain(local_domain) , m_index(index)
+        iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j)
+	  : local_domain(local_domain) , m_index({0})
       {
-	boost::fusion::at_c<0>(local_domain.local_args)->template increment<0>(i, index);
-	boost::fusion::at_c<0>(local_domain.local_args)->template increment<1>(j, index);
-	// printf("setting i, j = %d, %d on index= %d\n", i, j, *index);
+	// boost::fusion::at_c<0>(local_domain.local_args)->template increment<0>(i, &m_index[0]);
+	// boost::fusion::at_c<0>(local_domain.local_args)->template increment<1>(j, &m_index[0]);
 
                                  // double*            &storage
-	assign_storage< N-1 >::assign(local_iterators, local_domain.local_args, i, j, m_index);
+	assign_storage< N-1 >::assign(local_iterators, local_domain.local_args, i, j, &m_index[0]);
 
             // DOUBLE*                                 &storage
 	   /* boost::fusion::at_c<0>(local_iterators).value=&((*(boost::fusion::at_c<0>(local_domain.local_args)))(i,j,k)); */
@@ -180,7 +194,7 @@ namespace gridtools {
         void increment() {
 	  /* boost::fusion::for_each( local_args,  */
 	  /* 			   incr<2>() ); */
-	  iterate_domain_aux::increment_k</*boost::mpl::size<local_args_type>::value-1*/0>::apply(local_domain.local_args, m_index);
+	  iterate_domain_aux::increment_k<boost::mpl::size<local_args_type>::value-1>::apply(local_domain.local_args, &m_index[0]);
 	  //boost::fusion::for_each(local_iterators, iterate_domain_aux::increment());
 	  //m_k++;
 	  /* m_index++ */
@@ -188,7 +202,7 @@ namespace gridtools {
 
         GT_FUNCTION
         void decrement() {
-	  iterate_domain_aux::decrement_k</*boost::mpl::size<local_args_type>::value-1*/0>::apply(local_domain.local_args, m_index);
+	  iterate_domain_aux::decrement_k<boost::mpl::size<local_args_type>::value-1>::apply(local_domain.local_args, &m_index[0]);
 	  // boost::fusion::for_each(local_args, decr<2>() );
             //boost::fusion::for_each(local_iterators, iterate_domain_aux::decrement());
             // m_index--;
@@ -201,9 +215,9 @@ namespace gridtools {
         }
 
 
-        template <typename ArgType>
+      template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value(ArgType const& arg) const
+      typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value(ArgType const& arg , StoragePointer const& storage_pointer) const
             {
             // std::cout << " i " << arg.i()
             //           << " j " << arg.j()
@@ -232,42 +246,55 @@ namespace gridtools {
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
-	    // printf("index: %d \n", *m_index);
+
+	    // printf("index: %d  of storage %d of %d  \n", m_index[ArgType::index_type::value], ArgType::index_type::value, N);
 	    // printf("base address: %x \n", boost::fusion::at<typename ArgType::index_type>(local_iterators).value );
 	    // printf("final address: %x \n", &(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->data()[*m_index] ));
 
-                auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args);
-                typedef typename std::remove_reference<decltype(*storage_pointer)>::type storage_type;
+                // typedef typename std::remove_reference<decltype(*storage_pointer)>::type storage_type;
 
 
 
-                return *(boost::fusion::at<typename ArgType::index_type>(local_iterators).value/*(arg.template n<arg.n_args>())*/
-			 +(*m_index)
-                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                     ->offset(arg.i(),arg.j(),arg.k()));
-	    // return *(&(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->data()[boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->index()])
+                // return *(boost::fusion::at<typename ArgType::index_type>(local_iterators).value/\*(arg.template n<arg.n_args>())*\/
+		// 	 +(m_index[ArgType::index_type::value])
+                //      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                //      ->offset(arg.i(),arg.j(),arg.k()));
+
+
+	    // return *(storage_pointer +(m_index[ArgType::index_type::value])
             //          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
             //          ->offset(arg.i(),arg.j(),arg.k()));
+
+		/* return *(&(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->data()[index[ArgType::index_type]/\*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->index()*\/]) */
+                /*      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) */
+                /*      ->offset(arg.i(),arg.j(),arg.k())); */
+
+
+	    return *(&(storage_pointer[m_index[ArgType::index_type::value]/*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->index()*/])
+                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                     ->offset(arg.i(),arg.j(),arg.k()));
+
             }
 
 
 
-        /* template <typename ArgType> */
-        /* typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value_(ArgType const& arg) const */
-        /*     { */
-        /*         auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args); */
-        /*         typedef typename std::remove_reference<decltype(*storage_pointer)>::type storage_type; */
-        /*         // typename LocalDomain::iterator_type */
-        /*         typename storage_type::iterator_type iterator; */
-        /*         //set the storage iterator at the right position */
-        /*         /\*consdtexpr*\/ */
+      template <typename ArgType, typename StoragePointer>
+      GT_FUNCTION
+      typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value_(ArgType const& arg , StoragePointer const& storage_pointer) const
+            {
+                typedef typename std::remove_reference<decltype(*storage_pointer)>::type storage_type;
+                // typename LocalDomain::iterator_type
+                typename storage_type::iterator_type iterator;
+                //set the storage iterator at the right position
+                /*consdtexpr*/
 
-        /*         //printf("arg n function output (should be the offset) %d \n", arg.template n<arg.n_args>()); */
-        /*         /\* iterator=&(storage_pointer->template get_address(arg.template n<arg.n_args>())[ storage_pointer->_index(m_i, m_j, m_k)]); *\/ */
-        /*         /\* //printf("i, j, k: %d, %d, %d\n", m_i, m_j, m_k); *\/ */
-        /*         /\* return *(iterator/\\*(arg.template n<arg.n_args>())*\\/ *\/ */
-        /*         /\*      +storage_pointer->offset(arg.i(),arg.j(),arg.k())); *\/ */
-        /*     } */
+                //printf("arg n function output (should be the offset) %d \n", arg.template n<arg.n_args>());
+                iterator=&(storage_pointer[ index[ArgType::index_type] ]);
+                //printf("i, j, k: %d, %d, %d\n", m_i, m_j, m_k);
+                return *(iterator/*(arg.template n<arg.n_args>())*/
+                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                     ->offset(arg.i(),arg.j(),arg.k()));
+            }
 
 
 /** @brief method called in the Do methods of the functors. */
@@ -275,18 +302,21 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
         operator()(arg_type<Index, Range> const& arg) const {
+	  auto storage_pointer= boost::fusion::at<typename arg_type<Index, Range>::index_type>(local_domain.local_args)->data().get();
 	  //printf("normal \n\n\n\n");
-            return get_value(arg);
+	  return get_value(arg, storage_pointer);
         }
 
-/* /\** @brief method called in the Do methods of the functors. *\/ */
-/*         template <typename ArgType> */
-/*         GT_FUNCTION */
-/*         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& */
-/*         operator()(gridtools::arg_decorator<ArgType> const& arg) const { */
-/*             // printf("integrator \n\n\n\n"); */
-/*             return get_value_(arg); */
-/*         } */
+/** @brief method called in the Do methods of the functors. */
+        template <typename ArgType>
+        GT_FUNCTION
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        operator()(gridtools::arg_decorator<ArgType> const& arg) const {
+
+	  auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address(arg.template n<ArgType::n_args>());
+            // printf("integrator \n\n\n\n");
+	  return get_value(arg, storage_pointer);
+        }
 
 
 #ifdef CXX11_ENABLED
@@ -336,7 +366,7 @@ namespace gridtools {
         /* uint_t m_i; */
         /* uint_t m_j; */
         /* uint_t m_k; */
-        uint_t* m_index;
+      uint_t m_index[N];
     };
 
 } // namespace gridtools
