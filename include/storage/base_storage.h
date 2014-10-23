@@ -312,8 +312,8 @@ namespace gridtools {
         GT_FUNCTION
       void increment(uint_t* index){
 	/* printf("index before k increment = %d\n", *m_index); */
-	  *index+=layout::template find<Coordinate>(m_strides); 
-	  /* printf("coordinate = %d, index  = %d, address %lld, 0x%08x \n", Coordinate, *m_index, m_index, m_index);   */
+	*index+=layout::template find<Coordinate>(m_strides); 
+	/* printf("coordinate = %d, index  = %d \n", Coordinate, index);  */
       }
 
       template <uint_t Coordinate>
@@ -327,7 +327,7 @@ namespace gridtools {
 	void inline increment(uint_t const& dimension, uint_t* index){
 	//printf("index before = %d", *m_index);
 	*index+=layout::template find<Coordinate>(m_strides)*dimension; 
-	// printf("dimension = %d, coordinate = %d, index  = %d , address %lld, 0x%08x \n", dimension, Coordinate, *index, index, index);  
+	/* printf("dimension = %d, coordinate = %d, index  = %d , stride %d \n", dimension, Coordinate, *index, layout::template find<Coordinate>(m_strides));   */
       }
 
       template <uint_t Coordinate>
