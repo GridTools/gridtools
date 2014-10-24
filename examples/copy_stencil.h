@@ -36,14 +36,15 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
     typedef arg_decorator< arg_type<0> > in;
-  //typedef const arg_type<1> out;
-  typedef boost::mpl::vector<in/*, out*/> arg_list;
+    //typedef const arg_type<1> out;
+    typedef boost::mpl::vector<in/*, out*/> arg_list;
+    using time=Extra<1>;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_interval) {
+    static void Do(Evaluation const & eval, x_interval) {
 
-      dom(in(time(-1))) = dom(in());
+        eval(in(time(-1))) = eval(in());
     }
 };
 
@@ -86,6 +87,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef integrator<storage_type, 2> integrator_type;
     integrator_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
 
+    storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
+    in.advance(out.data());
+
     for(uint_t i=0; i<d1; ++i)
         for(uint_t j=0; j<d2; ++j)
 	  for(uint_t k=0; k<d3; ++k)
@@ -93,27 +97,24 @@ bool test(uint_t x, uint_t y, uint_t z) {
 	      in(i, j, k)=i+j+k;
 	    }
 
-    storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
-    in.advance(out.data());
-
 
 
     //out.print();
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, storage_type > p_in;
-    typedef arg<1, storage_type > p_out;
+    typedef arg<0, integrator_type > p_in;
+    typedef arg<1, integrator_type > p_out;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_in/*, p_out*/> arg_type_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&in, &out));
+        (boost::fusion::make_vector(&in/*, &out*/));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -170,7 +171,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
+                gridtools::make_esf<copy_functor>(p_in()/*, p_out()*/) // esf_descriptor
                 ),
             domain, coords
             );
@@ -216,23 +217,23 @@ PAPI_stop(event_set, values);
 #define NY 511
 #define NZ 59
 
-    out.print_value(0,0,0);
-    out.print_value(0,4,0);
-    out.print_value(4,0,0);
-    out.print_value(0,0,4);
-    out.print_value(4,4,0);
+    in.print_value(0,0,0);
+    in.print_value(0,4,0);
+    in.print_value(4,0,0);
+    in.print_value(0,0,4);
+    in.print_value(4,4,0);
 
-    out.print_value(NX,NY,0);
-    out.print_value(NX,0,NZ);
-    out.print_value(0,NY,NZ);
+    in.print_value(NX,NY,0);
+    in.print_value(NX,0,NZ);
+    in.print_value(0,NY,NZ);
 
-    out.print_value(NX,NY,NZ);
+    in.print_value(NX,NY,NZ);
 
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif
 
-    return  out(0,0,0)==0. && out(NX,NY,0)==NX+NY && out(NX,0,NZ)==NX+NZ && out(0,NY,NZ)==NY+NZ && out(NX,NY,NZ)==NX+NY+NZ;
+    return  in(0,0,0)==0. && in(NX,NY,0)==NX+NY && in(NX,0,NZ)==NX+NZ && in(0,NY,NZ)==NY+NZ && in(NX,NY,NZ)==NX+NY+NZ;
 }
 
 }//namespace copy_stencil

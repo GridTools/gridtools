@@ -314,19 +314,19 @@ namespace gridtools {
             //there's no need to allow further flexibility on memory layout (?), i.e. extra dimensions memory location will be undefined
             if(t.direction==n_args)
             {
-                printf("offset %d was specified to be %d \n", n_args, t.value);
+                // printf("offset %d was specified to be %d \n", n_args, t.value);
                 m_offset=t.value;
             }
             else
             {
-                printf("no offset was specified for extra dimension %d \n", t.direction);
+                // printf("no offset was specified for extra dimension %d \n", t.direction);
                 m_offset=0;
             }
         }
 
         template <typename... Whatever>
         arg_decorator ( Whatever... x ): super( x... ) {
-            printf("no offsets for extra dimension was specified (but there are %d) \n", n_args);
+            // printf("no offsets for extra dimension was specified (but there are %d) \n", n_args);
             m_offset=0;
         }//just forward
 
@@ -339,7 +339,7 @@ whatever not compiling
     GT_FUNCTION
     short_t n() const {//recursively travel the list of offsets
     BOOST_STATIC_ASSERT( index>0 );
-    printf("index to the n method:%d \n", index);
+    // printf("index to the n method:%d \n", index);
     // BOOST_STATIC_ASSERT( index<=n_args );
     return index==1? m_offset : super::template n<index-1>();
     }

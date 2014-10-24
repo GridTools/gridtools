@@ -217,7 +217,7 @@ namespace gridtools {
         int_t offset(int_t i, int_t j, int_t k) const {
 	  return //layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
             m_strides[0]* layout::template find<0>(i,j,k) +
-	  //layout::template find<2>(m_dims) 
+	  //layout::template find<2>(m_dims)
 	  m_strides[1] * layout::template find<1>(i,j,k) +
             layout::template find<2>(i,j,k);
         }
@@ -290,7 +290,7 @@ namespace gridtools {
                 index =
 		  //layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
                     m_strides[0]* (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +
-		  //layout::template find<2>(m_dims) 
+		  //layout::template find<2>(m_dims)
 		  m_strides[1]*modulus(layout::template find<1>(i,j,k),layout::template find<1>(m_dims)) +
                     modulus(layout::template find<2>(i,j,k),layout::template find<2>(m_dims));
             } else {
@@ -298,7 +298,7 @@ namespace gridtools {
 		//layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
 		m_strides[0]
                     * layout::template find<0>(i,j,k) +
-		//layout::template find<2>(m_dims) 
+		//layout::template find<2>(m_dims)
 		m_strides[1]* layout::template find<1>(i,j,k) +
                     layout::template find<2>(i,j,k);
 		  // m_strides[0]*layout::template find<0>(i,j,k)+m_strides[1]*layout::template find<1>(i,j,k)+m_strides[2]*layout::template find<2>(i,j,k);
@@ -312,28 +312,28 @@ namespace gridtools {
         GT_FUNCTION
       void increment(uint_t* index){
 	/* printf("index before k increment = %d\n", *m_index); */
-	*index+=layout::template find<Coordinate>(m_strides); 
+	*index+=layout::template find<Coordinate>(m_strides);
 	/* printf("coordinate = %d, index  = %d \n", Coordinate, index);  */
       }
 
       template <uint_t Coordinate>
         GT_FUNCTION
 	void decrement(uint_t const& coordinate, uint_t* index){
-	*index-=layout::template find<Coordinate>(m_strides); 
+	*index-=layout::template find<Coordinate>(m_strides);
       }
 
       template <uint_t Coordinate>
         GT_FUNCTION
 	void inline increment(uint_t const& dimension, uint_t* index){
 	//printf("index before = %d", *m_index);
-	*index+=layout::template find<Coordinate>(m_strides)*dimension; 
+	*index+=layout::template find<Coordinate>(m_strides)*dimension;
 	/* printf("dimension = %d, coordinate = %d, index  = %d , stride %d \n", dimension, Coordinate, *index, layout::template find<Coordinate>(m_strides));   */
       }
 
       template <uint_t Coordinate>
         GT_FUNCTION
 	void decrement(uint_t dimension, uint_t* index){
-	*index-=layout::template find<Coordinate>(m_strides)*dimension; 
+	*index-=layout::template find<Coordinate>(m_strides)*dimension;
       }
 
         GT_FUNCTION
@@ -418,12 +418,16 @@ namespace gridtools {
         integrator() : m_lru(0), m_fields(){
         };
 
+        GT_FUNCTION
+        typename super::pointer_type::pointee_t* get_address() const {
+            return super::get_address();}
+
         //template <ushort_t Offset>
         GT_FUNCTION
         typename super::pointer_type::pointee_t* get_address(short_t offset) const {
             //printf("the offset: %d\n", offset);
-            //printf("lru storage used: %d\n", (m_lru+offset)%n_args);
-            return m_fields[(m_lru+offset)%n_args].get();}
+            // printf("lru storage used: %d\n", (m_lru+offset+n_args)%n_args);
+            return m_fields[(m_lru+offset+n_args)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
         GT_FUNCTION
         inline typename super::pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
