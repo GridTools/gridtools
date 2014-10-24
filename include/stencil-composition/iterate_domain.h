@@ -66,7 +66,7 @@ namespace gridtools {
 
 	template<uint_t ID>
          struct increment_k {
-            
+
 	  template<typename LocalArgs>
 	  GT_FUNCTION
 	  static void inline apply(LocalArgs& local_args, uint_t* index) {
@@ -158,7 +158,7 @@ namespace gridtools {
   template <uint_t Number>
   const uint_t zero<Number>::value[Number]={0, zero<Number-1>::value};
 
-  template <> 
+  template <>
   struct zero<0>{static const uint_t value=0;};
 
     template <typename LocalDomain>
@@ -313,8 +313,8 @@ namespace gridtools {
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
         operator()(gridtools::arg_decorator<ArgType> const& arg) const {
 
-	  auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address(arg.template n<ArgType::n_args>());
-            // printf("integrator \n\n\n\n");
+            auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>());
+
 	  return get_value(arg, storage_pointer);
         }
 

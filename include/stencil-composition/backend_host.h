@@ -86,18 +86,18 @@ namespace gridtools {
                          i < f->m_starti + f->m_BI + range_t::iplus::value;
                          ++i)
 		      {
-			for_each<local_domain.local_args>(increment<0>);
+			// for_each<local_domain.local_args>(increment<0>);
                         for (uint_t j = f->m_startj + range_t::jminus::value;
                              j < f->m_startj + f->m_BJ + range_t::jplus::value;
                              ++j)
                             {
-			      for_each<local_domain.local_args>(increment<1>());
+			      // for_each<local_domain.local_args>(increment<1>());
 			      //#ifndef NDEBUG
 			      //std::cout << "Move to : " << i << ", " << j << std::endl;
 			      //#endif
 
                                 /** setting an iterator to the address of the current i,j entry to be accessed */
-                                iterate_domain_type it_domain(local_domain, i,j, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j );
+                                iterate_domain_type it_domain(local_domain, i,j/*, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j */);
 
 
                                 //local structs can be passed as template arguments in C++11 (would improve readability)
