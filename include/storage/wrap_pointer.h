@@ -49,7 +49,8 @@ struct wrap_pointer{
 
     pointee_t* get() const {return cpu_p;}
 
-    virtual ~wrap_pointer(){ }
+  GT_FUNCTION
+  virtual ~wrap_pointer(){ }
 
     GT_FUNCTION
     void update_gpu() {}//\todo find a way to remove this method

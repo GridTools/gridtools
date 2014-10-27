@@ -11,6 +11,9 @@ namespace gridtools{
     template <enumtype::backend BE, typename T, typename U, bool B>
     struct base_storage;
 
+    template <typename U>
+      struct storage;
+
     // template <typename ValueType, typename Layout, bool Temp>
     // struct cuda_storage;
 
@@ -29,7 +32,7 @@ namespace gridtools{
         struct storage_traits
         {
             //POL
-            typedef base_storage< enumtype::Cuda, ValueType, Layout, Temp> storage_t;
+            typedef storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp> > storage_t;
         };
 
         template <typename Arguments>

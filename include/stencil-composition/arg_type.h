@@ -66,10 +66,15 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
+    //Decorator is the GPU storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
 
     //Decorator is the integrator
     template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
-    struct is_storage<Decorator<BaseType, Order>  *  > : public is_storage<BaseType*>
+    struct is_storage<Decorator<BaseType, Order>  *  > : public is_storage<typename BaseType::basic_type*>
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     template<typename ArgType, typename Storage>
@@ -402,9 +407,14 @@ whatever not compiling
     struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
     {};
 
+  //here the decorator is the GPU storage
+    template <uint_t I, typename BaseType, template <typename T> class Decorator>
+      struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    {};
 
+  //here the decorator is the dimension extension
     template <uint_t I, typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
-    struct is_plchldr_to_temp<arg<I, Decorator<BaseType , Order> > > : is_plchldr_to_temp<arg<I, BaseType> >
+      struct is_plchldr_to_temp<arg<I, Decorator<BaseType , Order> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
 
     /**

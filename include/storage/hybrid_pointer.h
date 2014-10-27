@@ -20,8 +20,10 @@ namespace gridtools {
         typedef wrap_pointer<T> super;
         typedef typename super::pointee_t pointee_t;
 
+	GT_FUNCTION
 	explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
 
+	GT_FUNCTION
 	explicit  hybrid_pointer(T* p) : wrap_pointer<T>(p), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
         explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size) {
@@ -54,6 +56,7 @@ namespace gridtools {
 #endif
         }
 
+	GT_FUNCTION
         virtual ~hybrid_pointer(){  };
 
         void allocate_it(uint_t size) {
