@@ -350,7 +350,6 @@ namespace gridtools {
     typedef translate_t<DIMS, typename default_layout_map<DIMS>::type > translate;
 
   private:
-    grid_type procgrid;
 
     hndlr_descriptor_ut(hndlr_descriptor_ut const &) {}
   public:
@@ -361,9 +360,8 @@ namespace gridtools {
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
     explicit hndlr_descriptor_ut(typename grid_type::period_type const &c, MPI_Comm comm) 
-      : field()
-      , procgrid(c, comm)
-      , base_type(procgrid) 
+      : base_type(grid_type(c, comm))
+      , field()
     {}
 
     /**
@@ -374,9 +372,8 @@ namespace gridtools {
        \param[in] _pid Integer identifier of the process calling the constructor
     */
     explicit hndlr_descriptor_ut(typename grid_type::period_type const &c, int _P, int _pid) 
-      : field()
-      , procgrid(c,_P,_pid)
-      , base_type(procgrid)
+      : base_type(grid_type(c,_P,_pid))
+      , field()
     {}
 
 
@@ -386,9 +383,8 @@ namespace gridtools {
        \param[in] g A processor grid that will execute the pattern
      */
     explicit hndlr_descriptor_ut(grid_type const &g) 
-      : field()
-      , procgrid(g)
-      , base_type(procgrid)
+      : base_type(g)
+      , field()
     {}
 
     /**
