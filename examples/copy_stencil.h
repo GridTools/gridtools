@@ -36,7 +36,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
     typedef arg_decorator< arg_type<0> > in;
-    //typedef const arg_type<1> out;
+  // typedef arg_extend< arg_type<0>, 1 >::type in;
     typedef boost::mpl::vector<in/*, out*/> arg_list;
     using time=Extra<1>;
 
@@ -45,6 +45,7 @@ struct copy_functor {
     static void Do(Evaluation const & eval, x_interval) {
 
         eval(in(time(-1))) = eval(in());
+      // eval(in()) = eval(in(time(-1)));
     }
 };
 
@@ -82,12 +83,22 @@ bool test(uint_t x, uint_t y, uint_t z) {
     //                   strides xy x 1
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+    typedef extend<storage_type, 2> integrator_type;
 
-     // Definition of the actual data fields that are used for input/output
-    typedef integrator<storage_type, 2> integrator_type;
-    integrator_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
+    //out.print();
 
-    storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
+    // Definition of placeholders. The order of them reflect the order the user will deal with them
+    // especially the non-temporary ones, in the construction of the domain
+    typedef arg<0, integrator_type > p_in;
+    // typedef arg<1, integrator_type > p_out;
+
+    // An array of placeholders to be passed to the domain
+    // I'm using mpl::vector, but the final API should look slightly simpler
+    typedef boost::mpl::vector<p_in/*, p_out*/> arg_type_list;
+
+    // Definition of the actual data fields that are used for input/output
+    p_in::storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
+    p_in::storage_type::original_storage out(d1,d2,d3,1.5/*, std::string("out")*/);
     in.advance(out.data());
 
     for(uint_t i=0; i<d1; ++i)
@@ -96,19 +107,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 	    {
 	      in(i, j, k)=i+j+k;
 	    }
-
-
-
-    //out.print();
-
-    // Definition of placeholders. The order of them reflect the order the user will deal with them
-    // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, integrator_type > p_in;
-    typedef arg<1, integrator_type > p_out;
-
-    // An array of placeholders to be passed to the domain
-    // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_in/*, p_out*/> arg_type_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -217,18 +215,19 @@ PAPI_stop(event_set, values);
 #define NY 511
 #define NZ 59
 
-    in.print_value(0,0,0);
-    in.print_value(0,4,0);
-    in.print_value(4,0,0);
-    in.print_value(0,0,4);
-    in.print_value(4,4,0);
+    // in.print_value(0,0,0);
+    // in.print_value(0,4,0);
+    // in.print_value(4,0,0);
+    // in.print_value(0,0,4);
+    // in.print_value(4,4,0);
 
-    in.print_value(NX,NY,0);
-    in.print_value(NX,0,NZ);
-    in.print_value(0,NY,NZ);
+    // in.print_value(NX,NY,0);
+    // in.print_value(NX,0,NZ);
+    // in.print_value(0,NY,NZ);
 
-    in.print_value(NX,NY,NZ);
+    // in.print_value(NX,NY,NZ);
 
+    in.print();
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif

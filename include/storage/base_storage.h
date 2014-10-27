@@ -104,7 +104,8 @@ namespace gridtools {
         typedef value_type const* const_iterator_type;
         typedef backend_from_id <Backend> backend_traits_t;
         typedef typename backend_traits_t::template pointer<value_type>::type pointer_type;
-
+	//typedef in order to stopo the type recursion of the derived classes
+	typedef base_storage<Backend, ValueType, Layout, IsTemporary> original_storage;
     public:
         explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
@@ -403,19 +404,20 @@ namespace gridtools {
     and to implement a cash for the solutions, where the new one is stored in place of the
     least recently used one (m_lru).*/
 
-    template < typename Storage, ushort_t AccuracyOrder>
-    struct integrator  : public Storage
+    template < typename Storage, ushort_t ExtraDimensions>
+    struct extend  : public Storage
     {
 
-        typedef Storage super;
+      typedef Storage super;
+      typedef typename super::original_storage original_storage;
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
-        explicit integrator(uint_t dim1, uint_t dim2, uint_t dim3,
-                            value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s), m_lru(0), m_fields() {
+        explicit extend(uint_t dim1, uint_t dim2, uint_t dim3,
+                            value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s), m_lru(0), m_fields(/*{(value_type*)NULL}*/) {
             advance(super::data());//first solution is the initialization by default
         }
 
-        integrator() : m_lru(0), m_fields(){
+        extend() : m_lru(0), m_fields(){
         };
 
         GT_FUNCTION
@@ -442,6 +444,14 @@ namespace gridtools {
             this->m_data=m_fields[m_lru];
         }
 
+        //the time integration takes ownership over all the pointers?
+        GT_FUNCTION
+        inline void advance(short_t offset=1){
+            //cycle in a ring
+            m_lru=(m_lru+n_args+offset)%n_args;
+            this->m_data=m_fields[m_lru];
+        }
+
         void print() {
             print(std::cout);
         }
@@ -450,13 +460,13 @@ namespace gridtools {
         void print(Stream & stream) {
             for(ushort_t i=0; i < n_args; ++i)
             {
-                advance(this->m_data);
                 super::print(stream);
+                advance();
             }
         }
 
     private:
-        static const ushort_t n_args = AccuracyOrder;
+        static const ushort_t n_args = ExtraDimensions;
         ushort_t m_lru;
         //todo: create a smart<Pointer> adding the policy to whatever pointer.
         /*smart<*/typename super::pointer_type/*>*/ m_fields[n_args];
@@ -498,22 +508,22 @@ namespace gridtools {
       : boost::true_type
     {};
 
-    //Decorator is the integrator
+    //Decorator is the extend
     template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
     struct is_temporary_storage<Decorator<BaseType, Order> > : is_temporary_storage< BaseType >
     {};
 
-    //Decorator is the integrator
+    //Decorator is the extend
     template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
     struct is_temporary_storage<Decorator<BaseType, Order>* > : is_temporary_storage< BaseType* >
     {};
 
-    //Decorator is the integrator
+    //Decorator is the extend
     template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
     struct is_temporary_storage<Decorator<BaseType, Order>& > : is_temporary_storage< BaseType& >
     {};
 
-    //Decorator is the integrator
+    //Decorator is the extend
     template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
     struct is_temporary_storage<Decorator<BaseType, Order>*& > : is_temporary_storage< BaseType*& >
     {};

@@ -4,65 +4,6 @@
 namespace gridtools {
 
     namespace iterate_domain_aux {
-        // struct assign_iterators {
-        //     const uint_t i, j, k, bi, bj;
-
-        //     template <typename IteratorType, typename StoragePointer>
-        //     void assign (IteratorType & it, StoragePointer & storage) const {
-        //         // std::cout << "Moving pointers **********************************************" << std::endl;
-        //         // std::cout << typename std::remove_pointer<typename std::remove_const<typename std::remove_reference<StoragePointer>::type>::type>::type() << std::endl;
-        //         // storage.info();
-        //         it = &( storage(i,j,k) );
-        //     }
-
-        //     template <enumtype::backend Backend
-        //               , typename IteratorType
-        //               , typename ValueType
-        //               , typename Layout
-        //               , uint_t TileI
-        //               , uint_t TileJ
-        //               , uint_t MinusI
-        //               , uint_t MinusJ
-        //               , uint_t PlusI
-        //               , uint_t PlusJ
-        //               >
-        //     void assign(IteratorType & it,
-        //                 host_tmp_storage<
-        //                 Backend
-        //                 , ValueType
-        //                 , Layout
-        //                 , TileI
-        //                 , TileJ
-        //                 , MinusI
-        //                 , MinusJ
-        //                 , PlusI
-        //                 , PlusJ
-        //                 > & storage) const {
-	    //    //std::cout << i << " - " << bi << " * " << TileI << std::endl;
-	    //    //std::cout << j << " - " << bj << " * " << TileJ << std::endl;
-	    //    it = storage.move_to(i - bi * TileI, j - bj * TileJ, k);
-        //     }
-
-        //     GT_FUNCTION
-        //     assign_iterators(uint_t i, uint_t j, uint_t k, uint_t bi, uint_t bj)
-        //         : i(i)
-        //         , j(j)
-        //         , k(k)
-        //         , bi(bi)
-        //         , bj(bj)
-        //     {}
-
-        //     template <typename ZipElem>
-        //     GT_FUNCTION
-        //     void operator()(ZipElem const & ze) const {
-        //         // std::cout << "Moving pointers **********************************************" << std::endl;
-        //         // std::cout << typename boost::remove_pointer<typename boost::remove_const<typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 1>::type>::type>::type>::type() << std::endl;
-        //         // (*(boost::fusion::at_c<1>(ze))).info();
-
-	    //   assign(boost::fusion::at_c<0>(ze),(*(boost::fusion::at_c<1>(ze))));
-        //     }
-
-        // };
 
 	template<uint_t ID>
          struct increment_k {
@@ -128,7 +69,7 @@ namespace gridtools {
 	  static void inline assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index){
 	    boost::fusion::at_c<ID>(r)->template increment<0>(i, &index[ID]);
 	    boost::fusion::at_c<ID>(r)->template increment<1>(j, &index[ID]);
-	    boost::fusion::at_c<ID>(l).value=boost::fusion::at_c<ID>(r)->get_address();
+	    boost::fusion::at_c<ID>(l)=boost::fusion::at_c<ID>(r)->get_address();
 	    //printf("setting i, j = %d, %d, index becomes %d  for ID: %d \n", i, j, index[ID], ID);
 	    //boost::fusion::at_c<ID>(l).stride=boost::fusion::at_c<ID>(r)->stride_k();
 	    assign_storage<ID-1>::assign(l,r,i,j,index); //tail recursion
@@ -142,7 +83,7 @@ namespace gridtools {
 	  static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index){
 	    boost::fusion::at_c<0>(r)->template increment<0>(i, index);
 	    boost::fusion::at_c<0>(r)->template increment<1>(j, index);
-	    boost::fusion::at_c<0>(l).value=boost::fusion::at_c<0>(r)->get_address();
+	    boost::fusion::at_c<0>(l)=boost::fusion::at_c<0>(r)->get_address();
 	    //printf("setting i, j = %d, %d, index becomes %d \n", i, j, index[0]);
 	    //boost::fusion::at_c<0>(l).stride=boost::fusion::at_c<0>(r)->stride_k();
 	  }
@@ -236,13 +177,13 @@ namespace gridtools {
 
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr() <=
-                   boost::fusion::at<typename ArgType::index_type>(local_iterators).value
+                   boost::fusion::at<typename ArgType::index_type>(local_iterators)
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr() >
-                   boost::fusion::at<typename ArgType::index_type>(local_iterators).value
+                   boost::fusion::at<typename ArgType::index_type>(local_iterators)
                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->offset(arg.i(),arg.j(),arg.k()));
 
@@ -313,7 +254,8 @@ namespace gridtools {
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
         operator()(gridtools::arg_decorator<ArgType> const& arg) const {
 
-            auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>());
+
+	    auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>());
 
 	  return get_value(arg, storage_pointer);
         }

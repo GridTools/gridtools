@@ -154,7 +154,7 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Range Bounds over which the function access the argument
      */
-    template <uint_t I, typename Range=range<0,0,0,0> >
+  template <uint_t I, typename Range=range<0,0,0,0>, ushort_t dimension=3 >
     struct arg_type   {
 
         template <uint_t Im, uint_t Ip, uint_t Jm, uint_t Jp, uint_t Kp, uint_t Km>
@@ -162,11 +162,12 @@ namespace gridtools {
             typedef arg_type<I> type;
         };
 
+    int_t offset[dimension]
 #ifdef CXX11_ENABLED
-        int_t offset[3]={0,0,0};
-#else
-        int_t offset[3];
+    ={0}
 #endif
+      ;
+
         typedef static_uint<I> index_type;
         typedef Range range_type;
 
@@ -219,9 +220,17 @@ namespace gridtools {
         template <typename... X >
         GT_FUNCTION
         arg_type ( X... x){
+	  BOOST_STATIC_ASSERT(sizeof...(X)<=dimensions);
             boost::fusion::vector<X...> vec(x...);
             boost::fusion::for_each(vec, initialize(offset));
         }
+
+        // template <typename... int_t >
+        // GT_FUNCTION
+        // arg_type ( int_t... x){
+	//   BOOST_STATIC_ASSERT(sizeof...(X)==dimensions);
+	//   offset={x};
+        // }
       //#endif //CXX11_ENABLED
 #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
@@ -306,16 +315,24 @@ namespace gridtools {
         typedef typename super::index_type index_type;
 
 #ifdef CXX11_ENABLED
+        template <typename... Whatever>
+        GT_FUNCTION
+        arg_decorator ( int_t const& t, Whatever... x): super( x... ) {
+	  m_offset=t;
+	}
+
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
         arg_decorator ( enumtype::Extra<Idx> const& t, Whatever... x): super( x... ) {
-            //BOOST_STATIC_ASSERT(t.direction==n_args);
+	 
+	  //if the following check is not true, you specified an extra index exceeding the dimenison of the field
+	  BOOST_STATIC_ASSERT(enumtype::Extra<Idx>::direction<=n_args);
 
             //there's no need to allow further flexibility on memory layout (?), i.e. extra dimensions memory location will be undefined
-            if(t.direction==n_args)
+	  if(enumtype::Extra<Idx>::direction==n_args)
             {
                 // printf("offset %d was specified to be %d \n", n_args, t.value);
-                m_offset=t.value;
+	      m_offset=t.value;
             }
             else
             {
@@ -325,7 +342,9 @@ namespace gridtools {
         }
 
         template <typename... Whatever>
+        GT_FUNCTION
         arg_decorator ( Whatever... x ): super( x... ) {
+	  BOOST_STATIC_ASSERT(sizeof...(x)<=n_args);
             // printf("no offsets for extra dimension was specified (but there are %d) \n", n_args);
             m_offset=0;
         }//just forward
@@ -340,13 +359,23 @@ whatever not compiling
     short_t n() const {//recursively travel the list of offsets
     BOOST_STATIC_ASSERT( index>0 );
     // printf("index to the n method:%d \n", index);
-    // BOOST_STATIC_ASSERT( index<=n_args );
+    BOOST_STATIC_ASSERT( index<=n_args );
     return index==1? m_offset : super::template n<index-1>();
     }
 
     private:
-        short_t m_offset;
+      //note: the value is replaced by subsequent calls?
+      short_t m_offset;
     };
+
+
+    template <typename ArgType, uint_t Number>
+      struct arg_extend{
+      typedef arg_decorator<typename arg_extend<ArgType, Number-1>::type>  type;
+      };
+
+    template<typename ArgType>
+    struct arg_extend<ArgType, 0>{typedef ArgType type;};
 
 //################################################################################
 //                              Compile time checks

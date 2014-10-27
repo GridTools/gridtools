@@ -28,17 +28,17 @@ namespace gridtools {
             };
         };
 
-	// iterator decorator
-	template <typename U>
-	  struct strided_iterator  {
-	    typename U::iterator_type value; //double*
-	    uint_t stride;
-	  };
+	/* // iterator decorator */
+	/* template <typename U> */
+	/*   struct strided_iterator  { */
+	/*     typename U::iterator_type value; //double* */
+	/*     /\* uint_t stride; *\/ */
+	/*   }; */
 
         struct get_iterator {
             template <typename U>
             struct apply {
-	      typedef strided_iterator<U> type;
+	      typedef typename  U::iterator_type type;
 
             };
         };
