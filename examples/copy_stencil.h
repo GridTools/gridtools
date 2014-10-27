@@ -35,8 +35,8 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
-    typedef arg_decorator< arg_type<0> > in;
-  // typedef arg_extend< arg_type<0>, 1 >::type in;
+    /* typedef arg_type<0> in; */
+  typedef arg_extend< arg_type<0>, 1 >::type in;
     typedef boost::mpl::vector<in/*, out*/> arg_list;
     using time=Extra<1>;
 
@@ -44,7 +44,7 @@ struct copy_functor {
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
 
-        eval(in(time(-1))) = eval(in());
+      eval(in(time(-1))) = eval(in());
       // eval(in()) = eval(in(time(-1)));
     }
 };
@@ -83,7 +83,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     //                   strides xy x 1
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
-    typedef extend<storage_type, 2> integrator_type;
+    typedef extend<storage_type::basic_type, 2> integrator_type;
+    /* typedef extend<storage_type, 2>::original_storage integrator_type; */
 
     //out.print();
 
@@ -215,19 +216,18 @@ PAPI_stop(event_set, values);
 #define NY 511
 #define NZ 59
 
-    // in.print_value(0,0,0);
-    // in.print_value(0,4,0);
-    // in.print_value(4,0,0);
-    // in.print_value(0,0,4);
-    // in.print_value(4,4,0);
+    in.print_value(0,0,0);
+    in.print_value(0,4,0);
+    in.print_value(4,0,0);
+    in.print_value(0,0,4);
+    in.print_value(4,4,0);
 
-    // in.print_value(NX,NY,0);
-    // in.print_value(NX,0,NZ);
-    // in.print_value(0,NY,NZ);
+    in.print_value(NX,NY,0);
+    in.print_value(NX,0,NZ);
+    in.print_value(0,NY,NZ);
 
-    // in.print_value(NX,NY,NZ);
+    in.print_value(NX,NY,NZ);
 
-    in.print();
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif

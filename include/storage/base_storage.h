@@ -15,6 +15,8 @@
  */
 namespace gridtools {
 
+
+
     namespace _impl
     {
         template <ushort_t I, typename OtherLayout, int_t X>
@@ -47,23 +49,25 @@ namespace gridtools {
 
 /**@brief Functor updating the pointers on the device */
         struct update_pointer {
+
+#ifdef __CUDACC__
+	  template < typename StorageType//typename T, typename U, bool B
+                      >
+            GT_FUNCTION_WARNING
+	  void operator()(/*base_storage<enumtype::Cuda,T,U,B
+                            >*/StorageType *& s) const {
+                if (s) {
+		  s->copy_data_to_gpu();
+		  s->clone_to_gpu();
+		  s = s->gpu_object_ptr;
+                }
+            }
+#else
             template <typename StorageType>
             GT_FUNCTION_WARNING
             void operator()(StorageType* s) const {}
-
-#ifdef __CUDACC__
-            template < typename T, typename U, bool B
-                      >
-            GT_FUNCTION_WARNING
-            void operator()(base_storage<enumtype::Cuda,T,U,B
-                            > *& s) const {
-                if (s) {
-		  s->data().update_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                }
-            }
 #endif
+
         };
     }//namespace _impl
 
@@ -89,6 +93,7 @@ namespace gridtools {
 #endif
     }//namespace _debug
 
+
 /**
    @biref main class for the storage
  */
@@ -97,7 +102,8 @@ namespace gridtools {
                typename Layout,
                bool IsTemporary = false
                >
-    struct base_storage : public clonable_to_gpu<base_storage<Backend, ValueType, Layout, IsTemporary> > {
+    struct base_storage// : public clonable_to_gpu<base_storage<Backend, ValueType, Layout, IsTemporary> > 
+    {
         typedef Layout layout;
         typedef ValueType value_type;
         typedef value_type* iterator_type;
@@ -105,6 +111,7 @@ namespace gridtools {
         typedef backend_from_id <Backend> backend_traits_t;
         typedef typename backend_traits_t::template pointer<value_type>::type pointer_type;
 	//typedef in order to stopo the type recursion of the derived classes
+	typedef base_storage<Backend, ValueType, Layout, IsTemporary> basic_type;
 	typedef base_storage<Backend, ValueType, Layout, IsTemporary> original_storage;
     public:
         explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
@@ -151,11 +158,13 @@ namespace gridtools {
             m_strides[2] = other.m_strides[2];
         }
 
+      GT_FUNCTION
+      void copy_data_to_gpu(){data().update_gpu();}
+
         explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL){
             is_set=false;
         }
 
-        ~base_storage() {}
 
         std::string const& name() const {
             return m_name;
@@ -350,6 +359,7 @@ namespace gridtools {
 
     };
 
+
     struct print_index{
       template <typename BaseStorage>
       GT_FUNCTION
@@ -405,10 +415,12 @@ namespace gridtools {
     least recently used one (m_lru).*/
 
     template < typename Storage, ushort_t ExtraDimensions>
-    struct extend  : public Storage
+    struct extend : public Storage,  clonable_to_gpu<extend<Storage, ExtraDimensions> > //  : public Storage
     {
 
       typedef Storage super;
+      typedef typename super::basic_type basic_type;
+
       typedef typename super::original_storage original_storage;
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
@@ -417,8 +429,23 @@ namespace gridtools {
             advance(super::data());//first solution is the initialization by default
         }
 
-        extend() : m_lru(0), m_fields(){
-        };
+      __device__
+      extend(extend const& other)
+	: super(other),
+	  m_lru(0){
+	for (uint_t i=0; i<n_args; ++i)
+	  m_fields[i]=super::pointer_type(other.m_fields[i]);
+      }
+
+      GT_FUNCTION
+      void copy_data_to_gpu(){
+	//the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
+	for (uint_t i=0; i<n_args; ++i)
+	  m_fields[i].update_gpu();
+      }
+
+        // extend() : m_lru(0), m_fields(){
+        // };
 
         GT_FUNCTION
         typename super::pointer_type::pointee_t* get_address() const {
@@ -428,8 +455,9 @@ namespace gridtools {
         GT_FUNCTION
         typename super::pointer_type::pointee_t* get_address(short_t offset) const {
             //printf("the offset: %d\n", offset);
-            // printf("lru storage used: %d\n", (m_lru+offset+n_args)%n_args);
-            return m_fields[(m_lru+offset+n_args)%n_args].get();}
+	  // printf("storage used: %d\n", (m_lru+offset+n_args)%n_args);
+	  // printf("GPU address of the data", m_fields[(m_lru+offset+n_args)%n_args].get());
+	  return m_fields[(m_lru+offset+n_args)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
         GT_FUNCTION
         inline typename super::pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
@@ -509,23 +537,23 @@ namespace gridtools {
     {};
 
     //Decorator is the extend
-    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
-    struct is_temporary_storage<Decorator<BaseType, Order> > : is_temporary_storage< BaseType >
+  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
+  struct is_temporary_storage<Decorator<BaseType, Extra...> > : is_temporary_storage< typename BaseType::basic_type >
     {};
 
     //Decorator is the extend
-    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
-    struct is_temporary_storage<Decorator<BaseType, Order>* > : is_temporary_storage< BaseType* >
+  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
+  struct is_temporary_storage<Decorator<BaseType, Extra...>* > : is_temporary_storage< typename BaseType::basic_type* >
     {};
 
     //Decorator is the extend
-    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
-    struct is_temporary_storage<Decorator<BaseType, Order>& > : is_temporary_storage< BaseType& >
+  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
+  struct is_temporary_storage<Decorator<BaseType, Extra...>& > : is_temporary_storage< typename BaseType::basic_type& >
     {};
 
     //Decorator is the extend
-    template <typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
-    struct is_temporary_storage<Decorator<BaseType, Order>*& > : is_temporary_storage< BaseType*& >
+  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
+  struct is_temporary_storage<Decorator<BaseType, Extra...>*& > : is_temporary_storage< typename BaseType::basic_type*& >
     {};
 
     template <enumtype::backend Backend, typename T, typename U, bool B>

@@ -255,9 +255,9 @@ namespace gridtools {
         operator()(gridtools::arg_decorator<ArgType> const& arg) const {
 
 
-	    auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>());
-
+	  auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address( arg.template n<gridtools::arg_decorator<ArgType>::n_args>() );
 	  return get_value(arg, storage_pointer);
+
         }
 
 
