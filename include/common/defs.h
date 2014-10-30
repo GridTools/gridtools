@@ -38,7 +38,9 @@ namespace gridtools{  namespace enumtype{
             enum {value=T};
         };
 }
-
+#ifndef CXX11_ENABLED
+#define constexpr
+#endif
 
 #ifndef FLOAT_PRECISION
 #define FLOAT_PRECISION 8
