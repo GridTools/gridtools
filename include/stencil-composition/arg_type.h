@@ -115,7 +115,13 @@ namespace gridtools {
         namespace{
         template <int Coordinate>
             struct T{
-            constexpr T(int val) : value{val}{}
+            constexpr T(int val) : value
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+	    (val)
+#else
+	      {val}
+#endif
+{}
             static const int direction=Coordinate;
             int value;
         };
@@ -177,11 +183,27 @@ namespace gridtools {
         typedef Range range_type;
 
         GT_FUNCTION
-        constexpr arg_type(int i, int j, int k): m_offset{i,j,k} {
-        }
+        constexpr arg_type(int i, int j, int k)
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      {
+	m_offset[0]=i;
+	m_offset[1]=j;
+	m_offset[2]=k;
+      }
+#else
+	  : m_offset{i,j,k} {}
+#endif
 
-        constexpr arg_type(arg_type const& other):m_offset{other.m_offset[0], other.m_offset[1], other.m_offset[2]}{}
-
+        constexpr arg_type(arg_type const& other)
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      {
+	m_offset[0]=other.m_offset[0];
+	m_offset[1]=other.m_offset[1];
+	m_offset[2]=other.m_offset[2];
+      }
+#else
+:m_offset{other.m_offset[0], other.m_offset[1], other.m_offset[2]}{}
+#endif
 
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
@@ -190,49 +212,62 @@ namespace gridtools {
       // we implement a suboptimal solution
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
-	  arg_type ( X1 x, X2 y, X3 z):m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{
-          // boost::fusion::vector<X1, X2, X3> vec(x, y, z);
-          // boost::fusion::for_each(vec, initialize(m_offset));
-        }
-
+	  arg_type ( X1 x, X2 y, X3 z)
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      {
+	m_offset[0]=initialize<0>(x,y,z);
+	m_offset[1]=initialize<1>(x,y,z);
+	m_offset[2]=initialize<2>(x,y,z);
+      }
+#else
+:m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{ }
+#endif
       template <typename X1, typename X2 >
         GT_FUNCTION
-	  constexpr arg_type ( X1 x, X2 y):m_offset{initialize<0>(x,y), initialize<1>(x,y), initialize<2>(x,y)}{
-#ifndef CXX11_ENABLED
-	m_offset[0]=0;
-	m_offset[1]=0;
-	m_offset[2]=0;
-#endif
-          // boost::fusion::vector<X1, X2> vec(x, y);
-          // boost::fusion::for_each(vec, initialize(m_offset));
+	  constexpr arg_type ( X1 x, X2 y)
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      {
+	m_offset[0]=initialize<0>(x,y);
+	m_offset[1]=initialize<1>(x,y);
+	m_offset[2]=initialize<2>(x,y);
       }
+#else
+:m_offset{initialize<0>(x,y), initialize<1>(x,y), initialize<2>(x,y)}{ }
+#endif
 
       template <typename X1>
         GT_FUNCTION
-	  constexpr arg_type ( X1 x):m_offset{initialize<0>(x), initialize<1>(x), initialize<2>(x)}{
-#ifndef CXX11_ENABLED
-	m_offset[0]=0;
-	m_offset[1]=0;
-	m_offset[2]=0;
-#endif
-	// boost::fusion::vector<X1> vec(x);
-	// boost::fusion::for_each(vec, initialize(m_offset));
-        }
-
+	  constexpr arg_type ( X1 x)
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      {
+	m_offset[0]=initialize<0>(x);
+	m_offset[1]=initialize<1>(x);
+	m_offset[2]=initialize<2>(x);
+      }
 #else
+:m_offset{initialize<0>(x), initialize<1>(x), initialize<2>(x)}{ }
+#endif
+
+#else // __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+
 //      if you get a compiler error here, use the version above
         template <typename... X >
         GT_FUNCTION
         constexpr arg_type ( X... x):m_offset{initialize<0>(x...), initialize<1>(x...), initialize<2>(x...)}{
-            // boost::fusion::vector<X...> vec(x...);
-            // boost::fusion::for_each(vec, initialize(m_offset));
         }
-      //#endif //CXX11_ENABLED
 #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
         GT_FUNCTION
-        constexpr arg_type():m_offset{0,0,0} {
-        }
+        constexpr arg_type()
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      {
+	m_offset[0]=0;
+	m_offset[1]=0;
+	m_offset[2]=0;
+      }
+#else
+:m_offset{0,0,0} {}
+#endif
 
         GT_FUNCTION
         constexpr int i() const {
@@ -255,8 +290,8 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        constexpr int* offset_ptr() const {
-            return m_offset;
+        constexpr int const* offset_ptr() const {
+            return &m_offset[0];
         }
 
         GT_FUNCTION
@@ -331,8 +366,13 @@ namespace gridtools {
         GT_FUNCTION
         constexpr expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
             :
+#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+      first_operand(first_operand),
+	second_operand(second_operand)
+#else
             first_operand{first_operand},
             second_operand{second_operand}
+#endif
             {}
 
         ArgType1 const first_operand;
