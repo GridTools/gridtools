@@ -151,19 +151,6 @@ namespace gridtools {
         return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
     }
 #endif
-    // struct initialize
-    // {
-    //     GT_FUNCTION
-    //     constexpr initialize(int* offset) : m_offset{offset}
-    //         {}
-
-    //     template<typename X>
-    //     GT_FUNCTION
-    //     inline void constexpr operator( )(X const& i) const {
-    //         m_offset[X::direction] = i.value;
-    //     }
-    //     int* m_offset;
-    // };
 
     /**
      * Type to be used in elementary stencil functions to specify argument mapping and ranges
