@@ -107,28 +107,29 @@ namespace gridtools {
     public:
         explicit base_storage(int dim1, int dim2, int dim3,
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
-            m_size( dim1 * dim2 * dim3 ),
+            m_size( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) ),
             is_set( true ),
             m_data( m_size ),
             m_name(s)
             {
-            m_dims[0]=( dim1 );
-            m_dims[1]=( dim2 );
-            m_dims[2]=( dim3 );
-            m_strides[0]=( layout::template find<2>(m_dims)*layout::template find<1>(m_dims) );
-            m_strides[1]=( layout::template find<2>(m_dims) );
-            m_strides[2]=( 1 );
+                m_dims[0]=( dim1 );
+                m_dims[1]=( dim2 );
+                m_dims[2]=( dim3 );
+                m_strides[0]=( layout::template find_val<2,int,1>(m_dims[0],m_dims[1],m_dims[2])*layout::template find_val<1,int,1>(m_dims[0],m_dims[1],m_dims[2]) );
+                m_strides[1]=( (m_strides[2]==1)?0:layout::template find_val<2,int,1>(m_dims[0],m_dims[1],m_dims[2]) );
+                m_strides[2]=( (m_strides[1]==1)?0:1 );
 #ifdef _GT_RANDOM_INPUT
-            srand(12345);
+                srand(12345);
 #endif
-            //m_data = new value_type[m_size];
-            for (int i = 0; i < m_size; ++i)
+                //m_data = new value_type[m_size];
+                for (int i = 0; i < m_size; ++i)
 #ifdef _GT_RANDOM_INPUT
                     m_data[i] = init * rand();
 #else
                 m_data[i] = init;
 #endif
                 m_data.update_gpu();
+
             }
 
 
@@ -198,9 +199,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(int i, int j, int k) {
             /* std::cout<<"indices= "<<i<<" "<<j<<" "<<k<<std::endl; */
-	  backend_traits_t::assertion(_index(i,j,k) >= 0);
-	  backend_traits_t::assertion(_index(i,j,k) < m_size);
-	  return m_data[_index(i,j,k)];
+            backend_traits_t::assertion(_index(i,j,k) >= 0);
+            backend_traits_t::assertion(_index(i,j,k) < m_size);
+            return m_data[_index(i,j,k)];
         }
 
 
@@ -219,10 +220,9 @@ namespace gridtools {
 
         GT_FUNCTION
         int offset(int i, int j, int k) const {
-            return layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-            * layout::template find<0>(i,j,k) +
-            layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
-            layout::template find<2>(i,j,k);
+            return m_strides[0] * layout::template find_val<0,int,0>(i,j,k) +
+                m_strides[1] * layout::template find_val<1,int,0>(i,j,k) +
+                layout::template find_val<2,int,0>(i,j,k);
         }
 
 	GT_FUNCTION
@@ -232,7 +232,14 @@ namespace gridtools {
 
 	GT_FUNCTION
 	inline int stride_k() const {
-	  return layout::template find<2>(m_strides);//e.g. (GPU test) =512*512=262144
+        // std::cout << "Strides"
+        //           << " " << m_strides[0]
+        //           << " " << m_strides[1]
+        //           << " " << m_strides[2]
+        //           << std::endl;
+        // std::cout << "Stride in k " << layout::template find_val<2,int,0>(m_strides) << std::endl;
+        // return layout::template find_val<2,int,0>(m_strides);//e.g. (GPU test) =512*512=262144
+        return m_strides[layout::template at_default<2,2>::value];
 	}
 
         void print() const {
@@ -288,16 +295,16 @@ namespace gridtools {
             int index;
             if (IsTemporary) {
                 index =
-                    layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-                    * (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +
-                    layout::template find<2>(m_dims) * modulus(layout::template find<1>(i,j,k),layout::template find<1>(m_dims)) +
-                    modulus(layout::template find<2>(i,j,k),layout::template find<2>(m_dims));
+                    m_strides[0]
+                    * (modulus(layout::template find_val<0,int,0>(i,j,k),layout::template find<0>(m_dims))) +
+                    m_strides[1] * modulus(layout::template find_val<1,int,0>(i,j,k),layout::template find<1>(m_dims)) +
+                    modulus(layout::template find_val<2,int,0>(i,j,k),layout::template find<2>(m_dims));
             } else {
                 index =
-                    layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-                    * layout::template find<0>(i,j,k) +
-                    layout::template find<2>(m_dims) * layout::template find<1>(i,j,k) +
-                    layout::template find<2>(i,j,k);
+                    m_strides[0]
+                    * layout::template find_val<0,int,0>(i,j,k) +
+                    m_strides[1] * layout::template find_val<1,int,0>(i,j,k) +
+                    layout::template find_val<2,int,0>(i,j,k);
             }
             //assert(index >= 0);
             // assert(index <m_size);
