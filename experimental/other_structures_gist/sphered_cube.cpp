@@ -321,16 +321,16 @@ struct sphered_cube {
         std::cout << "l = " << l-2+2*halo << ".\n\n";
         std::cout << "           --------\n";
         std::cout << "           |      |\n";
-        std::cout << "           |  4   |\n";
-        std::cout << "       m   |  l   |\n";
+        std::cout << "           |   4  |\n";
+        std::cout << "       m   |^> l  |\n";
         std::cout << "    -----------------------------\n";
         std::cout << "    |      |      |      |      |\n";
         std::cout << "  n |  0   |  2   |  1   |  3   |\n";
-        std::cout << "    |      |      |      |      |\n";
+        std::cout << "    |^>    |^>    |^>    |^>    |\n";
         std::cout << "    -----------------------------\n";
         std::cout << "           |      |\n";
-        std::cout << "           |  5   |\n";
-        std::cout << "           |      |\n";
+        std::cout << "           |   5  |\n";
+        std::cout << "           |^>    |\n";
         std::cout << "           --------\n";
 
         for (int l_face = 0; l_face < 6; ++l_face) {
