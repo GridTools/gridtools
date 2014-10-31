@@ -239,6 +239,14 @@ namespace gridtools {
         //           << std::endl;
         // std::cout << "Stride in k " << layout::template find_val<2,int,0>(m_strides) << std::endl;
         // return layout::template find_val<2,int,0>(m_strides);//e.g. (GPU test) =512*512=262144
+        if (layout::template at_default<2,-1>::value == -1) {
+            return 0;
+        }
+
+        if (layout::template at_default<2,-1>::value == 2) {
+            return 1;
+        }
+
         return m_strides[layout::template at_default<2,2>::value];
 	}
 
