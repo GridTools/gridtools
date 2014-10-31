@@ -82,7 +82,7 @@ struct forward_thomas{
     static inline void shared_kernel(Domain const& dom) {
 #ifdef CXX11_ENABLED
       dom(sup()) =  dom(ex::expr_sup);
-      dom(rhs()) =  dom((rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{}));
+      dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -124,7 +124,7 @@ struct backward_thomas{
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
 #ifdef CXX11_ENABLED
-        dom(out()) = dom(rhs{}-sup{}*out{0,0,1});
+        dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
 #endif
