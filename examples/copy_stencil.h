@@ -28,12 +28,14 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+
 namespace copy_stencil{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
+
 struct copy_functor {
     static const int n_args = 2;
     typedef const arg_type<0> in;
@@ -43,8 +45,7 @@ struct copy_functor {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-
-      dom(out()) = dom(in());
+        dom(out()) = dom(in());
     }
 };
 
