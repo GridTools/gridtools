@@ -115,6 +115,7 @@ namespace gridtools {
         namespace{
         template <int Coordinate>
             struct T{
+	      GT_FUNCTION
             constexpr T(int val) : value
 #if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
 	    (val)
@@ -133,6 +134,7 @@ namespace gridtools {
     }
 
     template <int N, typename X>
+      GT_FUNCTION
     constexpr int initialize( X x )
     {
         return (X::direction==N? x.value : 0);
@@ -140,19 +142,22 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
     template <int N, typename X, typename ... Rest>
+      GT_FUNCTION
     constexpr int initialize(X x, Rest ... rest )
     {
         return X::direction==N? x.value : initialize<N>(rest...);
     }
 #else
     template <int N, typename X, typename Y>
+      GT_FUNCTION
     constexpr int initialize(X x, Y y)
     {
         return X::direction==N? x.value : Y::direction==N? y.value : 0;
     }
 
     template <int N, typename X, typename Y, typename Z>
-    constexpr int initialize(X x, Y y, Z z)
+      GT_FUNCTION
+      constexpr int initialize(X x, Y y, Z z)
     {
         return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
     }
