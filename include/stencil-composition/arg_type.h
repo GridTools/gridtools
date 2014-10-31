@@ -116,7 +116,7 @@ namespace gridtools {
         template <int Coordinate>
             struct T{
             constexpr T(int val) : value
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
 	    (val)
 #else
 	      {val}
@@ -184,7 +184,7 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr arg_type(int i, int j, int k)
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       {
 	m_offset[0]=i;
 	m_offset[1]=j;
@@ -195,7 +195,7 @@ namespace gridtools {
 #endif
 
         constexpr arg_type(arg_type const& other)
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       {
 	m_offset[0]=other.m_offset[0];
 	m_offset[1]=other.m_offset[1];
@@ -213,7 +213,7 @@ namespace gridtools {
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y, X3 z)
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       {
 	m_offset[0]=initialize<0>(x,y,z);
 	m_offset[1]=initialize<1>(x,y,z);
@@ -225,7 +225,7 @@ namespace gridtools {
       template <typename X1, typename X2 >
         GT_FUNCTION
 	  constexpr arg_type ( X1 x, X2 y)
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       {
 	m_offset[0]=initialize<0>(x,y);
 	m_offset[1]=initialize<1>(x,y);
@@ -238,7 +238,7 @@ namespace gridtools {
       template <typename X1>
         GT_FUNCTION
 	  constexpr arg_type ( X1 x)
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       {
 	m_offset[0]=initialize<0>(x);
 	m_offset[1]=initialize<1>(x);
@@ -259,7 +259,7 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr arg_type()
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       {
 	m_offset[0]=0;
 	m_offset[1]=0;
@@ -366,7 +366,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
             :
-#if( (!defined(CXX11_ENABLED)) && (!defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
       first_operand(first_operand),
 	second_operand(second_operand)
 #else
