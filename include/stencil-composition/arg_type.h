@@ -194,16 +194,17 @@ namespace gridtools {
 	  : m_offset{i,j,k} {}
 #endif
 
-        constexpr arg_type(arg_type const& other)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
-      {
-	m_offset[0]=other.m_offset[0];
-	m_offset[1]=other.m_offset[1];
-	m_offset[2]=other.m_offset[2];
-      }
-#else
-:m_offset{other.m_offset[0], other.m_offset[1], other.m_offset[2]}{}
-#endif
+/*         GT_FUNCTION */
+/*         constexpr arg_type(arg_type const& other) */
+/* #if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ ))) */
+/*       { */
+/* 	m_offset[0]=other.m_offset[0]; */
+/* 	m_offset[1]=other.m_offset[1]; */
+/* 	m_offset[2]=other.m_offset[2]; */
+/*       } */
+/* #else */
+/* :m_offset{other.m_offset[0], other.m_offset[1], other.m_offset[2]}{} */
+/* #endif */
 
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
@@ -374,7 +375,7 @@ namespace gridtools {
             second_operand{second_operand}
 #endif
             {}
-
+      constexpr expr(){}
         ArgType1 const first_operand;
         ArgType2 const second_operand;
     };
@@ -384,6 +385,7 @@ namespace gridtools {
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_plus(){};
     };
 
     template <typename ArgType1, typename ArgType2>
@@ -391,6 +393,7 @@ namespace gridtools {
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_minus(){}
     };
 
     template <typename ArgType1, typename ArgType2>
@@ -398,6 +401,7 @@ namespace gridtools {
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_times(){}
     };
 
     template <typename ArgType1, typename ArgType2>
@@ -405,13 +409,14 @@ namespace gridtools {
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
-    };
+	constexpr expr_divide(){}
+   };
 
 #ifdef CXX11_ENABLED
     namespace expressions{
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(std::forward<ArgType1>(arg1), std::forward<ArgType2>(arg2));}
+        constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
 
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
