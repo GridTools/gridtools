@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -58,9 +57,12 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
         typedef arg_type<3> sup; //c
         typedef arg_type<4> rhs; //d
 
-        static constexpr auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
-        static constexpr auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
-        static constexpr auto expr_out=rhs{}-sup{}*out{0,0,1};
+	__device__
+	  auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
+	__device__
+	  auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
+	__device__
+	  auto expr_out=rhs{}-sup{}*out{0,0,1};
     }
 #endif
 
@@ -79,8 +81,8 @@ struct forward_thomas{
     GT_FUNCTION
     static inline void shared_kernel(Domain const& dom) {
 #ifdef CXX11_ENABLED
-        dom(sup()) =  dom(ex::expr_sup);
-        dom(rhs()) =  dom(ex::expr_rhs);
+      dom(sup()) =  dom(ex::expr_sup);
+      dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
