@@ -42,14 +42,14 @@ pwd
 #mkdir build; cd build;
 
 /apps/dom/cmake/repository/gnu_446/bin/cmake \
--DCUDA_NVCC_FLAGS:STRING="-arch=sm_35  -G -std=c++11 " \
+-DCUDA_NVCC_FLAGS:STRING="-arch=sm_35 -G " \
 -DCMAKE_CXX_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/c++" \
 -DCMAKE_C_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/gcc" \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DBoost_DIR:PATH=/users/mbianco/boost_1_55_0 \
--DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
+-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF \
 -DUSE_PAPI:BOOL=OFF \
 -DGNU_COVERAGE:BOOL=ON \
 -DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \

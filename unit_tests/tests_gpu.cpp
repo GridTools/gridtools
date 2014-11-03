@@ -1,4 +1,4 @@
-
+#define CUDA_EXAMPLE
 
 #include "gtest/gtest.h"
 
@@ -11,7 +11,6 @@
 #include <../examples/copy_stencil.h>
 #include <../examples/tridiagonal.h>
 
-#define CUDA_EXAMPLE
 #include "boundary_conditions_test.h"
 
 TEST(testdomain, testallocationongpu) {
