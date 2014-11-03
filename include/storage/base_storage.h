@@ -53,7 +53,8 @@ namespace gridtools {
 #ifdef __CUDACC__
 	  template < typename StorageType//typename T, typename U, bool B
                       >
-            GT_FUNCTION_WARNING
+            // GT_FUNCTION_WARNING
+	  __host__
 	  void operator()(/*base_storage<enumtype::Cuda,T,U,B
                             >*/StorageType *& s) const {
                 if (s) {
@@ -113,13 +114,15 @@ namespace gridtools {
 	//typedef in order to stopo the type recursion of the derived classes
 	typedef base_storage<Backend, ValueType, Layout, IsTemporary> basic_type;
 	typedef base_storage<Backend, ValueType, Layout, IsTemporary> original_storage;
+        static const ushort_t n_args = 1;
+
     public:
         explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
             m_size( dim1 * dim2 * dim3 ),
             is_set( true ),
-            m_data( m_size ),
-	m_name(s)
+            m_data( m_size )//,
+	// m_name(s)
             {
             m_dims[0]=( dim1 );
             m_dims[1]=( dim2 );
@@ -141,12 +144,29 @@ namespace gridtools {
                 m_data.update_gpu();
             }
 
+      template<typename T>
+      __device__
+      base_storage(T const& other)
+      	  : m_size(other.size())
+      	  , is_set(other.is_set)
+      	  // , m_name(other.name())
+      	  , m_data(other.data())
+        {
+      	  m_dims[0] = other.dims(0);
+      	  m_dims[1] = other.dims(1);
+      	  m_dims[2] = other.dims(2);
+
+      	  m_strides[0] = other.strides(0);
+      	  m_strides[1] = other.strides(1);
+      	  m_strides[2] = other.strides(2);
+        }
+
 
         __device__
         base_storage(base_storage const& other)
             : m_size(other.m_size)
             , is_set(other.is_set)
-            , m_name(other.m_name)
+            // , m_name(other.m_name)
             , m_data(other.m_data)
         {
             m_dims[0] = other.m_dims[0];
@@ -159,16 +179,16 @@ namespace gridtools {
         }
 
       GT_FUNCTION
-      void copy_data_to_gpu(){data().update_gpu();}
+      void copy_data_to_gpu() const {data().update_gpu();}
 
-        explicit base_storage(): m_name("default_name"), m_data((value_type*)NULL){
+      explicit base_storage(): /*m_name("default_name"), */m_data((value_type*)NULL){
             is_set=false;
         }
 
 
-        std::string const& name() const {
-            return m_name;
-        }
+        // std::string const& name() const {
+        //     return m_name;
+        // }
 
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
@@ -259,7 +279,7 @@ namespace gridtools {
         uint_t m_strides[3];
         uint_t m_size;
         bool is_set;
-        const std::string& m_name;
+        // const std::string& m_name;
 
         template <typename Stream>
         void print(Stream & stream) const {
@@ -277,9 +297,9 @@ namespace gridtools {
             ushort_t MJ=12;
             ushort_t MK=12;
 
-            for (uint_t i = 0; i < m_dims[0]; i += std::max((const uint_t)(1),m_dims[0]/MI)) {
-                for (uint_t j = 0; j < m_dims[1]; j += std::max((const uint_t)1,m_dims[1]/MJ)) {
-                    for (uint_t k = 0; k < m_dims[2]; k += std::max((const uint_t)1,m_dims[2]/MK)) {
+            for (uint_t i = 0; i < m_dims[0]; i += std::max(( uint_t)(1),m_dims[0]/MI)) {
+                for (uint_t j = 0; j < m_dims[1]; j += std::max(( uint_t)1,m_dims[1]/MJ)) {
+                    for (uint_t k = 0; k < m_dims[2]; k += std::max(( uint_t)1,m_dims[2]/MK)) {
                         stream << "["/*("
                                           << i << ","
                                           << j << ","
@@ -347,15 +367,24 @@ namespace gridtools {
       }
 
         GT_FUNCTION
-        pointer_type& data(){return m_data;}
+        pointer_type const& data() const {return m_data;}
 
         GT_FUNCTION
         typename pointer_type::pointee_t* get_address() const {
             return m_data.get();}
 
-    protected:
+        GT_FUNCTION
+	pointer_type const* fields() const {return &m_data;}
+
+      GT_FUNCTION
+      uint_t dims(ushort_t i) const {return m_dims[i];}
+
+      GT_FUNCTION
+      uint_t strides(ushort_t i) const {return m_strides[i];}
 
       pointer_type m_data;
+
+    protected:
 
     };
 
@@ -419,14 +448,14 @@ namespace gridtools {
     {
 
       typedef Storage super;
-      typedef typename super::basic_type basic_type;
+      typedef typename super::pointer_type pointer_type;
 
       typedef typename super::original_storage original_storage;
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
         explicit extend(uint_t dim1, uint_t dim2, uint_t dim3,
                             value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s), m_lru(0), m_fields(/*{(value_type*)NULL}*/) {
-            advance(super::data());//first solution is the initialization by default
+            push_back(super::m_data);//first solution is the initialization by default
         }
 
       __device__
@@ -437,7 +466,7 @@ namespace gridtools {
 	  m_fields[i]=super::pointer_type(other.m_fields[i]);
       }
 
-      GT_FUNCTION
+      __host__
       void copy_data_to_gpu(){
 	//the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
 	for (uint_t i=0; i<n_args; ++i)
@@ -448,26 +477,41 @@ namespace gridtools {
         // };
 
         GT_FUNCTION
-        typename super::pointer_type::pointee_t* get_address() const {
+        typename pointer_type::pointee_t* get_address() const {
             return super::get_address();}
+
+	
+	/**note that I pass in the lru integer in order to be able to define it as a constexpr static method*/
+        GT_FUNCTION
+	  static constexpr ushort_t get_index_address (short_t const& offset, ushort_t const& lru) {
+	  return (lru+offset+n_args)%n_args;
+	}
 
         //template <ushort_t Offset>
         GT_FUNCTION
-        typename super::pointer_type::pointee_t* get_address(short_t offset) const {
+        typename pointer_type::pointee_t* get_address(short_t offset) const {
             //printf("the offset: %d\n", offset);
 	  // printf("storage used: %d\n", (m_lru+offset+n_args)%n_args);
 	  // printf("GPU address of the data", m_fields[(m_lru+offset+n_args)%n_args].get());
 	  return m_fields[(m_lru+offset+n_args)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
         GT_FUNCTION
-        inline typename super::pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
+        inline  pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
         //the time integration takes ownership over all the pointers?
         GT_FUNCTION
-        inline void advance(/*smart<*/typename super::pointer_type/*>*/ & field){
+        inline void swap(/*smart<*/ pointer_type/*>*/ & field){
             //cycle in a ring
-            typename super::pointer_type swap(m_fields[m_lru]);
+            pointer_type swap(m_fields[m_lru]);
             m_fields[m_lru]=field;
             field = swap;
+            m_lru=(m_lru+1)%n_args;
+            this->m_data=m_fields[m_lru];
+        }
+
+        GT_FUNCTION
+        inline void push_back(/*smart<*/ pointer_type/*>*/ & field){
+            //cycle in a ring
+            m_fields[m_lru]=field;
             m_lru=(m_lru+1)%n_args;
             this->m_data=m_fields[m_lru];
         }
@@ -479,6 +523,12 @@ namespace gridtools {
             m_lru=(m_lru+n_args+offset)%n_args;
             this->m_data=m_fields[m_lru];
         }
+
+      GT_FUNCTION
+	inline pointer_type const*  fields(){return m_fields;}
+
+      GT_FUNCTION
+	inline ushort_t const& lru(){return m_lru;}
 
         void print() {
             print(std::cout);
@@ -493,11 +543,11 @@ namespace gridtools {
             }
         }
 
+        static const ushort_t n_args = ExtraDimensions+1;
     private:
-        static const ushort_t n_args = ExtraDimensions;
         ushort_t m_lru;
         //todo: create a smart<Pointer> adding the policy to whatever pointer.
-        /*smart<*/typename super::pointer_type/*>*/ m_fields[n_args];
+        /*smart<*/pointer_type/*>*/ m_fields[n_args];
     };
 
 
