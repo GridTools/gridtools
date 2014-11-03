@@ -50,7 +50,7 @@ pwd
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DBoost_DIR:PATH=/users/mbianco/boost_1_55_0 \
--DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF \
+-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
 -DUSE_PAPI:BOOL=OFF \
 -DGNU_COVERAGE:BOOL=ON \
 -DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \
