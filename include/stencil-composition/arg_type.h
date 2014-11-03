@@ -177,7 +177,7 @@ namespace gridtools {
         typedef Range range_type;
 
         GT_FUNCTION
-        arg_type(int_t i, int_t j, int_t k) {
+	arg_type(int_t i, int_t j, int_t k) {
             offset[0] = i;
             offset[1] = j;
             offset[2] = k;
@@ -305,9 +305,10 @@ namespace gridtools {
 // #else
         template<ushort_t N>
         struct Extra{// : public impl::T<N>{
-            Extra(short_t const& val){ value=val;}
-            static const ushort_t direction=N;
-            short_t value;
+	  GT_FUNCTION
+	  Extra(short_t const& val){ value=val;}
+	  static const ushort_t direction=N;
+	  short_t value;
          };
 // #endif
     }

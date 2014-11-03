@@ -80,7 +80,7 @@ namespace gridtools {
             wrap_pointer<T>::free_it();
       }
 
-        void update_gpu() {
+        void update_gpu() const {
 #ifdef __CUDACC__
 #ifndef NDEBUG
             printf("update gpu "); out();
@@ -89,7 +89,7 @@ namespace gridtools {
 #endif
         }
 
-        void update_cpu() {
+        void update_cpu() const {
 #ifdef __CUDACC__
 #ifndef NDEBUG
             printf("update cpu "); out();
