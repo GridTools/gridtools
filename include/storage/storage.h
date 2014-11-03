@@ -64,15 +64,12 @@ namespace gridtools {
       uint_t const& strides(short_t i) const {return m_base_storage.m_strides[i];}
 
       GT_FUNCTION
-      ushort_t const& lru() const {return 0;}
-
-      GT_FUNCTION
       typename BaseStorage::pointer_type const* fields() const {return m_base_storage.fields();}
 
-      GT_FUNCTION
-      static constexpr ushort_t get_index_address(short_t offset, ushort_t lru) {
-	return (lru+offset+2)%2;
-      }
+      /* GT_FUNCTION */
+      /* static constexpr ushort_t get_index_address(short_t offset) { */
+      /* 	return (offset+2)%2; */
+      /* } */
 
       // GT_FUNCTION
       // std::string const& name() const { return m_base_storage.name(); }

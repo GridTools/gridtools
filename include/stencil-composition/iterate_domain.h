@@ -109,19 +109,19 @@ struct static_print
 	  struct assign_storage{
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
-	  static void inline assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index, ushort_t* lru){
+	  static void inline assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index/* , ushort_t* lru */){
 	    typedef typename boost::remove_pointer< typename boost::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 						     
 	    boost::fusion::at_c<ID>(r)->template increment<0>(i, &index[ID]);
 	    boost::fusion::at_c<ID>(r)->template increment<1>(j, &index[ID]);
-	    lru[ID]=boost::fusion::at_c<ID>(r)->lru();
+	    //lru[ID]=boost::fusion::at_c<ID>(r)->lru();
 	    assign_raw_storage<storage_type::n_args-1>::
 	    assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
 	    //l[ID] = boost::fusion::at_c<ID>(r)->fields()->get();
 	    /* boost::fusion::at_c<ID>(l)=boost::fusion::at_c<ID>(r)->get_address(); */
 	    //printf("setting i, j = %d, %d, index becomes %d  for ID: %d \n", i, j, index[ID], ID);
 	    //boost::fusion::at_c<ID>(l).stride=boost::fusion::at_c<ID>(r)->stride_k();
-	    assign_storage<ID-1>::assign(l,r,i,j,index,lru); //tail recursion
+	    assign_storage<ID-1>::assign(l,r,i,j,index/* ,lru */); //tail recursion
 	    }
 	};
 
@@ -129,12 +129,12 @@ struct static_print
 	  struct assign_storage<0, LocalArgTypes>{
 	  template<typename Left, typename Right>
 	  GT_FUNCTION
-	    static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index, ushort_t* lru){
+	    static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index/* , ushort_t* lru */){
 	    typedef typename boost::remove_pointer< typename boost::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 	    
 	    boost::fusion::at_c<0>(r)->template increment<0>(i, index);
 	    boost::fusion::at_c<0>(r)->template increment<1>(j, index);
-	    lru[0]=boost::fusion::at_c<0>(r)->lru();
+	    //lru[0]=boost::fusion::at_c<0>(r)->lru();
 	    assign_raw_storage<storage_type::n_args-1>::
 	      assign(&l[0], boost::fusion::at_c<0>(r)->fields());
 
@@ -166,14 +166,14 @@ struct static_print
 
         GT_FUNCTION
         iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j)
-	  : local_domain(local_domain) , m_index{0}//, m_storage_pointer({0})
+	  : local_domain(local_domain) , m_index{0}, m_storage_pointer{0}/* , m_lru{0} */
       {
 
 	// boost::fusion::at_c<0>(local_domain.local_args)->template increment<0>(i, &m_index[0]);
 	// boost::fusion::at_c<0>(local_domain.local_args)->template increment<1>(j, &m_index[0]);
 
                                  // double*            &storage
-	assign_storage< N_STORAGES-1, local_args_type >::assign(m_storage_pointer, local_domain.local_args, i, j, &m_index[0], &m_lru[0]);
+	assign_storage< N_STORAGES-1, local_args_type >::assign(m_storage_pointer, local_domain.local_args, i, j, &m_index[0]/* , &m_lru[0] */);
 
             // DOUBLE*                                 &storage
 	   /* boost::fusion::at_c<0>(local_iterators).value=&((*(boost::fusion::at_c<0>(local_domain.local_args)))(i,j,k)); */
@@ -309,8 +309,7 @@ struct static_print
 
 	  //auto storage_pointer= boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_address( arg.template n<gridtools::arg_decorator<ArgType>::n_args>() );
 	  /* return get_value(arg, m_storage_pointer[boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->get_index_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>())]); */
-	  return get_value(arg, m_storage_pointer[storage_type::get_index_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>(), m_lru[ArgType::index_type::value])//+ (ArgType::index_type::value==0) ? 0 : (total_storages< typename LocalDomain::local_args_type, ArgType::index_type::value-1 >::count)
-]);
+	  return get_value(arg, m_storage_pointer[storage_type::get_index_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>()/*, m_lru[ArgType::index_type::value*/)/* + (ArgType::index_type::value==0) ? 0 : (total_storages< typename LocalDomain::local_args_type, ArgType::index_type::value-1 >::count)*/]);
 
         }
 
@@ -363,7 +362,7 @@ struct static_print
         /* uint_t m_j; */
         /* uint_t m_k; */
       uint_t m_index[N_STORAGES];
-      ushort_t m_lru[N_STORAGES];
+      /* ushort_t m_lru[N_STORAGES]; */
       mutable double* m_storage_pointer[N_RAW_STORAGES];
     };
 

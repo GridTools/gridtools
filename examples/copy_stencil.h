@@ -44,7 +44,7 @@ struct copy_functor {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-      eval(in(time(0)))=eval(in(time(1)));
+      eval(in(time(-1)))=eval(in(time(0)));
       }
 };
 
@@ -213,9 +213,9 @@ PAPI_stop(event_set, values);
 #ifdef CUDA_EXAMPLE
     //out.data().update_cpu();
 #endif
-#define NX 511
-#define NY 511
-#define NZ 59
+#define NX 5
+#define NY 5
+#define NZ 5
 
     /* in.print_value(0,0,0); */
     /* in.print_value(0,4,0); */
@@ -226,8 +226,8 @@ PAPI_stop(event_set, values);
     in.print_value(NX,NY,0);
     in.print_value(NX,0,NZ);
     in.print_value(0,NY,NZ);
-
     in.print_value(NX,NY,NZ);
+    /* in.print(); */
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif
