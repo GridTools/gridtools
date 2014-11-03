@@ -193,7 +193,7 @@ framesep=2mm]{c++}
      return iterator(m_it+i, f, toggle_direction*(i&1 ? -1 : 1));
    }
    double& operator[](int i) {
-     return *(m_it+f.offset(i, toggle_direction*(i&1 ? -1 : 1));
+     return *(m_it+f.offset(i, toggle_direction);
    }
    template <typename Functor>
    double fold_neighbors(iterator it, Functor && f) const {
@@ -478,18 +478,45 @@ all the other vertices in the grid contain 6 cells around.
 
 \begin{figure}[htb!]
 	\begin{center}
-		\includegraphics[width=18cm]{fig/IcosahedralGridCellHalos.png}
-		\caption{Grid cells labeling of one of the original diamonds containing
+		\includegraphics[width=18cm]{fig/IcosahedralGridCellHalos_v2.png}
+		\caption{
+			Grid cells labeling of one of the original diamonds containing
 	halo regions with 2 neighbour cells at the halos. 
 	Red triangle represents padding cells required to keep consistency of strides
 	along the different rows of the diamond. Each diamond of the original icosahedron 
 	decomposition is identified with the label convention followed in figure~\ref{fig:IcosahedralDecomposition}.
 	Arrows indicate neighbour relation between two cells which are not contiguous in the indexing space (there is some padding).
-	Blue circles indicate the cells that require a different rule to access the neighbours.
-	}
-	\label{fig:IcosahedralDiamondWithHalos}
+	The blue wedge indicates a transition between two regions that do
+	not respect the neighborhood rules of cells.
+	Yellow wedge indicates a transition between triangles where 
+	contiguous downward/upward swap is not respected (i.e. triangles 1 and 2 are both upward). Special care must be taken when jumping into a padding cell, following any of the arrows connecting two cells and/or crossing any of the two wedges. In that case the neighborhood rules dictated by triangular\_offsets in~\autoref{lst:TriangularOffsets} are not respected. 
+ 	}
+	\label{fig:IcosahedralDiamondWithHalos_1}
 	\end{center}
 \end{figure}
+
+\begin{figure}[htb!]
+	\begin{center}
+		\includegraphics[width=18cm]{fig/IcosahedralGridCellHalos8_v2.png}
+		\caption{
+		Same as~\autoref{fig:IcosahedralDiamondWithHalos_1} with 4 halo lines. 
+		Red triangle represents padding cells required to keep consistency of strides
+		along the different rows of the diamond. Each diamond of the original icosahedron 
+		decomposition is identified with the label convention followed in figure~\ref{fig:IcosahedralDecomposition}.
+		Arrows indicate neighbour relation between two cells which are not contiguous in the indexing space (there is some padding).
+		The blue wedge indicates a transition between two regions that do
+		not respect the neighborhood rules of cells.
+		Yellow wedge indicates a transition between triangles where 
+		contiguous downward/upward swap is not respected (i.e. triangles 1 and 2 are both upward). Special care must be taken when jumping into a padding cell, following any of the arrows connecting two cells and/or crossing any of the two wedges. In that case the neighborhood rules dictated by triangular\_offsets in~\autoref{lst:TriangularOffsets} are not respected.
+		None of the cells in the computation domain can cross any of
+		these regions (or fall into a padding cell) with one neighbour move. 
+		Blue circles mark cells which can cross one of these regions (or fall into a padding cell) in which case the general offset rule is not respected with two neighbour moves.
+		Green circles need three neighbour moves. Orange circles need 4 neighbour moves and finally magenta need 5. 
+		}
+		\label{fig:IcosahedralDiamondWithHalos_4}
+	\end{center}
+\end{figure}
+
 
 Indexing schema shown in figure~\ref{fig:IcosahedralDiamondWithHalos} shows that all of the cells need the same offsets in order to access any of the three neighbouring cells (padding is required in order to achieve that). This is also true for most of the cells in the halos. 
 However there are three cells around the corners of the diamond, enclosed in blue circles in figure~\ref{fig:IcosahedralDiamondWithHalos}, 
@@ -516,9 +543,11 @@ also require special treatment.
 \begin{figure}[htb!]
 	\begin{center}
 		\includegraphics[width=18cm]{fig/IcosahedralGridCellHalosInnerDiamond.png}
-		\caption{Grid cells labeling of an inner diamond, where none 
+		\caption{Grids cells labeling of an inner diamond, where none 
 			of the corners is a corner of an diamond of the original 
 			decomposition of the icosahedron (figure~\ref{fig:IcosahedralDecomposition}).
+			Red cells indicate required padding in order to keep uniform offset rules accross the domain. 
+			In this case, all the cells exhibit exactly the same neighbour cells relationship (i.e. describe with a unique offset for the whole domain and halos). No exceptional treatment of some cells is required.
 		}
 		\label{fig:IcosahedralDiamondWithHalosInnerDiamond}
 	\end{center}
