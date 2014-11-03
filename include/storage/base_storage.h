@@ -454,16 +454,18 @@ namespace gridtools {
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
         explicit extend(uint_t dim1, uint_t dim2, uint_t dim3,
-                            value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s), m_lru(0), m_fields(/*{(value_type*)NULL}*/) {
+			value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s)/* , m_lru(0) */, m_fields() {
             push_back(super::m_data);//first solution is the initialization by default
         }
 
       __device__
       extend(extend const& other)
-	: super(other),
-	  m_lru(0){
+	: super(other)
+	  //m_lru(other.m_lru)
+	{
 	for (uint_t i=0; i<n_args; ++i)
 	  m_fields[i]=super::pointer_type(other.m_fields[i]);
+	super::m_data=m_fields[0];
       }
 
       __host__
@@ -483,8 +485,8 @@ namespace gridtools {
 	
 	/**note that I pass in the lru integer in order to be able to define it as a constexpr static method*/
         GT_FUNCTION
-	  static constexpr ushort_t get_index_address (short_t const& offset, ushort_t const& lru) {
-	  return (lru+offset+n_args)%n_args;
+	  static constexpr ushort_t get_index_address (short_t const& offset/*, ushort_t const& lru*/) {
+	  return (/*lru+*/offset+n_args)%n_args;
 	}
 
         //template <ushort_t Offset>
@@ -493,7 +495,7 @@ namespace gridtools {
             //printf("the offset: %d\n", offset);
 	  // printf("storage used: %d\n", (m_lru+offset+n_args)%n_args);
 	  // printf("GPU address of the data", m_fields[(m_lru+offset+n_args)%n_args].get());
-	  return m_fields[(m_lru+offset+n_args)%n_args].get();}
+	  return m_fields[(/*m_lru+*/offset+n_args)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
         GT_FUNCTION
         inline  pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
@@ -501,34 +503,38 @@ namespace gridtools {
         GT_FUNCTION
         inline void swap(/*smart<*/ pointer_type/*>*/ & field){
             //cycle in a ring
-            pointer_type swap(m_fields[m_lru]);
-            m_fields[m_lru]=field;
+            pointer_type swap(m_fields[n_args-1]);
+            m_fields[n_args-1]=field;
             field = swap;
-            m_lru=(m_lru+1)%n_args;
-            this->m_data=m_fields[m_lru];
+            //m_lru=(m_lru+1)%n_args;
+            //this->m_data=m_fields[0];
         }
 
         GT_FUNCTION
         inline void push_back(/*smart<*/ pointer_type/*>*/ & field){
-            //cycle in a ring
-            m_fields[m_lru]=field;
-            m_lru=(m_lru+1)%n_args;
-            this->m_data=m_fields[m_lru];
+            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage
+	  for(uint_t i=1;i<n_args;i++) m_fields[i]=m_fields[i-1];
+	  m_fields[0]=field;
+            //m_lru=(m_lru+1)%n_args;
+            //this->m_data=m_fields[m_lru];
         }
 
         //the time integration takes ownership over all the pointers?
         GT_FUNCTION
         inline void advance(short_t offset=1){
-            //cycle in a ring
-            m_lru=(m_lru+n_args+offset)%n_args;
-            this->m_data=m_fields[m_lru];
+	  pointer_type tmp(m_fields[n_args-1]);
+	  for(uint_t i=1;i<n_args;i++) m_fields[i]=m_fields[i-1];
+	  m_fields[0]=tmp;
+	  //cycle in a ring
+	  //m_lru=(m_lru+n_args+offset)%n_args;
+	  //this->m_data=m_fields[m_lru];
         }
 
       GT_FUNCTION
 	inline pointer_type const*  fields(){return m_fields;}
 
-      GT_FUNCTION
-	inline ushort_t const& lru(){return m_lru;}
+      /* GT_FUNCTION */
+      /* 	inline ushort_t const& lru(){return m_lru;} */
 
         void print() {
             print(std::cout);
@@ -545,7 +551,7 @@ namespace gridtools {
 
         static const ushort_t n_args = ExtraDimensions+1;
     private:
-        ushort_t m_lru;
+        /* ushort_t m_lru; */
         //todo: create a smart<Pointer> adding the policy to whatever pointer.
         /*smart<*/pointer_type/*>*/ m_fields[n_args];
     };
