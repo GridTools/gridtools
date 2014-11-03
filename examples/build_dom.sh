@@ -43,7 +43,7 @@ pwd
 
 /apps/dom/cmake/repository/gnu_446/bin/cmake \
 -DCUDA_NVCC_FLAGS:STRING="-arch=sm_35  -G " \
--DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
+-DCUDA_SDK_ROOT_DIR:PATH=/usr/local/cuda-6.5 \
 -DCMAKE_CXX_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/c++" \
 -DCMAKE_C_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/gcc" \
 -DUSE_GPU:BOOL=$USE_GPU \
