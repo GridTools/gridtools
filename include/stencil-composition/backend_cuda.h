@@ -35,12 +35,12 @@ namespace gridtools {
                   typename ExtraArguments>
         __global__
         void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
-            uint_t i = blockIdx.x * blockDim.x + threadIdx.x;
-            uint_t j = blockIdx.y * blockDim.y + threadIdx.y;
-            /* uint_t index = 0;//coords->template value_at<typename Traits::first_hit_t>(); */
+            /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
+            /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
+	    uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-	    /* uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny; */
-	    /* uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny; */
+	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
 
             if ((i < nx) && (j < ny)) {
@@ -173,12 +173,12 @@ namespace gridtools {
                 uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
 
                 uint_t ntx = 8, nty = 32, ntz = 1;
-                dim3 threads(ntx, nty, ntz);
+                /* dim3 threads(ntx, nty, ntz); */
 
                 ushort_t nbx = (nx + ntx - 1) / ntx;
                 ushort_t nby = (ny + nty - 1) / nty;
                 ushort_t nbz = 1;
-                dim3 blocks(nbx, nby, nbz);
+                /* dim3 blocks(nbx, nby, nbz); */
 
 #ifndef NDEBUG
                 printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
@@ -186,7 +186,7 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>/*<<<nbx*nby, ntx*nty>>>*/
+		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
