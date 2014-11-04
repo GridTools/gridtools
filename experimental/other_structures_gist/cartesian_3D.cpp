@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <iterator>
-#include <stdlib.h>
+#include <cmath>
 #include <boost/timer/timer.hpp>
 
 /** This is the function which defines the structure
@@ -14,22 +14,20 @@
     dimensions of the grid.
 */
 struct neighbor_offsets {
-    int m_offset[3];
+    int m_offset[6];
     static const int n_neighbors = 6;
-    neighbor_offsets(int a, int b) {
-        m_offset[0] = 1;
-        m_offset[1] = a;
-        m_offset[2] = b;
-    }
+    neighbor_offsets(int a, int b) 
+        : m_offset{-a, a, -b, b, -1, 1} 
+    {}
 
-    neighbor_offsets() {
-        m_offset[0] = 0;
-        m_offset[1] = 0;
-        m_offset[2] = 0;
-    }
+    neighbor_offsets() 
+        : m_offset{0,0,0,0,0,0}
+    {}
+
 
     int offset(int neighbor_index) const {
-        return (neighbor_index&1)?m_offset[neighbor_index>>1]:-m_offset[neighbor_index>>1];
+      //      std::cout << ((neighbor_index&1)?m_offset[neighbor_index>>1]:-m_offset[neighbor_index>>1]) << std::endl;;
+        return m_offset[neighbor_index];//(neighbor_index&1)?m_offset[neighbor_index>>1]:-m_offset[neighbor_index>>1];
     }
 };
 
@@ -70,6 +68,10 @@ struct structured_storage {
         }
 
         double& operator*() {
+            return *m_it;
+        }
+
+        double const& operator*() const {
             return *m_it;
         }
 
@@ -199,7 +201,7 @@ int main(int argc, char** argv) {
         for (int i=0; i<n; ++i) {
             for (int j=0; j<m; ++j) {
                 for (int k=0; k<l; ++k) {
-                    storage .data[i*m*l+j*l+k] = i*k*k+i*i*k*j-k*i;
+                    storage .data[i*m*l+j*l+k] = static_cast<double>(i*k*k+i*i*k*j-k*i)/static_cast<double>(n*l*l+n*n*l*m-l*n);
                     lap     .data[i*m*l+j*l+k] = 0;
                     lap_cool.data[i*m*l+j*l+k] = 0;
                 }
@@ -216,6 +218,10 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
         }
 
+        constexpr double coeff[6] = {1, -4, 2, -1, 5, 3};
+        // Using std::vector is 30% slower
+        //std::vector<double> coeff = {1, -4, 2, -1, 5, 3};
+
         /** **********************************************************
             These loops compute the Laplacian on the grid structure
             as if it was a C program
@@ -225,9 +231,9 @@ int main(int argc, char** argv) {
             for (int j=1; j<m-1; ++j) {
                 for (int k=1; k<l-1; ++k) {
                     lap.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
-                        (storage.data[(i+1)*m*l+j*l+k]+storage.data[(i-1)*m*l+j*l+k]
-                         +storage.data[i*m*l+(j+1)*l+k]+storage.data[i*m*l+(j-1)*l+k]
-                         +storage.data[i*m*l+j*l+k+1]+storage.data[i*m*l+j*l+k-1]);
+                        (storage.data[(i+1)*m*l+j*l+k]*coeff[1]+storage.data[(i-1)*m*l+j*l+k]*coeff[0]
+                         +storage.data[i*m*l+(j+1)*l+k]*coeff[3]+storage.data[i*m*l+(j-1)*l+k]*coeff[2]
+                         +storage.data[i*m*l+j*l+k+1]*coeff[5]+storage.data[i*m*l+j*l+k-1]*coeff[4]);
                 }
             }
         }
@@ -253,10 +259,11 @@ int main(int argc, char** argv) {
         for (int i=1; i<n-1; ++i) {
             for (int j=1; j<m-1; ++j) {
                 for (int k=1; k<l-1; ++k) {
-                    lap_cool.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
+				    int neigh = 0;
+				    lap_cool.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
                         storage.fold_neighbors(storage.begin()+i*m*l+j*l+k,
-                                               [](double state, double value) {
-                                                   return state+value;
+                                               [&coeff, &neigh](double &state, double const& value) {
+                                                   return state+value*coeff[neigh++];
                                                });
                 }
             }
@@ -274,7 +281,11 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
         }
 
-        if (std::equal(lap.begin(), lap.end(), lap_cool.begin())) {
+        if (std::equal(lap.begin(), lap.end(), lap_cool.begin(),
+                       [] (double const & v1
+                          , double const & v2) 
+                        ->bool
+                       {return (std::abs((v1)-(v2))<1e-10);})) {
             std::cout << "PASSED!" << std::endl;
         } else {
             std::cout << "FAILED!" << std::endl;
