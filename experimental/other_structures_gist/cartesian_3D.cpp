@@ -251,9 +251,9 @@ int main(int argc, char** argv) {
         for (int th=0; th<n_threads; ++th) {
             threads[th] = std::thread([th, n,m,l,iter_space,&lap, &storage,&th_output]{
                     th_output[th] = std::to_string(1+(iter_space)*th) + " to " + std::to_string((iter_space)*(th+1)) 
-                        + " n="  std::to_string(n)
-                        + " m="  std::to_string(m)
-                        + " l="  std::to_string(l);
+                        + " n=" + std::to_string(n)
+                        + " m=" + std::to_string(m)
+                        + " l=" + std::to_string(l);
                     for (int i=1+(iter_space)*th; i<=(iter_space)*(th+1); ++i) {
                         for (int j=1; j<m-1; ++j) {
                             for (int k=1; k<l-1; ++k) {
@@ -331,8 +331,8 @@ int main(int argc, char** argv) {
                        [] (double const & v1
                           , double const & v2) 
                         ->bool
-                       {   if (std::abs((v1)-(v2))>=1e-10) 
-                               {std::cout << std::abs((v1)-(v2)) << std::endl;}
+                       { /* if (std::abs((v1)-(v2))>=1e-10) 
+                            {std::cout << std::abs((v1)-(v2)) << std::endl;} */
                            return (std::abs((v1)-(v2))<1e-10);})) {
             std::cout << "PASSED!" << std::endl;
         } else {
