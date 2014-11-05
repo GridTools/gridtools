@@ -1,0 +1,9 @@
+bin
+build
+include
+lib
+share
+*.egg-info
+*.bak
+*.swp
+*.pyc
