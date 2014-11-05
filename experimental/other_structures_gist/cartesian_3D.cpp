@@ -218,22 +218,31 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
         }
 
-        constexpr double coeff[6] = {1, -4, 2, -1, 5, 3};
-        // Using std::vector is 30% slower
-        //std::vector<double> coeff = {1, -4, 2, -1, 5, 3};
+        // is it better to use constexpr here or static const? It does not impact performance.
+        constexpr double iminus = 1;
+        constexpr double iplus  = -4;
+        constexpr double jminus = 2;
+        constexpr double jplus  = -1;
+        constexpr double kminus = 5;
+        constexpr double kplus  = 3;
+        // constexpr in the next is not really needed
+        constexpr double coeff[6] = {iminus, iplus, jminus, jplus, kminus, kplus};
+        // Using std::vector is more than 30% slower
+        //std::vector<double> coeff = {iminus, iplus, jminus, jplus, kminus, kplus};
 
         /** **********************************************************
             These loops compute the Laplacian on the grid structure
             as if it was a C program
         */
         boost::timer::cpu_timer time_lap;
+#pragma omp parallel for collapse(3)
         for (int i=1; i<n-1; ++i) {
             for (int j=1; j<m-1; ++j) {
                 for (int k=1; k<l-1; ++k) {
                     lap.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
-                        (storage.data[(i+1)*m*l+j*l+k]*coeff[1]+storage.data[(i-1)*m*l+j*l+k]*coeff[0]
-                         +storage.data[i*m*l+(j+1)*l+k]*coeff[3]+storage.data[i*m*l+(j-1)*l+k]*coeff[2]
-                         +storage.data[i*m*l+j*l+k+1]*coeff[5]+storage.data[i*m*l+j*l+k-1]*coeff[4]);
+                        (storage.data[(i+1)*m*l+j*l+k] *iplus + storage.data[(i-1)*m*l+j*l+k]*iminus
+                         +storage.data[i*m*l+(j+1)*l+k]*jplus + storage.data[i*m*l+(j-1)*l+k]*jminus
+                         +storage.data[i*m*l+j*l+k+1]  *kplus + storage.data[i*m*l+j*l+k-1]  *kminus);
                 }
             }
         }
@@ -256,13 +265,14 @@ int main(int argc, char** argv) {
             using the fold_neighbor function.
         */
         boost::timer::cpu_timer time_cool;
+#pragma omp parallel for collapse(3)
         for (int i=1; i<n-1; ++i) {
             for (int j=1; j<m-1; ++j) {
                 for (int k=1; k<l-1; ++k) {
 				    int neigh = 0;
 				    lap_cool.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
                         storage.fold_neighbors(storage.begin()+i*m*l+j*l+k,
-                                               [&coeff, &neigh](double &state, double const& value) {
+                                               [&coeff, &neigh](double const state, double const value) {
                                                    return state+value*coeff[neigh++];
                                                });
                 }
