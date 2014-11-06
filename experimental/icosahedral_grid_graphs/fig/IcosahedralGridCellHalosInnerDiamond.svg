@@ -1,0 +1,3255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="IcosahedralGridCellHalosInnerDiamond.svg">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;">
+      <path
+         id="path7160"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lstart"
+       style="overflow:visible">
+      <path
+         id="path7157"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt"
+         transform="scale(0.8) translate(12.5,0)" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective2985" />
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lstart-7"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path7157-1"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(0.8,0,0,0.8,10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-6"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path7160-1"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lstart-5"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path7157-9"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(0.8,0,0,0.8,10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-69"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path7160-8"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.5"
+     inkscape:cx="650.88053"
+     inkscape:cy="874.23596"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:snap-grids="false"
+     showguides="false"
+     inkscape:window-width="1680"
+     inkscape:window-height="1011"
+     inkscape:window-x="1600"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3787" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       transform="matrix(0.57578277,-0.81760271,0.81760271,0.57578277,-327.70957,91.2907)"
+       id="g4190"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4246"
+       y="465.21933"
+       x="113.57143"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"><tspan
+         y="465.21933"
+         x="113.57143"
+         id="tspan4248"
+         sodipodi:role="line" /></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6"
+       y="41.282532"
+       x="436.41809"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="41.282532"
+         x="436.41809"
+         id="tspan4223-9-6"
+         sodipodi:role="line">11</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9"
+       y="41.111908"
+       x="86.78714"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="41.111908"
+         x="86.78714"
+         id="tspan4223-9-6-4"
+         sodipodi:role="line">1</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-8"
+       y="19.68335"
+       x="52.501434"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="19.68335"
+         x="52.501434"
+         id="tspan4223-9-6-4-9"
+         sodipodi:role="line">0</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84"
+       y="20.397614"
+       x="126.50142"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="20.397614"
+         x="126.50142"
+         id="tspan4223-9-6-4-6"
+         sodipodi:role="line">2</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2"
+       y="43.540466"
+       x="157.50143"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="43.540466"
+         x="157.50143"
+         id="tspan4223-9-6-4-6-7"
+         sodipodi:role="line">3</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0"
+       y="17.630188"
+       x="198.77856"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="17.630188"
+         x="198.77856"
+         id="tspan4223-9-6-4-6-7-4"
+         sodipodi:role="line">4</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9"
+       y="39.397614"
+       x="226.65259"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="39.397614"
+         x="226.65259"
+         id="tspan4223-9-6-4-6-7-4-3"
+         sodipodi:role="line">5</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-5"
+       y="17.226776"
+       x="267.41998"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="17.226776"
+         x="267.41998"
+         id="tspan4223-9-6-4-6-7-4-3-2"
+         sodipodi:role="line">6</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52"
+       y="41.512482"
+       x="302.84857"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="41.512482"
+         x="302.84857"
+         id="tspan4223-9-6-4-6-7-4-3-23"
+         sodipodi:role="line">7</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-1"
+       y="17.94104"
+       x="342.42001"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="17.94104"
+         x="342.42001"
+         id="tspan4223-9-6-4-6-7-4-3-1"
+         sodipodi:role="line">8</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-7"
+       y="40.083893"
+       x="374.41998"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="40.083893"
+         x="374.41998"
+         id="tspan4223-9-6-4-6-7-4-3-9"
+         sodipodi:role="line">9</tspan></text>
+    <g
+       transform="matrix(0.57578277,-0.81760271,0.81760271,0.57578277,-478.59175,-319.28644)"
+       id="g4190-5"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924-1"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806-0" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007-5"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777-8"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804-50"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839-3"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817-7"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819-2"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837-4"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881-1"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913-7">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5-2"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1-25"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8-5"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9-21"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7-1"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920-7"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3-39"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140-5"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2-1"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180-8"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182-7"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184-1"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186-0"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188-8"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-0"
+       y="16.798187"
+       x="404.27713"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="16.798187"
+         x="404.27713"
+         id="tspan4223-9-6-4-6-7-4-3-29"
+         sodipodi:role="line">10</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-9"
+       y="16.655296"
+       x="479.84857"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="16.655296"
+         x="479.84857"
+         id="tspan4223-9-6-4-6-7-4-3-95"
+         sodipodi:role="line">12</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-9"
+       y="39.918056"
+       x="519.7334"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="39.918056"
+         x="519.7334"
+         id="tspan4223-9-6-4-6-7-4-3-23-7"
+         sodipodi:role="line">13</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-3"
+       y="89.317146"
+       x="73.132492"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="89.317146"
+         x="73.132492"
+         id="tspan4223-9-6-4-6-7-4-3-23-0"
+         sodipodi:role="line">16</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-6"
+       y="114.73354"
+       x="105.50362"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="114.73354"
+         x="105.50362"
+         id="tspan4223-9-6-4-6-7-4-3-23-23"
+         sodipodi:role="line">17</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-4"
+       y="87.159943"
+       x="147.23227"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="87.159943"
+         x="147.23227"
+         id="tspan4223-9-6-4-6-7-4-3-23-70"
+         sodipodi:role="line">18</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-69"
+       y="112.87643"
+       x="175.20354"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="112.87643"
+         x="175.20354"
+         id="tspan4223-9-6-4-6-7-4-3-23-3"
+         sodipodi:role="line">19</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-92"
+       y="88.445663"
+       x="216.96091"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="88.445663"
+         x="216.96091"
+         id="tspan4223-9-6-4-6-7-4-3-23-38"
+         sodipodi:role="line">20</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5"
+       y="114.87643"
+       x="246.51797"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="114.87643"
+         x="246.51797"
+         id="tspan4223-9-6-4-6-7-4-3-23-5"
+         sodipodi:role="line">21</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-94"
+       y="88.602913"
+       x="286.97528"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="88.602913"
+         x="286.97528"
+         id="tspan4223-9-6-4-6-7-4-3-23-6"
+         sodipodi:role="line">22</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-54"
+       y="115.16214"
+       x="320.34641"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="115.16214"
+         x="320.34641"
+         id="tspan4223-9-6-4-6-7-4-3-23-28"
+         sodipodi:role="line">23</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-6"
+       y="113.22748"
+       x="393.6907"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="113.22748"
+         x="393.6907"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-9"
+         sodipodi:role="line">25</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-1"
+       y="89.739319"
+       x="437.30518"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="89.739319"
+         x="437.30518"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-5"
+         sodipodi:role="line">26</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-5"
+       y="113.37036"
+       x="473.60455"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="113.37036"
+         x="473.60455"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-97"
+         sodipodi:role="line">27</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-8"
+       y="91.882141"
+       x="513.34821"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="91.882141"
+         x="513.34821"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-96"
+         sodipodi:role="line">28</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-0"
+       y="114.39618"
+       x="548.83368"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="114.39618"
+         x="548.83368"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-4"
+         sodipodi:role="line">29</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-00"
+       y="176.76007"
+       x="54.303726"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="176.76007"
+         x="54.303726"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-7"
+         sodipodi:role="line">31</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-9"
+       y="87.4823"
+       x="364.14798"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="87.4823"
+         x="364.14798"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-3"
+         sodipodi:role="line">24</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-09"
+       y="157.38324"
+       x="96.506927"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="157.38324"
+         x="96.506927"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-8"
+         sodipodi:role="line">32</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-7"
+       y="177.79953"
+       x="129.98991"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="177.79953"
+         x="129.98991"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-1"
+         sodipodi:role="line">33</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-24"
+       y="161.25473"
+       x="170.92114"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="161.25473"
+         x="170.92114"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-88"
+         sodipodi:role="line">34</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-88"
+       y="180.8262"
+       x="203.6355"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="180.8262"
+         x="203.6355"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-6"
+         sodipodi:role="line">35</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-002"
+       y="158.68332"
+       x="240.63544"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="158.68332"
+         x="240.63544"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-51"
+         sodipodi:role="line">36</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-13"
+       y="180.8262"
+       x="277.34973"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="180.8262"
+         x="277.34973"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-0"
+         sodipodi:role="line">37</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-95"
+       y="160.39761"
+       x="313.20685"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="160.39761"
+         x="313.20685"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-61"
+         sodipodi:role="line">38</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-50"
+       y="181.8262"
+       x="351.49258"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="181.8262"
+         x="351.49258"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-35"
+         sodipodi:role="line">39</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-94"
+       y="162.39761"
+       x="388.34973"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="162.39761"
+         x="388.34973"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-82"
+         sodipodi:role="line">40</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-4"
+       y="179.8262"
+       x="424.77829"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="179.8262"
+         x="424.77829"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89"
+         sodipodi:role="line">41</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-70"
+       y="159.38255"
+       x="458.19104"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="159.38255"
+         x="458.19104"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-55"
+         sodipodi:role="line">42</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-14"
+       y="179.05591"
+       x="495.36188"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="179.05591"
+         x="495.36188"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-37"
+         sodipodi:role="line">43</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-45"
+       y="157.89651"
+       x="539.01947"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="157.89651"
+         x="539.01947"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-11"
+         sodipodi:role="line">44</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-63"
+       y="178.51031"
+       x="571.56232"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="178.51031"
+         x="571.56232"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-48"
+         sodipodi:role="line">45</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-49"
+       y="223.39761"
+       x="43.77832"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="223.39761"
+         x="43.77832"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-46"
+         sodipodi:role="line">46</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-66"
+       y="248.39761"
+       x="77.77832"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="248.39761"
+         x="77.77832"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-948"
+         sodipodi:role="line">47</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-44"
+       y="220.11191"
+       x="123.92114"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="220.11191"
+         x="123.92114"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-00"
+         sodipodi:role="line">48</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-3"
+       y="246.96909"
+       x="157.20685"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="246.96909"
+         x="157.20685"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-17"
+         sodipodi:role="line">49</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-59"
+       y="220.8262"
+       x="195.77826"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="220.8262"
+         x="195.77826"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-485"
+         sodipodi:role="line">50</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="229.45886"
+       y="248.68332"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-1"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-3"
+         x="229.45886"
+         y="248.68332"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">51</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="266.60172"
+       y="220.82614"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-2"
+         x="266.60172"
+         y="220.82614"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">52</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="300.17313"
+       y="250.96902"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-14"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-6"
+         x="300.17313"
+         y="250.96902"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">53</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="340.88745"
+       y="221.25479"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-0"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-9"
+         x="340.88745"
+         y="221.25479"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">54</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="376.88745"
+       y="252.96902"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-67"
+         x="376.88745"
+         y="252.96902"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">55</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="414.03027"
+       y="224.96909"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-6"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-38"
+         x="414.03027"
+         y="224.96909"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">56</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="451.31601"
+       y="252.39761"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-03"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-4"
+         x="451.31601"
+         y="252.39761"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">57</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="484.74463"
+       y="224.5405"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-63"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-49"
+         x="484.74463"
+         y="224.5405"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">58</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="519.88745"
+       y="251.82614"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-637"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-5"
+         x="519.88745"
+         y="251.82614"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">59</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="563.31598"
+       y="220.54044"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-75"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-0"
+         x="563.31598"
+         y="220.54044"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">60</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="592.31598"
+       y="250.11188"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-73"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-1"
+         x="592.31598"
+         y="250.11188"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">61</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="71.337723"
+       y="292.0939"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-035"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-39"
+         x="71.337723"
+         y="292.0939"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">62</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="102.65697"
+       y="316.58136"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-13"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-8"
+         x="102.65697"
+         y="316.58136"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">63</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="146.14224"
+       y="291.67679"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-10"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-57"
+         x="146.14224"
+         y="291.67679"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">64</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="181.45886"
+       y="317.54047"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-5"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-498"
+         x="181.45886"
+         y="317.54047"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">65</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="253.1731"
+       y="318.82617"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-7"
+         x="253.1731"
+         y="318.82617"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">67</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="294.88745"
+       y="292.8262"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-3"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-59"
+         x="294.88745"
+         y="292.8262"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">68</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="217.03027"
+       y="291.25473"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-98"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-678"
+         x="217.03027"
+         y="291.25473"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">66</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="324.60175"
+       y="319.68329"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-19"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-571"
+         x="324.60175"
+         y="319.68329"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">69</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="364.88745"
+       y="294.25479"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-72"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-60"
+         x="364.88745"
+         y="294.25479"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">70</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="399.74457"
+       y="318.54047"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03"
+         x="399.74457"
+         y="318.54047"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">71</tspan></text>
+    <g
+       transform="matrix(1.0720468,-0.00244765,-0.09542826,0.9763152,144.57059,81.928227)"
+       id="g3806-5" />
+    <g
+       transform="matrix(1.0720468,-0.00244765,-0.09542826,0.9763152,-316.89282,-443.72536)"
+       id="g3806-8" />
+    <g
+       transform="matrix(1.0720468,-0.00244765,-0.09542826,0.9763152,-391.85798,-241.64321)"
+       id="g3806-1" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="-491.42856"
+       y="462.36218"
+       id="text3386"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3388"
+         x="-491.42856"
+         y="462.36218" /></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-5-2"
+       y="155.68332"
+       x="19.064026"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="155.68332"
+         x="19.064026"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-94"
+         sodipodi:role="line">30</tspan></text>
+    <g
+       transform="matrix(-0.57661326,0.81701722,-0.81701722,-0.57661326,1169.5532,843.82363)"
+       id="g4190-1-4-3"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102-77-5-8"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924-8-7-4"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806-9-8-4" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007-8-5-8"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777-5-1-3"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804-8-7-5"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839-9-3-9"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817-58-1-1"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819-5-4-2"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837-6-5-5"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881-44-6-1"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913-0-1-8">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5-98-8-7"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1-2-0-3"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8-8-0-7"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9-2-9-5"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7-0-7-3"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920-3-0-6"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3-5-4-0"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3-6-2-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140-08-7-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9-5-8-8"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2-5-5-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178-8-0-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180-6-0-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182-6-8-7"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184-7-9-5"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186-3-0-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188-6-6-5"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="442.20398"
+       y="295.71417"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-9"
+         x="442.20398"
+         y="295.71417"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">72</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="471.20398"
+       y="320.71417"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-5"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-4"
+         x="471.20398"
+         y="320.71417"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">73</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="510.20398"
+       y="293.71417"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-6"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-0"
+         x="510.20398"
+         y="293.71417"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">74</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="542.20398"
+       y="321.71417"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-5"
+         x="542.20398"
+         y="321.71417"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">75</tspan></text>
+    <g
+       transform="matrix(-0.57661326,0.81701722,-0.81701722,-0.57661326,1462.553,434.16544)"
+       id="g4190-1-4-3-0"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102-77-5-8-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924-8-7-4-5"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806-9-8-4-5" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007-8-5-8-2"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777-5-1-3-3"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804-8-7-5-8"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839-9-3-9-7"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817-58-1-1-2"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819-5-4-2-1"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837-6-5-5-2"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881-44-6-1-0"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913-0-1-8-3">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5-98-8-7-0"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1-2-0-3-9"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8-8-0-7-6"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9-2-9-5-7"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7-0-7-3-6"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920-3-0-6-1"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3-5-4-0-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3-6-2-6-8"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140-08-7-9-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9-5-8-8-5"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2-5-5-7-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178-8-0-6-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180-6-0-7-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182-6-8-7-4"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184-7-9-5-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186-3-0-3-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188-6-6-5-9"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="586.20398"
+       y="290.71417"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-46"
+         x="586.20398"
+         y="290.71417"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">76</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="622.20398"
+       y="316.71417"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-96"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-1"
+         x="622.20398"
+         y="316.71417"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">77</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="94.811508"
+       y="359.71774"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-2"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-57"
+         x="94.811508"
+         y="359.71774"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">78</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="128.43803"
+       y="381.6553"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18"
+         x="128.43803"
+         y="381.6553"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">79</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="171.25595"
+       y="357.13342"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0"
+         x="171.25595"
+         y="357.13342"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">80</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="205.552"
+       y="380.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-2"
+         x="205.552"
+         y="380.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">81</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="243.552"
+       y="356.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-4"
+         x="243.552"
+         y="356.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">82</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="278.552"
+       y="385.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3"
+         x="278.552"
+         y="385.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">83</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="315.552"
+       y="360.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-77"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-5"
+         x="315.552"
+         y="360.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">84</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="346.552"
+       y="385.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-6"
+         x="346.552"
+         y="385.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">85</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="391.552"
+       y="363.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-2"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-43"
+         x="391.552"
+         y="363.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">86</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="424.552"
+       y="382.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-23"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-0"
+         x="424.552"
+         y="382.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">87</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="462.552"
+       y="362.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-0"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-9"
+         x="462.552"
+         y="362.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">88</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="499.552"
+       y="380.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-81"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-50"
+         x="499.552"
+         y="380.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">89</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="532.16797"
+       y="360.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0"
+         x="532.16797"
+         y="360.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">90</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="572.91602"
+       y="383.51819"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-7"
+         x="572.91602"
+         y="383.51819"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">91</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="608.91602"
+       y="361.51819"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-4"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-8"
+         x="608.91602"
+         y="361.51819"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">92</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:39.20011139px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="656.06873"
+       y="375.84885"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-6"
+       sodipodi:linespacing="125%"
+       transform="scale(0.98000275,1.0204053)"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-4"
+         x="656.06873"
+         y="375.84885"
+         style="font-size:27.44007874px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">93</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="116.52348"
+       y="428.93597"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-5"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-9"
+         x="116.52348"
+         y="428.93597"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">94</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="150.27136"
+       y="447.21667"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-51"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-78"
+         x="150.27136"
+         y="447.21667"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">95</tspan></text>
+    <g
+       transform="matrix(0.57578277,-0.81760271,0.81760271,0.57578277,-767.78475,91.52056)"
+       id="g4190-5-1"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102-9-5"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924-1-8"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806-0-8" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007-5-7"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777-8-1"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804-50-7"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839-3-1"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817-7-8"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819-2-1"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837-4-9"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881-1-0"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913-7-3">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5-2-6"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1-25-6"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8-5-7"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9-21-9"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7-1-9"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920-7-5"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3-39-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3-4-0"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140-5-1"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9-9-0"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2-1-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178-4-2"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180-8-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182-7-0"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184-1-1"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186-0-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188-8-0"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="198.41348"
+       y="428.25473"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-94"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-5"
+         x="198.41348"
+         y="428.25473"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">96</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="233.03734"
+       y="449.56845"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-92"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-83"
+         x="233.03734"
+         y="449.56845"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">97</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="270.20892"
+       y="426.76083"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-0"
+         x="270.20892"
+         y="426.76083"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">98</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="303.91602"
+       y="448.51819"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92"
+         x="303.91602"
+         y="448.51819"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">99</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="336.15399"
+       y="427.39688"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8"
+         x="336.15399"
+         y="427.39688"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">100</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="369.78201"
+       y="452.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-4"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-3"
+         x="369.78201"
+         y="452.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">101</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="405.66068"
+       y="427.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-9"
+         x="405.66068"
+         y="427.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">102</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="438.78201"
+       y="451.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-47"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-8"
+         x="438.78201"
+         y="451.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">103</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="479.78198"
+       y="425.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-87"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-5"
+         x="479.78198"
+         y="425.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">104</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="508.78198"
+       y="451.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-45"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-6"
+         x="508.78198"
+         y="451.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">105</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="547.78198"
+       y="425.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-65"
+         x="547.78198"
+         y="425.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">106</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="581.78198"
+       y="448.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-97"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-95"
+         x="581.78198"
+         y="448.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">107</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="628.14594"
+       y="424.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-6"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-33"
+         x="628.14594"
+         y="424.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">108</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="663.78198"
+       y="451.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-1"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-35"
+         x="663.78198"
+         y="451.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">109</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="135.46735"
+       y="501.59497"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2"
+         x="135.46735"
+         y="501.59497"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">110</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="170.282"
+       y="525.38019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-0"
+         x="170.282"
+         y="525.38019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">111</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="573.78198"
+       y="504.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-2"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-2"
+         x="573.78198"
+         y="504.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">122</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="249.78198"
+       y="526.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-3"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-23"
+         x="249.78198"
+         y="526.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">113</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="287.78198"
+       y="501.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-04"
+         x="287.78198"
+         y="501.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">114</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="315.78198"
+       y="528.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-99"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-9"
+         x="315.78198"
+         y="528.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">115</tspan></text>
+    <g
+       transform="matrix(-0.57661326,0.81701722,-0.81701722,-0.57661326,730.21196,844.57547)"
+       id="g4190-1-4-3-8"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102-77-5-8-61"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924-8-7-4-7"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806-9-8-4-2" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007-8-5-8-4"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777-5-1-3-6"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804-8-7-5-9"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839-9-3-9-9"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817-58-1-1-20"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819-5-4-2-16"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837-6-5-5-1"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881-44-6-1-6"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913-0-1-8-8">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5-98-8-7-5"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1-2-0-3-3"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8-8-0-7-1"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9-2-9-5-0"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7-0-7-3-2"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920-3-0-6-7"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3-5-4-0-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3-6-2-6-84"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140-08-7-9-74"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9-5-8-8-2"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2-5-5-7-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178-8-0-6-1"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180-6-0-7-0"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182-6-8-7-47"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184-7-9-5-33"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186-3-0-3-1"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188-6-6-5-90"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="355.78198"
+       y="501.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-5"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-6"
+         x="355.78198"
+         y="501.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">116</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="386.78198"
+       y="526.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-65"
+         x="386.78198"
+         y="526.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">117</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="428.78198"
+       y="502.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-26"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-233"
+         x="428.78198"
+         y="502.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">118</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="463.02463"
+       y="525.97333"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-1"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-68"
+         x="463.02463"
+         y="525.97333"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">119</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="502.78198"
+       y="501.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-21"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-3"
+         x="502.78198"
+         y="501.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">120</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="535.78198"
+       y="528.63019"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-21-4"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-3-6"
+         x="535.78198"
+         y="528.63019"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">121</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="777.81744"
+       y="-135.57721"
+       id="text4689"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4691"
+         x="777.81744"
+         y="-135.57721" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="844.28552"
+       y="-189.31732"
+       id="text4693"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4695"
+         x="844.28552"
+         y="-189.31732" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="605.79602"
+       y="528.82617"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-2-3"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-2-4"
+         x="605.79602"
+         y="528.82617"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">123</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="213.92535"
+       y="498.7551"
+       id="text4221-7-6-9-84-2-0-9-52-5-4-106-1-7-6-5-8-8-0-2-8"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4223-9-6-4-6-7-4-3-23-5-89-03-18-0-3-0-92-8-2-2-5"
+         x="213.92535"
+         y="498.7551"
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes">122</tspan></text>
+    <g
+       transform="matrix(-0.57661326,0.81701722,-0.81701722,-0.57661326,1310.275,22.97331)"
+       id="g4190-1-4-3-0-0"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 43.10405,589.75811 289.96793,945.80257"
+         id="path4102-77-5-8-6-3"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g3924-8-7-4-5-7"
+         transform="matrix(0.99999977,6.7356023e-4,-6.7356023e-4,0.99999977,84.009123,-2.4673269)">
+        <g
+           transform="matrix(0.61985659,0.87468177,-0.85285764,0.48469763,628.44712,82.551153)"
+           id="g3806-9-8-4-5-3" />
+        <rect
+           transform="matrix(0.57723258,0.81657978,-0.57694908,0.81678012,0,0)"
+           y="40.043098"
+           x="327.65637"
+           height="430.3638"
+           width="432.44696"
+           id="rect3007-8-5-8-2-1"
+           style="opacity:0.92592594;fill:none;stroke:#008000;stroke-width:3.087152;stroke-linecap:square;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3777-5-1-3-3-7"
+           d="m 414.9397,653.64433 -497.214835,-1.31321 0,0"
+           style="fill:#008000;stroke:#000080;stroke-width:1.06699347px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 329.32868,532.01289 0.92882948,532.85292"
+           id="path3804-8-7-5-8-5"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cc" />
+        <path
+           sodipodi:nodetypes="ccc"
+           inkscape:connector-curvature="0"
+           id="path3839-9-3-9-7-5"
+           d="M 81.270121,652.76265 165,532.00504 247.28028,652.51011"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3817-58-1-1-2-5"
+           d="M 1.139456,532.64815 81.34866,652.54573"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           sodipodi:nodetypes="cc"
+           inkscape:connector-curvature="0"
+           id="path3819-5-4-2-1-9"
+           d="M 330.42524,531.37601 247.26622,653.12477"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3837-6-5-5-2-9"
+           d="m 84.64286,416.29075 163.92857,0 0,0"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path3881-44-6-1-0-2"
+           d="m 85.357143,416.29075 79.285717,115.35715 82.5,-115.35715"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        <g
+           style="stroke:#000080"
+           transform="translate(-2,-2)"
+           id="g3913-0-1-8-3-1">
+          <path
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0"
+             id="path3804-5-98-8-7-0-5"
+             d="M 331.34271,775.2448 2.942855,774.40477"
+             style="fill:none;stroke:#000080;stroke-width:1.02294767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 83.284145,654.49504 167.01403,775.25265 249.29431,654.74758"
+             id="path3839-1-2-0-3-9-0"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 3.153485,774.60954 80.2092,-119.89758"
+             id="path3817-8-8-0-7-6-2"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="M 332.43927,775.88168 249.28025,654.13292"
+             id="path3819-9-2-9-5-7-4"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc" />
+          <path
+             style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 87.371165,890.96694 79.285725,-115.35715 82.5,115.35715"
+             id="path3881-7-0-7-3-6-1"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           inkscape:connector-curvature="0"
+           id="path3920-3-0-6-1-3"
+           d="M 86.428572,888.79075 248.57143,889.1479"
+           style="fill:none;stroke:#000080;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 124.84362,473.17679 370.69734,828.71618"
+         id="path4102-3-5-4-0-4-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.90825,358.40454 454.76197,713.94393"
+         id="path4102-3-3-6-2-6-8-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 44.951789,708.91031 287.89348,351.8214"
+         id="path4140-08-7-9-7-7"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 127.27922,827.60325 370.72598,468.49402"
+         id="path4140-9-5-8-8-5-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 208.5965,945.286 456.58895,590.21739"
+         id="path4140-9-2-5-5-7-7-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.941635,709.41539 412.142245,1.51523"
+         id="path4178-8-0-6-4-0"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 373.75644,829.62355 126.79953,826.32261"
+         id="path4180-6-0-7-3-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 209.60665,944.27586 82.32744,-0.50508"
+         id="path4182-6-8-7-4-6"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 43.43656,588.19709 412.14224,3.03045"
+         id="path4184-7-9-5-3-4"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 126.26907,472.53462 246.47722,0.50508"
+         id="path4186-3-0-3-9-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 208.5965,356.87215 78.28682,-5.05076"
+         id="path4188-6-6-5-9-8"
+         inkscape:connector-curvature="0" />
+    </g>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-9-1"
+       y="86.63018"
+       x="-1.60199"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="86.63018"
+         x="-1.60199"
+         id="tspan4223-9-6-4-6-7-4-3-23-7-4"
+         sodipodi:role="line">14</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text4221-7-6-9-84-2-0-9-52-3-2"
+       y="111.74218"
+       x="29.893997"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="/home/carlosos/src/gridtools/experimental/icosahedral_grid_graphs/fig/IcosahedralGridCellHalosInnerDiamond.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Termes;-inkscape-font-specification:TeX Gyre Termes"
+         y="111.74218"
+         x="29.893997"
+         id="tspan4223-9-6-4-6-7-4-3-23-0-5"
+         sodipodi:role="line">15</tspan></text>
+  </g>
+</svg>

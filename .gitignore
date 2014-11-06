@@ -36,6 +36,7 @@ unit_tests/cmake_install.cmake
 !README.md
 !include
 !examples
+!experimental
 !unit_tests
 !.gitmodules
 !src
