@@ -294,7 +294,7 @@ namespace gridtools {
             ushort_t MK=12;
             for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MJ)) {
                 for (uint_t j = 0; j < dims_coordwise<1>(m_strides); j += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MJ)) {
-                    for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK)) 
+                    for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK))
 {
                         stream << "["/*("
                                           << i << ","
@@ -372,7 +372,7 @@ namespace gridtools {
 
       pointer_type m_data;
 
-    private:
+    protected:
       bool is_set;
 #ifdef COMPILE_TIME_STRIDES
       static const uint_t m_strides[/*3*/FIELDS_DIMENSION]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
@@ -463,7 +463,7 @@ namespace gridtools {
         typename pointer_type::pointee_t* get_address() const {
             return super::get_address();}
 
-	
+
 	/**note that I pass in the lru integer in order to be able to define it as a constexpr static method*/
         GT_FUNCTION
 	  static constexpr ushort_t get_index_address (short_t const& offset/*, ushort_t const& lru*/) {
@@ -580,7 +580,7 @@ namespace gridtools {
     typedef typename  super::basic_type basic_type;
     typedef typename super::original_storage original_storage;
     using super::extend_width;
-      
+
     __device__
       extend_dim( extend_dim const& other )
       	: super(other)
