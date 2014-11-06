@@ -230,7 +230,7 @@ namespace gridtools {
         template <typename... X >
         GT_FUNCTION
         arg_type ( X... x){
-	  BOOST_STATIC_ASSERT(sizeof...(X)<=dimensions);
+            //BOOST_STATIC_ASSERT(sizeof...(X)<=dimensions);
             boost::fusion::vector<X...> vec(x...);
             boost::fusion::for_each(vec, initialize(offset));
         }
@@ -334,12 +334,12 @@ namespace gridtools {
 	}
 
 	/**@brief constructor taking the Extra class as argument.
-	 This allows to specify the extra arguments out of order. Note that 'enumtype::Extra' is a 
+	 This allows to specify the extra arguments out of order. Note that 'enumtype::Extra' is a
 	 language keyword used at the interface level.*/
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
         arg_decorator ( enumtype::Extra<Idx> const& t, Whatever... x): super( x... ) {
-	 
+
 	  //if the following check is not true, you specified an extra index exceeding the dimenison of the field
 	  BOOST_STATIC_ASSERT(enumtype::Extra<Idx>::direction<=n_args);
 
@@ -369,8 +369,8 @@ namespace gridtools {
 whatever not compiling
 #endif
 
-    /** @brief usage: n<3>() returns the offset of extra dimension 3 
-	loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument. 
+    /** @brief usage: n<3>() returns the offset of extra dimension 3
+	loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument.
      */
     template<short_t index>
     GT_FUNCTION
@@ -378,7 +378,7 @@ whatever not compiling
     BOOST_STATIC_ASSERT( index>0 );
     // printf("index to the n method:%d \n", index);
     BOOST_STATIC_ASSERT( index<=n_args );
-    //this might not be compile-time efficient for large indexes, 
+    //this might not be compile-time efficient for large indexes,
     //because both taken and not taken branches are compiled
     return index==1? m_offset : super::template n<index-1>();
     }
@@ -404,7 +404,7 @@ whatever not compiling
      * Struct to test if an argument is a temporary
      */
     template <typename T>
-    struct is_plchldr_to_temp; 
+    struct is_plchldr_to_temp;
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
@@ -473,7 +473,7 @@ whatever not compiling
 
     /**@brief Expression templates definition.
        The expression templates are a method to parse at compile time the mathematical expression given
-       by the user, recognizing the structure and building a syntax tree by recursively nesting 
+       by the user, recognizing the structure and building a syntax tree by recursively nesting
        templates.
      */
     template <typename ArgType1, typename ArgType2>

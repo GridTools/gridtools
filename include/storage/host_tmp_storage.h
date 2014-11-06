@@ -37,9 +37,9 @@ namespace gridtools {
         typedef static_int<PlusI> plusi;
         typedef static_int<PlusJ> plusj;
 
-        using base_type::m_dims;
+        // using base_type::m_dims;
         using base_type::m_strides;
-        using base_type::m_size;
+        // using base_type::m_size;
         using base_type::is_set;
 
         static const std::string info_string;
@@ -146,8 +146,8 @@ namespace gridtools {
             uint_t _k = ((layout::template find<2>(i,j,k)) - layout::template find<2>(m_initial_offsets) + layout::template find<2>(m_halo));
 
             index =
-                layout::template find<2>(m_dims) * layout::template find<1>(m_dims) * _i +
-                layout::template find<2>(m_dims) * _j + _k;
+                /*layout::template find<2>(m_dims) * layout::template find<1>(m_dims)*/m_strides[1] * _i +
+                /*layout::template find<2>(m_dims)*/m_strides[2] * _j + _k;
 
 
 
@@ -158,7 +158,7 @@ namespace gridtools {
             //           << std::endl;
 
             assert(index >= 0);
-            assert(index <m_size);
+            assert(index <m_strides[0]);
 
             return index;
         }
