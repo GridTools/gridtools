@@ -36,7 +36,6 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
   typedef arg_extend<arg_type<0>, 1>::type in;
-    /* typedef arg_type<1> out; */
     typedef boost::mpl::vector<in/* , out */> arg_list;
     using time=Extra<1>;
   /* static const auto expression=in(1,0,0)-out(); */
@@ -84,7 +83,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
     //typedef storage_type::basic_type integrator_type;
     /* typedef extend<storage_type::basic_type, 2> integrator_type; */
-    typedef extend<storage_type::basic_type, 1> integrator_type;
+    typedef extend_width<storage_type::basic_type, 0>  extended_type;
+    typedef extend_width<storage_type::basic_type, 0>  extended_type2;
+    typedef extend_dim<extended_type, extended_type2>            integrator_type;
 
     //out.print();
 
@@ -213,9 +214,9 @@ PAPI_stop(event_set, values);
 #ifdef CUDA_EXAMPLE
     //out.data().update_cpu();
 #endif
-#define NX 5
-#define NY 5
-#define NZ 5
+#define NX 511
+#define NY 511
+#define NZ 59
 
     /* in.print_value(0,0,0); */
     /* in.print_value(0,4,0); */

@@ -15,8 +15,6 @@
  */
 namespace gridtools {
 
-
-
     namespace _impl
     {
         template <ushort_t I, typename OtherLayout, int_t X>
@@ -31,15 +29,15 @@ namespace gridtools {
         template <ushort_t I, typename OtherLayout>
         struct get_stride_<I, OtherLayout, 2>
         {
-            GT_FUNCTION
+	  GT_FUNCTION
             static uint_t get(const uint_t* ) {
 #ifndef __CUDACC__
 #ifndef NDEBUG
                 //                std::cout << "U" ;//<< std::endl;
 #endif
 #endif
-                return 1;
-            }
+	      return 1;
+	  }
         };
 
         template <ushort_t I, typename OtherLayout>
@@ -98,12 +96,14 @@ namespace gridtools {
 /**
    @biref main class for the storage
  */
+#define FIELDS_DIMENSION 3
+
     template < enumtype::backend Backend,
                typename ValueType,
                typename Layout,
                bool IsTemporary = false
                >
-    struct base_storage// : public clonable_to_gpu<base_storage<Backend, ValueType, Layout, IsTemporary> > 
+    struct base_storage
     {
         typedef Layout layout;
         typedef ValueType value_type;
@@ -119,25 +119,24 @@ namespace gridtools {
     public:
         explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
-            m_size( dim1 * dim2 * dim3 ),
-            is_set( true ),
-            m_data( m_size )//,
-	// m_name(s)
+            m_data( dim1*dim2*dim3 )
+            , is_set( true )
+	    // m_name(s)
             {
-            m_dims[0]=( dim1 );
-            m_dims[1]=( dim2 );
-            m_dims[2]=( dim3 );
 	    // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
-            m_strides[0]=( m_dims[layout::get(2)]*m_dims[layout::get(1)]);
-            m_strides[1]=( m_dims[layout::get(2)] );
-            m_strides[2]=( 1 );
-#ifdef _GT_RANDOM_INPUT
-            srand(12345);
+#ifndef COMPILE_TIME_STRIDES
+	      uint_t dims[]={dim1, dim2, dim3};
+	      m_strides[0]=( dim1*dim2*dim3 );
+	      m_strides[1]=( dims[layout::template get<2>()]*dims[layout::template get<1>()]);
+	      m_strides[2]=( dims[layout::template get<2>()] );
 #endif
-            //m_data = new value_type[m_size];
-            for (uint_t i = 0; i < m_size; ++i)
+
 #ifdef _GT_RANDOM_INPUT
-                    m_data[i] = init * rand();
+	      srand(12345);
+#endif
+	      for (uint_t i = 0; i < /*m_size*/m_strides[0]; ++i)
+#ifdef _GT_RANDOM_INPUT
+		m_data[i] = init * rand();
 #else
                 m_data[i] = init;
 #endif
@@ -147,36 +146,21 @@ namespace gridtools {
       template<typename T>
       __device__
       base_storage(T const& other)
-      	  : m_size(other.size())
-      	  , is_set(other.is_set)
-      	  // , m_name(other.name())
-      	  , m_data(other.data())
+	:      	  // , m_name(other.name())
+	m_data(other.data())
+	, is_set(other.is_set)
         {
-      	  m_dims[0] = other.dims(0);
-      	  m_dims[1] = other.dims(1);
-      	  m_dims[2] = other.dims(2);
-
       	  m_strides[0] = other.strides(0);
       	  m_strides[1] = other.strides(1);
       	  m_strides[2] = other.strides(2);
         }
 
-
-        __device__
-        base_storage(base_storage const& other)
-            : m_size(other.m_size)
-            , is_set(other.is_set)
-            // , m_name(other.m_name)
-            , m_data(other.m_data)
-        {
-            m_dims[0] = other.m_dims[0];
-            m_dims[1] = other.m_dims[1];
-            m_dims[2] = other.m_dims[2];
-
-            m_strides[0] = other.m_strides[0];
-            m_strides[1] = other.m_strides[1];
-            m_strides[2] = other.m_strides[2];
-        }
+      // /**@brief clone factory: the clone will share the strides, but NOT the index!, so that different memory locations on different storages can be accessed simultaneously*/
+      // GT_FUNCTION
+      //   share_layout(base_storage& other)
+      // {
+      // 	other.m_strides=&m_strides[0];
+      // }
 
       GT_FUNCTION
       void copy_data_to_gpu() const {data().update_gpu();}
@@ -203,10 +187,10 @@ namespace gridtools {
         }
 
         void info() const {
-            // std::cout << m_dims[0] << "x"
-            //           << m_dims[1] << "x"
-            //           << m_dims[2] << ", "
-            //           << std::endl;
+	  std::cout << dims_coordwise<0>(m_strides) << "x"
+		    << dims_coordwise<1>(m_strides) << "x"
+		    << dims_coordwise<2>(m_strides) << ", "
+                      << std::endl;
         }
 
         GT_FUNCTION
@@ -217,14 +201,14 @@ namespace gridtools {
 
         GT_FUNCTION
         const_iterator_type max_addr() const {
-            return &(m_data[m_size]);
+	  return &(m_data[/*m_size*/m_strides[0]]);
         }
 
         GT_FUNCTION
         value_type& operator()(uint_t i, uint_t j, uint_t k) {
             /* std::cout<<"indices= "<<i<<" "<<j<<" "<<k<<std::endl; */
 	  backend_traits_t::assertion(_index(i,j,k) >= 0);
-	  backend_traits_t::assertion(_index(i,j,k) < m_size);
+	  backend_traits_t::assertion(_index(i,j,k) < /* m_size*/ m_strides[0]);
 	  return m_data[_index(i,j,k)];
         }
 
@@ -232,61 +216,73 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
             backend_traits_t::assertion(_index(i,j,k) >= 0);
-            backend_traits_t::assertion(_index(i,j,k) < m_size);
+            backend_traits_t::assertion(_index(i,j,k) < /*m_size*/m_strides[0]);
             return m_data[_index(i,j,k)];
-        }
-
-        template <ushort_t I>
-        GT_FUNCTION
-        uint_t stride_along() const {
-            return _impl::get_stride<I, layout>::get(m_strides); /*layout::template at_<I>::value];*/
         }
 
         //note: offset returns a signed int because the layout map indexes are signed short ints
         GT_FUNCTION
         int_t offset(int_t i, int_t j, int_t k) const {
-	  return //layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-            m_strides[0]* layout::template find<0>(i,j,k) +
-	  //layout::template find<2>(m_dims)
-	  m_strides[1] * layout::template find<1>(i,j,k) +
-            layout::template find<2>(i,j,k);
+	  return  m_strides[1]* layout::template find<0>(i,j,k) +  m_strides[2] * layout::template find<1>(i,j,k) + layout::template find<2>(i,j,k);
         }
 
 	GT_FUNCTION
 	inline uint_t size() const {
-	  return m_size;
-	}
-
-
-	// GT_FUNCTION
-	// inline uint_t const* strides() const {return m_strides;}
-
-
-	GT_FUNCTION
-	inline uint_t stride_k() const {
-	  return layout::template find<2>(m_strides);//e.g. (GPU test) =512*512=262144
+	  return m_strides[0];
 	}
 
         void print() const {
             print(std::cout);
         }
+
+      /**@brief prints a single value of the data field given the coordinates*/
 	void print_value(uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, m_data[_index(i, j, k)], _index(i, j, k));}
 
     static const std::string info_string;
 
-//private:
-        uint_t m_dims[3];
-        uint_t m_strides[3];
-        uint_t m_size;
-        bool is_set;
-        // const std::string& m_name;
 
+      /**@brief return the stride for a specific coordinate, given the vector of strides*/
+      template<uint_t Coordinate>
+        GT_FUNCTION
+      static constexpr uint_t strides(uint_t const* strides){
+	return (layout::template pos_<Coordinate>::value==FIELDS_DIMENSION-1) ? 1 : layout::template find<Coordinate>(&strides[1]);
+      }
+
+
+      /**@brief return the stride for a specific coordinate, given the vector of dimensions*/
+      template<uint_t Coordinate>
+        GT_FUNCTION
+      static constexpr uint_t strides_coordwise(uint_t const* dims){
+	return (layout::template pos_<Coordinate>::value==FIELDS_DIMENSION-1) ? 1 : layout::template find<Coordinate>(dims)*dims_stridewise<(layout::template get<Coordinate>())+1>(dims);
+      }
+
+      /**@brief return the stride for a specific stride level (i.e. 0 for stride x*y, 1 for stride x, 2 for stride 1), given the vector of dimensions*/
+      template<uint_t StrideOrder>
+        GT_FUNCTION
+      static constexpr uint_t strides_stridewise(uint_t const* dims){
+	return (StrideOrder==FIELDS_DIMENSION-1) ? 1 : dims[StrideOrder]*(strides_stridewise<StrideOrder+1>(dims));
+      }
+
+      /**@brief return the dimension for a specific coordinate, given the vector of strides*/
+      template<uint_t Coordinate>
+        GT_FUNCTION
+      static constexpr uint_t dims_coordwise(uint_t const* str) {
+	return (layout::template pos_<Coordinate>::value==FIELDS_DIMENSION-1) ? str[FIELDS_DIMENSION-1] : (layout::template find<Coordinate>(str))/(str[(layout::template get<Coordinate>())+1]);
+      }
+
+      /**@brief return the dimension size corresponding to a specific stride level (i.e. 0 for stride x*y, 1 for stride x, 2 for stride 1), given the vector of strides*/
+      template<uint_t StrideOrder>
+        GT_FUNCTION
+      static constexpr uint_t dims_stridewise(uint_t const* strides){
+	return (StrideOrder==FIELDS_DIMENSION-1) ? strides[FIELDS_DIMENSION-1] : strides[StrideOrder]/strides[StrideOrder+1];
+      }
+
+      /**@brief printing a portion of the content of the data field*/
         template <typename Stream>
         void print(Stream & stream) const {
-            //std::cout << "Printing " << name << std::endl;
-            stream << "(" << m_dims[0] << "x"
-                      << m_dims[1] << "x"
-                      << m_dims[2] << ")"
+            stream << "(" << m_strides[1] << "x"
+                      << m_strides[2] << "x"
+                      << 1 << ")"
                       << std::endl;
             stream << "| j" << std::endl;
             stream << "| j" << std::endl;
@@ -296,15 +292,15 @@ namespace gridtools {
             ushort_t MI=12;
             ushort_t MJ=12;
             ushort_t MK=12;
-
-            for (uint_t i = 0; i < m_dims[0]; i += std::max(( uint_t)(1),m_dims[0]/MI)) {
-                for (uint_t j = 0; j < m_dims[1]; j += std::max(( uint_t)1,m_dims[1]/MJ)) {
-                    for (uint_t k = 0; k < m_dims[2]; k += std::max(( uint_t)1,m_dims[2]/MK)) {
+            for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MJ)) {
+                for (uint_t j = 0; j < dims_coordwise<1>(m_strides); j += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MJ)) {
+                    for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK)) 
+{
                         stream << "["/*("
                                           << i << ","
                                           << j << ","
                                           << k << ")"*/
-                                  << this->operator()(i,j,k) << "] ";
+			       << this->operator()(i,j,k) << "] ";
                     }
                     stream << std::endl;
                 }
@@ -318,52 +314,39 @@ namespace gridtools {
             uint_t index;
             if (IsTemporary) {
                 index =
-		  //layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-                    m_strides[0]* (modulus(layout::template find<0>(i,j,k),layout::template find<0>(m_dims))) +
-		  //layout::template find<2>(m_dims)
-		  m_strides[1]*modulus(layout::template find<1>(i,j,k),layout::template find<1>(m_dims)) +
-                    modulus(layout::template find<2>(i,j,k),layout::template find<2>(m_dims));
+		  m_strides[1]* (modulus(layout::template find<0>(i,j,k),dims_coordwise<0>(m_strides))) +
+		  m_strides[2]*modulus(layout::template find<1>(i,j,k), dims_coordwise<1>(m_strides)) +
+                    modulus(layout::template find<2>(i,j,k), dims_coordwise<2>(m_strides));
             } else {
-                index =
-		//layout::template find<2>(m_dims) * layout::template find<1>(m_dims)
-		m_strides[0]
-                    * layout::template find<0>(i,j,k) +
-		//layout::template find<2>(m_dims)
-		m_strides[1]* layout::template find<1>(i,j,k) +
+                index = m_strides[1] * layout::template find<0>(i,j,k) +
+		m_strides[2]* layout::template find<1>(i,j,k) +
                     layout::template find<2>(i,j,k);
-		  // m_strides[0]*layout::template find<0>(i,j,k)+m_strides[1]*layout::template find<1>(i,j,k)+m_strides[2]*layout::template find<2>(i,j,k);
             }
-            //assert(index >= 0);
-            // assert(index <m_size);
             return index;
         }
 
       template <uint_t Coordinate>
         GT_FUNCTION
       void increment(uint_t* index){
-	/* printf("index before k increment = %d\n", *m_index); */
-	*index+=layout::template find<Coordinate>(m_strides);
-	/* printf("coordinate = %d, index  = %d \n", Coordinate, index);  */
+	*index+=strides<Coordinate>(m_strides);
       }
 
       template <uint_t Coordinate>
         GT_FUNCTION
 	void decrement(uint_t const& coordinate, uint_t* index){
-	*index-=layout::template find<Coordinate>(m_strides);
+	*index-=strides<Coordinate>(m_strides);
       }
 
       template <uint_t Coordinate>
         GT_FUNCTION
 	void inline increment(uint_t const& dimension, uint_t* index){
-	//printf("index before = %d", *m_index);
-	*index+=layout::template find<Coordinate>(m_strides)*dimension;
-	/* printf("dimension = %d, coordinate = %d, index  = %d , stride %d \n", dimension, Coordinate, *index, layout::template find<Coordinate>(m_strides));   */
+	*index+=strides<Coordinate>(m_strides)*dimension;
       }
 
       template <uint_t Coordinate>
         GT_FUNCTION
 	void decrement(uint_t dimension, uint_t* index){
-	*index-=layout::template find<Coordinate>(m_strides)*dimension;
+	*index-=strides<Coordinate>(m_strides)*dimension;
       }
 
         GT_FUNCTION
@@ -377,15 +360,25 @@ namespace gridtools {
 	pointer_type const* fields() const {return &m_data;}
 
       GT_FUNCTION
-      uint_t dims(ushort_t i) const {return m_dims[i];}
+      uint_t dims(ushort_t i) const {return dims_coordwise<i>(m_strides);}
 
       GT_FUNCTION
-      uint_t strides(ushort_t i) const {return m_strides[i];}
+      uint_t strides(ushort_t i) const {
+	//"you might thing that you are accessing a stride,\n
+	// but you are indeed accessing the whole storage dimension."
+	assert(i!=0);
+	return m_strides[i];
+      }
 
       pointer_type m_data;
 
-    protected:
-
+    private:
+      bool is_set;
+#ifdef COMPILE_TIME_STRIDES
+      static const uint_t m_strides[/*3*/FIELDS_DIMENSION]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
+#else
+      uint_t m_strides[FIELDS_DIMENSION];
+#endif
     };
 
 
@@ -394,17 +387,6 @@ namespace gridtools {
       GT_FUNCTION
       void operator()(BaseStorage* b ) const {printf("index -> %d, address %lld, 0x%08x \n", b->index(), &b->index(), &b->index());}
     };
-
-    // struct set_index{
-    //     GT_FUNCTION
-    // 	set_index(uint_t& index):m_index(index){  }
-
-    //   template <typename BaseStorage>
-    //   GT_FUNCTION
-    //   void operator()(BaseStorage* b ) const {b->set_index(m_index);}
-    // private:
-    //   uint_t& m_index;
-    // };
 
   template <uint_t Coordinate>
   struct incr{
@@ -443,23 +425,22 @@ namespace gridtools {
     and to implement a cash for the solutions, where the new one is stored in place of the
     least recently used one (m_lru).*/
 
-    template < typename Storage, ushort_t ExtraDimensions>
-    struct extend : public Storage,  clonable_to_gpu<extend<Storage, ExtraDimensions> > //  : public Storage
+    template < typename Storage, ushort_t ExtraWidth>
+      struct extend_width : public Storage//, clonable_to_gpu<extend_width<Storage, ExtraWidth> >
     {
-
       typedef Storage super;
       typedef typename super::pointer_type pointer_type;
 
       typedef typename super::original_storage original_storage;
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
-        explicit extend(uint_t dim1, uint_t dim2, uint_t dim3,
+        explicit extend_width(uint_t dim1, uint_t dim2, uint_t dim3,
 			value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s)/* , m_lru(0) */, m_fields() {
             push_back(super::m_data);//first solution is the initialization by default
         }
 
       __device__
-      extend(extend const& other)
+      extend_width(extend_width const& other)
 	: super(other)
 	  //m_lru(other.m_lru)
 	{
@@ -475,7 +456,7 @@ namespace gridtools {
 	  m_fields[i].update_gpu();
       }
 
-        // extend() : m_lru(0), m_fields(){
+        // extend_width() : m_lru(0), m_fields(){
         // };
 
         GT_FUNCTION
@@ -549,13 +530,62 @@ namespace gridtools {
             }
         }
 
-        static const ushort_t n_args = ExtraDimensions+1;
+        static const ushort_t n_args = ExtraWidth+1;
     private:
-        /* ushort_t m_lru; */
-        //todo: create a smart<Pointer> adding the policy to whatever pointer.
-        /*smart<*/pointer_type/*>*/ m_fields[n_args];
+        pointer_type m_fields[n_args];
     };
 
+    /**specialization: if the width extension is 0 we fall back on the base storage*/
+    template < typename Storage>
+    struct extend_width<Storage, 0> : public Storage//, clonable_to_gpu<extend_width<Storage, 0> > //  : public Storage
+    {
+      typedef typename Storage::basic_type basic_type;
+      typedef typename Storage::original_storage original_storage;
+      //inheriting constructors
+      using Storage::Storage;
+      __device__
+      extend_width(extend_width const& other)
+	: Storage(other)
+      {}
+      static const ushort_t n_args = Storage::n_args;
+    };
+
+    /** @brief first interface: each extend_width in the vector is specified with its own extra width
+    	extension<extend_width<storage, 3>, extend_width<storage, 2>, extend_width<storage, 4> >, which is syntactic sugar for:
+    	extension<extend_width<extension<extend_width<extension<extend_width<storage, 4> >, 2> >, storage, 3> >
+    */
+    template < typename First, typename  ...  StorageExtended>
+      struct dimension_extension_traits {
+      //total number of dimensions
+      static const uint_t n_fields=First::n_args + dimension_extension_traits<StorageExtended  ...  >::n_fields ;
+      static const uint_t n_width=First::n_args;
+      static const uint_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
+      typedef extend_width<First, n_fields>  type;
+      };
+
+
+    template < typename First>
+    struct dimension_extension_traits<First> {
+      //total number of dimensions
+      static const uint_t n_fields=First::n_args;
+      static const uint_t n_width=First::n_args;
+      static const uint_t n_dimensions= 1 ;
+      typedef extend_width<First, n_fields>  type;
+    };
+
+    template <typename First,  typename  ...  StorageExtended>
+      struct extend_dim : public dimension_extension_traits<First, StorageExtended ...  >::type, clonable_to_gpu<extend_dim<First, StorageExtended  ... > >
+  {
+    typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;
+    typedef typename  super::basic_type basic_type;
+    typedef typename super::original_storage original_storage;
+    using super::extend_width;
+      
+    __device__
+      extend_dim( extend_dim const& other )
+      	: super(other)
+      {}
+  };
 
     template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary
         >
@@ -597,19 +627,26 @@ namespace gridtools {
   struct is_temporary_storage<Decorator<BaseType, Extra...> > : is_temporary_storage< typename BaseType::basic_type >
     {};
 
-    //Decorator is the extend
-  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
-  struct is_temporary_storage<Decorator<BaseType, Extra...>* > : is_temporary_storage< typename BaseType::basic_type* >
+  template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
+    struct is_temporary_storage<Decorator<First, BaseType...> > : is_temporary_storage< typename First::basic_type >
     {};
 
     //Decorator is the extend
-  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
-  struct is_temporary_storage<Decorator<BaseType, Extra...>& > : is_temporary_storage< typename BaseType::basic_type& >
+  template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
+    struct is_temporary_storage<Decorator<First, BaseType...>* > : is_temporary_storage< typename First::basic_type* >
+    {};
+
+  template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
+    struct is_temporary_storage<Decorator<First, BaseType...>& > : is_temporary_storage< typename First::basic_type& >
     {};
 
     //Decorator is the extend
   template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
   struct is_temporary_storage<Decorator<BaseType, Extra...>*& > : is_temporary_storage< typename BaseType::basic_type*& >
+    {};
+
+  template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
+    struct is_temporary_storage<Decorator<First, BaseType...>*& > : is_temporary_storage< typename First::basic_type*& >
     {};
 
     template <enumtype::backend Backend, typename T, typename U, bool B>

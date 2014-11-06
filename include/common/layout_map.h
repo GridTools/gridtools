@@ -207,21 +207,27 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         static  const ushort_t length=3;
         typedef boost::mpl::vector3_c<short_t, I1, I2, I3> t;
 
+      template <ushort_t i>
         GT_FUNCTION
-        static short_t get(short_t i) {
-            assert( i<length );
-            switch (i) {
-            case 0:
-                return boost::mpl::at_c<t, 0 >::type::value;
-            case 1:
-                return boost::mpl::at_c<t, 1 >::type::value;
-            case 2:
-                return boost::mpl::at_c<t, 2 >::type::value;
-            case 3:
-	      return -1;
-            }
-            return -1;
-        }
+	static constexpr short_t get() {
+	  return boost::mpl::at_c<t, i >::type::value;
+	}
+
+
+        /* static constexpr short_t get(short_t i) { */
+	/*   static_assert( i<length ); */
+        /*     switch (i) { */
+        /*     case 0: */
+        /*         return boost::mpl::at_c<t, 0 >::type::value; */
+        /*     case 1: */
+        /*         return boost::mpl::at_c<t, 1 >::type::value; */
+        /*     case 2: */
+        /*         return boost::mpl::at_c<t, 2 >::type::value; */
+        /*     case 3: */
+	/*       return -1; */
+        /*     } */
+        /*     return -1; */
+        /* } */
 
         template <ushort_t I>
         struct at_ {
@@ -409,21 +415,25 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return -1;
         }
 
-        GT_FUNCTION
-        static int get(short_t i) {
-            assert( i<length );
-            switch (i) {
-            case 0:
-                return boost::mpl::at_c<t, 0 >::type::value;
-            case 1:
-                return boost::mpl::at_c<t, 1 >::type::value;
-            case 2:
-                return boost::mpl::at_c<t, 2 >::type::value;
-            case 3:
-                return boost::mpl::at_c<t, 3 >::type::value;
-            }
-            return -1;
-        }
+      template <short_t i>
+      static constexpr ushort_t get() {
+	return boost::mpl::at_c<t, i >::type::value;
+      }
+        // GT_FUNCTION
+        // static constexpr int get(short_t i) {
+	//   //static_assert( i<length );
+        //     switch (i) {
+        //     case 0:
+        //         return boost::mpl::at_c<t, 0 >::type::value;
+        //     case 1:
+        //         return boost::mpl::at_c<t, 1 >::type::value;
+        //     case 2:
+        //         return boost::mpl::at_c<t, 2 >::type::value;
+        //     case 3:
+        //         return boost::mpl::at_c<t, 3 >::type::value;
+        //     }
+        //     return -1;
+        // }
 
         template <ushort_t I, typename T>
         GT_FUNCTION
