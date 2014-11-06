@@ -131,9 +131,16 @@ namespace gridtools {
         namespace impl{
         template <ushort_t Coordinate>
             struct T{
-            T(short_t const& val){ value=val;}
+	      GT_FUNCTION
+            constexpr T(int_t val) : value
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+	    (val)
+#else
+	      {val}
+#endif
+{}
             static const ushort_t direction=Coordinate;
-            short_t value;
+            int_t value;
         };
         }
 
@@ -142,19 +149,35 @@ namespace gridtools {
         typedef impl::T<2> z;
     }
 
-    struct initialize
+    template <ushort_t N, typename X>
+      GT_FUNCTION
+    constexpr int_t initialize( X x )
     {
-        GT_FUNCTION
-        initialize(int_t* offset) : m_offset(offset)
-            {}
+        return (X::direction==N? x.value : 0);
+    }
 
-        template<typename X>
-        GT_FUNCTION
-        inline void operator( )(X const& i) const {
-            m_offset[X::direction] = i.value;
-        }
-        int_t* m_offset;
-    };
+#ifdef CXX11_ENABLED
+    template <ushort_t N, typename X, typename ... Rest>
+      GT_FUNCTION
+    constexpr int_t initialize(X x, Rest ... rest )
+    {
+        return X::direction==N? x.value : initialize<N>(rest...);
+    }
+#else
+    template <ushort_t N, typename X, typename Y>
+      GT_FUNCTION
+    constexpr int_t initialize(X x, Y y)
+    {
+        return X::direction==N? x.value : Y::direction==N? y.value : 0;
+    }
+
+    template <ushort_t N, typename X, typename Y, typename Z>
+      GT_FUNCTION
+      constexpr int_t initialize(X x, Y y, Z z)
+    {
+        return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
+    }
+#endif
 
     /**
      * Type to be used in elementary stencil functions to specify argument mapping and ranges
@@ -174,7 +197,9 @@ namespace gridtools {
 
     int_t offset[dimension]
 #ifdef CXX11_ENABLED
-    ={0}
+        int_t m_offset[3]={0,0,0};
+#else
+        int_t m_offset[3];
 #endif
       ;
 
@@ -182,11 +207,17 @@ namespace gridtools {
         typedef Range range_type;
 
         GT_FUNCTION
-	arg_type(int_t i, int_t j, int_t k) {
-            offset[0] = i;
-            offset[1] = j;
-            offset[2] = k;
-        }
+        constexpr arg_type(int_t i, int_t j, int_t k)
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+      {
+	m_offset[0]=i;
+	m_offset[1]=j;
+	m_offset[2]=k;
+      }
+#else
+	  : m_offset{i,j,k} {}
+#endif
+
 
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
@@ -195,93 +226,94 @@ namespace gridtools {
       // we implement a suboptimal solution
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
-	  arg_type ( X1 x, X2 y, X3 z){
-          boost::fusion::vector<X1, X2, X3> vec(x, y, z);
-          boost::fusion::for_each(vec, initialize(offset));
-        }
-
+	  arg_type ( X1 x, X2 y, X3 z)
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+      {
+	m_offset[0]=initialize<0>(x,y,z);
+	m_offset[1]=initialize<1>(x,y,z);
+	m_offset[2]=initialize<2>(x,y,z);
+      }
+#else
+:m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{ }
+#endif
       template <typename X1, typename X2 >
         GT_FUNCTION
-	  arg_type ( X1 x, X2 y){
-#ifndef CXX11_ENABLED
-	offset[0]=0;
-	offset[1]=0;
-	offset[2]=0;
-#endif
-          boost::fusion::vector<X1, X2> vec(x, y);
-          boost::fusion::for_each(vec, initialize(offset));
+	  constexpr arg_type ( X1 x, X2 y)
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+      {
+	m_offset[0]=initialize<0>(x,y);
+	m_offset[1]=initialize<1>(x,y);
+	m_offset[2]=initialize<2>(x,y);
       }
+#else
+:m_offset{initialize<0>(x,y), initialize<1>(x,y), initialize<2>(x,y)}{ }
+#endif
 
       template <typename X1>
         GT_FUNCTION
-	  arg_type ( X1 x){
-#ifndef CXX11_ENABLED
-	offset[0]=0;
-	offset[1]=0;
-	offset[2]=0;
-#endif
-	boost::fusion::vector<X1> vec(x);
-	boost::fusion::for_each(vec, initialize(offset));
-        }
-
+	  constexpr arg_type ( X1 x)
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+      {
+	m_offset[0]=initialize<0>(x);
+	m_offset[1]=initialize<1>(x);
+	m_offset[2]=initialize<2>(x);
+      }
 #else
-      //#ifdef CXX11_ENABLED
-      //if you get a compiler error here, use the version above
+:m_offset{initialize<0>(x), initialize<1>(x), initialize<2>(x)}{ }
+#endif
+
+#else // __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+
+//      if you get a compiler error here, use the version above
         template <typename... X >
         GT_FUNCTION
-        arg_type ( X... x){
-            //BOOST_STATIC_ASSERT(sizeof...(X)<=dimensions);
-            boost::fusion::vector<X...> vec(x...);
-            boost::fusion::for_each(vec, initialize(offset));
+        constexpr arg_type ( X... x):m_offset{initialize<0>(x...), initialize<1>(x...), initialize<2>(x...)}{
         }
-
-        // template <typename... int_t >
-        // GT_FUNCTION
-        // arg_type ( int_t... x){
-	//   BOOST_STATIC_ASSERT(sizeof...(X)==dimensions);
-	//   offset={x};
-        // }
-      //#endif //CXX11_ENABLED
 #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
         GT_FUNCTION
-        arg_type() {
-            offset[0] = 0;
-            offset[1] = 0;
-            offset[2] = 0;
+        constexpr arg_type()
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+      {
+	m_offset[0]=0;
+	m_offset[1]=0;
+	m_offset[2]=0;
+      }
+#else
+:m_offset{0,0,0} {}
+#endif
+
+        GT_FUNCTION
+        constexpr int_t i() const {
+            return m_offset[0];
         }
 
         GT_FUNCTION
-        int_t i() const {
-            return offset[0];
+        constexpr int_t j() const {
+            return m_offset[1];
         }
 
         GT_FUNCTION
-        int_t j() const {
-            return offset[1];
+        constexpr int_t k() const {
+            return m_offset[2];
         }
 
         GT_FUNCTION
-        int_t k() const {
-            return offset[2];
-        }
-
-        GT_FUNCTION
-        static arg_type<I> center() {
+        static constexpr  arg_type<I> center() {
             return arg_type<I>();
         }
 
         GT_FUNCTION
-        const int_t* offset_ptr() const {
-            return offset;
+        constexpr int_t const* offset_ptr() const {
+            return &m_offset[0];
         }
 
         GT_FUNCTION
-        arg_type<I> plus(int_t _i, int_t _j, int_t _k) const {
+        constexpr arg_type<I> plus(int_t _i, int_t _j, int_t _k) const {
             return arg_type<I>(i()+_i, j()+_j, k()+_k);
         }
 
-        static void info() {
+        static  void info() {
             std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
         }
 
@@ -479,12 +511,17 @@ whatever not compiling
     template <typename ArgType1, typename ArgType2>
     struct expr{
         GT_FUNCTION
-        expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
+        constexpr expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
             :
-            first_operand(first_operand),
-            second_operand(second_operand)
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+      first_operand(first_operand),
+	second_operand(second_operand)
+#else
+            first_operand{first_operand},
+            second_operand{second_operand}
+#endif
             {}
-
+      constexpr expr(){}
         ArgType1 const first_operand;
         ArgType2 const second_operand;
     };
@@ -493,47 +530,51 @@ whatever not compiling
     struct expr_plus : public expr<ArgType1, ArgType2>{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
-        expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+        constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_plus(){};
     };
 
     template <typename ArgType1, typename ArgType2>
     struct expr_minus : public expr<ArgType1, ArgType2 >{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
-        expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+        constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_minus(){}
     };
 
     template <typename ArgType1, typename ArgType2>
     struct expr_times : public expr<ArgType1, ArgType2 >{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
-        expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+        constexpr expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_times(){}
     };
 
     template <typename ArgType1, typename ArgType2>
     struct expr_divide : public expr<ArgType1, ArgType2 >{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
-        expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
-    };
+        constexpr expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+	constexpr expr_divide(){}
+   };
 
 #ifdef CXX11_ENABLED
     namespace expressions{
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(std::forward<ArgType1>(arg1), std::forward<ArgType2>(arg2));}
+        constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
 
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
 
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
 
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
 
     }//namespace expressions
 
