@@ -73,6 +73,11 @@ namespace gridtools {
 
 
     //Decorator is the integrator
+    template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
+      struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
+    //Decorator is the integrator
     template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
     struct is_storage<Decorator<BaseType, Order>  *  > : public is_storage<typename BaseType::basic_type*>
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
@@ -299,20 +304,19 @@ namespace gridtools {
 //################################################################################
 
     namespace enumtype{
-// #ifdef CXX11_ENABLED
-//        template<ushort_t N>
-//        using Extra=impl::T<N>;
-// #else
         template<ushort_t N>
-        struct Extra{// : public impl::T<N>{
+        struct Extra{
 	  GT_FUNCTION
 	  Extra(short_t const& val){ value=val;}
 	  static const ushort_t direction=N;
 	  short_t value;
          };
-// #endif
     }
 
+    /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
+       \param n_args is the current ID of the extra dimension
+       \param index_type is the index of the storage type
+     */
     template< class ArgType>
     struct arg_decorator : public ArgType{
 
@@ -321,12 +325,17 @@ namespace gridtools {
         typedef typename super::index_type index_type;
 
 #ifdef CXX11_ENABLED
+	/**@brief constructor taking an integer as the first argument, and then other optional arguments.
+	   The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions). When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
         arg_decorator ( int_t const& t, Whatever... x): super( x... ) {
 	  m_offset=t;
 	}
 
+	/**@brief constructor taking the Extra class as argument.
+	 This allows to specify the extra arguments out of order. Note that 'enumtype::Extra' is a 
+	 language keyword used at the interface level.*/
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
         arg_decorator ( enumtype::Extra<Idx> const& t, Whatever... x): super( x... ) {
@@ -347,6 +356,7 @@ namespace gridtools {
             }
         }
 
+	/**@brief fallback constructor, when the others are not taken, meaning that no offset for the extra dimension was specified, simply forwards the call to the constructor of the base class.*/
         template <typename... Whatever>
         GT_FUNCTION
         arg_decorator ( Whatever... x ): super( x... ) {
@@ -359,18 +369,21 @@ namespace gridtools {
 whatever not compiling
 #endif
 
-    /** @brief usage: n<3>() returns the offset of extra dimension 3 */
+    /** @brief usage: n<3>() returns the offset of extra dimension 3 
+	loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument. 
+     */
     template<short_t index>
     GT_FUNCTION
     short_t n() const {//recursively travel the list of offsets
     BOOST_STATIC_ASSERT( index>0 );
     // printf("index to the n method:%d \n", index);
     BOOST_STATIC_ASSERT( index<=n_args );
+    //this might not be compile-time efficient for large indexes, 
+    //because both taken and not taken branches are compiled
     return index==1? m_offset : super::template n<index-1>();
     }
 
     private:
-      //note: the value is replaced by subsequent calls?
       short_t m_offset;
     };
 
@@ -391,7 +404,7 @@ whatever not compiling
      * Struct to test if an argument is a temporary
      */
     template <typename T>
-    struct is_plchldr_to_temp; //: boost::false_type
+    struct is_plchldr_to_temp; 
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
@@ -408,15 +421,21 @@ whatever not compiling
     struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
     {};
 
-  //here the decorator is the GPU storage
+  //here the decorator is the GPU storage or the dimension extension
     template <uint_t I, typename BaseType, template <typename T> class Decorator>
       struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
 
+
   //here the decorator is the dimension extension
-    template <uint_t I, typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order>
-      struct is_plchldr_to_temp<arg<I, Decorator<BaseType , Order> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
+      struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
     {};
+
+  /* //here the decorator is the dimension extension */
+  /*   template <uint_t I, typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order> */
+  /*     struct is_plchldr_to_temp<arg<I, Decorator<BaseType , Order> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> > */
+  /*   {}; */
 
     /**
      * Printing type information for debug purposes
@@ -452,6 +471,11 @@ whatever not compiling
                  << ", NON TEMP" << " > ]";
     }
 
+    /**@brief Expression templates definition.
+       The expression templates are a method to parse at compile time the mathematical expression given
+       by the user, recognizing the structure and building a syntax tree by recursively nesting 
+       templates.
+     */
     template <typename ArgType1, typename ArgType2>
     struct expr{
         GT_FUNCTION
