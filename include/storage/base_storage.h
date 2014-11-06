@@ -333,7 +333,7 @@ namespace gridtools {
 
       template <uint_t Coordinate>
         GT_FUNCTION
-	void decrement(uint_t const& coordinate, uint_t* index){
+	void decrement(uint_t* index){
 	*index-=strides<Coordinate>(m_strides);
       }
 
@@ -492,7 +492,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        inline void push_back(/*smart<*/ pointer_type/*>*/ & field){
+        inline void push_back(/*smart<*/ const pointer_type/*>*/ & field){
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage
 	  for(uint_t i=1;i<n_args;i++) m_fields[i]=m_fields[i-1];
 	  m_fields[0]=field;
@@ -622,11 +622,20 @@ namespace gridtools {
       : boost::true_type
     {};
 
-    //Decorator is the extend
-  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
-  struct is_temporary_storage<Decorator<BaseType, Extra...> > : is_temporary_storage< typename BaseType::basic_type >
+    template <  template <typename T> class  Decorator, typename BaseType>
+    struct is_temporary_storage<Decorator< BaseType > > : is_temporary_storage< typename BaseType::basic_type >
+    {};
+    template <  template <typename T> class Decorator, typename BaseType>
+    struct is_temporary_storage<Decorator< BaseType >* > : is_temporary_storage< typename BaseType::basic_type* >
+    {};
+    template <  template <typename T> class Decorator, typename BaseType>
+    struct is_temporary_storage<Decorator< BaseType >& > : is_temporary_storage< typename BaseType::basic_type& >
+    {};
+    template <  template <typename T> class Decorator, typename BaseType>
+    struct is_temporary_storage<Decorator< BaseType >*& > : is_temporary_storage< typename BaseType::basic_type*& >
     {};
 
+    //Decorator is the extend
   template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...> > : is_temporary_storage< typename First::basic_type >
     {};
@@ -636,23 +645,20 @@ namespace gridtools {
     struct is_temporary_storage<Decorator<First, BaseType...>* > : is_temporary_storage< typename First::basic_type* >
     {};
 
+    //Decorator is the extend
   template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...>& > : is_temporary_storage< typename First::basic_type& >
     {};
 
     //Decorator is the extend
-  template <template <typename T, ushort_t ... O> class Decorator, typename BaseType, ushort_t ... Extra>
-  struct is_temporary_storage<Decorator<BaseType, Extra...>*& > : is_temporary_storage< typename BaseType::basic_type*& >
-    {};
-
   template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...>*& > : is_temporary_storage< typename First::basic_type*& >
     {};
-
+  
     template <enumtype::backend Backend, typename T, typename U, bool B>
-    std::ostream& operator<<(std::ostream &s, base_storage<Backend,T,U, B> ) {
-        return s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
-            }
+      std::ostream& operator<<(std::ostream &s, base_storage<Backend,T,U, B> ) {
+      return s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
+    }
 
 
 } //namespace gridtools
