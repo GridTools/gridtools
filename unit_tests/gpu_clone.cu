@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <common/defs.h>
 #include <common/gpu_clone.h>
 
 namespace gpu_clone_test {

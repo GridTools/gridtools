@@ -15,7 +15,7 @@
 #include <iostream>
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
-#include <storage/cuda_storage.h>
+#include <storage/storage.h>
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/intermediate.h>
@@ -108,7 +108,7 @@ bool the_same(One const& storage1, Two const& storage2) {
  */
 bool test_domain() {
 
-    typedef gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > storage_type;
+  typedef gridtools::storage<gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > > storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;

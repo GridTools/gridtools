@@ -121,14 +121,15 @@ using namespace enumtype;
         // printf("%f\n", integrator.getField(0));
         typedef gridtools::layout_map<0,1,2> layout_t;
         typedef gridtools::backend<Host, Naive >::storage_type<float_type, layout_t >::type storage_type;
-        typedef integrator<storage_type, 2> integrator_type;
+        typedef extend_width<storage_type, 2> extended_type;
+        typedef extend_dim<extended_type> integrator_type;
 
         storage_type out(10,10,3,4., std::string("out"));
         integrator_type in(10,10,3,1., std::string("in"));;
         storage_type init(10,10,3,2., std::string("init"));
 
         //initialization
-        in.advance(init.data());//using the same data pointer might generate hazards!
+        in.push_back(init.data());//using the same data pointer might generate hazards!
 
         in.print();
 
@@ -158,7 +159,7 @@ using namespace enumtype;
             domain.clone_to_gpu();
             //for(ushort_t i=0; i<2; ++i){
             test->run();
-            in.advance(out.data());
+            in.push_back(out.data());
             in.print();
             out.print();
             //}
