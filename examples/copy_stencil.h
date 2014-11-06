@@ -28,12 +28,14 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+
 namespace copy_stencil{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
+
 struct copy_functor {
   typedef arg_extend<arg_type<0>, 1>::type in;
     typedef boost::mpl::vector<in/* , out */> arg_list;
