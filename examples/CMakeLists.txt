@@ -7,7 +7,7 @@
 
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
-foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal vertical_advection )
+foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal vertical_advection basic_laplacian vanilla_laplacian)
     add_executable(${srcfile}_naive   ${srcfile}.cpp )
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block
@@ -30,10 +30,10 @@ if ( ENABLE_CXX11 )
 
 endif()
 
-add_executable(basic_laplacian basic_laplacian.cpp)
-target_link_libraries(basic_laplacian ${exe_LIBS})
-add_executable(vanilla_laplacian vanilla_laplacian.cpp)
-target_link_libraries(vanilla_laplacian ${exe_LIBS})
+#add_executable(basic_laplacian basic_laplacian.cpp)
+#target_link_libraries(basic_laplacian ${exe_LIBS})
+#add_executable(vanilla_laplacian vanilla_laplacian.cpp)
+#target_link_libraries(vanilla_laplacian ${exe_LIBS})
 
 if(CUDA_FOUND)
     if(COMPILE_TO_PTX)

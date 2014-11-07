@@ -97,7 +97,7 @@ using namespace enumtype;
         typedef  arg_type<0> out;
         typedef  arg_decorator<  arg_type< 1 > > in;//develop this with recursion + index
         typedef boost::mpl::vector<out, in> arg_list;
-        using time=Extra<1>;
+        using time=Dimension<3>;
 
         template <typename Evaluation>
         GT_FUNCTION

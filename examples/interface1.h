@@ -27,6 +27,7 @@ using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
+using namespace expressions;
 
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
@@ -100,8 +101,8 @@ struct out_function {
     static void Do(Domain const & dom, x_out) {
 
         dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx()) - dom(flx( -1,0,0)) +
-             dom(fly()) - dom(fly( 0,-1,0))
+            (dom(flx() - flx( -1,0,0) +
+             fly() - fly( 0,-1,0))
              );
         // printf("final dom(out()) => %e\n", dom(out()));
     }

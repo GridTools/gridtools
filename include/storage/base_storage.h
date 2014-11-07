@@ -12,38 +12,56 @@
 
 /**@file
    @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
+
+   We define here an important naming convention. We call:
+
+   - the data fields: are contiguous chunks of memory, accessed by 3 (by default, but not necessarily) indexes. 
+     These structures are univocally defined by 3 (by default) integers. These are currently 2 strides and the total size of the chunks. Note that (in 3D) the relation between these quantities (\f$stride_1\f$, \f$stride_2\f$ and \f$size\f$) and the dimensions x, y and z can be (depending on the storage layout chosen)
+     \f$$
+     size=x*y*z.
+     stride_2=x*y\\
+     stride_1=x\\
+     \f$$
+     The quantities \f$size\f$, \f$stride_2\f$ and \f$stride_1\f$ are arranged respectively in m_strides[0], m_strides[1], m_strides[2].
+   - the data snapshot: is a single pointer to one data field. The snapshots are arranged in the storages on a 1D array, regardless of the dimension and snapshot they refer to. The arg_type (or arg_decorator) class is 
+     responsible of computing the correct offests (relative to the given dimension) and address the storages correctly.
+   - the storage: is an instance of any storage class, and can contain one or more fields and dimension. Every dimension consists of one or several snaphsots of the fields 
+     (e.g. if the time T is the current dimension, 3 snapshots can be the fields at t, t+1, t+2)
+
+The basic_storage class has a 1-1 relation with the data fields, while the subclasses extend the concept of storage to the structure represented in the ASCII picture below. The extension to multiple dimensions
+or to more general cases could be implemented (probably) fairly easily, since the current interface is arbitrary in the number of dimension. The storage layout instead is limited to 2 dimensions, since 
+I cannot think of use cases for which more than two dimensions would be necessary.
+
+
+NOTE: the constraint of the data fields accessed by the same storage class are the following:
+ - the memory layout is one for all the data fields
+ - the index used to access the storage position
+
+\verbatim
+############### 2D Storage ################
+#                    ___________\         #
+#                      time     /         #
+#                  | |*|*|*|*|*|*|        #
+# space, pressure  | |*|*|*|              #
+#    energy,...    v |*|*|*|*|*|      	  #
+#					  #
+#                     ^ ^ ^ ^ ^ ^	  #
+#                     | | | | | |	  #
+#                      snapshots	  #
+#					  #
+############### 2D Storage ################
+\endverbatim
+
+The final storage which is effectly instantiated must be "clonable to the GPU", i.e. it must derive from the clonable_to_gpu struct.
+This is achieved by defining a class with multiple inheritance. 
+
+NOTE CUDA: It is important when subclassing from a storage object to reimplement the __device__ copy constructor, and possibly the method 'copy_data_to_gpu' which are used when cloning the class to the CUDA device.
  */
+
 namespace gridtools {
 
     namespace _impl
     {
-        template <ushort_t I, typename OtherLayout, int_t X>
-        struct get_stride_
-        {
-            GT_FUNCTION
-            static uint_t get(const uint_t* s) {
-                return s[OtherLayout::template at_<I>::value];
-            }
-        };
-
-        template <ushort_t I, typename OtherLayout>
-        struct get_stride_<I, OtherLayout, 2>
-        {
-	  GT_FUNCTION
-            static uint_t get(const uint_t* ) {
-#ifndef __CUDACC__
-#ifndef NDEBUG
-                //                std::cout << "U" ;//<< std::endl;
-#endif
-#endif
-	      return 1;
-	  }
-        };
-
-        template <ushort_t I, typename OtherLayout>
-        struct get_stride
-          : get_stride_<I, OtherLayout, OtherLayout::template at_<I>::value>
-        {};
 
 /**@brief Functor updating the pointers on the device */
         struct update_pointer {
@@ -51,8 +69,7 @@ namespace gridtools {
 #ifdef __CUDACC__
 	  template < typename StorageType//typename T, typename U, bool B
                       >
-            // GT_FUNCTION_WARNING
-	  __host__
+            GT_FUNCTION_WARNING
 	  void operator()(/*base_storage<enumtype::Cuda,T,U,B
                             >*/StorageType *& s) const {
                 if (s) {
@@ -94,7 +111,7 @@ namespace gridtools {
 
 
 /**
-   @biref main class for the storage
+   @biref main class for the basic storage
  */
 #define FIELDS_DIMENSION 3
 
@@ -121,7 +138,7 @@ namespace gridtools {
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
             m_data( dim1*dim2*dim3 )
             , is_set( true )
-	    // m_name(s)
+	    , m_name(s)
             {
 	    // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
 #ifndef COMPILE_TIME_STRIDES
@@ -143,36 +160,33 @@ namespace gridtools {
                 m_data.update_gpu();
             }
 
+      /**@brief destructor: frees the pointers to the data fields */
+      ~base_storage(){m_data.free_it();}
+
+      /**@brief device copy constructor*/
       template<typename T>
       __device__
       base_storage(T const& other)
-	:      	  // , m_name(other.name())
-	m_data(other.data())
+	: 
+          m_data(other.m_data)
 	, is_set(other.is_set)
+	, m_name(other.m_name)
         {
-      	  m_strides[0] = other.strides(0);
+      	  m_strides[0] = other.size();
       	  m_strides[1] = other.strides(1);
       	  m_strides[2] = other.strides(2);
         }
 
-      // /**@brief clone factory: the clone will share the strides, but NOT the index!, so that different memory locations on different storages can be accessed simultaneously*/
-      // GT_FUNCTION
-      //   share_layout(base_storage& other)
-      // {
-      // 	other.m_strides=&m_strides[0];
-      // }
-
       GT_FUNCTION
       void copy_data_to_gpu() const {data().update_gpu();}
 
-      explicit base_storage(): /*m_name("default_name"), */m_data((value_type*)NULL){
-            is_set=false;
+      explicit base_storage(): m_data((value_type*)NULL), is_set(false), m_name("default_name"){
         }
 
 
-        // std::string const& name() const {
-        //     return m_name;
-        // }
+        std::string const& name() const {
+            return m_name;
+        }
 
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
@@ -207,7 +221,7 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(uint_t i, uint_t j, uint_t k) {
             /* std::cout<<"indices= "<<i<<" "<<j<<" "<<k<<std::endl; */
-	  backend_traits_t::assertion(_index(i,j,k) >= 0);
+	  //backend_traits_t::assertion(_index(i,j,k) >= 0);
 	  backend_traits_t::assertion(_index(i,j,k) < /* m_size*/ m_strides[0]);
 	  return m_data[_index(i,j,k)];
         }
@@ -215,7 +229,7 @@ namespace gridtools {
 
         GT_FUNCTION
         value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
-            backend_traits_t::assertion(_index(i,j,k) >= 0);
+	  //backend_traits_t::assertion(_index(i,j,k) >= 0);
             backend_traits_t::assertion(_index(i,j,k) < /*m_size*/m_strides[0]);
             return m_data[_index(i,j,k)];
         }
@@ -270,6 +284,7 @@ namespace gridtools {
 	return (layout::template pos_<Coordinate>::value==FIELDS_DIMENSION-1) ? str[FIELDS_DIMENSION-1] : (layout::template find<Coordinate>(str))/(str[(layout::template get<Coordinate>())+1]);
       }
 
+
       /**@brief return the dimension size corresponding to a specific stride level (i.e. 0 for stride x*y, 1 for stride x, 2 for stride 1), given the vector of strides*/
       template<uint_t StrideOrder>
         GT_FUNCTION
@@ -292,7 +307,7 @@ namespace gridtools {
             ushort_t MI=12;
             ushort_t MJ=12;
             ushort_t MK=12;
-            for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MJ)) {
+            for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MI)) {
                 for (uint_t j = 0; j < dims_coordwise<1>(m_strides); j += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MJ)) {
                     for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK))
 {
@@ -359,8 +374,9 @@ namespace gridtools {
         GT_FUNCTION
 	pointer_type const* fields() const {return &m_data;}
 
+      template<ushort_t I>
       GT_FUNCTION
-      uint_t dims(ushort_t i) const {return dims_coordwise<i>(m_strides);}
+      uint_t dims() const {return dims_coordwise<I>(m_strides);}
 
       GT_FUNCTION
       uint_t strides(ushort_t i) const {
@@ -374,6 +390,7 @@ namespace gridtools {
 
     protected:
       bool is_set;
+      const std::string& m_name;
 #ifdef COMPILE_TIME_STRIDES
       static const uint_t m_strides[/*3*/FIELDS_DIMENSION]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
 #else
@@ -420,10 +437,24 @@ namespace gridtools {
   };
 
 
-/** @brief finite difference discretization struct
-    the goal of this struct is to gain ownership of the storage of the previous solutions,
-    and to implement a cash for the solutions, where the new one is stored in place of the
-    least recently used one (m_lru).*/
+/** @brief storage class containing a buffer of data snapshots
+    the goal of this struct is to  implement a cash for the solutions, in order to ease the finite differencin between the different fields. 
+
+
+################## Storage ################
+#                ___________\             #
+#                  width    /             #
+#              | |*|*|*|*|*|*|    dim_1	  #
+#   dimensions | |*|*|*|          dim_2   #
+#              v |*|*|*|*|*|      dim_3	  #
+#					  #
+#                 ^ ^ ^ ^ ^ ^		  #
+#                 | | | | | |		  #
+#                 snapshots		  #
+#					  #
+################## Storage ################
+
+*/
 
     template < typename Storage, ushort_t ExtraWidth>
       struct extend_width : public Storage//, clonable_to_gpu<extend_width<Storage, ExtraWidth> >
@@ -479,7 +510,7 @@ namespace gridtools {
 	  return m_fields[(/*m_lru+*/offset+n_args)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
         GT_FUNCTION
-        inline  pointer_type const& get_field(int index) const {return std::get<index>(m_fields);};
+        inline  pointer_type const& get_field(int index) const {return m_fields[index];};
         //the time integration takes ownership over all the pointers?
         GT_FUNCTION
         inline void swap(/*smart<*/ pointer_type/*>*/ & field){

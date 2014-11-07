@@ -4,6 +4,40 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/print.hpp>
 
+/**@file
+   @brief file handling the access to the storage. 
+   This file implements some of the innermost data access operations of the library and thus it must be highly optimized.
+   The naming convention used below distinguishes from the following two concepts:
+
+   - a storage: is an instance of the storage class, and can contain one or more fields and dimension. Every dimension consists of one or several snaphsots of the fields 
+     (e.g. if the time T is the current dimension, 3 snapshots can be the fields at t, t+1, t+2)
+   - a data snapshot: is a pointer to one single snapshot. The snapshots are arranged in the storages on a 1D array, regardless of the dimension and snapshot they refer to. The arg_type (or arg_decorator) class is 
+     responsible of computing the correct offests (relative to the given dimension) and address the storages correctly.
+
+The access to the storage is performed in the following steps:
+ - the addresses of the first element of all the data fields in the storages involved in this stencil are saved in an array (m_storage_pointers)
+ - the index of the storages is saved in another array (m_index)
+ - when the functor gets called, the 'offsets' become visible (in the perfect worls they could possibly be known at compile time). In particular the index is moved to point to the correct address, and the correct data snapshot is selected.
+
+   Graphical (ASCII) illustration:
+
+\verbatim
+################## Storage ################
+#                ___________\             #
+#                  width    /             #
+#              | |*|*|*|*|*|*|    dim_1	  #
+#   dimensions | |*|*|*|          dim_2   #
+#              v |*|*|*|*|*|      dim_3	  #
+#					  #
+#                 ^ ^ ^ ^ ^ ^		  #
+#                 | | | | | |		  #
+#                 snapshots		  #
+#					  #
+################## Storage ################
+\endverbatim
+
+*/
+
 namespace gridtools {
 
 template<int N>
@@ -21,9 +55,9 @@ struct static_print
 
 	  template<typename LocalArgs>
 	  GT_FUNCTION
-	  static void inline apply(LocalArgs& local_args, uint_t* index) {
-	    boost::fusion::at_c<ID>(local_args)->template increment<2>(&index[ID]);
-	    increment_k<ID-1>::apply(local_args, index);
+	  static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+	    boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, &index[ID]);
+	    increment_k<ID-1>::apply(local_args,  factor, index);
 	  }
         };
 
@@ -32,8 +66,8 @@ struct static_print
 	struct increment_k<0> {
 	  template<typename LocalArgs>
 	  GT_FUNCTION
-	  static void inline apply(LocalArgs& local_args, uint_t* index) {
-	    boost::fusion::at_c<0>(local_args)->template increment<2>(index);
+	    static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+	    boost::fusion::at_c<0>(local_args)->template increment<2>(factor, index);
 	  }
         };
 
@@ -42,9 +76,9 @@ struct static_print
         struct decrement_k {
 	  template<typename LocalArgs>
 	  GT_FUNCTION
-	  static void inline apply(LocalArgs& local_args, uint_t* index) {
-	      boost::fusion::at_c<ID>(local_args)->template decrement<2>(&index[ID]);
-	      decrement_k<ID-1>::apply(local_args, index);
+	  static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+	    boost::fusion::at_c<ID>(local_args)->template decrement<2>(factor, &index[ID]);
+	    decrement_k<ID-1>::apply(local_args, factor, index);
             }
         };
 
@@ -53,29 +87,29 @@ struct static_print
         struct decrement_k<0> {
 	  template<typename LocalArgs>
 	  GT_FUNCTION
-	  static void inline apply(LocalArgs& local_args, uint_t* index) {
-	      boost::fusion::at_c<0>(local_args)->template decrement<2>(index);
+	    static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+	    boost::fusion::at_c<0>(local_args)->template decrement<2>(factor, index);
             }
         };
     } // namespace iterate_domain_aux
 
-    /**@brief recursively assigning the 'raw' storage pointers to the m_storage_pointers array.
+    /**@brief recursively assigning the 'raw' data pointers to the m_data_pointers array.
        It enhances the performances, but principle it could be avoided.
-       The 'raw' storages are the one or more data fields contained in each storage class
+       The 'raw' datas are the one or more data fields contained in each storage class
      */
 	template<uint_t Number>
-	struct assign_raw_storage{
+	struct assign_raw_data{
 	  template<typename Left , typename Right >
 	    GT_FUNCTION
 	    static void assign(Left* l, Right const* r){
 	    l[Number]=r[Number].get();
-	    assign_raw_storage<Number-1>::assign(l, r);
+	    assign_raw_data<Number-1>::assign(l, r);
 	  }
 	};
 
 	/**@brief stopping the recursion*/
 	template<>
-	struct assign_raw_storage<0>{
+	struct assign_raw_data<0>{
 	  template<typename Left , typename Right >
 	    GT_FUNCTION
 	    static void assign(Left* l, Right const* r){
@@ -98,7 +132,7 @@ struct static_print
 	};
 
 	namespace{
-	  /**@brief assigning all the storage pointers to the m_storage_pointers array*/
+	  /**@brief assigning all the storage pointers to the m_data_pointers array*/
 	  template<uint_t ID, typename LocalArgTypes>
 	    struct assign_storage{
 	      template<typename Left, typename Right>
@@ -115,7 +149,7 @@ struct static_print
         BOOST_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value);
 		boost::fusion::at_c<ID>(r)->template increment<0>(i, &index[ID]);
 		boost::fusion::at_c<ID>(r)->template increment<1>(j, &index[ID]);
-		assign_raw_storage<storage_type::n_args-1>::
+		assign_raw_data<storage_type::n_args-1>::
 		assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
 		assign_storage<ID-1, LocalArgTypes>::assign(l,r,i,j,index); //tail recursion
 	    }
@@ -131,7 +165,7 @@ struct static_print
 
 	      boost::fusion::at_c<0>(r)->template increment<0>(i, index);
 	      boost::fusion::at_c<0>(r)->template increment<1>(j, index);
-	      assign_raw_storage<storage_type::n_args-1>::
+	      assign_raw_data<storage_type::n_args-1>::
 		assign(&l[0], boost::fusion::at_c<0>(r)->fields());
 	  }
 	};
@@ -142,7 +176,7 @@ struct static_print
 	  struct iterate_domain {
 	    typedef typename LocalDomain::local_args_type local_args_type;
 	    static const uint_t N_STORAGES=boost::mpl::size<local_args_type>::value;
-	    static const uint_t N_RAW_STORAGES=total_storages< local_args_type
+	    static const uint_t N_DATA_POINTERS=total_storages< local_args_type
 	      , boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
 
 	    LocalDomain const& local_domain;
@@ -150,15 +184,15 @@ struct static_print
 
 	    GT_FUNCTION
 	    iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j)
-	      : local_domain(local_domain) , m_index{0}, m_storage_pointer{0}/* , m_lru{0} */
+	      : local_domain(local_domain) , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
 	    {
 
 	      // boost::fusion::at_c<0>(local_domain.local_args)->template increment<0>(i, &m_index[0]);
 	      // boost::fusion::at_c<0>(local_domain.local_args)->template increment<1>(j, &m_index[0]);
 
 	      // double*            &storage
-	      assign_storage< N_STORAGES-1, local_args_type >::assign(m_storage_pointer, local_domain.local_args, i, j, &m_index[0]/* , &m_lru[0] */);
-
+	      assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args, i, j, &m_index[0]/* , &m_lru[0] */);
+   
             // DOUBLE*                                 &storage
 	   /* boost::fusion::at_c<0>(local_iterators).value=&((*(boost::fusion::at_c<0>(local_domain.local_args)))(i,j,k)); */
 	   /* boost::fusion::at_c<1>(local_iterators).value=&((*(boost::fusion::at_c<1>(local_domain.local_args)))(i,j,k)); */
@@ -174,7 +208,7 @@ struct static_print
         void increment() {
 	  /* boost::fusion::for_each( local_args,  */
 	  /* 			   incr<2>() ); */
-	  iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, &m_index[0]);
+	  iterate_domain_aux::increment_k<N_STORAGES-1>::apply( local_domain.local_args, 1, &m_index[0]);
 	  //boost::fusion::for_each(local_iterators, iterate_domain_aux::increment());
 	  //m_k++;
 	  /* m_index++ */
@@ -182,11 +216,17 @@ struct static_print
 
         GT_FUNCTION
         void decrement() {
-	  iterate_domain_aux::decrement_k<N_STORAGES-1>::apply(local_domain.local_args, &m_index[0]);
+	  iterate_domain_aux::decrement_k<N_STORAGES-1>::apply( local_domain.local_args, 1, &m_index[0]);
 	  // boost::fusion::for_each(local_args, decr<2>() );
             //boost::fusion::for_each(local_iterators, iterate_domain_aux::decrement());
             // m_index--;
         }
+
+	    GT_FUNCTION
+	    void set_k_start(uint_t from)
+	    {
+	      iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, from, &m_index[0]);
+	    }
 
         template <typename T>
         GT_FUNCTION
@@ -228,12 +268,28 @@ struct static_print
 
 
 
-
+	      /* printf("base_storage: %x, index: %d, offset: %d \n", storage_pointer, m_index[ArgType::index_type::value], (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->offset(arg.i(),arg.j(),arg.k())); */
+	      /* printf("storage index: %d \n", ArgType::index_type::value); */
 	    return *(storage_pointer
 		     +(m_index[ArgType::index_type::value])
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                      ->offset(arg.i(),arg.j(),arg.k()));
             }
+
+
+      /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating a compile-time overflow) */
+      template <bool condition, typename LocalD, typename ArgType>
+      struct current_storage;
+
+      template < typename LocalD, typename ArgType>
+	struct current_storage<true, LocalD, ArgType>{
+	static const uint_t value=0;
+      };
+
+      template < typename LocalD, typename ArgType>
+      struct current_storage<false, LocalD, ArgType>{
+	static const uint_t value=(total_storages< typename LocalD::local_args_type, ArgType::index_type::value-1 >::count);
+      };
 
 /** @brief method called in the Do methods of the functors. */
         template <uint_t Index, typename Range>
@@ -244,23 +300,9 @@ struct static_print
 	  typedef typename std::remove_reference<decltype(*boost::fusion::at<typename arg_type<Index, Range>::index_type>(local_domain.local_args))>::type storage_type;
 
 
-	  return get_value(arg, m_storage_pointer[is_zero<(arg_type<Index, Range>::index_type::value==0), LocalDomain, arg_type<Index, Range> >::value]);
+	  return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range>::index_type::value==0), LocalDomain, arg_type<Index, Range> >::value]);
         }
 
-
-      /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating a compile-time overflow) */
-      template <bool condition, typename LocalD, typename ArgType>
-      struct is_zero;
-
-      template < typename LocalD, typename ArgType>
-	struct is_zero<true, LocalD, ArgType>{
-	static const uint_t value=0;
-      };
-
-      template < typename LocalD, typename ArgType>
-      struct is_zero<false, LocalD, ArgType>{
-	static const uint_t value=(total_storages< typename LocalD::local_args_type, ArgType::index_type::value-1 >::count);
-      };
 
 
 /** @brief method called in the Do methods of the functors. */
@@ -276,7 +318,7 @@ struct static_print
 	  //which does not correspond to the size of the extended placeholder for that storage
 	  /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
 
-	  return get_value(arg, m_storage_pointer[storage_type::get_index_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>()) + is_zero<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+	  return get_value(arg, m_data_pointer[storage_type::get_index_address(arg.template n<gridtools::arg_decorator<ArgType>::n_args>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
 
         }
 
@@ -326,7 +368,7 @@ struct static_print
     private:
       // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
       uint_t m_index[N_STORAGES];
-      mutable double* m_storage_pointer[N_RAW_STORAGES];
+      mutable double* m_data_pointer[N_DATA_POINTERS];
     };
 
 } // namespace gridtools

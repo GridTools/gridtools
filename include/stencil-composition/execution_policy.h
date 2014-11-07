@@ -42,22 +42,12 @@ namespace gridtools{
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(uint_t from, uint_t to) const {
-	    /* printf("k loop from %d to %d\n", from, to); */
-	    //#ifdef __CUDACC__
-	    //cudaProfilerStart();
-	    //#endif
-	      uint_t k=from;
-	      for (; IterationPolicy::condition(k, to-1); IterationPolicy::increment(k)) {
-		/* printf("do method \n"); */
-		traits::functor_t::Do(this->m_domain, IntervalType());
-		/* printf("domain increment\n"); */
-		IterationPolicy::increment(this->m_domain);
-	      }
-	      traits::functor_t::Do(this->m_domain, IntervalType());
 
-		//#ifdef __CUDACC__
-                //cudaProfilerStop();
-		//#endif
+	      for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
+	      	traits::functor_t::Do(this->m_domain, IntervalType());
+		/* printf("k=%d\n", k); */
+	      }
+
             }
         };
 

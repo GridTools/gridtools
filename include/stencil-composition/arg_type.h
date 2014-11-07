@@ -128,11 +128,12 @@ namespace gridtools {
 
     namespace enumtype
     {
-        namespace impl{
+      //namespace impl{
         template <ushort_t Coordinate>
-            struct T{
+            struct Dimension{
+
 	      GT_FUNCTION
-            constexpr T(int_t val) : value
+            constexpr Dimension(int_t val) : value
 #if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
 	    (val)
 #else
@@ -142,11 +143,11 @@ namespace gridtools {
             static const ushort_t direction=Coordinate;
             int_t value;
         };
-        }
+	//}
 
-        typedef impl::T<0> x;
-        typedef impl::T<1> y;
-        typedef impl::T<2> z;
+        typedef Dimension<0> x;
+        typedef Dimension<1> y;
+        typedef Dimension<2> z;
     }
 
     template <ushort_t N, typename X>
@@ -195,11 +196,9 @@ namespace gridtools {
             typedef arg_type<I> type;
         };
 
-    int_t offset[dimension]
+    int_t m_offset[dimension]
 #ifdef CXX11_ENABLED
-        int_t m_offset[3]={0,0,0};
-#else
-        int_t m_offset[3];
+        ={0}
 #endif
       ;
 
@@ -271,16 +270,19 @@ namespace gridtools {
         }
 #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
-        GT_FUNCTION
-        constexpr arg_type()
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+
+      /**NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions, and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
+      GT_FUNCTION
+#if( (!defined(CXX11_ENABLED)) || (defined(__CUDACC__ )))
+      explicit arg_type()
       {
-	m_offset[0]=0;
-	m_offset[1]=0;
-	m_offset[2]=0;
+      	m_offset[0]=0;
+      	m_offset[1]=0;
+      	m_offset[2]=0;
       }
 #else
-:m_offset{0,0,0} {}
+      constexpr explicit arg_type()
+ : m_offset{0}  {}
 #endif
 
         GT_FUNCTION
@@ -335,15 +337,15 @@ namespace gridtools {
 //                              Multidimensionality
 //################################################################################
 
-    namespace enumtype{
-        template<ushort_t N>
-        struct Extra{
-	  GT_FUNCTION
-	  Extra(short_t const& val){ value=val;}
-	  static const ushort_t direction=N;
-	  short_t value;
-         };
-    }
+    /* namespace enumtype{ */
+    /*     template<ushort_t N> */
+    /*     struct Extra{ */
+    /* 	  GT_FUNCTION */
+    /* 	  Extra(int_t const& val){ value=val;} */
+    /* 	  static const ushort_t direction=N; */
+    /* 	  int_t value; */
+    /*      }; */
+    /* } */
 
     /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
        \param n_args is the current ID of the extra dimension
@@ -359,24 +361,31 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 	/**@brief constructor taking an integer as the first argument, and then other optional arguments.
 	   The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions). When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-        template <typename... Whatever>
+        template <typename IntType, typename... Whatever>
         GT_FUNCTION
-        arg_decorator ( int_t const& t, Whatever... x): super( x... ) {
+        arg_decorator ( IntType const& t, Whatever... x): super( x... ) {
 	  m_offset=t;
 	}
+
+	/* //implicit cast */
+        /* template <typename... Whatever> */
+        /* GT_FUNCTION */
+        /* arg_decorator ( int const& t, Whatever... x): super( x... ) { */
+	/*   m_offset=t; */
+	/* } */
 
 	/**@brief constructor taking the Extra class as argument.
 	 This allows to specify the extra arguments out of order. Note that 'enumtype::Extra' is a
 	 language keyword used at the interface level.*/
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
-        arg_decorator ( enumtype::Extra<Idx> const& t, Whatever... x): super( x... ) {
+        arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever... x): super( x... ) {
 
 	  //if the following check is not true, you specified an extra index exceeding the dimenison of the field
-	  BOOST_STATIC_ASSERT(enumtype::Extra<Idx>::direction<=n_args);
+	  //BOOST_STATIC_ASSERT(enumtype::Dimension<Idx>::direction<=n_args);
 
             //there's no need to allow further flexibility on memory layout (?), i.e. extra dimensions memory location will be undefined
-	  if(enumtype::Extra<Idx>::direction==n_args)
+	  if(enumtype::Dimension<Idx>::direction==n_args)
             {
                 // printf("offset %d was specified to be %d \n", n_args, t.value);
 	      m_offset=t.value;
@@ -403,17 +412,27 @@ whatever not compiling
 
     /** @brief usage: n<3>() returns the offset of extra dimension 3
 	loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument.
+	Note that here the offset we are talking about here looks the same as the offsets for the arg_type, but it implies actually a change of the base storage pointer.
      */
     template<short_t index>
     GT_FUNCTION
-    short_t n() const {//recursively travel the list of offsets
+  short_t n() const {//recursively travel the list of offsets
     BOOST_STATIC_ASSERT( index>0 );
     // printf("index to the n method:%d \n", index);
     BOOST_STATIC_ASSERT( index<=n_args );
     //this might not be compile-time efficient for large indexes,
-    //because both taken and not taken branches are compiled
+    //because both taken and not taken branches are compiled. boost::mpl::if would be better.
     return index==1? m_offset : super::template n<index-1>();
     }
+
+/* /\** returns the offset in the storage pointers array corresponding to a specified dimension (the offset e.g. for dimension 3 is n<0>()+n<1>()+n<2>()+m_offset, because all the storage pointers lie internally on a 1D array)*\/ */
+/*  template<short_t index> */
+/*    GT_FUNCTION */
+/*     short_t offset() const {//recursively travel the list of offsets */
+/*     BOOST_STATIC_ASSERT( index>0 ); */
+/*     BOOST_STATIC_ASSERT( index<=n_args ); */
+/*     ????? */
+/*  } */
 
     private:
       short_t m_offset;

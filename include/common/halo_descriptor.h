@@ -89,39 +89,45 @@ namespace gridtools {
        Begin index for the loop on the outside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_low_bound_outside(uint_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    __host__ __device__ uint_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_begin;
       if (I==1)
         return m_end+1;
       if (I==-1)
-        return m_begin-m_minus;
+	{
+	  assert(m_begin-m_minus>=0);
+	  return m_begin-m_minus;
+	}
 
       assert(false);
-      return 0;
+      return 1;
     }
 
     /**
        End index for the loop on the outside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_high_bound_outside(uint_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    __host__ __device__ uint_t loop_high_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_end;
       if (I==1)
         return m_end+m_plus;
       if (I==-1)
-        return m_begin-1;
+	{
+	  assert(m_begin-1>=0);
+	  return m_begin-1;
+	}
 
       assert(false);
-      return 0;
+      return 1;
     }
 
     /**
        Begin index for the loop on the inside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_low_bound_inside(uint_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    __host__ __device__ uint_t loop_low_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_begin;
       if (I==1)
@@ -130,23 +136,26 @@ namespace gridtools {
         return m_begin;
 
       assert(false);
-      return 0;
+      return 1;
     }
 
     /**
        End index for the loop on the inside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_high_bound_inside(uint_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    __host__ __device__ uint_t loop_high_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_end;
       if (I==1)
         return m_end;
       if (I==-1)
-        return m_begin+m_plus-1;
+	{
+	  assert(m_begin+m_plus-1>=0);
+	  return m_begin+m_plus-1;
+	}
 
       assert(false);
-      return 0;
+      return 1;
     }
 
     /**
@@ -154,7 +163,7 @@ namespace gridtools {
 
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
     */
-    __host__ __device__ uint_t r_length(int_t I) const {
+    __host__ __device__ uint_t r_length(short_t I) const {
       switch (I) {
       case 0:
         return (m_end-m_begin+1);
@@ -164,7 +173,7 @@ namespace gridtools {
         return m_minus;
       default:
         assert(false);
-        return -1;
+        return 1;
       }
     }
 
@@ -173,7 +182,7 @@ namespace gridtools {
 
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
     */
-    __host__ __device__ uint_t s_length(int_t I) const {
+    __host__ __device__ uint_t s_length(short_t I) const {
       switch (I) {
       case 0:
         return (m_end-m_begin+1);
@@ -183,7 +192,7 @@ namespace gridtools {
         return m_minus;
       default:
         assert(false);
-        return -1;
+        return 1;
       }
     }
 

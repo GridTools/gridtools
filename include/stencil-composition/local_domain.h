@@ -242,11 +242,11 @@ namespace gridtools {
 
 /**stub methods*/
         GT_FUNCTION
-        uint_t i() const {return -1; }
+        uint_t i() const {return 1e9; }
         GT_FUNCTION
-        uint_t j() const {return -1; }
+        uint_t j() const {return 1e9; }
         GT_FUNCTION
-        uint_t k() const {return -1; }
+        uint_t k() const {return 1e9; }
     };
 
     template <typename StoragePointers, typename Iterators, typename EsfDescriptor>
