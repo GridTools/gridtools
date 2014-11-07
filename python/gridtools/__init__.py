@@ -13,17 +13,16 @@ class MultiStageStencil ( ):
         # the output NumPy arrays of this stencil
         #
         self.out_arrs = list ( )
-
-
-    def at (self):
         #
-        # should only be called with a NumPy array as 'self'
+        # a default halo - it goes:
         #
-        try:
-            if self.flags:
-                print ("NumPy array!")
-        except AttributeError:
-            print ("Call this method from a NumPy array")
+        #   (halo in minus direction, 
+        #    halo in plus direction,
+        #    index of first interior element,
+        #    index of last interior element,
+        #    total length in dimension)
+        #
+        self.halo = (1, 1,  )
 
 
     def set_output (self, np_arr):
@@ -32,9 +31,6 @@ class MultiStageStencil ( ):
      
             np_arr  NumPy array to use as the stencil's output.-
         """
-        import types
-        np_arr.at = types.MethodType (self.at, np_arr)
-
         self.out_arrs.append (id (np_arr.data))
 
 
@@ -48,7 +44,9 @@ class MultiStageStencil ( ):
                             which might be any of 'forward', 'backward' or
                             'parallel'.-
         """
-        if id (output_field) in self.out_arrs:
-            return np.nditer (output_field,
-                              op_flags=['readwrite'])
+        #
+        # id() does not seem to work as expected
+        #
+        #if id (output_field) in self.out_arrs:
+        return np.ndindex (*output_field.shape)
 
