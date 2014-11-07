@@ -614,7 +614,7 @@ namespace gridtools {
            Calls heap_allocated_temps::prepare_temporaries(...).
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
-        void ready () {
+        virtual void ready () {
             // boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries( actual_arg_list, m_coords);
             is_storage_ready=true;
@@ -628,8 +628,8 @@ namespace gridtools {
            @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer
            is passed to the instantiate_local_domain struct
          */
-        void steady () {
-            if(is_storage_ready)
+        virtual void steady () {
+	  if(is_storage_ready)
             {
                 setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
 #ifndef NDEBUG
@@ -656,7 +656,7 @@ namespace gridtools {
 
 
 
-        void finalize () {
+        virtual void finalize () {
             finalize_computation<Backend::s_backend_id>::apply(m_domain);
         }
 
@@ -665,7 +665,7 @@ namespace gridtools {
          * \brief the execution of the stencil operations take place in this call
          *
          */
-        void run () {
+        virtual void run () {
             // std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT "
             //           << boost::mpl::size<mpl_actual_arg_list>::type::value
             //           << std::endl;

@@ -31,7 +31,6 @@ namespace gridtools{
         template <typename ValueType, typename Layout, bool Temp=false >
         struct storage_traits
         {
-            //POL
             typedef storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp> > storage_t;
         };
 

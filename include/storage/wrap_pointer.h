@@ -67,16 +67,16 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void allocate_it(uint_t size){
-#if (CUDA_VERSION > 5050)
+/* #if (CUDA_VERSION > 5050) */
         cpu_p = new T[size];
-#else
-        cpu_p = workaround_::new_op<T>()(size);
-#endif
+/* #else */
+/* 	cpu_p = workaround_::new_op<T>()(size); */
+/* #endif */
     }
 
     GT_FUNCTION
     void free_it() {
-        delete[] cpu_p;
+      //if(cpu_p) delete[] cpu_p  ;
     }
 
 

@@ -75,8 +75,8 @@ namespace gridtools {
 
       /* BaseStorage m_base_storage; */
 
-    private : 
-      storage();
+      //    private : 
+      explicit storage():super(){}
     };
 
 }//namespace gridtools

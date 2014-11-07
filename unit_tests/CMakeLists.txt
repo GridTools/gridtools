@@ -6,7 +6,7 @@ add_test(test.FunctorDoMethods "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
 
 add_executable(LoopIntervals LoopIntervals.cpp)
 add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
-
+ 
 if ( ENABLE_CXX11 )
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")

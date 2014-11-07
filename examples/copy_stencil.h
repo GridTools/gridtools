@@ -38,14 +38,14 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 struct copy_functor {
   typedef arg_extend<arg_type<0>, 1>::type in;
-    typedef boost::mpl::vector<in/* , out */> arg_list;
-    using time=Extra<1>;
+    typedef boost::mpl::vector<in> arg_list;
+    using time=Dimension<3>;
   /* static const auto expression=in(1,0,0)-out(); */
 
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-      eval(in(time(-1)))=eval(in(time(0)));
+      eval(in(1))=eval(in());
       }
 };
 
@@ -216,9 +216,9 @@ PAPI_stop(event_set, values);
 #ifdef CUDA_EXAMPLE
     //out.data().update_cpu();
 #endif
-#define NX 511
-#define NY 511
-#define NZ 59
+#define NX 5
+#define NY 5
+#define NZ 5
 
     /* in.print_value(0,0,0); */
     /* in.print_value(0,4,0); */

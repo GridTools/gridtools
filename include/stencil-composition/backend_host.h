@@ -11,6 +11,7 @@
 #include "backend.h"
 
 #include<boost/mpl/print.hpp>
+#include "iteration_policy.h"
 
 /**
    @file
@@ -96,9 +97,16 @@ namespace gridtools {
 			      //std::cout << "Move to : " << i << ", " << j << std::endl;
 			      //#endif
 
-                                /** setting an iterator to the address of the current i,j entry to be accessed */
-                                iterate_domain_type it_domain(local_domain, i,j/*, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j */);
+			      /** setting an iterator to the address of the current i,j entry to be accessed */
+			      typedef typename boost::mpl::front<loop_intervals_t>::type interval;
+			      typedef typename index_to_level<typename interval::first>::type from;
+			      typedef typename index_to_level<typename interval::second>::type to;
+			      typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+			      iterate_domain_type it_domain(local_domain, i,j/*, f->m_coords.template value_at<typename Traits::first_hit_t>(), f->blk_idx_i, f->blk_idx_j */);
 
+				/* printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() ); */
+			      //setting the initial k level (for backward/parallel iterations it is not 0)
+				it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
 
                                 //local structs can be passed as template arguments in C++11 (would improve readability)
                                 // struct extra_arguments{

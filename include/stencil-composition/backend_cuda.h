@@ -44,13 +44,16 @@ namespace gridtools {
 
 
             if ((i < nx) && (j < ny)) {
-	      /* uint_t index(0); */
-	      /* boost::fusion::for_each(l_domain->local_args, set_index(index)); */
-	      /* boost::fusion::for_each(l_domain->local_args, incr_stateful<0>(i)); */
-	      /* boost::fusion::for_each(l_domain->local_args, incr_stateful<1>(j)); */
+	      typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
+	      typedef typename index_to_level<typename interval::first>::type from;
+	      typedef typename index_to_level<typename interval::second>::type to;
+	      typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
-                typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-                typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj);
+	      typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+	      typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj);
+	      printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );	      //setting the initial k level (for backward/parallel iterations it is not 0)
+	      it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
                      <
@@ -172,12 +175,12 @@ namespace gridtools {
                 uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
                 uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
 
-                uint_t ntx = 8, nty = 32, ntz = 1;
+                uint_t ntx = 8, nty = 32;//, ntz = 1;
                 /* dim3 threads(ntx, nty, ntz); */
 
                 ushort_t nbx = (nx + ntx - 1) / ntx;
                 ushort_t nby = (ny + nty - 1) / nty;
-                ushort_t nbz = 1;
+                //ushort_t nbz = 1;
                 /* dim3 blocks(nbx, nby, nbz); */
 
 #ifndef NDEBUG

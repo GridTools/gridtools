@@ -51,6 +51,8 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 
 if ( ENABLE_CXX11 )
+message ("CXX11 enabled: " "${ENABLE_CXX11}")
+
    set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
