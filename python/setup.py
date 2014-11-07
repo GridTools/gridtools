@@ -49,33 +49,33 @@ if len (libraries) < 2:
     libraries.append ('boost_python')
 
 setup (
-    name='PyStella',
-    description="Python bindings for the C++ library STELLA - OpenMP version",
+    name='gridtools4py',
+    description="Python interface C++ library Gridtools",
     version="0.0.1",
     author="Lucas Benedicic",
     author_email="benedicic@cscs.ch",
     maintainer="Lucas Benedicic",
     maintainer_email="benedicic@cscs.ch",
-    keywords="stencil cosmo stella openmp python boost",
-    packages=["stella"],
+    keywords="stencil jit cuda openmp",
+    packages=["gridtools"],
     test_suite="tests",
-    license="COSMO",
-    url="https://github.com/eth-cscs/stella-python",
-    ext_modules=[
-        Extension(
-            "stella._backend",
-            sources=["src/boost/numpy/src/dtype.cpp",
-                     "src/boost/numpy/src/matrix.cpp",
-                     "src/boost/numpy/src/ndarray.cpp",
-                     "src/boost/numpy/src/numpy.cpp",
-                     "src/boost/numpy/src/scalars.cpp",
-                     "src/boost/numpy/src/ufunc.cpp",
-                     "src/_backend.cpp"],
-            extra_compile_args=['-fopenmp'],        # OpenMP
-            include_dirs=include_dirs,
-            library_dirs=library_dirs,
-            libraries=libraries,
-            extra_objects=extra_objects
-        )
-    ]
+    license="???",
+    url="https://github.com/eth-cscs/gridtools",
+    #ext_modules=[
+    #    Extension(
+    #        "stella._backend",
+    #        sources=["src/boost/numpy/src/dtype.cpp",
+    #                 "src/boost/numpy/src/matrix.cpp",
+    #                 "src/boost/numpy/src/ndarray.cpp",
+    #                 "src/boost/numpy/src/numpy.cpp",
+    #                 "src/boost/numpy/src/scalars.cpp",
+    #                 "src/boost/numpy/src/ufunc.cpp",
+    #                 "src/_backend.cpp"],
+    #        extra_compile_args=['-fopenmp'],        # OpenMP
+    #        include_dirs=include_dirs,
+    #        library_dirs=library_dirs,
+    #        libraries=libraries,
+    #        extra_objects=extra_objects
+    #    )
+    #]
 )

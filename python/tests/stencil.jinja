@@ -44,18 +44,9 @@ struct copy_functor {
     }
 };
 
-/*
- * The following operators and structs are for debugging only
- */
-std::ostream& operator<<(std::ostream& s, copy_functor const) {
-    return s << "copy_functor";
-}
 
-void handle_error(int)
-{std::cout<<"error"<<std::endl;}
-
-bool test(int x, int y, int z) {
-
+bool test(int x, int y, int z) 
+{
     int d1 = x;
     int d2 = y;
     int d3 = z;
@@ -97,9 +88,13 @@ bool test(int x, int y, int z) {
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_in, p_out> arg_type_list;
 
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+    // construction of the domain.
+    // The domain is the physical domain of the problem, with all the physical
+    // fields that are used, temporary and not.
+    // It must be noted that the only fields to be passed to the constructor 
+    // are the non-temporary. The order in which they have to be passed is the
+    // order in which they appear scanning the placeholders in order. 
+    // (I don't particularly like this)
     gridtools::domain_type<arg_type_list> domain
         (boost::fusion::make_vector(&in, &out));
 
@@ -110,7 +105,7 @@ bool test(int x, int y, int z) {
     int di[5] = {0, 0, 0, d1, d1};
     int dj[5] = {0, 0, 0, d2, d2};
 
-     gridtools::coordinates<axis> coords(di, dj);
+    gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 

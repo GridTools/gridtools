@@ -10,23 +10,19 @@ class Copy (MultiStageStencil):
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
     def __init__ (self):
-        super.__init__ (self)
-        #
-        # output fields should be declared in the constructor, 
-        # with an 'out_' prefix
-        #
-        self.out_data = None
+        super ( ).__init__ ( )
 
-    def kernel (self, in_data):
+    def kernel (self, out_data, in_data):
         """
         This stencil comprises a single stage.-
         """
         #
         # iterate over the points, excluding halo ones
         #
-        for p in self.get_interior_points (self.out_data,
+        for p in self.get_interior_points (out_data,
                                            k_direction="forward"):
-            self.out_data.at (p) = in_data.at (p)
+            out_data[p] = in_data[p]
+
 
 
 class CopyStencilTest (unittest.TestCase):
@@ -42,6 +38,9 @@ class CopyStencilTest (unittest.TestCase):
         input_field = np.random.rand (*domain)
         copy = Copy ( )
         copy.set_output (output_field)
-        copy.kernel (input_field)
-        self.assertEqual (input_field, output_field)
+        copy.kernel (output_field,
+                     input_field)
+        self.assertTrue (np.array_equal (input_field, 
+                                         output_field),
+                         "Arrays should be equal")
 
