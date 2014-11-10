@@ -29,6 +29,19 @@ class CopyStencilTest (unittest.TestCase):
     """
     A test case for the copy stencil defined above.-
     """
+    def test_ast (self):
+        """
+        Checks the AST analysis of the source code of the stencil.-
+        """
+        from gridtools import StencilInspector
+
+        # 
+        # the inspector works on the class definition, not the object
+        #
+        i = StencilInspector (Copy)
+        i.analyze ( )
+
+
     def test_results (self):
         """
         Checks that the stencil results are correct.-
