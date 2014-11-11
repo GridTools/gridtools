@@ -50,6 +50,21 @@ typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 
+#if (defined(CXX11_ENABLED)) && (!defined(__CUDACC__ ))
+    typedef arg_type<0> out;
+    typedef arg_type<1> inf; //a
+    typedef arg_type<2> diag; //b
+    typedef arg_type<3> sup; //c
+    typedef arg_type<4> rhs; //d
+
+    __device__
+    static constexpr auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
+    __device__
+    static constexpr auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
+    __device__
+    static auto constexpr expr_out=rhs{}-sup{}*out{0,0,1};
+#endif
+
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
     typedef arg_type<0> out;
@@ -58,13 +73,6 @@ struct forward_thomas{
     typedef arg_type<3> sup; //c
     typedef arg_type<4> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
-
-#if (defined(CXX11_ENABLED)) && (!defined(__CUDACC__ ))
-  __device__
-  static auto constexpr expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
-  __device__
-  static auto constexpr expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
-#endif
 
     template <typename Domain>
     GT_FUNCTION
@@ -107,10 +115,6 @@ struct backward_thomas{
     typedef arg_type<4> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
-#if (defined(CXX11_ENABLED)) && (!defined(__CUDACC__ ))
-  __device__
-  static auto constexpr expr_out=rhs{}-sup{}*out{0,0,1};
-#endif
 
     template <typename Domain>
     GT_FUNCTION
