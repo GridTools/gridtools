@@ -49,7 +49,7 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-#ifdef CXX11_ENABLED
+#if (defined(CXX11_ENABLED)  && !defined(__CUDACC__ ))
     namespace ex{
         typedef arg_type<0> out;
         typedef arg_type<1> inf; //a
@@ -57,12 +57,11 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
         typedef arg_type<3> sup; //c
         typedef arg_type<4> rhs; //d
 
-	__device__
-	  auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
-	__device__
-	  auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
-	__device__
-	  auto expr_out=rhs{}-sup{}*out{0,0,1};
+        static constexpr auto expr_sup=sup{}(diag{}-sup{z{-1}}*inf{});
+
+        static constexpr auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
+
+        static constexpr auto expr_out=rhs{}-sup{}*out{0,0,1};
     }
 #endif
 
@@ -80,7 +79,7 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static inline void shared_kernel(Domain const& dom) {
-#ifdef CXX11_ENABLED
+#if (defined(CXX11_ENABLED) && !defined(__CUDACC__ ))
       dom(sup()) =  dom(ex::expr_sup);
       dom(rhs()) =  dom(ex::expr_rhs);
 #else
@@ -123,7 +122,7 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#ifdef CXX11_ENABLED
+#if (defined(CXX11_ENABLED) && !defined(__CUDACC__ ))
         dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));

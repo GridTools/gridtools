@@ -113,16 +113,19 @@ namespace gridtools {
     namespace enumtype
     {
         namespace{
-            template <int Coordinate>
-                struct T{
-                GT_FUNCTION
-                constexpr T(int val) 
-                    : value(val)
-                {}
-
-                static const int direction=Coordinate;
-                int value;
-            };
+        template <int Coordinate>
+            struct T{
+	      GT_FUNCTION
+            constexpr T(int val) : value
+#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+	    (val)
+#else
+	      {val}
+#endif
+{}
+            static const int direction=Coordinate;
+            int value;
+        };
         }
         
         typedef T<0> x;
