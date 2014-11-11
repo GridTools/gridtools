@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from gridtools import MultiStageStencil
+from gridtools import MultiStageStencil, StencilInspector
 
 
 
@@ -29,12 +29,46 @@ class CopyStencilTest (unittest.TestCase):
     """
     A test case for the copy stencil defined above.-
     """
+    def test_extends (self):
+        """
+        A user-defined stencil should inherit from the MultiStageStencil class.-
+        """
+        with self.assertRaises (TypeError):
+            class DoesNotExtendAndShouldFail (object):
+                pass
+            insp = StencilInspector (DoesNotExtendAndShouldFail)
+
+        insp = StencilInspector (Copy)
+        insp.analyze ( )
+        self.assertNotEqual (insp, None)
+
+    """
+    def test_kernel_function (self):
+        ""
+        The kernel function si the entry point of the stencil execution and
+        should follow several conventions.-
+        ""
+        with self.assertRaises (NameError):
+            class KernelFunctionMissing (MultiStageStencil):
+                def some_func (self):
+                    return None
+
+            insp = StencilInspector (KernelFunctionMissing)
+            insp.analyze ( )
+
+        with self.assertRaises (ValueError):
+            class KernelFunctionShouldReturnNone (MultiStageStencil):
+                def kernel (self):
+                    return "something"
+            insp = StencilInspector (KernelFunctionDoesNotReturnNone)
+            insp.analyze ( )
+    """
+
+
     def test_ast (self):
         """
         Checks the AST analysis of the source code of the stencil.-
         """
-        from gridtools import StencilInspector
-
         # 
         # the inspector works on the class definition, not the object
         #
