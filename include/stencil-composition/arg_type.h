@@ -113,28 +113,25 @@ namespace gridtools {
     namespace enumtype
     {
         namespace{
-        template <int Coordinate>
-            struct T{
-	      GT_FUNCTION
-            constexpr T(int val) : value
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
-	    (val)
-#else
-	      {val}
-#endif
-{}
-            static const int direction=Coordinate;
-            int value;
-        };
-        }
+            template <int Coordinate>
+                struct T{
+                GT_FUNCTION
+                constexpr T(int val) 
+                    : value(val)
+                {}
 
-	typedef T<0> x;
-	typedef T<1> y;
-	typedef T<2> z;
+                static const int direction=Coordinate;
+                int value;
+            };
+        }
+        
+        typedef T<0> x;
+        typedef T<1> y;
+        typedef T<2> z;
     }
 
     template <int N, typename X>
-      GT_FUNCTION
+    GT_FUNCTION
     constexpr int initialize( X x )
     {
         return (X::direction==N? x.value : 0);
@@ -142,22 +139,22 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
     template <int N, typename X, typename ... Rest>
-      GT_FUNCTION
+    GT_FUNCTION
     constexpr int initialize(X x, Rest ... rest )
     {
         return X::direction==N? x.value : initialize<N>(rest...);
     }
 #else
     template <int N, typename X, typename Y>
-      GT_FUNCTION
+    GT_FUNCTION
     constexpr int initialize(X x, Y y)
     {
         return X::direction==N? x.value : Y::direction==N? y.value : 0;
     }
 
     template <int N, typename X, typename Y, typename Z>
-      GT_FUNCTION
-      constexpr int initialize(X x, Y y, Z z)
+    GT_FUNCTION
+    constexpr int initialize(X x, Y y, Z z)
     {
         return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
     }
@@ -189,14 +186,14 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr arg_type(int i, int j, int k)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
-      {
-	m_offset[0]=i;
-	m_offset[1]=j;
-	m_offset[2]=k;
+#if( (!defined(CXX11_ENABLED)))
+        {
+            m_offset[0]=i;
+            m_offset[1]=j;
+            m_offset[2]=k;
       }
 #else
-	  : m_offset{i,j,k} {}
+        : m_offset{i,j,k} {}
 #endif
 
 /*         GT_FUNCTION */
@@ -221,9 +218,9 @@ namespace gridtools {
 	  arg_type ( X1 x, X2 y, X3 z)
 #if( (!defined(CXX11_ENABLED)))
       {
-	m_offset[0]=initialize<0>(x,y,z);
-	m_offset[1]=initialize<1>(x,y,z);
-	m_offset[2]=initialize<2>(x,y,z);
+          m_offset[0]=initialize<0>(x,y,z);
+          m_offset[1]=initialize<1>(x,y,z);
+          m_offset[2]=initialize<2>(x,y,z);
       }
 #else
 :m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{ }
@@ -233,9 +230,9 @@ namespace gridtools {
 	  constexpr arg_type ( X1 x, X2 y)
 #if( (!defined(CXX11_ENABLED)))
       {
-	m_offset[0]=initialize<0>(x,y);
-	m_offset[1]=initialize<1>(x,y);
-	m_offset[2]=initialize<2>(x,y);
+          m_offset[0]=initialize<0>(x,y);
+          m_offset[1]=initialize<1>(x,y);
+          m_offset[2]=initialize<2>(x,y);
       }
 #else
 :m_offset{initialize<0>(x,y), initialize<1>(x,y), initialize<2>(x,y)}{ }
