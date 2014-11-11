@@ -219,7 +219,7 @@ namespace gridtools {
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y, X3 z)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)))
       {
 	m_offset[0]=initialize<0>(x,y,z);
 	m_offset[1]=initialize<1>(x,y,z);
@@ -231,7 +231,7 @@ namespace gridtools {
       template <typename X1, typename X2 >
         GT_FUNCTION
 	  constexpr arg_type ( X1 x, X2 y)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)))
       {
 	m_offset[0]=initialize<0>(x,y);
 	m_offset[1]=initialize<1>(x,y);
@@ -244,7 +244,7 @@ namespace gridtools {
       template <typename X1>
         GT_FUNCTION
 	  constexpr arg_type ( X1 x)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) )
       {
 	m_offset[0]=initialize<0>(x);
 	m_offset[1]=initialize<1>(x);
@@ -263,16 +263,19 @@ namespace gridtools {
         }
 #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
-        GT_FUNCTION
-        constexpr arg_type()
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+
+      /**NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions, and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
+      GT_FUNCTION
+#if( (!defined(CXX11_ENABLED)) || (defined(__CUDACC__ )))
+      explicit arg_type()
       {
-	m_offset[0]=0;
-	m_offset[1]=0;
-	m_offset[2]=0;
+      	m_offset[0]=0;
+      	m_offset[1]=0;
+      	m_offset[2]=0;
       }
 #else
-:m_offset{0,0,0} {}
+      constexpr explicit arg_type()
+ : m_offset{0}  {}
 #endif
 
         GT_FUNCTION
@@ -372,7 +375,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
             :
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)))
       first_operand(first_operand),
 	second_operand(second_operand)
 #else
