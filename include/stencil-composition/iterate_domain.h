@@ -58,7 +58,7 @@ namespace gridtools {
 
             template<typename LocalArgs>
             GT_FUNCTION
-            static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
                 boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, &index[ID]);
                 increment_k<ID-1>::apply(local_args,  factor, index);
             }
@@ -69,7 +69,7 @@ namespace gridtools {
         struct increment_k<0> {
             template<typename LocalArgs>
             GT_FUNCTION
-            static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
                 boost::fusion::at_c<0>(local_args)->template increment<2>(factor, index);
             }
         };
@@ -79,7 +79,7 @@ namespace gridtools {
         struct decrement_k {
             template<typename LocalArgs>
             GT_FUNCTION
-            static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
                 boost::fusion::at_c<ID>(local_args)->template decrement<2>(factor, &index[ID]);
                 decrement_k<ID-1>::apply(local_args, factor, index);
             }
@@ -90,7 +90,7 @@ namespace gridtools {
         struct decrement_k<0> {
             template<typename LocalArgs>
             GT_FUNCTION
-            static void inline apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
+            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
                 boost::fusion::at_c<0>(local_args)->template decrement<2>(factor, index);
             }
         };
@@ -145,7 +145,7 @@ namespace gridtools {
                the location (i,j,k). Such index is shared among all the fields contained in the
                same storage class instance, and it is not shared among different storage instances.
             */
-            static void inline assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index){
+            static void assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
@@ -166,7 +166,7 @@ namespace gridtools {
             struct assign_storage<0, LocalArgTypes>{
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void inline assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index/* , ushort_t* lru */){
+            static void assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index/* , ushort_t* lru */){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #else
@@ -345,36 +345,36 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template <typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        auto inline value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
+        auto value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
 
         template <typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        auto inline value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
+        auto value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
 
         template <typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        auto inline value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
+        auto value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
 
         template <typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        auto inline value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
+        auto value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
 
         //partial specializations for double (or float)
         template <typename ArgType1>
         GT_FUNCTION
-        auto inline value(expr_plus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
+        auto value(expr_plus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
 
         template <typename ArgType1>
         GT_FUNCTION
-        auto inline value(expr_minus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
+        auto value(expr_minus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
 
         template <typename ArgType1>
         GT_FUNCTION
-        auto inline value(expr_times<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
+        auto value(expr_times<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
 
         template <typename ArgType1>
         GT_FUNCTION
-        auto inline value(expr_divide<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
+        auto value(expr_divide<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
 
 /** @brief method called in the Do methods of the functors. */
         template <typename Expression >
@@ -387,7 +387,7 @@ namespace gridtools {
     private:
         // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
         uint_t m_index[N_STORAGES];
-        mutable double* m_data_pointer[N_DATA_POINTERS];
+	mutable double* m_data_pointer[N_DATA_POINTERS];
     };
 
 } // namespace gridtools

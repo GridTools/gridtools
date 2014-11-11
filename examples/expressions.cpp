@@ -1,6 +1,6 @@
 #include "expressions.h"
 
-int_t main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 #if __cplusplus>=201103L
 

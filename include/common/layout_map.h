@@ -23,113 +23,117 @@ namespace gridtools {
    @brief Used as template argument in the storage.
    In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-// #ifdef CXX11_ENABLED
+#if (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
-//     namespace _impl {
+    namespace _impl {
 
-//         template <uint_t I>
-//         struct select_s
-//         {
-//             template <typename ... T>
-//             GT_FUNCTION
-//             auto get(T&... args) ->decltype(std::get<I>(std::make_tuple(args...))) {
-//                 return std::get<I>(std::make_tuple(args...));
-//             }
-//         };
-//     }//namespace _impl
+        template <uint_t I>
+        struct select_s
+        {
+            template <typename ... T>
+            GT_FUNCTION
+            auto get(T&... args) ->decltype(std::get<I>(std::make_tuple(args...))) {
+                return std::get<I>(std::make_tuple(args...));
+            }
+        };
+    }//namespace _impl
 
-//         template <short_t ... Args>
-//         struct layout_map{
-//             static const ushort_t length=sizeof...(Args);
-//             typedef boost::mpl::vector_c<short_t, Args...> t;
+        template <short_t ... Args>
+        struct layout_map{
+            static constexpr ushort_t length=sizeof...(Args);
+	  //typedef boost::mpl::vector_c<short_t, Args...> t;
+	  static const constexpr ushort_t layout_vector[sizeof...(Args)]={Args...};
+	  
+	  /* static const int s=t::fuck(); */
+	  /* BOOST_STATIC_ASSERT(s); */
 
-//             template <ushort_t I>
-//             GT_FUNCTION
-//             static constexpr short_t at() {
-//                 BOOST_STATIC_ASSERT( I<length );
-//                 return boost::mpl::at_c<t, I >::type::value;
-//             }
-
-
-//             template <ushort_t I, typename ... T>
-//             GT_FUNCTION
-//             static auto select(T & ... args) ->decltype(_impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(args ... )) {
-//                 return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(args ... );
-//             }
-
-//             GT_FUNCTION
-//             template <short_t i>
-//             static constexpr ushort_t get() {
-//                 return boost::mpl::at_c<t, i >::type::value;
-//             }
-
-//             GT_FUNCTION
-//             short_t constexpr operator[](short_t i) {
-//                 assert( i<length );
-//                 return get(i);
-//             }
-
-//             struct transform_in_type{
-//                 template<short_t T>
-//                 struct apply{
-//                     typedef static_short<T> type;
-//                 };
-//             };
-
-//             template< ushort_t I, ushort_t T >
-//             struct predicate{
-//                 typedef typename boost::mpl::bool_<T==I>::type type;
-//             };
-
-//             GT_FUNCTION
-//             template <short_t I, typename... Indices>
-//             static short_t find(Indices & ... indices) {
-// typedef typename boost::mpl::fold<t, boost::mpl::int_<0>, boost::mpl::if_<boost::is_same<boost::mpl::_2, static_short<I> >, static_short<I>, boost::mpl::_1 > > result;
-// int vec[sizeof...(indices)] = {indices...};
-// return vec[result::type::value];
-// }
-
-//             GT_FUNCTION
-//             template <short_t I>
-//             static short_t find(const short_t* indices) {
-// typedef typename boost::mpl::fold<t, boost::mpl::int_<0>, boost::mpl::if_<boost::is_same<boost::mpl::_2, static_short<I> >, static_short<I>, boost::mpl::_1 > > result;
-// return indices[result::type::value];
-// }
+            template <ushort_t I>
+            GT_FUNCTION
+            static constexpr short_t at() {
+                BOOST_STATIC_ASSERT( I<length );
+                return layout_vector[ I ];
+            }
 
 
-//         template <ushort_t I>
-//             struct at_ {
-//             static const short_t value = boost::mpl::at_c<t, I >::type::value;
-//         };
+            template <ushort_t I, typename ... T>
+            GT_FUNCTION
+            static auto select(T & ... args) ->decltype(_impl::select_s<layout_vector[I]>().get(args ... )) {
+                return _impl::select_s<layout_vector[I]>().get(args ... );
+            }
+
+            template <ushort_t i>
+            GT_FUNCTION
+            static constexpr ushort_t get() {
+                return layout_vector[i];
+            }
+
+            GT_FUNCTION
+            ushort_t constexpr operator[](ushort_t i) {
+	      //assert( i<length );
+                return get(i);
+            }
+
+            struct transform_in_type{
+                template<ushort_t T>
+                struct apply{
+                    typedef static_ushort<T> type;
+                };
+            };
+
+            template< ushort_t I, ushort_t T >
+            struct predicate{
+                typedef typename boost::mpl::bool_<T==I>::type type;
+            };
+
+            template <ushort_t I, typename... Indices>
+            GT_FUNCTION
+            static uint_t find(Indices & ... indices) {
+	      uint_t vec[sizeof...(indices)] = {indices...};
+	      return vec[pos_<I>::value];
+}
+
+            template <ushort_t I>
+            GT_FUNCTION
+            static uint_t find(const uint_t* indices) {
+	      return indices[pos_<I>::value];
+}
 
 
-//         // Gives the position at which I is.
-//         template <ushort_t I>
-//             struct pos_ {
-
-//             template <short_t X, bool IsHere>
-//             struct _find_pos
-//             {
-//                 static const short_t value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
-//             };
-
-//             template <short_t X>
-//             struct _find_pos<X, true> {
-//                 static const short_t value = X;
-//             };
-
-//             template <bool IsHere>
-//             struct _find_pos<3, IsHere> {
-//                 static const short_t value = -1;
-//             };
-
-//             static const short_t value = _find_pos<0, boost::mpl::at_c<t, 0 >::type::value == I>::value;
-
-//         };
+        template <ushort_t I>
+            struct at_ {
+            static const ushort_t value = layout_vector[I];
+        };
 
 
-//         };
-// #else
+        // Gives the position at which I is.
+        template <ushort_t I>
+            struct pos_ {
+
+            template <ushort_t X, bool IsHere>
+            struct _find_pos
+            {
+	      static constexpr ushort_t value = _find_pos<X+1, layout_vector[ X+1 ] == I>::value;
+            };
+
+	      
+            template <ushort_t X>
+            struct _find_pos<X, true> {
+                static constexpr ushort_t value = X;
+            };
+
+	      // stops the recursion and returns a nonsense value
+            template <bool IsHere>
+            struct _find_pos<3, IsHere> {
+                static constexpr ushort_t value = 1000;
+            };
+
+            static constexpr ushort_t value = _find_pos<0, layout_vector[ 0 ] == I>::value;
+
+        };
+
+
+        };
+#else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
     namespace _impl {
 
@@ -561,7 +565,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
     };
 
-// #endif //CXX11_ENABLED
+#endif // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
     template <typename DATALO, typename PROCLO>
     struct layout_transform;
