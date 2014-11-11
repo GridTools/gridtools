@@ -1,4 +1,4 @@
-
+#define CUDA_EXAMPLE
 
 #include "gtest/gtest.h"
 
