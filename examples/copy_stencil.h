@@ -39,7 +39,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 struct copy_functor {
   typedef arg_extend<arg_type<0>, 1>::type in;
     typedef boost::mpl::vector<in> arg_list;
-    using time=Dimension<3>;
+    typedef Dimension<3> time;
   /* static const auto expression=in(1,0,0)-out(); */
 
     template <typename Evaluation>
@@ -60,6 +60,7 @@ void handle_error(int_t)
 {std::cout<<"error"<<std::endl;}
 
 bool test(uint_t x, uint_t y, uint_t z) {
+#ifdef CXX11_ENABLED
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -236,6 +237,9 @@ PAPI_stop(event_set, values);
 #endif
 
     return  in(0,0,0)==0. && in(NX,NY,0)==NX+NY && in(NX,0,NZ)==NX+NZ && in(0,NY,NZ)==NY+NZ && in(NX,NY,NZ)==NX+NY+NZ;
+#else
+    return true;
+#endif
 }
 
 }//namespace copy_stencil

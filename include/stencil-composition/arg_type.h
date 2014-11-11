@@ -66,16 +66,17 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-    //Decorator is the GPU storage
+    //Decorator is the storage
     template <typename BaseType , template <typename T> class Decorator >
     struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-
+#ifdef CXX11_ENABLED
     //Decorator is the integrator
     template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
       struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+#endif
 
     //Decorator is the integrator
     template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
@@ -134,7 +135,7 @@ namespace gridtools {
 
 	      GT_FUNCTION
             constexpr Dimension(int_t val) : value
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) )
 	    (val)
 #else
 	      {val}
@@ -205,13 +206,15 @@ namespace gridtools {
         typedef static_uint<I> index_type;
         typedef Range range_type;
 
+      /**NOTE: templating on the int type, because if we use int_t directly, and if int_t is different from int, then the user would have to explicitly specify the cast to int_t*/
+      template <typename IntType>
         GT_FUNCTION
-        constexpr arg_type(int_t i, int_t j, int_t k)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+        constexpr arg_type(IntType i, IntType j, IntType k)
+#if( (!defined(CXX11_ENABLED)))
       {
-	m_offset[0]=i;
-	m_offset[1]=j;
-	m_offset[2]=k;
+          m_offset[0]=i;
+          m_offset[1]=j;
+          m_offset[2]=k;
       }
 #else
 	  : m_offset{i,j,k} {}
@@ -226,7 +229,7 @@ namespace gridtools {
       template <typename X1, typename X2, typename X3 >
         GT_FUNCTION
 	  arg_type ( X1 x, X2 y, X3 z)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)))
       {
 	m_offset[0]=initialize<0>(x,y,z);
 	m_offset[1]=initialize<1>(x,y,z);
@@ -238,7 +241,7 @@ namespace gridtools {
       template <typename X1, typename X2 >
         GT_FUNCTION
 	  constexpr arg_type ( X1 x, X2 y)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)))
       {
 	m_offset[0]=initialize<0>(x,y);
 	m_offset[1]=initialize<1>(x,y);
@@ -251,7 +254,7 @@ namespace gridtools {
       template <typename X1>
         GT_FUNCTION
 	  constexpr arg_type ( X1 x)
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)) )
       {
 	m_offset[0]=initialize<0>(x);
 	m_offset[1]=initialize<1>(x);
@@ -406,8 +409,8 @@ namespace gridtools {
             m_offset=0;
         }//just forward
 
-#else //CXX11_ENABLED
-whatever not compiling
+// #else //CXX11_ENABLED
+// whatever not compiling
 #endif
 
     /** @brief usage: n<3>() returns the offset of extra dimension 3
@@ -472,21 +475,17 @@ whatever not compiling
     struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false> > > : boost::false_type
     {};
 
-  //here the decorator is the GPU storage or the dimension extension
+  //here the decorator is the storage
     template <uint_t I, typename BaseType, template <typename T> class Decorator>
       struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
 
-
+#ifdef CXX11_ENABLED
   //here the decorator is the dimension extension
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
       struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
     {};
-
-  /* //here the decorator is the dimension extension */
-  /*   template <uint_t I, typename BaseType, template <typename T, ushort_t O> class Decorator, ushort_t Order> */
-  /*     struct is_plchldr_to_temp<arg<I, Decorator<BaseType , Order> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> > */
-  /*   {}; */
+#endif
 
     /**
      * Printing type information for debug purposes
@@ -532,7 +531,7 @@ whatever not compiling
         GT_FUNCTION
         constexpr expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
             :
-#if( (!defined(CXX11_ENABLED)) && (defined(__CUDACC__ )))
+#if( (!defined(CXX11_ENABLED)))
       first_operand(first_operand),
 	second_operand(second_operand)
 #else

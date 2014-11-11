@@ -104,7 +104,6 @@ namespace gridtools {
     inline
     void for_each(F f, Sequence* = 0)
     {
-        //Sequence::fuck();
         BOOST_STATIC_ASSERT( boost::mpl::is_sequence<Sequence>::value );
 
         typedef typename boost::mpl::begin<Sequence>::type first;
