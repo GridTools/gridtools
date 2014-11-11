@@ -97,7 +97,7 @@ namespace gridtools {
         struct l_get_index {
             template <typename U>
             struct apply {
-                typedef typename static_uint< U::index_type::value >
+                typedef static_uint< U::index_type::value >
 #ifndef CXX11_ENABLED
                 ::type
 #endif

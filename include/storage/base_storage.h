@@ -177,7 +177,7 @@ namespace gridtools {
                 m_strides[2] = other.strides(2);
             }
 
-        GT_FUNCTION
+      GT_FUNCTION_WARNING
         void copy_data_to_gpu() const {data().update_gpu();}
 
         explicit base_storage(): m_data((value_type*)NULL), is_set(false), m_name("default_name"){
@@ -241,7 +241,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        inline uint_t size() const {
+        uint_t size() const {
             return m_strides[0];
         }
 
@@ -355,7 +355,7 @@ namespace gridtools {
 
         template <uint_t Coordinate>
         GT_FUNCTION
-        void inline increment(uint_t const& dimension, uint_t* index){
+        void increment(uint_t const& dimension, uint_t* index){
             *index+=strides<Coordinate>(m_strides)*dimension;
         }
 
@@ -466,7 +466,7 @@ namespace gridtools {
                 super::m_data=m_fields[0];
             }
 
-        __host__
+            GT_FUNCTION_WARNING
         void copy_data_to_gpu(){
             //the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
             for (uint_t i=0; i<n_args; ++i)
@@ -496,10 +496,10 @@ namespace gridtools {
             return m_fields[(/*m_lru+*/offset+n_args)%n_args].get();}
         //super::pointer_type const& data(){return m_fields[lru];}
         GT_FUNCTION
-        inline  pointer_type const& get_field(int index) const {return m_fields[index];};
+        pointer_type const& get_field(int index) const {return m_fields[index];};
         //the time integration takes ownership over all the pointers?
         GT_FUNCTION
-        inline void swap(/*smart<*/ pointer_type/*>*/ & field){
+        void swap(/*smart<*/ pointer_type/*>*/ & field){
             //cycle in a ring
             pointer_type swap(m_fields[n_args-1]);
             m_fields[n_args-1]=field;
@@ -509,7 +509,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        inline void push_back(/*smart<*/ const pointer_type/*>*/ & field){
+        void push_back(/*smart<*/ const pointer_type/*>*/ & field){
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage
             for(uint_t i=1;i<n_args;i++) m_fields[i]=m_fields[i-1];
             m_fields[0]=field;
@@ -519,7 +519,7 @@ namespace gridtools {
 
         //the time integration takes ownership over all the pointers?
         GT_FUNCTION
-        inline void advance(short_t offset=1){
+        void advance(short_t offset=1){
             pointer_type tmp(m_fields[n_args-1]);
             for(uint_t i=1;i<n_args;i++) m_fields[i]=m_fields[i-1];
             m_fields[0]=tmp;
@@ -529,7 +529,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        inline pointer_type const*  fields(){return m_fields;}
+        pointer_type const*  fields(){return m_fields;}
 
         /* GT_FUNCTION */
         /* 	inline ushort_t const& lru(){return m_lru;} */

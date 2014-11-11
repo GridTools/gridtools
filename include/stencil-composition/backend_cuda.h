@@ -42,6 +42,7 @@ namespace gridtools {
 	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
 	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
+	    /* __shared__ float_type* m_data_pointer[Traits::local_domain_t::iterate_domain_t::N_DATA_POINTERS]; */
 
             if ((i < nx) && (j < ny)) {
 	      typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
@@ -50,9 +51,10 @@ namespace gridtools {
 	      typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
 	      typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-	      typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj);
-	      printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );	      //setting the initial k level (for backward/parallel iterations it is not 0)
-	      it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+	      typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj/*, m_data_pointer*/);
+	      //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );	      //setting the initial k level (for backward/parallel iterations it is not 0)
+	      if( !iteration_policy::value==enumtype::forward )
+		it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval

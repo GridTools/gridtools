@@ -112,7 +112,7 @@ struct PrintDoMethodLookupMap
 };
 
 // test method computing do method lookup maps
-int_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     std::cout
         << "Functor Do Method Lookup Map" << std::endl
