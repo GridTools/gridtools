@@ -227,11 +227,11 @@ PAPI_stop(event_set, values);
     /* in.print_value(0,0,4); */
     /* in.print_value(4,4,0); */
 
-    in.print_value(NX,NY,0);
-    in.print_value(NX,0,NZ);
-    in.print_value(0,NY,NZ);
-    in.print_value(NX,NY,NZ);
-    /* in.print(); */
+    // in.print_value(NX,NY,0);
+    // in.print_value(NX,0,NZ);
+    // in.print_value(0,NY,NZ);
+    // in.print_value(NX,NY,NZ);
+    in.print();
 #ifdef USE_PAPI_WRAP
     pw_print();
 #endif

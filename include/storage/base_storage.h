@@ -343,25 +343,25 @@ namespace gridtools {
 
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t* index){
+        void increment(uint_t& /*block*/, uint_t* index){
             *index+=strides<Coordinate>(m_strides);
         }
 
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t* index){
+        void decrement(uint_t& /*block*/, uint_t* index){
             *index-=strides<Coordinate>(m_strides);
         }
 
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t const& dimension, uint_t* index){
+        void increment(uint_t const& dimension, uint_t& /*block*/, uint_t* index){
             *index+=strides<Coordinate>(m_strides)*dimension;
         }
 
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t dimension, uint_t* index){
+        void decrement(uint_t dimension, uint_t& /*block*/, uint_t* index){
             *index-=strides<Coordinate>(m_strides)*dimension;
         }
 

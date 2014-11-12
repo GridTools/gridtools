@@ -201,7 +201,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
-    coords.value_list[1] = d3;
+    coords.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff
