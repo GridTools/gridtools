@@ -25,7 +25,7 @@
   rank(inf)=N-1      [0xxxxxxxxxxxxxxxxxxxxxxx]
   rank(sup)=N-1      [xxxxxxxxxxxxxxxxxxxxxxx0]
   rank(rhs)=N        [xxxxxxxxxxxxxxxxxxxxxxxx]
-  where x danote any numberm and 0 denotes the padding, a dummy value which is not used in
+  where x denotes any number and 0 denotes the padding, a dummy value which is not used in
   the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
  */
 
@@ -76,7 +76,7 @@ struct forward_thomas{
 
     template <typename Domain>
     GT_FUNCTION
-    static inline void shared_kernel(Domain const& dom) {
+    static void shared_kernel(Domain const& dom) {
 #if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
       dom(sup()) =  dom(expr_sup);
       dom(rhs()) =  dom(expr_rhs);

@@ -4,6 +4,8 @@
 #include <boost/mpl/int.hpp>
 
 namespace gridtools {
+
+
     template < enumtype::backend Backend
                , typename ValueType
                , typename Layout
@@ -163,7 +165,34 @@ namespace gridtools {
             return index;
         }
 
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void increment(uint_t& b, uint_t* index){
+            *index += base_type::template strides<Coordinate>(m_strides)-b*(Coordinate==0?TileI:TileJ);
+        }
+
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void decrement(uint_t& b, uint_t* index){
+            *index -= base_type::template strides<Coordinate>(m_strides)-b*(Coordinate==0?TileI:TileJ);
+        }
+
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void increment(uint_t& dimension, uint_t& b, uint_t* index){
+            *index += base_type::template strides<Coordinate>(m_strides)*dimension-b*(Coordinate==0?TileI:TileJ);
+        }
+
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void decrement(uint_t& dimension, uint_t& b, uint_t* index){
+            *index-= base_type::template strides<Coordinate>(m_strides)*dimension-b*(Coordinate==0?TileI:TileJ);
+        }
+
+
     };
+
+
 
 //huge waste of space because the C++ standard doesn't want me to initialize static const inline
     template < enumtype::backend Backend, typename ValueType, typename Layout, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ

@@ -7,12 +7,15 @@
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
+
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly optimized.
    The naming convention used below distinguishes from the following two concepts:
 
-   - a storage: is an instance of the storage class, and can contain one or more fields and dimension. Every dimension consists of one or several snaphsots of the fields
+   - a parameter: is a non-space dimension (e.g. time) such that derivatives are taken in the equations along this dimension.
+   - a dimension: with an abuse of notation will denote any physical scalar field contained in the given storage, e.g. a velocity component, the pressure, or the energy. I.e. it is an extra dimension which can appear in the equations only derived in space or with respect to the parameter mentioned above.
+   - a storage: is an instance of the storage class, and can contain one or more fields and dimensions. Every dimension consists of one or several snaphsots of the scalar fields
    (e.g. if the time T is the current dimension, 3 snapshots can be the fields at t, t+1, t+2)
    - a data snapshot: is a pointer to one single snapshot. The snapshots are arranged in the storages on a 1D array, regardless of the dimension and snapshot they refer to. The arg_type (or arg_decorator) class is
    responsible of computing the correct offests (relative to the given dimension) and address the storages correctly.
@@ -42,13 +45,6 @@
 */
 
 namespace gridtools {
-
-    template<int N>
-    struct static_print
-    {
-        GT_FUNCTION
-        char operator()() { return N + 256; } //deliberately causing overflow
-    };
 
     namespace iterate_domain_aux {
 
@@ -145,7 +141,7 @@ namespace gridtools {
                the location (i,j,k). Such index is shared among all the fields contained in the
                same storage class instance, and it is not shared among different storage instances.
             */
-            static void assign(Left& l, Right & r, uint_t i, uint_t j, uint_t* index){
+            static void assign(Left& l, Right & r, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t* index){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
@@ -153,11 +149,11 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 BOOST_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value);
-                boost::fusion::at_c<ID>(r)->template increment<0>(i, &index[ID]);
-                boost::fusion::at_c<ID>(r)->template increment<1>(j, &index[ID]);
+                boost::fusion::at_c<ID>(r)->template increment<0>(i, bi, &index[ID]);
+                boost::fusion::at_c<ID>(r)->template increment<1>(j, bj, &index[ID]);
                 assign_raw_data<storage_type::n_args-1>::
                     assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
-                assign_storage<ID-1, LocalArgTypes>::assign(l,r,i,j,index); //tail recursion
+                assign_storage<ID-1, LocalArgTypes>::assign(l,r,i,j,bi,bj,index); //tail recursion
             }
         };
 
@@ -166,15 +162,15 @@ namespace gridtools {
             struct assign_storage<0, LocalArgTypes>{
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void assign(Left & l, Right & r, uint_t i, uint_t j, uint_t* index/* , ushort_t* lru */){
+            static void assign(Left & l, Right & r, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t* index/* , ushort_t* lru */){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #else
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
 
-                boost::fusion::at_c<0>(r)->template increment<0>(i, index);
-                boost::fusion::at_c<0>(r)->template increment<1>(j, index);
+                boost::fusion::at_c<0>(r)->template increment<0>(i, bi, index);
+                boost::fusion::at_c<0>(r)->template increment<1>(j, bj, index);
                 assign_raw_data<storage_type::n_args-1>::
                     assign(&l[0], boost::fusion::at_c<0>(r)->fields());
             }
@@ -193,7 +189,7 @@ namespace gridtools {
 	    /* mutable local_iterators_type local_iterators; */
 
 	    GT_FUNCTION
-	    iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j)
+	    iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t bi, uint_t bj)
             : local_domain(local_domain)
 #ifdef CXX11_ENABLED
             , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
@@ -204,7 +200,7 @@ namespace gridtools {
                 // boost::fusion::at_c<0>(local_domain.local_args)->template increment<1>(j, &m_index[0]);
 
                 // double*            &storage
-                assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args, i, j, &m_index[0]/* , &m_lru[0] */);
+                assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args, i, j, bi, bj, &m_index[0]/* , &m_lru[0] */);
 
                 // DOUBLE*                                 &storage
                 /* boost::fusion::at_c<0>(local_iterators).value=&((*(boost::fusion::at_c<0>(local_domain.local_args)))(i,j,k)); */
@@ -216,6 +212,20 @@ namespace gridtools {
                 /* printf("strides: %d\n", boost::fusion::at_c<1>(local_domain.local_args)->stride_k()); */
 
             }
+
+        /**@brief Alternative constructor for blocked storage
+           The block dimensions are specified as template parameters, while the block indices of the i-j current iteration are passes in as function arguments.
+         */
+//         template <uint_t TileI, uint_t TileJ>
+// 	    GT_FUNCTION
+// 	    iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t bi, uint bj )
+//             : local_domain(local_domain)
+// #ifdef CXX11_ENABLED
+//             , m_index{0}, m_data_pointer{0}
+// #endif
+//             {
+//                 assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args, i-bi*TileI, j-bj*TileJ,  &m_index[0]);
+//             }
 
         GT_FUNCTION
         void increment() {

@@ -51,10 +51,10 @@ namespace gridtools {
 	      typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
 	      typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-	      typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj/*, m_data_pointer*/);
+	      typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj/*, m_data_pointer*/,0,0);
 	      //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );	      //setting the initial k level (for backward/parallel iterations it is not 0)
 	      if( !iteration_policy::value==enumtype::forward )
-		it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+              it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
