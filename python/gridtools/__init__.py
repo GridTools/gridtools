@@ -1,35 +1,49 @@
 # -*- coding: utf-8 -*-
 import sys
 import ast
-import compiler
 import warnings
+import compiler
 
 import numpy as np
-
 
 
 
 class FunctorBody ( ):
     """
     Represents the Do( ) function of a stencil's functor. 
-    It inherits the visitor pattern from compiler.visitor.ASTVisitor, to 
-    recursively generate C++ code for each syntactical Python construct. 
-    This code was adapted from the SHED SKIN Python-to-C++ Compiler, which is
-    copyright 2005-2013 Mark Dufour; License GNU GPL version 3.-
     """
-    def generate_code (self, gx):
-        for module in gx.modules.values():
-            if not module.builtin:
-                gv = GenerateVisitor(gx, module)
-                walk(module.ast, gv)
-                gv.out.close()
-                gv.header_file()
-                gv.out.close()
-                gv.insert_consts(declare=False)
-                gv.insert_consts(declare=True)
-                gv.insert_extras('.hpp')
-                gv.insert_extras('.cpp')
-        generate_makefile(gx)
+    def __init__ (self, nodes):
+        """
+        Constructs a functor body object using the received node:
+
+            node    an AST-node list representing the body of this functor.-
+        """
+        try:
+            if len (nodes) > 0:
+                self.nodes = nodes
+
+        except TypeError:
+            warnings.warn ("FunctorBody expects a list of AST nodes.",
+                           RuntimeWarning)
+
+
+    def generate_code (self): 
+        from shedskin.cpp import GenerateVisitor
+        from shedskin.config import GlobalInfo
+
+        #import ipdb; ipdb.set_trace ( )
+
+        gx = GlobalInfo ( )
+        gv = GenerateVisitor (gx, self.nodes)
+        compiler.walk (self.nodes[0], gv)
+        gv.out.close ( )
+        gv.header_file ( )
+        gv.out.close ( )
+        gv.insert_consts (declare=False)
+        gv.insert_consts (declare=True)
+        gv.insert_extras ('.hpp')
+        gv.insert_extras ('.cpp')
+        #generate_makefile(gx)
 
 
 
@@ -124,7 +138,11 @@ class StencilFunctor ( ):
             #
             param_list = self.node.args.args
             for p in param_list:
-                par = FunctorParameter (p.arg)
+                #
+                # Py3 version
+                #
+                #par = FunctorParameter (p.arg)     Py3 version
+                par = FunctorParameter (p.id)
                 #
                 # the name is None if the parameter was ignored/invalid
                 #
@@ -133,7 +151,7 @@ class StencilFunctor ( ):
                     self.params.append (par)
 
         except AttributeError:
-            warnings.warn ("AST node not set or it is not a FuctionDef\n",
+            warnings.warn ("AST node not set or it is not a FunctionDef\n",
                            RuntimeWarning)
 
 
@@ -154,7 +172,7 @@ class StencilFunctor ( ):
                 call = node.iter
                 if (call.func.value.id == 'self' and 
                     call.func.attr == 'get_interior_points'):
-                    self.body = node.body
+                    self.body = FunctorBody (node.body)
 
 
     def translate (self):
@@ -167,8 +185,7 @@ class StencilFunctor ( ):
                                                          'templates'))
         tpl = jinja_env.get_template ("functor.c")
         print (tpl.render (functor=self))
-
-
+        print (self.body.generate_code ( ))
 
 
 
@@ -185,7 +202,7 @@ class StencilInspector (ast.NodeVisitor):
         from inspect import getsource
 
         if issubclass (cls, MultiStageStencil):
-            super ( ).__init__ ( )
+            super (StencilInspector, self).__init__ ( )
             self.src = getsource (cls)
             self.kernel_func = None
         else:
@@ -214,21 +231,20 @@ class StencilInspector (ast.NodeVisitor):
         #
         if node.name == 'kernel':
             #
-            # this function should not return anything
+            # FIXME: this function should not return anything
             #
-            if node.returns is None:
-                self.kernel_func = StencilFunctor (node)
-                self.kernel_func.analyze_params ( )
-                self.kernel_func.analyze_loops  ( )
-                self.kernel_func.translate ( )
-                #
-                # continue traversing the AST
-                #
-                for n in node.body:
-                    super (StencilInspector, self).visit (n)
-            else:
-                raise ValueError ("The 'kernel' function should return 'None'.")
-
+            #if node.returns is None:
+            self.kernel_func = StencilFunctor (node)
+            self.kernel_func.analyze_params ( )
+            self.kernel_func.analyze_loops  ( )
+            self.kernel_func.translate ( )
+            #
+            # continue traversing the AST
+            #
+            for n in node.body:
+                super (StencilInspector, self).visit (n)
+            #else:
+            #    raise ValueError ("The 'kernel' function should return 'None'.")
 
 
 
@@ -282,5 +298,4 @@ class MultiStageStencil ( ):
         #
         #if id (output_field) in self.out_arrs:
         return np.ndindex (*output_field.shape)
-
 

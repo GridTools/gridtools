@@ -10,7 +10,7 @@ class Copy (MultiStageStencil):
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
     def __init__ (self):
-        super ( ).__init__ ( )
+        super (Copy, self).__init__ ( )
 
     def kernel (self, out_data, in_data):
         """
@@ -42,12 +42,14 @@ class CopyStencilTest (unittest.TestCase):
         insp.analyze ( )
         self.assertNotEqual (insp, None)
 
-    """
+
     def test_kernel_function (self):
-        ""
+        """
         The kernel function si the entry point of the stencil execution and
         should follow several conventions.-
-        ""
+        """
+
+        """
         with self.assertRaises (NameError):
             class KernelFunctionMissing (MultiStageStencil):
                 def some_func (self):
@@ -62,7 +64,8 @@ class CopyStencilTest (unittest.TestCase):
                     return "something"
             insp = StencilInspector (KernelFunctionDoesNotReturnNone)
             insp.analyze ( )
-    """
+        """
+        pass
 
 
     def test_ast (self):
