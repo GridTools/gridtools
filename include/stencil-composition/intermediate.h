@@ -506,7 +506,6 @@ namespace gridtools {
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
-//I wrap a boost::shared_ptr around the temporary storages, so that I do not have to care about deletion
         typedef typename boost::mpl::fold<
             iter_range,
             boost::mpl::vector<>,

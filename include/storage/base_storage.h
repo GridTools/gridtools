@@ -146,9 +146,6 @@ namespace gridtools {
                 m_strides[0]=( dim1*dim2*dim3 );
                 m_strides[1]=( dims[layout::template get<2>()]*dims[layout::template get<1>()]);
                 m_strides[2]=( dims[layout::template get<2>()] );
-            printf("strides : %d, %d, %d in construction\n", m_strides[0], m_strides[1], m_strides[2]);
-            printf("strides : address %x in construction\n", &m_strides[0]);
-
 #endif
 
 #ifdef _GT_RANDOM_INPUT
@@ -348,10 +345,7 @@ namespace gridtools {
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment(uint_t& /*block*/, uint_t* index){
-            // printf("strides : %d, %d, %d for storage\n", m_strides[0], m_strides[1], m_strides[2]);
-            // printf("index before incrementing: %d\n", *index);
             *index+=strides<Coordinate>(m_strides);
-            // printf("index : %d -> %d, in direction %d\n", strides<Coordinate>(m_strides),  *index, Coordinate);
         }
 
         template <uint_t Coordinate>
@@ -363,10 +357,7 @@ namespace gridtools {
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment(uint_t const& dimension, uint_t& /*block*/, uint_t* index){
-            //printf("strides : %d, %d, %d for storage\n", m_strides[0], m_strides[1], m_strides[2]);
-            printf("wrong place: %d\n", *index);
             *index+=strides<Coordinate>(m_strides)*dimension;
-            // printf("index : %d*%d -> %d, in direction %d\n", strides<Coordinate>(m_strides), dimension,  *index, Coordinate);
         }
 
         template <uint_t Coordinate>
