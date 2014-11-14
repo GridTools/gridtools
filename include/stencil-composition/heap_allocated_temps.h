@@ -35,6 +35,7 @@ namespace gridtools {
 //#endif
 
 //calls the constructor of the storage
+                //noone deletes this f***n new
                 e = new ElemType(m_tile_i,
                                  m_tile_j,
                                  m_tile_k,
@@ -49,7 +50,7 @@ namespace gridtools {
     };
 
 
-
+        // noone calls this!!!
         struct delete_tmps {
             template <typename Elem>
             GT_FUNCTION
@@ -100,7 +101,7 @@ namespace gridtools {
         struct policy<Block>
             {
                 template <typename Coords>
-                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom();}
+                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom()+1;}
                 template <typename Coords>
                 static uint_t value_i(Coords& coords){ return coords.i_low_bound();}
                 template <typename Coords>
@@ -112,7 +113,7 @@ namespace gridtools {
         struct policy<Naive>
             {
                 template <typename Coords>
-                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom();}
+                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom()+1;}
                 template <typename Coords>
                 static uint_t value_i(Coords& coords){ return coords.direction_i().total_length();}
                 template <typename Coords>

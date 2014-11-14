@@ -153,7 +153,7 @@ namespace gridtools{
             template <enumtype::backend Backend, typename ValueType, typename LayoutType , uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
             struct tmp
                 {
-                    typedef base_storage<Backend, ValueType, LayoutType, true> host_storage_t;
+                    typedef storage<base_storage<Backend, ValueType, LayoutType, true> > host_storage_t;
                 };
 
         };
@@ -193,6 +193,7 @@ namespace gridtools{
                         uint_t NBI = n/BI;
                         uint_t NBJ = m/BJ;
                         {
+                            //internal blocks
                             for (uint_t bi = 0; bi < NBI; ++bi) {
                                 for (uint_t bj = 0; bj < NBJ; ++bj) {
                                     uint_t _starti = bi*BI+coords.i_low_bound();
@@ -201,18 +202,21 @@ namespace gridtools{
                                 }
                             }
 
+                            //last block row
                             for (uint_t bj = 0; bj < NBJ; ++bj) {
                                 uint_t _starti = NBI*BI+coords.i_low_bound();
                                 uint_t _startj = bj*BJ+coords.j_low_bound();
                                 backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ, NBI, bj));
                             }
 
+                            //last block column
                             for (uint_t bi = 0; bi < NBI; ++bi) {
                                 uint_t _starti = bi*BI+coords.i_low_bound();
                                 uint_t _startj = NBJ*BJ+coords.j_low_bound();
                                 backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ, bi, NBJ));
                             }
 
+                            //last single block entry
                             {
                                 uint_t _starti = NBI*BI+coords.i_low_bound();
                                 uint_t _startj = NBJ*BJ+coords.j_low_bound();

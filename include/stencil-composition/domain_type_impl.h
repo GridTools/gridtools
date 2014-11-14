@@ -97,11 +97,12 @@ namespace gridtools {
         struct l_get_index {
             template <typename U>
             struct apply {
-                typedef static_uint< U::index_type::value >
 #ifndef CXX11_ENABLED
-                ::type
+                typedef typename static_uint< U::index_type::value >::type
+#else
+                typedef static_uint< U::index_type::value >
 #endif
-                type;
+type;
             };
         };
 

@@ -21,6 +21,7 @@
 #include "axis.h"
 #include "local_domain.h"
 #include "computation.h"
+#include "heap_allocated_temps.h"
 
 /**
  * @file
@@ -505,6 +506,7 @@ namespace gridtools {
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
+//I wrap a boost::shared_ptr around the temporary storages, so that I do not have to care about deletion
         typedef typename boost::mpl::fold<
             iter_range,
             boost::mpl::vector<>,
@@ -655,9 +657,14 @@ namespace gridtools {
         }
 
 
-
         virtual void finalize () {
             finalize_computation<Backend::s_backend_id>::apply(m_domain);
+
+            //DELETE the TEMPORARIES (a shared_ptr would be way better)
+            typedef boost::fusion::filter_view<actual_arg_list_type,
+                                               is_temporary_storage<boost::mpl::_1> > view_type;
+            view_type fview(actual_arg_list);
+            boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
 

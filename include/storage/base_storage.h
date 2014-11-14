@@ -134,8 +134,8 @@ namespace gridtools {
         static const ushort_t n_args = 1;
 
     public:
-        explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
-                              value_type init = value_type(), std::string const& s = std::string("default name") ):
+        base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
+                     value_type init = value_type(), std::string const& s = std::string("default name") ):
             m_data( dim1*dim2*dim3 )
             , is_set( true )
             , m_name(s)
@@ -146,6 +146,9 @@ namespace gridtools {
                 m_strides[0]=( dim1*dim2*dim3 );
                 m_strides[1]=( dims[layout::template get<2>()]*dims[layout::template get<1>()]);
                 m_strides[2]=( dims[layout::template get<2>()] );
+            printf("strides : %d, %d, %d in construction\n", m_strides[0], m_strides[1], m_strides[2]);
+            printf("strides : address %x in construction\n", &m_strides[0]);
+
 #endif
 
 #ifdef _GT_RANDOM_INPUT
@@ -161,7 +164,7 @@ namespace gridtools {
             }
 
         /**@brief destructor: frees the pointers to the data fields */
-        ~base_storage(){m_data.free_it();}
+        virtual ~base_storage(){m_data.free_it();}
 
         /**@brief device copy constructor*/
         template<typename T>
@@ -329,6 +332,7 @@ namespace gridtools {
         uint_t _index(uint_t i, uint_t j, uint_t k) const {
             uint_t index;
             if (IsTemporary) {
+                assert(false);
                 index =
                     m_strides[1]* (modulus(layout::template find<0>(i,j,k),dims_coordwise<0>(m_strides))) +
                     m_strides[2]*modulus(layout::template find<1>(i,j,k), dims_coordwise<1>(m_strides)) +
@@ -344,7 +348,10 @@ namespace gridtools {
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment(uint_t& /*block*/, uint_t* index){
+            // printf("strides : %d, %d, %d for storage\n", m_strides[0], m_strides[1], m_strides[2]);
+            // printf("index before incrementing: %d\n", *index);
             *index+=strides<Coordinate>(m_strides);
+            // printf("index : %d -> %d, in direction %d\n", strides<Coordinate>(m_strides),  *index, Coordinate);
         }
 
         template <uint_t Coordinate>
@@ -356,7 +363,10 @@ namespace gridtools {
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment(uint_t const& dimension, uint_t& /*block*/, uint_t* index){
+            //printf("strides : %d, %d, %d for storage\n", m_strides[0], m_strides[1], m_strides[2]);
+            printf("wrong place: %d\n", *index);
             *index+=strides<Coordinate>(m_strides)*dimension;
+            // printf("index : %d*%d -> %d, in direction %d\n", strides<Coordinate>(m_strides), dimension,  *index, Coordinate);
         }
 
         template <uint_t Coordinate>
