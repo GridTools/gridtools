@@ -74,6 +74,7 @@ namespace gridtools{
                 for (uint_t k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
+                    printf("k ==> %d\n", k );
                 }
 #ifdef __CUDACC__
                 cudaProfilerStop();

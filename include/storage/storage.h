@@ -18,9 +18,9 @@ namespace gridtools {
 	storage(storage const& other)
 	  :  super(other)
       {}
-      
-    explicit storage(uint_t dim1, uint_t dim2, uint_t dim3,
-		     typename BaseStorage::value_type init = BaseStorage::value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s) {
+
+        explicit storage(uint_t dim1, uint_t dim2, uint_t dim3,
+                         typename BaseStorage::value_type init = BaseStorage::value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s) {
         }
 
       /* GT_FUNCTION */
@@ -75,7 +75,7 @@ namespace gridtools {
 
       /* BaseStorage m_base_storage; */
 
-      //    private : 
+      //    private :
       explicit storage():super(){}
     };
 

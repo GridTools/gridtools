@@ -60,7 +60,7 @@ namespace gridtools{  namespace enumtype{
 #ifdef CXX11_ENABLED
 using int_t          = long int;
 using short_t        =int;
-using uint_t         = unsigned long int;
+using uint_t         =  long unsigned int;
 using ushort_t       = unsigned int;
 template<int_t N>
 using  static_int=boost::mpl::integral_c<int_t,N>;
@@ -73,7 +73,7 @@ using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
 #else
 typedef long int                     int_t;
 typedef int                          short_t;
-typedef unsigned long int            uint_t;
+typedef long unsigned int            uint_t;
 typedef unsigned int                 ushort_t;
 template<int_t N>
 struct static_int : boost::mpl::integral_c<int_t,N>{
