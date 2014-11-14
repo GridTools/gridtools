@@ -86,14 +86,15 @@ class CPPNamer(object):
 class GenerateVisitor(ASTVisitor):
     def __init__(self, gx, module):
         self.gx = gx
-        self.output_base = module.filename[:-3]
+        #self.output_base = module.filename[:-3]
+        self.output_base = "automatic_converter"
         self.out = file(self.output_base + '.cpp', 'w')
         self.indentation = ''
         self.consts = {}
-        self.mergeinh = self.gx.merged_inh
-        self.module = module
-        self.mv = module.mv
-        self.name = module.ident
+        #self.mergeinh = self.gx.merged_inh
+        #self.module = module
+        #self.mv = module.mv
+        #self.name = module.ident
         self.filling_consts = False
         self.with_count = 0
         self.bool_wrapper = {}
