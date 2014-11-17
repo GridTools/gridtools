@@ -1,4 +1,4 @@
-{# disabled for debugging % extends "stencil.c" % #}
+{% extends "stencil.c" %}
 
 {% block functor %}
 
@@ -46,7 +46,7 @@ struct {{ functor.name }}
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) 
     {
-        dom(out()) = dom(in());
+        {{ functor.body.cpp }}
     }
 };
 
