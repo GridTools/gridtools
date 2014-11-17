@@ -71,16 +71,16 @@ namespace gridtools {
                     typedef typename Traits::iterate_domain_t iterate_domain_type;
                     typedef typename Arguments::execution_type_t execution_type_t;
 
-#ifndef NDEBUG
-                    // TODO a generic cout is still on the way (have to implement all the '<<' operators)
-                    std::cout << "Functor " <<  functor_type() << "\n";
-                    std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
-                              << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
-                    std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
-                              << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
-                    std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-                    std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
-#endif
+// #ifndef NDEBUG
+//                     // TODO a generic cout is still on the way (have to implement all the '<<' operators)
+//                     std::cout << "Functor " <<  functor_type() << "\n";
+//                     std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
+//                               << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
+//                     std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
+//                               << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+//                     std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+//                     std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+// #endif
 
 
                     for (uint_t i = f->m_starti + range_t::iminus::value;

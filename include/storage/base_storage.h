@@ -151,7 +151,7 @@ namespace gridtools {
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
 #endif
-                for (uint_t i = 0; i < /*m_size*/m_strides[0]; ++i)
+                for (uint_t i = 0; i < size(); ++i)
 #ifdef _GT_RANDOM_INPUT
                     m_data[i] = init * rand();
 #else
@@ -462,6 +462,7 @@ namespace gridtools {
             : super(other)
               //m_lru(other.m_lru)
             {
+                assert(n_args==other.n_args);
                 for (uint_t i=0; i<n_args; ++i)
                     m_fields[i]=pointer_type(other.m_fields[i]);
                 super::m_data=m_fields[0];
@@ -509,13 +510,26 @@ namespace gridtools {
             //this->m_data=m_fields[0];
         }
 
+        /**@brief adds a given data field at the end of the buffer
+           \param field the pointer to the input data field
+         */
         GT_FUNCTION
-        void push_back(/*smart<*/ const pointer_type/*>*/ & field){
-            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage
-            for(uint_t i=1;i<n_args;i++) m_fields[i]=m_fields[i-1];
+        void push_back(/*smart<*/ const pointer_type/*>*/ & field, uint_t const& from=(uint_t)1, uint_t const& to=(uint_t)(n_args-1)){
+            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
+            if(m_fields[to])
+                m_fields[to].free_it();
+            for(uint_t i=from;i<to+1;i++) m_fields[i]=m_fields[i-1];
             m_fields[0]=field;
             //m_lru=(m_lru+1)%n_args;
             //this->m_data=m_fields[m_lru];
+        }
+
+
+        /**@brief adds a new data field at the end of the buffer*/
+        GT_FUNCTION
+        void push_back_new(){
+            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
+            push_back(new typename pointer_type::pointee_t(this->size()));
         }
 
         //the time integration takes ownership over all the pointers?
@@ -531,9 +545,6 @@ namespace gridtools {
 
         GT_FUNCTION
         pointer_type const*  fields(){return m_fields;}
-
-        /* GT_FUNCTION */
-        /* 	inline ushort_t const& lru(){return m_lru;} */
 
         void print() {
             print(std::cout);
@@ -580,41 +591,105 @@ namespace gridtools {
     };
 
 #ifdef CXX11_ENABLED
+
     /** @brief first interface: each extend_width in the vector is specified with its own extra width
     	extension<extend_width<storage, 3>, extend_width<storage, 2>, extend_width<storage, 4> >, which is syntactic sugar for:
     	extension<extend_width<extension<extend_width<extension<extend_width<storage, 4> >, 2> >, storage, 3> >
     */
     template < typename First, typename  ...  StorageExtended>
-    struct dimension_extension_traits {
-        //total number of dimensions
+    struct dimension_extension_traits : public dimension_extension_traits<StorageExtended ... > {
+        //First must be an
+        //total buffer size
         static const uint_t n_fields=First::n_args + dimension_extension_traits<StorageExtended  ...  >::n_fields ;
+        //the buffer size of the current field (i.e. the total number of snapshots)
         static const uint_t n_width=First::n_args;
+        //the number of dimensions (i.e. the number of different fields)
         static const uint_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
+        //the current field extension
+        // typedef extend_width<First, n_fields>  type;
         typedef extend_width<First, n_fields>  type;
-    };
+        // typedef First type;
+        typedef typename dimension_extension_traits<StorageExtended ... >::super super;
+        // typedef typename super::pointer_type pointer_type;
+        // typedef typename super::basic_type basic_type;
+        // typedef typename super::original_storage original_storage;
+         //inheriting constructors
+        // using super::dimension_extension_traits;
+   };
 
-
+/**@brief template specialization at the end of the recustion.*/
     template < typename First>
-    struct dimension_extension_traits<First> {
+    struct dimension_extension_traits<First>  {
         //total number of dimensions
         static const uint_t n_fields=First::n_args;
         static const uint_t n_width=First::n_args;
         static const uint_t n_dimensions= 1 ;
-        typedef extend_width<First, n_fields>  type;
+        // typedef extend_width<First, n_fields>  type;
+        typedef First type;
+        typedef First super;
+        // typedef typename super::pointer_type pointer_type;
+        // typedef typename super::basic_type basic_type;
+        // typedef typename super::original_storage original_storage;
+       //inheriting constructors
+        // using super::First;
+     };
+
+    /**@brief metafunction to access a typelist at a given position*/
+    template<uint_t ID, typename Sequence>
+    struct access{
+        typedef typename access<ID-1, typename Sequence::super>::type type;
     };
+
+    template<typename Sequence>
+    struct access<0, Sequence>{
+        typedef typename Sequence::super type;
+    };
+
 
     template <typename First,  typename  ...  StorageExtended>
     struct extend_dim : public dimension_extension_traits<First, StorageExtended ...  >::type, clonable_to_gpu<extend_dim<First, StorageExtended  ... > >
     {
         typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;
+        typedef dimension_extension_traits<First, StorageExtended ...  > traits;
+        typedef typename super::pointer_type pointer_type;
         typedef typename  super::basic_type basic_type;
         typedef typename super::original_storage original_storage;
+        //inheriting constructors
         using super::extend_width;
+        using super::push_back;
+        using super::push_back_new;
 
         __device__
         extend_dim( extend_dim const& other )
             : super(other)
             {}
+
+        /**@brief pushes a given data field at the front of the buffer
+           \param field the pointer to the input data field
+         */
+        template<uint_t dimension=0>
+        GT_FUNCTION
+        void push_back( const pointer_type & field ){
+            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
+
+            BOOST_STATIC_ASSERT(dimension<super::n_dimensions);
+            uint_t const indexFrom=access<dimension, traits>::type::n_args-1;
+            uint_t const indexTo=access<dimension-1, traits>::type::n_args-1;
+
+            this->push_back(field, indexFrom, indexTo);
+            // if(m_fields[indexTo])
+            //     m_fields[indexTo].free_it();
+            // for(uint_t i=indexFrom ;i<=indexTo ;i++) m_fields[i]=m_fields[i-1];
+            // m_fields[0]=field;
+        }
+
+        /**@brief adds a new data field at the front of the buffer*/
+        template<uint_t dimension=0>
+        GT_FUNCTION
+        void push_back_new(){
+            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
+            push_back(new typename pointer_type::pointee_t(this->size()), dimension);
+        }
 
         //for stdcout purposes
         explicit extend_dim(){}

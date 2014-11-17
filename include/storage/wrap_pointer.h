@@ -34,7 +34,7 @@ struct wrap_pointer{
         {}
 
     GT_FUNCTION
-    explicit wrap_pointer(T* p)
+    wrap_pointer(T* p)
         : cpu_p(p)
         {}
 
@@ -76,7 +76,7 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void free_it() {
-      //if(cpu_p) delete[] cpu_p  ;
+        if(cpu_p) delete[] cpu_p  ;
     }
 
 

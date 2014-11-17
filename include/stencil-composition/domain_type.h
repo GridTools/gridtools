@@ -171,9 +171,10 @@ namespace gridtools {
         /**
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
          * @param real_storage The actual fusion::vector with the values
+         TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
         template <typename RealStorage>
-        explicit domain_type(RealStorage const & real_storage)
+        explicit domain_type(RealStorage const & real_storage, int dontchooseme)
             : storage_pointers()
         {
 
