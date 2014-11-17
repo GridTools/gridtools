@@ -274,13 +274,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 
     horizontal_diffusion->ready();
 
-    // domain.storage_info<boost::mpl::int_<0> >();
-    // domain.storage_info<boost::mpl::int_<1> >();
-    // domain.storage_info<boost::mpl::int_<2> >();
-    domain.storage_info<static_int<3> >();
-    domain.storage_info<static_int<4> >();
-    domain.storage_info<static_int<5> >();
-
     horizontal_diffusion->steady();
     domain.clone_to_gpu();
 

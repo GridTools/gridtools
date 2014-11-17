@@ -12,8 +12,8 @@ foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block
         PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-    set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
-    set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(${srcfile}_naive ${exe_LIBS})
     target_link_libraries(${srcfile}_block ${exe_LIBS})
 endforeach(srcfile)
@@ -22,11 +22,15 @@ if ( ENABLE_CXX11 )
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED ***ONLY*** WITH C++11
     add_executable(test_interface   expressions.cpp )
     target_link_libraries(test_interface ${exe_LIBS})
-    set_target_properties(test_interface PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    set_target_properties(test_interface PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+    add_executable(test_shallow_water  shallow_water.cpp)
+    target_link_libraries(test_shallow_water ${exe_LIBS})
+    set_target_properties(test_shallow_water PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
     add_executable( unstructured unstructured.cpp )
     target_link_libraries(unstructured ${exe_LIBS})
-    set_target_properties(unstructured PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    set_target_properties(unstructured PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
 endif()
 
@@ -41,7 +45,7 @@ if(CUDA_FOUND)
     else()
         foreach(srcfile interface1 boundary-condition tridiagonal laplacian copy_stencil )
             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
-            set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+            set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
             target_link_libraries(${srcfile}_cuda ${exe_LIBS})
         endforeach(srcfile)
     endif()

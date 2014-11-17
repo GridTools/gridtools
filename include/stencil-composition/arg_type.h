@@ -370,16 +370,10 @@ namespace gridtools {
 	  m_offset=t;
 	}
 
-	/* //implicit cast */
-        /* template <typename... Whatever> */
-        /* GT_FUNCTION */
-        /* arg_decorator ( int const& t, Whatever... x): super( x... ) { */
-	/*   m_offset=t; */
-	/* } */
-
 	/**@brief constructor taking the Extra class as argument.
-	 This allows to specify the extra arguments out of order. Note that 'enumtype::Extra' is a
-	 language keyword used at the interface level.*/
+	 This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+	 language keyword used at the interface level.
+    TODO: use currying and operator () instead of constructors*/
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
         arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever... x): super( x... ) {

@@ -6,10 +6,10 @@ add_test(test.FunctorDoMethods "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
 
 add_executable(LoopIntervals LoopIntervals.cpp)
 add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
- 
+
 if ( ENABLE_CXX11 )
     add_executable(test-independent test-independent.cpp)
-    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 endif()
 
@@ -23,7 +23,7 @@ if (GTEST_FOUND)
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
   link_directories( ${Boost_LIBRARY_DIRS} )
 
-  set_target_properties(tests PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+  set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
