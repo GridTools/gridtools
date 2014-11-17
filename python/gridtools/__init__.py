@@ -2,190 +2,10 @@
 import sys
 import ast
 import warnings
-import compiler
 
 import numpy as np
 
-
-
-class FunctorBody ( ):
-    """
-    Represents the Do( ) function of a stencil's functor. 
-    """
-    def __init__ (self, nodes):
-        """
-        Constructs a functor body object using the received node:
-
-            node    an AST-node list representing the body of this functor.-
-        """
-        try:
-            if len (nodes) > 0:
-                self.nodes = nodes
-
-        except TypeError:
-            warnings.warn ("FunctorBody expects a list of AST nodes.",
-                           RuntimeWarning)
-
-
-    def generate_code (self): 
-        from shedskin.cpp import GenerateVisitor
-        from shedskin.config import GlobalInfo
-
-        #import ipdb; ipdb.set_trace ( )
-
-        gx = GlobalInfo ( )
-        gv = GenerateVisitor (gx, self.nodes)
-        compiler.walk (self.nodes[0], gv)
-        gv.out.close ( )
-        gv.header_file ( )
-        gv.out.close ( )
-        gv.insert_consts (declare=False)
-        gv.insert_consts (declare=True)
-        gv.insert_extras ('.hpp')
-        gv.insert_extras ('.cpp')
-        #generate_makefile(gx)
-
-
-
-class FunctorParameter ( ):
-    """
-    Represents a parameter of a stencil functor.-
-    """
-    def __init__ (self, name):
-        """
-        Creates a new parameter with the received name.-
-        """
-        self.id     = None
-        self.name   = None 
-        self.input  = None
-        self.output = None
-        self.set_name (name)
-
-    def set_name (self, name):
-        """
-        Sets a new name to this functor parameter.-
-        """
-        if name.startswith ('in_'):
-            #
-            # functor input parameter
-            #
-            self.name = name
-            self.input = True
-            self.output = False
-        elif name.startswith ('out_'):
-            #
-            # functor input parameter
-            #
-            self.name = name
-            self.input = False
-            self.output = True
-        else:
-            warnings.warn ("ignoring functor parameter [%s]\n" % name,
-                           UserWarning)
-
-
-
-class StencilFunctor ( ):
-    """
-    Represents a functor inside a multi-stage stencil.-
-    """
-    def __init__ (self, node=None):
-        """
-        Constructs a new StencilFunctor:
-
-            node    the FunctionDef AST node (see
-                    https://docs.python.org/3.4/library/ast.html) of the
-                    Python function from which this functor will be built.-
-        """
-        #
-        # a name to uniquely identify this functor
-        #
-        self.name = None
-        #
-        # a list to keep the functor parameters
-        #
-        self.params = list ( )
-        #
-        # the body of the functor is inlined from the 'for' loops
-        #
-        self.body = None
-        #
-        # the AST node of the Python function representing this functor
-        #
-        self.set_ast (node)
-
-
-    def set_ast (self, node):
-        """
-        Speficies the AST describing the operations this functor should 
-        implement:
-
-            node    a FunctionDef AST node (see
-                    https://docs.python.org/3.4/library/ast.html).-
-        """
-        self.node  = node 
-        self.name  = "%s_functor" % node.name
-
-
-    def analyze_params (self):
-        """
-        Extracts the parameters of the Python fuction before translating
-        them to C++ functor code.-
-        """
-        try:
-            #
-            # analyze the function parameters
-            #
-            param_list = self.node.args.args
-            for p in param_list:
-                #
-                # Py3 version
-                #
-                #par = FunctorParameter (p.arg)     Py3 version
-                par = FunctorParameter (p.id)
-                #
-                # the name is None if the parameter was ignored/invalid
-                #
-                if par.name is not None:
-                    par.id = len (self.params)
-                    self.params.append (par)
-
-        except AttributeError:
-            warnings.warn ("AST node not set or it is not a FunctionDef\n",
-                           RuntimeWarning)
-
-
-    def analyze_loops (self):
-        """
-        Looks for 'get_interior_points' comprehensions within the 
-        Python function.-
-        """
-        #
-        # the loops are part of the function body
-        #
-        function_body = self.node.body
-        for node in function_body:
-            if isinstance (node, ast.For):
-                #
-                # the iteration should call 'get_interior_points'
-                #
-                call = node.iter
-                if (call.func.value.id == 'self' and 
-                    call.func.attr == 'get_interior_points'):
-                    self.body = FunctorBody (node.body)
-
-
-    def translate (self):
-        """
-        Translates this functor to C++, using the gridtools interface.-
-        """
-        from jinja2 import Environment, PackageLoader
-
-        jinja_env = Environment (loader = PackageLoader ('gridtools',
-                                                         'templates'))
-        tpl = jinja_env.get_template ("functor.c")
-        print (tpl.render (functor=self))
-        print (self.body.generate_code ( ))
+from gridtools.functor import StencilFunctor
 
 
 
@@ -203,6 +23,7 @@ class StencilInspector (ast.NodeVisitor):
 
         if issubclass (cls, MultiStageStencil):
             super (StencilInspector, self).__init__ ( )
+            self.name = "%sStencil" % cls.__name__.capitalize ( )
             self.src = getsource (cls)
             self.kernel_func = None
         else:
@@ -219,6 +40,19 @@ class StencilInspector (ast.NodeVisitor):
             raise NameError ("Class must implement a 'kernel' function")
 
 
+    def translate (self):
+        """
+        Translates this functor to C++, using the gridtools interface.-
+        """
+        from jinja2 import Environment, PackageLoader
+
+        jinja_env = Environment (loader = PackageLoader ('gridtools',
+                                                         'templates'))
+        tpl = jinja_env.get_template ("functor.c")
+        print (tpl.render (stencil=self,
+                           functor=self.kernel_func))
+
+
     def visit_FunctionDef (self, node):
         """
         Looks for the stencil's entry function 'kernel' and validates it:
@@ -231,20 +65,20 @@ class StencilInspector (ast.NodeVisitor):
         #
         if node.name == 'kernel':
             #
-            # FIXME: this function should not return anything
+            # this function should not return anything
             #
-            #if node.returns is None:
-            self.kernel_func = StencilFunctor (node)
-            self.kernel_func.analyze_params ( )
-            self.kernel_func.analyze_loops  ( )
-            self.kernel_func.translate ( )
-            #
-            # continue traversing the AST
-            #
-            for n in node.body:
-                super (StencilInspector, self).visit (n)
-            #else:
-            #    raise ValueError ("The 'kernel' function should return 'None'.")
+            if node.returns is None:
+                self.kernel_func = StencilFunctor (node)
+                self.kernel_func.analyze_params ( )
+                self.kernel_func.analyze_loops  ( )
+                self.translate ( )
+                #
+                # continue traversing the AST
+                #
+                for n in node.body:
+                    super (StencilInspector, self).visit (n)
+            else:
+                raise ValueError ("The 'kernel' function should return 'None'.")
 
 
 

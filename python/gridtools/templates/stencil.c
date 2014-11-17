@@ -21,7 +21,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-namespace {{ stencil.name }}
+namespace {{ stencil.name|lower }}
 {
 //
 // definition of the special regions in the vertical (k) direction
@@ -145,4 +145,4 @@ bool test(int x, int y, int z)
     return  out(0,0,0)==0. && out(511,511,0)==1022. && out(511,0,59)==570. && out(0,511,59)==570. && out(511,511,59)==1081.;
 }
 
-} // namespace {{ stencil.name }}
+} // namespace {{ stencil.name|lower }}
