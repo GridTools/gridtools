@@ -139,6 +139,7 @@ class StencilInspector (ast.NodeVisitor):
 
 
 
+
 class MultiStageStencil ( ):
     """
     A base class for defining stencils involving several stages.
@@ -146,9 +147,10 @@ class MultiStageStencil ( ):
     """
     def __init__ (self):
         #
-        # the output NumPy arrays of this stencil
+        # the inspector object is used to JIT-compile this stencil
         #
-        self.out_arrs = list ( )
+        self.inspector = StencilInspector (self.__class__)
+
         #
         # a default halo - it goes:
         #
@@ -159,12 +161,28 @@ class MultiStageStencil ( ):
         #    total length in dimension)
         #
         self.halo = (1, 1)
+        self.out_arrs = list ( )
 
 
-    def kernel (self):
+    def kernel (self, *args, **kwargs):
         raise NotImplementedError ( )
 
 
+    def run (self, *args, **kwargs):
+        """
+        Starts the execution of the stencil.-
+        """
+        #
+        # run the compiled version if it is available
+        #
+        if self.inspector.lib_obj is None:
+            print ("# Running in Python mode ...")
+            self.kernel (*args, **kwargs)
+        else:
+            print ("# Running in native mode ...")
+            self.inspector.lib_obj.run (*args, **kwargs)
+
+        
     def set_output (self, np_arr):
         """
         Sets the received NumPy array as output for the stencil calculation:
