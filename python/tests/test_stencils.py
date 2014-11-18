@@ -43,6 +43,22 @@ class CopyStencilTest (unittest.TestCase):
         self.assertNotEqual (insp, None)
 
 
+    def test_results (self):
+        """
+        Checks that the stencil results are correct.-
+        """
+        domain = (45, 30, 60)
+        output_field = np.zeros (domain)
+        input_field = np.random.rand (*domain)
+        copy = Copy ( )
+        copy.set_output (output_field)
+        copy.run (output_field,
+                  input_field)
+        self.assertTrue (np.array_equal (input_field, 
+                                         output_field),
+                         "Arrays should be equal")
+
+
     def test_kernel_function (self):
         """
         The kernel function si the entry point of the stencil execution and
@@ -76,7 +92,25 @@ class CopyStencilTest (unittest.TestCase):
         i.analyze ( )
         i.compile ( )
         self.assertNotEqual (i.lib_obj, None)
+        self.assertTrue     ('_FuncPtr' in dir(i.lib_obj))
 
+
+    def test_native_execution (self):
+        """
+        Runs the compiled code from a dynamic library.
+        Note that the Python code is practically identical, except for the
+        call to the 'compile' function.-
+        """
+        domain = (512, 512, 60)
+        output_field = np.zeros (domain)
+        input_field = np.random.rand (*domain)
+        copy = Copy ( )
+        copy.inspector.analyze ( )
+        copy.inspector.compile ( )
+        copy.run (*domain)
+        self.assertTrue (np.array_equal (input_field, 
+                                         output_field),
+                         "Arrays should be equal")
 
     def test_ast (self):
         """
@@ -87,21 +121,5 @@ class CopyStencilTest (unittest.TestCase):
         #
         i = StencilInspector (Copy)
         i.analyze ( )
-        print (i.translate ( ))
-
-
-    def test_results (self):
-        """
-        Checks that the stencil results are correct.-
-        """
-        domain = (45, 30, 60)
-        output_field = np.zeros (domain)
-        input_field = np.random.rand (*domain)
-        copy = Copy ( )
-        copy.set_output (output_field)
-        copy.kernel (output_field,
-                     input_field)
-        self.assertTrue (np.array_equal (input_field, 
-                                         output_field),
-                         "Arrays should be equal")
+        self.assertTrue (len (i.translate ( )) > 0)
 
