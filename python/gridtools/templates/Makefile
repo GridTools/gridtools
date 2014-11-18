@@ -24,10 +24,11 @@ all: build
 build: {{ stencil.name|lower }}
 
 {{ stencil.name|lower }}: {{ stencil.cpp_file }}.o
-	$(CC) $(GENCODE) -o lib$@.so $+ $(LIBRARIES)
+	$(CC) $(GENCODE) -o {{ stencil.lib_file }} $+ $(LIBRARIES)
 
 {{ stencil.cpp_file }}.o: {{ stencil.cpp_file }}
 	$(CC) $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 clean:
-	rm -f {{ stencil.cpp_file }}
+	rm -f {{ stencil.lib_file }}
+	rm -f {{ stencil.cpp_file }}.o

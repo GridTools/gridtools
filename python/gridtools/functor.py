@@ -5,8 +5,6 @@ import warnings
 
 import numpy as np
 
-import gridtools.python as py
-
 
 
 class FunctorBody (ast.NodeVisitor):
