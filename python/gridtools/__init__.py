@@ -19,13 +19,16 @@ class StencilInspector (ast.NodeVisitor):
 
             cls     a class extending the MultiStageStencil.-
         """
-        from inspect import getsource
+        import inspect
 
         if issubclass (cls, MultiStageStencil):
             super (StencilInspector, self).__init__ ( )
-            self.name = "%sStencil" % cls.__name__.capitalize ( )
-            self.src = getsource (cls)
+            self.src         = inspect.getsource (cls)
+            self.name        = "%sStencil" % cls.__name__.capitalize ( )
             self.kernel_func = None
+            self.hdr_file    = None
+            self.cpp_file    = None
+            self.make_file   = None
         else:
             raise TypeError ("Class must extend 'MultiStageStencil'")
 
@@ -42,15 +45,60 @@ class StencilInspector (ast.NodeVisitor):
 
     def translate (self):
         """
-        Translates this functor to C++, using the gridtools interface.-
+        Translates this functor to C++, using the gridtools interface.
+        It returns a string pair of rendered (header, cpp, make) files.-
         """
         from jinja2 import Environment, PackageLoader
 
         jinja_env = Environment (loader = PackageLoader ('gridtools',
                                                          'templates'))
-        tpl = jinja_env.get_template ("functor.c")
-        print (tpl.render (stencil=self,
-                           functor=self.kernel_func))
+        header = jinja_env.get_template ("functor.h")
+        cpp    = jinja_env.get_template ("stencil.cpp")
+        make   = jinja_env.get_template ("Makefile")
+
+        return (header.render (stencil=self,
+                               functor=self.kernel_func),
+                cpp.render (stencil=self),
+                make.render (stencil=self))
+
+
+    def compile (self):
+        """
+        Compiles the translated code to a shared library, ready to be used.-
+        """
+        from os       import write, close, path
+        from tempfile import mkdtemp, mkstemp
+
+        #
+        # create temporary files for the generated code
+        #
+        tmp_dir = mkdtemp (prefix="__gridtools_")
+        hdr_hdl, self.hdr_file = mkstemp (suffix=".h",
+                                          prefix="%s_" % self.name,
+                                          dir=tmp_dir)
+        cpp_hdl, self.cpp_file = mkstemp (suffix=".cpp",
+                                          prefix="%s_" % self.name,
+                                          dir=tmp_dir)
+        make_hdl, self.make_file = mkstemp (prefix="Makefile_",
+                                            dir=tmp_dir)
+        #
+        # ... and populate them
+        #
+        print ("# Creating C++ code in [%s] ..." % tmp_dir)
+        hdr_src, cpp_src, make_src = self.translate ( )
+        write (hdr_hdl, hdr_src.encode ('utf-8'))
+        write (cpp_hdl, cpp_src.encode ('utf-8'))
+        write (make_hdl, make_src.encode ('utf-8'))
+        close (hdr_hdl)
+        close (cpp_hdl)
+        close (make_hdl)
+
+        #
+        # before starting the compilation of the dynamic library
+        #
+        print ("# c++ -std=c++11 -DBACKEND_BLOCK -DFLOAT_PRECISION=8 -DCXX11_DISABLE -fopenmp -I%s -I${GRIDTOOLS_HOME}/include -I${GRIDTOOLS_HOME}/include/communication/high-level -isystem ${GRIDTOOLS_HOME}/fussion/include -o %s.o %s" % (tmp_dir,
+                self.cpp_file,
+                self.cpp_file))
 
 
     def visit_FunctionDef (self, node):
@@ -71,7 +119,6 @@ class StencilInspector (ast.NodeVisitor):
                 self.kernel_func = StencilFunctor (node)
                 self.kernel_func.analyze_params ( )
                 self.kernel_func.analyze_loops  ( )
-                self.translate ( )
                 #
                 # continue traversing the AST
                 #

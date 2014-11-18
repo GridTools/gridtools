@@ -118,7 +118,7 @@ bool test(int x, int y, int z)
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
+                gridtools::make_esf<{{ functor.name }}>(p_in(), p_out()) // esf_descriptor
                 ),
             domain, coords
             );
