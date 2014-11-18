@@ -75,6 +75,7 @@ class CopyStencilTest (unittest.TestCase):
         i = StencilInspector (Copy)
         i.analyze ( )
         i.compile ( )
+        self.assertNotEqual (i.lib_obj, None)
 
 
     def test_ast (self):

@@ -26,9 +26,11 @@ class StencilInspector (ast.NodeVisitor):
             self.src         = inspect.getsource (cls)
             self.name        = "%sStencil" % cls.__name__.capitalize ( )
             self.kernel_func = None
+            self.lib_file    = None
             self.hdr_file    = None
             self.cpp_file    = None
             self.make_file   = None
+            self.lib_obj     = None
         else:
             raise TypeError ("Class must extend 'MultiStageStencil'")
 
@@ -66,13 +68,17 @@ class StencilInspector (ast.NodeVisitor):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os       import write, close, path
-        from tempfile import mkdtemp, mkstemp
+        from os         import write, close, path, getcwd, chdir
+        from ctypes     import cdll
+        from tempfile   import mkdtemp, mkstemp
+        from subprocess import call
 
         #
         # create temporary files for the generated code
         #
         tmp_dir = mkdtemp (prefix="__gridtools_")
+        self.lib_file = "%s/lib%s.so" % (tmp_dir,
+                                         self.name.lower ( ))
         hdr_hdl, self.hdr_file = mkstemp (suffix=".h",
                                           prefix="%s_" % self.name,
                                           dir=tmp_dir)
@@ -84,7 +90,7 @@ class StencilInspector (ast.NodeVisitor):
         #
         # ... and populate them
         #
-        print ("# Creating C++ code in [%s] ..." % tmp_dir)
+        print ("# Compiling C++ code in [%s] ..." % tmp_dir)
         hdr_src, cpp_src, make_src = self.translate ( )
         write (hdr_hdl, hdr_src.encode ('utf-8'))
         write (cpp_hdl, cpp_src.encode ('utf-8'))
@@ -92,13 +98,17 @@ class StencilInspector (ast.NodeVisitor):
         close (hdr_hdl)
         close (cpp_hdl)
         close (make_hdl)
-
         #
         # before starting the compilation of the dynamic library
         #
-        print ("# c++ -std=c++11 -DBACKEND_BLOCK -DFLOAT_PRECISION=8 -DCXX11_DISABLE -fopenmp -I%s -I${GRIDTOOLS_HOME}/include -I${GRIDTOOLS_HOME}/include/communication/high-level -isystem ${GRIDTOOLS_HOME}/fussion/include -o %s.o %s" % (tmp_dir,
-                self.cpp_file,
-                self.cpp_file))
+        current_dir = getcwd ( )
+        chdir (tmp_dir)
+        call (["make", "--silent", "--file=%s" % self.make_file])
+        chdir (current_dir)
+        #
+        # attach the library object
+        #
+        self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
 
 
     def visit_FunctionDef (self, node):
