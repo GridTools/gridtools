@@ -68,6 +68,15 @@ class CopyStencilTest (unittest.TestCase):
         pass
 
 
+    def test_compile (self):
+        """
+        Compiles the generated code to a dynamic library.-
+        """
+        i = StencilInspector (Copy)
+        i.analyze ( )
+        i.compile ( )
+
+
     def test_ast (self):
         """
         Checks the AST analysis of the source code of the stencil.-
@@ -77,6 +86,7 @@ class CopyStencilTest (unittest.TestCase):
         #
         i = StencilInspector (Copy)
         i.analyze ( )
+        print (i.translate ( ))
 
 
     def test_results (self):

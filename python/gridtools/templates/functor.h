@@ -1,4 +1,4 @@
-{% extends "stencil.c" %}
+{% extends "stencil.h" %}
 
 {% block functor %}
 
@@ -49,5 +49,14 @@ struct {{ functor.name }}
         {{ functor.body.cpp }}
     }
 };
+
+
+/**
+ * The following operator is provided for debugging purposes
+ */
+std::ostream& operator<<(std::ostream& s, {{ functor.name }} const) {
+    return s << "{{ functor.name }}";
+}
+
 
 {% endblock %}
