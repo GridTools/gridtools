@@ -54,30 +54,32 @@ bool test(int x, int y, int z)
     //
     // input/output data fields share their buffers with NumPy arrays
     //  
-    {% for arg in functor.params if arg.input -%}
-    storage_type {{ arg.name }} ({{ arg.dim[0] }},
-                                 {{ arg.dim[1] }},
-                                 {{ arg.dim[2] }},
+    {% for name,arg in functor.params.items ( ) if arg.input -%}
+    storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
                                  -3.5,
-                                 std::string ("{{ arg.name }}"));
+                                 std::string ("{{ name }}"));
     {% endfor %}
-    {% for arg in functor.params if arg.output -%}
-    storage_type {{ arg.name }} ({{ arg.dim[0] }},
-                                 {{ arg.dim[1] }},
-                                 {{ arg.dim[2] }},
+    {% for name,arg in functor.params.items ( ) if arg.output -%}
+    storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
                                  1.5,
-                                 std::string ("{{ arg.name }}"));
+                                 std::string ("{{ name }}"));
     {% endfor %}
 
-    // Definition of placeholders. The order of them reflect the order the user will deal with them
-    // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, storage_type > p_in;
-    typedef arg<1, storage_type > p_out;
+    // 
+    // place-holder definition: their order reflect matches the stencil
+    // parameters, especially the non-temporary ones, during the construction
+    // of the domain
+    //
+    {% for name,arg in functor.params.items ( ) -%}
+    typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
+    {% endfor -%}
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<{{ functor.params.keys ( )|join_with_prefix("p_")|join(',') }}> arg_type_list;
 
+
+    //
     // construction of the domain.
     // The domain is the physical domain of the problem, with all the physical
     // fields that are used, temporary and not.
@@ -85,13 +87,18 @@ bool test(int x, int y, int z)
     // are the non-temporary. The order in which they have to be passed is the
     // order in which they appear scanning the placeholders in order. 
     // (I don't particularly like this)
+    //
     gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector(&in, &out));
+        (boost::fusion::make_vector ({{ functor.params.keys ( )|join_with_prefix('&')|join(',') }}));
 
-    // Definition of the physical dimensions of the problem.
+    //
+    // definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // while the vertical ones are set according the the axis property soon 
+    // after this:
+    //
+    //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    //
     int di[5] = {0, 0, 0, d1, d1};
     int dj[5] = {0, 0, 0, d2, d2};
 
@@ -109,42 +116,43 @@ bool test(int x, int y, int z)
       3) The actual domain dimensions
      */
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* copy =
-#else
-        boost::shared_ptr<gridtools::computation> copy =
-#endif
+      boost::shared_ptr<gridtools::computation> comp_{{ stencil.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_mss
             (
                 execute<forward>(),
-                gridtools::make_esf<{{ functor.name }}>(p_in(), p_out()) // esf_descriptor
+                gridtools::make_esf<{{ functor.name }}>({{ functor.params.keys ( )|join_with_prefix("p_")|join('(),') }}())
                 ),
             domain, coords
             );
 
-    copy->ready();
+    comp_{{ stencil.name|lower }}->ready();
+    comp_{{ stencil.name|lower }}->steady();
+    
+    domain.clone_to_gpu ( );
 
-    copy->steady();
-    domain.clone_to_gpu();
+    comp_{{ stencil.name|lower }}->run();
+    comp_{{ stencil.name|lower }}->finalize();
 
-    copy->run();
-
-    copy->finalize();
-
+{% for name,arg in functor.params.items ( ) if arg.output %}
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    {{ name }}.m_data.update_cpu();
 #endif
 
-    out.print_value(0,0,0);
-    out.print_value(511,511,0);
-    out.print_value(511,0,59);
-    out.print_value(0,511,59);
-    out.print_value(511,511,59);
+    {{ name }}.print_value(0,0,0);
+    {{ name }}.print_value(511,511,0);
+    {{ name }}.print_value(511,0,59);
+    {{ name }}.print_value(0,511,59);
+    {{ name }}.print_value(511,511,59);
 
-    return  out(0,0,0)==0. && out(511,511,0)==1022. && out(511,0,59)==570. && out(0,511,59)==570. && out(511,511,59)==1081.;
+    return  {{ name }}(0,0,0)==0. &&
+            {{ name }}(511,511,0)==1022. && 
+            {{ name }}(511,0,59)==570. && 
+            {{ name }}(0,511,59)==570. &&
+            {{ name }}(511,511,59)==1081.;
+{% endfor %}
 }
 
 } // namespace {{ stencil.name|lower }}
+

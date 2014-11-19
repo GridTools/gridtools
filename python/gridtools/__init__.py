@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#import ipdb;ipdb.set_trace ( )
 import sys
 import ast
 import warnings
@@ -46,6 +47,7 @@ class StencilInspector (ast.NodeVisitor):
         self.visit (module)
         if self.kernel_func is None:
             raise NameError ("Class must implement a 'kernel' function")
+
         #
         # extract run-time information from the parameters, if available
         #
@@ -72,8 +74,16 @@ class StencilInspector (ast.NodeVisitor):
         """
         from jinja2 import Environment, PackageLoader
 
-        jinja_env = Environment (loader = PackageLoader ('gridtools',
-                                                         'templates'))
+        def join_with_prefix (a_list, prefix):
+            """
+            A custom filter for template rendering.-
+            """
+            return ['%s%s' % (prefix, e) for e in a_list]
+
+        jinja_env = Environment (loader=PackageLoader ('gridtools',
+                                                       'templates'))
+        jinja_env.filters["join_with_prefix"] = join_with_prefix
+
         header = jinja_env.get_template ("functor.h")
         cpp    = jinja_env.get_template ("stencil.cpp")
         make   = jinja_env.get_template ("Makefile")
@@ -167,6 +177,10 @@ class MultiStageStencil ( ):
     """
     def __init__ (self):
         #
+        # defines the way to execute the stencil, one of 'python' or 'c++'
+        #
+        self.backend = "python"
+        #
         # the inspector object is used to JIT-compile this stencil
         #
         self.inspector = StencilInspector (self.__class__)
@@ -181,19 +195,10 @@ class MultiStageStencil ( ):
         #    total length in dimension)
         #
         self.halo = (1, 1)
-        self.out_arrs = list ( )
 
 
     def kernel (self, *args, **kwargs):
         raise NotImplementedError ( )
-
-
-    def compile (self):
-        """
-        Tries to compile this kernel to native code for faster execution.-
-        """
-        self.inspector.analyze ( )
-        self.inspector.compile ( )
 
 
     def run (self, *args, **kwargs):
@@ -207,25 +212,18 @@ class MultiStageStencil ( ):
             raise KeyError ("Only keyword arguments are accepted.-")
         else:
             self.inspector.analyze (**kwargs)
-
         #
-        # run the compiled version if it is available
+        # run the selected backend version
         #
-        if self.inspector.lib_obj is None:
-            print ("# Running in Python mode ...")
+        print ("# Running in %s mode ..." % self.backend.capitalize ( ))
+        if self.backend == 'python':
             self.kernel (*args, **kwargs)
-        else:
-            print ("# Running in native mode ...")
+        elif self.backend == 'c++':
+            self.inspector.compile ( )
             self.inspector.lib_obj.run (*args, **kwargs)
-
-        
-    def set_output (self, np_arr):
-        """
-        Sets the received NumPy array as output for the stencil calculation:
-     
-            np_arr  NumPy array to use as the stencil's output.-
-        """
-        self.out_arrs.append (id (np_arr.data))
+        else:
+            warnings.warn ("unknown backend [%s]" % self.backend,
+                           UserWarning)
 
 
     def get_interior_points (self, output_field, k_direction='forward'):
@@ -238,9 +236,5 @@ class MultiStageStencil ( ):
                             which might be any of 'forward', 'backward' or
                             'parallel'.-
         """
-        #
-        # id() does not seem to work as expected
-        #
-        #if id (output_field) in self.out_arrs:
         return np.ndindex (*output_field.shape)
 
