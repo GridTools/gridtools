@@ -51,21 +51,23 @@ bool test(int x, int y, int z)
 
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
-
-     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
-
-    for(int i=0; i<d1; ++i)
-        for(int j=0; j<d2; ++j)
-	  for(int k=0; k<d3; ++k)
-	    {
-	      in(i, j, k)=i+j+k;
-	    }
-
-
-    storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
-
-    //out.print();
+    //
+    // input/output data fields share their buffers with NumPy arrays
+    //  
+    {% for arg in functor.params if arg.input -%}
+    storage_type {{ arg.name }} ({{ arg.dim[0] }},
+                                 {{ arg.dim[1] }},
+                                 {{ arg.dim[2] }},
+                                 -3.5,
+                                 std::string ("{{ arg.name }}"));
+    {% endfor %}
+    {% for arg in functor.params if arg.output -%}
+    storage_type {{ arg.name }} ({{ arg.dim[0] }},
+                                 {{ arg.dim[1] }},
+                                 {{ arg.dim[2] }},
+                                 1.5,
+                                 std::string ("{{ arg.name }}"));
+    {% endfor %}
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
