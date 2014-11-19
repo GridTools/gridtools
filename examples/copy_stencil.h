@@ -83,7 +83,7 @@ bool test(int x, int y, int z) {
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
-     // Definition of the actual data fields that are used for input/output
+    // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
 
     for(int i=0; i<d1; ++i)

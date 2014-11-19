@@ -132,6 +132,23 @@ namespace gridtools {
 
             }
 
+        explicit base_storage(int dim1, int dim2, int dim3, value_type* ptr,
+                              value_type init = value_type(), std::string const& s = std::string("default name") ):
+            m_size( dim1 * dim2 * dim3 ),
+            is_set( true ),
+            m_data( ptr ),
+            m_name(s)
+            {
+            m_dims[0]=( dim1 );
+            m_dims[1]=( dim2 );
+            m_dims[2]=( dim3 );
+            m_strides[0]=( layout::template find<2>(m_dims)*layout::template find<1>(m_dims) );
+            m_strides[1]=( layout::template find<2>(m_dims) );
+            m_strides[2]=( 1 );
+                m_data.update_gpu();
+
+            }
+
 
         __device__
         base_storage(base_storage const& other)

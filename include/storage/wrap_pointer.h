@@ -33,13 +33,16 @@ struct wrap_pointer{
     GT_FUNCTION
     explicit wrap_pointer(T* p)
         : cpu_p(p)
-        {}
+        , managed(false)
+    {}
 
     GT_FUNCTION
     void update_gpu() {}//\todo find a way to remove this method
 
     GT_FUNCTION
-    wrap_pointer(int size) {
+    wrap_pointer(int size)
+        : managed(true)
+    {
         allocate_it(size);
 
 
@@ -59,61 +62,63 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void free_it() {
-      //delete cpu_p;
+        if (managed) {
+            delete [] cpu_p;
+        }
     }
 
 
-        __host__ __device__
-        operator T*() {
-            return cpu_p;
-        }
+    __host__ __device__
+    operator T*() {
+        return cpu_p;
+    }
 
-        __host__ __device__
-        operator T const*() const {
-            return cpu_p;
-        }
+    __host__ __device__
+    operator T const*() const {
+        return cpu_p;
+    }
 
-        __host__ __device__
-        T& operator[](int i) {
-            assert(i>=0);
-            // printf(" [%d %e] ", i, cpu_p[i]);
-            return cpu_p[i];
-        }
+    __host__ __device__
+    T& operator[](int i) {
+        assert(i>=0);
+        // printf(" [%d %e] ", i, cpu_p[i]);
+        return cpu_p[i];
+    }
 
-        __host__ __device__
-        T const& operator[](int i) const {
-            assert(i>=0);
-            // printf(" [%d %e] ", i, cpu_p[i]);
+    __host__ __device__
+    T const& operator[](int i) const {
+        assert(i>=0);
+        // printf(" [%d %e] ", i, cpu_p[i]);
 
-            return cpu_p[i];
-        }
+        return cpu_p[i];
+    }
 
-        __host__ __device__
-        T& operator*() {
-            return *cpu_p;
-        }
+    __host__ __device__
+    T& operator*() {
+        return *cpu_p;
+    }
 
-        __host__ __device__
-        T const& operator*() const {
-            return *cpu_p;
-        }
+    __host__ __device__
+    T const& operator*() const {
+        return *cpu_p;
+    }
 
-        __host__ __device__
-        T* operator+(int i) {
-            return &cpu_p[i];
-        }
+    __host__ __device__
+    T* operator+(int i) {
+        return &cpu_p[i];
+    }
 
-        __host__ __device__
-        T* const& operator+(int i) const {
-            return &cpu_p[i];
-        }
+    __host__ __device__
+    T* const& operator+(int i) const {
+        return &cpu_p[i];
+    }
 
-        GT_FUNCTION
-        const T* get_cpu_p(){return cpu_p;};
+    GT_FUNCTION
+    const T* get_cpu_p(){return cpu_p;};
 
 protected:
     T * cpu_p;
-
+    bool managed;
 
 
 };
