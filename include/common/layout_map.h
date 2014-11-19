@@ -97,11 +97,11 @@ namespace gridtools {
 @brief Used as template argument in the storage.
 In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-    template <int, int=-1, int=-1, int=-1>
+    template <int, int=-2, int=-2, int=-2>
         struct layout_map;
 
     template <int I1>
-    struct layout_map<I1, -1, -1, -1> {
+    struct layout_map<I1, -2, -2, -2> {
         static const unsigned int length=1;
         typedef boost::mpl::vector1_c<int, I1> t;
 
@@ -137,7 +137,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     };
 
     template <int I1, int I2>
-    struct layout_map<I1, I2, -1, -1> {
+    struct layout_map<I1, I2, -2, -2> {
         static const unsigned int length=2;
         typedef boost::mpl::vector2_c<int, I1, I2> t;
 
@@ -202,13 +202,19 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
        \endcode
     */
     template <int I1, int I2, int I3>
-    struct layout_map<I1, I2, I3, -1> {
+    struct layout_map<I1, I2, I3, -2> {
         static  const unsigned int length=3;
         typedef boost::mpl::vector3_c<int, I1, I2, I3> t;
 
         template <unsigned int I>
         struct at_ {
             static const int value = boost::mpl::at_c<t, I >::type::value;
+        };
+
+        template <unsigned int I, int DefaultVal>
+        struct at_default {
+            static const int _value = boost::mpl::at_c<t, I >::type::value;
+            static const int value = (_value<0)?DefaultVal:_value;
         };
 
         // Gives the position at which I is.
@@ -312,6 +318,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return a; // killing warnings by nvcc
         }
 
+
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
@@ -363,7 +370,65 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return find<I>(a[0], a[1], a[2]);
         }
 
-    };
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \param[in] a Reference to the first value
+            \param[in] b Reference to the second value
+            \param[in] c Reference to the third value
+        */
+        template <unsigned int I, typename T, T DefaultVal>
+        GT_FUNCTION
+        static T find_val(T const& a, T const& b, T const& c) {
+            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+                return a;
+            } else {
+                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                    return b;
+                } else {
+                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                        return c;
+                    }
+                }
+            }
+
+            return DefaultVal;
+        }
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            a[0] = a; a[1] = b; a[3] = c;
+            gridtools::layout_map<2,0,1>::find<1>(a) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \param[in] a Pointer to a region with the elements to match
+        */
+        template <unsigned int I, typename T, T DefaultVal>
+        GT_FUNCTION
+        static T find_val(T const* a) {
+            return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
+        }
+};
 
     template <int I1, int I2, int I3, int I4>
     struct layout_map {

@@ -5,6 +5,8 @@
 #include <iterator>
 #include <cmath>
 #include <boost/timer/timer.hpp>
+#include <thread>
+#include <cstdlib>
 
 /** This is the function which defines the structure
     i.e., define the offsets of a node.
@@ -182,6 +184,13 @@ int main(int argc, char** argv) {
     int m=atoi(argv[2]);
     int l=atoi(argv[3]);
 
+    int n_threads = 1;
+
+    if (const char* omp_threads = std::getenv("OMP_NUM_THREADS")) {
+        n_threads = std::atoi(omp_threads);
+        std::cout << "Number of threads have been set to " << n_threads << std::endl;
+    }
+
     std::cout << "  *****************************************************************************" << std::endl;
     std::cout << "  *****************************************************************************" << std::endl;
     std::cout << "                            REGULAR LAPLACIAN IN 3D" << std::endl;
@@ -218,26 +227,54 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
         }
 
-        constexpr double coeff[6] = {1, -4, 2, -1, 5, 3};
-        // Using std::vector is 30% slower
-        //std::vector<double> coeff = {1, -4, 2, -1, 5, 3};
+        // is it better to use constexpr here or static const? It does not impact performance.
+        constexpr double iminus = 1;
+        constexpr double iplus  = -4;
+        constexpr double jminus = 2;
+        constexpr double jplus  = -1;
+        constexpr double kminus = 5;
+        constexpr double kplus  = 3;
+        // constexpr in the next is not really needed
+        constexpr double coeff[6] = {iminus, iplus, jminus, jplus, kminus, kplus};
+        // Using std::vector is more than 30% slower
+        //std::vector<double> coeff = {iminus, iplus, jminus, jplus, kminus, kplus};
+
+        std::vector<std::thread> threads(n_threads);
 
         /** **********************************************************
             These loops compute the Laplacian on the grid structure
             as if it was a C program
         */
+        int iter_space = (n-2)/n_threads;
+        std::vector<std::string> th_output(n_threads);
         boost::timer::cpu_timer time_lap;
-        for (int i=1; i<n-1; ++i) {
-            for (int j=1; j<m-1; ++j) {
-                for (int k=1; k<l-1; ++k) {
-                    lap.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
-                        (storage.data[(i+1)*m*l+j*l+k]*coeff[1]+storage.data[(i-1)*m*l+j*l+k]*coeff[0]
-                         +storage.data[i*m*l+(j+1)*l+k]*coeff[3]+storage.data[i*m*l+(j-1)*l+k]*coeff[2]
-                         +storage.data[i*m*l+j*l+k+1]*coeff[5]+storage.data[i*m*l+j*l+k-1]*coeff[4]);
-                }
-            }
+        for (int th=0; th<n_threads; ++th) {
+            threads[th] = std::thread([th, n,m,l,iter_space,&lap, &storage,&th_output]{
+                    th_output[th] = std::to_string(1+(iter_space)*th) + " to " + std::to_string((iter_space)*(th+1)) 
+                        + " n=" + std::to_string(n)
+                        + " m=" + std::to_string(m)
+                        + " l=" + std::to_string(l);
+                    for (int i=1+(iter_space)*th; i<=(iter_space)*(th+1); ++i) {
+                        for (int j=1; j<m-1; ++j) {
+                            for (int k=1; k<l-1; ++k) {
+                                lap.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
+                                    (storage.data[(i+1)*m*l+j*l+k] *iplus + storage.data[(i-1)*m*l+j*l+k]*iminus
+                                     +storage.data[i*m*l+(j+1)*l+k]*jplus + storage.data[i*m*l+(j-1)*l+k]*jminus
+                                     +storage.data[i*m*l+j*l+k+1]  *kplus + storage.data[i*m*l+j*l+k-1]  *kminus);
+                            }
+                        }
+                    }
+                });
         }
+        for (int th=0; th<n_threads; ++th) {
+            threads[th].join();
+        }
+
         boost::timer::cpu_times lapse_time_lap = time_lap.elapsed();
+
+        for (int th=0; th<n_threads; ++th) {
+            std::cout << "Output from thread " << th << ": " << th_output[th] << std::endl;
+        }
 
         std::cout << "- - - - - - - - - - - - - - - - - - - - -- -- - -- - - \n\n" << std::endl;
         for (int i=0; i<n; i+=std::max(1,n/5)) {
@@ -256,18 +293,27 @@ int main(int argc, char** argv) {
             using the fold_neighbor function.
         */
         boost::timer::cpu_timer time_cool;
-        for (int i=1; i<n-1; ++i) {
-            for (int j=1; j<m-1; ++j) {
-                for (int k=1; k<l-1; ++k) {
-				    int neigh = 0;
-				    lap_cool.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
-                        storage.fold_neighbors(storage.begin()+i*m*l+j*l+k,
-                                               [&coeff, &neigh](double &state, double const& value) {
-                                                   return state+value*coeff[neigh++];
-                                               });
-                }
-            }
+        //#pragma omp parallel for collapse(3)
+        for (int th=0; th<n_threads; ++th) {
+            threads[th] = std::thread([th, n,m,l,iter_space,&lap_cool, &storage, coeff/*,&th_output*/]{
+                    for (int i=1+(iter_space)*th; i<=(iter_space)*(th+1); ++i) {
+                        for (int j=1; j<m-1; ++j) {
+                            for (int k=1; k<l-1; ++k) {
+                                int neigh = 0;
+                                lap_cool.data[i*m*l+j*l+k] = 6*storage.data[i*m*l+j*l+k] -
+                                    storage.fold_neighbors(storage.begin()+i*m*l+j*l+k,
+                                                           [&coeff, &neigh](double const state, double const value) {
+                                                               return state+value*coeff[neigh++];
+                                                           });
+                            }
+                        }
+                    }
+                });
         }
+        for (int th=0; th<n_threads; ++th) {
+            threads[th].join();
+        }
+
         boost::timer::cpu_times lapse_time_cool = time_cool.elapsed();
 
         std::cout << "- - - - - - - - - - - - - - - - - - - - -- -- - -- - - \n\n" << std::endl;
@@ -285,7 +331,9 @@ int main(int argc, char** argv) {
                        [] (double const & v1
                           , double const & v2) 
                         ->bool
-                       {return (std::abs((v1)-(v2))<1e-10);})) {
+                       { /* if (std::abs((v1)-(v2))>=1e-10) 
+                            {std::cout << std::abs((v1)-(v2)) << std::endl;} */
+                           return (std::abs((v1)-(v2))<1e-10);})) {
             std::cout << "PASSED!" << std::endl;
         } else {
             std::cout << "FAILED!" << std::endl;

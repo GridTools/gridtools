@@ -230,5 +230,27 @@ int main () {
   else
     std::cout << "FAILED " << gridtools::layout_map<2,0,1>::find<2>(a,b,c) << " != " << a << "\n";
 
+
+  ////// TESTING FIND_VAL
+  if (gridtools::layout_map<2,0,1>::find_val<0,int,666>(a,b,c) == b)
+      std::cout << "PASSED\n";
+  else
+      std::cout << "FAILED " << gridtools::layout_map<2,0,1>::find_val<0,int,666>(a,b,c) << " != " << b << "\n";
+
+  if (gridtools::layout_map<2,0,1>::find_val<1,int,666>(a,b,c) == c)
+      std::cout << "PASSED\n";
+  else
+      std::cout << "FAILED " << gridtools::layout_map<2,0,1>::find_val<1,int,666>(a,b,c) << " != " << c << "\n";
+
+  if (gridtools::layout_map<2,0,1>::find_val<2,int,666>(a,b,c) == a)
+      std::cout << "PASSED\n";
+  else
+      std::cout << "FAILED " << gridtools::layout_map<2,0,1>::find_val<2,int,666>(a,b,c) << " != " << a << "\n";
+
+  if (gridtools::layout_map<2,0,1>::find_val<3,int,666>(a,b,c) == 666)
+      std::cout << "PASSED\n";
+  else
+      std::cout << "FAILED " << gridtools::layout_map<2,0,1>::find_val<3,int,666>(a,b,c) << " != " << 666 << "\n";
+
   return 0;
 }
