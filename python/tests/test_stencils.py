@@ -80,19 +80,9 @@ class CopyStencilTest (unittest.TestCase):
                       input_field)
 
 
-    def test_compile (self):
-        """
-        Compiles the generated code to a dynamic library.-
-        """
-        copy = Copy ( )
-        copy.compile ( )
-        self.assertNotEqual (copy.inspector.lib_obj, None)
-        self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
-
-
     def test_python_execution (self):
         """
-        Checks that the stencil results are correct.-
+        Checks that the stencil results are correct if executing in Python mode.-
         """
         domain = (128, 128, 60)
         output_field = np.zeros (domain)
@@ -107,28 +97,21 @@ class CopyStencilTest (unittest.TestCase):
 
     def test_native_execution (self):
         """
-        Runs the compiled code from a dynamic library.
+        Checks stencil compilation and execution from a dynamic library.
         Note that the Python code is practically identical, except for the
-        call to the 'compile' function.-
+        call to the 'backend' attribute.
+        It also checks that the stencil results are correct after execution.-
         """
         domain = (512, 512, 60)
         output_field = np.zeros (domain)
         input_field = np.random.rand (*domain)
         copy = Copy ( )
-        copy.compile ( )
-        copy.run (*domain)
+        copy.backend = 'c++'
+        copy.run (out_data=output_field,
+                  in_data=input_field)
+        self.assertNotEqual (copy.inspector.lib_obj, None)
+        self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
         self.assertTrue (np.array_equal (input_field, 
                                          output_field),
                          "Arrays should be equal")
-
-    def test_ast (self):
-        """
-        Checks the AST analysis of the source code of the stencil.-
-        """
-        # 
-        # the inspector works on the class definition, not the object
-        #
-        i = StencilInspector (Copy)
-        i.analyze ( )
-        self.assertTrue (len (i.translate ( )) > 0)
 

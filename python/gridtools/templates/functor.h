@@ -18,29 +18,24 @@ struct {{ functor.name }}
     //
     // the input parameters of the stencil should be 'const'
     //
-    {% for arg in functor.params if arg.input -%}
-    typedef const arg_type<{{ arg.id }}> {{ arg.name }};
+    {% for name, arg in functor.params.items ( ) if arg.input -%}
+    typedef const arg_type<{{ arg.id }}> {{ name }};
     {% endfor %}
 
     //
     // the output parameters of the stencil
     //
-    {% for arg in functor.params if arg.output -%}
-    typedef arg_type<{{ arg.id }}> {{ arg.name }};
+    {% for name, arg in functor.params.items ( ) if arg.output -%}
+    typedef arg_type<{{ arg.id }}> {{ name }};
     {% endfor %}
 
     //
     // the complete list of arguments of this functor
     //
-    typedef boost::mpl::vector<{%- for arg in functor.params -%}
-                                  {{ arg.name }}
-                                  {%- if not loop.last -%}
-                                    ,
-                                  {%- endif -%}
-                               {%- endfor -%}> arg_list;
+    typedef boost::mpl::vector<{{ functor.params.values ( )|sort(attribute='id')|join(',', attribute='name') }}> arg_list;
 
     //
-    // the operation of the functor
+    // the operation of this functor
     //
     template <typename Domain>
     GT_FUNCTION
@@ -51,12 +46,12 @@ struct {{ functor.name }}
 };
 
 
-/**
- * The following operator is provided for debugging purposes
- */
-std::ostream& operator<<(std::ostream& s, {{ functor.name }} const) {
+//
+// the following operator is provided for debugging purposes
+//
+std::ostream& operator<<(std::ostream& s, {{ functor.name }} const) 
+{
     return s << "{{ functor.name }}";
 }
-
-
+ 
 {% endblock %}
