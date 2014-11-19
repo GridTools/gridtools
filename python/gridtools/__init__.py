@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#import ipdb;ipdb.set_trace ( )
 import sys
 import ast
 import warnings
@@ -24,16 +23,35 @@ class StencilInspector (ast.NodeVisitor):
 
         if issubclass (cls, MultiStageStencil):
             super (StencilInspector, self).__init__ ( )
-            self.src         = inspect.getsource (cls)
-            self.name        = "%sStencil" % cls.__name__.capitalize ( )
+            #
+            # a unique name for the stencil object
+            #
+            self.name = "%sStencil" % cls.__name__.capitalize ( )
+            #
+            # the domain dimensions over which this stencil operates
+            #
+            self.dimensions  = None
+            #
+            # the dynamically-generated source code is kept here
+            #
+            self.src = inspect.getsource (cls)
+            #
+            # the kernel functor is the stencil's entry point for execution
+            #
             self.kernel_func = None
-            self.lib_file    = None
-            self.hdr_file    = None
-            self.cpp_file    = None
-            self.make_file   = None
-            self.lib_obj     = None
+            #
+            # automatically generated files at compile time
+            #
+            self.lib_file  = None
+            self.hdr_file  = None
+            self.cpp_file  = None
+            self.make_file = None
+            #
+            # a reference to the compiled dynamic library
+            #
+            self.lib_obj = None
         else:
-            raise TypeError ("Class must extend 'MultiStageStencil'")
+            raise TypeError ("Class %s must extend 'MultiStageStencil'" % cls)
 
 
     def analyze (self, **kwargs):
@@ -58,7 +76,15 @@ class StencilInspector (ast.NodeVisitor):
             for k,v in kwargs.items ( ):
                 if k in self.kernel_func.params.keys ( ):
                     if isinstance (v, np.ndarray):
+                        #
+                        # check the dimensions of different fields match
+                        #
                         self.kernel_func.params[k].dim = v.shape
+                        if self.dimensions is None:
+                            self.dimensions = v.shape
+                        elif self.dimensions != v.shape:
+                            warnings.warn ("dimensions of parameter [%s] do not match %s" % (k, self.dimensions),
+                                           UserWarning)
                     else:
                         warnings.warn ("parameter [%s] is not a NumPy array" % k,
                                        UserWarning)
@@ -74,11 +100,14 @@ class StencilInspector (ast.NodeVisitor):
         """
         from jinja2 import Environment, PackageLoader
 
-        def join_with_prefix (a_list, prefix):
+        def join_with_prefix (a_list, prefix, attribute=None):
             """
             A custom filter for template rendering.-
             """
-            return ['%s%s' % (prefix, e) for e in a_list]
+            if attribute is None:
+                return ['%s%s' % (prefix, e) for e in a_list]
+            else:
+                return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
 
         jinja_env = Environment (loader=PackageLoader ('gridtools',
                                                        'templates'))
@@ -90,7 +119,8 @@ class StencilInspector (ast.NodeVisitor):
 
         return (header.render (stencil=self,
                                functor=self.kernel_func),
-                cpp.render  (stencil=self),
+                cpp.render  (stencil=self,
+                             functor=self.kernel_func),
                 make.render (stencil=self))
 
 
@@ -205,6 +235,8 @@ class MultiStageStencil ( ):
         """
         Starts the execution of the stencil.-
         """
+        import ctypes
+
         #
         # we only accept keyword arguments to avoid confusion
         #
@@ -217,10 +249,25 @@ class MultiStageStencil ( ):
         #
         print ("# Running in %s mode ..." % self.backend.capitalize ( ))
         if self.backend == 'python':
-            self.kernel (*args, **kwargs)
+            self.kernel (**kwargs)
         elif self.backend == 'c++':
             self.inspector.compile ( )
-            self.inspector.lib_obj.run (*args, **kwargs)
+            #
+            # extract the buffer pointers from the parameters (NumPy arrays)
+            #
+            params = list (self.inspector.dimensions)
+            functor_params = self.inspector.kernel_func.params
+            for k in sorted (functor_params,
+                             key=lambda name: functor_params[name].id):
+                if k in kwargs.keys ( ):
+                    params.append (kwargs[k].ctypes.data_as (ctypes.c_void_p))
+                else:
+                    warnings.warn ("missing parameter [%s]" % k,
+                                   UserWarning)
+            #
+            # call the compiled stencil
+            #
+            self.inspector.lib_obj.run (*params)
         else:
             warnings.warn ("unknown backend [%s]" % self.backend,
                            UserWarning)
