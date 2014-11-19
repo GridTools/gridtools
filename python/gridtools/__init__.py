@@ -39,6 +39,7 @@ class StencilInspector (ast.NodeVisitor):
         """
         Analyzes the source code of this stencil.-
         """
+        #import ipdb; ipdb.set_trace ( )
         module = ast.parse (self.src)
         self.visit (module)
         if self.kernel_func is None:
@@ -166,6 +167,14 @@ class MultiStageStencil ( ):
 
     def kernel (self, *args, **kwargs):
         raise NotImplementedError ( )
+
+
+    def compile (self):
+        """
+        Tries to compile this kernel to native code for faster execution.-
+        """
+        self.inspector.analyze ( )
+        self.inspector.compile ( )
 
 
     def run (self, *args, **kwargs):
