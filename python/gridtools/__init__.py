@@ -35,15 +35,34 @@ class StencilInspector (ast.NodeVisitor):
             raise TypeError ("Class must extend 'MultiStageStencil'")
 
 
-    def analyze (self):
+    def analyze (self, **kwargs):
         """
-        Analyzes the source code of this stencil.-
+        Analyzes the parameters and source code of this stencil.-
         """
-        #import ipdb; ipdb.set_trace ( )
+        #
+        # analyze the source code
+        #
         module = ast.parse (self.src)
         self.visit (module)
         if self.kernel_func is None:
             raise NameError ("Class must implement a 'kernel' function")
+        #
+        # extract run-time information from the parameters, if available
+        #
+        if len (kwargs.keys ( )) > 0:
+            #
+            # dimensions of data fields (i.e., shape of the NumPy arrays)
+            #
+            for k,v in kwargs.items ( ):
+                if k in self.kernel_func.params.keys ( ):
+                    if isinstance (v, np.ndarray):
+                        self.kernel_func.params[k].dim = v.shape
+                    else:
+                        warnings.warn ("parameter [%s] is not a NumPy array" % k,
+                                       UserWarning)
+                else:
+                    warnings.warn ("ignoring parameter [%s]" % k,
+                                   UserWarning)
 
 
     def translate (self):
@@ -61,7 +80,7 @@ class StencilInspector (ast.NodeVisitor):
 
         return (header.render (stencil=self,
                                functor=self.kernel_func),
-                cpp.render (stencil=self),
+                cpp.render  (stencil=self),
                 make.render (stencil=self))
 
 
@@ -181,6 +200,14 @@ class MultiStageStencil ( ):
         """
         Starts the execution of the stencil.-
         """
+        #
+        # we only accept keyword arguments to avoid confusion
+        #
+        if len (args) > 0:
+            raise KeyError ("Only keyword arguments are accepted.-")
+        else:
+            self.inspector.analyze (**kwargs)
+
         #
         # run the compiled version if it is available
         #

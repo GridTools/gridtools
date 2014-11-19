@@ -67,6 +67,18 @@ class CopyStencilTest (unittest.TestCase):
             insp.analyze ( )
         """
 
+    def test_only_keyword_arguments (self):
+        """
+        When calling 'run' on a stencil, only keyword arguments should be used.-
+        """
+        domain = (128, 128, 60)
+        output_field = np.zeros (domain)
+        input_field = np.random.rand (*domain)
+        copy = Copy ( )
+        with self.assertRaises (KeyError):
+            copy.run (output_field,
+                      input_field)
+
 
     def test_compile (self):
         """
@@ -86,8 +98,8 @@ class CopyStencilTest (unittest.TestCase):
         output_field = np.zeros (domain)
         input_field = np.random.rand (*domain)
         copy = Copy ( )
-        copy.run (output_field,
-                  input_field)
+        copy.run (out_data=output_field,
+                  in_data=input_field)
         self.assertTrue (np.array_equal (input_field, 
                                          output_field),
                          "Arrays should be equal")

@@ -16,7 +16,7 @@ class FunctorBody (ast.NodeVisitor):
         Constructs a functor body object using the received node:
 
             node    an AST-node list representing the body of this functor;
-            params  the list of FunctorParameters of this functor.-
+            params  the dict of FunctorParameters of this functor.-
         """
         self.params = params
         #
@@ -49,7 +49,7 @@ class FunctorBody (ast.NodeVisitor):
         val = node.value
         if isinstance (val, ast.Name):
             name = val.id
-            if name in self.params:
+            if name in self.params.keys ( ):
                 return "dom(%s( ))" % name
             else:
                 return name
@@ -83,19 +83,11 @@ class FunctorParameter ( ):
         """
         self.id     = None
         self.name   = None 
+        self.dim    = None
         self.input  = None
         self.output = None
         self.set_name (name)
 
-    def __eq__ (self, other):
-        if isinstance (other, str):
-            return self.name == other
-        else:
-            return (isinstance (other, self.__class__)
-                    and self.name == other.name)
-
-    def __ne__ (self, other):
-        return not self.__eq__ (other)
 
     def set_name (self, name):
         """
@@ -138,9 +130,9 @@ class StencilFunctor ( ):
         #
         self.name = None
         #
-        # a list to keep the functor parameters
+        # a dictionary for the functor parameters (k=name, v=param)
         #
-        self.params = list ( )
+        self.params = dict ( )
         #
         # the body of the functor is inlined from the 'for' loops
         #
@@ -180,7 +172,7 @@ class StencilFunctor ( ):
                 #
                 if par.name is not None:
                     par.id = len (self.params)
-                    self.params.append (par)
+                    self.params[par.name] = par
 
         except AttributeError:
             warnings.warn ("AST node not set or it is not a FunctionDef\n",
