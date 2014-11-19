@@ -43,37 +43,22 @@ class CopyStencilTest (unittest.TestCase):
         self.assertNotEqual (insp, None)
 
 
-    def test_results (self):
-        """
-        Checks that the stencil results are correct.-
-        """
-        domain = (45, 30, 60)
-        output_field = np.zeros (domain)
-        input_field = np.random.rand (*domain)
-        copy = Copy ( )
-        copy.set_output (output_field)
-        copy.run (output_field,
-                  input_field)
-        self.assertTrue (np.array_equal (input_field, 
-                                         output_field),
-                         "Arrays should be equal")
-
-
     def test_kernel_function (self):
         """
-        The kernel function si the entry point of the stencil execution and
+        The kernel function is the entry point of the stencil execution and
         should follow several conventions.-
         """
-
+        #
+        # FIXME will not work because the 'class' definition is indented and
+        #       it should not be
+        #
         """
         with self.assertRaises (NameError):
             class KernelFunctionMissing (MultiStageStencil):
                 def some_func (self):
                     return None
-
             insp = StencilInspector (KernelFunctionMissing)
             insp.analyze ( )
-
         with self.assertRaises (ValueError):
             class KernelFunctionShouldReturnNone (MultiStageStencil):
                 def kernel (self):
@@ -81,18 +66,31 @@ class CopyStencilTest (unittest.TestCase):
             insp = StencilInspector (KernelFunctionDoesNotReturnNone)
             insp.analyze ( )
         """
-        pass
 
 
     def test_compile (self):
         """
         Compiles the generated code to a dynamic library.-
         """
-        i = StencilInspector (Copy)
-        i.analyze ( )
-        i.compile ( )
-        self.assertNotEqual (i.lib_obj, None)
-        self.assertTrue     ('_FuncPtr' in dir(i.lib_obj))
+        copy = Copy ( )
+        copy.compile ( )
+        self.assertNotEqual (copy.inspector.lib_obj, None)
+        self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
+
+
+    def test_python_execution (self):
+        """
+        Checks that the stencil results are correct.-
+        """
+        domain = (128, 128, 60)
+        output_field = np.zeros (domain)
+        input_field = np.random.rand (*domain)
+        copy = Copy ( )
+        copy.run (output_field,
+                  input_field)
+        self.assertTrue (np.array_equal (input_field, 
+                                         output_field),
+                         "Arrays should be equal")
 
 
     def test_native_execution (self):
@@ -105,8 +103,7 @@ class CopyStencilTest (unittest.TestCase):
         output_field = np.zeros (domain)
         input_field = np.random.rand (*domain)
         copy = Copy ( )
-        copy.inspector.analyze ( )
-        copy.inspector.compile ( )
+        copy.compile ( )
         copy.run (*domain)
         self.assertTrue (np.array_equal (input_field, 
                                          output_field),
