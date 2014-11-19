@@ -111,7 +111,7 @@ class CopyStencilTest (unittest.TestCase):
                   in_data=input_field)
         self.assertNotEqual (copy.inspector.lib_obj, None)
         self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
-        self.assertTrue (np.array_equal (input_field, 
-                                         output_field),
-                         "Arrays should be equal")
+        self.assertTrue     (np.array_equal (input_field, output_field))
+        self.assertNotEqual (np.sum (output_field), 0.0,
+                             "The order of the parameters was altered when calling the compiled stencil")
 

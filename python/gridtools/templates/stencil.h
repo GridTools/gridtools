@@ -33,12 +33,8 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 {% endblock %}
 
 
-bool test(int x, int y, int z) 
+bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
 {
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
-
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
 #else
@@ -49,18 +45,28 @@ bool test(int x, int y, int z)
 #endif
 #endif
 
-    typedef gridtools::layout_map<2,1,0> layout_t;
+    //
+    // Fortran-like memory layout
+    //
+    //typedef gridtools::layout_map<2,1,0> layout_t;
+    
+    //
+    // C-like memory layout
+    //
+    typedef gridtools::layout_map<0,1,2> layout_t;
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
     //
     // input/output data fields share their buffers with NumPy arrays
     //  
     {% for name,arg in functor.params.items ( ) if arg.input -%}
     storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
+                                 (double *) in_buff,
                                  -3.5,
                                  std::string ("{{ name }}"));
     {% endfor %}
     {% for name,arg in functor.params.items ( ) if arg.output -%}
     storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
+                                 (double *) out_buff,
                                  1.5,
                                  std::string ("{{ name }}"));
     {% endfor %}
