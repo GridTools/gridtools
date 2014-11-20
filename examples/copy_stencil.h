@@ -92,7 +92,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     //                      dims  z y x
     //                   strides xy x 1
     typedef gridtools::layout_map<2,1,0> layout_t;
-    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     //typedef storage_type::basic_type integrator_type;
     /* typedef extend<storage_type::basic_type, 2> integrator_type; */
 #ifdef CXX11_ENABLED

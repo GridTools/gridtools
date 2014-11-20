@@ -114,7 +114,7 @@ namespace shallow_water{
         GT_FUNCTION
         static auto half_step(DimensionX d1, DimensionY d2, float_type const& delta)
             {
-                return tmp(d1,d2)+tmp(d2)/2. -
+                return tmp(d1,d2)+tmp(d2)/(float_type)2. -
                     (tmp(comp(1),d2,d1) - tmp(comp(1),d2))*(dt()/(2*delta));
             }
 
@@ -123,17 +123,17 @@ namespace shallow_water{
         static auto half_step_u(DimensionX d1, DimensionY d2, float_type const& delta)
             {
                return (tmp(comp(1), d1, d2) +
-                        tmp(comp(1), d2)/2. -
-                        (tmp(comp(1),d1,d2)*tmp(comp(1),d1,d2)/tmp(d1,d2)+tmp(d1,d2)*tmp(d1,d2)*g()/2.)*(dt()/(2.*delta)) -
+                        tmp(comp(1), d2)/(float_type)2. -
+                        (tmp(comp(1),d1,d2)*tmp(comp(1),d1,d2)/tmp(d1,d2)+tmp(d1,d2)*tmp(d1,d2)*g()/(float_type)2.)*(dt()/((float_type)2.*delta)) -
                         tmp(comp(1), d2)*tmp(comp(1), d2)/tmp(d2) -
-                        tmp(d2)*tmp(d2)*(g()/2.));
+                        tmp(d2)*tmp(d2)*(g()/(float_type)2.));
             }
 
         template<typename DimensionX, typename DimensionY>
         GT_FUNCTION
         static auto half_step_v(DimensionX d1, DimensionY d2, float_type const& delta)
             {
-                return ( tmp(comp(2),d1,d2)/2. -
+                return ( tmp(comp(2),d1,d2)/(float_type)2. -
                          tmp(comp(1),d1,d2)*tmp(comp(2),d1,d2)/tmp(d1,d2)*(dt()/(2*delta)) -
                          tmp(comp(1),d2)*tmp(comp(2),d2)/tmp(d2));
             }
@@ -167,16 +167,16 @@ namespace shallow_water{
                                 vy(y(-1)) - vy(x(-1), y(-1))*(dt()/dy()));
 
             eval(sol(comp(1))) = eval(sol(comp(1)) -
-                                      ((ux(y(-1))^2) / hx(y(-1))        +hx(y(-1))*hx(y(-1))*(g()/2.)  -
-                                       ((ux(x(-1),y(-1))^2) / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*(g()/2)))*(dt()/dx())  -
+                                      ((ux(y(-1))^2) / hx(y(-1))        +hx(y(-1))*hx(y(-1))*((float_type)(g()/2.))  -
+                                       ((ux(x(-1),y(-1))^2) / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((float_type)(g()/2.))))*((float_type)(dt()/dx()))  -
                                       (vy(x(-1))       *uy(x(-1))      /hy(x(-1))         -
-                                       vy(x(-1), y(-1))*uy(x(-1),y(-1))/hy(x(-1), y(-1)) + hy(x(-1), y(-1))*(g()/2))*(dt()/dy()));
+                                       vy(x(-1), y(-1))*uy(x(-1),y(-1))/hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((float_type)(g()/2.)))*((float_type)(dt()/dy())));
 
             eval(sol(comp(2))) = eval(sol(comp(2)) -
                                       (ux(y(-1))      *vx(y(-1))        /hy(y(-1)) -
-                                      (ux(x(-1),y(-1))*vx(x(-1), y(-1)))/hx(x(-1), y(-1)) )*(dt()/dx())-
-                                      ((vy(x(-1))^2)        /hy(x(-1))        +(hy(x(-1))       ^2)*(g()/2) -
-                                       (vy(x(-1), y(-1))^2) /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*(g()/2)   )*(dt()/dy()));
+                                       (ux(x(-1),y(-1))*vx(x(-1), y(-1)))/hx(x(-1), y(-1)) )*((float_type)(dt()/dx()))-
+                                      ((vy(x(-1))^2)        /hy(x(-1))        +(hy(x(-1))       ^2)*((float_type)(g()/2.)) -
+                                       (vy(x(-1), y(-1))^2) /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((float_type)(g()/2.))   )*((float_type)(dt()/dy())));
 
         }
     };

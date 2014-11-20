@@ -89,8 +89,8 @@ bool test_domain_indices() {
 //     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
 //     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 // =======
-    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<float_type, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<float_type, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
 
     int_t d1 = 10;

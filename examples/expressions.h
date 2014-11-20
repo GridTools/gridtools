@@ -56,7 +56,7 @@ bool test_interface(int x, int y, int z) {
 #define BACKEND backend<Host, Naive >
 
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type out(d1,d2,d3,2., std::string("out"));

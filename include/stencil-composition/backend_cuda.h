@@ -185,11 +185,11 @@ namespace gridtools {
                 //ushort_t nbz = 1;
                 /* dim3 blocks(nbx, nby, nbz); */
 
-#ifndef NDEBUG
-                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
-                printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
-                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
-#endif
+// #ifndef NDEBUG
+                // printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+                // printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
+                // printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+// #endif
 
 		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
