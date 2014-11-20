@@ -129,7 +129,7 @@ using namespace enumtype;
         storage_type init(10,10,3,2., std::string("init"));
 
         //initialization
-        in.push_back(init.data());//using the same data pointer might generate hazards!
+        in.push_front(init.data());//using the same data pointer might generate hazards!
 
         in.print();
 
@@ -159,7 +159,7 @@ using namespace enumtype;
             domain.clone_to_gpu();
             //for(ushort_t i=0; i<2; ++i){
             test->run();
-            in.push_back(out.data());
+            in.push_front(out.data());
             in.print();
             out.print();
             //}
