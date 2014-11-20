@@ -68,16 +68,10 @@ namespace gridtools{
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(uint_t from, uint_t to)  {
-#ifdef __CUDACC__
-                cudaProfilerStart();
-#endif
                 for (uint_t k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     this->m_domain.increment();
                 }
-#ifdef __CUDACC__
-                cudaProfilerStop();
-#endif
             }
         };
     } // namespace _impl

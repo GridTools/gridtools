@@ -7,6 +7,14 @@
 #define GT_MAX_ARGS 8
 #define GT_MAX_INDEPENDENT 3
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED(func) __declspec(deprecated) func
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED(func) func
+#endif
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1

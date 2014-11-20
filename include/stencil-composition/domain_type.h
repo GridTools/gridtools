@@ -20,6 +20,10 @@
 
 #include "domain_type_impl.h"
 
+/**@file
+ @brief This file contains the list of placeholders to the storages
+ */
+
 namespace gridtools {
 
     /**
@@ -137,6 +141,8 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         void assign_pointers() {}
 
+        /**@brief recursively assignes all the pointers passed as arguments to storages.
+         */
         template <typename Arg0, typename... OtherArgs>
         void assign_pointers(Arg0 const& arg0, OtherArgs... other_args)
         {
@@ -147,6 +153,15 @@ namespace gridtools {
     public:
 
 #ifdef CXX11_ENABLED
+        /** @brief variadic constructor
+            construct the domain_type given an arbitrary number of placeholders to the non-temporary
+            storages passed as arguments.
+
+            USAGE EXAMPLE:
+            \verbatim
+            domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
+            \endverbatim
+         */
         template <typename... Args>
         domain_type(Args... args)
             : storage_pointers()
@@ -168,13 +183,13 @@ namespace gridtools {
         }
 #endif
 
-        /**
+        /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
         template <typename RealStorage>
-        explicit domain_type(RealStorage const & real_storage, int dontchooseme)
+        explicit domain_type(RealStorage const & real_storage)
             : storage_pointers()
         {
 

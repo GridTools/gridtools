@@ -1,6 +1,11 @@
 #pragma once
 #include <common/defs.h>
 
+/**
+@file
+Write my documentation!
+*/
+
 /** This class wraps a raw pointer*/
 namespace gridtools {
 

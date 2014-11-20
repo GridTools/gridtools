@@ -14,7 +14,7 @@ namespace gridtools {
        The directions correspond to the following:
        - all the three template parameters are either plus or minus: identifies a node on the cell
        \verbatim
-       e.g. direction<minus, plus, minus> corresponds to:
+       e.g. direction<minus_, plus_, minus_> corresponds to:
          .____.
         /    /|
        o____. |
@@ -25,8 +25,8 @@ namespace gridtools {
        \endverbatim
 
        - there is one zero parameter: identifies one edge
-       e.g. direction<zero, plus, minus> corresponds to:
        \verbatim
+       e.g. direction<zero_, plus_, minus_> corresponds to:
          .____.
         /    /|
        .####. |
@@ -36,8 +36,8 @@ namespace gridtools {
        \endverbatim
 
        - there are 2 zero parameters: identifies one face
-       e.g. direction<zero, zero, minus> corresponds to:
        \verbatim
+       e.g. direction<zero_, zero_, minus_> corresponds to:
          .____.
         /    /|
        .____. |

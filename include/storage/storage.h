@@ -18,7 +18,7 @@ namespace gridtools {
       typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
       typedef typename BaseStorage::iterator_type iterator_type;
       typedef typename BaseStorage::value_type value_type;
-      static const ushort_t n_args = basic_type::n_args;
+      static const ushort_t n_args = basic_type::n_width;
 
       __device__
 	storage(storage const& other)
