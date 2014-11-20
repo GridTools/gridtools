@@ -217,7 +217,7 @@ namespace gridtools {
         /**@brief constructor of the iterate_domain struct
            It assigns the storage pointers to the first elements of the data fields (for all the data_fields present in the current evaluation), and the
            indexes to access the data fields (one index per storage instance, so that one index might be shared among several data fileds)
-         */
+        */
         GT_FUNCTION
         iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t bi, uint_t bj)
             : local_domain(local_domain)
@@ -225,7 +225,7 @@ namespace gridtools {
             , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
 #endif
             {
-                //                                                     double*            &storage
+                //                                                      double**        &storage
                 assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args);
                 assign_index< N_STORAGES-1>::assign(local_domain.local_args, i, j, bi, bj, &m_index[0]);
             }
@@ -242,6 +242,7 @@ namespace gridtools {
             iterate_domain_aux::decrement_k<N_STORAGES-1>::apply( local_domain.local_args, 1, &m_index[0]);
         }
 
+        /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from)
             {
@@ -329,13 +330,12 @@ namespace gridtools {
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
             return get_value(arg, m_data_pointer[storage_type::get_index(arg.template n<gridtools::arg_decorator<ArgType>::n_args>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
-
         }
 
 #ifdef CXX11_ENABLED
 /**\section binding_expressions (Expressions Bindings)
    @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
-   They evalueate the operator they implement, by recursively evaluating their arguments
+   They evalueate the operator passed as argument, by recursively evaluating its arguments
    @{
 */
     /** plus evaluation*/
@@ -399,9 +399,9 @@ namespace gridtools {
        (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
        @{*/
     /** integer power evaluation*/
-    template <typename ArgType1>
-    GT_FUNCTION
-    float_type value_int(expr_exp<ArgType1, int> const& arg) const {return std::pow((*this)(arg.first_operand), arg.second_operand);}
+        template <typename ArgType1>
+        GT_FUNCTION
+        float_type value_int(expr_exp<ArgType1, int> const& arg) const {return std::pow((*this)(arg.first_operand), arg.second_operand);}
 /**@}@}*/
 
 
