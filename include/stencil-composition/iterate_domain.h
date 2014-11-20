@@ -4,9 +4,9 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/print.hpp>
+#include "expressions.h"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
-#include "expressions.h"
 #endif
 
 /**@file
