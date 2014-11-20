@@ -1,3 +1,4 @@
+#pragma once
 /**@file
    @brief Expression templates definition.
    The expression templates are a method to parse at compile time the mathematical expression given
