@@ -44,11 +44,11 @@
 #                  | |*|*|*|*|*|*|        #
 # space, pressure  | |*|*|*|              #
 #    energy,...    v |*|*|*|*|*|      	  #
-#					                      #
-#                     ^ ^ ^ ^ ^ ^	      #
-#                     | | | | | |	      #
-#                      snapshots	      #
-#				                     	  #
+#				          #
+#                     ^ ^ ^ ^ ^ ^         #
+#                     | | | | | |         #
+#                      snapshots          #
+#		                 	  #
 ############### 2D Storage ################
 \endverbatim
 
@@ -323,7 +323,7 @@ namespace gridtools {
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
          This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
-        index for temporary storages is computed in the subclass gridtoos√::host_tmp_storge*/
+        index for temporary storages is computed in the subclass gridtoos√É::host_tmp_storge*/
         GT_FUNCTION
         uint_t _index(uint_t i, uint_t j, uint_t k) const {
             uint_t index;

@@ -45,7 +45,7 @@ struct copy_functor {
     typedef arg_type<1> out;
     typedef boost::mpl::vector<in,out> arg_list;
 #endif
-  /* static const auto expression=in(1,0,0)-out(); */
+    /* static const auto expression=in(1,0,0)-out(); */
 
     template <typename Evaluation>
     GT_FUNCTION
@@ -129,7 +129,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
         for(uint_t j=0; j<d2; ++j)
             for(uint_t k=0; k<d3; ++k)
             {
+#ifdef CXX11_ENABLED
                 out(i, j, k)=i+j+k;
+#else
+                in(i, j, k)=i+j+k;
+#endif
             }
 
 #ifdef CXX11_ENABLED
