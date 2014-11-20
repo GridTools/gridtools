@@ -14,6 +14,7 @@
 #include <storage/hybrid_pointer.h>
 #include <storage/storage.h>
 #include <common/layout_map.h>
+#include <common/defs.h>
 
 #ifdef __CUDACC__
 template <typename T>
