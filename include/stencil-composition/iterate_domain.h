@@ -144,7 +144,9 @@ namespace gridtools {
                same storage class instance, and it is not shared among different storage instances.
             */
             static void assign(Storage & r, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t* index){
-                //if the following fails, the ID is larger than the number of storage types
+                //if the following fails, the ID is larger than the number of storage types,
+		//or the index was not properly initialized to 0,
+		//or you know what you are doing (then comment out the assert)
                 assert(index[ID]==0);
                 boost::fusion::at_c<ID>(r)->template increment<0>(i, bi, &index[ID]);
                 boost::fusion::at_c<ID>(r)->template increment<1>(j, bj, &index[ID]);
@@ -225,9 +227,13 @@ namespace gridtools {
             , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
 #endif
             {
+#ifndef CXX11_ENABLED
+		for(uint_t it=0; it<N_STORAGES; ++it)
+		    m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
+#endif
                 //                                                      double**        &storage
                 assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args);
-                assign_index< N_STORAGES-1>::assign(local_domain.local_args, i, j, bi, bj, &m_index[0]);
+                assign_index< N_STORAGES-1 >::assign(local_domain.local_args, i, j, bi, bj, &m_index[0]);
             }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
