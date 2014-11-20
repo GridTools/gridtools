@@ -155,6 +155,7 @@ namespace shallow_water{
             eval(sol(comp(2), step(+1)))=eval(half_step_v (y(+1), x(+1), dy()));
 
             //########## FINAL STEP #############
+            //data dependencies with the previous parts
             //notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
             //Using a strategy to define some arguments beforehand
             auto hx=alias<tmp, comp, step>(0, 0); auto hy=alias<tmp, comp, step>(0, 1);
