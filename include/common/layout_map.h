@@ -66,7 +66,7 @@ namespace gridtools {
             return _impl::select_s<layout_vector[I]>().get(args ... );
         }
 
-//returns the dimension corresponding to the given strides (get<0> for stride 1)
+        //returns the dimension corresponding to the given strides (get<0> for stride 1)
         template <ushort_t i>
         GT_FUNCTION
         static constexpr ushort_t get() {
@@ -93,7 +93,9 @@ namespace gridtools {
 
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type find(Indices & ... indices) {
+        static typename _impl::first_type<Indices...>::type 
+        find(Indices & ... indices) {
+            static_assert(sizeof...(Indices)==length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
             return vec[pos_<I>::value];
         }
@@ -101,18 +103,21 @@ namespace gridtools {
         template <ushort_t I, typename MplVector>
         GT_FUNCTION
         static constexpr uint_t find() {
+            static_assert(I<length, "Index out of bound");
             return boost::mpl::at_c< MplVector, pos_<I>::value>::type::value;
         }
 
         template <ushort_t I>
         GT_FUNCTION
         static uint_t find(const uint_t* indices) {
+            static_assert(I<length, "Index out of bound");
             return indices[pos_<I>::value];
         }
 
 
         template <ushort_t I>
         struct at_ {
+            static_assert(I<length, "Index out of bound");
             static const ushort_t value = layout_vector[I];
         };
 
@@ -121,6 +126,7 @@ namespace gridtools {
         //then if pos_<0> is 0, then the index i has stride 1, and so on ...
         template <ushort_t I>
         struct pos_ {
+            static_assert(I<=length, "Index out of bound");
 
             template <ushort_t X, bool IsHere>
             struct _find_pos
