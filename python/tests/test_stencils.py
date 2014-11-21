@@ -113,5 +113,5 @@ class CopyStencilTest (unittest.TestCase):
         self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
         self.assertTrue     (np.array_equal (input_field, output_field))
         self.assertNotEqual (np.sum (output_field), 0.0,
-                             "The order of the parameters was altered when calling the compiled stencil")
+                             "The order of the NumPy-array parameters was altered when calling the compiled stencil")
 
