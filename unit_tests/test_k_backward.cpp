@@ -89,12 +89,9 @@ int main()
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     int_t di[5] = {2, 2, 2, d1-2, d1};
     int_t dj[5] = {2, 2, 2, d2-2, d2};
-
-        int_t di[5] = {2, 2, 2, d1-2, d1};
-        int_t dj[5] = {2, 2, 2, d2-2, d2};
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3;
+    gridtools::coordinates<axis> coords(di, dj);
+    coords.value_list[0] = 0;
+    coords.value_list[1] = d3;
 
     std::cout
         << "Forward, Backward, and Parallel k loop iterations" << std::endl
