@@ -23,16 +23,27 @@
 ##    http://www.amath.washington.edu/~dgeorge/tsunamimodeling.html
 ##    http://www.amath.washington.edu/~claw/applications/shallow/www
 ##
+import unittest
 import numpy as np
 
+from gridtools import MultiStageStencil, StencilInspector
 
 
-class ShallowWater (object):
+
+class ShallowWater (MultiStageStencil):
+    """
+    Implements the shallow water equation as a multi-stage stencil.-
+    """
     def __init__ (self):
+        super (ShallowWater, self).__init__ ( )
+        #
         # grid size
+        #
         self.n = 64
 
-        # gravity
+        #
+        # gravity-accelleration constant
+        #
         self.g = 9.8
 
         # timestep
@@ -42,60 +53,56 @@ class ShallowWater (object):
         self.dx = 1.0
         self.dy = 1.0
 
-        # one drop and number of drops
+        # one drop to disturb the water
         self.drop = self.droplet (2, 11)
-        self.ndrops = 5
-
-        # drop interval
-        self.dropstep = 1000
-
-        # how often to render an animation frame
-        self.nplotstep = 8
-
-        # data fields
-        self.H = np.ones  ((self.n+2, self.n+2))
-        self.U = np.zeros ((self.n+2, self.n+2))
-        self.V = np.zeros ((self.n+2, self.n+2))
-
-        self.Hx = np.zeros ((self.n+1, self.n+1))
-        self.Ux = np.zeros ((self.n+1, self.n+1))
-        self.Vx = np.zeros ((self.n+1, self.n+1))
-
-        self.Hy = np.zeros ((self.n+1, self.n+1))
-        self.Uy = np.zeros ((self.n+1, self.n+1))
-        self.Vy = np.zeros ((self.n+1, self.n+1))
-
-        # number of drops to break equilibrium
-        self.ndrop = np.ceil (np.random.rand ( ) * self.ndrops)
 
 
     def droplet (self, height, width):
         """
-        A two-dimensional Gaussian.-
+        A two-dimensional Gaussian of the falling drop into the water.-
         """
         x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
         y = np.copy (x)
         return height * np.exp (-5*(x**2 + y**2));
 
 
-    def step (self, nstep): 
+    def kernel (self, out_H, in_H):
+        """
+        This stencil comprises multiple stage.-
+        """
         #
-        # create aliases for the member attributes
+        # temporary data fields
         #
-        n         = self.n
-        g         = self.g
-        dt        = self.dt
-        dx        = self.dx
-        dy        = self.dy
-        dropstep  = self.dropstep
-        nplotstep = self.nplotstep
+        tmp_U = np.zeros_like (out_H)
+        tmp_V = np.zeros_like (out_H)
 
-        H = self.H;     Hx = self.Hx;       Hy = self.Hy
-        U = self.U;     Ux = self.Ux;       Uy = self.Uy
-        V = self.V;     Vx = self.Vx;       Vy = self.Vy
+        tmp_Hx = np.zeros (np.subtract (out_H.shape), 1)
+        tmp_Ux = np.zeros (np.subtract (out_H.shape), 1)
+        tmp_Vx = np.zeros (np.subtract (out_H.shape), 1)
+
+        tmp_Hy = np.zeros (np.subtract (out_H.shape), 1)
+        tmp_Uy = np.zeros (np.subtract (out_H.shape), 1)
+        tmp_Vy = np.zeros (np.subtract (out_H.shape), 1)
+
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_data,
+                                           k_direction="forward"):
+            out_data[p] = in_data[p]
+
+
+
+
+
+
+
+class ShallowWaterEquation (object):
+
+    def step (self, nstep): 
  
         # random water drops
-        if nstep % dropstep == 0:
+        if nstep == 0:
             w = self.drop.shape[0]
 
             rand0 = np.random.rand ( )
