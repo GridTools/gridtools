@@ -19,7 +19,7 @@ struct print {
 };
 
 
-int_t main() {
+int main() {
 
     std::cout << enclosing_range<range0, range1>::type() << std::endl;
     std::cout << enclosing_range<range1, range0>::type() << std::endl;
