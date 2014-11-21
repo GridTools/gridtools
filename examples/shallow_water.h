@@ -39,7 +39,7 @@ struct alias{
 
     //operator calls the constructor of the arg_type
     template<typename ... Unknowns>
-    Callable& operator()  ( Unknowns ... unknowns  )
+    Callable operator()  ( Unknowns ... unknowns  )
         {return Callable(enumtype::Dimension<Known::direction> (m_knowns[Known::direction]) ... , unknowns ...);}
 
 private:
@@ -112,7 +112,8 @@ namespace shallow_water{
 
         template<typename DimensionX, typename DimensionY>
         GT_FUNCTION
-        static auto half_step(DimensionX d1, DimensionY d2, float_type const& delta)
+        static auto half_step(DimensionX d1, DimensionY d2, float_type const& delta) -> decltype(tmp(d1,d2)+tmp(d2)/(float_type)2. -
+                                                                                                 (tmp(comp(1),d2,d1) - tmp(comp(1),d2))*(dt()/(2*delta)))
             {
                 return tmp(d1,d2)+tmp(d2)/(float_type)2. -
                     (tmp(comp(1),d2,d1) - tmp(comp(1),d2))*(dt()/(2*delta));
@@ -120,7 +121,11 @@ namespace shallow_water{
 
         template<typename DimensionX, typename DimensionY>
         GT_FUNCTION
-        static auto half_step_u(DimensionX d1, DimensionY d2, float_type const& delta)
+        static auto half_step_u(DimensionX d1, DimensionY d2, float_type const& delta) -> decltype((tmp(comp(1), d1, d2) +
+                                                                                                    tmp(comp(1), d2)/(float_type)2. -
+                                                                                                    (tmp(comp(1),d1,d2)*tmp(comp(1),d1,d2)/tmp(d1,d2)+tmp(d1,d2)*tmp(d1,d2)*g()/(float_type)2.)*(dt()/((float_type)2.*delta)) -
+                                                                                                    tmp(comp(1), d2)*tmp(comp(1), d2)/tmp(d2) -
+                                                                                                    tmp(d2)*tmp(d2)*(g()/(float_type)2.)))
             {
                return (tmp(comp(1), d1, d2) +
                         tmp(comp(1), d2)/(float_type)2. -
@@ -131,7 +136,9 @@ namespace shallow_water{
 
         template<typename DimensionX, typename DimensionY>
         GT_FUNCTION
-        static auto half_step_v(DimensionX d1, DimensionY d2, float_type const& delta)
+        static auto half_step_v(DimensionX d1, DimensionY d2, float_type const& delta) -> decltype(tmp(comp(2),d1,d2)/(float_type)2. -
+                                                                                                   tmp(comp(1),d1,d2)*tmp(comp(2),d1,d2)/tmp(d1,d2)*(dt()/(2*delta)) -
+                                                                                                   tmp(comp(1),d2)*tmp(comp(2),d2)/tmp(d2))
             {
                 return ( tmp(comp(2),d1,d2)/(float_type)2. -
                          tmp(comp(1),d1,d2)*tmp(comp(2),d1,d2)/tmp(d1,d2)*(dt()/(2*delta)) -
