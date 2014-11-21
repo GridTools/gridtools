@@ -27,6 +27,11 @@ namespace gridtools {
 
     namespace _impl {
 
+        template <typename T0, typename... Ts>
+        struct first_type {
+            using type = T0;
+        };
+
         template <uint_t I>
         struct select_s
         {
@@ -88,8 +93,8 @@ namespace gridtools {
 
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static uint_t find(Indices & ... indices) {
-            uint_t vec[sizeof...(indices)] = {indices...};
+        static typename _impl::first_type<Indices...>::type find(Indices & ... indices) {
+            typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
             return vec[pos_<I>::value];
         }
 
