@@ -49,9 +49,9 @@ std::ostream& operator<<(std::ostream& s, interface const) {
 
 bool test_interface(int x, int y, int z) {
 
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #define BACKEND backend<Host, Naive >
 
