@@ -273,15 +273,52 @@ class MultiStageStencil ( ):
                            UserWarning)
 
 
-    def get_interior_points (self, output_field, k_direction='forward'):
+    def get_interior_points (self, data_field, k_direction='forward'):
         """
-        Returns an iterator over the 'output_field' without including the halo:
+        Returns an iterator over the 'data_field' without including the halo:
 
-            output_field    a NumPy array which has been previously registered
-                            as an output field with the 'set_output' function;
+            data_field      a NumPy array;
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward', 'backward' or
                             'parallel'.-
         """
-        return np.ndindex (*output_field.shape)
+        try:
+            assert (len (data_field.shape) == 3,
+                    "Only 3D arrays are supported.")
+            #
+            # define the direction in 'k'
+            #
+            i_dim, j_dim, k_dim = data_field.shape
+            if k_direction == 'forward':
+                k_dim_start = 0
+                k_dim_end   = k_dim
+                k_dim_inc   = 1
+            elif k_direction == 'backward':
+                k_dim_start = k_dim - 1
+                k_dim_end   = -1
+                k_dim_inc   = -1
+            else:
+                warnings.warn ("unknown direction '%s'" % k_direction,
+                              UserWarning)
+            #
+            # return the coordinate tuples in the correct order
+            #
+            for i in range (i_dim):
+                for j in range (j_dim):
+                    for k in range (k_dim_start, k_dim_end, k_dim_inc):
+                            yield InteriorPoint ((i, j, k))
+
+        except AttributeError:
+            warings.warn ("calling 'get_interior_points' without a NumPy array",
+                          UserWarning)
+
+
+
+class InteriorPoint (tuple):
+    """
+    Represents the point within a NumPy array at the given coordinates.-
+    """
+    def __add__ (self, other):
+        assert (len (self) == len (other))
+        return tuple (map (sum, zip (self, other)))
 

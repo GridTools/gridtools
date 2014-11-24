@@ -47,11 +47,25 @@ class ShallowWater (MultiStageStencil):
         self.g = 9.8
 
         # timestep
-        self.dt =0.02
+        self.dt = 0.02
 
         # space step size (for u, v)
         self.dx = 1.0
         self.dy = 1.0
+
+        #
+        # temporary data fields
+        #
+        self.U = np.zeros ((self.n+2, self.n+2, 1))
+        self.V = np.zeros ((self.n+2, self.n+2, 1))
+
+        self.Hx = np.zeros ((self.n+1, self.n+1, 1))
+        self.Ux = np.zeros ((self.n+1, self.n+1, 1))
+        self.Vx = np.zeros ((self.n+1, self.n+1, 1))
+
+        self.Hy = np.zeros ((self.n+1, self.n+1, 1))
+        self.Uy = np.zeros ((self.n+1, self.n+1, 1))
+        self.Vy = np.zeros ((self.n+1, self.n+1, 1))
 
         # one drop to disturb the water
         self.drop = self.droplet (2, 11)
@@ -71,32 +85,86 @@ class ShallowWater (MultiStageStencil):
         This stencil comprises multiple stage.-
         """
         #
-        # temporary data fields
+        # aliases for shorter names
         #
-        tmp_U = np.zeros_like (out_H)
-        tmp_V = np.zeros_like (out_H)
+        U = self.U
+        V = self.V
 
-        tmp_Hx = np.zeros (np.subtract (out_H.shape), 1)
-        tmp_Ux = np.zeros (np.subtract (out_H.shape), 1)
-        tmp_Vx = np.zeros (np.subtract (out_H.shape), 1)
+        Hx = self.Hx
+        Ux = self.Ux
+        Vx = self.Vx
 
-        tmp_Hy = np.zeros (np.subtract (out_H.shape), 1)
-        tmp_Uy = np.zeros (np.subtract (out_H.shape), 1)
-        tmp_Vy = np.zeros (np.subtract (out_H.shape), 1)
+        Hy = self.Hy
+        Uy = self.Uy
+        Vy = self.Vy
 
         #
         # iterate over the points, excluding halo ones
         #
-        for p in self.get_interior_points (out_data,
+        for p in self.get_interior_points (Hx,
                                            k_direction="forward"):
-            out_data[p] = in_data[p]
+            #
+            # first half step (stage X direction)
+            #
+
+            # height
+            Hx[p]  = ( in_H[p + (1,1,0)] + in_H[p + (0,1,0)] ) / 2
+            Hx[p] -= self.dt / (2*self.dx) * ( U[p + (1,1,0)] - U[p + (0,1,0)] )
+
+            # X momentum    
+            Ux[p]  = ( U[p + (1,1,0)] + U[p + (0,1,0)] ) / 2
+            Ux[p] -= self.dt / (2*self.dx) * ( ( U[p + (1,1,0)]**2 / in_H[p + (1,1,0)] + self.g/2*in_H[p + (1,1,0)]**2 ) -
+                                               ( U[p + (0,1,0)]**2 / in_H[p + (0,1,0)] + self.g/2*in_H[p + (0,1,0)]**2 )
+                                             )
+            # Y momentum
+            Vx[p]  = ( V[p + (1,1,0)] + V[p + (0,1,0)] ) / 2 
+            Vx[p] -= self.dt / (2*self.dx) * ( ( U[p + (1,1,0)] * V[p + (1,1,0)] / in_H[p + (1,1,0)] ) -
+                                               ( U[p + (0,1,0)] * V[p + (0,1,0)] / in_H[p + (0,1,0)] )
+                                             )
+            #
+            # first half step (stage Y direction)
+            #
+
+            # height
+            Hy[p]  = ( in_H[p + (1,1,0)] + in_H[p + (1,0,0)] ) / 2
+            Hy[p] -= self.dt / (2*self.dy) * ( V[p + (1,1,0)] - V[p+ (1,0,0)] )
+
+            # X momentum
+            Uy[p]  = ( U[p + (1,1,0)] + U[p + (1,0,0)] ) / 2 
+            Uy[p] -= self.dt / (2*self.dy) * ( ( V[p + (1,1,0)] * U[p + (1,1,0)] / in_H[p + (1,1,0)] ) -
+                                               ( V[p + (1,0,0)] * U[p + (1,0,0)] / in_H[p + (1,0,0)] )
+                                             )
+            # Y momentum
+            Vy[p]  = ( V[p + (1,1,0)] + V[p + (1,0,0)] ) / 2
+            Vy[p] -= self.dt / (2*self.dy) * ( ( V[p + (1,1,0)]**2 / in_H[p + (1,1,0)] + self.g/2*in_H[p + (1,1,0)]**2 ) -
+                                               ( V[p + (1,0,0)]**2 / in_H[p + (1,0,0)] + self.g/2*in_H[p + (1,0,0)]**2 )
+                                             )
 
 
 
 
 
 
+class ShallowWaterTest (unittest.TestCase):
+    """
+    A test case for the shallow water stencil defined above.-
+    """
+    def test_python_execution (self):
+        """
+        Checks that the stencil results are correct if executing in Python mode.-
+        """
+        domain = (66, 66, 1)
+        output_field = np.zeros (domain)
+        input_field = np.random.rand (*domain)
+        water = ShallowWater ( )
+        water.run (out_H=output_field,
+                   in_H=input_field)
+        self.assertTrue (np.array_equal (input_field, 
+                                         output_field),
+                         "Arrays should be equal")
 
+
+"""
 class ShallowWaterEquation (object):
 
     def step (self, nstep): 
@@ -235,4 +303,5 @@ anim = animation.FuncAnimation (fig,
                                 fargs=(sw,),
                                 interval=2,
                                 blit=False)
-                           
+"""
+
