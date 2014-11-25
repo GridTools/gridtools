@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import ast
+import logging
 import warnings
 
 import numpy as np
@@ -11,14 +12,17 @@ class FunctorBody (ast.NodeVisitor):
     """
     Represents the Do( ) function of a stencil's functor in AST form.-
     """
-    def __init__ (self, nodes, params):
+    def __init__ (self, nodes, params, symbols):
         """
         Constructs a functor body object using the received node:
 
             node    an AST-node list representing the body of this functor;
-            params  the dict of FunctorParameters of this functor.-
+            params  a dict of FunctorParameters of this functor;
+            symbols a dict of symbols available within the stencil where
+                    the functor lives.-
         """
-        self.params = params
+        self.params  = params
+        self.symbols = symbols
         #
         # initialize an empty C++ code string
         #
@@ -72,7 +76,6 @@ class FunctorBody (ast.NodeVisitor):
 
 
 
-
 class FunctorParameter ( ):
     """
     Represents a parameter of a stencil functor.-
@@ -108,8 +111,7 @@ class FunctorParameter ( ):
             self.input = False
             self.output = True
         else:
-            warnings.warn ("ignoring functor parameter [%s]\n" % name,
-                           UserWarning)
+            logging.warning ("ignoring functor parameter '%s'\n" % name)
 
 
 
@@ -117,13 +119,15 @@ class StencilFunctor ( ):
     """
     Represents a functor inside a multi-stage stencil.-
     """
-    def __init__ (self, node=None):
+    def __init__ (self, node, symbols):
         """
         Constructs a new StencilFunctor:
 
             node    the FunctionDef AST node (see
                     https://docs.python.org/3.4/library/ast.html) of the
-                    Python function from which this functor will be built.-
+                    Python function from which this functor will be built;
+            symbols data fields and constants gathered from other levels
+                    of AST analysis.-
         """
         #
         # a name to uniquely identify this functor
@@ -141,6 +145,7 @@ class StencilFunctor ( ):
         # the AST node of the Python function representing this functor
         #
         self.set_ast (node)
+        self.symbols = symbols
 
 
     def set_ast (self, node):
@@ -197,6 +202,7 @@ class StencilFunctor ( ):
                 if (call.func.value.id == 'self' and 
                     call.func.attr == 'get_interior_points'):
                     self.body = FunctorBody (node.body,
-                                             self.params)
+                                             self.params,
+                                             self.symbols)
                     self.body.generate_code ( )
 

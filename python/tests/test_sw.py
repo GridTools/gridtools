@@ -24,6 +24,7 @@
 ##    http://www.amath.washington.edu/~claw/applications/shallow/www
 ##
 import unittest
+import logging
 import numpy as np
 
 from gridtools import MultiStageStencil, StencilInspector
@@ -35,6 +36,9 @@ class ShallowWater (MultiStageStencil):
     Implements the shallow water equation as a multi-stage stencil.-
     """
     def __init__ (self):
+        """
+        A comment to make AST parsing more difficult.-
+        """
         super (ShallowWater, self).__init__ ( )
         #
         # grid size
@@ -149,6 +153,9 @@ class ShallowWaterTest (unittest.TestCase):
     """
     A test case for the shallow water stencil defined above.-
     """
+    def setUp (self):
+        logging.basicConfig (level=logging.INFO)
+
     def test_python_execution (self):
         """
         Checks that the stencil results are correct if executing in Python mode.-

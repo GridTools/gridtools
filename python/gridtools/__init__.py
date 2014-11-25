@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import ast
+import logging
 import warnings
 
 import numpy as np
@@ -32,9 +33,13 @@ class StencilInspector (ast.NodeVisitor):
             #
             self.dimensions  = None
             #
-            # the dynamically-generated source code is kept here
+            # the user's stencil code is kept here
             #
             self.src = inspect.getsource (cls)
+            #
+            # symbols gathered from the AST of the user's stencil
+            #
+            self.symbols = dict ( )
             #
             # the kernel functor is the stencil's entry point for execution
             #
@@ -171,22 +176,101 @@ class StencilInspector (ast.NodeVisitor):
         self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
 
 
+    def visit_Assign (self, node):
+        """
+        Looks for symbols, i.e. constants and data fields, in the user's
+        stencil code:
+
+            node        a node from the AST;
+            ctx_func    the function within which the assignments are found.-
+        """
+        # 
+        # only expr = expr
+        # 
+        if len (node.targets) > 1:
+            raise RuntimeError ("Only one assignment per line is accepted.")
+        else:
+            lvalue = None
+            rvalue = None
+            lvalue_node = node.targets[0]
+
+            if isinstance (lvalue_node, ast.Attribute):
+                lvalue = lvalue_node.attr
+            elif isinstance (lvalue_node, ast.Name):
+                lvalue = lvalue_node.id
+            else:
+                logging.warning ("Ignoring assignment at %d" % node.lineno)
+                return
+            #
+            # we consider it a constant iif its rvalue is a Num
+            #
+            if isinstance (node.value, ast.Num):
+                rvalue = float (node.value.n)
+                logging.info ("Found constant '%s' with value %.3f at %d" % (lvalue, 
+                                                                             rvalue,
+                                                                             node.lineno))
+            else:
+                #
+                # otherwise, we keep it for resolution at run time
+                #
+                logging.warning ("Delaying resolution of '%s' at %d" % (lvalue,
+                                                                        node.lineno))
+            #
+            # keep it in the dictionary for later use
+            #
+            assert lvalue != None, "Assignment's lvalue is None"
+            self.symbols[lvalue] = rvalue
+
+
     def visit_FunctionDef (self, node):
         """
-        Looks for the stencil's entry function 'kernel' and validates it:
+        Looks for function definitions inside the user's stencil and classifies
+        them accordingly:
 
             node    a node from the AST.-
         """
         #
-        # look for the 'kernel' function, which is the starting point 
-        # of the stencil
+        # the stencil's constructor is the recommended place to define 
+        # (run-time) constants and temporary fields
         #
-        if node.name == 'kernel':
+        if node.name == '__init__':
+            logging.info ("Found stencil constructor at %d" % node.lineno)
             #
-            # this function should not return anything
+            # should be a call to the parent's constructor
+            #
+            for n in node.body:
+                try:
+                    parent_call = (isinstance (n.value, ast.Call) and 
+                                   isinstance (n.value.func.value, ast.Call) and
+                                   n.value.func.attr == '__init__')
+                    if parent_call:
+                        logging.info ("Found parent's constructor call at %d" % 
+                                      n.value.lineno)
+                        break
+
+                except AttributeError:
+                    parent_call = False
+            #
+            # inform the user if the call was not found
+            #
+            if not parent_call:
+                raise ReferenceError ("Missing parent's constructor call")
+            #
+            # continue traversing the AST of this function
+            #
+            for n in node.body:
+                self.visit (n)
+        #
+        # the 'kernel' function is the starting point of the stencil
+        #
+        elif node.name == 'kernel':
+            logging.info ("Found 'kernel' function at %d" % node.lineno)
+            #
+            # this function should return 'None'
             #
             if node.returns is None:
-                self.kernel_func = StencilFunctor (node)
+                self.kernel_func = StencilFunctor (node,
+                                                   self.symbols)
                 self.kernel_func.analyze_params ( )
                 self.kernel_func.analyze_loops  ( )
                 #
@@ -196,6 +280,7 @@ class StencilInspector (ast.NodeVisitor):
                     super (StencilInspector, self).visit (n)
             else:
                 raise ValueError ("The 'kernel' function should return 'None'.")
+
 
 
 
@@ -244,10 +329,11 @@ class MultiStageStencil ( ):
             raise KeyError ("Only keyword arguments are accepted.-")
         else:
             self.inspector.analyze (**kwargs)
+            logging.info ("Symbols found: %s" % self.inspector.symbols)
         #
         # run the selected backend version
         #
-        print ("# Running in %s mode ..." % self.backend.capitalize ( ))
+        logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
         if self.backend == 'python':
             self.kernel (**kwargs)
         elif self.backend == 'c++':
@@ -283,8 +369,8 @@ class MultiStageStencil ( ):
                             'parallel'.-
         """
         try:
-            assert (len (data_field.shape) == 3,
-                    "Only 3D arrays are supported.")
+            if len (data_field.shape) != 3:
+                raise ValueError ("Only 3D arrays are supported.")
             #
             # define the direction in 'k'
             #
@@ -319,6 +405,7 @@ class InteriorPoint (tuple):
     Represents the point within a NumPy array at the given coordinates.-
     """
     def __add__ (self, other):
-        assert (len (self) == len (other))
+        if len (self) != len (other):
+            raise ValueError ("Points have different dimensions.")
         return tuple (map (sum, zip (self, other)))
 
