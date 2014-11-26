@@ -66,12 +66,27 @@ class FunctorBody (ast.NodeVisitor):
         """
         Generates code from an Assignment node, i.e., expr = expr.-
         """
-        if len (node.targets) < 2:
-            return "%s = %s" % (self.visit (node.targets[0]),  # lvalue
-                                self.visit (node.value))       # rvalue
-        else:
-            for tgt in node.targets:
-                self.visit (tgt)
+        for tgt in node.targets:
+            return "%s = %s" % (self.visit (tgt),          # lvalue
+                                self.visit (node.value))   # rvalue
+
+
+    def visit_Attribute (self, node):
+        """
+        Tries to replace attributes with values from the stencil's symbol table.-
+        """
+        attr_name = "%s.%s" % (node.value.id,
+                               node.attr)
+        if attr_name in self.symbols.keys ( ):
+            #
+            # do not replace strings or NumPy arrays
+            #
+            attr_val = self.symbols[attr_name]
+            if (isinstance (attr_val, str) or
+                isinstance (attr_val, np.ndarray)):
+                return attr_name
+            else:
+                return str (attr_val)
 
 
     def visit_AugAssign (self, node):
@@ -128,7 +143,7 @@ class FunctorBody (ast.NodeVisitor):
                     logging.warning ("Subscript shifting only supported with '+'")
             elif isinstance (node.slice.value, ast.Name):
                 #
-                # understand subscripting over 'get_interior_points'
+                # TODO understand subscripting over 'get_interior_points'
                 #
                 if node.slice.value.id == 'p':
                     indexing = '( )'
@@ -136,13 +151,25 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
             #
-            # FIXME check if subscripting any of the known symbols
+            # check if subscripting any known symbols
             #
-            if isinstance (node.value, ast.Name):
+            if isinstance (node.value, ast.Attribute):
+                name = '%s.%s' % (node.value.value.id,
+                                  node.value.attr)
+                if name in self.symbols.keys ( ):
+                    #
+                    # only good for NumPy arrays
+                    #
+                    value = self.symbols[name]
+                    if isinstance (value, np.ndarray):
+                        return "dom(%s%s)" % (name, indexing)
+            #
+            # check if subscripting any functor parameters 
+            #
+            elif isinstance (node.value, ast.Name):
                 name = node.value.id
                 if name in self.params.keys ( ):
                     return "dom(%s%s)" % (name, indexing)
-
 
 
 
@@ -181,7 +208,7 @@ class FunctorParameter ( ):
             self.input = False
             self.output = True
         else:
-            logging.warning ("ignoring functor parameter '%s'\n" % name)
+            logging.warning ("Ignoring functor parameter '%s'\n" % name)
 
 
 

@@ -200,7 +200,7 @@ class StencilInspector (ast.NodeVisitor):
             elif isinstance (lvalue_node, ast.Name):
                 lvalue = lvalue_node.id
             else:
-                logging.warning ("Ignoring assignment at %d" % node.lineno)
+                logging.debug ("Ignoring assignment at %d" % node.lineno)
                 return
             #
             # we consider it a constant iif its rvalue is a Num
@@ -226,10 +226,11 @@ class StencilInspector (ast.NodeVisitor):
                                                                               rvalue,
                                                                               node.value.lineno))
             #
-            # add it to the symbols dictionary
+            # update the symbols dictionary
             #
             assert lvalue != None, "Assignment's lvalue is None"
-            self.symbols[lvalue] = rvalue
+            if lvalue not in self.symbols.keys ( ):
+                self.symbols[lvalue] = rvalue
 
 
     def visit_FunctionDef (self, node):
@@ -327,27 +328,24 @@ class MultiStageStencil ( ):
 
             symbols     the symbols dictionary.-
         """
-        #
-        # try to resolve all mappings after an arbitrary number of iterations
-        #
-        for i in range (5):
-            for name, value in symbols.items ( ):
+        for name, value in symbols.items ( ):
+            #
+            # unresolved symbols have 'None' as their value
+            #
+            if value is None:
                 #
-                # unresolved symbols have 'None' as their value
+                # is this an object's attribute?
                 #
-                if value is None:
-                    #
-                    # is this an object's attribute?
-                    #
-                    if 'self' in name:
-                        attr = name.split ('.')[1]
-                        symbols[name] = getattr (self, attr, None)
-                #
-                # some symbols are aliases to other symbols
-                #
-                if isinstance (value, str):
-                    if value in symbols.keys ( ) and symbols[value] is not None:
-                        symbols[name] = symbols[value]
+                if 'self' in name:
+                    attr = name.split ('.')[1]
+                    symbols[name] = getattr (self, attr, None)
+            #
+            # TODO some symbols are just aliases to other symbols
+            #
+            if isinstance (value, str):
+                if value in symbols.keys ( ) and symbols[value] is not None:
+                    #symbols[name] = symbols[value]
+                    logging.warning ("Variable aliasing is not supported")
 
 
     def kernel (self, *args, **kwargs):
@@ -367,20 +365,24 @@ class MultiStageStencil ( ):
             raise KeyError ("Only keyword arguments are accepted.-")
         else:
             #
-            # static code resolution
+            # try to resolve all symbols after an arbitrary 
+            # number of iterations
             #
-            self.inspector.analyze (**kwargs)
-            logging.info ("Symbols found after static code analysis:")
-            for k,v in self.inspector.symbols.items ( ):
-                logging.info ("\t%s:\t%s" % (k, str (v)))
-
-            #
-            # resolve missing symbol values with run-time information
-            #
-            self._resolve (self.inspector.symbols)
-            logging.info ("Symbols found using run-time information:")
-            for k,v in self.inspector.symbols.items ( ):
-                logging.info ("\t%s:\t%s" % (k, str (v)))
+            for i in range (2):
+                #
+                # static code resolution
+                #
+                self.inspector.analyze (**kwargs)
+                logging.debug ("Symbols found after static code analysis:")
+                for k,v in self.inspector.symbols.items ( ):
+                    logging.debug ("\t%s:\t%s" % (k, str (v)))
+                #
+                # resolve missing symbols with run-time information
+                #
+                self._resolve (self.inspector.symbols)
+                logging.debug ("Symbols found using run-time information:")
+                for k,v in self.inspector.symbols.items ( ):
+                    logging.debug ("\t%s:\t%s" % (k, str (v)))
 
         #
         # run the selected backend version
@@ -460,4 +462,7 @@ class InteriorPoint (tuple):
         if len (self) != len (other):
             raise ValueError ("Points have different dimensions.")
         return tuple (map (sum, zip (self, other)))
+
+    def __sub__ (self, other):
+        raise NotImplementedError ("Offsets are not supported with '-'.")
 

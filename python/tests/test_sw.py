@@ -92,37 +92,26 @@ class ShallowWater (MultiStageStencil):
         This stencil comprises multiple stage.-
         """
         #
-        # aliases for shorter names
-        #
-        Hx = self.Hx
-        Ux = self.Ux
-        Vx = self.Vx
-
-        Hy = self.Hy
-        Uy = self.Uy
-        Vy = self.Vy
-
-        #
         # iterate over the points, excluding halo ones
         #
-        for p in self.get_interior_points (Hx,
+        for p in self.get_interior_points (self.Hx,
                                            k_direction="forward"):
             #
             # first half step (stage X direction)
             #
 
             # height
-            Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
-            Hx[p] -= self.dt / (2*self.dx) * ( out_U[p + (1,1,0)] - out_U[p + (0,1,0)] )
+            self.Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
+            self.Hx[p] -= self.dt / (2*self.dx) * ( out_U[p + (1,1,0)] - out_U[p + (0,1,0)] )
 
             # X momentum    
-            Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
-            Ux[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
+            self.Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
+            self.Ux[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
                                                ( out_U[p + (0,1,0)]**2 / out_H[p + (0,1,0)] + self.g/2*out_H[p + (0,1,0)]**2 )
                                              )
             # Y momentum
-            Vx[p]  = ( out_V[p + (1,1,0)] + out_V[p + (0,1,0)] ) / 2 
-            Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
+            self.Vx[p]  = ( out_V[p + (1,1,0)] + out_V[p + (0,1,0)] ) / 2 
+            self.Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
                                                ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
                                              )
             #
@@ -130,17 +119,17 @@ class ShallowWater (MultiStageStencil):
             #
 
             # height
-            Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2
-            Hy[p] -= self.dt / (2*self.dy) * ( out_V[p + (1,1,0)] - out_V[p+ (1,0,0)] )
+            self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2
+            self.Hy[p] -= self.dt / (2*self.dy) * ( out_V[p + (1,1,0)] - out_V[p+ (1,0,0)] )
 
             # X momentum
-            Uy[p]  = ( out_U[p + (1,1,0)] + out_U[p + (1,0,0)] ) / 2 
-            Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
+            self.Uy[p]  = ( out_U[p + (1,1,0)] + out_U[p + (1,0,0)] ) / 2 
+            self.Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
                                                ( out_V[p + (1,0,0)] * out_U[p + (1,0,0)] / out_H[p + (1,0,0)] )
                                              )
             # Y momentum
-            Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2
-            Vy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
+            self.Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2
+            self.Vy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
                                                ( out_V[p + (1,0,0)]**2 / out_H[p + (1,0,0)] + self.g/2*out_H[p + (1,0,0)]**2 )
                                              )
 
