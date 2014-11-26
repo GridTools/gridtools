@@ -195,7 +195,8 @@ class StencilInspector (ast.NodeVisitor):
             lvalue_node = node.targets[0]
 
             if isinstance (lvalue_node, ast.Attribute):
-                lvalue = lvalue_node.attr
+                lvalue = "%s.%s" % (lvalue_node.value.id,
+                                    lvalue_node.attr)
             elif isinstance (lvalue_node, ast.Name):
                 lvalue = lvalue_node.id
             else:
@@ -206,17 +207,26 @@ class StencilInspector (ast.NodeVisitor):
             #
             if isinstance (node.value, ast.Num):
                 rvalue = float (node.value.n)
-                logging.info ("Found constant '%s' with value %.3f at %d" % (lvalue, 
-                                                                             rvalue,
-                                                                             node.lineno))
-            else:
-                #
-                # otherwise, we keep it for resolution at run time
-                #
-                logging.warning ("Delaying resolution of '%s' at %d" % (lvalue,
+                logging.info ("Constant '%s' with value %.3f at %d" % (lvalue, 
+                                                                       rvalue,
+                                                                       node.lineno))
+            #
+            # function calls will be resolved at run time
+            #
+            elif isinstance (node.value, ast.Call):
+                logging.warning ("Run-time resolution of '%s' at %d" % (lvalue,
                                                                         node.lineno))
             #
-            # keep it in the dictionary for later use
+            # attributes will all be resolved later by name
+            #
+            elif isinstance (node.value, ast.Attribute):
+                rvalue = '%s.%s' % (node.value.value.id,
+                                    node.value.attr)
+                logging.info ("Variable '%s' maps to attribute '%s' at %d" % (lvalue, 
+                                                                              rvalue,
+                                                                              node.value.lineno))
+            #
+            # add it to the symbols dictionary
             #
             assert lvalue != None, "Assignment's lvalue is None"
             self.symbols[lvalue] = rvalue
@@ -234,7 +244,7 @@ class StencilInspector (ast.NodeVisitor):
         # (run-time) constants and temporary fields
         #
         if node.name == '__init__':
-            logging.info ("Found stencil constructor at %d" % node.lineno)
+            logging.info ("Stencil constructor at %d" % node.lineno)
             #
             # should be a call to the parent's constructor
             #
@@ -244,8 +254,7 @@ class StencilInspector (ast.NodeVisitor):
                                    isinstance (n.value.func.value, ast.Call) and
                                    n.value.func.attr == '__init__')
                     if parent_call:
-                        logging.info ("Found parent's constructor call at %d" % 
-                                      n.value.lineno)
+                        logging.info ("Parent's constructor call at %d" % n.value.lineno)
                         break
 
                 except AttributeError:
@@ -264,7 +273,7 @@ class StencilInspector (ast.NodeVisitor):
         # the 'kernel' function is the starting point of the stencil
         #
         elif node.name == 'kernel':
-            logging.info ("Found 'kernel' function at %d" % node.lineno)
+            logging.info ("Entry 'kernel' function at %d" % node.lineno)
             #
             # this function should return 'None'
             #
@@ -312,6 +321,35 @@ class MultiStageStencil ( ):
         self.halo = (1, 1)
 
 
+    def _resolve (self, symbols):
+        """
+        Attempts to resolve missing symbols values with run-time information:
+
+            symbols     the symbols dictionary.-
+        """
+        #
+        # try to resolve all mappings after an arbitrary number of iterations
+        #
+        for i in range (5):
+            for name, value in symbols.items ( ):
+                #
+                # unresolved symbols have 'None' as their value
+                #
+                if value is None:
+                    #
+                    # is this an object's attribute?
+                    #
+                    if 'self' in name:
+                        attr = name.split ('.')[1]
+                        symbols[name] = getattr (self, attr, None)
+                #
+                # some symbols are aliases to other symbols
+                #
+                if isinstance (value, str):
+                    if value in symbols.keys ( ) and symbols[value] is not None:
+                        symbols[name] = symbols[value]
+
+
     def kernel (self, *args, **kwargs):
         raise NotImplementedError ( )
 
@@ -328,8 +366,22 @@ class MultiStageStencil ( ):
         if len (args) > 0:
             raise KeyError ("Only keyword arguments are accepted.-")
         else:
+            #
+            # static code resolution
+            #
             self.inspector.analyze (**kwargs)
-            logging.info ("Symbols found: %s" % self.inspector.symbols)
+            logging.info ("Symbols found after static code analysis:")
+            for k,v in self.inspector.symbols.items ( ):
+                logging.info ("\t%s:\t%s" % (k, str (v)))
+
+            #
+            # resolve missing symbol values with run-time information
+            #
+            self._resolve (self.inspector.symbols)
+            logging.info ("Symbols found using run-time information:")
+            for k,v in self.inspector.symbols.items ( ):
+                logging.info ("\t%s:\t%s" % (k, str (v)))
+
         #
         # run the selected backend version
         #
