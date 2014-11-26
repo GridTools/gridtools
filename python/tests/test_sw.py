@@ -112,11 +112,11 @@ class ShallowWater (MultiStageStencil):
             #
 
             # height
-            Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2
+            Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
             Hx[p] -= self.dt / (2*self.dx) * ( out_U[p + (1,1,0)] - out_U[p + (0,1,0)] )
 
             # X momentum    
-            Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2
+            Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
             Ux[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
                                                ( out_U[p + (0,1,0)]**2 / out_H[p + (0,1,0)] + self.g/2*out_H[p + (0,1,0)]**2 )
                                              )
@@ -188,6 +188,21 @@ class ShallowWaterTest (unittest.TestCase):
                          "Arrays should be equal")
 
 
+    def test_native_execution (self):
+        """
+        Checks that the stencil results are correct if executing in native mode.-
+        """
+        domain = (66, 66, 1)
+        H = np.random.rand (*domain)
+        U = np.random.rand (*domain)
+        V = np.random.rand (*domain)
+        water = ShallowWater ( )
+        water.backend = 'c++'
+        water.run (out_H=H,
+                   out_U=U,
+                   out_V=V)
+        self.assertTrue (np.array_equal (U, V),
+                         "Arrays should be equal")
 """
 class ShallowWaterEquation (object):
 

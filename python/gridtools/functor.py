@@ -26,7 +26,7 @@ class FunctorBody (ast.NodeVisitor):
         #
         # initialize an empty C++ code string
         #
-        self.cpp = ""
+        self.cpp = ''
         try:
             if len (nodes) > 0:
                 self.nodes = nodes
@@ -34,33 +34,32 @@ class FunctorBody (ast.NodeVisitor):
             warnings.warn ("FunctorBody expects a list of AST nodes.",
                            RuntimeWarning)
 
+    def _sign_operator (self, operation):
+        """
+        Returns the sign of an operation.-
+        """
+        if isinstance (operation, ast.Add):
+            sign = '+'
+        elif isinstance (operation, ast.Sub):
+            sign = '-'
+        elif isinstance (operation, ast.Mult):
+            sign = '*'
+        elif isinstance (operation, ast.Div):
+            sign = '/'
+        elif isinstance (operation, ast.Pow):
+            sign = '^'
+        else:
+            sign = None
+            logging.warning ("Cannot translate '%s'" % str (operation))
+        return sign
 
+         
     def generate_code (self):
         """
         Generates C++ code from the AST backing this object.-
         """
         for n in self.nodes:
-            self.cpp = self.visit (n)
-
-
-    def visit_Subscript (self, node):
-        """
-        Generates code from Subscript node, i.e., expr[expr].-
-        """
-        #
-        # check if subscripting any of the known data fields
-        #
-        val = node.value
-        if isinstance (val, ast.Name):
-            name = val.id
-            if name in self.params.keys ( ):
-                return "dom(%s( ))" % name
-            else:
-                return name
-        #
-        # TODO check if the subscript has shifting
-        #
-        return ''
+            self.cpp += "%s;\n\t" % self.visit (n)
 
 
     def visit_Assign (self, node):
@@ -68,11 +67,82 @@ class FunctorBody (ast.NodeVisitor):
         Generates code from an Assignment node, i.e., expr = expr.-
         """
         if len (node.targets) < 2:
-            return "%s = %s;" % (self.visit (node.targets[0]),  # lvalue
-                                 self.visit (node.value))       # rvalue
+            return "%s = %s" % (self.visit (node.targets[0]),  # lvalue
+                                self.visit (node.value))       # rvalue
         else:
             for tgt in node.targets:
                 self.visit (tgt)
+
+
+    def visit_AugAssign (self, node):
+        """
+        Generates code for an operation-assignment node, i.e., expr += expr.-
+        """
+        sign = self._sign_operator (node.op)
+        return "%s %s= %s" % (self.visit (node.target),
+                              sign,
+                              self.visit (node.value))
+
+
+    def visit_BinOp (self, node):
+        """
+        Generates code for a binary operation, e.g., +,-,*, ...
+        """
+        sign = self._sign_operator (node.op)
+        #
+        # take care of the parenthesis for correct operation precedence
+        #
+        operand = []
+        for op in [node.left, node.right]:
+            if (isinstance (op, ast.Num) or 
+                isinstance (op, ast.Name) or
+                isinstance (op, ast.Attribute) or
+                isinstance (op, ast.Subscript)):
+                operand.append ('%s' % self.visit (op))
+            else:
+                operand.append ('(%s)' % self.visit (op))
+
+        return "%s %s %s" % (operand[0], sign, operand[1])
+
+
+    def visit_Num (self, node):
+        """
+        Returns the number in this node.-
+        """
+        return str(node.n)
+
+
+    def visit_Subscript (self, node):
+        """
+        Generates code from Subscript node, i.e., expr[expr].-
+        """
+        if isinstance (node.slice, ast.Index):
+            if isinstance (node.slice.value, ast.BinOp):
+                #
+                # this subscript has shifting
+                #
+                if isinstance (node.slice.value.op, ast.Add):
+                    indexing = '(%s)' % ','.join ([str(e.n) for e in node.slice.value.right.elts])
+                else:
+                    indexing = ''
+                    logging.warning ("Subscript shifting only supported with '+'")
+            elif isinstance (node.slice.value, ast.Name):
+                #
+                # understand subscripting over 'get_interior_points'
+                #
+                if node.slice.value.id == 'p':
+                    indexing = '( )'
+                else:
+                    indexing = ''
+                    logging.warning ("Ignoring subscript not using 'p'")
+            #
+            # FIXME check if subscripting any of the known symbols
+            #
+            if isinstance (node.value, ast.Name):
+                name = node.value.id
+                if name in self.params.keys ( ):
+                    return "dom(%s%s)" % (name, indexing)
+
 
 
 
