@@ -50,19 +50,20 @@ class ShallowWater (MultiStageStencil):
         #
         self.g = 9.8
 
+        #
         # timestep
+        #
         self.dt = 0.02
 
+        #
         # space step size (for u, v)
+        #
         self.dx = 1.0
         self.dy = 1.0
 
         #
         # temporary data fields
         #
-        self.U = np.zeros ((self.n+2, self.n+2, 1))
-        self.V = np.zeros ((self.n+2, self.n+2, 1))
-
         self.Hx = np.zeros ((self.n+1, self.n+1, 1))
         self.Ux = np.zeros ((self.n+1, self.n+1, 1))
         self.Vx = np.zeros ((self.n+1, self.n+1, 1))
@@ -71,7 +72,9 @@ class ShallowWater (MultiStageStencil):
         self.Uy = np.zeros ((self.n+1, self.n+1, 1))
         self.Vy = np.zeros ((self.n+1, self.n+1, 1))
 
+        #
         # one drop to disturb the water
+        #
         self.drop = self.droplet (2, 11)
 
 
@@ -84,16 +87,13 @@ class ShallowWater (MultiStageStencil):
         return height * np.exp (-5*(x**2 + y**2));
 
 
-    def kernel (self, out_H, in_H):
+    def kernel (self, out_H, out_U, out_V):
         """
         This stencil comprises multiple stage.-
         """
         #
         # aliases for shorter names
         #
-        U = self.U
-        V = self.V
-
         Hx = self.Hx
         Ux = self.Ux
         Vx = self.Vx
@@ -112,36 +112,36 @@ class ShallowWater (MultiStageStencil):
             #
 
             # height
-            Hx[p]  = ( in_H[p + (1,1,0)] + in_H[p + (0,1,0)] ) / 2
-            Hx[p] -= self.dt / (2*self.dx) * ( U[p + (1,1,0)] - U[p + (0,1,0)] )
+            Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2
+            Hx[p] -= self.dt / (2*self.dx) * ( out_U[p + (1,1,0)] - out_U[p + (0,1,0)] )
 
             # X momentum    
-            Ux[p]  = ( U[p + (1,1,0)] + U[p + (0,1,0)] ) / 2
-            Ux[p] -= self.dt / (2*self.dx) * ( ( U[p + (1,1,0)]**2 / in_H[p + (1,1,0)] + self.g/2*in_H[p + (1,1,0)]**2 ) -
-                                               ( U[p + (0,1,0)]**2 / in_H[p + (0,1,0)] + self.g/2*in_H[p + (0,1,0)]**2 )
+            Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2
+            Ux[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
+                                               ( out_U[p + (0,1,0)]**2 / out_H[p + (0,1,0)] + self.g/2*out_H[p + (0,1,0)]**2 )
                                              )
             # Y momentum
-            Vx[p]  = ( V[p + (1,1,0)] + V[p + (0,1,0)] ) / 2 
-            Vx[p] -= self.dt / (2*self.dx) * ( ( U[p + (1,1,0)] * V[p + (1,1,0)] / in_H[p + (1,1,0)] ) -
-                                               ( U[p + (0,1,0)] * V[p + (0,1,0)] / in_H[p + (0,1,0)] )
+            Vx[p]  = ( out_V[p + (1,1,0)] + out_V[p + (0,1,0)] ) / 2 
+            Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
+                                               ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
                                              )
             #
             # first half step (stage Y direction)
             #
 
             # height
-            Hy[p]  = ( in_H[p + (1,1,0)] + in_H[p + (1,0,0)] ) / 2
-            Hy[p] -= self.dt / (2*self.dy) * ( V[p + (1,1,0)] - V[p+ (1,0,0)] )
+            Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2
+            Hy[p] -= self.dt / (2*self.dy) * ( out_V[p + (1,1,0)] - out_V[p+ (1,0,0)] )
 
             # X momentum
-            Uy[p]  = ( U[p + (1,1,0)] + U[p + (1,0,0)] ) / 2 
-            Uy[p] -= self.dt / (2*self.dy) * ( ( V[p + (1,1,0)] * U[p + (1,1,0)] / in_H[p + (1,1,0)] ) -
-                                               ( V[p + (1,0,0)] * U[p + (1,0,0)] / in_H[p + (1,0,0)] )
+            Uy[p]  = ( out_U[p + (1,1,0)] + out_U[p + (1,0,0)] ) / 2 
+            Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
+                                               ( out_V[p + (1,0,0)] * out_U[p + (1,0,0)] / out_H[p + (1,0,0)] )
                                              )
             # Y momentum
-            Vy[p]  = ( V[p + (1,1,0)] + V[p + (1,0,0)] ) / 2
-            Vy[p] -= self.dt / (2*self.dy) * ( ( V[p + (1,1,0)]**2 / in_H[p + (1,1,0)] + self.g/2*in_H[p + (1,1,0)]**2 ) -
-                                               ( V[p + (1,0,0)]**2 / in_H[p + (1,0,0)] + self.g/2*in_H[p + (1,0,0)]**2 )
+            Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2
+            Vy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
+                                               ( out_V[p + (1,0,0)]**2 / out_H[p + (1,0,0)] + self.g/2*out_H[p + (1,0,0)]**2 )
                                              )
 
 
@@ -156,18 +156,35 @@ class ShallowWaterTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
+
+    def test_symbol_discovery (self):
+        """
+        Checks that all the symbols have been correctly recognized.-
+        """
+        domain = (66, 66, 1)
+        H = np.random.rand (*domain)
+        U = np.random.rand (*domain)
+        V = np.random.rand (*domain)
+        water = ShallowWater ( )
+        water.run (out_H=H,
+                   out_U=U,
+                   out_V=V)
+        self.assertTrue (all ([v is not None for v in water.inspector.symbols.values ( )]))
+
+
     def test_python_execution (self):
         """
         Checks that the stencil results are correct if executing in Python mode.-
         """
         domain = (66, 66, 1)
-        output_field = np.zeros (domain)
-        input_field = np.random.rand (*domain)
+        H = np.random.rand (*domain)
+        U = np.random.rand (*domain)
+        V = np.random.rand (*domain)
         water = ShallowWater ( )
-        water.run (out_H=output_field,
-                   in_H=input_field)
-        self.assertTrue (np.array_equal (input_field, 
-                                         output_field),
+        water.run (out_H=H,
+                   out_U=U,
+                   out_V=V)
+        self.assertTrue (np.array_equal (U, V),
                          "Arrays should be equal")
 
 
