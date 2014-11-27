@@ -19,10 +19,11 @@ class StencilSymbols (object):
         #
         # we categorize all symbols in these groups
         #
-        self.groups = ['constant',    # anything replaceable at runtime
-                       'alias',       # variable aliasing
-                       'temp_field',  # temporary data fields
-                       'func_param']  # functor parameters
+        self.groups = set (('constant',    # anything replaceable at runtime;
+                            'alias',       # variable aliasing;
+                            'temp_field',  # temporary data fields;
+                           ))              # functor parameters are identified
+                                           # by the functor's name 
         #
         # initialize the container (k=group, v=dict), where
         # dict is k=symbol name, v=symbol value
@@ -56,6 +57,18 @@ class StencilSymbols (object):
             self.symbols[group][name] = value
 
 
+    def add_alias (self, name, value):
+        """
+        Adds an alias to the stencil's symbols:
+
+            name    name of this symbol;
+            value   value of this symbol.-
+        """
+        logging.info ("Alias '%s' points to '%s'" % (name,
+                                                     str (value)))
+        self._add (name, str (value), 'alias')
+
+
     def add_constant (self, name, value):
         """
         Adds a constant to the stencil's symbols:
@@ -83,16 +96,18 @@ class StencilSymbols (object):
         self._add (name, value, 'constant')
 
 
-    def add_alias (self, name, value):
+    def add_functor (self, name):
         """
-        Adds an alias to the stencil's symbols:
+        Returns a new dictionary for keeping the functor's parameters:
 
-            name    name of this symbol;
-            value   value of this symbol.-
+            name    a unique name identifying the functor.-
         """
-        logging.info ("Alias '%s' points to '%s'" % (name,
-                                                     str (value)))
-        self._add (name, str (value), 'alias')
+        if name in self.groups:
+            raise NameError ("Functor '%s' already exists in symbol table.-")
+        else:
+            self.groups.add (name)
+            self.symbols[name] = dict ( )
+            return self.symbols[name]
 
 
     def items (self):
@@ -278,7 +293,11 @@ class StencilInspector (ast.NodeVisitor):
         #
         # attach the library object
         #
-        self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
+        try:
+            self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
+        except OSError:
+            logging.error ("Cannot load library")
+            raise RuntimeError
 
 
     def visit_Assign (self, node):
@@ -377,10 +396,24 @@ class StencilInspector (ast.NodeVisitor):
             # this function should return 'None'
             #
             if node.returns is None:
-                self.functors.append (StencilFunctor (node,
-                                                      self.symbols))
-                self.functors[-1].analyze_params ( )
-                self.functors[-1].analyze_loops  ( )
+                #
+                # a unique name for this functor
+                #
+                name = "%s_functor" % node.name
+                #
+                # the functor parameters will be kept here
+                #
+                funct_params = self.symbols.add_functor (name)
+                #
+                # create the functor object and start analyzing it
+                #
+                funct = StencilFunctor ("%s_functor" % node.name,
+                                        node,
+                                        funct_params,
+                                        self.symbols)
+                funct.analyze_params ( )
+                funct.analyze_loops  ( )
+                self.functors.append (funct)
                 #
                 # continue traversing the AST
                 #
@@ -388,8 +421,6 @@ class StencilInspector (ast.NodeVisitor):
                     super (StencilInspector, self).visit (n)
             else:
                 raise ValueError ("The 'kernel' function should return 'None'.")
-
-
 
 
 
@@ -496,24 +527,27 @@ class MultiStageStencil ( ):
             #
             # compile the generated code
             #
-            self.inspector.compile ( )
-
-            #
-            # extract the buffer pointers from the parameters (NumPy arrays)
-            #
-            params = list (self.inspector.dimensions)
-            functor_params = self.inspector.functors[0].params
-            for k in sorted (functor_params,
-                             key=lambda name: functor_params[name].id):
-                if k in kwargs.keys ( ):
-                    params.append (kwargs[k].ctypes.data_as (ctypes.c_void_p))
-                else:
-                    warnings.warn ("missing parameter [%s]" % k,
-                                   UserWarning)
-            #
-            # call the compiled stencil
-            #
-            self.inspector.lib_obj.run (*params)
+            try:
+                self.inspector.compile ( )
+            except RuntimeError:
+                logging.error ("Compilation failed")
+            else:
+                #
+                # extract the buffer pointers from the parameters (NumPy arrays)
+                #
+                params = list (self.inspector.dimensions)
+                functor_params = self.inspector.functors[0].params
+                for k in sorted (functor_params,
+                                 key=lambda name: functor_params[name].id):
+                    if k in kwargs.keys ( ):
+                        params.append (kwargs[k].ctypes.data_as (ctypes.c_void_p))
+                    else:
+                        warnings.warn ("missing parameter [%s]" % k,
+                                       UserWarning)
+                #
+                # call the compiled stencil
+                #
+                self.inspector.lib_obj.run (*params)
         #
         # run in Python mode
         #
