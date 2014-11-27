@@ -75,7 +75,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        ushort_t constexpr operator[](ushort_t i) {
+        ushort_t constexpr operator[](ushort_t i) const {
             //assert( i<length );
             return get(i);
         }
@@ -103,7 +103,7 @@ namespace gridtools {
 
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type 
+        static typename _impl::first_type<Indices...>::type
         find_val(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};

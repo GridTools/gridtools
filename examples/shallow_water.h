@@ -185,10 +185,6 @@ void handle_error(int_t)
 
 bool test(uint_t x, uint_t y, uint_t z) {
     {
-#ifdef USE_PAPI_WRAP
-  int collector_init = pw_new_collector("Init");
-  int collector_execute = pw_new_collector("Execute");
-#endif
 
     uint_t d1 = x;
     uint_t d2 = y;

@@ -148,8 +148,8 @@ namespace gridtools {
                 // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
                 uint_t dims[]={dim1, dim2, dim3};
                 m_strides[0]=( dim1*dim2*dim3 );
-                m_strides[1]=( dims[layout::template get<2>()]*dims[layout::template get<1>()]);
-                m_strides[2]=( dims[layout::template get<2>()] );
+                m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
+                m_strides[2]=( dims[layout::template at_<2>::value] );
 
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
@@ -165,11 +165,11 @@ namespace gridtools {
 
 	template <typename size>
         explicit base_storage(size /*dummy*/, uint_t dim1, uint_t dim2, uint_t dim3,
-			      value_type init = value_type()): m_fields(/*new pointer_type[*/size::value/*]*/), is_set(false), m_name("default_name"){
+			      value_type init = value_type(), std::string const& s = std::string("default_name") ) : m_fields(/*new pointer_type[*/size::value/*]*/), is_set(false), m_name(s){
 	    uint_t dims[]={dim1, dim2, dim3};
 	    m_strides[0]=( dim1*dim2*dim3 );
-	    m_strides[1]=( dims[layout::template get<2>()]*dims[layout::template get<1>()]);
-	    m_strides[2]=( dims[layout::template get<2>()] );
+	    m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
+	    m_strides[2]=( dims[layout::template at_<2>::value] );
         }//pointer is not owner of the data
 
 	// explicit base_storage(): m_name(std::string("default name")){};
@@ -290,7 +290,7 @@ namespace gridtools {
         template<uint_t Coordinate>
         GT_FUNCTION
         static constexpr uint_t dims_coordwise(uint_t const* str) {
-            return (layout::template pos_<Coordinate>::value==space_dimensions-1) ? str[space_dimensions-1] : (layout::template find<Coordinate>(str))/(str[(layout::template get<Coordinate>())+1]);
+            return (layout::template pos_<Coordinate>::value==space_dimensions-1) ? str[space_dimensions-1] : (layout::template find<Coordinate>(str))/(str[(layout::template at_<Coordinate>::value)+1]);
         }
 
 
@@ -408,10 +408,10 @@ namespace gridtools {
 	std::vector<pointer_type> m_fields;
     private:
 	/**@brief noone calls the empty constructor*/
-	explicit base_storage();
+	base_storage();
 
 	template<typename T>
-        explicit base_storage(T const& other);
+        base_storage(T const& other);
 
     };
 

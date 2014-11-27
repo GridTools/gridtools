@@ -45,7 +45,7 @@ namespace gridtools{  namespace enumtype{
         {
             enum {value=T};
         };
-    }
+    }//namespace enumtype
 #ifndef CXX11_ENABLED
 #define constexpr
 #endif
@@ -99,4 +99,5 @@ template<ushort_t N>
 struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
     typedef boost::mpl::integral_c<uint_t,N> type;
 };
+
 #endif
