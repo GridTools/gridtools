@@ -10,6 +10,104 @@ from gridtools.functor import StencilFunctor
 
 
 
+class StencilSymbols (object):
+    """
+    Keeps a repository of all symbols, e.g., constants, aliases, temporary
+    data fields, functor parameters, appearing in a user-defined stencil.-
+    """
+    def __init__ (self):
+        #
+        # we categorize all symbols in these groups
+        #
+        self.groups = ['constant',    # anything replaceable at runtime
+                       'alias',       # variable aliasing
+                       'temp_field',  # temporary data fields
+                       'func_param']  # functor parameters
+        #
+        # initialize the container (k=group, v=dict), where
+        # dict is k=symbol name, v=symbol value
+        #
+        self.symbols = dict ( )
+        for g in self.groups:
+            self.symbols[g] = dict ( )
+
+
+    def __getitem__ (self, name):
+        """
+        Returns the value of symbol 'name' or None if not found.-
+        """
+        for g in self.groups:
+            if name in self.symbols[g].keys ( ):
+                return self.symbols[g][name]
+        return None
+     
+
+    def _add (self, name, value, group):
+        """
+        Adds the received symbol into the corresponding container:
+
+            name    name of this symbol;
+            value   value of this symbol;
+            group   container group into which to add the symbol.-
+        """
+        if group in self.groups:
+            if name in self.symbols[group].keys ( ):
+                logging.info ("Updated value of symbol '%s'" % name)
+            self.symbols[group][name] = value
+
+
+    def add_constant (self, name, value):
+        """
+        Adds a constant to the stencil's symbols:
+
+            name    name of this symbol;
+            value   value of this symbol.-
+        """
+        if value is None:
+            logging.info ("Constant '%s' will be resolved later" % name)
+        else:
+            try:
+                value = float (value)
+                logging.info ("Constant '%s' has value %.3f" % (name,
+                                                                value))
+            except TypeError:
+                if isinstance (value, np.ndarray):
+                    logging.info ("Constant '%s' is a NumPy array %s" % (name,
+                                                                         value.shape))
+                else:
+                    logging.info ("Constant '%s' has value %s" % (name,
+                                                                  value))
+        #
+        # add the constant as a stencil symbol
+        #
+        self._add (name, value, 'constant')
+
+
+    def add_alias (self, name, value):
+        """
+        Adds an alias to the stencil's symbols:
+
+            name    name of this symbol;
+            value   value of this symbol.-
+        """
+        logging.info ("Alias '%s' points to '%s'" % (name,
+                                                     str (value)))
+        self._add (name, str (value), 'alias')
+
+
+    def items (self):
+        """
+        Returns all symbols in as (key, value) pairs.-
+        """
+        for g in self.groups:
+            keys = self.symbols[g].keys ( )
+            vals = self.symbols[g].values ( )
+            for k,v in zip (keys, vals):
+                yield (k, v)
+
+
+
+
 class StencilInspector (ast.NodeVisitor):
     """
     Inspects the source code of a stencil definition using its AST.-
@@ -39,11 +137,12 @@ class StencilInspector (ast.NodeVisitor):
             #
             # symbols gathered from the AST of the user's stencil
             #
-            self.symbols = dict ( )
+            self.symbols = StencilSymbols ( )
             #
-            # the kernel functor is the stencil's entry point for execution
+            # a list of functors of this stenctil;
+            # the kernel function is the entry functor of any stencil
             #
-            self.kernel_func = None
+            self.functors = list ( )
             #
             # automatically generated files at compile time
             #
@@ -68,8 +167,14 @@ class StencilInspector (ast.NodeVisitor):
         #
         module = ast.parse (self.src)
         self.visit (module)
-        if self.kernel_func is None:
+        if len (self.functors) == 0:
             raise NameError ("Class must implement a 'kernel' function")
+        #
+        # print out the discovered symbols
+        #
+        logging.debug ("Symbols found after static code analysis:")
+        for k,v in self.symbols.items ( ):
+            logging.debug ("\t%s:\t%s" % (k, str (v)))
 
         #
         # extract run-time information from the parameters, if available
@@ -79,12 +184,12 @@ class StencilInspector (ast.NodeVisitor):
             # dimensions of data fields (i.e., shape of the NumPy arrays)
             #
             for k,v in kwargs.items ( ):
-                if k in self.kernel_func.params.keys ( ):
+                if k in self.functors[0].params.keys ( ):
                     if isinstance (v, np.ndarray):
                         #
                         # check the dimensions of different fields match
                         #
-                        self.kernel_func.params[k].dim = v.shape
+                        self.functors[0].params[k].dim = v.shape
                         if self.dimensions is None:
                             self.dimensions = v.shape
                         elif self.dimensions != v.shape:
@@ -123,9 +228,9 @@ class StencilInspector (ast.NodeVisitor):
         make   = jinja_env.get_template ("Makefile")
 
         return (header.render (stencil=self,
-                               functor=self.kernel_func),
+                               functor=self.functors[0]),
                 cpp.render  (stencil=self,
-                             functor=self.kernel_func),
+                             functor=self.functors[0]),
                 make.render (stencil=self))
 
 
@@ -178,22 +283,22 @@ class StencilInspector (ast.NodeVisitor):
 
     def visit_Assign (self, node):
         """
-        Looks for symbols, i.e. constants and data fields, in the user's
-        stencil code:
+        Looks for symbols in the user's stencil code:
 
             node        a node from the AST;
             ctx_func    the function within which the assignments are found.-
         """
         # 
-        # only expr = expr
+        # expr = expr
         # 
         if len (node.targets) > 1:
             raise RuntimeError ("Only one assignment per line is accepted.")
         else:
             lvalue = None
-            rvalue = None
             lvalue_node = node.targets[0]
-
+            # 
+            # attribute or variable assignments only
+            # 
             if isinstance (lvalue_node, ast.Attribute):
                 lvalue = "%s.%s" % (lvalue_node.value.id,
                                     lvalue_node.attr)
@@ -203,34 +308,27 @@ class StencilInspector (ast.NodeVisitor):
                 logging.debug ("Ignoring assignment at %d" % node.lineno)
                 return
             #
-            # we consider it a constant iif its rvalue is a Num
+            # a constant if its rvalue is a Num
             #
             if isinstance (node.value, ast.Num):
                 rvalue = float (node.value.n)
-                logging.info ("Constant '%s' with value %.3f at %d" % (lvalue, 
-                                                                       rvalue,
-                                                                       node.lineno))
+                self.symbols.add_constant (lvalue, rvalue)
             #
-            # function calls will be resolved at run time
+            # function calls are resolved later by name
             #
             elif isinstance (node.value, ast.Call):
-                logging.warning ("Run-time resolution of '%s' at %d" % (lvalue,
-                                                                        node.lineno))
+                rvalue = None
+                self.symbols.add_constant (lvalue, rvalue)
             #
-            # attributes will all be resolved later by name
+            # attribute aliases are resolved later by name
             #
             elif isinstance (node.value, ast.Attribute):
                 rvalue = '%s.%s' % (node.value.value.id,
                                     node.value.attr)
-                logging.info ("Variable '%s' maps to attribute '%s' at %d" % (lvalue, 
-                                                                              rvalue,
-                                                                              node.value.lineno))
-            #
-            # update the symbols dictionary
-            #
-            assert lvalue != None, "Assignment's lvalue is None"
-            if lvalue not in self.symbols.keys ( ):
-                self.symbols[lvalue] = rvalue
+                self.symbols.add_alias (lvalue, rvalue)
+            else:
+                logging.warning ("Don't know what to do with '%s' at %d" % (node.value,
+                                                                            node.lineno))
 
 
     def visit_FunctionDef (self, node):
@@ -279,10 +377,10 @@ class StencilInspector (ast.NodeVisitor):
             # this function should return 'None'
             #
             if node.returns is None:
-                self.kernel_func = StencilFunctor (node,
-                                                   self.symbols)
-                self.kernel_func.analyze_params ( )
-                self.kernel_func.analyze_loops  ( )
+                self.functors.append (StencilFunctor (node,
+                                                      self.symbols))
+                self.functors[-1].analyze_params ( )
+                self.functors[-1].analyze_loops  ( )
                 #
                 # continue traversing the AST
                 #
@@ -305,13 +403,14 @@ class MultiStageStencil ( ):
         # defines the way to execute the stencil, one of 'python' or 'c++'
         #
         self.backend = "python"
+
         #
         # the inspector object is used to JIT-compile this stencil
         #
         self.inspector = StencilInspector (self.__class__)
 
         #
-        # a default halo - it goes:
+        # TODO a default halo - it goes:
         #
         #   (halo in minus direction, 
         #    halo in plus direction,
@@ -319,7 +418,7 @@ class MultiStageStencil ( ):
         #    index of last interior element,
         #    total length in dimension)
         #
-        self.halo = (1, 1)
+        self.halo = None
 
 
     def _resolve (self, symbols):
@@ -334,11 +433,12 @@ class MultiStageStencil ( ):
             #
             if value is None:
                 #
-                # is this an object's attribute?
+                # is this a stencil's attribute?
                 #
                 if 'self' in name:
                     attr = name.split ('.')[1]
-                    symbols[name] = getattr (self, attr, None)
+                    symbols.add_constant (name, 
+                                          getattr (self, attr, None))
             #
             # TODO some symbols are just aliases to other symbols
             #
@@ -346,6 +446,13 @@ class MultiStageStencil ( ):
                 if value in symbols.keys ( ) and symbols[value] is not None:
                     #symbols[name] = symbols[value]
                     logging.warning ("Variable aliasing is not supported")
+        #
+        # print the discovered symbols
+        #
+        logging.debug ("Symbols found using run-time information:")
+        for k,v in self.inspector.symbols.items ( ):
+            logging.debug ("\t%s:\t%s" % (k, str (v)))
+
 
 
     def kernel (self, *args, **kwargs):
@@ -363,40 +470,39 @@ class MultiStageStencil ( ):
         #
         if len (args) > 0:
             raise KeyError ("Only keyword arguments are accepted.-")
-        else:
-            #
-            # try to resolve all symbols after an arbitrary 
-            # number of iterations
-            #
-            for i in range (2):
-                #
-                # static code resolution
-                #
-                self.inspector.analyze (**kwargs)
-                logging.debug ("Symbols found after static code analysis:")
-                for k,v in self.inspector.symbols.items ( ):
-                    logging.debug ("\t%s:\t%s" % (k, str (v)))
-                #
-                # resolve missing symbols with run-time information
-                #
-                self._resolve (self.inspector.symbols)
-                logging.debug ("Symbols found using run-time information:")
-                for k,v in self.inspector.symbols.items ( ):
-                    logging.debug ("\t%s:\t%s" % (k, str (v)))
 
         #
         # run the selected backend version
         #
         logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
-        if self.backend == 'python':
-            self.kernel (**kwargs)
-        elif self.backend == 'c++':
+        if self.backend == 'c++':
+            #
+            # try to resolve all symbols before compiling:
+            # first with a static code analysis ...
+            #
+            self.inspector.analyze (**kwargs)
+            
+            #
+            # ... then including run-time information
+            #
+            self._resolve (self.inspector.symbols)
+
+            #
+            # generate the code of all functors in this stencil
+            #
+            for func in self.inspector.functors:
+                func.generate_code ( )
+
+            #
+            # compile the generated code
+            #
             self.inspector.compile ( )
+
             #
             # extract the buffer pointers from the parameters (NumPy arrays)
             #
             params = list (self.inspector.dimensions)
-            functor_params = self.inspector.kernel_func.params
+            functor_params = self.inspector.functors[0].params
             for k in sorted (functor_params,
                              key=lambda name: functor_params[name].id):
                 if k in kwargs.keys ( ):
@@ -408,9 +514,13 @@ class MultiStageStencil ( ):
             # call the compiled stencil
             #
             self.inspector.lib_obj.run (*params)
+        #
+        # run in Python mode
+        #
+        elif self.backend == 'python':
+            self.kernel (**kwargs)
         else:
-            warnings.warn ("unknown backend [%s]" % self.backend,
-                           UserWarning)
+            logging.warning ("Unknown backend [%s]" % self.backend)
 
 
     def get_interior_points (self, data_field, k_direction='forward'):
