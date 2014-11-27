@@ -87,6 +87,7 @@ namespace gridtools{
     namespace expressions{
 /**\section operator (Operators Overloaded)
    @{*/
+
         /** sum expression*/
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
@@ -111,6 +112,20 @@ namespace gridtools{
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
         constexpr expr_exp<ArgType1, ArgType2 >    operator ^ (ArgType1 arg1, ArgType2 arg2){return expr_exp<ArgType1, ArgType2 >(arg1, arg2);}
+
+	namespace enumtype{
+        template <ushort_t Coordinate>
+        struct Dimension;
+	}
+
+	template<typename Left>
+	GT_FUNCTION
+	constexpr typename Left::super operator +(Left d1, int  offset) {return typename Left::super( offset);}
+
+	template<typename Left>
+	GT_FUNCTION
+	constexpr typename Left::super operator -(Left d1, int  offset) {return typename Left::super(-offset);}
+
 /**@}*/
     }//namespace expressions
 

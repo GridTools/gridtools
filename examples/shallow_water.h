@@ -56,16 +56,16 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
         }
     };
 
-    struct bc_vertical{
-        // reflective boundary conditions in K
-        template < sign K, typename DataField0, typename DataField1>
-        GT_FUNCTION
-        void operator()(direction<zero_, zero_, K>,
-                        DataField0 & data_field0, DataField1 const & data_field1,
-                        uint_t i, uint_t j, uint_t k) const {
-            data_field0(i,j,k) = data_field1(i,j,k);
-        }
-    };
+    // struct bc_vertical{
+    //     // reflective boundary conditions in K
+    //     template < sign K, typename DataField0, typename DataField1>
+    //     GT_FUNCTION
+    //     void operator()(direction<zero_, zero_, K>,
+    //                     DataField0 & data_field0, DataField1 const & data_field1,
+    //                     uint_t i, uint_t j, uint_t k) const {
+    //         data_field0(i,j,k) = data_field1(i,j,k);
+    //     }
+    // };
 
 
     struct functor_traits{
@@ -141,22 +141,24 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
             auto ux=alias<tmp, comp, step>(1, 0); auto uy=alias<tmp, comp, step>(1, 1);
             auto vx=alias<tmp, comp, step>(2, 0); auto vy=alias<tmp, comp, step>(2, 1);
 
+	    x::Index i;
+	    y::Index j;
 
             eval(sol()) = eval(sol()-
-                               (ux(y(-1)) - ux(x(-1), y(-1)))*(dt()/dx())-
-                                vy(y(-1)) - vy(x(-1), y(-1))*(dt()/dy()));
+                               (ux(i-1) - ux(i-1, j-1))*(dt()/dx())-
+                                vy(j-1) - vy(i-1, j-1)*(dt()/dy()));
 
 	    eval(sol(comp(1))) =  eval(sol(comp(1)) -
-	    			       ((ux(y(-1))^2) / hx(y(-1))        +hx(y(-1))*hx(y(-1))*((g()/2.))  -
-	    			       ((ux(x(-1),y(-1))^2) / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((g()/2.))))*((dt()/dx()))  -
-	    			        (vy(x(-1))       *uy(x(-1))      /hy(x(-1))         -
-	    				 vy(x(-1), y(-1))*uy(x(-1),y(-1))/hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((g()/2.)))*((dt()/dy())));
+	    			       ((ux(j-1)^2)               / hx(j-1)      +hx(j-1)*hx(j-1)*((g()/2.))                   -
+	    			       ((ux(i-1,j-1)^2)           / hx(i-1, j-1) +(hx(i-1,j-1) ^2)*((g()/2.))))*((dt()/dx()))  -
+	    			        (vy(i-1)*uy(i-1)          / hy(i-1)                                                    -
+	    				 vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1) + hy(i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
 	    eval(sol(comp(2))) = eval(sol(comp(2)) -
-	    			      (ux(y(-1))      *vx(y(-1))        /hy(y(-1)) -
-                                      (ux(x(-1),y(-1))*vx(x(-1), y(-1)))/hx(x(-1), y(-1)) )*((dt()/dx()))-
-                                     ((vy(x(-1))^2)        /hy(x(-1))        +(hy(x(-1))       ^2)*((g()/2.)) -
-                                      (vy(x(-1), y(-1))^2) /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((g()/2.))   )*((dt()/dy())));
+	    			      (ux(j-1)      *vx(j-1)     /hy(j-1) -
+                                      (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1) )*((dt()/dx()))-
+                                     ((vy(i-1)^2)                /hy(i-1)        +(hy(i-1)     ^2)*((g()/2.)) -
+                                      (vy(i-1, j-1)^2)           /hy(i-1, j-1)   +(hy(i-1, j-1)^2)*((g()/2.))   )*((dt()/dy())));
 
     	}
 
@@ -276,6 +278,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     shallow_water_stencil->ready();
 
     shallow_water_stencil->steady();
+
+    //gridtools::boundary_apply< bc_reflecting<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);
 
     shallow_water_stencil->run();
 
