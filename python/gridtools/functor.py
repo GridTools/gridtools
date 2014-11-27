@@ -59,7 +59,7 @@ class FunctorBody (ast.NodeVisitor):
         Generates C++ code from the AST backing this object.-
         """
         for n in self.nodes:
-            self.cpp += "%s;\n\t" % self.visit (n)
+            self.cpp += "%s;\n\t\t" % self.visit (n)
 
 
     def visit_Assign (self, node):
@@ -77,16 +77,15 @@ class FunctorBody (ast.NodeVisitor):
         """
         attr_name = "%s.%s" % (node.value.id,
                                node.attr)
-        if attr_name in self.symbols.keys ( ):
-            #
-            # do not replace strings or NumPy arrays
-            #
-            attr_val = self.symbols[attr_name]
-            if (isinstance (attr_val, str) or
-                isinstance (attr_val, np.ndarray)):
-                return attr_name
-            else:
-                return str (attr_val)
+        attr_val = self.symbols[attr_name]
+        #
+        # do not replace strings or NumPy arrays
+        #
+        if (isinstance (attr_val, str) or
+            isinstance (attr_val, np.ndarray)):
+            return attr_name
+        else:
+            return str (attr_val)
 
 
     def visit_AugAssign (self, node):
@@ -156,13 +155,12 @@ class FunctorBody (ast.NodeVisitor):
             if isinstance (node.value, ast.Attribute):
                 name = '%s.%s' % (node.value.value.id,
                                   node.value.attr)
-                if name in self.symbols.keys ( ):
-                    #
-                    # only good for NumPy arrays
-                    #
-                    value = self.symbols[name]
-                    if isinstance (value, np.ndarray):
-                        return "dom(%s%s)" % (name, indexing)
+                #
+                # only good for NumPy arrays
+                #
+                value = self.symbols[name]
+                if isinstance (value, np.ndarray):
+                    return "dom(%s%s)" % (name, indexing)
             #
             # check if subscripting any functor parameters 
             #
@@ -301,5 +299,11 @@ class StencilFunctor ( ):
                     self.body = FunctorBody (node.body,
                                              self.params,
                                              self.symbols)
-                    self.body.generate_code ( )
+
+
+    def generate_code (self):
+        """
+        Generates the C++ code of this functor.-
+        """
+        self.body.generate_code ( )
 

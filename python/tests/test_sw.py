@@ -27,6 +27,8 @@ import unittest
 import logging
 import numpy as np
 
+from numpy import zeros
+
 from gridtools import MultiStageStencil, StencilInspector
 
 
@@ -158,7 +160,8 @@ class ShallowWaterTest (unittest.TestCase):
         water.run (out_H=H,
                    out_U=U,
                    out_V=V)
-        self.assertTrue (all ([v is not None for v in water.inspector.symbols.values ( )]))
+        for k,v in water.inspector.symbols.items ( ):
+            self.assertIsNotNone (v)
 
 
     def test_python_execution (self):
@@ -181,6 +184,7 @@ class ShallowWaterTest (unittest.TestCase):
         """
         Checks that the stencil results are correct if executing in native mode.-
         """
+        #import ipdb; ipdb.set_trace ( )
         domain = (66, 66, 1)
         H = np.random.rand (*domain)
         U = np.random.rand (*domain)
