@@ -29,18 +29,18 @@
    Graphical (ASCII) illustration:
 
    \verbatim
-   ################## Storage ################
+   ################## Storage #################
    #                ___________\              #
    #                  width    /              #
-   #              | |*|*|*|*|*|*|    dim_1	  #
+   #              | |*|*|*|*|*|*|    dim_1    #
    #   dimensions | |*|*|*|          dim_2    #
-   #              v |*|*|*|*|*|      dim_3	  #
-   #	                       				  #
-   #                 ^ ^ ^ ^ ^ ^		      #
-   #                 | | | | | |		      #
-   #                 snapshots		          #
-   #					                      #
-   ################## Storage ################
+   #              v |*|*|*|*|*|      dim_3    #
+   #	                       		      #
+   #                 ^ ^ ^ ^ ^ ^	      #
+   #                 | | | | | |	      #
+   #                 snapshots		      #
+   #					      #
+   ################## Storage #################
    \endverbatim
 
 */
@@ -117,9 +117,13 @@ namespace gridtools {
         }
 	};
 
-	/**@brief this struct counts the total number of data fields are neceassary for this functor (i.e. number of storage instances times number of fields per storage)*/
+	/**@brief this struct counts the total number of data fields are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
+	   TODO code repetition in the _traits class
+*/
 	template <typename StoragesVector, int_t index>
     struct total_storages{
+	    //the index must not exceed the number of storages
+	    BOOST_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value);
 	    static const uint_t count=total_storages<StoragesVector, index-1>::count+
             boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<StoragesVector, index >::type>::type>
             ::type::n_width;
@@ -227,6 +231,9 @@ namespace gridtools {
             , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
 #endif
             {
+	// printf("total number of storage classes is %d\n", boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1);
+	//printf("width 1 %d\n", boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 1 >::type>::type>::type::n_width);
+	// printf("width 0 %d\n", boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0 >::type>::type>::type::n_width);
 #ifndef CXX11_ENABLED
 		for(uint_t it=0; it<N_STORAGES; ++it)
 		    m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
@@ -271,15 +278,13 @@ namespace gridtools {
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value(ArgType const& arg , StoragePointer & storage_pointer) const
             {
 
-                assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->min_addr() <=  storage_pointer+(m_index[ArgType::index_type::value])
+		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->offset(arg.i(),arg.j(),arg.k()));
 
-
-                assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->max_addr() >  storage_pointer+(m_index[ArgType::index_type::value])
-                       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.i(),arg.j(),arg.k()));
-
+		assert( m_index[ArgType::index_type::value]
+		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                       ->offset(arg.i(),arg.j(),arg.k()) >= 0);
 
                 return *(storage_pointer
                          +(m_index[ArgType::index_type::value])
@@ -313,7 +318,6 @@ namespace gridtools {
             // printf("value of index_type: %d \n", arg_type<Index, Range>::index_type::value);
             // printf("data pointers: %x, %x \n", m_data_pointer[0], m_data_pointer[1]);
             // printf("value in second storage: %f, \n", *m_data_pointer[1]);
-
             return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range>::index_type::value==0), LocalDomain, arg_type<Index, Range> >::value]);
         }
 
@@ -335,7 +339,11 @@ namespace gridtools {
             //if the following assertion fails you have specified a dimension for the extended storage
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
-            return get_value(arg, m_data_pointer[storage_type::get_index(arg.template n<gridtools::arg_decorator<ArgType>::n_args>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+
+	    //for the moment the extra dimensionality of the storage is limited to 2
+	    //(3 space dim + 2 extra= 5, which gives n_args==4)
+	    BOOST_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args==4);
+            return get_value(arg, m_data_pointer[storage_type::get_index(arg.template n<gridtools::arg_decorator<ArgType>::n_args-3>()*storage_type::super::super::n_width + arg.template n<gridtools::arg_decorator<ArgType>::n_args-2>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
         }
 
 #ifdef CXX11_ENABLED
@@ -371,7 +379,6 @@ namespace gridtools {
     /**\subsection specialization (Partial Specializations)
        partial specializations for double (or float)
        @{*/
-
     /** sum with scalar evaluation*/
     template <typename ArgType1>
     GT_FUNCTION
@@ -442,7 +449,7 @@ namespace gridtools {
         // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
         LocalDomain const& local_domain;
         uint_t m_index[N_STORAGES];
-        mutable float_type* m_data_pointer[N_DATA_POINTERS];
+        float_type* m_data_pointer[N_DATA_POINTERS];//the storages could have different types(?)
     };
 
 } // namespace gridtools

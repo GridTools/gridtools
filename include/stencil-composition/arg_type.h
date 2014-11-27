@@ -177,6 +177,11 @@ namespace gridtools {
         typedef Dimension<0> x;
         typedef Dimension<1> y;
         typedef Dimension<2> z;
+
+	template<uint_t Left>
+	auto operator +(Dimension<Left> d1, int offset) -> decltype(d1(offset)) {return d1(offset);}
+	template<uint_t Left>
+	auto operator -(Dimension<Left> d1, int offset) -> decltype(d1(-offset)) {return d1(-offset);}
     }
 
     /**@brief method for initializing the offsets in the placeholder
@@ -433,7 +438,8 @@ namespace gridtools {
         }
 
         // Methods to stop the recursion when dealing with extra dimensions
-        static const ushort_t n_args=0;
+	/**TODO: this should not be hardcoded*/
+        static const ushort_t n_args=2;// max space dimensions
 
         template<ushort_t index>
         GT_FUNCTION
@@ -499,12 +505,12 @@ namespace gridtools {
 
             if(enumtype::Dimension<Idx>::direction==n_args)
             {
-                // printf("offset %d was specified to be %d \n", n_args, t.value);
+		// printf("offset %d was specified to be %d \n", n_args, t.value);
                 m_offset=t.value;
             }
             else
             {
-                // printf("no offset was specified for extra dimension %d \n", t.direction);
+		// printf("no offset was specified for extra dimension %d ( != %d) \n", t.direction, n_args);
                 m_offset=0;
             }
         }
@@ -529,7 +535,8 @@ namespace gridtools {
         template<short_t index>
         GT_FUNCTION
         short_t n() const {//recursively travel the list of offsets
-            BOOST_STATIC_ASSERT( index>0 );
+	    assert(index>0);
+            //BOOST_STATIC_ASSERT( index>0 );
             // printf("index to the n method:%d \n", index);
             BOOST_STATIC_ASSERT( index<=n_args );
             //this might not be compile-time efficient for large indexes,
@@ -560,6 +567,28 @@ namespace gridtools {
     /**@brief specialization to stop the recursion*/
     template<typename ArgType>
     struct arg_extend<ArgType, 0>{typedef ArgType type;};
+
+#ifdef CXX11_ENABLED
+/**this struct allows the specification of SOME of the arguments before instantiating the arg_type
+   it must become a language keyword (move it to arg_type.h?)
+*/
+template <typename Callable, typename ... Known>
+struct alias{
+
+    template<typename ... Args>
+    constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
+    };
+
+    //operator calls the constructor of the arg_type
+    template<typename ... Unknowns>
+    constexpr Callable/*&&*/ operator()  ( Unknowns/*&&*/ ... unknowns  )
+        {return Callable(enumtype::Dimension<Known::direction> (m_knowns[Known::direction]) ... , unknowns ...);}
+
+private:
+    //store the list of offsets which are already known on an array
+    int_t m_knowns [sizeof...(Known)];
+};
+#endif
 
 //################################################################################
 //                              Compile time checks

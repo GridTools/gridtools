@@ -49,13 +49,19 @@ struct wrap_pointer{
             return *this;
         }
 
-    explicit wrap_pointer()  {
-    }
+    explicit wrap_pointer() : cpu_p(0)
+	{
+	}
 
     pointee_t* get() const {return cpu_p;}
 
   GT_FUNCTION
-  virtual ~wrap_pointer(){ }
+  virtual ~wrap_pointer(){
+#ifndef NDEBUG
+      std::cout<<"deleting wrap pointer "<<this<<std::endl;
+#endif
+      //free_it();
+  }
 
     GT_FUNCTION
     void update_gpu() {}//\todo find a way to remove this method
@@ -81,7 +87,14 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void free_it() {
-        if(cpu_p) delete[] cpu_p  ;
+	if(cpu_p)
+	{
+#ifndef NDEBUG
+	    std::cout<<"deleting data pointer "<<cpu_p<<std::endl;
+#endif
+	    delete [] cpu_p  ;
+	    cpu_p=NULL;
+	}
     }
 
 

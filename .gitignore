@@ -41,3 +41,4 @@ unit_tests/cmake_install.cmake
 !.gitmodules
 !src
 !docs
+!mainpage.dox
