@@ -109,9 +109,6 @@ namespace gridtools {
 #endif
     }//namespace _debug
 
-
-#define FIELDS_DIMENSION 3
-
 /**
    @biref main class for the basic storage
    The base_storage class contains one snapshot. It univocally defines the access pattern with three integers: the total storage sizes and the two strides different from one.
@@ -119,7 +116,8 @@ namespace gridtools {
     template < enumtype::backend Backend,
                typename ValueType,
                typename Layout,
-               bool IsTemporary = false
+               bool IsTemporary = false,
+	       ushort_t SpaceDimensions=3
                >
     struct base_storage
     {
@@ -133,6 +131,7 @@ namespace gridtools {
         typedef base_storage<Backend, ValueType, Layout, IsTemporary> basic_type;
         typedef base_storage<Backend, ValueType, Layout, IsTemporary> original_storage;
         static const ushort_t n_width = 1;
+        static const ushort_t space_dimensions = SpaceDimensions;
 
     public:
         /**@brief default constructor
@@ -141,10 +140,11 @@ namespace gridtools {
          */
         base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                      value_type init = value_type(), std::string const& s = std::string("default name") ):
-            m_data( dim1*dim2*dim3 )
+            m_fields(/*new pointer_type[1]*/1)//pointer is owner of the data. should not be
             , is_set( true )
             , m_name(s)
             {
+		m_fields[0]=pointer_type(dim1*dim2*dim3);
                 // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
                 uint_t dims[]={dim1, dim2, dim3};
                 m_strides[0]=( dim1*dim2*dim3 );
@@ -156,36 +156,48 @@ namespace gridtools {
 #endif
                 for (uint_t i = 0; i < size(); ++i)
 #ifdef _GT_RANDOM_INPUT
-                    m_data[i] = init * rand();
+                    (m_fields[0])[i] = init * rand();
 #else
-                m_data[i] = init;
+                (m_fields[0])[i] = init;
 #endif
-                m_data.update_gpu();
+                (m_fields[0]).update_gpu();
             }
+
+	template <typename size>
+        explicit base_storage(size /*dummy*/, uint_t dim1, uint_t dim2, uint_t dim3,
+			      value_type init = value_type()): m_fields(/*new pointer_type[*/size::value/*]*/), is_set(false), m_name("default_name"){
+	    uint_t dims[]={dim1, dim2, dim3};
+	    m_strides[0]=( dim1*dim2*dim3 );
+	    m_strides[1]=( dims[layout::template get<2>()]*dims[layout::template get<1>()]);
+	    m_strides[2]=( dims[layout::template get<2>()] );
+        }//pointer is not owner of the data
+
+	// explicit base_storage(): m_name(std::string("default name")){};
 
         /**@brief destructor: frees the pointers to the data fields */
-        virtual ~base_storage(){m_data.free_it();}
+        virtual ~base_storage(){
+	    for(ushort_t i=0; i<m_fields.size(); ++i)
+		m_fields[i].free_it();
+	    // delete [] m_fields;
+	}
 
-        /**@brief device copy constructor*/
-        template<typename T>
-        __device__
-        base_storage(T const& other)
-            :
-            m_data(other.m_data)
-            , is_set(other.is_set)
-            , m_name(other.m_name)
-            {
-                m_strides[0] = other.size();
-                m_strides[1] = other.strides(1);
-                m_strides[2] = other.strides(2);
-            }
+        // /**@brief device copy constructor*/
+        // template<typename T>
+        // __device__
+        // base_storage(T const& other)
+        //     :
+        //     m_fields(other.m_fields)
+        //     , is_set(other.is_set)
+        //     , m_name(other.m_name)
+        //     {
+        //         m_strides[0] = other.size();
+        //         m_strides[1] = other.strides(1);
+        //         m_strides[2] = other.strides(2);
+        //     }
 
         /** @brief copies the data field to the GPU */
         GT_FUNCTION_WARNING
         void copy_data_to_gpu() const {data().update_gpu();}
-
-        explicit base_storage(): m_data((value_type*)NULL), is_set(false), m_name("default_name"){
-        }
 
         /** @brief returns the name of the storage */
         std::string const& name() const {
@@ -198,12 +210,12 @@ namespace gridtools {
 
         /** @brief update the GPU pointer */
         void h2d_update(){
-            m_data.update_gpu();
+            (m_fields[0]).update_gpu();
         }
 
         /** @brief updates the CPU pointer */
         void d2h_update(){
-            m_data.update_cpu();
+            (m_fields[0]).update_cpu();
         }
 
         /** @brief prints debugging information */
@@ -217,21 +229,21 @@ namespace gridtools {
         /** @brief returns the first memory addres of the data field */
         GT_FUNCTION
         const_iterator_type min_addr() const {
-            return &(m_data[0]);
+            return &((m_fields[0])[0]);
         }
 
 
         /** @brief returns the last memry address of the data field */
         GT_FUNCTION
         const_iterator_type max_addr() const {
-            return &(m_data[/*m_size*/m_strides[0]]);
+            return &((m_fields[0])[/*m_size*/m_strides[0]]);
         }
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()(uint_t i, uint_t j, uint_t k) {
             backend_traits_t::assertion(_index(i,j,k) < size());
-            return m_data[_index(i,j,k)];
+            return (m_fields[0])[_index(i,j,k)];
         }
 
 
@@ -239,7 +251,7 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
             backend_traits_t::assertion(_index(i,j,k) < size());
-            return m_data[_index(i,j,k)];
+            return (m_fields[0])[_index(i,j,k)];
         }
 
         /** @brief returns the memory access index of the element with coordinate (i,j,k) */
@@ -261,7 +273,7 @@ namespace gridtools {
         }
 
         /**@brief prints a single value of the data field given the coordinates*/
-        void print_value(uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, m_data[_index(i, j, k)], _index(i, j, k));}
+        void print_value(uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, (m_fields[0])[_index(i, j, k)], _index(i, j, k));}
 
         static const std::string info_string;
 
@@ -271,14 +283,14 @@ namespace gridtools {
         template<uint_t Coordinate>
         GT_FUNCTION
         static constexpr uint_t strides(uint_t const* strides){
-            return (layout::template pos_<Coordinate>::value==FIELDS_DIMENSION-1) ? 1 : layout::template find<Coordinate>(&strides[1]);
+            return (layout::template pos_<Coordinate>::value==space_dimensions-1) ? 1 : layout::template find<Coordinate>(&strides[1]);
         }
 
         /**@brief return the dimension for a specific coordinate, given the vector of strides*/
         template<uint_t Coordinate>
         GT_FUNCTION
         static constexpr uint_t dims_coordwise(uint_t const* str) {
-            return (layout::template pos_<Coordinate>::value==FIELDS_DIMENSION-1) ? str[FIELDS_DIMENSION-1] : (layout::template find<Coordinate>(str))/(str[(layout::template get<Coordinate>())+1]);
+            return (layout::template pos_<Coordinate>::value==space_dimensions-1) ? str[space_dimensions-1] : (layout::template find<Coordinate>(str))/(str[(layout::template get<Coordinate>())+1]);
         }
 
 
@@ -286,42 +298,42 @@ namespace gridtools {
         template<uint_t StrideOrder>
         GT_FUNCTION
         static constexpr uint_t dims_stridewise(uint_t const* strides){
-            return (StrideOrder==FIELDS_DIMENSION-1) ? strides[FIELDS_DIMENSION-1] : strides[StrideOrder]/strides[StrideOrder+1];
+            return (StrideOrder==space_dimensions-1) ? strides[space_dimensions-1] : strides[StrideOrder]/strides[StrideOrder+1];
         }
 
         /**@brief printing a portion of the content of the data field*/
         template <typename Stream>
-        void print(Stream & stream) const {
-            stream << "(" << m_strides[1] << "x"
-                   << m_strides[2] << "x"
-                   << 1 << ")"
-                   << std::endl;
-            stream << "| j" << std::endl;
-            stream << "| j" << std::endl;
-            stream << "v j" << std::endl;
-            stream << "---> k" << std::endl;
+        void print(Stream & stream, uint_t t=0) const {
+		stream << " (" << m_strides[1] << "x"
+		       << m_strides[2] << "x"
+		       << 1 << ")"
+		       << std::endl;
+		stream << "| j" << std::endl;
+		stream << "| j" << std::endl;
+		stream << "v j" << std::endl;
+		stream << "---> k" << std::endl;
 
-            ushort_t MI=12;
-            ushort_t MJ=12;
-            ushort_t MK=12;
-            for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MI)) {
-                for (uint_t j = 0; j < dims_coordwise<1>(m_strides); j += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MJ)) {
-                    for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK))
-                    {
-                        stream << "[("
-                                       << i << ","
-                                       << j << ","
-                                       << k << ")"
-                               << this->operator()(i,j,k) << "] ";
-                    }
-                    stream << std::endl;
-                }
-                stream << std::endl;
-            }
-            stream << std::endl;
-        }
+		ushort_t MI=12;
+		ushort_t MJ=12;
+		ushort_t MK=12;
+		for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MI)) {
+		    for (uint_t j = 0; j < dims_coordwise<1>(m_strides); j += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MJ)) {
+			for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK))
+			{
+			    stream << "["
+				// << i << ","
+				// << j << ","
+				// << k << ")"
+                               <<  (m_fields[t])[_index(i,j,k)] << "] ";
+			}
+			stream << std::endl;
+		    }
+		    stream << std::endl;
+		}
+		stream << std::endl;
+	}
 
-        /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
+	    /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
          This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
         index for temporary storages is computed in the subclass gridtoosÃ::host_tmp_storge*/
         GT_FUNCTION
@@ -363,16 +375,16 @@ namespace gridtools {
 
         /**@brief returns the data field*/
         GT_FUNCTION
-        pointer_type const& data() const {return m_data;}
+        pointer_type const& data() const {return (m_fields[0]);}
 
         /** @brief returns a pointer to the data field*/
         GT_FUNCTION
         typename pointer_type::pointee_t* get_address() const {
-            return m_data.get();}
+            return (m_fields[0]).get();}
 
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
-        pointer_type const* fields() const {return &m_data;}
+        pointer_type const* fields() const {return &(m_fields[0]);}
 
         /** @brief returns the dimension fo the field along I*/
         template<ushort_t I>
@@ -388,14 +400,57 @@ namespace gridtools {
             return m_strides[i];
         }
 
-        pointer_type m_data;
-
     protected:
         bool is_set;
         const std::string& m_name;
-        // static const uint_t m_strides[/*3*/FIELDS_DIMENSION]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
-        uint_t m_strides[FIELDS_DIMENSION];
+        // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
+        uint_t m_strides[space_dimensions];
+	std::vector<pointer_type> m_fields;
+    private:
+	/**@brief noone calls the empty constructor*/
+	explicit base_storage();
+
+	template<typename T>
+        explicit base_storage(T const& other);
+
     };
+
+
+    /**@brief Metafunction for computing the coordinate N from the index (not currently used anywhere)
+       N=0 is the coordinate with stride 1*/
+    template <ushort_t N>
+    struct coord_from_index;
+
+    //specializations for each dimension (supposing we have 3)
+    template<>
+    struct coord_from_index<2>
+    {
+        static uint_t apply(uint_t index, uint_t* strides){
+            printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
+            return index%strides[2];
+        }
+    };
+
+    template<>
+    struct coord_from_index<1>
+        {
+            static uint_t apply(uint_t index, uint_t* strides){
+                printf("the coord from index: tile along %d is %d\n ", 1, strides[1]);
+                return (index%strides[1]// tile<N>::value
+                        -index% strides[2]);//(index%(K*J)-index%K%base_type::size()
+            }
+        };
+
+
+    template<>
+    struct coord_from_index<0>
+        {
+            static uint_t apply(uint_t index, uint_t* strides){
+                printf("the coord from index: tile along %d is %d\n ", 2, strides[0]);
+                return (index//%strides[0]
+                        -index%strides[1]-index% strides[2]);//(index%(K*J)-index%K
+            }
+        };
 
     /**@brief print for debugging purposes*/
     struct print_index{
@@ -417,12 +472,26 @@ namespace gridtools {
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
-        /**@brief constructor given the storage dimensions*/
-        explicit extend_width(uint_t dim1, uint_t dim2, uint_t dim3,
-                              value_type init = value_type(), std::string const& s = std::string("default name") ): super(dim1, dim2, dim3, init, s)/* , m_lru(0) */, m_fields() {
-            push_front(super::m_data);//first solution is the initialization by default
+        /**@brief constructor given the vector dimension
+
+	   I am forced to specify the vector size with a dummy argument since there's apparently no way to call otherwise a template constructor
+	 */
+	template<typename size>
+        explicit extend_width(size dummy, uint_t dim1, uint_t dim2, uint_t dim3): super(dummy, dim1, dim2, dim3)/* , m_lru(0) */ {
+            //push_front(super::(m_fields[0]));//first solution is the initialization by default
+	    //(m_fields[0])=m_fields[0];
         }
 
+
+        /**@brief default constructor*/
+        explicit extend_width(uint_t dim1, uint_t dim2, uint_t dim3 ): super(static_uint<n_width>() ,  dim1, dim2, dim3 ) {
+        }
+
+        /**@brief destructor: frees the pointers to the data fields */
+        virtual ~extend_width(){
+	}
+
+	using super::m_fields;
         /**@brief device copy constructor*/
         __device__
         extend_width(extend_width const& other)
@@ -431,7 +500,6 @@ namespace gridtools {
                 assert(n_width==other.n_width);
                 for (uint_t i=0; i<n_width; ++i)
                     m_fields[i]=pointer_type(other.m_fields[i]);
-                super::m_data=m_fields[0];
             }
 
         /**@brief copy all the data fields to the GPU*/
@@ -442,7 +510,7 @@ namespace gridtools {
                 m_fields[i].update_gpu();
         }
 
-        /** @brief returns the address to the first element of the current data field (pointed by m_data)*/
+        /** @brief returns the address to the first element of the current data field (pointed by (m_fields[0]))*/
         GT_FUNCTION
         typename pointer_type::pointee_t* get_address() const {
             return super::get_address();}
@@ -482,32 +550,27 @@ namespace gridtools {
            NOTE: better to shift all the pointers in the array, because we do this seldomly, so that we don't need to keep another indirection when accessing the storage ("stateless" buffer)
          */
         GT_FUNCTION
-        void push_front(/*smart<*/ const pointer_type/*>*/ & field, uint_t const& from=(uint_t)1, uint_t const& to=(uint_t)(n_width)){
+        void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
-            if(m_fields[to-1])
-                m_fields[to-1].free_it();
-            for(uint_t i=from;i<to;i++) m_fields[i]=m_fields[i-1];
-            m_fields[0]=field;
-        }
-
-
-        /**@brief adds a new data field at the front of the buffer*/
-        GT_FUNCTION
-        void push_front_new(){
-            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
-            push_front(new typename pointer_type::pointee_t(this->size()));
+            if(m_fields[to-1].get())
+                m_fields[to-1].free_it(); //the least recently used (always at the end of the buffer) gets evicted
+            for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
+            m_fields[from]=(field);
         }
 
         //the time integration takes ownership over all the pointers?
+	/**TODO code repetition*/
         GT_FUNCTION
-        void advance(uint_t offset=1, uint_t from=(uint_t)1, uint_t to=(uint_t)(n_width)){
+        void advance(uint_t offset=1, uint_t from=(uint_t)0, uint_t to=(uint_t)(n_width)){
             pointer_type tmp(m_fields[to-1]);
-            for(uint_t i=from;i<to;i++) m_fields[i]=m_fields[i-1];
-            m_fields[0]=tmp;
+            for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
+            m_fields[from]=tmp;
         }
 
         GT_FUNCTION
-        pointer_type const*  fields(){return m_fields;}
+        pointer_type const*  fields(){
+	    return super::fields();
+	}
 
         void print() {
             print(std::cout);
@@ -515,11 +578,11 @@ namespace gridtools {
 
         template <typename Stream>
         void print(Stream & stream) {
-            for(ushort_t i=0; i < n_width; ++i)
-            {
-                super::print(stream);
-                advance();
-            }
+	    for (ushort_t t=0; t<n_width; ++t)
+	    {
+		stream<<" Component: "<< t+1<<std::endl;
+		original_storage::print(stream, t);
+	    }
         }
 
         static const ushort_t n_width = ExtraWidth+1;
@@ -527,8 +590,6 @@ namespace gridtools {
         //for stdcout purposes
         explicit extend_width(){}
 
-    private:
-        pointer_type m_fields[n_width];
     };
 
     /**specialization: if the width extension is 0 we fall back on the base storage*/
@@ -542,6 +603,11 @@ namespace gridtools {
         //inheriting constructors
         using Storage::Storage;
 #endif
+
+        /**@brief destructor: frees the pointers to the data fields */
+        virtual ~extend_width(){
+	}
+
         __device__
         extend_width(extend_width const& other)
             : Storage(other)
@@ -560,7 +626,8 @@ namespace gridtools {
     	extension<extend_width<extension<extend_width<extension<extend_width<storage, 4> >, 2> >, storage, 3> >
     */
     template < typename First, typename  ...  StorageExtended>
-    struct dimension_extension_traits : public dimension_extension_traits<StorageExtended ... > {
+    struct dimension_extension_traits// : public dimension_extension_traits<StorageExtended ... >
+    {
         //total buffer size
         static const uint_t n_fields=First::n_width + dimension_extension_traits<StorageExtended  ...  >::n_fields ;
         //the buffer size of the current field (i.e. the total number of snapshots)
@@ -569,10 +636,20 @@ namespace gridtools {
         static const uint_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
         //the current field extension
         // typedef extend_width<First, n_fields>  type;
-        typedef extend_width<First, n_fields>  type;
+	//n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
+        typedef extend_width<First, n_fields-1>  type;
         // typedef First type;
-        typedef typename dimension_extension_traits<StorageExtended ... >::super super;
+        typedef dimension_extension_traits<StorageExtended ... > super;
    };
+
+    struct dimension_extension_null{
+        static const uint_t n_fields=0;
+        static const uint_t n_width=0;
+        static const uint_t n_dimensions= 0 ;
+        //typedef extend_width<First, n_fields>  type;
+        typedef int type;
+        typedef int super;
+    };
 
 /**@brief template specialization at the end of the recustion.*/
     template < typename First>
@@ -581,9 +658,9 @@ namespace gridtools {
         static const uint_t n_fields=First::n_width;
         static const uint_t n_width=First::n_width;
         static const uint_t n_dimensions= 1 ;
-        // typedef extend_width<First, n_fields>  type;
+        //typedef extend_width<First, n_fields>  type;
         typedef First type;
-        typedef First super;
+        typedef dimension_extension_null super;
      };
 
     /**@brief metafunction to access a typelist at a given position, numeration from 0*/
@@ -597,9 +674,8 @@ namespace gridtools {
         typedef Sequence type;
     };
 
-
     template <typename First,  typename  ...  StorageExtended>
-    struct extend_dim : public dimension_extension_traits<First, StorageExtended ...  >::type, clonable_to_gpu<extend_dim<First, StorageExtended  ... > >
+    struct extend_dim : public dimension_extension_traits<First, StorageExtended ... >::type, clonable_to_gpu<extend_dim<First, StorageExtended ... > >
     {
         typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;
         typedef dimension_extension_traits<First, StorageExtended ...  > traits;
@@ -607,95 +683,132 @@ namespace gridtools {
         typedef typename  super::basic_type basic_type;
         typedef typename super::original_storage original_storage;
         //inheriting constructors
-        using super::extend_width;
-        using super::push_front;
-        using super::push_front_new;
+        using typename super::extend_width;
+
+        extend_dim(  const uint& d1, const uint& d2, const uint& d3 )
+            : super(d1, d2, d3)
+            {
+	    }
 
         __device__
         extend_dim( extend_dim const& other )
             : super(other)
             {}
 
-        /**@brief pushes a given data field at the front of the buffer
+        /**@brief destructor: frees the pointers to the data fields */
+        virtual ~extend_dim(){
+	}
+
+	//         /**@brief pushes a given data field at the front of the buffer for a specific dimension
+        //    \param field the pointer to the input data field
+	//    \tparam dimension specifies which field dimension we want to access
+        //  */
+        // template<uint_t dimension=1>
+        // GT_FUNCTION
+        // void push_front( uint_t& size ){//copy constructor
+        //     BOOST_STATIC_ASSERT(dimension<=traits::n_fields);
+        //     uint_t const indexFrom=access<dimension, traits>::type::n_fields;
+        //     uint_t const indexTo=access<dimension-1, traits>::type::n_fields;
+	//     extend_width::push_front(size, indexFrom, indexTo);
+	// }
+
+
+        /**@brief pushes a given data field at the front of the buffer for a specific dimension
            \param field the pointer to the input data field
+	   \tparam dimension specifies which field dimension we want to access
          */
-        template<uint_t dimension=0>
-        GT_FUNCTION
-        void push_front( const pointer_type & field ){
-            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
-
-            BOOST_STATIC_ASSERT(dimension<super::n_dimensions);
-            uint_t const indexFrom=access<dimension, traits>::type::n_width-1;
-            uint_t const indexTo=access<dimension-1, traits>::type::n_width-1;
-
-            this->push_front(field, indexFrom, indexTo);
-            // if(m_fields[indexTo])
-            //     m_fields[indexTo].free_it();
-            // for(uint_t i=indexFrom ;i<=indexTo ;i++) m_fields[i]=m_fields[i-1];
-            // m_fields[0]=field;
-        }
-
-        /**@brief adds a new data field at the front of the buffer for a given dimension*/
         template<uint_t dimension=1>
         GT_FUNCTION
-        void push_front_new(){
-            push_front(new typename pointer_type::pointee_t(this->size()), dimension);
+        void push_front( pointer_type& field ){//copy constructor
+            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
+
+            BOOST_STATIC_ASSERT(dimension<=traits::n_fields);
+            uint_t const indexFrom=access<dimension, traits>::type::n_fields;
+            uint_t const indexTo=access<dimension-1, traits>::type::n_fields;
+
+	    // printf("index from: %d, index to: %d, dimension %d\n", indexFrom, indexTo, dimension);
+	    extend_width::push_front(std::forward<pointer_type&>(field), indexFrom, indexTo);
         }
 
+        template<uint_t dimension=1>
+        GT_FUNCTION
+        void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
+	    // std::cout<<"storage size: "<<super::size()<<std::endl;
+	    for (uint_t i=0; i<super::size(); ++i)
+	     	field[i]=value;
+	    push_front<dimension>(field);
+	}
 
-        //the time integration takes ownership over all the pointers?
+	template<uint_t dimension=1>
+        GT_FUNCTION
+        void push_front( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t) ){//copy constructor
+	    // std::cout<<"storage size: "<<super::size()<<std::endl;
+	    for (uint_t i=0; i<super::size(); ++i)
+	     	field[i]=lambda(coord_from_index<super::layout::template pos_<0>::value >::apply(i, super::m_strides), coord_from_index<super::layout::template pos_<1>::value >::apply(i,super::m_strides), coord_from_index<super::layout::template pos_<2>::value >::apply(i,super::m_strides));
+	    push_front<dimension>(field);
+	}
+
+        //the storage takes ownership over all the data pointers?
         template<uint_t dimension=1>
         GT_FUNCTION
         void advance(short_t offset=1){
             BOOST_STATIC_ASSERT(dimension<traits::n_dimensions);
-            uint_t const indexFrom=access<dimension, traits>::type::n_width-1;
-            uint_t const indexTo=access<dimension-1, traits>::type::n_width-1;
+            uint_t const indexFrom=access<dimension, traits>::type::n_fields;
+            uint_t const indexTo=access<dimension-1, traits>::type::n_fields;
 
             super::advance(indexFrom, indexTo);
         }
 
-
         //for stdcout purposes
         explicit extend_dim(){}
     };
+
+    /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'
+     */
+    template<typename Storage, uint_t ... Number >
+    struct extend{
+	typedef extend_dim< extend_width<Storage, Number> ... > type;
+    };
+
+
 #endif //CXX11_ENABLED
 
 /** \addtogroup specializations
     Partial specializations
     @{
  */
-    template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary
+    template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary, ushort_t Dim
                >
-    const std::string base_storage<B , ValueType, Layout, IsTemporary
+    const std::string base_storage<B , ValueType, Layout, IsTemporary, Dim
                                    >::info_string=boost::lexical_cast<std::string>("-1");
 
-    template <enumtype::backend B, typename ValueType, typename Y>
-    struct is_temporary_storage<base_storage<B,ValueType,Y,false>*& >
+    template <enumtype::backend B, typename ValueType, typename Y, ushort_t Dim>
+    struct is_temporary_storage<base_storage<B,ValueType,Y,false, Dim>*& >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,true>*& >
+    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim>*& >
         : boost::true_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,false>* >
+    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    struct is_temporary_storage<base_storage<X,ValueType,Y,false, Dim>* >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,true>* >
+    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim>* >
         : boost::true_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,false> >
+    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    struct is_temporary_storage<base_storage<X,ValueType,Y,false, Dim> >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,true> >
+    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim> >
         : boost::true_type
     {};
 

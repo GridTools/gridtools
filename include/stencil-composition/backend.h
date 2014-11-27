@@ -13,14 +13,13 @@
 
 /**
    @file
-   @brief base class for all the backends. It is templated on the derived type (CRTP pattern) in order to use static polymorphism.
+   @brief base class for all the backends. Current supported backend are \ref gridtools::enumtype::Host and \ref gridtools::enumtype::Cuda
+   It is templated on the derived type (CRTP pattern) in order to use static polymorphism.
 */
 
 namespace gridtools {
 
-
     namespace _impl {
-
 
 /**
    \brief "base" struct for all the backend
@@ -131,8 +130,8 @@ namespace gridtools {
         template <typename Domain
                   , typename MssType
                   , typename RangeSizes
-                  , typename ValueType/* = double*/
-                  , typename LayoutType/* = layout_map<0,1,2>*/ >
+                  , typename ValueType
+                  , typename LayoutType >
         struct obtain_storage_types {
 
             static const uint_t tileI = (strategy_traits_t::BI);

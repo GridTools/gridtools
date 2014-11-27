@@ -1,9 +1,11 @@
+
 #pragma once
 
 #include <gridtools.h>
 #include <common/halo_descriptor.h>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/construct.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -23,31 +25,6 @@
   It defines
  */
 
-#ifdef CXX11_ENABLED
-
-namespace gridtools
-{
-
-/**this struct allows the specification of SOME of the arguments before instantiating the arg_type
-   it must become a language keyword (move it to arg_type.h?)
-*/
-template <typename Callable, typename ... Known>
-struct alias{
-
-    alias( Known&& ... dims ): m_knowns{dims.value ...} {
-    };
-
-    //operator calls the constructor of the arg_type
-    template<typename ... Unknowns>
-    Callable operator()  ( Unknowns ... unknowns  )
-        {return Callable(enumtype::Dimension<Known::direction> (m_knowns[Known::direction]) ... , unknowns ...);}
-
-private:
-    //store the list of offsets which are already known on an array
-    int_t m_knowns [sizeof...(Known)];
-};
-}
-
 using gridtools::level;
 using gridtools::arg_type;
 using gridtools::range;
@@ -62,10 +39,11 @@ using gridtools::plus_;
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
+
 namespace shallow_water{
 // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval<level<0,-1>, level<1,-1> > x_result;
-    typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
+typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
+typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct bc_reflecting{
         // reflective boundary conditions in I and J
@@ -89,78 +67,72 @@ namespace shallow_water{
         }
     };
 
-    //TODO:
-    //* I might want to be able to specity different ranges for different snapshots?
-    //* I want a simplified notation, using currying and () instead of arg_type constructor <-- DONE somehow with the alias
-    //* The storage should take ownership of the fields it contains (hybrid_pointer smart)
 
-    // These are the stencil operators that compose the multistage stencil in this test
-    struct functor_sw {
-        /**Defining 3 fields with the same size and memory access pattern, for the components of the velocity field, with ranges +1/-1 in the i/j components.
-           2 extra dimensions: one for the half-step considered, and another for the velocity component.*/
-        typedef const  arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        /** Defining 3 fields with the same size and memory access pattern, for the components of the velocity field, with ranges +1/-1 in the i/j components.
-           1 extra dimensions for the velocity component.*/
-        typedef const  arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 1>::type sol;
-        typedef boost::mpl::vector<sol, tmp> arg_list;
-        typedef Dimension<3> step;
-        typedef Dimension<4> comp;
-        static float_type dx(){return 1e-2;}
-        static float_type dy(){return 1e-2;}
-        static float_type dt(){return 1e-3;}
-        static float_type g(){return 9.81;}
+    struct functor_traits{
+	using tmp=arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type ;
+	using sol=arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type ;
+	using arg_list=boost::mpl::vector<tmp, sol> ;
+	using step=Dimension<3> ;
+	using comp=Dimension<4>;
 
-        template<typename DimensionX, typename DimensionY>
-        GT_FUNCTION
-        static auto half_step(DimensionX d1, DimensionY d2, float_type const& delta) -> decltype(tmp(d1,d2)+tmp(d2)/(float_type)2. -
-                                                                                                 (tmp(comp(1),d2,d1) - tmp(comp(1),d2))*(dt()/(2*delta)))
+	static float_type dx(){return 1e-2;}
+	static float_type dy(){return 1e-2;}
+	static float_type dt(){return 1e-3;}
+	static float_type g(){return 9.81;}
+    };
+
+// These are the stencil operators that compose the multistage stencil in this test
+    struct initial_step: public functor_traits {
+	/* static const auto expression=in(1,0,0)-out(); */
+
+	template<typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
+	GT_FUNCTION
+	static float_type const && half_step(Evaluation const& eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const& delta)
             {
-                return tmp(d1,d2)+tmp(d2)/(float_type)2. -
-                    (tmp(comp(1),d2,d1) - tmp(comp(1),d2))*(dt()/(2*delta));
+                return std::move(eval(sol(d1,d2) +sol(d2)/2. -
+				      (sol(U,d2,d1) - sol(U,d2))*(dt()/(2*delta))));
             }
 
-        template<typename DimensionX, typename DimensionY>
-        GT_FUNCTION
-        static auto half_step_u(DimensionX d1, DimensionY d2, float_type const& delta) -> decltype((tmp(comp(1), d1, d2) +
-                                                                                                    tmp(comp(1), d2)/(float_type)2. -
-                                                                                                    (tmp(comp(1),d1,d2)*tmp(comp(1),d1,d2)/tmp(d1,d2)+tmp(d1,d2)*tmp(d1,d2)*g()/(float_type)2.)*(dt()/((float_type)2.*delta)) -
-                                                                                                    tmp(comp(1), d2)*tmp(comp(1), d2)/tmp(d2) -
-                                                                                                    tmp(d2)*tmp(d2)*(g()/(float_type)2.)))
+	template<typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
+	GT_FUNCTION
+	static float_type const&& half_step_u(Evaluation const& eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const& delta)
+	    {
+		return std::move(eval((sol(U, d1, d2) +
+				       sol(U, d2)/2. -
+				       ((sol(U,d1,d2)^2)/sol(d1,d2)+(sol(d1,d2)^2)*g()/2.)*(dt()/(2.*delta)) -
+				       (sol(U, d2)^2)/sol(d2) -
+				       (sol(d2)^2)*(g()/2.))));
+	    }
+
+	template<typename Evaluation, typename ComponentU, typename ComponentV, typename DimensionX, typename DimensionY>
+	GT_FUNCTION
+	static float_type const&& half_step_v(Evaluation const& eval, ComponentU U, ComponentV V, DimensionX d1, DimensionY d2, float_type const& delta)
             {
-               return (tmp(comp(1), d1, d2) +
-                        tmp(comp(1), d2)/(float_type)2. -
-                        (tmp(comp(1),d1,d2)*tmp(comp(1),d1,d2)/tmp(d1,d2)+tmp(d1,d2)*tmp(d1,d2)*g()/(float_type)2.)*(dt()/((float_type)2.*delta)) -
-                        tmp(comp(1), d2)*tmp(comp(1), d2)/tmp(d2) -
-                        tmp(d2)*tmp(d2)*(g()/(float_type)2.));
+                return std::move(eval(( sol(V,d1,d2) +
+					sol(V,d1)/2. -
+					sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2)*(dt()/(2*delta)) -
+					sol(U,d2)*sol(V,d2)/sol(d2))));
             }
 
-        template<typename DimensionX, typename DimensionY>
-        GT_FUNCTION
-        static auto half_step_v(DimensionX d1, DimensionY d2, float_type const& delta) -> decltype(tmp(comp(2),d1,d2)/(float_type)2. -
-                                                                                                   tmp(comp(1),d1,d2)*tmp(comp(2),d1,d2)/tmp(d1,d2)*(dt()/(2*delta)) -
-                                                                                                   tmp(comp(1),d2)*tmp(comp(2),d2)/tmp(d2))
-            {
-                return ( tmp(comp(2),d1,d2)/(float_type)2. -
-                         tmp(comp(1),d1,d2)*tmp(comp(2),d1,d2)/tmp(d1,d2)*(dt()/(2*delta)) -
-                         tmp(comp(1),d2)*tmp(comp(2),d2)/tmp(d2));
-            }
+
+	template <typename Evaluation>
+	GT_FUNCTION
+	static void Do(Evaluation const & eval, x_interval) {
+	    eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
+	    eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
+	    eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
+
+	    eval(tmp(comp(0), step(1)))=half_step  (eval, comp(2), y(1), x(1), dy());
+	    eval(tmp(comp(1), step(1)))=half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
+	    eval(tmp(comp(2), step(1)))=half_step_u(eval, comp(2), y(1), x(1), dy());
+	}
+    };
+
+    struct final_step : public functor_traits {
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void Do(Evaluation const & eval, x_result) {
-            //########## FIRST HALF-STEP #############
-            //comp(0) is the height, shallow water equation
-            eval(sol())       =eval(half_step(x(+1), y(+1), dx()));
-            //comp(1) is the U component, momentum equation
-            eval(sol(comp(1)))=eval(half_step_u(x(+1), y(+1), dx()));
-            //comp(2) is the V component, momentum equation
-            eval(sol(comp(2)))=eval(half_step_v(x(+1), y(+1), dx()));
-
-            //########## SECOND HALF-STEP #############
-            eval(sol(step(+1)))         =eval(half_step(y(+1), x(+1), dy()));
-            eval(sol(comp(1), step(+1)))=eval(half_step_u (y(+1), x(+1), dy()));
-            eval(sol(comp(2), step(+1)))=eval(half_step_v (y(+1), x(+1), dy()));
-
+        static void Do(Evaluation const & eval, x_interval) {
             //########## FINAL STEP #############
             //data dependencies with the previous parts
             //notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
@@ -169,27 +141,52 @@ namespace shallow_water{
             auto ux=alias<tmp, comp, step>(1, 0); auto uy=alias<tmp, comp, step>(1, 1);
             auto vx=alias<tmp, comp, step>(2, 0); auto vy=alias<tmp, comp, step>(2, 1);
 
+
             eval(sol()) = eval(sol()-
                                (ux(y(-1)) - ux(x(-1), y(-1)))*(dt()/dx())-
                                 vy(y(-1)) - vy(x(-1), y(-1))*(dt()/dy()));
 
-            eval(sol(comp(1))) = eval(sol(comp(1)) -
-                                      ((ux(y(-1))^2) / hx(y(-1))        +hx(y(-1))*hx(y(-1))*((float_type)(g()/2.))  -
-                                       ((ux(x(-1),y(-1))^2) / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((float_type)(g()/2.))))*((float_type)(dt()/dx()))  -
-                                      (vy(x(-1))       *uy(x(-1))      /hy(x(-1))         -
-                                       vy(x(-1), y(-1))*uy(x(-1),y(-1))/hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((float_type)(g()/2.)))*((float_type)(dt()/dy())));
+	    eval(sol(comp(1))) =  eval(sol(comp(1)) -
+	    			       ((ux(y(-1))^2) / hx(y(-1))        +hx(y(-1))*hx(y(-1))*((g()/2.))  -
+	    			       ((ux(x(-1),y(-1))^2) / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((g()/2.))))*((dt()/dx()))  -
+	    			        (vy(x(-1))       *uy(x(-1))      /hy(x(-1))         -
+	    				 vy(x(-1), y(-1))*uy(x(-1),y(-1))/hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((g()/2.)))*((dt()/dy())));
 
-            eval(sol(comp(2))) = eval(sol(comp(2)) -
-                                      (ux(y(-1))      *vx(y(-1))        /hy(y(-1)) -
-                                       (ux(x(-1),y(-1))*vx(x(-1), y(-1)))/hx(x(-1), y(-1)) )*((float_type)(dt()/dx()))-
-                                      ((vy(x(-1))^2)        /hy(x(-1))        +(hy(x(-1))       ^2)*((float_type)(g()/2.)) -
-                                       (vy(x(-1), y(-1))^2) /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((float_type)(g()/2.))   )*((float_type)(dt()/dy())));
+	    eval(sol(comp(2))) = eval(sol(comp(2)) -
+	    			      (ux(y(-1))      *vx(y(-1))        /hy(y(-1)) -
+                                      (ux(x(-1),y(-1))*vx(x(-1), y(-1)))/hx(x(-1), y(-1)) )*((dt()/dx()))-
+                                     ((vy(x(-1))^2)        /hy(x(-1))        +(hy(x(-1))       ^2)*((g()/2.)) -
+                                      (vy(x(-1), y(-1))^2) /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((g()/2.))   )*((dt()/dy())));
 
-        }
+    	}
+
     };
 
+/*
+ * The following operators and structs are for debugging only
+ */
+std::ostream& operator<<(std::ostream& s, initial_step const) {
+    return s << "initial step";
+}
+
+
+/*
+ * The following operators and structs are for debugging only
+ */
+std::ostream& operator<<(std::ostream& s, final_step const) {
+    return s << "final step";
+}
+
+
+void handle_error(int_t)
+{std::cout<<"error"<<std::endl;}
 
 bool test(uint_t x, uint_t y, uint_t z) {
+    {
+#ifdef USE_PAPI_WRAP
+  int collector_init = pw_new_collector("Init");
+  int collector_execute = pw_new_collector("Execute");
+#endif
 
     uint_t d1 = x;
     uint_t d2 = y;
@@ -204,76 +201,90 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-
-    typedef gridtools::layout_map<0,1,2> layout_t;
-
+    //                      dims  z y x
+    //                   strides xy x 1
+    typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
+    typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
 
-    /** -buffer of storages for the time integration (all the components are derived in time)*/
-    typedef extend_width</*tmp_*/storage_type::basic_type, 1> extended_tmp_type;
-
-    /** -buffer of storages for the time integration (all the components are derived in time)*/
-    typedef extend_width<storage_type::basic_type, 0> extended_type2;
-
-    /** -buffer of 3 storages for the different components (H, U, V), all three derived in time*/
-    typedef extend_dim<extended_tmp_type, extended_tmp_type, extended_tmp_type> tmp_type;
-
-    /** -buffer of 3 storages for the different components (H, U, V), all three derived in time*/
-    typedef extend_dim<extended_type2, extended_type2, extended_type2> solution_type;
-
+    // Definition of placeholders. The order of them reflect the order the user will deal with them
+    // especially the non-temporary ones, in the construction of the domain
     typedef arg<0, tmp_type > p_tmp;
-    typedef arg<1, solution_type > p_sol;
+    typedef arg<1, sol_type > p_sol;
     typedef boost::mpl::vector<p_tmp, p_sol> arg_type_list;
 
-    /** -construct the storage and instantiate the first data field*/
-    solution_type sol(d1, d2, d3);
 
-    /** -populate the tmp storage container with all the necessary storage space (6 temporary fields in total)*/
-    sol.push_front_new<1>();
-    sol.push_front_new<2>();
-
+    // // Definition of the actual data fields that are used for input/output
     tmp_type tmp(d1,d2,d3);
-    /** -populate the storage container with all the necessary storage space (3 non temporary fields in total)*/
-    tmp.push_front_new<1>();
-    tmp.push_front_new<2>();
-    tmp.push_front_new<3>();
-    tmp.push_front_new<4>();
-    tmp.push_front_new<5>();
+    tmp_type::original_storage::pointer_type out1(tmp.size());
+    tmp_type::original_storage::pointer_type out2(tmp.size());
+    tmp_type::original_storage::pointer_type out3(tmp.size());
+    tmp_type::original_storage::pointer_type out4(tmp.size());
+    tmp_type::original_storage::pointer_type out5(tmp.size());
+    tmp_type::original_storage::pointer_type out6(tmp.size());
 
-    gridtools::domain_type<arg_type_list> domain ( (p_sol() = sol), (p_tmp()=tmp) );
+    sol_type sol(d1,d2,d3);
+    sol_type::original_storage::pointer_type out7(sol.size());
+    sol_type::original_storage::pointer_type out8(sol.size());
+    sol_type::original_storage::pointer_type out9(sol.size());
 
-    uint_t di[5] = {2, 2, 2, d1-2, d1};
-    uint_t dj[5] = {2, 2, 2, d2-2, d2};
+    //1 is the last, 3 is the first (OK, to be reversed)
+    tmp.push_front<1>(out1, 1.);//vy
+    tmp.push_front<2>(out2, 1.);//uy
+    tmp.push_front<3>(out3, 1.);//hy
+    tmp.push_front<1>(out4, 1.);//vx
+    tmp.push_front<2>(out5, 1.);//ux
+    tmp.push_front<3>(out6, 1.);//hx
+
+    sol.push_front<1>(out7, 1.);//v
+    sol.push_front<2>(out8, 1.);//u
+    sol.push_front<3>(out9, 1.);//h
+
+    // sol.push_front<3>(out9, [](uint_t i, uint_t j, uint_t k) ->float_type {return 2.0*exp (-5*(i^2+j^2));});//h
+
+    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
+    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+    // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+    gridtools::domain_type<arg_type_list> domain
+	(boost::fusion::make_vector(&tmp, &sol));
+
+    // Definition of the physical dimensions of the problem.
+    // The constructor takes the horizontal plane dimensions,
+    // while the vertical ones are set according the the axis property soon after
+    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    uint_t di[5] = {2, 2, 2, d1-2, d1-2};
+    uint_t dj[5] = {2, 2, 2, d2-2, d2-2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
-
-// \todo simplify the following using the auto keyword from C++11
-    auto model =
-        gridtools::make_computation<gridtools::BACKEND, layout_t>
+    auto shallow_water_stencil =
+      gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<functor_sw>(p_tmp(), p_sol())), // esf_descriptor
+                gridtools::make_esf<initial_step>(p_tmp(), p_sol() ) ,
+		gridtools::make_esf<final_step>(p_tmp(), p_sol() )
+                ),
             domain, coords
             );
 
-    uint_t T=10;
+    shallow_water_stencil->ready();
 
-    model->ready();
-    model->steady();
+    shallow_water_stencil->steady();
 
-    for (ushort_t i=0; i<T; ++i){
-        model->run();
-        sol.advance();
+    shallow_water_stencil->run();
+
+    shallow_water_stencil->finalize();
+
+    sol.print();
     }
+    return true;
 
 }
-}
 
-#endif //CXX11
+}//namespace shallow_water

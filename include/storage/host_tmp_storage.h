@@ -9,57 +9,21 @@
 Blocking is a technique allowing to tune the execution in order to efficently exploit cashes. The goal is to reduce the computational and memory consumption due to the presence of temporary intermediate fields, which are computed only as an intermediate result to be used in the nect computation. The idea is the following: instead of looping over the whole domain, proceed blockwise, decomposing the domain in tiles. For each tiles we perform all the stages of the stencil. This allows us to store the intermediate temporary fields in a storage which only has the dimension of the tile, and not of the whole domain. Furthermore the tiles can be defined small enough to fit into caches. It is thus required the definition of an extra storage, which contains a subset of the original storage fields.
 The memory layout and access pattern is thus redefined in this class, where a 'local' numeration is defined. The data dependency between tiles produces the urge of an 'halo' region, i.e. an overlap between the tiles. The storage access is performed via an index. The usual 1-to-1 relation to pass from the index \f$ID\f$ to the coordinates \f$c1, c2, c3\f$, involving the strides \f$s1 > s2 > 1\f$, is as follows:
 
-\f$ID= c1*s1+c2*s2+c3\f$
+\f[ID= c1*s1+c2*s2+c3\f]
 
 while each index identifies three coordinates as follow
 
-\f$c3=ID%s2\f$
+\f[c3=ID\%s2\f]
 
-\f$c2=\frac{ID%s1-c3}{s2}\f$
+\f[c2=\frac{ID\%s1-c3}{s2}\f]
 
-\f$c1=\frac{ID-c2-c3}{s1}\f$
+\f[c1=\frac{ID-c2-c3}{s1}\f]
 
-where the % operator defines the integer remain of the division.
+where the \f$\%\f$ operator defines the integer remain of the division.
 This can be extended to higher dimensions and can be rewritten as a recurrency formula (implemented via recursion).
 */
 
 namespace gridtools {
-
-    /**@brief Metafunction for computing the coordinate N from the index (not currently used anywhere)
-       N=0 is the coordinate with stride 1*/
-    template <uint_t N>
-    struct coord_from_index;
-
-    //specializations for each dimension (supposing we have 3)
-    template<>
-    struct coord_from_index<2>
-    {
-        static uint_t apply(uint_t index, uint_t* strides){
-            printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
-            return index%strides[2];
-        }
-    };
-
-    template<>
-    struct coord_from_index<1>
-        {
-            static uint_t apply(uint_t index, uint_t* strides){
-                printf("the coord from index: tile along %d is %d\n ", 1, strides[1]);
-                return (index%strides[1]// tile<N>::value
-                        -index% strides[2]);//(index%(K*J)-index%K%base_type::size()
-            }
-        };
-
-
-    template<>
-    struct coord_from_index<0>
-        {
-            static uint_t apply(uint_t index, uint_t* strides){
-                printf("the coord from index: tile along %d is %d\n ", 2, strides[0]);
-                return (index//%strides[0]
-                        -index%strides[1]-index% strides[2]);//(index%(K*J)-index%K
-            }
-        };
 
 /**@brief Temporary storage class for the blocked algorithm
    This storage contains one tile (see explanation in the file description) plus the halo region.
