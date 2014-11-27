@@ -442,13 +442,12 @@ namespace gridtools {
 	/**TODO: this should not be hardcoded*/
         static const ushort_t n_args=2;// max space dimensions
 
-        template<ushort_t index>
+        template<short_t idx>
         GT_FUNCTION
         int_t n() const {//stop recursion
-            printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", index+1);
+            printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", idx+1);
             exit (-1);
         }
-
     };
 
 
@@ -533,17 +532,18 @@ namespace gridtools {
             loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument.
             Note that here the offset we are talking about here looks the same as the offsets for the arg_type, but it implies actually a change of the base storage pointer.
         */
-        template<short_t index>
-        GT_FUNCTION
-        short_t n() const {//recursively travel the list of offsets
-	    assert(index>0);
-            //BOOST_STATIC_ASSERT( index>0 );
-            // printf("index to the n method:%d \n", index);
-            BOOST_STATIC_ASSERT( index<=n_args );
-            //this might not be compile-time efficient for large indexes,
-            //because both taken and not taken branches are compiled. boost::mpl::if would be better.
-            return index==1? m_offset : super::template n<index-1>();
-        }
+	template<short_t idx>
+	GT_FUNCTION
+	short_t n() const {//recursively travel the list of offsets
+	    assert(idx>0);
+	    //BOOST_STATIC_ASSERT( index>0 );
+	    // printf("index to the n method:%d \n", index);
+	    BOOST_STATIC_ASSERT( idx<=n_args );
+	    //this might not be compile-time efficient for large indexes,
+	    //because both taken and not taken branches are compiled. boost::mpl::if would be better.
+            return idx==1? m_offset : super::template n<idx-1>();
+	    // return static_if<idx==1>::apply( m_offset,super::template n<idx-1>());
+	}
 
     private:
         short_t m_offset;
@@ -580,15 +580,19 @@ struct alias{
     constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
     };
 
+    typedef boost::mpl::vector<Known...> dim_vector;
+
     //operator calls the constructor of the arg_type
     template<typename ... Unknowns>
-    constexpr Callable/*&&*/ operator()  ( Unknowns/*&&*/ ... unknowns  )
-        {return Callable(enumtype::Dimension<Known::direction> (m_knowns[Known::direction]) ... , unknowns ...);}
+    Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  )
+        {
+	    return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
 
 private:
     //store the list of offsets which are already known on an array
     int_t m_knowns [sizeof...(Known)];
 };
+
 #endif
 
 //################################################################################
