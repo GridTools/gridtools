@@ -18,7 +18,7 @@ class FunctorBody (ast.NodeVisitor):
 
             node    an AST-node list representing the body of this functor;
             params  a dict of FunctorParameters of this functor;
-            symbols a dict of symbols available within the stencil where
+            symbols the StecilSymbols of all symbols within the stencil where
                     the functor lives.-
         """
         self.params  = params
@@ -214,24 +214,21 @@ class StencilFunctor ( ):
     """
     Represents a functor inside a multi-stage stencil.-
     """
-    def __init__ (self, node, symbols):
+    def __init__ (self, name, node, params, symbols):
         """
         Constructs a new StencilFunctor:
 
+            name    a name to uniquely identify this functor;
             node    the FunctionDef AST node (see
                     https://docs.python.org/3.4/library/ast.html) of the
                     Python function from which this functor will be built;
-            symbols data fields and constants gathered from other levels
-                    of AST analysis.-
+            params  a dict of FunctorParameters of this functor;
+            symbols the StecilSymbols of all symbols within the stencil where
+                    the functor lives.-
         """
-        #
-        # a name to uniquely identify this functor
-        #
-        self.name = None
-        #
-        # a dictionary for the functor parameters (k=name, v=param)
-        #
-        self.params = dict ( )
+        self.name = name
+        self.params = params
+        self.symbols = symbols
         #
         # the body of the functor is inlined from the 'for' loops
         #
@@ -240,7 +237,6 @@ class StencilFunctor ( ):
         # the AST node of the Python function representing this functor
         #
         self.set_ast (node)
-        self.symbols = symbols
 
 
     def set_ast (self, node):
@@ -251,8 +247,10 @@ class StencilFunctor ( ):
             node    a FunctionDef AST node (see
                     https://docs.python.org/3.4/library/ast.html).-
         """
-        self.node  = node 
-        self.name  = "%s_functor" % node.name
+        if isinstance (node, ast.FunctionDef):
+            self.node = node 
+        else:
+            raise RuntimeError ("Functor's root AST node should be type FunctionDef")
 
 
     def analyze_params (self):
