@@ -169,8 +169,13 @@ namespace gridtools {
                 {val}
 #endif
                 {}
+
             static const ushort_t direction=Coordinate;
             int_t value;
+	    struct Index{
+		Index(){}
+		typedef Dimension<Coordinate> super;
+	    };
         };
 
         /**Aliases for the first three dimensions (x,y,z)*/
@@ -178,10 +183,6 @@ namespace gridtools {
         typedef Dimension<1> y;
         typedef Dimension<2> z;
 
-	template<uint_t Left>
-	auto operator +(Dimension<Left> d1, int offset) -> decltype(d1(offset)) {return d1(offset);}
-	template<uint_t Left>
-	auto operator -(Dimension<Left> d1, int offset) -> decltype(d1(-offset)) {return d1(-offset);}
     }
 
     /**@brief method for initializing the offsets in the placeholder
