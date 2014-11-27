@@ -11,11 +11,12 @@
 #ifdef CXX11_ENABLED
 #include <tuple>
 #endif
+
 /**
-   @file
-   @brief definifion of the data layout
-   Here are defined the classes select_s and layout_map.
-*/
+@file
+@brief definifion of the data layout
+Here are defined the classes select_s and layout_map.
+ */
 namespace gridtools {
 
 /**
@@ -47,7 +48,7 @@ namespace gridtools {
     struct layout_map{
         static constexpr ushort_t length=sizeof...(Args);
         //typedef boost::mpl::vector_c<short_t, Args...> t;
-        static const constexpr ushort_t layout_vector[sizeof...(Args)]={Args...};
+        static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
 
         /* static const int s=t::fuck(); */
         /* BOOST_STATIC_ASSERT(s); */
@@ -93,11 +94,24 @@ namespace gridtools {
 
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type 
+        static typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
             return vec[pos_<I>::value];
+        }
+
+        template <ushort_t I, typename T, T DefaultVal, typename... Indices>
+        GT_FUNCTION
+        static typename _impl::first_type<Indices...>::type 
+        find_val(Indices & ... indices) {
+            static_assert(sizeof...(Indices)==length, "Too many arguments");
+            typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
+            if (pos_<I>::value > length) {
+                return DefaultVal;
+            } else {
+                return vec[pos_<I>::value];
+            }
         }
 
         template <ushort_t I, typename MplVector>
@@ -107,9 +121,9 @@ namespace gridtools {
             return boost::mpl::at_c< MplVector, pos_<I>::value>::type::value;
         }
 
-        template <ushort_t I>
+        template <ushort_t I, typename T>
         GT_FUNCTION
-        static uint_t find(const uint_t* indices) {
+        static uint_t find(const T* indices) {
             static_assert(I<length, "Index out of bound");
             return indices[pos_<I>::value];
         }
@@ -121,6 +135,12 @@ namespace gridtools {
             static const ushort_t value = layout_vector[I];
         };
 
+        template <ushort_t I, short_t DefaultVal>
+        struct at_default {
+            static_assert(I<length, "Index out of bound");
+            static const short_t _value = layout_vector[I];
+            static const short_t value = (_value<0)?DefaultVal:_value;
+        };
 
         // Gives the position at which I is. e.g., I want to know which is the stride of i (0)?
         //then if pos_<0> is 0, then the index i has stride 1, and so on ...
@@ -131,7 +151,7 @@ namespace gridtools {
             template <ushort_t X, bool IsHere>
             struct _find_pos
             {
-                static constexpr ushort_t value = _find_pos<X+1, layout_vector[ X+1 ] == I>::value;
+                static constexpr ushort_t value = _find_pos<X+1, layout_vector[ (X+1>=length)?X:X+1 ] == I>::value;
             };
 
 
@@ -142,21 +162,19 @@ namespace gridtools {
 
             // stops the recursion and returns a nonsense value
             template <bool IsHere>
-            struct _find_pos<3, IsHere> {
-                static constexpr ushort_t value = 1000;
+            struct _find_pos<length, IsHere> {
+                static constexpr ushort_t value = ~ushort_t();
             };
 
             static constexpr ushort_t value = _find_pos<0, layout_vector[ 0 ] == I>::value;
 
         };
 
-
     };
 #else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
     namespace _impl {
-
-        template <uint_t I>
+        template <ushort_t I>
         struct select_s;
 
         template <>
@@ -230,30 +248,30 @@ namespace gridtools {
                 return d;
             }
         };
-    } //namespace impl_
+    }
 
 /**
-   @struct
-   @brief Used as template argument in the storage.
-   In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
+@struct
+@brief Used as template argument in the storage.
+In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-    template <short_t, short_t=-1, short_t=-1, short_t=-1>
+    template <short_t, short_t=-2, short_t=-2, short_t=-2>
         struct layout_map;
 
     template <short_t I1>
-    struct layout_map<I1, -1, -1, -1> {
+    struct layout_map<I1, -2, -2, -2> {
         static const ushort_t length=1;
         typedef boost::mpl::vector1_c<short_t, I1> t;
 
         template <ushort_t I>
-            GT_FUNCTION
-            static short_t at() {
+        GT_FUNCTION
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-            short_t operator[](short_t i) {
+        short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -263,33 +281,33 @@ namespace gridtools {
         }
 
         template <ushort_t I, typename T>
-            GT_FUNCTION
-            static T select(T & a, T & b) {
+        GT_FUNCTION
+        static T select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
         }
 
         template <ushort_t I, typename T>
-            GT_FUNCTION
-            static uint_t& find(uint_t & a) {
+        GT_FUNCTION
+        static T& find(T & a) {
             return a;
         }
 
     };
 
     template <short_t I1, short_t I2>
-    struct layout_map<I1, I2, -1, -1> {
+    struct layout_map<I1, I2, -2, -2> {
         static const ushort_t length=2;
         typedef boost::mpl::vector2_c<short_t, I1, I2> t;
 
         template <ushort_t I>
-            GT_FUNCTION
-            static short_t at() {
+        GT_FUNCTION
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-            short_t operator[](short_t i) {
+        short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -300,15 +318,15 @@ namespace gridtools {
             return -1;
         }
 
-        template <ushort_t I>
-            GT_FUNCTION
-            static uint_t& select(uint_t & a, uint_t & b) {
+        template <ushort_t I, typename T>
+        GT_FUNCTION
+        static T& select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
         }
 
-        template <ushort_t I>
-            GT_FUNCTION
-            static uint_t& find(uint_t & a, uint_t & b) {
+        template <ushort_t I, typename T>
+        GT_FUNCTION
+        static T& find(T & a, T & b) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -341,32 +359,25 @@ namespace gridtools {
        etc.
        \endcode
     */
-    template <short_t I1, short_t I2, short_t I3>
-    struct layout_map<I1, I2, I3, -1> {
+    template <int I1, short_t I2, short_t I3>
+    struct layout_map<I1, I2, I3, -2> {
         static  const ushort_t length=3;
         typedef boost::mpl::vector3_c<short_t, I1, I2, I3> t;
 
-
-        template <ushort_t i>
-            struct get_ {
-            static const ushort_t value = boost::mpl::at_c<t, i >::type::value ;
+        template <ushort_t I>
+        struct at_ {
+            static const short_t value = boost::mpl::at_c<t, I >::type::value;
         };
 
-        template <ushort_t i>
-            GT_FUNCTION
-            static constexpr short_t get() {
-            return boost::mpl::at_c<t, i >::type::value;
-        }
-
-
-        template <ushort_t I>
-            struct at_ {
-            static const short_t value = boost::mpl::at_c<t, I >::type::value;
+        template <ushort_t I, short_t DefaultVal>
+        struct at_default {
+            static const short_t _value = boost::mpl::at_c<t, I >::type::value;
+            static const short_t value = (_value<0)?DefaultVal:_value;
         };
 
         // Gives the position at which I is.
         template <ushort_t I>
-            struct pos_ {
+        struct pos_ {
 
             template <short_t X, bool IsHere>
             struct _find_pos
@@ -395,14 +406,14 @@ namespace gridtools {
             \tparam I The index to be queried
         */
         template <ushort_t I>
-            GT_FUNCTION
-            static short_t at() {
+        GT_FUNCTION
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-            short_t operator[](short_t i) {
+        short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -429,8 +440,8 @@ namespace gridtools {
             \param[in] c Reference to the third value
         */
         template <ushort_t I, typename T>
-            GT_FUNCTION
-            static T& select(T & a, T & b, T & c) {
+        GT_FUNCTION
+        static T& select(T & a, T & b, T & c) {
             return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c);
         }
 
@@ -447,9 +458,9 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I>
-            GT_FUNCTION
-            static uint_t& find(uint_t & a, uint_t & b, uint_t & c) {
+        template <ushort_t I, typename T>
+        GT_FUNCTION
+        static T& find(T & a, T & b, T & c) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -464,6 +475,7 @@ namespace gridtools {
             assert(true);
             return a; // killing warnings by nvcc
         }
+
 
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
@@ -480,9 +492,9 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I>
-            GT_FUNCTION
-            static uint_t const& find(uint_t const& a, uint_t const& b, uint_t const& c) {
+        template <ushort_t I, typename T>
+        GT_FUNCTION
+        static T const& find(T const& a, T const& b, T const& c) {
             if (boost::mpl::at_c<t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -494,6 +506,7 @@ namespace gridtools {
                     }
                 }
             }
+            assert(false);
             return a; // killing warnings by nvcc
         }
 
@@ -509,12 +522,70 @@ namespace gridtools {
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <ushort_t I>
-            GT_FUNCTION
-            static const uint_t& find (const uint_t* a)  {
+        template <ushort_t I, typename T>
+        GT_FUNCTION
+        static T& find(T* a) {
             return find<I>(a[0], a[1], a[2]);
         }
 
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \param[in] a Reference to the first value
+            \param[in] b Reference to the second value
+            \param[in] c Reference to the third value
+        */
+        template <ushort_t I, typename T, T DefaultVal>
+        GT_FUNCTION
+        static T find_val(T const& a, T const& b, T const& c) {
+            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+                return a;
+            } else {
+                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                    return b;
+                } else {
+                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                        return c;
+                    }
+                }
+            }
+
+            return DefaultVal;
+        }
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            a[0] = a; a[1] = b; a[3] = c;
+            gridtools::layout_map<2,0,1>::find<1>(a) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \param[in] a Pointer to a region with the elements to match
+        */
+        template <ushort_t I, typename T, T DefaultVal>
+        GT_FUNCTION
+        static T find_val(T const* a) {
+            return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
+        }
     };
 
     template <short_t I1, short_t I2, short_t I3, short_t I4>
@@ -524,13 +595,13 @@ namespace gridtools {
 
         template <ushort_t I>
         GT_FUNCTION
-        static int at() {
+        static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<t, I >::type::value;
         }
 
         GT_FUNCTION
-        int operator[](short_t i) {
+        short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -543,16 +614,6 @@ namespace gridtools {
                 return boost::mpl::at_c<t, 3 >::type::value;
             }
             return -1;
-        }
-
-        template <ushort_t i>
-        struct get_ {
-            static const ushort_t value = boost::mpl::at_c<t, i >::type::value;
-        };
-
-        template <short_t i>
-        static constexpr ushort_t get() {
-            return boost::mpl::at_c<t, i >::type::value;
         }
 
         template <ushort_t I, typename T>
