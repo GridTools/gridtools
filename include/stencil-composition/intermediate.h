@@ -1,5 +1,4 @@
 #pragma once
-
 #include "make_stencils.h"
 #include <boost/mpl/transform.hpp>
 #include "gt_for_each/for_each.hpp"
@@ -22,6 +21,7 @@
 #include "axis.h"
 #include "local_domain.h"
 #include "computation.h"
+#include "heap_allocated_temps.h"
 
 /**
  * @file
@@ -107,13 +107,13 @@ namespace gridtools {
 
             /**@brief here the ranges for the functors are calculated: iterates over the fields and calls the metafunction above*/
             typedef typename boost::mpl::fold<
-                boost::mpl::range_c<int, 0, Functor::n_args>,
+                boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename Functor::arg_list>::type::value >,
                 range<0,0,0,0>,
                 update_range<boost::mpl::_1, boost::mpl::_2>
                 >::type type;
         };
 
-	
+
         template <typename T>
         struct extract_ranges<independent_esf<T> >
         {
@@ -161,7 +161,7 @@ namespace gridtools {
 	      typedef Range range;
 	      // typedef NextRange next_range;
             };
-	    
+
             template <typename PreviousState, typename CurrentElement>
 	      struct update_state {
                 typedef typename sum_range<typename PreviousState::range,
@@ -169,7 +169,7 @@ namespace gridtools {
                 typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
                 typedef state<new_list, new_range> type;
 	      };
-	    
+
             template <typename PreviousState, typename IndVector>
             struct update_state<PreviousState, wrap_type<IndVector> > {
 	      typedef typename boost::mpl::fold<
@@ -221,10 +221,10 @@ namespace gridtools {
 
         template <typename Index>
         struct has_index_ {
-            typedef boost::mpl::int_<Index::value> val1;
+            typedef static_int<Index::value> val1;
             template <typename Elem>
             struct apply {
-                typedef typename boost::mpl::int_<Elem::second::value> val2;
+                typedef static_int<Elem::second::value> val2;
 
                 typedef typename boost::is_same<val1, val2>::type type;
             };
@@ -307,7 +307,7 @@ namespace gridtools {
                 : prefix(s)
             {}
 
-            template <int I, int J, int K, int L>
+            template <uint_t I, uint_t J, uint_t K, uint_t L>
             void operator()(range<I,J,K,L> const&) const {
                 std::cout << prefix << range<I,J,K,L>() << std::endl;
             }
@@ -315,7 +315,7 @@ namespace gridtools {
             template <typename MplVector>
             void operator()(MplVector const&) const {
                 std::cout << "Independent" << std::endl;
-                gridtools::for_each<MplVector>(print__(std::string("    ")));
+                //gridtools::for_each<MplVector>(print__(std::string("    ")));
                 std::cout << "End Independent" << std::endl;
             }
 
@@ -399,7 +399,7 @@ namespace gridtools {
         struct setup_computation<enumtype::Cuda>{
             template<typename ArgListType, typename DomainType>
 
-	      static int apply(ArgListType& storage_pointers, DomainType &  domain){
+	      static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
 	      boost::fusion::copy(storage_pointers, domain.original_pointers);
 
 	      boost::fusion::for_each(storage_pointers, _impl::update_pointer());
@@ -416,11 +416,25 @@ namespace gridtools {
         template<>
         struct setup_computation<enumtype::Host>{
             template<typename ArgListType, typename DomainType>
-            static int apply(ArgListType const& storage_pointers, DomainType &  domain){
+            static int_t apply(ArgListType const& storage_pointers, DomainType &  domain){
                 return GT_NO_ERRORS;
         }
         };
 
+
+
+    // /** runtime function applying a lambda/functor with 2 arguments a const number of times (e.g. assignment of constant-sized arrays) */
+    //       template <int iterator >
+    //           struct associate
+    //       {
+    //           template<typename FieldType, template<int idx=iterator> class F(FieldType const& , FieldType& )>
+    //           void assign(FieldType const& from, FieldType & to){
+    //               F<iterator>(from, to);
+    //               associate::assign<iterator-1>(from, to);
+    //           }
+    //       };
+
+    //       template<> struct associate{template <typename FieldType> void apply(FieldType const& from, FieldType & to){F<0>(from,to);}}
 
 /**
  * @class
@@ -490,7 +504,7 @@ namespace gridtools {
          */
         typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes, float_type, /*layout_map<0,1,2>*/LayoutType >::type mpl_actual_tmp_pairs;
 
-        typedef boost::mpl::range_c<int, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
+        typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
         typedef typename boost::mpl::fold<
             iter_range,
@@ -601,7 +615,7 @@ namespace gridtools {
            Calls heap_allocated_temps::prepare_temporaries(...).
            It allocates the memory for the list of ranges defined in the temporary placeholders.
          */
-        void ready () {
+        virtual void ready () {
             // boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries( actual_arg_list, m_coords);
             is_storage_ready=true;
@@ -615,8 +629,8 @@ namespace gridtools {
            @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer
            is passed to the instantiate_local_domain struct
          */
-        void steady () {
-            if(is_storage_ready)
+        virtual void steady () {
+	  if(is_storage_ready)
             {
                 setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
 #ifndef NDEBUG
@@ -642,9 +656,15 @@ namespace gridtools {
         }
 
 
-
-        void finalize () {
+        virtual void finalize () {
             finalize_computation<Backend::s_backend_id>::apply(m_domain);
+
+            // The code below segfaults with CUDA
+            // //DELETE the TEMPORARIES (a shared_ptr would be way better)
+            // typedef boost::fusion::filter_view<actual_arg_list_type,
+            //     is_temporary_storage<boost::mpl::_1> > view_type;
+            // view_type fview(actual_arg_list);
+            // boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
 
@@ -652,7 +672,7 @@ namespace gridtools {
          * \brief the execution of the stencil operations take place in this call
          *
          */
-        void run () {
+        virtual void run () {
             // std::cout <<"WAHTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT "
             //           << boost::mpl::size<mpl_actual_arg_list>::type::value
             //           << std::endl;

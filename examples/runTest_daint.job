@@ -4,3 +4,4 @@ module() { eval `/opt/modules/3.2.6.7/bin/modulecmd bash $*`; }
 
 module load boost;
 aprun "/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"
+/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/gpu

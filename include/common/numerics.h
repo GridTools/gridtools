@@ -9,7 +9,7 @@
 namespace gridtools {
   namespace _impl {
       /** @brief Compute 3^I at compile time*/
-    template <int I>
+    template <uint_t I>
     struct static_pow3;
 
     template <>
@@ -17,7 +17,7 @@ namespace gridtools {
       static const int value = 3;
     };
 
-    template <int I>
+    template <uint_t I>
     struct static_pow3 {
       static const int value = 3*static_pow3<I-1>::value;
     };

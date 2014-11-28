@@ -20,6 +20,10 @@
 
 #include "domain_type_impl.h"
 
+/**@file
+ @brief This file contains the list of placeholders to the storages
+ */
+
 namespace gridtools {
 
     /**
@@ -29,7 +33,7 @@ namespace gridtools {
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
         typedef Placeholders original_placeholders;
     private:
-        BOOST_STATIC_CONSTANT(int, len = boost::mpl::size<original_placeholders>::type::value);
+        BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
 
         /**
          * \brief Get a sequence of the same type of original_placeholders, but containing the storage types for each placeholder
@@ -59,7 +63,7 @@ namespace gridtools {
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
          e.g. [0,1,2,3,4]
          */
-        typedef boost::mpl::range_c<int,0,len> range_t;
+        typedef boost::mpl::range_c<uint_t ,0,len> range_t;
     private:
 
         /**\brief reordering vector
@@ -137,8 +141,10 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         void assign_pointers() {}
 
+        /**@brief recursively assignes all the pointers passed as arguments to storages.
+         */
         template <typename Arg0, typename... OtherArgs>
-        void assign_pointers(Arg0 const& arg0, OtherArgs... other_args) 
+        void assign_pointers(Arg0 const& arg0, OtherArgs... other_args)
         {
             boost::fusion::at<typename Arg0::arg_type::index_type>(storage_pointers) = arg0.ptr;
             assign_pointers(other_args...);
@@ -147,41 +153,51 @@ namespace gridtools {
     public:
 
 #ifdef CXX11_ENABLED
+        /** @brief variadic constructor
+            construct the domain_type given an arbitrary number of placeholders to the non-temporary
+            storages passed as arguments.
+
+            USAGE EXAMPLE:
+            \verbatim
+            domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
+            \endverbatim
+         */
         template <typename... Args>
-        domain_type(Args... args) 
+        domain_type(Args... args)
             : storage_pointers()
         {
-
-#ifndef NDEBUG
-            int i = sizeof...(args);
-            std::cout << "n placeholders " << i << std::endl;
-            std::cout << "These are the pointers before assignment" << std::endl;
-            boost::fusion::for_each(storage_pointers, _debug::print_deref());
-            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
-#endif
+// #ifndef NDEBUG
+//             uint_t i = sizeof...(args);
+//             std::cout << "n placeholders " << i << std::endl;
+//             std::cout << "These are the pointers before assignment" << std::endl;
+//             boost::fusion::for_each(storage_pointers, _debug::print_deref());
+//             boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+// #endif
 
             assign_pointers(args...);
 
-#ifndef NDEBUG
-            std::cout << "These are the pointers after assignment" << std::endl;
-            boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
-#endif
+// #ifndef NDEBUG
+//             std::cout << "These are the pointers after assignment" << std::endl;
+//             boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
+// #endif
         }
 #endif
 
-        /**
+        /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
          * @param real_storage The actual fusion::vector with the values
+         TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
         template <typename RealStorage>
         explicit domain_type(RealStorage const & real_storage)
             : storage_pointers()
         {
 
-#ifndef NDEBUG
-            std::cout << "These are the original placeholders and their storages" << std::endl;
-            gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
-#endif
+// #ifndef NDEBUG
+	    //the following creates an empty storage (problems with its destruction)
+//             std::cout << "These are the original placeholders and their storages" << std::endl;
+//             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
+// #endif
 
             typedef boost::fusion::filter_view<arg_list,
                 is_storage<boost::mpl::_1> > view_type;
@@ -190,18 +206,19 @@ namespace gridtools {
 
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
-#ifndef NDEBUG
-            // std::cout << "These are the actual placeholders and their storages" << std::endl;
-            // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
-            std::cout << "These are the real storages" << std::endl;
-            boost::fusion::for_each(real_storage, _debug::print_deref());
-            std::cout << "\nThese are the arg_list elems" << std::endl;
-            boost::fusion::for_each(arg_list(), _debug::print_deref());
-            std::cout << "\nThese are the storage_pointers elems" << std::endl;
-            boost::fusion::for_each(arg_list(), _debug::print_deref());
-            std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
-            boost::fusion::for_each(fview, _debug::print_deref());
-#endif
+// #ifndef NDEBUG
+	    //the following creates an empty storage (problems with its destruction)
+//             // std::cout << "These are the actual placeholders and their storages" << std::endl;
+//             // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
+//             std::cout << "These are the real storages" << std::endl;
+//             boost::fusion::for_each(real_storage, _debug::print_deref());
+//             std::cout << "\nThese are the arg_list elems" << std::endl;
+//             boost::fusion::for_each(arg_list(), _debug::print_deref());
+//             std::cout << "\nThese are the storage_pointers elems" << std::endl;
+//             boost::fusion::for_each(arg_list(), _debug::print_deref());
+//             std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
+//             boost::fusion::for_each(fview, _debug::print_deref());
+// #endif
             boost::fusion::copy(real_storage, fview);
 
 #ifndef NDEBUG

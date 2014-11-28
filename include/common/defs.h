@@ -1,12 +1,20 @@
 #pragma once
 /**
-@file
-@brief global definitions
+   @file
+   @brief global definitions
 */
 
 #define GT_MAX_ARGS 8
 #define GT_MAX_INDEPENDENT 3
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED(func) __declspec(deprecated) func
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED(func) func
+#endif
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
@@ -37,7 +45,7 @@ namespace gridtools{  namespace enumtype{
         {
             enum {value=T};
         };
-}
+    }//namespace enumtype
 #ifndef CXX11_ENABLED
 #define constexpr
 #endif
@@ -55,3 +63,41 @@ namespace gridtools{  namespace enumtype{
 #endif
 
 }
+
+#include <boost/mpl/integral_c.hpp>
+#ifdef CXX11_ENABLED
+using int_t          = long int;
+using short_t        =int;
+using uint_t         =  long unsigned int;
+using ushort_t       = unsigned int;
+template<int_t N>
+using  static_int=boost::mpl::integral_c<int_t,N>;
+template<uint_t N>
+using  static_uint=boost::mpl::integral_c<uint_t,N>;
+template<short_t N>
+using  static_short=boost::mpl::integral_c<short_t,N>;
+template<ushort_t N>
+using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
+#else
+typedef long int                     int_t;
+typedef int                          short_t;
+typedef long unsigned int            uint_t;
+typedef unsigned int                 ushort_t;
+template<int_t N>
+struct static_int : boost::mpl::integral_c<int_t,N>{
+    typedef boost::mpl::integral_c<uint_t,N> type;
+};
+template<uint_t N>
+struct static_uint : boost::mpl::integral_c<uint_t,N>{
+    typedef boost::mpl::integral_c<uint_t,N> type;
+};
+template<short_t N>
+struct static_short : boost::mpl::integral_c<short_t,N>{
+    typedef boost::mpl::integral_c<uint_t,N> type;
+};
+template<ushort_t N>
+struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
+    typedef boost::mpl::integral_c<uint_t,N> type;
+};
+
+#endif

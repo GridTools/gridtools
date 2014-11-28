@@ -7,7 +7,7 @@
 struct A: gridtools::clonable_to_gpu<A> {
     gridtools::hybrid_pointer<int> p;
 
-    A(int n)
+    A(uint_t n)
         : p(n)
     {
 #ifndef NDEBUG
@@ -26,7 +26,7 @@ struct A: gridtools::clonable_to_gpu<A> {
 };
 
 __global__
-void reverse(A* p, int n) {
+void reverse(A* p, uint_t n) {
 #ifndef NDEBUG
     printf(" cpu_p %X ", p->p.get_cpu_p());
     printf(" gpu_p %X ", p->p.get_gpu_p());
@@ -34,15 +34,15 @@ void reverse(A* p, int n) {
     printf(" siez %X ", p->p.get_size());
     printf("\n");
 #endif
-    for (int i = 0; i < p->p.get_size(); ++i)
+    for (uint_t i = 0; i < p->p.get_size(); ++i)
         p->p[i] = n-i;
 }
 
 bool test_hybrid_pointer() {
-    int n = 10;
+    uint_t n = 10;
     A a(n);
 
-    for (int i = 0; i < n; ++i)
+    for (uint_t i = 0; i < n; ++i)
         a.p[i] = i;
 
     a.p.update_gpu();
@@ -55,7 +55,7 @@ bool test_hybrid_pointer() {
     a.p.update_cpu();
 
     bool right = true;
-    for (int i = 0; i < n; ++i)
+    for (uint_t i = 0; i < n; ++i)
         if (a.p[i] != n-i)
             right = false;
 

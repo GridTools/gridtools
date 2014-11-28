@@ -43,3 +43,4 @@ unit_tests/cmake_install.cmake
 !python
 !src
 !docs
+!mainpage.dox
