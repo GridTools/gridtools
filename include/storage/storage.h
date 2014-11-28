@@ -12,13 +12,17 @@ namespace gridtools {
     template < typename BaseStorage >
       struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
     {
-      typedef BaseStorage super;
-      typedef typename BaseStorage::basic_type basic_type;
-      typedef storage<BaseStorage> original_storage;
-      typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
-      typedef typename BaseStorage::iterator_type iterator_type;
-      typedef typename BaseStorage::value_type value_type;
-      static const ushort_t n_args = basic_type::n_width;
+	#ifdef CXX11_ENABLED
+	using typename BaseStorage::base_storage;
+	typedef typename BaseStorage::basic_type basic_type;
+	#else
+	typedef BaseStorage super;
+	typedef typename BaseStorage::basic_type basic_type;
+	typedef storage<BaseStorage> original_storage;
+	typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
+	typedef typename BaseStorage::iterator_type iterator_type;
+	typedef typename BaseStorage::value_type value_type;
+	static const ushort_t n_args = basic_type::n_width;
 
       __device__
 	storage(storage const& other)
@@ -30,6 +34,7 @@ namespace gridtools {
         }
       //    private :
       explicit storage():super(){}
+	#endif
     };
 
 }//namespace gridtools

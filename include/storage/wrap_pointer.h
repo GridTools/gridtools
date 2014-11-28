@@ -43,7 +43,7 @@ struct wrap_pointer{
         : cpu_p(p)
         {}
 
-    T& operator = (T const& p)
+    wrap_pointer<T>& operator = (T const& p)
         {
             cpu_p=p;
             return *this;
