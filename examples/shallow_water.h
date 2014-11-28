@@ -131,13 +131,13 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            // eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
-            // eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
-            // eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
+            eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
+            eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
+            eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
 
-            // eval(tmp(comp(0), step(1)))=half_step  (eval, comp(2), y(1), x(1), dy());
-            // eval(tmp(comp(1), step(1)))=half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
-            // eval(tmp(comp(2), step(1)))=half_step_u(eval, comp(2), y(1), x(1), dy());
+            eval(tmp(comp(0), step(1)))=half_step  (eval, comp(2), y(1), x(1), dy());
+            eval(tmp(comp(1), step(1)))=half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
+            eval(tmp(comp(2), step(1)))=half_step_u(eval, comp(2), y(1), x(1), dy());
         }
     };
 
