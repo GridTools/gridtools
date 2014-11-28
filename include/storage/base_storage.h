@@ -554,15 +554,15 @@ namespace gridtools {
            NOTE: better to shift all the pointers in the array, because we do this seldomly, so that we don't need to keep another indirection when accessing the storage ("stateless" buffer)
          */
         GT_FUNCTION
-        void push_front( pointer_type& field, uint_t const& from=(uint_t)1, uint_t const& to=(uint_t)(n_width)){
+        void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
 
 	    //NOTE: current choice is that the storage doesn't own the data fields ==> not responsible for freeing them
 	    // if(m_fields[to-1].get())
             //     m_fields[to-1].free_it(); //the least recently used (always at the end of the buffer) ge evicted
 
-            for(uint_t i=from;i<to;i++) m_fields[i]=m_fields[i-1];
-            m_fields[from-1]=(field);
+            for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
+            m_fields[from]=(field);
         }
 
         //the time integration takes ownership over all the pointers?
@@ -738,7 +738,7 @@ namespace gridtools {
             uint_t const indexFrom=access<n_width-dimension, traits>::type::n_fields;
             uint_t const indexTo=access<n_width-dimension-1, traits>::type::n_fields;
 
-	    printf("index from: %d, index to: %d, dimension %d, n_args: %d\n", indexFrom, indexTo, dimension, super::n_width);
+	    printf("index from: %d, index to: %d, dimension %d, n_args: %d, n_width %d\n", indexFrom, indexTo, dimension, super::n_width, n_width);
 	    /*extend_width*/super::push_front(std::forward<pointer_type&>(field), indexFrom, indexTo);
         }
 
