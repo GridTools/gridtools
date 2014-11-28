@@ -28,9 +28,9 @@ if ( ENABLE_CXX11 )
     target_link_libraries(test_shallow_water ${exe_LIBS})
     set_target_properties(test_shallow_water PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
-    add_executable( unstructured unstructured.cpp )
-    target_link_libraries(unstructured ${exe_LIBS})
-    set_target_properties(unstructured PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    # add_executable( unstructured unstructured.cpp )
+    # target_link_libraries(unstructured ${exe_LIBS})
+    # set_target_properties(unstructured PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
 endif()
 
