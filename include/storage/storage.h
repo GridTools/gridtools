@@ -12,10 +12,6 @@ namespace gridtools {
     template < typename BaseStorage >
       struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
     {
-	#ifdef CXX11_ENABLED
-	using typename BaseStorage::base_storage;
-	typedef typename BaseStorage::basic_type basic_type;
-	#else
 	typedef BaseStorage super;
 	typedef typename BaseStorage::basic_type basic_type;
 	typedef storage<BaseStorage> original_storage;
@@ -34,7 +30,6 @@ namespace gridtools {
         }
       //    private :
       explicit storage():super(){}
-	#endif
     };
 
 }//namespace gridtools
