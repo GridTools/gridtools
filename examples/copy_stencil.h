@@ -122,8 +122,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     integrator_type in(d1,d2,d3);
     integrator_type::original_storage::pointer_type  init1(d1*d2*d3);
     integrator_type::original_storage::pointer_type  init2(d1*d2*d3);
-    in.push_front(init1, 1.5);
-    in.push_front(init2, -1.5);
+    in.push_front<0>(init1, 1.5);
+    in.push_front<1>(init2, -1.5);
 #else
     storage_type in(d1,d2,d3,-3.5);
     storage_type out(d1,d2,d3,1.5);
