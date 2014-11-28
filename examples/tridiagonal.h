@@ -49,20 +49,20 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
+#if (defined(CXX11_ENABLED)  && !defined(__CUDACC__ ))
+    namespace ex{
+        typedef arg_type<0> out;
+        typedef arg_type<1> inf; //a
+        typedef arg_type<2> diag; //b
+        typedef arg_type<3> sup; //c
+        typedef arg_type<4> rhs; //d
 
-#if (defined(CXX11_ENABLED)) && (!defined(__CUDACC__ ))
-    typedef arg_type<0> out;
-    typedef arg_type<1> inf; //a
-    typedef arg_type<2> diag; //b
-    typedef arg_type<3> sup; //c
-    typedef arg_type<4> rhs; //d
+        static constexpr auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
 
-    __device__
-    static constexpr auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
-    __device__
-    static constexpr auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
-    __device__
-    static auto constexpr expr_out=rhs{}-sup{}*out{0,0,1};
+        static constexpr auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
+
+        static constexpr auto expr_out=rhs{}-sup{}*out{0,0,1};
+    }
 #endif
 
 struct forward_thomas{
@@ -78,8 +78,8 @@ struct forward_thomas{
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
 #if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
-      dom(sup()) =  dom(expr_sup);
-      dom(rhs()) =  dom(expr_rhs);
+	dom(sup()) =  dom(ex::expr_sup);
+	dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -120,7 +120,7 @@ struct backward_thomas{
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
 #if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
-        dom(out()) = dom(expr_out);
+        dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
 #endif

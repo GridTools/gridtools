@@ -50,6 +50,7 @@ if (GTEST_FOUND)
     target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
+    target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
     add_test( tests.cloning_derived "${CMAKE_BINARY_DIR}/build/cloning_derived" 42 )
 
     set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
