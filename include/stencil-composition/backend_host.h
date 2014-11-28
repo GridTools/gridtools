@@ -108,25 +108,25 @@ namespace gridtools {
 
 				/* printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() ); */
 			      //setting the initial k level (for backward/parallel iterations it is not 0)
-                  if( !iteration_policy::value==enumtype::forward )
-                      it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
+			      if( !(iteration_policy::value==enumtype::forward) )
+				  it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
 
-                                //local structs can be passed as template arguments in C++11 (would improve readability)
-                                // struct extra_arguments{
-                                //     typedef functor_type functor_t;
-                                //     typedef interval_map_type interval_map_t;
-                                //     typedef iterate_domain_type local_domain_t;
-                                //     typedef coords_type coords_t;};
+			      //local structs can be passed as template arguments in C++11 (would improve readability)
+			      // struct extra_arguments{
+			      //     typedef functor_type functor_t;
+			      //     typedef interval_map_type interval_map_t;
+			      //     typedef iterate_domain_type local_domain_t;
+			      //     typedef coords_type coords_t;};
 
-                                /** run the iteration on the k dimension */
-                                gridtools::for_each< loop_intervals_t >
-                                    (_impl::run_f_on_interval
-                                     <
-                                     execution_type_t,
-                                     extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
-                                     >
-                                     (it_domain,f->m_coords)
-                                        );
+			      /** run the iteration on the k dimension */
+			      gridtools::for_each< loop_intervals_t >
+				  (_impl::run_f_on_interval
+				   <
+				   execution_type_t,
+				   extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
+				   >
+				   (it_domain,f->m_coords)
+				      );
                             }
 		      }
                 }

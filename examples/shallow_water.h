@@ -45,13 +45,27 @@ namespace shallow_water{
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-    struct bc_reflecting{
+    struct functor_traits{
+	using tmp=arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type ;
+	using sol=arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type ;
+	using arg_list=boost::mpl::vector<tmp, sol> ;
+	using step=Dimension<3> ;
+	using comp=Dimension<4>;
+
+	static float_type dx(){return 1e-2;}
+	static float_type dy(){return 1e-2;}
+	static float_type dt(){return 1e-3;}
+	static float_type g(){return 9.81;}
+    };
+
+    struct bc_reflecting : functor_traits {
         // reflective boundary conditions in I and J
         template <sign I, sign J, typename DataField0, typename DataField1>
         GT_FUNCTION
         void operator()(direction<I, J, zero_>,
                         DataField0 & data_field0, DataField1 const & data_field1,
                         uint_t i, uint_t j, uint_t k) const {
+// TODO use placeholders here instead of the storage
             data_field0(i,j,k) = data_field1(i,j,k);
         }
     };
@@ -67,19 +81,6 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
     //     }
     // };
 
-
-    struct functor_traits{
-	using tmp=arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type ;
-	using sol=arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type ;
-	using arg_list=boost::mpl::vector<tmp, sol> ;
-	using step=Dimension<3> ;
-	using comp=Dimension<4>;
-
-	static float_type dx(){return 1e-2;}
-	static float_type dy(){return 1e-2;}
-	static float_type dt(){return 1e-3;}
-	static float_type g(){return 9.81;}
-    };
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct initial_step: public functor_traits {
@@ -144,21 +145,37 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 	    x::Index i;
 	    y::Index j;
 
+            // eval(sol()) = eval(sol()-
+            //                    (ux(x(-1)) - ux(x(-1), y(-1)))*(dt()/dx())-
+            //                     vy(y(-1)) - vy(x(-1), y(-1))*(dt()/dy()));
+
+	    // eval(sol(comp(1))) =  eval(sol(comp(1)) -
+	    // 			       ((ux(y(-1))^2)               / hx(y(-1))      + hx(y(-1))*hx(y(-1))*((g()/2.))                 -
+	    // 			       ((ux(x(-1),y(-1))^2)           / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((g()/2.))))*((dt()/dx())) -
+	    // 			        (vy(x(-1))*uy(x(-1))          / hy(x(-1))                                                   -
+	    // 				 vy(x(-1), y(-1))*uy(x(-1),y(-1)) / hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((g()/2.)))    *((dt()/dy())));
+
+	    // eval(sol(comp(2))) = eval(sol(comp(2)) -
+	    // 			      (ux(y(-1))    *vx(y(-1))       /hy(y(-1)) -
+            //                           (ux(x(-1),y(-1))*vx(x(-1), y(-1))) /hx(x(-1), y(-1)))*((dt()/dx()))-
+            //                          ((vy(x(-1))^2)                /hy(x(-1))      +(hy(x(-1))     ^2)*((g()/2.)) -
+            //                           (vy(x(-1), y(-1))^2)           /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((g()/2.))   )*((dt()/dy())));
+
             eval(sol()) = eval(sol()-
                                (ux(i-1) - ux(i-1, j-1))*(dt()/dx())-
                                 vy(j-1) - vy(i-1, j-1)*(dt()/dy()));
 
 	    eval(sol(comp(1))) =  eval(sol(comp(1)) -
-	    			       ((ux(j-1)^2)               / hx(j-1)      +hx(j-1)*hx(j-1)*((g()/2.))                   -
-	    			       ((ux(i-1,j-1)^2)           / hx(i-1, j-1) +(hx(i-1,j-1) ^2)*((g()/2.))))*((dt()/dx()))  -
-	    			        (vy(i-1)*uy(i-1)          / hy(i-1)                                                    -
+	    			       ((ux(j-1)^2)               / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
+	    			       ((ux(i-1,j-1)^2)           / hx(i-1, j-1) +(hx(i-1,j-1) ^2)*((g()/2.))))*((dt()/dx())) -
+	    			        (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
 	    				 vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1) + hy(i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
 	    eval(sol(comp(2))) = eval(sol(comp(2)) -
-	    			      (ux(j-1)      *vx(j-1)     /hy(j-1) -
-                                      (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1) )*((dt()/dx()))-
-                                     ((vy(i-1)^2)                /hy(i-1)        +(hy(i-1)     ^2)*((g()/2.)) -
-                                      (vy(i-1, j-1)^2)           /hy(i-1, j-1)   +(hy(i-1, j-1)^2)*((g()/2.))   )*((dt()/dy())));
+	    			      (ux(j-1)    *vx(j-1)       /hy(j-1) -
+                                      (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
+                                     ((vy(i-1)^2)                /hy(i-1)      +(hy(i-1)     ^2)*((g()/2.)) -
+                                      (vy(i-1, j-1)^2)           /hy(i-1, j-1) +(hy(i-1, j-1)^2)*((g()/2.))   )*((dt()/dy())));
 
     	}
 
@@ -228,17 +245,16 @@ bool test(uint_t x, uint_t y, uint_t z) {
     sol_type::original_storage::pointer_type out8(sol.size());
     sol_type::original_storage::pointer_type out9(sol.size());
 
-    //1 is the last, 3 is the first (OK, to be reversed)
-    tmp.push_front<1>(out1, 1.);//vy
-    tmp.push_front<2>(out2, 1.);//uy
-    tmp.push_front<3>(out3, 1.);//hy
-    tmp.push_front<1>(out4, 1.);//vx
-    tmp.push_front<2>(out5, 1.);//ux
-    tmp.push_front<3>(out6, 1.);//hx
+    tmp.push_front<0>(out1, 1.);//hy
+    tmp.push_front<1>(out2, 1.);//uy
+    tmp.push_front<2>(out3, 1.);//vy
+    tmp.push_front<0>(out4, 1.);//hx
+    tmp.push_front<1>(out5, 1.);//ux
+    tmp.push_front<2>(out6, 1.);//vx
 
-    sol.push_front<1>(out7, 1.);//v
-    sol.push_front<2>(out8, 1.);//u
-    sol.push_front<3>(out9, 1.);//h
+    sol.push_front<0>(out7, 1.);//h
+    sol.push_front<1>(out8, 1.);//u
+    sol.push_front<2>(out9, 1.);//v
 
     // sol.push_front<3>(out9, [](uint_t i, uint_t j, uint_t k) ->float_type {return 2.0*exp (-5*(i^2+j^2));});//h
 
@@ -275,7 +291,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     shallow_water_stencil->steady();
 
-    //gridtools::boundary_apply< bc_reflecting<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);
+    gridtools::array<gridtools::halo_descriptor, 2> halos;
+    halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
+    halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
+    // TODO: use placeholders here instead of the storage
+    //gridtools::boundary_apply< bc_reflecting<uint_t> >(halos, bc_reflecting<uint_t>()).apply(p_sol(), p_sol());
 
     shallow_water_stencil->run();
 
