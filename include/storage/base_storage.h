@@ -335,7 +335,7 @@ namespace gridtools {
 
 	    /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
          This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
-        index for temporary storages is computed in the subclass gridtoosÃ::host_tmp_storge*/
+        index for temporary storages is computed in the subclass gridtools::host_tmp_storge*/
         GT_FUNCTION
         uint_t _index(uint_t i, uint_t j, uint_t k) const {
             uint_t index;
@@ -608,11 +608,14 @@ namespace gridtools {
         virtual ~extend_width(){
 	}
 
+        static const ushort_t n_width = Storage::n_width;
+
+    private:
+
         __device__
         extend_width(extend_width const& other)
             : Storage(other)
             {}
-        static const ushort_t n_width = Storage::n_width;
 
         //for stdcout purposes
         explicit extend_width(){}
@@ -683,7 +686,7 @@ namespace gridtools {
         typedef typename  super::basic_type basic_type;
         typedef typename super::original_storage original_storage;
         //inheriting constructors
-        using typename super::extend_width;
+        //using typename super::extend_width;
 	static const uint n_width=sizeof...(StorageExtended)+1;
 
         extend_dim(  const uint& d1, const uint& d2, const uint& d3 )
@@ -729,7 +732,7 @@ namespace gridtools {
             uint_t const indexTo=access<n_width-dimension-1, traits>::type::n_fields;
 
 	    printf("index from: %d, index to: %d, dimension %d, n_args: %d\n", indexFrom, indexTo, dimension, super::n_width);
-	    extend_width::push_front(std::forward<pointer_type&>(field), indexFrom, indexTo);
+	    /*extend_width*/super::push_front(std::forward<pointer_type&>(field), indexFrom, indexTo);
         }
 
         template<uint_t dimension=1>

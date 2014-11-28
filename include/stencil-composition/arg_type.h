@@ -291,7 +291,7 @@ namespace gridtools {
 #endif
 
 
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#if defined(__GNUC) && __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 #warning "Obsolete version of the GCC compiler"
         // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
         // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
