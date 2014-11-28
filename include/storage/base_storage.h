@@ -663,7 +663,7 @@ namespace gridtools {
         typedef dimension_extension_null super;
      };
 
-    /**@brief metafunction to access a typelist at a given position, numeration from 0*/
+    /**@brief metafunction to access a type-stack at a given position, numeration from 0*/
     template<uint_t ID, typename Sequence>
     struct access{
         typedef typename access<ID-1, typename Sequence::super>::type type;
@@ -684,6 +684,7 @@ namespace gridtools {
         typedef typename super::original_storage original_storage;
         //inheriting constructors
         using typename super::extend_width;
+	static const uint n_width=sizeof...(StorageExtended)+1;
 
         extend_dim(  const uint& d1, const uint& d2, const uint& d3 )
             : super(d1, d2, d3)
@@ -722,11 +723,12 @@ namespace gridtools {
         void push_front( pointer_type& field ){//copy constructor
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
 
+            BOOST_STATIC_ASSERT(n_width>dimension);
             BOOST_STATIC_ASSERT(dimension<=traits::n_fields);
-            uint_t const indexFrom=access<dimension, traits>::type::n_fields;
-            uint_t const indexTo=access<dimension-1, traits>::type::n_fields;
+            uint_t const indexFrom=access<n_width-dimension, traits>::type::n_fields;
+            uint_t const indexTo=access<n_width-dimension-1, traits>::type::n_fields;
 
-	    // printf("index from: %d, index to: %d, dimension %d\n", indexFrom, indexTo, dimension);
+	    printf("index from: %d, index to: %d, dimension %d, n_args: %d\n", indexFrom, indexTo, dimension, super::n_width);
 	    extend_width::push_front(std::forward<pointer_type&>(field), indexFrom, indexTo);
         }
 
