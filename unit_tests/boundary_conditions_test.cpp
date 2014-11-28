@@ -1067,10 +1067,31 @@ bool usingcopy_3() {
     }
 
 #ifndef NDEBUG
+    std::cout << "src" << std::endl;
+    for (uint_t i=0; i<d1; ++i) {
+        for (uint_t j=0; j<d2; ++j) {
+            for (uint_t k=0; k<d3; ++k) {
+                printf("%d ", src(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+    std::cout << "one" << std::endl;
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 printf("%d ", one(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+    std::cout << "two" << std::endl;
+    for (int i=0; i<d1; ++i) {
+        for (int j=0; j<d2; ++j) {
+            for (int k=0; k<d3; ++k) {
+                printf("%d ", two(i,j,k));
             }
             printf("\n");
         }
@@ -1097,10 +1118,22 @@ bool usingcopy_3() {
 #endif
 
 #ifndef NDEBUG
+    std::cout << "OUTPUT" << std::endl;
+    std::cout << "one" << std::endl;
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 printf("%d ", one(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+    std::cout << "two" << std::endl;
+    for (uint_t i=0; i<d1; ++i) {
+        for (uint_t j=0; j<d2; ++j) {
+            for (uint_t k=0; k<d3; ++k) {
+                printf("%d ", two(i,j,k));
             }
             printf("\n");
         }
@@ -1114,9 +1147,11 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<1; ++k) {
                 if (one(i,j,k) != i+j+k) {
+                    std::cout << "1 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
+                    std::cout << "1 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1127,9 +1162,11 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=d3-1; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
+                    std::cout << "2 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
+                    std::cout << "2 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1140,9 +1177,11 @@ bool usingcopy_3() {
         for (uint_t j=0; j<1; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
+                    std::cout << "3 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
+                    std::cout << "3 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1153,9 +1192,11 @@ bool usingcopy_3() {
         for (uint_t j=d2-1; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
+                    std::cout << "4 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
+                    std::cout << "4 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1166,9 +1207,11 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
+                    std::cout << "5 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
+                    std::cout << "5 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1179,9 +1222,11 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
+                    std::cout << "6 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
+                    std::cout << "6 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1192,9 +1237,11 @@ bool usingcopy_3() {
         for (uint_t j=1; j<d2-1; ++j) {
             for (uint_t k=1; k<d3-1; ++k) {
                 if (one(i,j,k) != -1) {
+                    std::cout << "7 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != 0) {
+                    std::cout << "7 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }

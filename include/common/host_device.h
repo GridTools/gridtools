@@ -3,7 +3,7 @@
 @file
 @brief definition of macros for host/GPU
 */
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 #include <cuda_runtime.h>
 #else
 #define __host__
