@@ -25,7 +25,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-int count;
+uint_t count;
 bool result;
 
 struct print {
@@ -44,7 +44,7 @@ struct print {
 };
 
 struct print_plchld {
-    mutable int count;
+    mutable uint_t count;
     mutable bool result;
 
     print_plchld(void)
@@ -89,13 +89,13 @@ bool test_domain_indices() {
 //     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
 //     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 // =======
-    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<float_type, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<float_type, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
 
-    int d1 = 10;
-    int d2 = 10;
-    int d3 = 10;
+    uint_t d1 = 10;
+    uint_t d2 = 10;
+    uint_t d3 = 10;
 
     storage_type in(d1,d2,d3,-1, std::string("in"));
     storage_type out(d1,d2,d3,-7.3, std::string("out"));

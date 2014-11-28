@@ -2,7 +2,7 @@
 #define _BOOLLIST_H_
 
 #include <boost/static_assert.hpp>
-
+#include "defs.h"
 /*@file
 @bief  The following class describes a boolean list of length N.
 
@@ -20,7 +20,7 @@ namespace gridtools {
        \endcode
        See \link Concepts \endlink, \link proc_grid_2D_concept \endlink, \link proc_grid_3D_concept \endlink
      */
-    template <int I>
+    template <ushort_t I>
     struct boollist {}; // brackets to get it into documentation
 
     template <>

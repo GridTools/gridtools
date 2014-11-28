@@ -49,14 +49,14 @@ std::ostream& operator<<(std::ostream& s, interface const) {
 
 bool test_interface(int x, int y, int z) {
 
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #define BACKEND backend<Host, Naive >
 
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
     storage_type out(d1,d2,d3,2., std::string("out"));
@@ -84,8 +84,8 @@ bool test_interface(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+    uint_t di[5] = {2, 2, 2, d1-2, d1};
+    uint_t dj[5] = {2, 2, 2, d2-2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;

@@ -14,7 +14,7 @@ namespace gridtools {
         typedef interval<MinLevel, MaxLevel> type;
     };
 
-    template <typename Axis, int I>
+    template <typename Axis, uint_t I>
     struct extend_by {
         typedef interval<level<Axis::FromLevel::Splitter::value, Axis::FromLevel::Offset::value - 1>,
                          level<Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1> > type;
@@ -36,28 +36,22 @@ namespace gridtools {
     typedef typename boost::mpl::plus<
         boost::mpl::minus<typename Axis::ToLevel::Splitter,
                           typename Axis::FromLevel::Splitter>,
-        boost::mpl::int_<1> >::type size_type;
+        static_int<1> >::type size_type;
 
-        gridtools::array<int, size_type::value > value_list;
-
-        // static const auto blabla=boost::mpl::print<size_type>();
-        // static const auto blabla1=boost::mpl::print<typename Axis::ToLevel::Splitter>();
-        // static const auto blabla2=boost::mpl::print<typename Axis::FromLevel::Splitter>();
+        gridtools::array<uint_t, size_type::value > value_list;
 
         GT_FUNCTION
-        explicit coordinates(int il, int ih, int jl, int jh/*, int kl, int kh*/)
+        explicit coordinates(uint_t il, uint_t ih, uint_t jl, uint_t jh/*, uint_t kl, uint_t kh*/)
             : m_i_low_bound(il)
             , m_i_high_bound(ih)
             , m_j_low_bound(jl)
             , m_j_high_bound(jh)
-            // , m_k_low_bound(jl)
-            // , m_k_high_bound(jh)
             , m_direction_i()
             , m_direction_j()
         {}
 
         GT_FUNCTION
-        explicit coordinates( int* i, int* j/*, int* k*/)
+        explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)
             : m_i_low_bound(i[begin])
             , m_i_high_bound(i[end])
             , m_j_low_bound(j[begin])
@@ -70,49 +64,49 @@ namespace gridtools {
         {}
 
         GT_FUNCTION
-        int i_low_bound() const {
+        uint_t i_low_bound() const {
             return m_i_low_bound;
         }
 
         GT_FUNCTION
-        int i_high_bound() const {
+        uint_t i_high_bound() const {
             return m_i_high_bound;
         }
 
         GT_FUNCTION
-        int j_low_bound() const {
+        uint_t j_low_bound() const {
             return m_j_low_bound;
         }
 
         GT_FUNCTION
-        int j_high_bound() const {
+        uint_t j_high_bound() const {
             return m_j_high_bound;
         }
 
         template <typename Level>
         GT_FUNCTION
-        int value_at() const {
+        uint_t value_at() const {
             BOOST_STATIC_ASSERT(is_level<Level>::value);
-            int offs = Level::Offset::value;
+            int_t offs = Level::Offset::value;
             if (offs < 0) offs += 1;
             return value_list[Level::Splitter::value] + offs;
         }
 
         // template <typename Level>
         // GT_FUNCTION
-        // int& value_at(int val) const {
+        // uint_t& value_at(uint_t val) const {
         //     BOOST_STATIC_ASSERT(is_level<Level>::value);
         //     return value_list[Level::Splitter::value];
         // }
 
         GT_FUNCTION
-        int value_at_top() const {
+        uint_t value_at_top() const {
             return value_list[size_type::value - 1];
             // return m_k_high_bound;
         }
 
         GT_FUNCTION
-        int value_at_bottom() const {
+        uint_t value_at_bottom() const {
             return value_list[0];
             // return m_k_low_bound;
         }
@@ -127,10 +121,10 @@ namespace gridtools {
         gridtools::halo_descriptor m_direction_j;
         // gridtools::halo_descriptor m_direction_k;
 
-        int m_i_low_bound;
-        int m_i_high_bound;
-        int m_j_low_bound;
-        int m_j_high_bound;
+        uint_t m_i_low_bound;
+        uint_t m_i_high_bound;
+        uint_t m_j_low_bound;
+        uint_t m_j_high_bound;
         // int m_k_low_bound;
         // int m_k_high_bound;
 

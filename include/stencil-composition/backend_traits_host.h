@@ -10,8 +10,14 @@ namespace gridtools{
     }
 
 
-    template <enumtype::backend BE, typename T, typename U, bool B>
-    struct base_storage;
+    template <enumtype::backend BE, typename T, typename U, bool B, ushort_t Dim>
+      struct base_storage;
+
+    template <typename U>
+      struct storage;
+
+    /* template <enumtype::backend BE, typename T, typename U, bool B> */
+    /*   struct storage<base_storage<BE, T, U, B> >; */
 
     // template <typename ValueType, typename Layout, bool Temp>
     // struct storage;
@@ -27,9 +33,9 @@ namespace gridtools{
     template<>
     struct backend_from_id<enumtype::Host>
     {
-        template <typename ValueType, typename Layout, bool Temp=false>
+        template <typename ValueType, typename Layout, bool Temp=false, ushort_t Dim=3>
         struct storage_traits{
-            typedef base_storage<enumtype::Host, ValueType, Layout, Temp> storage_t;
+            typedef storage<base_storage<enumtype::Host, ValueType, Layout, Temp, Dim > > storage_t;
         };
 
         template <typename Arguments>
@@ -51,7 +57,7 @@ namespace gridtools{
             }
 
         template <typename T>
-	  inline static void delete_storage(wrap_pointer<T>& data){ /*delete[] &data[0];*/}
+        inline static void delete_storage(wrap_pointer<T>& data){ data.free_it();/*delete[] &data[0];*/}
 
         template <typename T>
         struct pointer

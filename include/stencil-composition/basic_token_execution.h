@@ -44,25 +44,26 @@ namespace gridtools {
             template <typename Interval>
             GT_FUNCTION
             void operator()(Interval const&) const {
-                typedef typename index_to_level<typename Interval::first>::type from;
-                typedef typename index_to_level<typename Interval::second>::type to;
+                typedef typename index_to_level<typename Interval::first>::type from_t;
+                typedef typename index_to_level<typename Interval::second>::type to_t;
+                typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
 
-                typedef iteration_policy<from, to, execution_engine::type::iteration> iteration_policy;
+		if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) { 
+		  typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
 
-                if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
-                    typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
-
-                    int from=m_coords.template value_at<typename iteration_policy::from>();
-                    int to=m_coords.template value_at<typename iteration_policy::to>();
-                    // std::cout<<"from==> "<<from<<std::endl; 
-                    // std::cout<<"to==> "<<to<<std::endl; 
-                    static_cast<const Derived*>(this)->template loop<iteration_policy, interval_type>(from, to);
+		uint_t from=m_coords.template value_at<from_t>();
+		  //m_coords.template value_at<typename iteration_policy::from>();
+                    uint_t to=m_coords.template value_at<to_t>();
+                    /* uint_t to=m_coords.template value_at<typename iteration_policy::to>(); */
+                    // std::cout<<"from==> "<<from<<std::endl;
+                    // std::cout<<"to==> "<<to<<std::endl;
+                    static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template loop<iteration_policy, interval_type>(from, to);
                 }
 
             }
         protected:
             typename traits::coords_t const &m_coords;
-            typename traits::local_domain_t const &m_domain;
+            typename traits::local_domain_t &m_domain;
         };
 
     } // namespace _impl

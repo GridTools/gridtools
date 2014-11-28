@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <common/defs.h>
 #include <common/gpu_clone.h>
 
 namespace gpu_clone_test {
@@ -52,7 +53,7 @@ namespace gpu_clone_test {
         }
 
         __host__ __device__
-        A(A const& a) 
+        A(A const& a)
             : v1(a.v1)
             , v2(a.v2)
             , zip_view(support_t(v1, v2))
@@ -108,14 +109,14 @@ namespace gpu_clone_test {
     struct B: public gridtools::clonable_to_gpu<B> {
         A a;
 
-        B(typename A::v_type const& v1, typename A::v_type const& v2) 
+        B(typename A::v_type const& v1, typename A::v_type const& v2)
             : a(v1, v2)
         {
             //        clone_to_gpu();
         }
 
         __device__ __host__
-        B(B const& b) 
+        B(B const& b)
             : a(b.a)
         {}
 
@@ -174,7 +175,7 @@ namespace gpu_clone_test {
 
     bool test_gpu_clone() {
 
-        int m = 7;
+        uint_t m = 7;
 
         typename A::v_type w1(m*1, m*3.1415926);
         typename A::v_type w2(m*2, m*2.7182818);
@@ -214,7 +215,7 @@ namespace gpu_clone_test {
         b1.clone_to_gpu();
         minus1<<<1,1>>>(b1.gpu_object_ptr);
         b1.clone_from_gpu();
-    
+
         boost::fusion::for_each(b2.a.v1, minus1_f());
         boost::fusion::for_each(b2.a.v2, minus1_f());
 

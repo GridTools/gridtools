@@ -18,10 +18,9 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef int x_all;
+typedef uint_t x_all;
 
 struct lap_function {
-    static const int n_args = 2;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
@@ -35,7 +34,6 @@ struct lap_function {
 };
 
 struct flx_function {
-    static const int n_args = 3;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
@@ -52,7 +50,6 @@ struct flx_function {
 };
 
 struct fly_function {
-    static const int n_args = 3;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
@@ -68,7 +65,6 @@ struct fly_function {
 };
 
 struct out_function {
-    static const int n_args = 5;
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
@@ -135,7 +131,7 @@ struct print_ {
         : prefix(s)
     {}
 
-    template <int I, int J, int K, int L>
+    template <uint_t I, uint_t J, uint_t K, uint_t L>
     void operator()(range<I,J,K,L> const&) const {
         std::cout << prefix << range<I,J,K,L>() << std::endl;
     }
@@ -143,14 +139,14 @@ struct print_ {
     template <typename MplVector>
     void operator()(MplVector const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<MplVector>(print_(std::string("    ")));
+        //boost::mpl::for_each<MplVector>(print_(std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 
     template <typename MplVector>
     void operator()(_impl::wrap_type<MplVector> const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<MplVector>(print_(std::string("    ")));
+        //boost::mpl::for_each<MplVector>(print_(std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 };
@@ -171,7 +167,6 @@ void print_mss(MSS)
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
     >::type ranges_list;
-
     boost::mpl::for_each<ranges_list>(print_());
 
     std::cout << std::endl;
@@ -190,7 +185,7 @@ void print_mss(MSS)
 }
 
 int main() {
-    typedef base_storage<enumtype::Host, double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef base_storage<enumtype::Host, float_type, gridtools::layout_map<0,1,2> > storage_type;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;
