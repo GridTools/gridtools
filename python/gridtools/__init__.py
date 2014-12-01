@@ -33,6 +33,16 @@ class StencilSymbols (object):
             self.symbols[g] = dict ( )
 
 
+    def __delitem__ (self, name):
+        """
+        Removes the symbol entry 'name' from this instance.-
+        """
+        for g in self.groups:
+            if name in self.symbols[g].keys ( ):
+                return self.symbols[g].__delitem__ (name)
+        raise KeyError ("No symbol named '%s'")
+
+
     def __getitem__ (self, name):
         """
         Returns the value of symbol 'name' or None if not found.-
@@ -110,6 +120,26 @@ class StencilSymbols (object):
             return self.symbols[name]
 
 
+    def add_temporary (self, name, value):
+        """
+        Adds a temporary data field stencil's symbols:
+
+            name    name of this symbol;
+            value   value of this symbol (a NumPy array).-
+        """
+        if value is None:
+            raise ValueError ("Value of temporary field '%s' is None" % name)
+        elif isinstance (value, np.ndarray):
+            #
+            # add the field as a temporary
+            #
+            self._add (name, value, 'temp_field')
+            logging.info ("Temporary '%s' is a NumPy array %s" % (name,
+                                                                  value.shape))
+        else:
+            raise TypeError ("Value of temporary field '%s' should be a NumPy array" % name)
+
+
     def items (self):
         """
         Returns all symbols in as (key, value) pairs.-
@@ -119,7 +149,6 @@ class StencilSymbols (object):
             vals = self.symbols[g].values ( )
             for k,v in zip (keys, vals):
                 yield (k, v)
-
 
 
 
@@ -374,7 +403,6 @@ class StencilInspector (ast.NodeVisitor):
                     if parent_call:
                         logging.info ("Parent's constructor call at %d" % n.value.lineno)
                         break
-
                 except AttributeError:
                     parent_call = False
             #
@@ -458,6 +486,11 @@ class MultiStageStencil ( ):
 
             symbols     the symbols dictionary.-
         """
+        #
+        # we cannot change the symbol table while looping over it,
+        # so we save the changes here and apply them afterwards
+        #
+        add_temps = dict ( )
         for name, value in symbols.items ( ):
             #
             # unresolved symbols have 'None' as their value
@@ -467,9 +500,23 @@ class MultiStageStencil ( ):
                 # is this a stencil's attribute?
                 #
                 if 'self' in name:
-                    attr = name.split ('.')[1]
-                    symbols.add_constant (name, 
-                                          getattr (self, attr, None))
+                    attr  = name.split ('.')[1]
+                    value = getattr (self, attr, None)
+
+                    #
+                    # NumPy arrays kept as stencil attributes are considered
+                    # temporary data fields
+                    #
+                    if isinstance (value, np.ndarray):
+                        #
+                        # the new temporary data field will be added later,
+                        # to prevent changes in the underlying data structure
+                        # during the loop
+                        #
+                        add_temps[name] = value
+                    else:
+                        symbols.add_constant (name, 
+                                              value)
             #
             # TODO some symbols are just aliases to other symbols
             #
@@ -477,6 +524,18 @@ class MultiStageStencil ( ):
                 if value in symbols.keys ( ) and symbols[value] is not None:
                     #symbols[name] = symbols[value]
                     logging.warning ("Variable aliasing is not supported")
+
+        #
+        # update the symbol table now the loop has finished
+        #
+        for k,v in add_temps.items ( ):
+            #
+            # remove this field from the symbol table before adding it
+            # as a temporary data field
+            #
+            del symbols[k]
+            symbols.add_temporary (k, v)
+
         #
         # print the discovered symbols
         #
