@@ -41,7 +41,8 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(T* p)
         : cpu_p(p)
-        {}
+        , managed(false)
+    {}
 
     wrap_pointer<T>& operator = (T const& p)
         {
@@ -69,8 +70,6 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(uint_t size) {
         allocate_it(size);
-
-
 #ifndef NDEBUG
             printf(" - %X %d\n", cpu_p, size);
 #endif
@@ -98,52 +97,52 @@ struct wrap_pointer{
     }
 
 
-        __host__ __device__
-        operator T*() {
-            return cpu_p;
+    __host__ __device__
+    operator T*() {
+        return cpu_p;
+    }
+
+    __host__ __device__
+    operator T const*() const {
+        return cpu_p;
+    }
+
+    __host__ __device__
+    T& operator[](uint_t i) {
+	return cpu_p[i];
+    }
+
+    __host__ __device__
+    T const& operator[](uint_t i) const {
+	return cpu_p[i];
         }
 
-        __host__ __device__
-        operator T const*() const {
-            return cpu_p;
-        }
+    __host__ __device__
+    T& operator*() {
+        return *cpu_p;
+    }
 
-        __host__ __device__
-        T& operator[](uint_t i) {
-            return cpu_p[i];
-        }
+    __host__ __device__
+    T const& operator*() const {
+        return *cpu_p;
+    }
 
-        __host__ __device__
-        T const& operator[](uint_t i) const {
-            return cpu_p[i];
-        }
+    __host__ __device__
+    T* operator+(uint_t i) {
+	return &cpu_p[i];
+    }
 
-        __host__ __device__
-        T& operator*() {
-            return *cpu_p;
-        }
+    __host__ __device__
+    T* const& operator+(uint_t i) const {
+	return &cpu_p[i];
+    }
 
-        __host__ __device__
-        T const& operator*() const {
-            return *cpu_p;
-        }
-
-        __host__ __device__
-        T* operator+(uint_t i) {
-            return &cpu_p[i];
-        }
-
-        __host__ __device__
-        T* const& operator+(uint_t i) const {
-            return &cpu_p[i];
-        }
-
-        GT_FUNCTION
-        const T* get_cpu_p(){return cpu_p;};
+    GT_FUNCTION
+    const T* get_cpu_p(){return cpu_p;};
 
 protected:
     T * cpu_p;
-
+    bool managed;
 
 
 };

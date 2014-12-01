@@ -15,6 +15,7 @@
 
 *.exe
 
+.ycm_extra_conf.py
 nbproject
 /nbproject
 /Makefile
@@ -39,6 +40,7 @@ unit_tests/cmake_install.cmake
 !experimental
 !unit_tests
 !.gitmodules
+!python
 !src
 !docs
 !mainpage.dox
