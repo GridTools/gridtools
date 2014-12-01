@@ -194,19 +194,20 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type init = value_type(), std::string const& s = std::string("default name") ):
-    is_set( true )
-    {
-	m_fields[0]=pointer_type(dim1*dim2*dim3);
-	// printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
-	uint_t dims[]={dim1, dim2, dim3};
-	// m_strides[0]=( dim1*dim2*dim3 );
-	// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
-	// m_strides[2]=( dims[layout::template at_<2>::value] );
-	// uint_t dims[]={ dim1, dim2, dim3 };
+	    is_set( true ),
+	    m_name(s)
+	    {
+		m_fields[0]=pointer_type(dim1*dim2*dim3);
+		// printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
+		uint_t dims[]={dim1, dim2, dim3};
+		// m_strides[0]=( dim1*dim2*dim3 );
+		// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
+		// m_strides[2]=( dims[layout::template at_<2>::value] );
+		// uint_t dims[]={ dim1, dim2, dim3 };
 
-	m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-	m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-	m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
+		m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+		m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
 
 
 #ifdef _GT_RANDOM_INPUT
@@ -286,11 +287,9 @@ namespace gridtools {
         // }//pointer is not owner of the data
 #endif //CXX11_ENABLED
 
-        explicit base_storage(int dim1, int dim2, int dim3, value_type* ptr,
+        explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type* ptr,
                               value_type init = value_type(), std::string const& s = std::string("default name") ):
-            m_size( dim1 * dim2 * dim3 ),
             is_set( true ),
-            m_data( ptr ),
             m_name(s)
             {
 		m_fields[0]=pointer_type(dim1*dim2*dim3);
@@ -298,6 +297,17 @@ namespace gridtools {
 		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
 		m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
 		m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+
+#ifdef _GT_RANDOM_INPUT
+                srand(12345);
+#endif
+                for (uint_t i = 0; i < size(); ++i)
+#ifdef _GT_RANDOM_INPUT
+                    (m_fields[0])[i] = init * rand();
+#else
+                (m_fields[0])[i] = init;
+#endif
+                (m_fields[0]).update_gpu();
             }
 
 // explicit base_storage(): m_name(std::string("default name")){};

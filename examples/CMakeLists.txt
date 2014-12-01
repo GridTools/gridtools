@@ -24,7 +24,12 @@ if ( ENABLE_CXX11 )
     target_link_libraries(test_interface ${exe_LIBS})
     set_target_properties(test_interface PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
-    add_executable(test_shallow_water  shallow_water.cpp)
+    add_executable(copy_python   __gridtools_rbd7hngl/CopyStencil_ktygrh_9.cpp)
+    target_link_libraries(copy_python ${exe_LIBS})
+    set_target_properties(copy_python PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+
+add_executable(test_shallow_water  shallow_water.cpp)
     target_link_libraries(test_shallow_water ${exe_LIBS})
     set_target_properties(test_shallow_water PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
