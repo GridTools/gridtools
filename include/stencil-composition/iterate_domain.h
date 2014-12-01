@@ -126,13 +126,13 @@ namespace gridtools {
 	    BOOST_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value);
 	    static const uint_t count=total_storages<StoragesVector, index-1>::count+
             boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<StoragesVector, index >::type>::type>
-            ::type::n_width;
+            ::type::field_dimensions;
     };
 
 	/**@brief partial specialization to stop the recursion*/
 	template <typename StoragesVector>
     struct total_storages<StoragesVector, 0 >{
-        static const uint_t count=boost::remove_pointer<typename boost::remove_reference<typename  boost::mpl::at_c<StoragesVector, 0 >::type>::type>::type::n_width;
+        static const uint_t count=boost::remove_pointer<typename boost::remove_reference<typename  boost::mpl::at_c<StoragesVector, 0 >::type>::type>::type::field_dimensions;
 	};
 
 	namespace{
@@ -190,7 +190,8 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 BOOST_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value);
-                assign_raw_data<storage_type::n_width-1>::
+		// std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
+                assign_raw_data<storage_type::field_dimensions-1>::
                     assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
                 assign_storage<ID-1, LocalArgTypes>::assign(l,r); //tail recursion
             }
@@ -207,7 +208,8 @@ namespace gridtools {
 #else
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
-                assign_raw_data<storage_type::n_width-1>::
+		// std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
+                assign_raw_data<storage_type::field_dimensions-1>::
                     assign(&l[0], boost::fusion::at_c<0>(r)->fields());
             }
         };
@@ -231,9 +233,6 @@ namespace gridtools {
             , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
 #endif
             {
-	// printf("total number of storage classes is %d\n", boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1);
-	//printf("width 1 %d\n", boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 1 >::type>::type>::type::n_width);
-	// printf("width 0 %d\n", boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0 >::type>::type>::type::n_width);
 #ifndef CXX11_ENABLED
 		for(uint_t it=0; it<N_STORAGES; ++it)
 		    m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
@@ -315,9 +314,6 @@ namespace gridtools {
         typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
         operator()(arg_type<Index, Range> const& arg) const {
 
-            // printf("value of index_type: %d \n", arg_type<Index, Range>::index_type::value);
-            // printf("data pointers: %x, %x \n", m_data_pointer[0], m_data_pointer[1]);
-            // printf("value in second storage: %f, \n", *m_data_pointer[1]);
             return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range>::index_type::value==0), LocalDomain, arg_type<Index, Range> >::value]);
         }
 
@@ -339,10 +335,7 @@ namespace gridtools {
             //if the following assertion fails you have specified a dimension for the extended storage
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
-	    // printf("index: %d\n", storage_type::get_index(arg.template n<gridtools::arg_decorator<ArgType>::extra_args>()*storage_type::super::super::n_width + arg.template n<gridtools::arg_decorator<ArgType>::extra_args>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value);
-	    // printf("extra args: %d \n", gridtools::arg_decorator<ArgType>::extra_args);
-	    // printf("the offset: %d \n",arg.template n<gridtools::arg_decorator<ArgType>::extra_args>());
-	    //printf("the stride: %d \n",storage_type::super::super::n_width);
+
 	    //for the moment the extra dimensionality of the storage is limited to max 2
 	    //(3 space dim + 2 extra= 5, which gives n_args==4)
 	    BOOST_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4);
@@ -351,8 +344,9 @@ namespace gridtools {
 					 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
 					 :
 					 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+					 + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()
 					 *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
-					 + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()) )//+ the offset of the other extra dimension
+					 ))//+ the offset of the other extra dimension
 						 + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
         }
 

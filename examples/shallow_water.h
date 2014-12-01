@@ -131,6 +131,9 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+            // x::Index i;
+            // y::Index j;
+
             eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
             eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
             eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
@@ -263,12 +266,12 @@ namespace shallow_water{
             sol_type::original_storage::pointer_type out8(sol.size());
             sol_type::original_storage::pointer_type out9(sol.size());
 
-            tmp.push_front<0>(out1, 1.);//hy
-            tmp.push_front<1>(out2, 1.);//uy
-            tmp.push_front<2>(out3, 1.);//vy
-            tmp.push_front<0>(out4, 1.);//hx
-            tmp.push_front<1>(out5, 1.);//ux
-            tmp.push_front<2>(out6, 1.);//vx
+            tmp.push_front<0>(out1, 1.1);//hy
+            tmp.push_front<1>(out2, 1.2);//uy
+            tmp.push_front<2>(out3, 1.3);//vy
+            tmp.push_front<0>(out4, 1.4);//hx
+            tmp.push_front<1>(out5, 1.5);//ux
+            tmp.push_front<2>(out6, 1.6);//vx
 
             sol.push_front<0>(out7, 1.);//h
             sol.push_front<1>(out8, 1.);//u
@@ -319,7 +322,7 @@ namespace shallow_water{
 
             shallow_water_stencil->finalize();
 
-            sol.print();
+            tmp.print();
         }
         return true;
 
