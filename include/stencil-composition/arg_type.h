@@ -291,7 +291,7 @@ namespace gridtools {
 #endif
 
 
-#if defined(__GNUC) && __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9) )
 #warning "Obsolete version of the GCC compiler"
         // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
         // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
@@ -441,6 +441,7 @@ namespace gridtools {
         // Methods to stop the recursion when dealing with extra dimensions
 	/**TODO: this should not be hardcoded*/
         static const ushort_t n_args=2;// max space dimensions
+        static const ushort_t extra_args=0;// extra dimensions
 
         template<short_t idx>
         GT_FUNCTION
@@ -480,6 +481,7 @@ namespace gridtools {
 
         typedef ArgType super;
         static const ushort_t n_args=super::n_args+1;
+        static const ushort_t extra_args=super::extra_args+1;
         typedef typename super::index_type index_type;
 
 #ifdef CXX11_ENABLED
