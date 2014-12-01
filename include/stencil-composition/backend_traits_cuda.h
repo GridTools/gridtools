@@ -8,7 +8,7 @@ namespace gridtools{
         struct run_functor_cuda;
     }
 
-    template <enumtype::backend BE, typename T, typename U, bool B, ushort_t Dim>
+    template <enumtype::backend BE, typename T, typename U, bool B, short_t SpaceDim>
     struct base_storage;
 
     template <typename U>
@@ -28,10 +28,10 @@ namespace gridtools{
     struct backend_from_id< enumtype::Cuda >
     {
 
-        template <typename ValueType, typename Layout, bool Temp=false, ushort_t Dim=3 >
+        template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            typedef storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp, Dim> > storage_t;
+            typedef storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp, SpaceDim> > storage_t;
         };
 
         template <typename Arguments>

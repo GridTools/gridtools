@@ -32,7 +32,6 @@
    or to more general cases could be implemented (probably) fairly easily, since the current interface is arbitrary in the number of dimension. The storage layout instead is limited to 2 dimensions, since
    I cannot think of use cases for which more than two dimensions would be necessary.
 
-
    NOTE: the constraint of the data fields accessed by the same storage class are the following:
    - the memory layout is one for all the data fields
    - the index used to access the storage position
@@ -60,12 +59,31 @@ NOTE CUDA: It is important when subclassing from a storage object to reimplement
 
 namespace gridtools {
 
+    struct multiplies {
+	constexpr multiplies(){}
+	template <typename  T>
+	constexpr T operator() (const T& x, const T& y) const {return x*y;}
+    };
+
+    struct add {
+	constexpr add(){}
+	template <class T>
+	constexpr T operator() (const T& x, const T& y) const {return x+y;}
+    };
+
+    template<typename Operator, typename First, typename ... Args>
+    static constexpr First accumulate(Operator op, First first, Args ... args ) {
+	return op(first,accumulate(op, args ...));
+    }
+
+    template<typename Operator, typename First>
+    static constexpr First accumulate(Operator op, First first){return first;}
+
     namespace _impl
     {
 
 /**@brief Functor updating the pointers on the device */
         struct update_pointer {
-
 #ifdef __CUDACC__
             template < typename StorageType//typename T, typename U, bool B
                        >
@@ -109,15 +127,51 @@ namespace gridtools {
 #endif
     }//namespace _debug
 
+    template<short_t ID, short_t SpaceDimensions,  typename Layout>
+    struct next_stride{
+	template<typename First, typename ... IntTypes>
+	static First constexpr apply ( First first, IntTypes ... args){
+	    return Layout::template find_val<SpaceDimensions-ID,short_t,1>(first, args...) * next_stride<ID-1, SpaceDimensions, Layout>::apply(first, args...);
+	}
+    };
+
+    template< short_t SpaceDimensions, typename Layout>
+    struct next_stride<0, SpaceDimensions, Layout>{
+	template<typename First, typename ... IntTypes>
+	static First constexpr apply(First first, IntTypes ... args){
+	    return Layout::template find_val<SpaceDimensions,short_t,1>(first, args...);
+	}
+    };
+
+    template<int_t ID, int_t SpaceDimensions,  typename Layout>
+    struct assign_strides{
+	template<typename ... UIntType>
+	static void apply(uint_t* strides, UIntType ... args){
+	    BOOST_STATIC_ASSERT(SpaceDimensions>=ID);
+	    BOOST_STATIC_ASSERT(ID>=0);
+	    strides[SpaceDimensions-ID] = next_stride<ID, SpaceDimensions, Layout>::apply(args...);
+	    assign_strides<SpaceDimensions-ID+1, SpaceDimensions, Layout>::apply(strides, args...);
+	}
+    };
+
+    template< int_t SpaceDimensions,  typename Layout>
+    struct assign_strides<0, SpaceDimensions, Layout>{
+	template<typename ... UIntType>
+	static void apply(uint_t* strides, UIntType ... args){
+	    BOOST_STATIC_ASSERT(SpaceDimensions>=0);
+	    strides[SpaceDimensions] = next_stride<0, SpaceDimensions, Layout>::apply(args...);
+	}
+    };
+
 /**
-   @biref main class for the basic storage
+   @brief main class for the basic storage
    The base_storage class contains one snapshot. It univocally defines the access pattern with three integers: the total storage sizes and the two strides different from one.
 */
     template < enumtype::backend Backend,
                typename ValueType,
                typename Layout,
                bool IsTemporary = false,
-	       ushort_t SpaceDimensions=3
+	       short_t FieldDimension=1
                >
     struct base_storage
     {
@@ -128,21 +182,77 @@ namespace gridtools {
         typedef backend_from_id <Backend> backend_traits_t;
         typedef typename backend_traits_t::template pointer<value_type>::type pointer_type;
         //typedef in order to stopo the type recursion of the derived classes
-        typedef base_storage<Backend, ValueType, Layout, IsTemporary> basic_type;
-        typedef base_storage<Backend, ValueType, Layout, IsTemporary> original_storage;
-        static const ushort_t n_width = 1;
-        static const ushort_t space_dimensions = SpaceDimensions;
+        typedef base_storage<Backend, ValueType, Layout, IsTemporary, FieldDimension> basic_type;
+        typedef base_storage<Backend, ValueType, Layout, IsTemporary, FieldDimension> original_storage;
+	static const enumtype::backend backend=Backend;
+	static const bool is_temporary = IsTemporary;
+	static const ushort_t n_width = 1;
+        static const ushort_t space_dimensions = layout::length;
+        static const short_t field_dimensions = FieldDimension;
 
     public:
-        /**@brief default constructor
+
+#ifdef CXX11_ENABLED
+        base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type init = value_type(), std::string const& s = std::string("default name") ):
+    is_set( true )
+    {
+	m_fields[0]=pointer_type(dim1*dim2*dim3);
+	// printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
+	uint_t dims[]={dim1, dim2, dim3};
+	// m_strides[0]=( dim1*dim2*dim3 );
+	// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
+	// m_strides[2]=( dims[layout::template at_<2>::value] );
+	// uint_t dims[]={ dim1, dim2, dim3 };
+
+	m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
+	m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+	m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+
+
+#ifdef _GT_RANDOM_INPUT
+                srand(12345);
+#endif
+                for (uint_t i = 0; i < size(); ++i)
+#ifdef _GT_RANDOM_INPUT
+                    (m_fields[0])[i] = init * rand();
+#else
+                (m_fields[0])[i] = init;
+#endif
+                (m_fields[0]).update_gpu();
+
+    }
+        //  /**@brief default constructor
+        //    sets all the data members given the storage dimensions
+        //  */
+	// template <class ... UIntTypes >
+        // base_storage( UIntTypes const& ... args ):
+        //     is_set( true )
+        //     // , m_name(std::string("default string"))
+        //     {
+	//     BOOST_STATIC_ASSERT(field_dimensions>0);
+	//     static const auto blabla=boost::mpl::print<static_int<field_dimensions> >();
+	//     assign_strides<(short_t)(space_dimensions-1), (short_t)(space_dimensions-1), layout>::apply(m_strides, args...);
+	// 	m_fields[0]=pointer_type(m_strides[0]);
+        //     }
+
+
+	// template <typename size>
+        // explicit base_storage(size /*dummy*/, uint_t dim1, uint_t dim2, uint_t dim3,
+	// 		      value_type init = value_type(), std::string const& s = std::string("default_name") ) : m_fields(/*new pointer_type[*/size::value/*]*/), is_set(false), m_name(s){
+	// 	boost::mpl::vector<arg ...> arg_vector;
+	// 	m_strides={accumulate(std::product(), ((layout::template at_c<boost::mpl::find<arg_vector, arg>::type::pos::value>::value < 0)?1:arg) ... )  }
+        // }//pointer is not owner of the data
+
+#else //CXX11_ENABLED
+
+	/**@brief default constructor
            sets all the data members given the storage dimensions
-           TODO: generalize and use variadic templates
          */
         base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                      value_type init = value_type(), std::string const& s = std::string("default name") ):
             m_fields(/*new pointer_type[1]*/1)//pointer is owner of the data. should not be
             , is_set( true )
-            , m_name(s)
+           , m_name(s)
             {
 		m_fields[0]=pointer_type(dim1*dim2*dim3);
                 // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
@@ -167,20 +277,20 @@ namespace gridtools {
                 (m_fields[0]).update_gpu();
             }
 
-	template <typename size>
-        explicit base_storage(size /*dummy*/, uint_t dim1, uint_t dim2, uint_t dim3,
-			      value_type init = value_type(), std::string const& s = std::string("default_name") ) : m_fields(/*new pointer_type[*/size::value/*]*/), is_set(false), m_name(s){
-	    uint_t dims[]={dim1, dim2, dim3};
-	    m_strides[0]=( dim1*dim2*dim3 );
-	    m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
-	    m_strides[2]=( dims[layout::template at_<2>::value] );
-        }//pointer is not owner of the data
-
+	// template <typename size>
+        // explicit base_storage(size /*dummy*/, uint_t dim1, uint_t dim2, uint_t dim3,
+	// 		      value_type init = value_type(), std::string const& s = std::string("default_name") ) : m_fields(/*new pointer_type[*/size::value/*]*/), is_set(false), m_name(s){
+	//     uint_t dims[]={dim1, dim2, dim3};
+	//     m_strides[0]=( dim1*dim2*dim3 );
+	//     m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
+	//     m_strides[2]=( dims[layout::template at_<2>::value] );
+        // }//pointer is not owner of the data
+#endif //CXX11_ENABLED
 	// explicit base_storage(): m_name(std::string("default name")){};
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~base_storage(){
-	    for(ushort_t i=0; i<m_fields.size(); ++i)
+	    for(ushort_t i=0; i<field_dimensions; ++i)
 		m_fields[i].free_it();
 	    // delete [] m_fields;
 	}
@@ -406,10 +516,10 @@ namespace gridtools {
 
     protected:
         bool is_set;
-        const std::string& m_name;
+	const std::string& m_name;
         // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
         uint_t m_strides[space_dimensions];
-	std::vector<pointer_type> m_fields;
+	pointer_type m_fields[field_dimensions];
     private:
 	/**@brief noone calls the empty constructor*/
 	base_storage();
@@ -476,20 +586,28 @@ namespace gridtools {
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
+// #ifdef CXX11_ENABLED
+//         //inheriting constructors
+//         using Storage::Storage;
+// #endif
+        /**@brief default constructor*/
+        explicit extend_width(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ): super( dim1, dim2, dim3 ) {
+        }
+
         /**@brief constructor given the vector dimension
 
-	   I am forced to specify the vector size with a dummy argument since there's apparently no way to call otherwise a template constructor
-	 */
-	template<typename size>
-        explicit extend_width(size dummy, uint_t dim1, uint_t dim2, uint_t dim3): super(dummy, dim1, dim2, dim3)/* , m_lru(0) */ {
-            //push_front(super::(m_fields[0]));//first solution is the initialization by default
-	    //(m_fields[0])=m_fields[0];
-        }
+	//    I am forced to specify the vector size with a dummy argument since there's apparently no way to call otherwise a template constructor
+	//  */
+	// template<typename size>
+        // explicit extend_width(size dummy, uint_t dim1, uint_t dim2, uint_t dim3): super(dummy, dim1, dim2, dim3)/* , m_lru(0) */ {
+        //     //push_front(super::(m_fields[0]));//first solution is the initialization by default
+	//     //(m_fields[0])=m_fields[0];
+        // }
 
 
-        /**@brief default constructor*/
-        explicit extend_width(uint_t dim1, uint_t dim2, uint_t dim3 ): super(static_uint<n_width>() ,  dim1, dim2, dim3 ) {
-        }
+        // /**@brief default constructor*/
+        // explicit extend_width(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, std::string const& name="default multidimensional storage" ): super( dim1, dim2, dim3, 0., name ) {
+        // }
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~extend_width(){
@@ -585,7 +703,7 @@ namespace gridtools {
 
         template <typename Stream>
         void print(Stream & stream) {
-	    for (ushort_t t=0; t<n_width; ++t)
+	    for (ushort_t t=0; t<super::field_dimensions; ++t)
 	    {
 		stream<<" Component: "<< t+1<<std::endl;
 		original_storage::print(stream, t);
@@ -606,10 +724,13 @@ namespace gridtools {
         typedef typename Storage::basic_type basic_type;
         typedef typename Storage::original_storage original_storage;
 
-#ifdef CXX11_ENABLED
-        //inheriting constructors
-        using Storage::Storage;
-#endif
+// #ifdef CXX11_ENABLED
+//         //inheriting constructors
+//         using Storage::Storage;
+// #endif
+        /**@brief default constructor*/
+        explicit extend_width(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ): Storage( dim1, dim2, dim3 ) {
+        }
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~extend_width(){
@@ -777,9 +898,12 @@ namespace gridtools {
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'
      */
-    template<typename Storage, uint_t ... Number >
-    struct extend{
-	typedef extend_dim< extend_width<Storage, Number> ... > type;
+    template< class Storage, uint_t ... Number >
+			  struct extend{
+
+	// static const auto fuck=boost::mpl::print<static_uint<accumulate(add(), Number+1 ... )>>();
+
+	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number+1)... )>, Number> ... > type;
     };
 
 
@@ -789,37 +913,37 @@ namespace gridtools {
     Partial specializations
     @{
  */
-    template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary, ushort_t Dim
+    template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary, short_t Dim
                >
     const std::string base_storage<B , ValueType, Layout, IsTemporary, Dim
                                    >::info_string=boost::lexical_cast<std::string>("-1");
 
-    template <enumtype::backend B, typename ValueType, typename Y, ushort_t Dim>
+    template <enumtype::backend B, typename ValueType, typename Y, short_t Dim>
     struct is_temporary_storage<base_storage<B,ValueType,Y,false, Dim>*& >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
     struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim>*& >
         : boost::true_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
     struct is_temporary_storage<base_storage<X,ValueType,Y,false, Dim>* >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
     struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim>* >
         : boost::true_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
     struct is_temporary_storage<base_storage<X,ValueType,Y,false, Dim> >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, ushort_t Dim>
+    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
     struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim> >
         : boost::true_type
     {};
