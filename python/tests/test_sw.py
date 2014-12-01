@@ -86,7 +86,13 @@ class ShallowWater (MultiStageStencil):
         """
         x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
         y = np.copy (x)
-        return height * np.exp (-5*(x**2 + y**2));
+        ret_value = height * np.exp (-5*(x**2 + y**2))
+        #
+        # workaround because gridtools only supports 3D data fields
+        #
+        return ret_value.reshape (ret_value.shape[0],
+                                  ret_value.shape[1], 
+                                  1)
 
 
     def kernel (self, out_H, out_U, out_V):
@@ -286,7 +292,7 @@ class ShallowWaterEquation (object):
 
 
 
-#
+
 # the shallow water stencil object
 #
 sw = ShallowWater ( )

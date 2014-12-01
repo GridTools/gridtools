@@ -4,7 +4,7 @@
 
 extern "C"
 {
-    int run (int dim1, int dim2, int dim3, 
+    int run (uint_t dim1, uint_t dim2, uint_t dim3, 
             {%- for p in numpy_arrs -%}
                 void *{{ p.name }}
                 {%- if not loop.last -%}

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <gridtools.h>
+#include <common/defs.h>
 #include <stencil-composition/backend_host.h>
 
 #include <boost/fusion/include/make_vector.hpp>
@@ -33,7 +34,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 {% endblock %}
 
 
-bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
+bool test (uint_t d1, uint_t d2, uint_t d3, void *out_buff, void *in_buff)
 {
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -59,13 +60,13 @@ bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
     // input/output data fields share their buffers with NumPy arrays
     //  
     {% for name,arg in functor.params.items ( ) if arg.input -%}
-    storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
                                  (double *) in_buff,
                                  -3.5,
                                  std::string ("{{ name }}"));
     {% endfor %}
     {% for name,arg in functor.params.items ( ) if arg.output -%}
-    storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
                                  (double *) out_buff,
                                  1.5,
                                  std::string ("{{ name }}"));
@@ -105,8 +106,8 @@ bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
     //
     //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     //
-    int di[5] = {0, 0, 0, d1, d1};
-    int dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {0, 0, 0, d1, d1};
+    uint_t dj[5] = {0, 0, 0, d2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
