@@ -140,6 +140,13 @@ class StencilSymbols (object):
             raise TypeError ("Value of temporary field '%s' should be a NumPy array" % name)
 
 
+    def is_temporary (self, name):
+        """
+        Returns True if symbol 'name' is a temporary data field.-
+        """
+        return name in self.symbols['temp_field'].keys ( )
+
+
     def items (self):
         """
         Returns all symbols in as (key, value) pairs.-
@@ -282,51 +289,53 @@ class StencilInspector (ast.NodeVisitor):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os         import write, close, path, getcwd, chdir
+        from os         import write, path, getcwd, chdir
         from ctypes     import cdll
         from tempfile   import mkdtemp, mkstemp
         from subprocess import call
 
         #
-        # create temporary files for the generated code
+        # create a temporary directory and files for the generated code
         #
-        tmp_dir = mkdtemp (prefix="__gridtools_")
-        self.lib_file = "%s/lib%s.so" % (tmp_dir,
-                                         self.name.lower ( ))
-        hdr_hdl, self.hdr_file = mkstemp (suffix=".h",
-                                          prefix="%s_" % self.name,
-                                          dir=tmp_dir)
-        cpp_hdl, self.cpp_file = mkstemp (suffix=".cpp",
-                                          prefix="%s_" % self.name,
-                                          dir=tmp_dir)
-        make_hdl, self.make_file = mkstemp (prefix="Makefile_",
-                                            dir=tmp_dir)
+        tmp_dir        = mkdtemp (prefix="__gridtools_")
+        self.lib_file  = path.join (tmp_dir, "lib%s.so" % self.name.lower ( ))
+        self.hdr_file  = path.join (tmp_dir, '%s.h' % self.name)
+        self.cpp_file  = path.join (tmp_dir, '%s.cpp' % self.name)
+        self.make_file = path.join (tmp_dir, 'Makefile')
+
         #
-        # ... and populate them
+        # ... and populate it
         #
-        print ("# Compiling C++ code in [%s] ..." % tmp_dir)
+        logging.info ("Compiling C++ code in [%s]" % tmp_dir)
         hdr_src, cpp_src, make_src = self.translate ( )
-        write (hdr_hdl, hdr_src.encode ('utf-8'))
-        write (cpp_hdl, cpp_src.encode ('utf-8'))
-        write (make_hdl, make_src.encode ('utf-8'))
-        close (hdr_hdl)
-        close (cpp_hdl)
-        close (make_hdl)
+
+        with open (self.hdr_file, 'w') as hdr_hdl:
+            hdr_hdl.write (hdr_src)
+
+        with open (self.cpp_file, 'w') as cpp_hdl:
+            cpp_hdl.write (cpp_src)
+
+        with open (self.make_file, 'w') as make_hdl:
+            make_hdl.write (make_src)
+
         #
         # before starting the compilation of the dynamic library
         #
         current_dir = getcwd ( )
         chdir (tmp_dir)
-        call (["make", "--silent", "--file=%s" % self.make_file])
+        call (["make", 
+               "--silent", 
+               "--file=%s" % self.make_file])
         chdir (current_dir)
+
         #
         # attach the library object
         #
         try:
             self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
         except OSError:
-            logging.error ("Cannot load library")
-            raise RuntimeError
+            self.lib_obj = None
+            raise RuntimeError ("Cannot load dynamically-compiled library")
 
 
     def visit_Assign (self, node):
