@@ -339,11 +339,21 @@ namespace gridtools {
             //if the following assertion fails you have specified a dimension for the extended storage
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
-
-	    //for the moment the extra dimensionality of the storage is limited to 2
+	    // printf("index: %d\n", storage_type::get_index(arg.template n<gridtools::arg_decorator<ArgType>::extra_args>()*storage_type::super::super::n_width + arg.template n<gridtools::arg_decorator<ArgType>::extra_args>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value);
+	    // printf("extra args: %d \n", gridtools::arg_decorator<ArgType>::extra_args);
+	    // printf("the offset: %d \n",arg.template n<gridtools::arg_decorator<ArgType>::extra_args>());
+	    //printf("the stride: %d \n",storage_type::super::super::n_width);
+	    //for the moment the extra dimensionality of the storage is limited to max 2
 	    //(3 space dim + 2 extra= 5, which gives n_args==4)
-	    BOOST_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args==4);
-            return get_value(arg, m_data_pointer[storage_type::get_index(arg.template n<gridtools::arg_decorator<ArgType>::n_args-3>()*storage_type::super::super::n_width + arg.template n<gridtools::arg_decorator<ArgType>::n_args-2>()) + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+	    BOOST_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4);
+            return get_value(arg, m_data_pointer[storage_type::get_index(
+				     (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if
+					 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+					 :
+					 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+					 *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
+					 + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()) )//+ the offset of the other extra dimension
+						 + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
         }
 
 #ifdef CXX11_ENABLED

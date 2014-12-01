@@ -96,8 +96,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     //typedef storage_type::basic_type integrator_type;
     /* typedef extend<storage_type::basic_type, 2> integrator_type; */
 #ifdef CXX11_ENABLED
-    typedef extend_width<storage_type::basic_type, 0>  extended_type;
-    typedef extend_dim<extended_type, extended_type>  integrator_type;
+    // typedef extend_width<storage_type::basic_type, 0>  extended_type;
+    // typedef extend_dim<extended_type, extended_type>  integrator_type;
+    typedef extend<storage_type::basic_type, 0, 0>::type  integrator_type;
 #endif
     //out.print();
 
@@ -118,8 +119,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // Definition of the actual data fields that are used for input/output
 #ifdef CXX11_ENABLED
-    integrator_type in(d1,d2,d3,-3.5);
-    integrator_type::original_storage  out(d1,d2,d3,1.5);
+    integrator_type in(d1,d2,d3);
+    integrator_type::original_storage::pointer_type  init1(d1*d2*d3);
+    integrator_type::original_storage::pointer_type  init2(d1*d2*d3);
+    in.push_front<0>(init1, 1.5);
+    in.push_front<1>(init2, -1.5);
 #else
     storage_type in(d1,d2,d3,-3.5);
     storage_type out(d1,d2,d3,1.5);
@@ -130,15 +134,12 @@ bool test(uint_t x, uint_t y, uint_t z) {
             for(uint_t k=0; k<d3; ++k)
             {
 #ifdef CXX11_ENABLED
-                out(i, j, k)=i+j+k;
+                in(i, j, k)=i+j+k;
 #else
                 in(i, j, k)=i+j+k;
 #endif
             }
 
-#ifdef CXX11_ENABLED
-    in.push_front(out.m_data);
-#endif
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -251,9 +252,9 @@ PAPI_stop(event_set, values);
 //#ifdef CUDA_EXAMPLE
     //out.data().update_cpu();
 //#endif
-#define NX 511
-#define NY 511
-#define NZ 59
+#define NX 5
+#define NY 5
+#define NZ 5
 
 #ifdef USE_PAPI_WRAP
     pw_print();
