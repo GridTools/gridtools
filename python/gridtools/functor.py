@@ -153,8 +153,8 @@ class FunctorBody (ast.NodeVisitor):
             # check if subscripting any known symbols
             #
             if isinstance (node.value, ast.Attribute):
-                name = '%s.%s' % (node.value.value.id,
-                                  node.value.attr)
+                name = '%s' % node.value.attr
+
                 #
                 # only good for NumPy arrays
                 #

@@ -94,7 +94,7 @@ namespace gridtools {
 
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type
+        static /* constexpr */ typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
@@ -103,7 +103,7 @@ namespace gridtools {
 
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type
+        static /* constexpr */ typename _impl::first_type<Indices...>::type
         find_val(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};

@@ -67,6 +67,13 @@ class StencilSymbols (object):
             self.symbols[group][name] = value
 
 
+    def _build_functor_name (self, name):
+        """
+        Returns a valid functor name from 'name'.-
+        """
+        return '%s_functor' % name.lower ( )
+
+
     def add_alias (self, name, value):
         """
         Adds an alias to the stencil's symbols:
@@ -106,18 +113,20 @@ class StencilSymbols (object):
         self._add (name, value, 'constant')
 
 
-    def add_functor (self, name):
+    def add_functor (self, base_name):
         """
-        Returns a new dictionary for keeping the functor's parameters:
+        Returns the name of this functor and a new dictionary for keeping
+        the its parameters:
 
-            name    a unique name identifying the functor.-
+            base_name    the base to build a unique name for the functor.-
         """
+        name = self._build_functor_name (base_name)
         if name in self.groups:
             raise NameError ("Functor '%s' already exists in symbol table.-")
         else:
             self.groups.add (name)
             self.symbols[name] = dict ( )
-            return self.symbols[name]
+            return (name, self.symbols[name])
 
 
     def add_temporary (self, name, value):
@@ -138,6 +147,25 @@ class StencilSymbols (object):
                                                                   value.shape))
         else:
             raise TypeError ("Value of temporary field '%s' should be a NumPy array" % name)
+
+
+    def is_parameter (self, name, functor=None):
+        """
+        Returns True is symbol 'name' is a functor parameter of 'functor'.
+        If 'functor' is None, all registered functors are checked.-
+        """
+        if functor is not None:
+            func_name = self._build_functor_name (functor)
+            if func_name in self.symbols.keys ( ):
+                return name in self.symbols[func_name].keys ( )
+            else:
+                raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, func_name))
+        else:
+            functors = [k for k in self.symbols.keys ( ) if k.endswith ('_functor')]
+            for f in functors:
+                if name in self.symbols[f].keys ( ):
+                    return True
+            return False
 
 
     def is_temporary (self, name):
@@ -434,17 +462,13 @@ class StencilInspector (ast.NodeVisitor):
             #
             if node.returns is None:
                 #
-                # a unique name for this functor
-                #
-                name = "%s_functor" % node.name
-                #
                 # the functor parameters will be kept here
                 #
-                funct_params = self.symbols.add_functor (name)
+                (funct_name, funct_params) = self.symbols.add_functor (node.name)
                 #
                 # create the functor object and start analyzing it
                 #
-                funct = StencilFunctor ("%s_functor" % node.name,
+                funct = StencilFunctor (funct_name,
                                         node,
                                         funct_params,
                                         self.symbols)
@@ -543,7 +567,11 @@ class MultiStageStencil ( ):
             # as a temporary data field
             #
             del symbols[k]
-            symbols.add_temporary (k, v)
+            #
+            # remove the 'self' from the variable name
+            #
+            name = k.split ('.')[1]
+            symbols.add_temporary (name, v)
 
         #
         # print the discovered symbols

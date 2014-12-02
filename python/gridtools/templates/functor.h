@@ -10,15 +10,16 @@
 struct {{ functor.name }}
 {
     //
-    // the number of arguments the function receives in Python,
-    // excluding the 'self' parameter
+    // the number of arguments of this functor 
     //
     static const int n_args = {{ functor.params|length }};
 
+    {% for name, arg in functor.params.items ( ) if arg.input -%}
+        {% if loop.first -%}
     //
     // the input parameters of the stencil should be 'const'
     //
-    {% for name, arg in functor.params.items ( ) if arg.input -%}
+        {% endif -%}
     typedef const arg_type<{{ arg.id }}> {{ name }};
     {% endfor %}
 
