@@ -35,16 +35,12 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 
 bool test (uint_t d1, uint_t d2, uint_t d3,
-    {## 
-     ## Pointers to NumPy arrays passed from Python 
-     ##}
-    {%- for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_parameter (name) or
-                                                     stencil.symbols.is_temporary (name) -%}
-        void * {{ name }}_buff
-        {%- if not loop.last -%}
-            ,
-        {%- endif -%}
-    {%- endfor -%})
+           {%- for arg in all_params -%}
+           void *{{ arg.name }}_buff
+               {%- if not loop.last -%}
+               ,
+               {%- endif -%}
+           {%- endfor -%})
 {
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -65,53 +61,44 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
+
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
     {## 
-     ## Declaration of temporary data fields
+     ## Declaration of the temporary-data-field type
      ##}
-    {% for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_temporary (name) %}
-        {% if loop.first %}
-    //
-    // temporary data fields share their buffers with NumPy arrays
-    //
-        {% endif -%}
-    storage_type {{ name }} ({{ arg.shape|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (double *) {{ name }}_buff,
-                                 0.0,
-                                 std::string ("{{ name }}"));
-    {% endfor %}
+    {% if temp_params %}
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    {% endif %}
 
 
     {## 
      ## Declaration of input data fields
      ##}
-    {% for name,arg in functor.params.items ( ) if arg.input -%}
+    {% for arg in functor_params if arg.input -%}
         {% if loop.first %}
     //
     // input data fields share their buffers with NumPy arrays
     //  
-        {% endif %}
-    storage_type {{ name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (double *) {{ name }}_buff,
-                                 1.0,
-                                 std::string ("{{ name }}"));
+        {% endif -%}
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
+                                 (double *) {{ arg.name }}_buff,
+                                 std::string ("{{ arg.name }}"));
     {% endfor %}
 
 
     {## 
      ## Declaration of output data fields
      ##}
-    {% for name,arg in functor.params.items ( ) if arg.output -%}
+    {% for arg in functor_params if arg.output -%}
         {% if loop.first %}
     //
     // output data fields also share their buffers with NumPy arrays
     //  
         {% endif -%}
-    storage_type {{ name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (double *) {{ name }}_buff,
-                                 2.0,
-                                 std::string ("{{ name }}"));
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
+                                 (double *) {{ arg.name }}_buff,
+                                 std::string ("{{ arg.name }}"));
     {% endfor %}
 
     // 
@@ -119,15 +106,17 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // parameters, especially the non-temporary ones, during the construction
     // of the domain
     //
-    {% for name,arg in functor.params.items ( ) -%}
+    {% for arg in temp_params -%}
+    typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
+    {% endfor -%}
+    {% for arg in functor_params -%}
     typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
     {% endfor -%}
 
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<{{ functor.params.keys ( )|join_with_prefix("p_")|join(',') }}> arg_type_list;
-
+    typedef boost::mpl::vector<{{ all_params|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list; 
 
     //
     // construction of the domain.
@@ -138,8 +127,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // order in which they appear scanning the placeholders in order. 
     // (I don't particularly like this)
     //
-    gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector ({{ functor.params.keys ( )|join_with_prefix('&')|join(',') }}));
+    gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
+        {{- functor_params|join_with_prefix('&', attribute='name')|join(', ') }}));
 
     //
     // definition of the physical dimensions of the problem.
@@ -170,7 +159,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
             gridtools::make_mss
             (
                 execute<forward>(),
-                gridtools::make_esf<{{ functor.name }}>({{ functor.params.keys ( )|join_with_prefix("p_")|join('(),') }}())
+                gridtools::make_esf<{{ functor.name }}>(
+                   {{- all_params|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
                 ),
             domain, coords
             );
@@ -183,23 +173,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     comp_{{ stencil.name|lower }}->run();
     comp_{{ stencil.name|lower }}->finalize();
 
-{% for name,arg in functor.params.items ( ) if arg.output %}
-#ifdef CUDA_EXAMPLE
-    {{ name }}.m_data.update_cpu();
-#endif
-
-    {{ name }}.print_value(0,0,0);
-    {{ name }}.print_value(511,511,0);
-    {{ name }}.print_value(511,0,59);
-    {{ name }}.print_value(0,511,59);
-    {{ name }}.print_value(511,511,59);
-
-    return  {{ name }}(0,0,0)==0. &&
-            {{ name }}(511,511,0)==1022. && 
-            {{ name }}(511,0,59)==570. && 
-            {{ name }}(0,511,59)==570. &&
-            {{ name }}(511,511,59)==1081.;
-{% endfor %}
+    return EXIT_SUCCESS;
 }
 
 } // namespace {{ stencil.name|lower }}

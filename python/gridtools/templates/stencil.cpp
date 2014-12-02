@@ -22,7 +22,7 @@ extern "C"
                                                  ##}
                                                 {%- for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_parameter (name) or
                                                                                                  stencil.symbols.is_temporary (name) -%}
-                                                    void * {{ name }}_buff
+                                                    {{ name }}_buff
                                                     {%- if not loop.last -%}
                                                         ,
                                                     {%- endif -%}

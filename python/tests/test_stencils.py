@@ -66,6 +66,8 @@ class CopyStencilTest (unittest.TestCase):
             insp = StencilInspector (KernelFunctionDoesNotReturnNone)
             insp.analyze ( )
         """
+        pass
+
 
     def test_only_keyword_arguments (self):
         """
@@ -91,8 +93,7 @@ class CopyStencilTest (unittest.TestCase):
         copy.run (out_data=output_field,
                   in_data=input_field)
         self.assertTrue (np.array_equal (input_field, 
-                                         output_field),
-                         "Arrays should be equal")
+                                         output_field))
 
 
     def test_native_execution (self):
@@ -102,7 +103,8 @@ class CopyStencilTest (unittest.TestCase):
         call to the 'backend' attribute.
         It also checks that the stencil results are correct after execution.-
         """
-        domain = (512, 512, 60)
+        #domain = (512, 512, 60)
+        domain = (2,2,2)
         output_field = np.zeros (domain)
         input_field = np.random.rand (*domain)
         copy = Copy ( )

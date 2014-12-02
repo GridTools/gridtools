@@ -12,28 +12,26 @@ struct {{ functor.name }}
     //
     // the number of arguments of this functor 
     //
-    static const int n_args = {{ functor.params|length }};
-
-    {% for name, arg in functor.params.items ( ) if arg.input -%}
-        {% if loop.first -%}
-    //
-    // the input parameters of the stencil should be 'const'
-    //
-        {% endif -%}
-    typedef const arg_type<{{ arg.id }}> {{ name }};
-    {% endfor %}
+    static const int n_args = {{ all_params|length }};
 
     //
-    // the output parameters of the stencil
+    // the input and output parameters of this functor
+    // (input parameters are always 'const')
     //
-    {% for name, arg in functor.params.items ( ) if arg.output -%}
-    typedef arg_type<{{ arg.id }}> {{ name }};
+    {% for arg in all_params %}
+        {%- if arg.input -%}
+            typedef const arg_type<{{ arg.id }}> {{ arg.name }};
+        {% else %}
+            typedef arg_type<{{ arg.id }}> {{ arg.name }};
+        {%- endif -%}
     {% endfor %}
+
 
     //
     // the complete list of arguments of this functor
     //
-    typedef boost::mpl::vector<{{ functor.params.values ( )|sort(attribute='id')|join(',', attribute='name') }}> arg_list;
+    typedef boost::mpl::vector<{{ all_params|join(',', 
+                                                  attribute='name') }}> arg_list;
 
     //
     // the operation of this functor
