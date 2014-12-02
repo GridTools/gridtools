@@ -188,12 +188,12 @@ namespace shallow_water{
 
             eval(sol(comp(1))) =  eval(sol(comp(1)) -
                                        ((ux(j-1)^2)               / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
-                                        ((ux(i-1,j-1)^2)           / hx(i-1, j-1) +(hx(i-1,j-1) ^2)*((g()/2.))))*((dt()/dx())) -
-                                       (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-                                        vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1) + hy(i-1, j-1)*((g()/2.)))    *((dt()/dy())));
+                                       ((ux(i-1,j-1)^2)           / hx(i-1, j-1) +(hx(i-1,j-1) ^2)*((g()/2.))))*((dt()/dx())) -
+                                        (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
+                                         vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1) + hy(i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
             eval(sol(comp(2))) = eval(sol(comp(2)) -
-                                      (ux(j-1)    *vx(j-1)       /hy(j-1) -
+                                       (ux(j-1)    *vx(j-1)       /hy(j-1) -
                                        (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
                                       ((vy(i-1)^2)                /hy(i-1)      +(hy(i-1)     ^2)*((g()/2.)) -
                                        (vy(i-1, j-1)^2)           /hy(i-1, j-1) +(hy(i-1, j-1)^2)*((g()/2.))   )*((dt()/dy())));
@@ -241,10 +241,10 @@ namespace shallow_water{
             //                   strides xy x 1
             typedef gridtools::layout_map<2,1,0> layout_t;
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-	    typedef tmp_type::original_storage::pointer_type ptr;
 
 	    typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
+	    typedef tmp_type::original_storage::pointer_type ptr;
 
             // Definition of placeholders. The order of them reflect the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain

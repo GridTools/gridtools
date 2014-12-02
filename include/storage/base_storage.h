@@ -251,8 +251,7 @@ namespace gridtools {
          */
         base_storage(uint_t dim1, uint_t dim2, uint_t dim3,
                      value_type init = value_type(), std::string const& s = std::string("default name") ):
-            m_fields(/*new pointer_type[1]*/1)//pointer is owner of the data. should not be
-            , is_set( true )
+            is_set( true )
            , m_name(s)
             {
 		m_fields[0]=pointer_type(dim1*dim2*dim3);
@@ -900,16 +899,19 @@ namespace gridtools {
 	void set( pointer_type& field)
 	    {
 		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
-		super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=ptr;
+		super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
 	    }
 
 
-	template<short_t field_dim, short_t snapshot>
-	void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
-	    {
-		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
-		super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=ptr;
-	    }
+	// template<short_t field_dim, short_t snapshot>
+	// void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
+	//     {
+	// 	//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
+	// 	for (uint_t i=0; i<dims<0>(); ++i)
+	// 	    for (uint_t j=0; j<dims<1>(); ++j)
+	// 		for (uint_t k=0; k<dims<2>(); ++k)
+	// 		    super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=lambda(i, j, k);
+	//     }
 
         //the storage takes ownership over all the data pointers?
         template<uint_t dimension=1>

@@ -375,12 +375,6 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             static const short_t value = (_value<0)?DefaultVal:_value;
         };
 
-        template <unsigned int I, int DefaultVal>
-        struct at_default {
-            static const int _value = boost::mpl::at_c<t, I >::type::value;
-            static const int value = (_value<0)?DefaultVal:_value;
-        };
-
         // Gives the position at which I is.
         template <ushort_t I>
         struct pos_ {
