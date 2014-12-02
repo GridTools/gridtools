@@ -310,7 +310,7 @@ PAPI_stop(event_set, values);
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
 
 #ifndef SILENT_RUN

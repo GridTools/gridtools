@@ -115,10 +115,10 @@ namespace gridtools {
             }
 
 #ifdef __CUDACC__
-            template < typename T, typename U, bool B
+            template < typename T, typename U, bool B, ushort_t FieldsDimensions
                        >
             GT_FUNCTION_WARNING
-            void operator()(base_storage<enumtype::Cuda,T,U,B
+            void operator()(base_storage<enumtype::Cuda,T,U,B, FieldsDimensions
                             > *& s) const {
                 printf("CIAO POINTER %X\n", s);
             }
@@ -256,7 +256,7 @@ namespace gridtools {
             {
 		m_fields[0]=pointer_type(dim1*dim2*dim3);
                 // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
-		uint_t dims[]={dim1, dim2, dim3};
+		// uint_t dims[]={dim1, dim2, dim3};
 		// m_strides[0]=( dim1*dim2*dim3 );
 		// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
 		// m_strides[2]=( dims[layout::template at_<2>::value] );
@@ -307,19 +307,19 @@ namespace gridtools {
 	    // delete [] m_fields;
 	}
 
-        // /**@brief device copy constructor*/
-        // template<typename T>
-        // __device__
-        // base_storage(T const& other)
-        //     :
-        //     m_fields(other.m_fields)
-        //     , is_set(other.is_set)
-        //     , m_name(other.m_name)
-        //     {
-        //         m_strides[0] = other.size();
-        //         m_strides[1] = other.strides(1);
-        //         m_strides[2] = other.strides(2);
-        //     }
+        /**@brief device copy constructor*/
+        template<typename T>
+        __device__
+        base_storage(T const& other)
+            :
+            m_fields(other.m_fields)
+            , is_set(other.is_set)
+            , m_name(other.m_name)
+            {
+                m_strides[0] = other.size();
+                m_strides[1] = other.strides(1);
+                m_strides[2] = other.strides(2);
+            }
 
         /** @brief copies the data field to the GPU */
         GT_FUNCTION_WARNING
@@ -368,7 +368,9 @@ namespace gridtools {
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()(uint_t i, uint_t j, uint_t k) {
-            backend_traits_t::assertion(_index(i,j,k) < size());
+#ifdef __CUDACC__
+            assert(_index(i,j,k) < size());
+#endif
             return (m_fields[0])[_index(i,j,k)];
         }
 
@@ -376,7 +378,9 @@ namespace gridtools {
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
-            backend_traits_t::assertion(_index(i,j,k) < size());
+#ifdef __CUDACC__
+            assert(_index(i,j,k) < size());
+#endif
             return (m_fields[0])[_index(i,j,k)];
         }
 
@@ -475,28 +479,44 @@ namespace gridtools {
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment(uint_t& /*block*/, uint_t* index){
-            *index+=strides<Coordinate>(m_strides);
+	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+	    if(layout::template pos_<Coordinate>::value>=0)
+	    {
+		*index+=strides<Coordinate>(m_strides);
+	    }
         }
 
         /** @brief method to decrement the memory address index by moving backward one step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
         void decrement(uint_t& /*block*/, uint_t* index){
-            *index-=strides<Coordinate>(m_strides);
+	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+	    if(layout::template pos_<Coordinate>::value>=0)
+	    {
+		*index-=strides<Coordinate>(m_strides);
+	    }
         }
 
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment(uint_t const& dimension, uint_t& /*block*/, uint_t* index){
-            *index+=strides<Coordinate>(m_strides)*dimension;
+	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+	    if(layout::template pos_<Coordinate>::value>=0)
+	    {
+		*index += strides<Coordinate>(m_strides)*dimension;
+	    }
         }
 
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
         void decrement(uint_t dimension, uint_t& /*block*/, uint_t* index){
-            *index-=strides<Coordinate>(m_strides)*dimension;
+	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+	    if(layout::template pos_<Coordinate>::value>=0)
+	    {
+		*index-=strides<Coordinate>(m_strides)*dimension;
+	    }
         }
 
         /**@brief returns the data field*/
@@ -535,9 +555,6 @@ namespace gridtools {
     private:
 	/**@brief noone calls the empty constructor*/
 	base_storage();
-
-	template<typename T>
-        base_storage(T const& other);
 
     };
 
@@ -626,9 +643,11 @@ namespace gridtools {
 	}
 
 	using super::m_fields;
+
         /**@brief device copy constructor*/
+	template <typename T>
         __device__
-        extend_width(extend_width const& other)
+        extend_width(T const& other)
             : super(other)
             {
                 assert(n_width==other.n_width);
@@ -935,7 +954,7 @@ namespace gridtools {
 
 	// static const auto fuck=boost::mpl::print<static_uint<accumulate(add(), Number+1 ... )>>();
 
-	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number+1)... )>, Number> ... > type;
+	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number+1) ... )>, Number> ... > type;
     };
 
 
