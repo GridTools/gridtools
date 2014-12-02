@@ -314,9 +314,9 @@ namespace gridtools {
 
             template <typename MplVector>
             void operator()(MplVector const&) const {
-                std::cout << "Independent" << std::endl;
-                //gridtools::for_each<MplVector>(print__(std::string("    ")));
-                std::cout << "End Independent" << std::endl;
+                // std::cout << "Independent" << std::endl;
+                // //gridtools::for_each<MplVector>(print__(std::string("    ")));
+                // std::cout << "End Independent" << std::endl;
             }
 
             template <typename MplVector>

@@ -59,7 +59,9 @@ struct wrap_pointer{
   GT_FUNCTION
   virtual ~wrap_pointer(){
 #ifndef NDEBUG
+#ifndef __CUDACC__
       std::cout<<"deleting wrap pointer "<<this<<std::endl;
+#endif
 #endif
       //free_it();
   }
@@ -89,7 +91,9 @@ struct wrap_pointer{
 	if(cpu_p)
 	{
 #ifndef NDEBUG
+#ifndef __CUDACC__
 	    std::cout<<"deleting data pointer "<<cpu_p<<std::endl;
+#endif
 #endif
 	    delete [] cpu_p  ;
 	    cpu_p=NULL;

@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
 
     //    in.print();

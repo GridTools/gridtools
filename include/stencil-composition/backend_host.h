@@ -93,9 +93,9 @@ namespace gridtools {
                              ++j)
                             {
 			      // for_each<local_domain.local_args>(increment<1>());
-			      #ifndef NDEBUG
-			      std::cout << "Move to : " << i << ", " << j << std::endl;
-			      #endif
+//#ifndef NDEBUG
+				//std::cout << "Move to : " << i << ", " << j << std::endl;
+//#endif
 
 			      /** setting an iterator to the address of the current i,j entry to be accessed */
 			      typedef typename boost::mpl::front<loop_intervals_t>::type interval;

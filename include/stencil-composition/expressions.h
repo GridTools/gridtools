@@ -113,10 +113,6 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp<ArgType1, ArgType2 >    operator ^ (ArgType1 arg1, ArgType2 arg2){return expr_exp<ArgType1, ArgType2 >(arg1, arg2);}
 
-	namespace enumtype{
-        template <ushort_t Coordinate>
-        struct Dimension;
-	}
 
 	template<typename Left>
 	GT_FUNCTION

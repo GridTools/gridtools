@@ -59,9 +59,5 @@ namespace gridtools{
             typedef hybrid_pointer<T> type;
         };
 
-        GT_FUNCTION
-        static void assertion(bool const condition)  {
-        }
-
     };
 }//namespace gridtools

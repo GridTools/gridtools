@@ -537,7 +537,10 @@ namespace gridtools {
 	template<short_t idx>
 	GT_FUNCTION
 	short_t n() const {//recursively travel the list of offsets
+	    //the following assert cannot be compile time, since a version with idx=-1 may indeed be compiled (at the end of the template recursion), but should never be executed
+#ifndef __CUDACC__
 	    assert(idx>0);
+#endif
 	    //BOOST_STATIC_ASSERT( index>0 );
 	    // printf("index to the n method:%d \n", index);
 	    BOOST_STATIC_ASSERT( idx<=n_args );
