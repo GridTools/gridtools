@@ -35,7 +35,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 
 bool test (uint_t d1, uint_t d2, uint_t d3,
-           {%- for arg in all_params -%}
+           {%- for arg in functor_params -%}
            void *{{ arg.name }}_buff
                {%- if not loop.last -%}
                ,
@@ -68,7 +68,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
      ## Declaration of the temporary-data-field type
      ##}
     {% if temp_params %}
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
     {% endif %}
 
 
@@ -116,7 +116,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<{{ all_params|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list; 
+    typedef boost::mpl::vector<
+        {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list; 
 
     //
     // construction of the domain.
@@ -160,7 +161,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
             (
                 execute<forward>(),
                 gridtools::make_esf<{{ functor.name }}>(
-                   {{- all_params|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
+                   {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
                 ),
             domain, coords
             );

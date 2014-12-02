@@ -18,7 +18,7 @@ struct {{ functor.name }}
     // the input and output parameters of this functor
     // (input parameters are always 'const')
     //
-    {% for arg in all_params %}
+    {% for arg in all_params|sort(attribute='id') %}
         {%- if arg.input -%}
             typedef const arg_type<{{ arg.id }}> {{ arg.name }};
         {% else %}
@@ -30,8 +30,8 @@ struct {{ functor.name }}
     //
     // the complete list of arguments of this functor
     //
-    typedef boost::mpl::vector<{{ all_params|join(',', 
-                                                  attribute='name') }}> arg_list;
+    typedef boost::mpl::vector<{{ all_params|sort(attribute='id')|
+                                  join(',', attribute='name') }}> arg_list;
 
     //
     // the operation of this functor
