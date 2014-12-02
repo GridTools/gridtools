@@ -241,6 +241,7 @@ namespace shallow_water{
             //                   strides xy x 1
             typedef gridtools::layout_map<2,1,0> layout_t;
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+	    typedef tmp_type::original_storage::pointer_type ptr;
 
 	    typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
@@ -254,24 +255,24 @@ namespace shallow_water{
 
             // // Definition of the actual data fields that are used for input/output
             tmp_type tmp(d1,d2,d3);
-            tmp_type::original_storage::pointer_type out1(tmp.size());
-            tmp_type::original_storage::pointer_type out2(tmp.size());
-            tmp_type::original_storage::pointer_type out3(tmp.size());
-            tmp_type::original_storage::pointer_type out4(tmp.size());
-            tmp_type::original_storage::pointer_type out5(tmp.size());
-            tmp_type::original_storage::pointer_type out6(tmp.size());
+            ptr out1(tmp.size());
+            ptr out2(tmp.size());
+            ptr out3(tmp.size());
+            ptr out4(tmp.size());
+            ptr out5(tmp.size());
+            ptr out6(tmp.size());
 
             sol_type sol(d1,d2,d3);
-            sol_type::original_storage::pointer_type out7(sol.size());
-            sol_type::original_storage::pointer_type out8(sol.size());
-            sol_type::original_storage::pointer_type out9(sol.size());
+            ptr out7(sol.size());
+            ptr out8(sol.size());
+            ptr out9(sol.size());
 
-            tmp.push_front<0>(out1, 1.1);//hy
-            tmp.push_front<1>(out2, 1.2);//uy
-            tmp.push_front<2>(out3, 1.3);//vy
-            tmp.push_front<0>(out4, 1.4);//hx
-            tmp.push_front<1>(out5, 1.5);//ux
-            tmp.push_front<2>(out6, 1.6);//vx
+	    tmp.set<0,0>(out1);
+	    tmp.set<1,0>(out2);
+	    tmp.set<2,0>(out3);
+	    tmp.set<0,1>(out4);
+	    tmp.set<1,1>(out5);
+	    tmp.set<2,1>(out6);
 
             sol.push_front<0>(out7, 1.);//h
             sol.push_front<1>(out8, 1.);//u

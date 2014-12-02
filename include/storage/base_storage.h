@@ -791,8 +791,8 @@ namespace gridtools {
         static const uint_t n_width=0;
         static const uint_t n_dimensions= 0 ;
         //typedef extend_width<First, n_fields>  type;
-        typedef int type;
-        typedef int super;
+        typedef struct error_index_too_large1{} type;
+        typedef struct error_index_too_large2{} super;
     };
 
 /**@brief template specialization at the end of the recustion.*/
@@ -808,8 +808,10 @@ namespace gridtools {
      };
 
     /**@brief metafunction to access a type-stack at a given position, numeration from 0*/
-    template<uint_t ID, typename Sequence>
+    template<int_t ID, typename Sequence>
     struct access{
+	BOOST_STATIC_ASSERT(ID>0);
+	//BOOST_STATIC_ASSERT(ID<=Sequence::n_fields);
         typedef typename access<ID-1, typename Sequence::super>::type type;
     };
 
@@ -893,6 +895,21 @@ namespace gridtools {
 	     	field[i]=lambda(coord_from_index<super::layout::template pos_<0>::value >::apply(i, super::m_strides), coord_from_index<super::layout::template pos_<1>::value >::apply(i,super::m_strides), coord_from_index<super::layout::template pos_<2>::value >::apply(i,super::m_strides));
 	    push_front<dimension>(field);
 	}
+
+	template<short_t field_dim, short_t snapshot>
+	void set( pointer_type& field)
+	    {
+		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
+		super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=ptr;
+	    }
+
+
+	template<short_t field_dim, short_t snapshot>
+	void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
+	    {
+		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
+		super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=ptr;
+	    }
 
         //the storage takes ownership over all the data pointers?
         template<uint_t dimension=1>
