@@ -239,7 +239,7 @@ namespace shallow_water{
             typedef gridtools::layout_map<2,1,0> layout_t;
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
-            typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
+	    typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
 
             // Definition of placeholders. The order of them reflect the order the user will deal with them

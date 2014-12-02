@@ -1,22 +1,30 @@
 #include "{{ stencil.hdr_file }}"
 
-{% set numpy_arrs = functor.params.values ( )|sort(attribute='id') %}
+
 
 extern "C"
 {
     int run (uint_t dim1, uint_t dim2, uint_t dim3, 
-            {%- for p in numpy_arrs -%}
-                void *{{ p.name }}
+            {## 
+             ## Pointers to NumPy arrays passed from Python 
+             ##}
+            {%- for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_parameter (name) or
+                                                             stencil.symbols.is_temporary (name) -%}
+                void * {{ name }}_buff
                 {%- if not loop.last -%}
-                , 
+                    ,
                 {%- endif -%}
             {%- endfor -%})
     {
         return !{{ stencil.name|lower }}::test (dim1, dim2, dim3,
-                                                {%- for p in numpy_arrs -%}
-                                                    {{ p.name }}
+                                                {## 
+                                                 ## Pointers to NumPy arrays passed from Python 
+                                                 ##}
+                                                {%- for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_parameter (name) or
+                                                                                                 stencil.symbols.is_temporary (name) -%}
+                                                    void * {{ name }}_buff
                                                     {%- if not loop.last -%}
-                                                    , 
+                                                        ,
                                                     {%- endif -%}
                                                 {%- endfor -%});
     }
