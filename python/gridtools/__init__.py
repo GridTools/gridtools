@@ -191,7 +191,8 @@ class StencilSymbols (object):
 
         for g in self.groups:
             sorted_symbols = sorted (self.symbols[g].items ( ),
-                                     key=operator.itemgetter (0))
+                                     key=operator.itemgetter (0),
+                                     reverse=True)
             for k,v in sorted_symbols:
                 yield (k, v)
 
@@ -334,7 +335,7 @@ class StencilInspector (ast.NodeVisitor):
                                temp_params=temp_params,
                                functor_params=functor_params),
                 cpp.render  (stencil=self,
-                             functor=self.functors[0]),
+                             functor_params=functor_params),
                 make.render (stencil=self))
 
 

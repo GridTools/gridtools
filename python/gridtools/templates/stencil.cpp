@@ -8,9 +8,8 @@ extern "C"
             {## 
              ## Pointers to NumPy arrays passed from Python 
              ##}
-            {%- for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_parameter (name) or
-                                                             stencil.symbols.is_temporary (name) -%}
-                void * {{ name }}_buff
+            {%- for arg in functor_params -%}
+                void *{{ arg.name }}_buff
                 {%- if not loop.last -%}
                     ,
                 {%- endif -%}
@@ -20,9 +19,8 @@ extern "C"
                                                 {## 
                                                  ## Pointers to NumPy arrays passed from Python 
                                                  ##}
-                                                {%- for name,arg in stencil.symbols.items ( ) if stencil.symbols.is_parameter (name) or
-                                                                                                 stencil.symbols.is_temporary (name) -%}
-                                                    {{ name }}_buff
+                                                {%- for arg in functor_params -%}
+                                                    {{ arg.name }}_buff
                                                     {%- if not loop.last -%}
                                                         ,
                                                     {%- endif -%}
