@@ -4,7 +4,7 @@
    @brief global definitions
 */
 
-#define GT_MAX_ARGS 8
+#define GT_MAX_ARGS 10
 #define GT_MAX_INDEPENDENT 3
 
 #ifdef __GNUC__
