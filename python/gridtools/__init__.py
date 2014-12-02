@@ -6,7 +6,7 @@ import warnings
 
 import numpy as np
 
-from gridtools.functor import StencilFunctor
+from gridtools.functor import StencilFunctor, FunctorParameter
 
 
 
@@ -19,14 +19,14 @@ class StencilSymbols (object):
         #
         # we categorize all symbols in these groups
         #
-        self.groups = set (('constant',    # anything replaceable at runtime;
-                            'alias',       # variable aliasing;
-                            'temp_field',  # temporary data fields;
+        self.groups = set (('_constant',    # a value, maybe available at runtime;
+                            '_alias',       # variable aliasing;
+                            '_temp_field',  # temporary data fields;
                            ))              # functor parameters are identified
-                                           # by the functor's name 
+                                           # by the functor's name and added later
         #
         # initialize the container (k=group, v=dict), where
-        # dict is k=symbol name, v=symbol value
+        # dict contains k=symbol name, v=symbol value
         #
         self.symbols = dict ( )
         for g in self.groups:
@@ -67,13 +67,6 @@ class StencilSymbols (object):
             self.symbols[group][name] = value
 
 
-    def _build_functor_name (self, name):
-        """
-        Returns a valid functor name from 'name'.-
-        """
-        return '%s_functor' % name.lower ( )
-
-
     def add_alias (self, name, value):
         """
         Adds an alias to the stencil's symbols:
@@ -83,7 +76,7 @@ class StencilSymbols (object):
         """
         logging.info ("Alias '%s' points to '%s'" % (name,
                                                      str (value)))
-        self._add (name, str (value), 'alias')
+        self._add (name, str (value), '_alias')
 
 
     def add_constant (self, name, value):
@@ -110,17 +103,15 @@ class StencilSymbols (object):
         #
         # add the constant as a stencil symbol
         #
-        self._add (name, value, 'constant')
+        self._add (name, value, '_constant')
 
 
-    def add_functor (self, base_name):
+    def add_functor (self, name):
         """
-        Returns the name of this functor and a new dictionary for keeping
-        the its parameters:
+        Returns a new dictionary for keeping the functor parameters:
 
-            base_name    the base to build a unique name for the functor.-
+            name    a unique name for the functor.-
         """
-        name = self._build_functor_name (base_name)
         if name in self.groups:
             raise NameError ("Functor '%s' already exists in symbol table.-")
         else:
@@ -138,30 +129,47 @@ class StencilSymbols (object):
         """
         if value is None:
             raise ValueError ("Value of temporary field '%s' is None" % name)
-        elif isinstance (value, np.ndarray):
+        elif isinstance (value, FunctorParameter):
             #
             # add the field as a temporary
             #
-            self._add (name, value, 'temp_field')
-            logging.info ("Temporary '%s' is a NumPy array %s" % (name,
-                                                                  value.shape))
+            self._add (name, value, '_temp_field')
+            logging.info ("Temporary field '%s' has dimension %s" % (name,
+                                                                     value.dim))
         else:
-            raise TypeError ("Value of temporary field '%s' should be a NumPy array" % name)
+            raise TypeError ("Invalid type '%s' for temporary field '%s'" % 
+                             (type (value), name))
 
 
-    def is_parameter (self, name, functor=None):
+    def arrange_ids (self):
         """
-        Returns True is symbol 'name' is a functor parameter of 'functor'.
+        Rearranges the IDs of all data fields in order to uniquely identify
+        each of them.-
+        """
+        curr_id = 0
+        for k,v in self.items ( ):
+            try:
+                v.id = curr_id
+                curr_id += 1
+            except AttributeError:
+                #
+                # not a data field, ignore it
+                #
+                pass
+
+
+    def is_parameter (self, name, func_name=None):
+        """
+        Returns True is symbol 'name' is a functor parameter of 'func_name'.
         If 'functor' is None, all registered functors are checked.-
         """
-        if functor is not None:
-            func_name = self._build_functor_name (functor)
+        if func_name is not None:
             if func_name in self.symbols.keys ( ):
                 return name in self.symbols[func_name].keys ( )
             else:
                 raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, func_name))
         else:
-            functors = [k for k in self.symbols.keys ( ) if k.endswith ('_functor')]
+            functors = [k for k in self.symbols.keys ( ) if not k.startswith ('_')]
             for f in functors:
                 if name in self.symbols[f].keys ( ):
                     return True
@@ -172,17 +180,19 @@ class StencilSymbols (object):
         """
         Returns True if symbol 'name' is a temporary data field.-
         """
-        return name in self.symbols['temp_field'].keys ( )
+        return name in self.symbols['_temp_field'].keys ( )
 
 
     def items (self):
         """
-        Returns all symbols in as (key, value) pairs.-
+        Returns all symbols in as (key, value) pairs, sorted by key.-
         """
+        import operator
+
         for g in self.groups:
-            keys = self.symbols[g].keys ( )
-            vals = self.symbols[g].values ( )
-            for k,v in zip (keys, vals):
+            sorted_symbols = sorted (self.symbols[g].items ( ),
+                                     key=operator.itemgetter (0))
+            for k,v in sorted_symbols:
                 yield (k, v)
 
 
@@ -297,17 +307,32 @@ class StencilInspector (ast.NodeVisitor):
                 return ['%s%s' % (prefix, e) for e in a_list]
             else:
                 return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
-
+        #
+        # initialize the template renderer environment
+        #
         jinja_env = Environment (loader=PackageLoader ('gridtools',
                                                        'templates'))
         jinja_env.filters["join_with_prefix"] = join_with_prefix
 
+        #
+        # prepare parameters passed to the templates
+        #
+        temp_params    = [v for k,v in self.symbols.items ( ) if self.symbols.is_temporary (k)]
+        functor_params = [v for k,v in self.symbols.items ( ) if self.symbols.is_parameter (k, self.functors[0].name)]
+        all_params     = temp_params + functor_params
+
+        #
+        # instantiate each of the templates and render them
+        #
         header = jinja_env.get_template ("functor.h")
         cpp    = jinja_env.get_template ("stencil.cpp")
         make   = jinja_env.get_template ("Makefile")
 
         return (header.render (stencil=self,
-                               functor=self.functors[0]),
+                               functor=self.functors[0],
+                               all_params=all_params,
+                               temp_params=temp_params,
+                               functor_params=functor_params),
                 cpp.render  (stencil=self,
                              functor=self.functors[0]),
                 make.render (stencil=self))
@@ -559,7 +584,7 @@ class MultiStageStencil ( ):
                     logging.warning ("Variable aliasing is not supported")
 
         #
-        # update the symbol table now the loop has finished
+        # update the symbol table now the loop has finished ...
         #
         for k,v in add_temps.items ( ):
             #
@@ -568,10 +593,16 @@ class MultiStageStencil ( ):
             #
             del symbols[k]
             #
-            # remove the 'self' from the variable name
+            # remove the 'self' from the attribute name
             #
             name = k.split ('.')[1]
-            symbols.add_temporary (name, v)
+            temp_field = FunctorParameter (name)
+            temp_field.dim = v.shape
+            symbols.add_temporary (name, temp_field)
+        #
+        # and rearrange all data fields IDs
+        #
+        symbols.arrange_ids ( )
 
         #
         # print the discovered symbols
@@ -628,21 +659,20 @@ class MultiStageStencil ( ):
             except RuntimeError:
                 logging.error ("Compilation failed")
             else:
+                params = list (self.inspector.dimensions)
                 #
                 # extract the buffer pointers from the parameters (NumPy arrays)
                 #
-                params = list (self.inspector.dimensions)
-                functor_params = self.inspector.functors[0].params
-                for k in sorted (functor_params,
-                                 key=lambda name: functor_params[name].id):
-                    if k in kwargs.keys ( ):
-                        params.append (kwargs[k].ctypes.data_as (ctypes.c_void_p))
+                functor_params = [k for k,v in self.inspector.symbols.items ( ) 
+                                  if self.inspector.symbols.is_parameter (k)]
+                for p in functor_params:
+                    if p in kwargs.keys ( ):
+                        params.append (kwargs[p].ctypes.data_as (ctypes.c_void_p))
                     else:
-                        warnings.warn ("missing parameter [%s]" % k,
-                                       UserWarning)
+                        logging.warning ("Missing parameter [%s]" % p)
                 #
                 # call the compiled stencil
-                #
+                # 
                 self.inspector.lib_obj.run (*params)
         #
         # run in Python mode
@@ -705,4 +735,3 @@ class InteriorPoint (tuple):
 
     def __sub__ (self, other):
         raise NotImplementedError ("Offsets are not supported with '-'.")
-

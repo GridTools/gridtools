@@ -8,6 +8,7 @@ import numpy as np
 
 
 
+
 class FunctorBody (ast.NodeVisitor):
     """
     Represents the Do( ) function of a stencil's functor in AST form.-
@@ -154,12 +155,11 @@ class FunctorBody (ast.NodeVisitor):
             #
             if isinstance (node.value, ast.Attribute):
                 name = '%s' % node.value.attr
-
                 #
-                # only good for NumPy arrays
+                # only good for data fields
                 #
                 value = self.symbols[name]
-                if isinstance (value, np.ndarray):
+                if isinstance (value, FunctorParameter):
                     return "dom(%s%s)" % (name, indexing)
             #
             # check if subscripting any functor parameters 
@@ -191,22 +191,18 @@ class FunctorParameter ( ):
         """
         Sets a new name to this functor parameter.-
         """
-        if name.startswith ('in_'):
-            #
-            # functor input parameter
-            #
+        #
+        # do not add 'self' as a functor parameter
+        #
+        if name != 'self':
             self.name = name
-            self.input = True
-            self.output = False
-        elif name.startswith ('out_'):
             #
-            # functor input parameter
+            # temporary parameters are not 'input' nor 'output'
             #
-            self.name = name
-            self.input = False
-            self.output = True
+            self.input  = self.name.startswith ('in_')
+            self.output = self.name.startswith ('out_')
         else:
-            logging.warning ("Ignoring functor parameter '%s'\n" % name)
+            self.name = None
 
 
 
@@ -255,8 +251,7 @@ class StencilFunctor ( ):
 
     def analyze_params (self):
         """
-        Extracts the parameters of the Python fuction before translating
-        them to C++ functor code.-
+        Extracts the parameters from the Python function.-
         """
         try:
             #
