@@ -74,28 +74,29 @@ class ShallowWater (MultiStageStencil):
         self.Uy = np.zeros ((self.n+1, self.n+1, 1))
         self.Vy = np.zeros ((self.n+1, self.n+1, 1))
 
-        #
-        # one drop to disturb the water
-        #
-        self.drop = self.droplet (2, 11)
 
-
-    def droplet (self, height, width):
+    def droplet (self, height, width, shape):
         """
-        A two-dimensional Gaussian of the falling drop into the water.-
+        A two-dimensional Gaussian of the falling drop into the water:
+
+            height  height of the generated drop;
+            width   width of the generated drop;
+            shape   shape of the resulting array, padded with zeros.-
         """
         x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
         y = np.copy (x)
-        ret_value = height * np.exp (-5*(x**2 + y**2))
+        drop = height * np.exp (-5*(x*x + y*y))
         #
-        # workaround because gridtools only supports 3D data fields
+        # pad the resulting array with zeros
         #
-        return ret_value.reshape (ret_value.shape[0],
-                                  ret_value.shape[1], 
-                                  1)
+        zeros = np.zeros (shape[:-1])
+        zeros[:drop.shape[0], :drop.shape[1]] = drop
+        return zeros.reshape (zeros.shape[0],
+                              zeros.shape[1], 
+                              1)
 
 
-    def kernel (self, out_H, out_U, out_V):
+    def kernel (self, out_H, out_U, out_V, in_drop):
         """
         This stencil comprises multiple stage.-
         """
@@ -114,14 +115,16 @@ class ShallowWater (MultiStageStencil):
 
             # X momentum    
             self.Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
-            self.Ux[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
-                                               ( out_U[p + (0,1,0)]**2 / out_H[p + (0,1,0)] + self.g/2*out_H[p + (0,1,0)]**2 )
-                                             )
+            self.Ux[p] -= self.dt / (2*self.dx) * ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+                                                       self.g / 2 * (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) ) -
+                                                    ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] + 
+                                                       self.g / 2 * (out_H[p + (0,1,0)]*out_H[p + (0,1,0)]) )
+                                                  )
             # Y momentum
             self.Vx[p]  = ( out_V[p + (1,1,0)] + out_V[p + (0,1,0)] ) / 2 
             self.Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
-                                               ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
-                                             )
+                                                    ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
+                                                  )
             #
             # first half step (stage Y direction)
             #
@@ -133,14 +136,41 @@ class ShallowWater (MultiStageStencil):
             # X momentum
             self.Uy[p]  = ( out_U[p + (1,1,0)] + out_U[p + (1,0,0)] ) / 2 
             self.Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
-                                               ( out_V[p + (1,0,0)] * out_U[p + (1,0,0)] / out_H[p + (1,0,0)] )
-                                             )
+                                                    ( out_V[p + (1,0,0)] * out_U[p + (1,0,0)] / out_H[p + (1,0,0)] )
+                                                  )
             # Y momentum
             self.Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2
-            self.Vy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)]**2 / out_H[p + (1,1,0)] + self.g/2*out_H[p + (1,1,0)]**2 ) -
-                                               ( out_V[p + (1,0,0)]**2 / out_H[p + (1,0,0)] + self.g/2*out_H[p + (1,0,0)]**2 )
-                                             )
+            self.Vy[p] -= self.dt / (2*self.dy) * ( ( (out_V[p + (1,1,0)]*out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+                                                       self.g / 2 * (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) ) -
+                                                    ( (out_V[p + (1,0,0)]*out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
+                                                       self.g / 2 * (out_H[p + (1,0,0)]*out_H[p + (1,0,0)]) )
+                                                  )
+            #
+            # second half step (stage)
+            #
 
+            # height
+            out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
+            out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
+
+            # X momentum
+            out_U[p] -= (self.dt / self.dx) * ( ( (self.Ux[p + (0,-1,0)]*self.Ux[p + (0,-1,0)]) / self.Hx[p + (0,-1,0)] + 
+                                                   self.g / 2 * (self.Hx[p + (0,-1,0)]*self.Hx[p + (0,-1,0)]) ) -
+                                                ( (self.Ux[p + (-1,-1,0)]*self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] + 
+                                                   self.g / 2 * (self.Hx[p + (-1,-1,0)]*self.Hx[p + (-1,-1,0)]) )
+                                              )
+            out_U[p] -= (self.dt / self.dy) * ( ( self.Vy[p + (-1,0,0)] * self.Uy[p + (-1,0,0)] / self.Hy[p + (-1,0,0)] ) - 
+                                                 ( self.Vy[p + (-1,-1,0)] * self.Uy[p + (-1,-1,0)] / self.Hy[p + (-1,-1,0)] )
+                                               )
+            # Y momentum
+            out_V[p] -= (self.dt / self.dx) * ( ( self.Ux[p + (0,-1,0)] * self.Vx[p + (0,-1,0)] / self.Hx[p + (0,-1,0)] ) -
+                                                 ( self.Ux[p + (-1,-1,0)] * self.Vx[p + (-1,-1,0)] / self.Hx[p + (-1,-1,0)] )
+                                               )
+            out_V[p] -= (self.dt / self.dy) * ( ( (self.Vy[p + (-1,0,0)]*self.Vy[p + (-1,0,0)]) / self.Hy[p + (-1,0,0)] + 
+                                                   self.g / 2 * (self.Hy[p + (-1,0,0)]*self.Hy[p + (-1,0,0)]) ) -
+                                                ( (self.Vy[p + (-1,-1,0)]*self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] + 
+                                                   self.g / 2 * (self.Hy[p + (-1,-1,0)]*self.Hy[p + (-1,-1,0)]) )
+                                              )
 
 
 
@@ -153,32 +183,37 @@ class ShallowWaterTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
+        self.domain = (66, 66, 1)
+
+        self.H = np.ones  (self.domain)
+        self.U = np.zeros (self.domain)
+        self.V = np.zeros (self.domain)
+
+        self.water = ShallowWater ( )
+        self.drop  = self.water.droplet (2, 11, self.domain)
+
 
     def test_symbol_discovery (self):
         """
         Checks that all the symbols have been correctly recognized.-
         """
-        domain = (66, 66, 1)
-        H = np.random.rand (*domain)
-        U = np.random.rand (*domain)
-        V = np.random.rand (*domain)
-        water = ShallowWater ( )
-        water.backend = 'c++'
-        water.run (out_H=H,
-                   out_U=U,
-                   out_V=V)
+        self.water.backend = 'c++'
+        self.water.run (out_H=self.H,
+                        out_U=self.U,
+                        out_V=self.V,
+                        in_drop=self.drop)
         #
-        # check the output fields
+        # check input/output fields were correctly discovered
         #
-        insp = water.inspector
-        out_fields = ['out_H', 'out_U', 'out_V']
+        insp = self.water.inspector
+        out_fields = ['out_H', 'out_U', 'out_V', 'in_drop']
         for f in out_fields:
             self.assertIsNotNone (insp.symbols[f])
             self.assertTrue (insp.symbols.is_parameter (f))
             self.assertTrue (insp.symbols.is_parameter (f, 'kernel'))
 
         #
-        # check temporaries
+        # check temporary fields were correctly discovered
         #
         tmp_fields = ['Hx', 'Hy', 'Ux', 'Uy', 'Vx', 'Vy']
         for f in tmp_fields:
@@ -186,42 +221,34 @@ class ShallowWaterTest (unittest.TestCase):
             self.assertTrue (insp.symbols.is_temporary (f))
         
 
-
     def test_python_execution (self):
         """
         Checks that the stencil results are correct if executing in Python mode.-
         """
-        domain = (66, 66, 1)
-        H = np.random.rand (*domain)
-        U = np.random.rand (*domain)
-        V = np.random.rand (*domain)
-        water = ShallowWater ( )
-        water.run (out_H=H,
-                   out_U=U,
-                   out_V=V)
-        self.assertIsNotNone (H)
-        self.assertIsNotNone (U)
-        self.assertIsNotNone (V)
+        self.water.run (out_H=self.H,
+                        out_U=self.U,
+                        out_V=self.V,
+                        in_drop=self.drop)
+        self.assertIsNotNone (self.H)
+        self.assertIsNotNone (self.U)
+        self.assertIsNotNone (self.V)
+        self.assertIsNotNone (self.drop)
 
 
     def test_native_execution (self):
         """
         Checks that the stencil results are correct if executing in native mode.-
         """
-        domain = (66, 66, 1)
-        H = np.random.rand (*domain)
-        U = np.random.rand (*domain)
-        V = np.random.rand (*domain)
-        water = ShallowWater ( )
-        water.backend = 'c++'
-        water.run (out_H=H,
-                   out_U=U,
-                   out_V=V) 
+        self.water.backend = 'c++'
+        self.water.run (out_H=self.H,
+                        out_U=self.U,
+                        out_V=self.V,
+                        in_drop=self.drop)
         #
         # the library object should contain a valid reference
         # if compilation was successful
         #
-        self.assertIsNotNone (water.inspector.lib_obj)
+        self.assertIsNotNone (self.water.inspector.lib_obj)
 
 
 

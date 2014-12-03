@@ -283,14 +283,11 @@ class StencilInspector (ast.NodeVisitor):
                         if self.dimensions is None:
                             self.dimensions = v.shape
                         elif self.dimensions != v.shape:
-                            warnings.warn ("dimensions of parameter [%s] do not match %s" % (k, self.dimensions),
-                                           UserWarning)
+                            logging.warning ("Dimensions of parameter '%s':%s do not match %s" % (k, v.shape, self.dimensions))
                     else:
-                        warnings.warn ("parameter [%s] is not a NumPy array" % k,
-                                       UserWarning)
+                        logging.warning ("Parameter '%s' is not a NumPy array" % k)
                 else:
-                    warnings.warn ("ignoring parameter [%s]" % k,
-                                   UserWarning)
+                    logging.warning ("Ignoring parameter '%s'" % k)
 
 
     def translate (self):
@@ -649,32 +646,38 @@ class MultiStageStencil ( ):
             #
             # generate the code of all functors in this stencil
             #
-            for func in self.inspector.functors:
-                func.generate_code ( )
-
-            #
-            # compile the generated code
-            #
             try:
-                self.inspector.compile ( )
-            except RuntimeError:
-                logging.error ("Compilation failed")
+                for func in self.inspector.functors:
+                    func.generate_code (self.inspector.src)
+
+            except Exception as e:
+                logging.error ("Error while generating code %s" % str (e))
+                raise e
+
             else:
-                params = list (self.inspector.dimensions)
                 #
-                # extract the buffer pointers from the parameters (NumPy arrays)
+                # compile the generated code
                 #
-                functor_params = [k for k,v in self.inspector.symbols.items ( ) 
-                                  if self.inspector.symbols.is_parameter (k)]
-                for p in functor_params:
-                    if p in kwargs.keys ( ):
-                        params.append (kwargs[p].ctypes.data_as (ctypes.c_void_p))
-                    else:
-                        logging.warning ("Missing parameter [%s]" % p)
-                #
-                # call the compiled stencil
-                # 
-                self.inspector.lib_obj.run (*params)
+                try:
+                    self.inspector.compile ( )
+                except RuntimeError:
+                    logging.error ("Compilation failed")
+                else:
+                    params = list (self.inspector.dimensions)
+                    #
+                    # extract the buffer pointers from the parameters (NumPy arrays)
+                    #
+                    functor_params = [k for k,v in self.inspector.symbols.items ( ) 
+                                      if self.inspector.symbols.is_parameter (k)]
+                    for p in functor_params:
+                        if p in kwargs.keys ( ):
+                            params.append (kwargs[p].ctypes.data_as (ctypes.c_void_p))
+                        else:
+                            logging.warning ("Missing parameter [%s]" % p)
+                    #
+                    # call the compiled stencil
+                    # 
+                    self.inspector.lib_obj.run (*params)
         #
         # run in Python mode
         #

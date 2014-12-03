@@ -15,17 +15,23 @@ struct {{ functor.name }}
     static const int n_args = {{ all_params|length }};
 
     //
-    // the input and output parameters of this functor
-    // (input parameters are always 'const')
+    // the input and output data fields of this functor
+    // (input fields are always 'const')
     //
-    {% for arg in all_params|sort(attribute='id') %}
-        {%- if arg.input -%}
-            typedef const arg_type<{{ arg.id }}> {{ arg.name }};
+    {% for arg in functor_params|sort(attribute='id') %}
+        {%- if arg.input %}
+    typedef const arg_type<{{ arg.id }}> {{ arg.name }};
         {% else %}
-            typedef arg_type<{{ arg.id }}> {{ arg.name }};
+    typedef arg_type<{{ arg.id }}> {{ arg.name }};
         {%- endif -%}
     {% endfor %}
 
+    //
+    // the temporary data fields of this functor
+    //
+    {% for arg in temp_params|sort(attribute='id') -%}
+    typedef arg_type<{{ arg.id }}, range<-1,1,-1,1> > {{ arg.name }};
+    {% endfor %}
 
     //
     // the complete list of arguments of this functor
