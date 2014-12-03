@@ -35,32 +35,57 @@ class FunctorBody (ast.NodeVisitor):
             warnings.warn ("FunctorBody expects a list of AST nodes.",
                            RuntimeWarning)
 
-    def _sign_operator (self, operation):
+    def _sign_operator (self, op):
         """
         Returns the sign of an operation.-
         """
-        if isinstance (operation, ast.Add):
+        if isinstance (op, ast.Add) or isinstance (op, ast.UAdd):
             sign = '+'
-        elif isinstance (operation, ast.Sub):
+        elif isinstance (op, ast.Sub) or isinstance (op, ast.USub):
             sign = '-'
-        elif isinstance (operation, ast.Mult):
+        elif isinstance (op, ast.Mult):
             sign = '*'
-        elif isinstance (operation, ast.Div):
+        elif isinstance (op, ast.Div):
             sign = '/'
-        elif isinstance (operation, ast.Pow):
-            sign = '^'
+        elif isinstance (op, ast.Pow):
+            #
+            # TODO: translate to a multiplication
+            #
+            sign = None
+            logging.warning ("Cannot translate 'x**y'")
         else:
             sign = None
-            logging.warning ("Cannot translate '%s'" % str (operation))
+            logging.warning ("Cannot translate '%s'" % str (op))
         return sign
 
          
-    def generate_code (self):
+    def generate_code (self, src):
         """
-        Generates C++ code from the AST backing this object.-
+        Generates C++ code from the AST backing this object:
+
+            src     the Python source from which the C++ is generated;
+                    this is used to display friendly error messages.-
         """
         for n in self.nodes:
-            self.cpp += "%s;\n\t\t" % self.visit (n)
+            try:
+                self.cpp += "%s;\n\t\t" % self.visit (n)
+            except Exception as e:
+                #
+                # preprocess the source code to correctly display the line,
+                # because comments are lost in the AST translation
+                #
+                # FIXME: comment_offset is not correctly calculated
+                #
+                src_lines      = src.split ('\n')
+                comment_offset = 0
+                for l in src_lines:
+                    if l.strip (' ').startswith ('#'):
+                        comment_offset += 1
+
+                correct_lineno = n.lineno + comment_offset
+                source_line    = src_lines[correct_lineno].strip (' ')
+                raise type(e) ("at line %d:\n\t%s" % (correct_lineno,
+                                                      source_line))
 
 
     def visit_Assign (self, node):
@@ -137,7 +162,19 @@ class FunctorBody (ast.NodeVisitor):
                 # this subscript has shifting
                 #
                 if isinstance (node.slice.value.op, ast.Add):
-                    indexing = '(%s)' % ','.join ([str(e.n) for e in node.slice.value.right.elts])
+                    indexing = '('
+                    for e in node.slice.value.right.elts:
+                        if isinstance (e, ast.Num):
+                            indexing += "%s," % str (e.n)
+                        elif isinstance (e, ast.UnaryOp):
+                            indexing += "%s%s," % (self._sign_operator (e.op),
+                                                   str (e.operand.n))
+                        else:
+                            logging.error ("Subscript shifting operation unknown")
+                    #
+                    # strip the last comma off
+                    #
+                    indexing = '%s)' % indexing[:-1]
                 else:
                     indexing = ''
                     logging.warning ("Subscript shifting only supported with '+'")
@@ -294,9 +331,12 @@ class StencilFunctor ( ):
                                              self.symbols)
 
 
-    def generate_code (self):
+    def generate_code (self, src):
         """
-        Generates the C++ code of this functor.-
+        Generates the C++ code of this functor:
+
+            src     the Python source from which the C++ is generated;
+                    this is used to display friendly error messages.-
         """
-        self.body.generate_code ( )
+        self.body.generate_code (src)
 

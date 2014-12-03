@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#define BACKEND backend<Host, Naive >
+
 #include <gridtools.h>
 #include <common/defs.h>
 #include <stencil-composition/backend_host.h>
@@ -42,16 +44,6 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                {%- endif -%}
            {%- endfor -%})
 {
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
-
     //
     // Fortran-like memory layout
     //
@@ -106,11 +98,11 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // parameters, especially the non-temporary ones, during the construction
     // of the domain
     //
-    {% for arg in temp_params -%}
-    typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
-    {% endfor -%}
     {% for arg in functor_params -%}
     typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
+    {% endfor -%}
+    {% for arg in temp_params -%}
+    typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
     {% endfor -%}
 
 
@@ -134,13 +126,13 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     // definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon 
-    // after this:
+    // while the vertical ones are set according the the axis 
+    // property soon after this:
     //
     //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     //
-    uint_t di[5] = {0, 0, 0, d1, d1};
-    uint_t dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {1, 1, 1, d1-1, d1-1};
+    uint_t dj[5] = {1, 1, 1, d2-1, d2-1};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
