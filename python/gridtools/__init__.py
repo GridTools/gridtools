@@ -633,51 +633,58 @@ class MultiStageStencil ( ):
         logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
         if self.backend == 'c++':
             #
-            # try to resolve all symbols before compiling:
-            # first with a static code analysis ...
+            # automatic compilation only if the library is not available
             #
-            self.inspector.analyze (**kwargs)
-            
-            #
-            # ... then including run-time information
-            #
-            self._resolve (self.inspector.symbols)
-
-            #
-            # generate the code of all functors in this stencil
-            #
-            try:
-                for func in self.inspector.functors:
-                    func.generate_code (self.inspector.src)
-
-            except Exception as e:
-                logging.error ("Error while generating code %s" % str (e))
-                raise e
-
-            else:
+            if self.inspector.lib_obj is None:
                 #
-                # compile the generated code
+                # try to resolve all symbols before compiling:
+                # first with a static code analysis ...
+                #
+                self.inspector.analyze (**kwargs)
+                
+                #
+                # ... then including run-time information
+                #
+                self._resolve (self.inspector.symbols)
+
+                #
+                # generate the code of all functors in this stencil
                 #
                 try:
-                    self.inspector.compile ( )
-                except RuntimeError:
-                    logging.error ("Compilation failed")
+                    for func in self.inspector.functors:
+                        func.generate_code (self.inspector.src)
+
+                except Exception as e:
+                    logging.error ("Error while generating code %s" % str (e))
+                    raise e
+
                 else:
-                    params = list (self.inspector.dimensions)
                     #
-                    # extract the buffer pointers from the parameters (NumPy arrays)
+                    # compile the generated code
                     #
-                    functor_params = [k for k,v in self.inspector.symbols.items ( ) 
-                                      if self.inspector.symbols.is_parameter (k)]
-                    for p in functor_params:
-                        if p in kwargs.keys ( ):
-                            params.append (kwargs[p].ctypes.data_as (ctypes.c_void_p))
-                        else:
-                            logging.warning ("Missing parameter [%s]" % p)
-                    #
-                    # call the compiled stencil
-                    # 
-                    self.inspector.lib_obj.run (*params)
+                    try:
+                        self.inspector.compile ( )
+                    except RuntimeError:
+                        logging.error ("Compilation failed")
+                        return
+            #
+            # call the compiled library
+            #
+            params = list (self.inspector.dimensions)
+            #
+            # extract the buffer pointers from the parameters (NumPy arrays)
+            #
+            functor_params = [k for k,v in self.inspector.symbols.items ( ) 
+                              if self.inspector.symbols.is_parameter (k)]
+            for p in functor_params:
+                if p in kwargs.keys ( ):
+                    params.append (kwargs[p].ctypes.data_as (ctypes.c_void_p))
+                else:
+                    logging.warning ("Missing parameter [%s]" % p)
+            #
+            # call the compiled stencil
+            # 
+            self.inspector.lib_obj.run (*params)
         #
         # run in Python mode
         #
