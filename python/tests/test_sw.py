@@ -251,6 +251,58 @@ class ShallowWaterTest (unittest.TestCase):
         self.assertIsNotNone (self.water.inspector.lib_obj)
 
 
+    def test_interactive_plot (self):
+        import matplotlib.pyplot as plt
+        from matplotlib import animation, cm
+        from mpl_toolkits.mplot3d import Axes3D
+
+        #
+        # enable native execution for the stencil
+        #
+        self.water.backend = 'c++'
+
+        #
+        # initialize 3D plot
+        #
+        fig = plt.figure ( )
+        ax  = fig.add_subplot (111, 
+                               projection='3d')
+
+        rng = np.arange (self.domain[0])
+        X, Y = np.meshgrid (rng, rng)
+        surf = ax.plot_surface (X, Y, 
+                                np.squeeze (self.H, axis=(2,)),
+                                rstride=1, 
+                                cstride=1, 
+                                cmap=cm.jet, 
+                                linewidth=0, 
+                                antialiased=False) 
+        fig.show ( )
+         
+        #
+        # animation update function
+        #
+        def draw_frame (framenumber, swobj):
+            swobj.run (out_H=self.H,
+                       out_U=self.U,
+                       out_V=self.V,
+                       in_drop=self.drop)
+            ax.clear ( )
+            surf = ax.plot_surface (X, Y, 
+                                np.squeeze (self.H, axis=(2,)),
+                                rstride=1, 
+                                cstride=1, 
+                                cmap=cm.jet, 
+                                linewidth=0, 
+                                antialiased=False) 
+            plt.savefig ("/tmp/water_%04d" % framenumber)
+            return surf,
+
+        plt.ion ( )
+        anim = animation.FuncAnimation (fig,
+                                        draw_frame,
+                                        fargs=(self.water,),
+                                        blit=False)
 
 
 
@@ -349,49 +401,5 @@ class ShallowWaterEquation (object):
 #
 sw = ShallowWater ( )
 
-#
-# initialize 3D plot
-#
-import matplotlib.pyplot as plt
-from matplotlib import animation, cm
-from mpl_toolkits.mplot3d import Axes3D
-
-
-
-fig = plt.figure ( )
-ax  = fig.add_subplot (111, 
-                       projection='3d')
-
-rng = np.arange (sw.n + 2)
-X, Y = np.meshgrid (rng, rng)
-surf = ax.plot_surface (X, Y, sw.H,
-                        rstride=1, 
-                        cstride=1, 
-                        cmap=cm.jet, 
-                        linewidth=0, 
-                        antialiased=False) 
-fig.show ( )
- 
-#
-# animation update function
-#
-def draw_frame (framenumber, swobj):
-    swobj.step (framenumber)
-    ax.clear ( )
-    surf = ax.plot_surface (X, Y, swobj.H, 
-                            rstride=1,
-                            cstride=1, 
-                            cmap=cm.jet, 
-                            linewidth=0, 
-                            antialiased=False)
-    plt.savefig ("/tmp/water_%04d" % framenumber)
-    return surf,
-
-plt.ion ( )
-anim = animation.FuncAnimation (fig,
-                                draw_frame,
-                                fargs=(sw,),
-                                interval=2,
-                                blit=False)
 """
 
