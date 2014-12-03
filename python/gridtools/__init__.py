@@ -113,7 +113,7 @@ class StencilSymbols (object):
             name    a unique name for the functor.-
         """
         if name in self.groups:
-            raise NameError ("Functor '%s' already exists in symbol table.-")
+            raise NameError ("Functor '%s' already exists in symbol table.-" % name)
         else:
             self.groups.add (name)
             self.symbols[name] = dict ( )

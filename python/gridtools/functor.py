@@ -68,7 +68,10 @@ class FunctorBody (ast.NodeVisitor):
         """
         for n in self.nodes:
             try:
-                self.cpp += "%s;\n\t\t" % self.visit (n)
+                code = self.visit (n)
+                if code is not None:
+                    self.cpp += "%s;\n\t\t" % code
+
             except Exception as e:
                 #
                 # preprocess the source code to correctly display the line,

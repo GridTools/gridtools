@@ -166,6 +166,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     comp_{{ stencil.name|lower }}->run();
     comp_{{ stencil.name|lower }}->finalize();
 
+    out_H.print ( );
+
     return EXIT_SUCCESS;
 }
 
