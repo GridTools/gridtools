@@ -450,8 +450,6 @@ namespace gridtools {
             exit (-1);
         }
 
-	//std::string m_arg_string(m_offset[0]+std::string(", ")+m_offset[1]+std::string(", ")+ m_offset[2]);
-	std::string to_string(){return std::string("arg(")+/*arg_string*/std::string("o")+std::string(")");}
     };
 
 

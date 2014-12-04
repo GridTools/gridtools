@@ -95,10 +95,14 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     //typedef storage_type::basic_type integrator_type;
     /* typedef extend<storage_type::basic_type, 2> integrator_type; */
-#ifdef CXX11_ENABLED
-    // typedef extend_width<storage_type::basic_type, 0>  extended_type;
-    // typedef extend_dim<extended_type, extended_type>  integrator_type;
+#ifdef CXX11_ENABLED\
+    /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+#ifdef __CUDACC__
+    typedef extend_width<storage_type::basic_type, 0>  extended_type;
+    typedef extend_dim<extended_type, extended_type>  integrator_type;
+#else
     typedef extend<storage_type::basic_type, 0, 0>::type  integrator_type;
+#endif
 #endif
     //out.print();
 

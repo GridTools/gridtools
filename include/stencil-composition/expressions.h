@@ -40,7 +40,6 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_plus(){};
-	constexpr std::string to_string(){return this->first_operand.to_string()+std::string("+")+this->second_operand.to_string();}
     };
 
     /**@brief Expression subrtracting two arguments*/
@@ -50,7 +49,6 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_minus(){}
-	constexpr std::string to_string(){return this->first_operand.to_string()+std::string("-(") + this->second_operand.to_string()+std::string(")");}
     };
 
     /**@brief Expression multiplying two arguments*/
@@ -60,7 +58,6 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_times(){}
-	constexpr std::string to_string(){return std::string("(")+this->first_operand.to_string()+ std::string(")*(") + this->second_operand.to_string() + std::string(")");}
     };
 
     /**@brief Expression dividing two arguments*/
@@ -70,8 +67,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_divide(){}
-	constexpr std::string to_string(){return std::string("(")+this->first_operand.to_string()+ std::string(")/(") + this->second_operand.to_string() +std::string(")");}
-};
+    };
 
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
@@ -82,7 +78,6 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_exp(){}
-	constexpr std::string to_string(){return std::string("(")+this->first_operand.to_string()+ std::string(")^(") + this->second_operand.to_string() +std::string(")");}
     };
 /*@}*/
 
