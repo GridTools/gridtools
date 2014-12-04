@@ -1,7 +1,265 @@
 import unittest
+import logging
+
 import numpy as np
 
 from gridtools import MultiStageStencil, StencilInspector
+
+
+
+
+class Moving (MultiStageStencil):
+    """
+    Definition a stencil that should move the data over the domain.-
+    """
+    def __init__ (self, domain):
+        """
+        A comment to make AST parsing more difficult.-
+        """
+        super (Moving, self).__init__ ( )
+        self.domain = domain
+        #
+        # grid size with a halo of one
+        #
+        self.n = domain[0] - 2
+
+        #
+        # gravity-accelleration constant
+        #
+        self.g = 9.8
+
+        #
+        # timestep
+        #
+        self.dt = 0.02
+
+        #
+        # space step size (for u, v)
+        #
+        self.dx = 1.0
+        self.dy = 1.0
+
+        #
+        # temporary data fields
+        #
+        self.Hx = np.zeros ((self.n+1, self.n+1, 1))
+        self.Ux = np.zeros ((self.n+1, self.n+1, 1))
+        self.Vx = np.zeros ((self.n+1, self.n+1, 1))
+
+        self.Hy = np.zeros ((self.n+1, self.n+1, 1))
+        self.Uy = np.zeros ((self.n+1, self.n+1, 1))
+        self.Vy = np.zeros ((self.n+1, self.n+1, 1))
+
+
+    def droplet (self, height, width):
+        """
+        A two-dimensional Gaussian of the falling drop into the water:
+
+            height  height of the generated drop;
+            width   width of the generated drop.-
+        """
+        x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
+        y = np.copy (x)
+        drop = height * np.exp (-5*(x*x + y*y))
+        #
+        # pad the resulting array with zeros
+        #
+        #zeros = np.zeros (shape[:-1])
+        #zeros[:drop.shape[0], :drop.shape[1]] = drop
+        #return zeros.reshape (zeros.shape[0],
+        #                      zeros.shape[1], 
+        #                      1)
+        return drop.reshape ((drop.shape[0],
+                              drop.shape[1],
+                              1))
+
+
+    def create_random_drop (self, H):
+        """
+        Disturbs the water surface with a drop.-
+        """
+        drop = self.droplet (5, 11)
+        w = drop.shape[0]
+
+        rand0 = np.random.rand ( )
+        rand1 = np.random.rand ( )
+        rand2 = np.random.rand ( )
+
+        for i in range (w):
+            i_idx = i + np.ceil (rand0 * (self.n - w))
+            for j in range (w):
+                j_idx = j + np.ceil (rand1 * (self.n - w))
+                H[i_idx, j_idx] += rand2 * drop[i, j]
+
+
+    def reflect_borders (self, H, U, V):
+        """
+        Implements the reflective boundary conditions in NumPy.-
+        """
+        H[:,0] =  H[:,1]
+        U[:,0] =  U[:,1]
+        V[:,0] = -V[:,1]
+
+        H[:,self.n+1] =  H[:,self.n]  
+        U[:,self.n+1] =  U[:,self.n]  
+        V[:,self.n+1] = -V[:,self.n]
+
+        H[0,:] =  H[1,:]
+        U[0,:] = -U[1,:]
+        V[0,:] =  V[1,:]
+
+        H[self.n+1,:] =  H[self.n,:]
+        U[self.n+1,:] = -U[self.n,:]
+        V[self.n+1,:] =  V[self.n,:]
+
+
+    def kernel (self, out_H, out_U, out_V):
+        """
+        This stencil comprises multiple stages.-
+        """
+        #
+        # first half step (stage X direction)
+        #
+        for p in self.get_interior_points (self.Hx,
+                                           k_direction="forward"):
+            # height
+            self.Hx[p]  = out_H[p + (-1,-1,0)]
+
+            # X momentum    
+            self.Ux[p]  = out_U[p + (-1,-1,0)]
+
+            # Y momentum
+            self.Vx[p]  = out_V[p + (-1,-1,0)]
+
+        #
+        # first half step (stage Y direction)
+        #
+        for p in self.get_interior_points (self.Hy,
+                                           k_direction="forward"):
+            # height
+            self.Hy[p]  = out_H[p + (1,1,0)]
+
+            # X momentum    
+            self.Uy[p]  = out_U[p + (1,1,0)]
+
+            # Y momentum
+            self.Vy[p]  = out_V[p + (1,1,0)]
+
+        #
+        # second half step (stage)
+        #
+        for p in self.get_interior_points (self.Hx,
+                                           k_direction="forward"):
+            # height
+            out_H[p] = self.Hx[p]
+
+            # X momentum
+            out_U[p] = self.Ux[p]
+
+            # Y momentum
+            out_V[p] = self.Vx[p]
+
+
+
+class MovingTest (unittest.TestCase):
+    """
+    A test case for the Moving stencil defined above.-
+    """
+    def setUp (self):
+        logging.basicConfig (level=logging.INFO)
+
+        self.domain = (16, 16, 1)
+
+        self.H = np.ones  (self.domain)
+        self.U = np.zeros (self.domain)
+        self.V = np.zeros (self.domain)
+
+        self.stencil = Moving (self.domain)
+
+
+    def test_interactive_plot (self):
+        import matplotlib.pyplot as plt
+        from matplotlib import animation, cm
+        from mpl_toolkits.mplot3d import Axes3D
+
+        #
+        # enable native execution for the stencil
+        #
+        self.stencil.backend = 'c++'
+
+        #
+        # disturb the water surface
+        #
+        self.stencil.create_random_drop (self.H)
+
+
+        """
+        for i in range (5):
+            self.stencil.reflect_borders (self.H,
+                                        self.U,
+                                        self.V)
+            self.stencil.run (out_H=self.H,
+                            out_U=self.U,
+                            out_V=self.V)
+            print (self.H)
+            input ("Press Enter to continue ...")
+        """
+
+        #
+        # initialize 3D plot
+        #
+        fig = plt.figure ( )
+        ax  = fig.add_subplot (111, 
+                               projection='3d')
+
+        rng = np.arange (self.domain[0])
+        X, Y = np.meshgrid (rng, rng)
+        surf = ax.plot_surface (X, Y, 
+                                np.squeeze (self.H, axis=(2,)),
+                                rstride=1, 
+                                cstride=1, 
+                                cmap=cm.jet, 
+                                linewidth=0, 
+                                antialiased=False) 
+        fig.show ( )
+         
+        #
+        # animation update function
+        #
+        def draw_frame (framenumber, swobj):
+            swobj.reflect_borders (self.H,
+                                   self.U,
+                                   self.V)
+            swobj.run (out_H=self.H,
+                       out_U=self.U,
+                       out_V=self.V)
+            #
+            # reset if the system becomes unstable
+            #
+            if np.any (np.isnan (self.H)):
+                self.setUp ( )
+                self.stencil.create_random_drop (self.H)
+                input ("Reseting ...")
+
+            ax.clear ( )
+            surf = ax.plot_surface (X, Y, 
+                                np.squeeze (self.H, axis=(2,)),
+                                rstride=1, 
+                                cstride=1, 
+                                cmap=cm.jet, 
+                                linewidth=0, 
+                                antialiased=False) 
+            #plt.savefig ("/tmp/stencil_%04d" % framenumber)
+            return surf,
+
+        plt.ion ( )
+        anim = animation.FuncAnimation (fig,
+                                        draw_frame,
+                                        fargs=(self.stencil,),
+                                        interval=20,
+                                        blit=False)
+
+
 
 
 
