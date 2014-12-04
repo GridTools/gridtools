@@ -33,32 +33,6 @@ namespace gridtools{
         ArgType2 const second_operand;
     };
 
-
-//     /** \section expressions (Expressions Definition)
-//         @{
-//         This is the base class of a unary expression, containing the instances of the argument.
-//         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
-//     */
-//     template <typename ArgType>
-//     struct expr{
-
-//         /**@brief generic expression constructor*/
-//         GT_FUNCTION
-//         constexpr expr(ArgType const& operand)
-//             :
-// #if( (!defined(CXX11_ENABLED)))
-//             operand(operand),
-// #else
-//             operand{operand},
-// #endif
-//             {}
-
-//         /**@brief default empty constructor*/
-//         constexpr expr(){}
-//         ArgType const operand;
-//     };
-
-
     /**@brief Expression summing two arguments*/
     template <typename ArgType1, typename ArgType2>
     struct expr_plus : public expr<ArgType1, ArgType2>{

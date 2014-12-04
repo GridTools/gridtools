@@ -956,9 +956,9 @@ namespace gridtools {
 	void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
 	    {
 		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
-		for (uint_t i=0; i<m_dims[0]; ++i)
-		    for (uint_t j=0; j<m_dims[1]; ++j)
-			for (uint_t k=0; k<m_dims[2]; ++k)
+		for (uint_t i=0; i<this->m_dims[0]; ++i)
+		    for (uint_t j=0; j<this->m_dims[1]; ++j)
+			for (uint_t k=0; k<this->m_dims[2]; ++k)
 			    super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot](i,j,k)=lambda(i, j, k);
 	    }
 
