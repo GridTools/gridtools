@@ -46,7 +46,7 @@ class ShallowWater (MultiStageStencil):
         # grid size
         #
         #self.n = 64
-        self.n = 6
+        self.n = 14
 
         #
         # gravity-accelleration constant
@@ -100,7 +100,7 @@ class ShallowWater (MultiStageStencil):
         """
         Disturbs the water surface with a drop.-
         """
-        drop = self.droplet (2, 2, domain)
+        drop = self.droplet (2, 11, domain)
         w = drop.shape[0]
 
         rand0 = np.random.rand ( )
@@ -118,17 +118,22 @@ class ShallowWater (MultiStageStencil):
         """
         Implements the refelctive boundary conditions in NumPy.-
         """
-        H[:,0] = H[:,1];      U [:,0] = U [:,1];      V [:,0] = -V[:,1]
-        H[0,:] = H[1,:];      U [0,:] = -U[1,:];      V [0,:] = V [1,:]
+        H[:,0] =  H[:,1]
+        U[:,0] =  U[:,1]
+        V[:,0] = -V[:,1]
 
-        H[:,self.n+1] = H[:,self.n]  
-        H[self.n+1,:] = H[self.n,:]
+        H[:,self.n+1] =  H[:,self.n]  
+        U[:,self.n+1] =  U[:,self.n]  
+        V[:,self.n+1] = -V[:,self.n]
 
-        U [:,self.n+1] = U [:,self.n]  
-        U [self.n+1,:] = -U[self.n,:]
+        H[0,:] =  H[1,:]
+        U[0,:] = -U[1,:]
+        V[0,:] =  V[1,:]
 
-        V [:,self.n+1] = -V[:,self.n]
-        V [self.n+1,:] = V [self.n,:]
+        H[self.n+1,:] =  H[self.n,:]
+        U[self.n+1,:] = -U[self.n,:]
+        V[self.n+1,:] =  V[self.n,:]
+
 
 
     def kernel (self, out_H, out_U, out_V, in_drop):
@@ -136,13 +141,10 @@ class ShallowWater (MultiStageStencil):
         This stencil comprises multiple stage.-
         """
         #
-        # iterate over the points, excluding halo ones
+        # first half step (stage X direction)
         #
         for p in self.get_interior_points (self.Hx,
                                            k_direction="forward"):
-            #
-            # first half step (stage X direction)
-            #
 
             # height
             self.Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
@@ -160,10 +162,11 @@ class ShallowWater (MultiStageStencil):
             self.Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
                                                     ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
                                                   )
-            #
-            # first half step (stage Y direction)
-            #
-
+        #
+        # first half step (stage Y direction)
+        #
+        for p in self.get_interior_points (self.Hy,
+                                           k_direction="forward"):
             # height
             self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2.0
             self.Hy[p] -= self.dt / (2*self.dy) * ( out_V[p + (1,1,0)] - out_V[p+ (1,0,0)] )
@@ -180,9 +183,11 @@ class ShallowWater (MultiStageStencil):
                                                     ( (out_V[p + (1,0,0)]*out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
                                                        self.g / 2 * (out_H[p + (1,0,0)]*out_H[p + (1,0,0)]) )
                                                   )
-            #
-            # second half step (stage)
-            #
+        #
+        # second half step (stage)
+        #
+        for p in self.get_interior_points (self.Hx,
+                                           k_direction="forward"):
             # height
             out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
             out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
@@ -218,14 +223,14 @@ class ShallowWaterTest (unittest.TestCase):
         logging.basicConfig (level=logging.INFO)
 
         #self.domain = (66, 66, 1)
-        self.domain = (8, 8, 1)
+        self.domain = (16, 16, 1)
 
         self.H = np.ones  (self.domain)
         self.U = np.zeros (self.domain)
         self.V = np.zeros (self.domain)
 
         self.water = ShallowWater ( )
-        self.drop  = self.water.droplet (2, 2, self.domain)
+        self.drop  = np.ones (self.domain)
 
 
     def test_symbol_discovery (self):
@@ -260,6 +265,9 @@ class ShallowWaterTest (unittest.TestCase):
         """
         Checks that the stencil results are correct if executing in Python mode.-
         """
+        self.water.reflect_borders (self.H,
+                                    self.U,
+                                    self.V)
         self.water.run (out_H=self.H,
                         out_U=self.U,
                         out_V=self.V,
@@ -294,28 +302,27 @@ class ShallowWaterTest (unittest.TestCase):
         #
         # enable native execution for the stencil
         #
-        self.water.backend = 'c++'
+        #self.water.backend = 'c++'
 
         #
         # disturb the water surface
         #
-        #import pudb; pudb.set_trace ( )
         self.water.create_random_drop (self.H,
                                        self.domain)
 
+        """
         for i in range (3):
-            #self.water.reflect_borders (self.H,
-            #                            self.U,
-            #                            self.V)
+            self.water.reflect_borders (self.H,
+                                        self.U,
+                                        self.V)
             self.water.run (out_H=self.H,
                             out_U=self.U,
                             out_V=self.V,
                             in_drop=self.drop)
+            print (self.H)
             input ("Press Enter to continue ...")
-
-
-
         """
+
         #
         # initialize 3D plot
         #
@@ -345,6 +352,14 @@ class ShallowWaterTest (unittest.TestCase):
                        out_U=self.U,
                        out_V=self.V,
                        in_drop=self.drop)
+            #
+            # reset if the system becomes unstable
+            #
+            if np.any (np.isnan (self.H)):
+                self.setUp ( )
+                self.water.create_random_drop (self.H,
+                                               self.domain)
+
             ax.clear ( )
             surf = ax.plot_surface (X, Y, 
                                 np.squeeze (self.H, axis=(2,)),
@@ -356,13 +371,13 @@ class ShallowWaterTest (unittest.TestCase):
             #plt.savefig ("/tmp/water_%04d" % framenumber)
             return surf,
 
-        #plt.ion ( )
+        plt.ion ( )
         anim = animation.FuncAnimation (fig,
                                         draw_frame,
                                         fargs=(self.water,),
-                                        interval=2000,
+                                        interval=20,
                                         blit=False)
-        """
+
 
 
 """
