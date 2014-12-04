@@ -260,19 +260,19 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* backward_step =
+	gridtools::computation* backward_step =
 #else
-        boost::shared_ptr<gridtools::computation> backward_step =
+	       boost::shared_ptr<gridtools::computation> backward_step =
 #endif
       gridtools::make_computation<gridtools::BACKEND, layout_t>
-        (
+      (
             gridtools::make_mss // mss_descriptor
             (
                 execute<backward>(),
                 gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ),
             domain, coords
-            );
+	  ) ;
 
     forward_step->ready();
     forward_step->steady();

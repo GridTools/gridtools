@@ -111,12 +111,12 @@ bool test (uint_t d1, uint_t d2, uint_t d3, void *out_buff, void *in_buff)
     //
     // input/output data fields share their buffers with NumPy arrays
     //
-    storage_type in_data ((uint_t) 6,(uint_t) 6,(uint_t) 6,
+    storage_type in_data ((uint_t) 512,(uint_t) 512,(uint_t) 60,
                                  (double *) in_buff,
                                  -3.5,
                                  std::string ("in_data"));
 
-    storage_type out_data ((uint_t) 6,(uint_t) 6,(uint_t) 6,
+    storage_type out_data ((uint_t) 512,(uint_t) 512,(uint_t) 60,
                                  (double *) out_buff,
                                  1.5,
                                  std::string ("out_data"));

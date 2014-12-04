@@ -89,8 +89,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-    //                      dims  z y x
-    //                   strides xy x 1
+    //                   strides  1 x xy
+    //                      dims  x y z
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     //typedef storage_type::basic_type integrator_type;
