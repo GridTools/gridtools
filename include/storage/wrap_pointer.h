@@ -34,14 +34,11 @@ struct wrap_pointer{
         typedef T pointee_t;
 
     GT_FUNCTION
-    wrap_pointer(wrap_pointer & other)
+    wrap_pointer(wrap_pointer const& other)
         : m_cpu_p(other.m_cpu_p),
-	  m_managed(other.m_managed)
+	  m_managed(false)
         {
-	    other.m_managed=false;
 	}
-
-    wrap_pointer(wrap_pointer const& other)=delete;
 
     GT_FUNCTION
     wrap_pointer(T* p)
@@ -62,6 +59,8 @@ struct wrap_pointer{
 
     pointee_t* get() const {return m_cpu_p;}
 
+    bool managed(){return m_managed;}
+
   GT_FUNCTION
   virtual ~wrap_pointer(){
 #ifndef NDEBUG
@@ -77,7 +76,7 @@ struct wrap_pointer{
     void update_gpu() {}//\todo find a way to remove this method
 
     GT_FUNCTION
-    wrap_pointer(uint_t size) {
+    wrap_pointer(uint_t size, bool managed=true): m_managed(managed) {
         allocate_it(size);
 #ifndef NDEBUG
             printf(" - %X %d\n", m_cpu_p, size);
@@ -85,10 +84,9 @@ struct wrap_pointer{
         }
 
     GT_FUNCTION
-    void allocate_it(uint_t size, bool managed=true){
+    void allocate_it(uint_t size){
 /* #if (CUDA_VERSION > 5050) */
         m_cpu_p = new T[size];
-	m_managed=managed
 /* #else */
 /* 	m_cpu_p = workaround_::new_op<T>()(size); */
 /* #endif */
