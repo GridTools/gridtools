@@ -178,7 +178,7 @@ class StencilSymbols (object):
             if funct_name in self.symbol_table.keys ( ):
                 return name in self.symbol_table[funct_name].keys ( )
             else:
-                raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, funct_name))
+                raise KeyError ("Symbol '%s' is not registered in functor '%s'" % (name, funct_name))
         else:
             functors = [k for k in self.symbol_table.keys ( ) if not k.startswith ('_')]
             for f in functors:

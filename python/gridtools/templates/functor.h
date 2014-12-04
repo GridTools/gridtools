@@ -28,7 +28,8 @@ struct {{ functor.name }}
     // the temporary data fields of this functor
     //
     {% for arg in temp_params|sort(attribute='id') -%}
-    typedef arg_type<{{ arg.id }}, range<-1,1,-1,1> > {{ arg.name }};
+    //typedef arg_type<{{ arg.id }}, range<-1,1,-1,1> > {{ arg.name }};
+    typedef arg_type<{{ arg.id }}> {{ arg.name }};
     {% endfor %}
 
     //
