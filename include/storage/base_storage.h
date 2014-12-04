@@ -807,13 +807,12 @@ namespace gridtools {
 
         static const ushort_t n_width = Storage::n_width;
 
-    private:
-
         __device__
         extend_width(extend_width const& other)
             : Storage(other)
             {}
 
+    private:
         //for stdcout purposes
         explicit extend_width(){}
 
@@ -977,16 +976,16 @@ namespace gridtools {
         explicit extend_dim(){}
     };
 
-    /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'
+    /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
+       Annoyngly enough does not work with CUDA 6.5
      */
+#if !defined(__CUDACC__) //defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9) )
     template< class Storage, uint_t ... Number >
 			  struct extend{
-
 	// static const auto fuck=boost::mpl::print<static_uint<accumulate(add(), Number+1 ... )>>();
-
 	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number+1) ... )>, Number> ... > type;
     };
-
+#endif
 
 #endif //CXX11_ENABLED
 
