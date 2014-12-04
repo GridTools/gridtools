@@ -1,5 +1,3 @@
-{% extends "stencil.h" %}
-
 {% block functor %}
 
 //

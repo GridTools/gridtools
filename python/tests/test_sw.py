@@ -116,7 +116,7 @@ class ShallowWater (MultiStageStencil):
 
     def reflect_borders (self, H, U, V):
         """
-        Implements the refelctive boundary conditions in NumPy.-
+        Implements the reflective boundary conditions in NumPy.-
         """
         H[:,0] =  H[:,1]
         U[:,0] =  U[:,1]
@@ -138,7 +138,7 @@ class ShallowWater (MultiStageStencil):
 
     def kernel (self, out_H, out_U, out_V, in_drop):
         """
-        This stencil comprises multiple stage.-
+        This stencil comprises multiple stages.-
         """
         #
         # first half step (stage X direction)
@@ -310,7 +310,6 @@ class ShallowWaterTest (unittest.TestCase):
         self.water.create_random_drop (self.H,
                                        self.domain)
 
-        """
         for i in range (3):
             self.water.reflect_borders (self.H,
                                         self.U,
@@ -319,10 +318,11 @@ class ShallowWaterTest (unittest.TestCase):
                             out_U=self.U,
                             out_V=self.V,
                             in_drop=self.drop)
-            print (self.H)
-            input ("Press Enter to continue ...")
-        """
+            #print (self.H)
+            #input ("Press Enter to continue ...")
 
+
+    def do_not_run (self):
         #
         # initialize 3D plot
         #
