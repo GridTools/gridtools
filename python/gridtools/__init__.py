@@ -6,7 +6,7 @@ import warnings
 
 import numpy as np
 
-from gridtools.functor import StencilFunctor, FunctorParameter
+from gridtools.functor import StencilFunctor, FunctorBody, FunctorParameter
 
 
 
@@ -28,9 +28,9 @@ class StencilSymbols (object):
         # initialize the container (k=group, v=dict), where
         # dict contains k=symbol name, v=symbol value
         #
-        self.symbols = dict ( )
+        self.symbol_table = dict ( )
         for g in self.groups:
-            self.symbols[g] = dict ( )
+            self.symbol_table[g] = dict ( )
 
 
     def __delitem__ (self, name):
@@ -38,9 +38,9 @@ class StencilSymbols (object):
         Removes the symbol entry 'name' from this instance.-
         """
         for g in self.groups:
-            if name in self.symbols[g].keys ( ):
-                return self.symbols[g].__delitem__ (name)
-        raise KeyError ("No symbol named '%s'")
+            if name in self.symbol_table[g].keys ( ):
+                return self.symbol_table[g].__delitem__ (name)
+        raise KeyError ("No symbol named '%s'" % name)
 
 
     def __getitem__ (self, name):
@@ -48,8 +48,8 @@ class StencilSymbols (object):
         Returns the value of symbol 'name' or None if not found.-
         """
         for g in self.groups:
-            if name in self.symbols[g].keys ( ):
-                return self.symbols[g][name]
+            if name in self.symbol_table[g].keys ( ):
+                return self.symbol_table[g][name]
         return None
      
 
@@ -62,9 +62,9 @@ class StencilSymbols (object):
             group   container group into which to add the symbol.-
         """
         if group in self.groups:
-            if name in self.symbols[group].keys ( ):
+            if name in self.symbol_table[group].keys ( ):
                 logging.info ("Updated value of symbol '%s'" % name)
-            self.symbols[group][name] = value
+            self.symbol_table[group][name] = value
 
 
     def add_alias (self, name, value):
@@ -116,8 +116,8 @@ class StencilSymbols (object):
             raise NameError ("Functor '%s' already exists in symbol table.-" % name)
         else:
             self.groups.add (name)
-            self.symbols[name] = dict ( )
-            return (name, self.symbols[name])
+            self.symbol_table[name] = dict ( )
+            return self.symbol_table[name]
 
 
     def add_temporary (self, name, value):
@@ -158,20 +158,31 @@ class StencilSymbols (object):
                 pass
 
 
-    def is_parameter (self, name, func_name=None):
+    def get_functor_params (self, funct_name):
         """
-        Returns True is symbol 'name' is a functor parameter of 'func_name'.
+        Returns all parameters of functor 'funct_name'.-
+        """
+        if funct_name is not None:
+            if funct_name in self.symbol_table.keys ( ):
+                return self.symbol_table[funct_name].values ( )
+            else:
+                raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, funct_name))
+
+
+    def is_parameter (self, name, funct_name=None):
+        """
+        Returns True is symbol 'name' is a functor parameter of 'funct_name'.
         If 'functor' is None, all registered functors are checked.-
         """
-        if func_name is not None:
-            if func_name in self.symbols.keys ( ):
-                return name in self.symbols[func_name].keys ( )
+        if funct_name is not None:
+            if funct_name in self.symbol_table.keys ( ):
+                return name in self.symbol_table[funct_name].keys ( )
             else:
-                raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, func_name))
+                raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, funct_name))
         else:
-            functors = [k for k in self.symbols.keys ( ) if not k.startswith ('_')]
+            functors = [k for k in self.symbol_table.keys ( ) if not k.startswith ('_')]
             for f in functors:
-                if name in self.symbols[f].keys ( ):
+                if name in self.symbol_table[f].keys ( ):
                     return True
             return False
 
@@ -180,7 +191,7 @@ class StencilSymbols (object):
         """
         Returns True if symbol 'name' is a temporary data field.-
         """
-        return name in self.symbols['_temp_field'].keys ( )
+        return name in self.symbol_table['_temp_field'].keys ( )
 
 
     def items (self):
@@ -190,7 +201,7 @@ class StencilSymbols (object):
         import operator
 
         for g in self.groups:
-            sorted_symbols = sorted (self.symbols[g].items ( ),
+            sorted_symbols = sorted (self.symbol_table[g].items ( ),
                                      key=operator.itemgetter (0),
                                      reverse=True)
             for k,v in sorted_symbols:
@@ -297,6 +308,7 @@ class StencilInspector (ast.NodeVisitor):
         """
         from jinja2 import Environment, PackageLoader
 
+        
         def join_with_prefix (a_list, prefix, attribute=None):
             """
             A custom filter for template rendering.-
@@ -313,21 +325,33 @@ class StencilInspector (ast.NodeVisitor):
         jinja_env.filters["join_with_prefix"] = join_with_prefix
 
         #
-        # prepare parameters passed to the templates
+        # prepare the parameters used by the template engine
         #
-        temp_params    = [v for k,v in self.symbols.items ( ) if self.symbols.is_temporary (k)]
-        functor_params = [v for k,v in self.symbols.items ( ) if self.symbols.is_parameter (k, self.functors[0].name)]
-        all_params     = temp_params + functor_params
+        functor_source   = ""
+        functor_template = jinja_env.get_template ("functor.h")
+        temp_params = [v for k,v in self.symbols.items ( ) if self.symbols.is_temporary (k)]
+        functor_params = list (self.symbols.get_functor_params (self.functors[0].name))
+        all_params = temp_params + functor_params
+
+        #
+        # render the source code for each of the functors
+        #
+        for f in self.functors:
+            functor_source += functor_template.render (functor=f,
+                                                       all_params=all_params,
+                                                       temp_params=temp_params,
+                                                       functor_params=functor_params)
 
         #
         # instantiate each of the templates and render them
         #
-        header = jinja_env.get_template ("functor.h")
+        header = jinja_env.get_template ("stencil.h")
         cpp    = jinja_env.get_template ("stencil.cpp")
         make   = jinja_env.get_template ("Makefile")
 
         return (header.render (stencil=self,
-                               functor=self.functors[0],
+                               functors=self.functors,
+                               functor_source=functor_source,
                                all_params=all_params,
                                temp_params=temp_params,
                                functor_params=functor_params),
@@ -485,24 +509,48 @@ class StencilInspector (ast.NodeVisitor):
             #
             if node.returns is None:
                 #
-                # the functor parameters will be kept here
-                #
-                (funct_name, funct_params) = self.symbols.add_functor (node.name)
-                #
-                # create the functor object and start analyzing it
-                #
-                funct = StencilFunctor (funct_name,
-                                        node,
-                                        funct_params,
-                                        self.symbols)
-                funct.analyze_params ( )
-                funct.analyze_loops  ( )
-                self.functors.append (funct)
-                #
                 # continue traversing the AST
                 #
                 for n in node.body:
-                    super (StencilInspector, self).visit (n)
+                    #
+                    # looks for 'get_interior_points' comprehensions
+                    # 
+                    if isinstance (n, ast.For):  
+                        from random import choice
+                        from string import digits
+
+                        #
+                        # the iteration should call 'get_interior_points'
+                        #
+                        call = n.iter
+                        if (call.func.value.id == 'self' and 
+                            call.func.attr == 'get_interior_points'):
+                            #
+                            # a name for this functor
+                            #
+                            funct_name = 'functor_%s' % ''.join ([choice (digits) for n in range (4)])
+                            
+                            #
+                            # the functor parameters will be kept here
+                            #
+                            funct_params = self.symbols.add_functor (funct_name)
+
+                            #
+                            # create the functor object and analyze its code
+                            #
+                            funct = StencilFunctor (funct_name,
+                                                    n,
+                                                    funct_params,
+                                                    self.symbols)
+                            funct.analyze_params (node.args.args)
+                            self.functors.append (funct)
+                            #
+                            # functor's body
+                            #
+                            funct.body = FunctorBody (n.body,
+                                                      funct_params,
+                                                      self.symbols)
+                            logging.info ("Functor '%s' created" % funct.name)
             else:
                 raise ValueError ("The 'kernel' function should return 'None'.")
 

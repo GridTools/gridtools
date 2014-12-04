@@ -191,13 +191,10 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
             #
-            # check if subscripting any known symbols
+            # check if subscripting any data fields
             #
             if isinstance (node.value, ast.Attribute):
-                name = '%s' % node.value.attr
-                #
-                # only good for data fields
-                #
+                name = node.value.attr
                 value = self.symbols[name]
                 if isinstance (value, FunctorParameter):
                     return "dom(%s%s)" % (name, indexing)
@@ -206,7 +203,11 @@ class FunctorBody (ast.NodeVisitor):
             #
             elif isinstance (node.value, ast.Name):
                 name = node.value.id
-                if name in self.params.keys ( ):
+                value = self.symbols[name]
+                #
+                # FIXME only ask for the parameters of this functor
+                #
+                if self.symbols.is_parameter (name):
                     return "dom(%s%s)" % (name, indexing)
 
 
@@ -255,9 +256,9 @@ class StencilFunctor ( ):
         Constructs a new StencilFunctor:
 
             name    a name to uniquely identify this functor;
-            node    the FunctionDef AST node (see
+            node    the For AST node (see
                     https://docs.python.org/3.4/library/ast.html) of the
-                    Python function from which this functor will be built;
+                    Python comprehention from which this functor will be built;
             params  a dict of FunctorParameters of this functor;
             symbols the StecilSymbols of all symbols within the stencil where
                     the functor lives.-
@@ -283,55 +284,33 @@ class StencilFunctor ( ):
             node    a FunctionDef AST node (see
                     https://docs.python.org/3.4/library/ast.html).-
         """
-        if isinstance (node, ast.FunctionDef):
+        if isinstance (node, ast.For):
             self.node = node 
         else:
-            raise RuntimeError ("Functor's root AST node should be type FunctionDef")
+            raise TypeError ("Functor's root AST node should be type ast.For")
 
 
-    def analyze_params (self):
+    def analyze_params (self, nodes):
         """
-        Extracts the parameters from the Python function.-
+        Extracts the parameters from the Python function:
+
+            nodes   a list of AST nodes representing the parameters.-
         """
-        try:
+        for p in nodes:
             #
-            # analyze the function parameters
+            # do not add the parameter if it already exists as a symbol
             #
-            param_list = self.node.args.args
-            for p in param_list:
-                par = FunctorParameter (p.arg)
+            name = p.arg
+            if self.symbols[name] is None:
+                par = FunctorParameter (name)
                 #
                 # the name is None if the parameter was ignored/invalid
                 #
                 if par.name is not None:
                     par.id = len (self.params)
                     self.params[par.name] = par
-
-        except AttributeError:
-            warnings.warn ("AST node not set or it is not a FunctionDef\n",
-                           RuntimeWarning)
-
-
-    def analyze_loops (self):
-        """
-        Looks for 'get_interior_points' comprehensions within the 
-        Python function.-
-        """
-        #
-        # the loops are part of the function body
-        #
-        function_body = self.node.body
-        for node in function_body:
-            if isinstance (node, ast.For):
-                #
-                # the iteration should call 'get_interior_points'
-                #
-                call = node.iter
-                if (call.func.value.id == 'self' and 
-                    call.func.attr == 'get_interior_points'):
-                    self.body = FunctorBody (node.body,
-                                             self.params,
-                                             self.symbols)
+            else:
+                logging.warning ("Not adding parameter '%s' of functor '%s' because it already exists in the symbol table" % (name, self.name))
 
 
     def generate_code (self, src):

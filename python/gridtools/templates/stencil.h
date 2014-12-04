@@ -32,8 +32,14 @@ namespace {{ stencil.name|lower }}
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-{% block functor %}
-{% endblock %}
+//
+// functor definition - begin
+//
+{{ functor_source }}
+//
+// functor definition - end
+//
+
 
 
 bool test (uint_t d1, uint_t d2, uint_t d3,
@@ -100,10 +106,10 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     {% for arg in functor_params -%}
     typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
-    {% endfor -%}
+    {% endfor %}
     {% for arg in temp_params -%}
     typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
-    {% endfor -%}
+    {% endfor %}
 
 
     // An array of placeholders to be passed to the domain
@@ -121,7 +127,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // (I don't particularly like this)
     //
     gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
-        {{- functor_params|join_with_prefix('&', attribute='name')|join(', ') }}));
+        {{- functor_params|sort(attribute='id')|join_with_prefix('&', attribute='name')|join(', ') }}));
 
     //
     // definition of the physical dimensions of the problem.
@@ -152,8 +158,13 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
             gridtools::make_mss
             (
                 execute<forward>(),
-                gridtools::make_esf<{{ functor.name }}>(
+                {% for f in functors -%}
+                gridtools::make_esf<{{ f.name }}>(
                    {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
+                    {%- if not loop.last -%}
+                    ,
+                    {%- endif %}
+                {% endfor -%}
                 ),
             domain, coords
             );
@@ -165,8 +176,6 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
 
     comp_{{ stencil.name|lower }}->run();
     comp_{{ stencil.name|lower }}->finalize();
-
-    out_H.print ( );
 
     return EXIT_SUCCESS;
 }
