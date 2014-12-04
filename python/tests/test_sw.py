@@ -45,8 +45,8 @@ class ShallowWater (MultiStageStencil):
         #
         # grid size
         #
-        #self.n = 64
-        self.n = 14
+        self.n = 64
+        #self.n = 14
 
         #
         # gravity-accelleration constant
@@ -100,7 +100,7 @@ class ShallowWater (MultiStageStencil):
         """
         Disturbs the water surface with a drop.-
         """
-        drop = self.droplet (2, 11, domain)
+        drop = self.droplet (5, 11, domain)
         w = drop.shape[0]
 
         rand0 = np.random.rand ( )
@@ -222,8 +222,8 @@ class ShallowWaterTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        #self.domain = (66, 66, 1)
-        self.domain = (16, 16, 1)
+        self.domain = (66, 66, 1)
+        #self.domain = (16, 16, 1)
 
         self.H = np.ones  (self.domain)
         self.U = np.zeros (self.domain)
@@ -231,6 +231,92 @@ class ShallowWaterTest (unittest.TestCase):
 
         self.water = ShallowWater ( )
         self.drop  = np.ones (self.domain)
+
+
+    def test_interactive_plot (self):
+        import matplotlib.pyplot as plt
+        from matplotlib import animation, cm
+        from mpl_toolkits.mplot3d import Axes3D
+
+        #
+        # enable native execution for the stencil
+        #
+        #self.water.backend = 'c++'
+
+        #
+        # disturb the water surface
+        #
+        self.water.create_random_drop (self.H,
+                                       self.domain)
+
+        """
+        for i in range (5):
+            self.water.reflect_borders (self.H,
+                                        self.U,
+                                        self.V)
+            self.water.run (out_H=self.H,
+                            out_U=self.U,
+                            out_V=self.V,
+                            in_drop=self.drop)
+            print (self.H)
+            input ("Press Enter to continue ...")
+        """
+
+        #
+        # initialize 3D plot
+        #
+        fig = plt.figure ( )
+        ax  = fig.add_subplot (111, 
+                               projection='3d')
+
+        rng = np.arange (self.domain[0])
+        X, Y = np.meshgrid (rng, rng)
+        surf = ax.plot_surface (X, Y, 
+                                np.squeeze (self.H, axis=(2,)),
+                                rstride=1, 
+                                cstride=1, 
+                                cmap=cm.jet, 
+                                linewidth=0, 
+                                antialiased=False) 
+        fig.show ( )
+         
+        #
+        # animation update function
+        #
+        def draw_frame (framenumber, swobj):
+            swobj.reflect_borders (self.H,
+                                   self.U,
+                                   self.V)
+            swobj.run (out_H=self.H,
+                       out_U=self.U,
+                       out_V=self.V,
+                       in_drop=self.drop)
+            #
+            # reset if the system becomes unstable
+            #
+            if np.any (np.isnan (self.H)):
+                self.setUp ( )
+                self.water.create_random_drop (self.H,
+                                               self.domain)
+                input ("Reseting ...")
+
+            ax.clear ( )
+            surf = ax.plot_surface (X, Y, 
+                                np.squeeze (self.H, axis=(2,)),
+                                rstride=1, 
+                                cstride=1, 
+                                cmap=cm.jet, 
+                                linewidth=0, 
+                                antialiased=False) 
+            #plt.savefig ("/tmp/water_%04d" % framenumber)
+            return surf,
+
+        plt.ion ( )
+        anim = animation.FuncAnimation (fig,
+                                        draw_frame,
+                                        fargs=(self.water,),
+                                        interval=20,
+                                        blit=False)
 
 
     def test_symbol_discovery (self):
@@ -294,89 +380,6 @@ class ShallowWaterTest (unittest.TestCase):
         self.assertIsNotNone (self.water.inspector.lib_obj)
 
 
-    def test_interactive_plot (self):
-        import matplotlib.pyplot as plt
-        from matplotlib import animation, cm
-        from mpl_toolkits.mplot3d import Axes3D
-
-        #
-        # enable native execution for the stencil
-        #
-        #self.water.backend = 'c++'
-
-        #
-        # disturb the water surface
-        #
-        self.water.create_random_drop (self.H,
-                                       self.domain)
-
-        for i in range (3):
-            self.water.reflect_borders (self.H,
-                                        self.U,
-                                        self.V)
-            self.water.run (out_H=self.H,
-                            out_U=self.U,
-                            out_V=self.V,
-                            in_drop=self.drop)
-            #print (self.H)
-            #input ("Press Enter to continue ...")
-
-
-    def do_not_run (self):
-        #
-        # initialize 3D plot
-        #
-        fig = plt.figure ( )
-        ax  = fig.add_subplot (111, 
-                               projection='3d')
-
-        rng = np.arange (self.domain[0])
-        X, Y = np.meshgrid (rng, rng)
-        surf = ax.plot_surface (X, Y, 
-                                np.squeeze (self.H, axis=(2,)),
-                                rstride=1, 
-                                cstride=1, 
-                                cmap=cm.jet, 
-                                linewidth=0, 
-                                antialiased=False) 
-        fig.show ( )
-         
-        #
-        # animation update function
-        #
-        def draw_frame (framenumber, swobj):
-            swobj.reflect_borders (self.H,
-                                   self.U,
-                                   self.V)
-            swobj.run (out_H=self.H,
-                       out_U=self.U,
-                       out_V=self.V,
-                       in_drop=self.drop)
-            #
-            # reset if the system becomes unstable
-            #
-            if np.any (np.isnan (self.H)):
-                self.setUp ( )
-                self.water.create_random_drop (self.H,
-                                               self.domain)
-
-            ax.clear ( )
-            surf = ax.plot_surface (X, Y, 
-                                np.squeeze (self.H, axis=(2,)),
-                                rstride=1, 
-                                cstride=1, 
-                                cmap=cm.jet, 
-                                linewidth=0, 
-                                antialiased=False) 
-            #plt.savefig ("/tmp/water_%04d" % framenumber)
-            return surf,
-
-        plt.ion ( )
-        anim = animation.FuncAnimation (fig,
-                                        draw_frame,
-                                        fargs=(self.water,),
-                                        interval=20,
-                                        blit=False)
 
 
 
