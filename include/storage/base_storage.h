@@ -59,13 +59,6 @@ NOTE CUDA: It is important when subclassing from a storage object to reimplement
 
 namespace gridtools {
 
-    template <typename T, T T1, T T2  >
-    struct max_c
-{
-    static const T value = (T1 > T2)? T1 : T2;
-    typedef static_int<value> type;
-};
-
     template <typename T1, typename T2  >
     struct max
 {
@@ -79,24 +72,10 @@ namespace gridtools {
 	typedef typename max< typename boost::mpl::at_c< Vector, ID>::type , typename find_max<Vector, ID-1>::type >::type type;
     };
 
-    template<typename T, T* Vector, uint_t ID>
-    struct find_max_c
-    {
-	typedef typename max_c<T, Vector[ID] , find_max_c<T, Vector, ID-1>::value >::type type;
-	static const T value=max_c<T, Vector[ID] , find_max_c<T, Vector, ID-1>::value >::type;
-    };
-
     template<typename Vector>
     struct find_max<Vector, 0>
     {
 	typedef typename boost::mpl::at_c<Vector, 0>::type type;
-    };
-
-    template<typename T, T* Vector>
-    struct find_max_c<T, Vector, 0>
-    {
-	typedef static_int<Vector[0]> type;
-	static const int_t value = Vector[0];
     };
 
     template<typename Vector>
@@ -104,13 +83,6 @@ namespace gridtools {
     {
 	typedef typename find_max< Vector, boost::mpl::size<Vector>::type::value-1>::type type;
 	static const int_t value=find_max< Vector, boost::mpl::size<Vector>::type::value-1>::type::value;
-    };
-
-    template<typename T, T* Vector, uint_t size>
-    struct vec_max_c
-    {
-	typedef typename find_max_c< T, Vector, size-1>::type type;
-	static const int_t value=find_max_c< T, Vector, size-1>::value;
     };
 
 
@@ -365,7 +337,8 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~base_storage(){
 	    for(ushort_t i=0; i<field_dimensions; ++i)
-	    	m_fields[i].free_it();
+		if(!m_fields[i].managed())
+		    m_fields[i].free_it();
 	    // delete [] m_fields;
 	}
 
