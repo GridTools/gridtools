@@ -33,6 +33,15 @@ template <typename T>
 struct wrap_pointer{
         typedef T pointee_t;
 
+    //default constructor
+    GT_FUNCTION
+    wrap_pointer()
+        : m_cpu_p(NULL),
+	  m_managed(false)
+        {
+	}
+
+
     GT_FUNCTION
     wrap_pointer(wrap_pointer const& other)
         : m_cpu_p(other.m_cpu_p),
@@ -43,19 +52,15 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(T* p)
         : m_cpu_p(p)
-        , m_managed(false)
+        , m_managed(true)
     {}
 
     wrap_pointer<T>& operator = (T& p)
         {
             m_cpu_p=p;
-	    m_managed=false;
+	    m_managed=true;
             return *this;
         }
-
-    explicit wrap_pointer() : m_cpu_p(0), m_managed(false)
-	{
-	}
 
     pointee_t* get() const {return m_cpu_p;}
 
@@ -76,7 +81,7 @@ struct wrap_pointer{
     void update_gpu() {}//\todo find a way to remove this method
 
     GT_FUNCTION
-    wrap_pointer(uint_t size, bool managed=true): m_managed(managed) {
+    wrap_pointer(uint_t size, bool managed=false): m_managed(managed) {
         allocate_it(size);
 #ifndef NDEBUG
             printf(" - %X %d\n", m_cpu_p, size);
