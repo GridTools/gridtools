@@ -56,7 +56,8 @@ namespace gridtools {
             template<typename LocalArgs>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
-                boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, &index[ID]);
+		// k direction does does not have bolcks
+		boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, (uint_t)0, &index[ID]);
                 increment_k<ID-1>::apply(local_args,  factor, index);
             }
         };
@@ -67,7 +68,7 @@ namespace gridtools {
             template<typename LocalArgs>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
-                boost::fusion::at_c<0>(local_args)->template increment<2>(factor, index);
+                boost::fusion::at_c<0>(local_args)->template increment<2>(factor, (uint_t)0, index);
             }
         };
 
@@ -77,7 +78,7 @@ namespace gridtools {
             template<typename LocalArgs>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
-                boost::fusion::at_c<ID>(local_args)->template decrement<2>(factor, &index[ID]);
+                boost::fusion::at_c<ID>(local_args)->template decrement<2>(factor, (uint_t)0, &index[ID]);
                 decrement_k<ID-1>::apply(local_args, factor, index);
             }
         };
@@ -88,7 +89,7 @@ namespace gridtools {
             template<typename LocalArgs>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
-                boost::fusion::at_c<0>(local_args)->template decrement<2>(factor, index);
+                boost::fusion::at_c<0>(local_args)->template decrement<2>(factor, (uint_t)0, index);
             }
         };
     } // namespace iterate_domain_aux
@@ -141,12 +142,12 @@ namespace gridtools {
         template<uint_t ID>
             struct assign_index{
             template<typename Storage>
-            GT_FUNCTION
             /**@brief does the actual assignment
                This method is responsible of computing the index for the memory access at
                the location (i,j,k). Such index is shared among all the fields contained in the
                same storage class instance, and it is not shared among different storage instances.
             */
+            GT_FUNCTION
             static void assign(Storage & r, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t* index){
                 //if the following fails, the ID is larger than the number of storage types,
 		//or the index was not properly initialized to 0,
@@ -428,6 +429,7 @@ namespace gridtools {
         template <typename FirstArg, typename SecondArg, template<typename Arg1, typename Arg2> class Expression >
         GT_FUNCTION
         auto operator() (Expression<FirstArg, SecondArg> const& arg) const ->decltype(this->value(arg)) {
+	    //arg.to_string();
             return value(arg);
         }
 

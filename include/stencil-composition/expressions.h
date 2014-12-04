@@ -8,7 +8,7 @@ namespace gridtools{
 
     /** \section expressions (Expressions Definition)
         @{
-        This is the base class of a binary expression, containing the instances of the two argument.
+        This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
     */
     template <typename ArgType1, typename ArgType2>
@@ -33,6 +33,32 @@ namespace gridtools{
         ArgType2 const second_operand;
     };
 
+
+//     /** \section expressions (Expressions Definition)
+//         @{
+//         This is the base class of a unary expression, containing the instances of the argument.
+//         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
+//     */
+//     template <typename ArgType>
+//     struct expr{
+
+//         /**@brief generic expression constructor*/
+//         GT_FUNCTION
+//         constexpr expr(ArgType const& operand)
+//             :
+// #if( (!defined(CXX11_ENABLED)))
+//             operand(operand),
+// #else
+//             operand{operand},
+// #endif
+//             {}
+
+//         /**@brief default empty constructor*/
+//         constexpr expr(){}
+//         ArgType const operand;
+//     };
+
+
     /**@brief Expression summing two arguments*/
     template <typename ArgType1, typename ArgType2>
     struct expr_plus : public expr<ArgType1, ArgType2>{
@@ -40,6 +66,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_plus(){};
+	constexpr std::string to_string(){return this->first_operand.to_string()+std::string("+")+this->second_operand.to_string();}
     };
 
     /**@brief Expression subrtracting two arguments*/
@@ -49,6 +76,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_minus(){}
+	constexpr std::string to_string(){return this->first_operand.to_string()+std::string("-(") + this->second_operand.to_string()+std::string(")");}
     };
 
     /**@brief Expression multiplying two arguments*/
@@ -58,6 +86,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_times(){}
+	constexpr std::string to_string(){return std::string("(")+this->first_operand.to_string()+ std::string(")*(") + this->second_operand.to_string() + std::string(")");}
     };
 
     /**@brief Expression dividing two arguments*/
@@ -67,7 +96,8 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_divide(){}
-    };
+	constexpr std::string to_string(){return std::string("(")+this->first_operand.to_string()+ std::string(")/(") + this->second_operand.to_string() +std::string(")");}
+};
 
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
@@ -78,6 +108,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
         constexpr expr_exp(){}
+	constexpr std::string to_string(){return std::string("(")+this->first_operand.to_string()+ std::string(")^(") + this->second_operand.to_string() +std::string(")");}
     };
 /*@}*/
 

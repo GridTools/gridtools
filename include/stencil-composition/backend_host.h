@@ -104,9 +104,10 @@ namespace gridtools {
 			      typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 			      assert(i>=0);
 			      assert(j>=0);
+			      //TODO put the construction outside the loops
 			      iterate_domain_type it_domain(local_domain, i,j/*, f->m_coords.template value_at<typename Traits::first_hit_t>()*/, f->blk_idx_i, f->blk_idx_j );
 
-				/* printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() ); */
+			      //printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() );
 			      //setting the initial k level (for backward/parallel iterations it is not 0)
 			      if( !(iteration_policy::value==enumtype::forward) )
 				  it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );

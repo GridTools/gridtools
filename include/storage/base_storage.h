@@ -59,6 +59,62 @@ NOTE CUDA: It is important when subclassing from a storage object to reimplement
 
 namespace gridtools {
 
+    template <typename T, T T1, T T2  >
+    struct max_c
+{
+    static const T value = (T1 > T2)? T1 : T2;
+    typedef static_int<value> type;
+};
+
+    template <typename T1, typename T2  >
+    struct max
+{
+    static const int_t value = (T1::value > T2::value)? T1::value : T2::value;
+    typedef static_int<value> type;
+};
+
+    template<typename Vector, uint_t ID>
+    struct find_max
+    {
+	typedef typename max< typename boost::mpl::at_c< Vector, ID>::type , typename find_max<Vector, ID-1>::type >::type type;
+    };
+
+    template<typename T, T* Vector, uint_t ID>
+    struct find_max_c
+    {
+	typedef typename max_c<T, Vector[ID] , find_max_c<T, Vector, ID-1>::value >::type type;
+	static const T value=max_c<T, Vector[ID] , find_max_c<T, Vector, ID-1>::value >::type;
+    };
+
+    template<typename Vector>
+    struct find_max<Vector, 0>
+    {
+	typedef typename boost::mpl::at_c<Vector, 0>::type type;
+    };
+
+    template<typename T, T* Vector>
+    struct find_max_c<T, Vector, 0>
+    {
+	typedef static_int<Vector[0]> type;
+	static const int_t value = Vector[0];
+    };
+
+    template<typename Vector>
+    struct vec_max
+    {
+	typedef typename find_max< Vector, boost::mpl::size<Vector>::type::value-1>::type type;
+	static const int_t value=find_max< Vector, boost::mpl::size<Vector>::type::value-1>::type::value;
+    };
+
+    template<typename T, T* Vector, uint_t size>
+    struct vec_max_c
+    {
+	typedef typename find_max_c< T, Vector, size-1>::type type;
+	static const int_t value=find_max_c< T, Vector, size-1>::value;
+    };
+
+
+
     struct multiplies {
 	constexpr multiplies(){}
 	template <typename  T>
@@ -195,19 +251,22 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type init = value_type(), std::string const& s = std::string("default name") ):
 	    is_set( true ),
-	    m_name(s)
-	    {
-		m_fields[0]=pointer_type(dim1*dim2*dim3);
-		// printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
-		uint_t dims[]={dim1, dim2, dim3};
-		// m_strides[0]=( dim1*dim2*dim3 );
-		// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
-		// m_strides[2]=( dims[layout::template at_<2>::value] );
-		// uint_t dims[]={ dim1, dim2, dim3 };
+	    m_name(s),
+	    m_fields{pointer_type(dim1*dim2*dim3)},
+	    m_dims{dim1, dim2, dim3},
+	    m_strides{( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) ) ,
+		    ( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
+		    ( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) )}
+		    {
+			// printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
+			// m_strides[0]=( dim1*dim2*dim3 );
+			// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
+			// m_strides[2]=( dims[layout::template at_<2>::value] );
+			// uint_t dims[]={ dim1, dim2, dim3 };
 
-		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-		m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-		m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+			// m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
+			// m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+			// m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
 
 
 #ifdef _GT_RANDOM_INPUT
@@ -255,15 +314,18 @@ namespace gridtools {
            , m_name(s)
             {
 		m_fields[0]=pointer_type(dim1*dim2*dim3);
-                // printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
+		m_dims[0]=dim1;
+		m_dims[1]=dim2;
+		m_dims[2]=dim3;
+// printf("layout: %d %d %d \n", layout::get(0), layout::get(1), layout::get(2));
 		// uint_t dims[]={dim1, dim2, dim3};
 		// m_strides[0]=( dim1*dim2*dim3 );
 		// m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
 		// m_strides[2]=( dims[layout::template at_<2>::value] );
-                // uint_t dims[]={ dim1, dim2, dim3 };
-                m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-                m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-                m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+
+		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
+		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
 
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
@@ -284,14 +346,14 @@ namespace gridtools {
 	//     m_strides[1]=( dims[layout::template at_<2>::value]*dims[layout::template at_<1>::value]);
 	//     m_strides[2]=( dims[layout::template at_<2>::value] );
         // }//pointer is not owner of the data
-#endif //CXX11_ENABLED
+ #endif //CXX11_ENABLED
 
         explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type* ptr,
                               std::string const& s = std::string("default name") ):
             is_set( true ),
             m_name(s)
             {
-		m_fields[0]=pointer_type(dim1*dim2*dim3);
+		m_fields[0]=pointer_type(ptr);
 		uint_t dims[]={dim1, dim2, dim3};
 		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
 		m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
@@ -303,7 +365,7 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~base_storage(){
 	    for(ushort_t i=0; i<field_dimensions; ++i)
-		m_fields[i].free_it();
+	    	m_fields[i].free_it();
 	    // delete [] m_fields;
 	}
 
@@ -346,9 +408,9 @@ namespace gridtools {
 
         /** @brief prints debugging information */
         void info() const {
-            std::cout << dims_coordwise<0>(m_strides) << "x"
-                      << dims_coordwise<1>(m_strides) << "x"
-                      << dims_coordwise<2>(m_strides) << ", "
+            std::cout << dims<0>() << "x"
+                      << dims<1>() << "x"
+                      << dims<2>() << ", "
                       << std::endl;
         }
 
@@ -388,7 +450,7 @@ namespace gridtools {
         //note: offset returns a signed int because the layout map indexes are signed short ints
         GT_FUNCTION
         int_t offset(int_t i, int_t j, int_t k) const {
-            return  m_strides[1]* layout::template find<0>(i,j,k) +  m_strides[2] * layout::template find<1>(i,j,k) + layout::template find<2>(i,j,k);
+            return  m_strides[1]* layout::template find_val<0,int,0>(i,j,k) +  m_strides[2] * layout::template find_val<1,int,0>(i,j,k) + layout::template find_val<2,int,0>(i,j,k);
         }
 
         /**@brief returns the size of the data field*/
@@ -412,23 +474,8 @@ namespace gridtools {
          Coordinates 0,1,2 correspond to i,j,k respectively*/
         template<uint_t Coordinate>
         GT_FUNCTION
-        static constexpr uint_t strides(uint_t const* strides){
-            return (layout::template pos_<Coordinate>::value==space_dimensions-1) ? 1 : layout::template find<Coordinate>(&strides[1]);
-        }
-
-        /**@brief return the dimension for a specific coordinate, given the vector of strides*/
-        template<uint_t Coordinate>
-        GT_FUNCTION
-        static constexpr uint_t dims_coordwise(uint_t const* str) {
-            return (layout::template pos_<Coordinate>::value==space_dimensions-1) ? str[space_dimensions-1] : (layout::template find<Coordinate>(str))/(str[(layout::template at_<Coordinate>::value)+1]);
-        }
-
-
-        /**@brief return the dimension size corresponding to a specific stride level (i.e. 0 for stride x*y, 1 for stride x, 2 for stride 1), given the vector of strides*/
-        template<uint_t StrideOrder>
-        GT_FUNCTION
-        static constexpr uint_t dims_stridewise(uint_t const* strides){
-            return (StrideOrder==space_dimensions-1) ? strides[space_dimensions-1] : strides[StrideOrder]/strides[StrideOrder+1];
+        static constexpr uint_t strides(uint_t const* str){
+            return (vec_max<typename layout::layout_vector_t>::value < 0) ?0:( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 :  str[layout::template at_<Coordinate>::value+1];
         }
 
         /**@brief printing a portion of the content of the data field*/
@@ -446,9 +493,9 @@ namespace gridtools {
 		ushort_t MI=12;
 		ushort_t MJ=12;
 		ushort_t MK=12;
-		for (uint_t i = 0; i < dims_coordwise<0>(m_strides); i += std::max(( uint_t)1,dims_coordwise<0>(m_strides)/MI)) {
-		    for (uint_t j = 0; j < dims_coordwise<1>(m_strides); j += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MJ)) {
-			for (uint_t k = 0; k < dims_coordwise<2>(m_strides); k += std::max(( uint_t)1,dims_coordwise<1>(m_strides)/MK))
+		for (uint_t i = 0; i < dims<0>(); i += std::max(( uint_t)1,dims<0>()/MI)) {
+		    for (uint_t j = 0; j < dims<1>(); j += std::max(( uint_t)1,dims<1>()/MJ)) {
+			for (uint_t k = 0; k < dims<2>(); k += std::max(( uint_t)1,dims<1>()/MK))
 			{
 			    stream << "["
 				// << i << ","
@@ -469,18 +516,32 @@ namespace gridtools {
         GT_FUNCTION
         uint_t _index(uint_t i, uint_t j, uint_t k) const {
             uint_t index;
-            index = m_strides[1] * layout::template find<0>(i,j,k) +
-                m_strides[2]* layout::template find<1>(i,j,k) +
-                layout::template find<2>(i,j,k);
+            if (IsTemporary) {
+                index =
+                    m_strides[1]
+                    * (modulus(layout::template find_val<0,uint_t,0>(i,j,k),layout::template find<0>(m_dims))) +
+                    m_strides[2] * modulus(layout::template find_val<1,uint_t,0>(i,j,k),layout::template find<1>(m_dims)) +
+                    modulus(layout::template find_val<2,uint_t,0>(i,j,k),layout::template find<2>(m_dims));
+            } else {
+		index =
+		    m_strides[1]
+		    * layout::template find_val<0,uint_t,0>(i,j,k) +
+		    m_strides[2] * layout::template find_val<1,uint_t,0>(i,j,k) +
+		    layout::template find_val<2,uint_t,0>(i,j,k);
+	    }
             return index;
         }
 
-        /** @brief method to increment the memory address index by moving forward one step in the given Coordinate direction */
+        /** @brief method to increment the memory address index by moving forward one step in the given Coordinate direction
+
+	    SFINAE: design pattern used to avoid the compilation of the overloaded method which are not used (and which would produce a compilation error)
+*/
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t& /*block*/, uint_t* index){
+        void increment( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
 	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-	    if(layout::template pos_<Coordinate>::value>=0)
+	    //if(layout::template at_<Coordinate>::value>=0)
+	    if(layout::template at_< Coordinate >::value >=0)
 	    {
 		*index+=strides<Coordinate>(m_strides);
 	    }
@@ -489,9 +550,11 @@ namespace gridtools {
         /** @brief method to decrement the memory address index by moving backward one step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t& /*block*/, uint_t* index){
+        void decrement( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
 	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-	    if(layout::template pos_<Coordinate>::value>=0)
+	    //if(layout::template at_<layout::template pos_<Coordinate>::value >::value>=0)
+	    // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
+	    if(layout::template at_<Coordinate>::value >=0)
 	    {
 		*index-=strides<Coordinate>(m_strides);
 	    }
@@ -500,9 +563,10 @@ namespace gridtools {
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t const& dimension, uint_t& /*block*/, uint_t* index){
+	void increment(uint_t const& dimension, uint_t const& /*block*/, uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
 	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-	    if(layout::template pos_<Coordinate>::value>=0)
+	    // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
+	    if( layout::template at_< Coordinate >::value >= 0 )
 	    {
 		*index += strides<Coordinate>(m_strides)*dimension;
 	    }
@@ -511,9 +575,9 @@ namespace gridtools {
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t dimension, uint_t& /*block*/, uint_t* index){
+        void decrement(uint_t dimension, uint_t const& /*block*/, uint_t* index){
 	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-	    if(layout::template pos_<Coordinate>::value>=0)
+	    if( layout::template at_< Coordinate >::value >= 0 )
 	    {
 		*index-=strides<Coordinate>(m_strides)*dimension;
 	    }
@@ -535,7 +599,7 @@ namespace gridtools {
         /** @brief returns the dimension fo the field along I*/
         template<ushort_t I>
         GT_FUNCTION
-        uint_t dims() const {return dims_coordwise<I>(m_strides);}
+        uint_t dims() const {return m_dims[I];}
 
         /**@brief returns the storage strides*/
         GT_FUNCTION
@@ -551,6 +615,7 @@ namespace gridtools {
 	const std::string& m_name;
         // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
         uint_t m_strides[space_dimensions];
+        uint_t m_dims[space_dimensions];
 	pointer_type m_fields[field_dimensions];
     private:
 	/**@brief noone calls the empty constructor*/
@@ -905,14 +970,6 @@ namespace gridtools {
 	    push_front<dimension>(field);
 	}
 
-	template<uint_t dimension=1>
-        GT_FUNCTION
-        void push_front( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t) ){//copy constructor
-	    // std::cout<<"storage size: "<<super::size()<<std::endl;
-	    for (uint_t i=0; i<super::size(); ++i)
-	     	field[i]=lambda(coord_from_index<super::layout::template pos_<0>::value >::apply(i, super::m_strides), coord_from_index<super::layout::template pos_<1>::value >::apply(i,super::m_strides), coord_from_index<super::layout::template pos_<2>::value >::apply(i,super::m_strides));
-	    push_front<dimension>(field);
-	}
 
 	template<short_t field_dim, short_t snapshot>
 	void set( pointer_type& field)
@@ -922,15 +979,15 @@ namespace gridtools {
 	    }
 
 
-	// template<short_t field_dim, short_t snapshot>
-	// void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
-	//     {
-	// 	//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
-	// 	for (uint_t i=0; i<dims<0>(); ++i)
-	// 	    for (uint_t j=0; j<dims<1>(); ++j)
-	// 		for (uint_t k=0; k<dims<2>(); ++k)
-	// 		    super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=lambda(i, j, k);
-	//     }
+	template<short_t field_dim, short_t snapshot>
+	void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
+	    {
+		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
+		for (uint_t i=0; i<m_dims[0]; ++i)
+		    for (uint_t j=0; j<m_dims[1]; ++j)
+			for (uint_t k=0; k<m_dims[2]; ++k)
+			    super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot](i,j,k)=lambda(i, j, k);
+	    }
 
         //the storage takes ownership over all the data pointers?
         template<uint_t dimension=1>

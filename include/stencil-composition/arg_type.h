@@ -449,6 +449,9 @@ namespace gridtools {
             printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", idx+1);
             exit (-1);
         }
+
+	//std::string m_arg_string(m_offset[0]+std::string(", ")+m_offset[1]+std::string(", ")+ m_offset[2]);
+	std::string to_string(){return std::string("arg(")+/*arg_string*/std::string("o")+std::string(")");}
     };
 
 
@@ -549,6 +552,8 @@ namespace gridtools {
             return idx==1? m_offset : super::template n<idx-1>();
 	    // return static_if<idx==1>::apply( m_offset,super::template n<idx-1>());
 	}
+
+	//std::string m_arg_string(m_offset+ std::string(", ") +super::arg_string);
 
     private:
         short_t m_offset;

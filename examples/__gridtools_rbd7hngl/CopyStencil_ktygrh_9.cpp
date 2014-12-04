@@ -13,8 +13,12 @@ extern "C"
 
 int main()
 {
-    double in[6*6*6];
-    double out[6*6*6];
+    double* in= new double(512*512*60);
+    double* out= new double(512*512*60);
+    // double in[6*6*6];
+    // double out[6*6*6];
 
-    copystencil::test (6, 6, 6 ,out,in);
+    copystencil::test (512, 512, 60,out,in);
+    delete in;
+    delete out;
 }
