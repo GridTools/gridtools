@@ -385,24 +385,24 @@ namespace gridtools {
        partial specializations for double (or float)
        @{*/
     /** sum with scalar evaluation*/
-    template <typename ArgType1>
+	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
     GT_FUNCTION
-    auto value_scalar(expr_plus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
+    auto value_scalar(expr_plus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
 
     /** subtract with scalar evaluation*/
-    template <typename ArgType1>
+	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
     GT_FUNCTION
-    auto value_scalar(expr_minus<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
+    auto value_scalar(expr_minus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
 
     /** multiply with scalar evaluation*/
-    template <typename ArgType1>
+	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
     GT_FUNCTION
-    auto value_scalar(expr_times<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
+    auto value_scalar(expr_times<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
 
     /** divide with scalar evaluation*/
-    template <typename ArgType1>
+	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
     GT_FUNCTION
-    auto value_scalar(expr_divide<ArgType1, float_type> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
+    auto value_scalar(expr_divide<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
 
     // template <typename ArgType1>
     // GT_FUNCTION
@@ -417,9 +417,9 @@ namespace gridtools {
        (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
        @{*/
     /** integer power evaluation*/
-        template <typename ArgType1>
+        template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        float_type value_int(expr_exp<ArgType1, int> const& arg) const {return std::pow((*this)(arg.first_operand), arg.second_operand);}
+        auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), arg.second_operand)) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
 /**@}@}*/
 
 
@@ -435,18 +435,18 @@ namespace gridtools {
 
 /** @brief method called in the Do methods of the functors.
     partial specializations for double (or float)*/
-        template <typename Arg, template<typename Arg1, typename Arg2> class Expression >
+        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Arg, float_type> const& arg) const ->decltype(this->value_scalar(arg)) {
+        auto operator() (Expression<Arg, FloatType> const& arg) const ->decltype(this->value_scalar(arg)) {
             return value_scalar(arg);
         }
 
 /** @brief method called in the Do methods of the functors.
     partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
     (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
-        template <typename Arg, template<typename Arg1, typename Arg2> class Expression >
+        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Arg, int> const& arg) const ->decltype(this->value_int(arg)) {
+        auto operator() (Expression<Arg, IntType> const& arg) const ->decltype(this->value_int(arg)) {
             return value_int(arg);
         }
 #endif
@@ -455,7 +455,20 @@ namespace gridtools {
         // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
         LocalDomain const& local_domain;
         uint_t m_index[N_STORAGES];
-        float_type* m_data_pointer[N_DATA_POINTERS];//the storages could have different types(?)
-    };
+
+	typedef typename boost::remove_pointer<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0>::type>::type::value_type float_t;
+        float_t* m_data_pointer[N_DATA_POINTERS];//the storages could have different types(?)
+
+	//It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
+    	// template<typename Tuple1, typename Tuple2>
+	// struct concat_tuple{
+	//     typedef decltype(std::tuple_cat(std::declval<Tuple1>(), std::declval<Tuple2>())) type;
+	// };
+
+	// typedef typename boost::mpl::fold<
+	//     typename LocalDomain::mpl_storages,
+	//     std::tuple<>,
+	//     concat_tuple<boost::mpl::_1, std::tuple<boost::mpl::_2> > >::type tuple_type;
+};
 
 } // namespace gridtools
