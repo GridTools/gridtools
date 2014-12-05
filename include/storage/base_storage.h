@@ -952,7 +952,7 @@ namespace gridtools {
 
 
 	template<short_t field_dim, short_t snapshot>
-	void set( pointer_type& field, float_type (*lambda)(uint_t, uint_t, uint_t))
+	void set( pointer_type& field, super::value_type (*lambda)(uint_t, uint_t, uint_t))
 	    {
 		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
 		for (uint_t i=0; i<this->m_dims[0]; ++i)
