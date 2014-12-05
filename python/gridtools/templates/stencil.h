@@ -5,13 +5,19 @@
  */
 #pragma once
 
-#define BACKEND backend<Host, Naive >
-
 #include <gridtools.h>
 #include <common/defs.h>
 #include <stencil-composition/backend_host.h>
 
 #include <boost/fusion/include/make_vector.hpp>
+
+
+
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, Block >
+#else
+#define BACKEND backend<Host, Naive >
+#endif
 
 
 
