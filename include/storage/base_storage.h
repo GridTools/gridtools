@@ -61,10 +61,10 @@ namespace gridtools {
 
     template <typename T1, typename T2  >
     struct max
-{
-    static const int_t value = (T1::value > T2::value)? T1::value : T2::value;
-    typedef static_int<value> type;
-};
+    {
+	static const int_t value = (T1::value > T2::value)? T1::value : T2::value;
+	typedef static_int<value> type;
+    };
 
     template<typename Vector, uint_t ID>
     struct find_max
