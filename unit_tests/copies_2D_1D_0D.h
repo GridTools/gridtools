@@ -67,9 +67,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         int collector_execute = pw_new_collector("Execute");
 #endif
 
-        int d1 = x;
-        int d2 = y;
-        int d3 = z;
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >

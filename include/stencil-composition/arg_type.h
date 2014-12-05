@@ -586,7 +586,7 @@ struct alias{
 
     template<typename ... Args>
     constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
-    };
+    }
 
     typedef boost::mpl::vector<Known...> dim_vector;
 

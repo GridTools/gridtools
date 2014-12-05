@@ -184,7 +184,7 @@ namespace gridtools {
 		    //if the following fails, the ID is larger than the number of storage types,
 		    //or the index was not properly initialized to 0,
 		    //or you know what you are doing (then comment out the assert)
-		    boost::fusion::at_c<ID>(r)->template set_index(id, &index[ID]);
+		    boost::fusion::at_c<ID>(r)->set_index(id, &index[ID]);
 		    set_index_recur<ID-1>::set(r,id,index);
 		}
 	    };
@@ -196,7 +196,7 @@ namespace gridtools {
 		GT_FUNCTION
 		static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
 
-		    boost::fusion::at_c<0>(r)->template set_index(id, &index[0]);
+		    boost::fusion::at_c<0>(r)->set_index(id, &index[0]);
 		}
 	    };
 

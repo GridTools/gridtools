@@ -54,7 +54,7 @@ namespace gridtools {
 	      typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 	      typename Traits::iterate_domain_t it_domain(*l_domain);
 	      it_domain.assign_ij<0>(i+starti,0);
-	      it_domain.assign_ij<0>(j+startj,0);
+	      it_domain.assign_ij<1>(j+startj,0);
 
 	      //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );	      //setting the initial k level (for backward/parallel iterations it is not 0)
 	      if( !iteration_policy::value==enumtype::forward )
