@@ -37,16 +37,16 @@ class ShallowWater (MultiStageStencil):
     """
     Implements the shallow water equation as a multi-stage stencil.-
     """
-    def __init__ (self):
+    def __init__ (self, domain):
         """
         A comment to make AST parsing more difficult.-
         """
         super (ShallowWater, self).__init__ ( )
+        self.domain = domain
         #
-        # grid size
+        # grid size with a halo of one
         #
-        self.n = 64
-        #self.n = 14
+        self.n = domain[0] - 2
 
         #
         # gravity-accelleration constant
@@ -76,13 +76,12 @@ class ShallowWater (MultiStageStencil):
         self.Vy = np.zeros ((self.n+1, self.n+1, 1))
 
 
-    def droplet (self, height, width, shape):
+    def droplet (self, height, width):
         """
         A two-dimensional Gaussian of the falling drop into the water:
 
             height  height of the generated drop;
-            width   width of the generated drop;
-            shape   shape of the resulting array, padded with zeros.-
+            width   width of the generated drop.-
         """
         x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
         y = np.copy (x)
@@ -90,17 +89,21 @@ class ShallowWater (MultiStageStencil):
         #
         # pad the resulting array with zeros
         #
-        zeros = np.zeros (shape[:-1])
-        zeros[:drop.shape[0], :drop.shape[1]] = drop
-        return zeros.reshape (zeros.shape[0],
-                              zeros.shape[1], 
-                              1)
+        #zeros = np.zeros (shape[:-1])
+        #zeros[:drop.shape[0], :drop.shape[1]] = drop
+        #return zeros.reshape (zeros.shape[0],
+        #                      zeros.shape[1], 
+        #                      1)
+        return drop.reshape ((drop.shape[0],
+                              drop.shape[1],
+                              1))
 
-    def create_random_drop (self, H, domain):
+
+    def create_random_drop (self, H):
         """
         Disturbs the water surface with a drop.-
         """
-        drop = self.droplet (5, 11, domain)
+        drop = self.droplet (2, 3)
         w = drop.shape[0]
 
         rand0 = np.random.rand ( )
@@ -136,7 +139,7 @@ class ShallowWater (MultiStageStencil):
 
 
 
-    def kernel (self, out_H, out_U, out_V, in_drop):
+    def kernel (self, out_H, out_U, out_V):
         """
         This stencil comprises multiple stages.-
         """
@@ -157,14 +160,17 @@ class ShallowWater (MultiStageStencil):
                                                     ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] + 
                                                        self.g / 2.0 * (out_H[p + (0,1,0)]*out_H[p + (0,1,0)]) )
                                                   )
+
             # Y momentum
             self.Vx[p]  = ( out_V[p + (1,1,0)] + out_V[p + (0,1,0)] ) / 2.0
             self.Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
                                                     ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
                                                   )
+
         #
         # first half step (stage Y direction)
         #
+        """
         for p in self.get_interior_points (self.Hy,
                                            k_direction="forward"):
             # height
@@ -183,15 +189,16 @@ class ShallowWater (MultiStageStencil):
                                                     ( (out_V[p + (1,0,0)]*out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
                                                        self.g / 2 * (out_H[p + (1,0,0)]*out_H[p + (1,0,0)]) )
                                                   )
-        #
+        """
         # second half step (stage)
         #
         for p in self.get_interior_points (self.Hx,
                                            k_direction="forward"):
             # height
             out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
-            out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
+            #out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
 
+            """
             # X momentum
             out_U[p] -= (self.dt / self.dx) * ( ( (self.Ux[p + (0,-1,0)]*self.Ux[p + (0,-1,0)]) / self.Hx[p + (0,-1,0)] + 
                                                    self.g / 2 * (self.Hx[p + (0,-1,0)]*self.Hx[p + (0,-1,0)]) ) -
@@ -210,6 +217,7 @@ class ShallowWater (MultiStageStencil):
                                                 ( (self.Vy[p + (-1,-1,0)]*self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] + 
                                                    self.g / 2 * (self.Hy[p + (-1,-1,0)]*self.Hy[p + (-1,-1,0)]) )
                                               )
+            """
 
 
 
@@ -220,20 +228,22 @@ class ShallowWaterTest (unittest.TestCase):
     A test case for the shallow water stencil defined above.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.INFO)
+        logging.basicConfig (level=logging.WARNING)
 
-        self.domain = (66, 66, 1)
-        #self.domain = (16, 16, 1)
+        #self.domain = (8, 8, 1)
+        self.domain = (32, 32, 1)
 
         self.H = np.ones  (self.domain)
         self.U = np.zeros (self.domain)
         self.V = np.zeros (self.domain)
 
-        self.water = ShallowWater ( )
-        self.drop  = np.ones (self.domain)
+        self.water = ShallowWater (self.domain)
 
 
     def test_interactive_plot (self):
+        """
+        Displays an animation inside a matplotlib graph.-
+        """
         import matplotlib.pyplot as plt
         from matplotlib import animation, cm
         from mpl_toolkits.mplot3d import Axes3D
@@ -246,20 +256,17 @@ class ShallowWaterTest (unittest.TestCase):
         #
         # disturb the water surface
         #
-        self.water.create_random_drop (self.H,
-                                       self.domain)
+        self.water.create_random_drop (self.H)
 
         """
-        for i in range (5):
+        for i in range (10):
             self.water.reflect_borders (self.H,
                                         self.U,
                                         self.V)
             self.water.run (out_H=self.H,
                             out_U=self.U,
-                            out_V=self.V,
-                            in_drop=self.drop)
-            print (self.H)
-            input ("Press Enter to continue ...")
+                            out_V=self.V)
+            print ("%d - NaN: %s" % (i, np.any (np.isnan (self.H))))
         """
 
         #
@@ -289,16 +296,17 @@ class ShallowWaterTest (unittest.TestCase):
                                    self.V)
             swobj.run (out_H=self.H,
                        out_U=self.U,
-                       out_V=self.V,
-                       in_drop=self.drop)
+                       out_V=self.V)
+            print ("%d - %s - is NaN: %s" % (framenumber,
+                                             swobj.backend,
+                                             np.any (np.isnan (self.H))))
             #
             # reset if the system becomes unstable
             #
             if np.any (np.isnan (self.H)):
                 self.setUp ( )
-                self.water.create_random_drop (self.H,
-                                               self.domain)
-                input ("Reseting ...")
+                self.water.create_random_drop (self.H)
+                print ("Reseting ...")
 
             ax.clear ( )
             surf = ax.plot_surface (X, Y, 
@@ -315,7 +323,7 @@ class ShallowWaterTest (unittest.TestCase):
         anim = animation.FuncAnimation (fig,
                                         draw_frame,
                                         fargs=(self.water,),
-                                        interval=20,
+                                        interval=10,
                                         blit=False)
 
 
@@ -336,7 +344,6 @@ class ShallowWaterTest (unittest.TestCase):
         for f in out_fields:
             self.assertIsNotNone (insp.symbols[f])
             self.assertTrue (insp.symbols.is_parameter (f))
-            self.assertTrue (insp.symbols.is_parameter (f, 'kernel'))
 
         #
         # check temporary fields were correctly discovered
