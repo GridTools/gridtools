@@ -139,7 +139,7 @@ namespace gridtools {
 	namespace{
 
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID>
+	    template<uint_t ID, uint_t Coordinate>
             struct assign_index{
             template<typename Storage>
             /**@brief does the actual assignment
@@ -148,29 +148,57 @@ namespace gridtools {
                same storage class instance, and it is not shared among different storage instances.
             */
             GT_FUNCTION
-            static void assign(Storage & r, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t* index){
+            static void assign(Storage & r, uint_t id, uint_t block, uint_t* index){
                 //if the following fails, the ID is larger than the number of storage types,
 		//or the index was not properly initialized to 0,
 		//or you know what you are doing (then comment out the assert)
-                assert(index[ID]==0);
-                boost::fusion::at_c<ID>(r)->template increment<0>(i, bi, &index[ID]);
-                boost::fusion::at_c<ID>(r)->template increment<1>(j, bj, &index[ID]);
-                assign_index<ID-1>::assign(r,i,j,bi,bj,index);
+                boost::fusion::at_c<ID>(r)->template increment<Coordinate>(id, block, &index[ID]);
+                assign_index<ID-1, Coordinate>::assign(r,id,block,index);
             }
         };
 
         /**usual specialization to stop the recursion*/
-        template<>
-            struct assign_index<0>{
+	    template<uint_t Coordinate>
+            struct assign_index<0, Coordinate>{
             template<typename Storage>
             GT_FUNCTION
-            static void assign( Storage & r, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t* index/* , ushort_t* lru */){
+            static void assign( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
 
-                assert(index[0]==0);
-                boost::fusion::at_c<0>(r)->template increment<0>(i, bi, &index[0]);
-                boost::fusion::at_c<0>(r)->template increment<1>(j, bj, &index[0]);
+                boost::fusion::at_c<0>(r)->template increment<Coordinate>(id, block, &index[0]);
             }
         };
+
+
+
+	    /**@brief assigning all the storage pointers to the m_data_pointers array*/
+	    template<uint_t ID>
+		struct set_index_recur{
+		template<typename Storage>
+		/**@brief does the actual assignment
+		   This method is responsible of computing the index for the memory access at
+		   the location (i,j,k). Such index is shared among all the fields contained in the
+		   same storage class instance, and it is not shared among different storage instances.
+		*/
+		GT_FUNCTION
+		static void set(Storage & r, uint_t id, uint_t* index){
+		    //if the following fails, the ID is larger than the number of storage types,
+		    //or the index was not properly initialized to 0,
+		    //or you know what you are doing (then comment out the assert)
+		    boost::fusion::at_c<ID>(r)->template set_index(id, &index[ID]);
+		    set_index_recur<ID-1>::set(r,id,index);
+		}
+	    };
+
+	    /**usual specialization to stop the recursion*/
+	    template<>
+		struct set_index_recur<0>{
+		template<typename Storage>
+		GT_FUNCTION
+		static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
+
+		    boost::fusion::at_c<0>(r)->template set_index(id, &index[0]);
+		}
+	    };
 
 
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
@@ -228,7 +256,7 @@ namespace gridtools {
            indexes to access the data fields (one index per storage instance, so that one index might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(LocalDomain const& local_domain, uint_t i, uint_t j, uint_t bi, uint_t bj)
+        iterate_domain(LocalDomain const& local_domain)
             : local_domain(local_domain)
 #ifdef CXX11_ENABLED
             , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
@@ -240,8 +268,30 @@ namespace gridtools {
 #endif
                 //                                                      double**        &storage
                 assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args);
-                assign_index< N_STORAGES-1 >::assign(local_domain.local_args, i, j, bi, bj, &m_index[0]);
             }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+	GT_FUNCTION
+	void set_index(uint_t index)
+	    {
+                set_index_recur< N_STORAGES-1>::set(local_domain.local_args, index, &m_index[0]);
+	    }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+	template <ushort_t Coordinate>
+	GT_FUNCTION
+	void increment_ij(uint_t index, uint_t block)
+	    {
+                assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, 1, block, &m_index[0]);
+	    }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+	template <ushort_t Coordinate>
+	GT_FUNCTION
+	void assign_ij(uint_t index, uint_t block)
+	    {
+                assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0]);
+	    }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         GT_FUNCTION
