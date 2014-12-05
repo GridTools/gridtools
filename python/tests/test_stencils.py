@@ -185,7 +185,7 @@ class MovingTest (unittest.TestCase):
         #
         # enable native execution for the stencil
         #
-        self.stencil.backend = 'c++'
+        #self.stencil.backend = 'c++'
 
         #
         # disturb the water surface

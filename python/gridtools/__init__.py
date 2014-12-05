@@ -726,7 +726,6 @@ class MultiStageStencil ( ):
             functor_params = list (self.inspector.symbols.get_functor_params (self.inspector.functors[0].name))
             for p in functor_params:
                 if p.name in kwargs.keys ( ):
-                    logging.warning ("## Adding parameter '%s'" % p.name)
                     params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
                 else:
                     logging.warning ("Missing parameter [%s]" % p.name)
