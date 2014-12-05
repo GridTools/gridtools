@@ -154,17 +154,17 @@ class ShallowWater (MultiStageStencil):
 
             # X momentum    
             self.Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
-            #self.Ux[p] -= self.dt / (2*self.dx) * ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
-            #                                           self.g / 2.0 * (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) ) -
-            #                                        ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] + 
-            #                                           self.g / 2.0 * (out_H[p + (0,1,0)]*out_H[p + (0,1,0)]) )
-            #                                      )
+            self.Ux[p] -= self.dt / (2*self.dx) * ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+                                                       self.g / 2.0 * (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) ) -
+                                                    ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] + 
+                                                       self.g / 2.0 * (out_H[p + (0,1,0)]*out_H[p + (0,1,0)]) )
+                                                  )
 
             # Y momentum
             self.Vx[p]  = ( out_V[p + (1,1,0)] + out_V[p + (0,1,0)] ) / 2.0
-            #self.Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
-            #                                        ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
-            #                                      )
+            self.Vx[p] -= self.dt / (2*self.dx) * ( ( out_U[p + (1,1,0)] * out_V[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
+                                                    ( out_U[p + (0,1,0)] * out_V[p + (0,1,0)] / out_H[p + (0,1,0)] )
+                                                  )
 
         #
         # first half step (stage Y direction)
@@ -177,17 +177,17 @@ class ShallowWater (MultiStageStencil):
 
             # X momentum
             self.Uy[p]  = ( out_U[p + (1,1,0)] + out_U[p + (1,0,0)] ) / 2.0
-            #self.Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
-            #                                        ( out_V[p + (1,0,0)] * out_U[p + (1,0,0)] / out_H[p + (1,0,0)] )
-            #                                      )
+            self.Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
+                                                    ( out_V[p + (1,0,0)] * out_U[p + (1,0,0)] / out_H[p + (1,0,0)] )
+                                                  )
 
             # Y momentum
             self.Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2.0
-            #self.Vy[p] -= self.dt / (2*self.dy) * ( ( (out_V[p + (1,1,0)]*out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
-            #                                           self.g / 2 * (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) ) -
-            #                                        ( (out_V[p + (1,0,0)]*out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
-            #                                           self.g / 2 * (out_H[p + (1,0,0)]*out_H[p + (1,0,0)]) )
-            #                                      )
+            self.Vy[p] -= self.dt / (2*self.dy) * ( ( (out_V[p + (1,1,0)]*out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+                                                       self.g / 2 * (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) ) -
+                                                    ( (out_V[p + (1,0,0)]*out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
+                                                       self.g / 2 * (out_H[p + (1,0,0)]*out_H[p + (1,0,0)]) )
+                                                  )
 
         #
         # second half step (stage)
@@ -199,23 +199,23 @@ class ShallowWater (MultiStageStencil):
             out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
 
             # X momentum
-            #out_U[p] -= (self.dt / self.dx) * ( ( (self.Ux[p + (0,-1,0)]*self.Ux[p + (0,-1,0)]) / self.Hx[p + (0,-1,0)] + 
-            #                                       self.g / 2 * (self.Hx[p + (0,-1,0)]*self.Hx[p + (0,-1,0)]) ) -
-            #                                    ( (self.Ux[p + (-1,-1,0)]*self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] + 
-            #                                       self.g / 2 * (self.Hx[p + (-1,-1,0)]*self.Hx[p + (-1,-1,0)]) )
-            #                                  )
-            #out_U[p] -= (self.dt / self.dy) * ( ( self.Vy[p + (-1,0,0)] * self.Uy[p + (-1,0,0)] / self.Hy[p + (-1,0,0)] ) - 
-            #                                     ( self.Vy[p + (-1,-1,0)] * self.Uy[p + (-1,-1,0)] / self.Hy[p + (-1,-1,0)] )
-            #                                   )
+            out_U[p] -= (self.dt / self.dx) * ( ( (self.Ux[p + (0,-1,0)]*self.Ux[p + (0,-1,0)]) / self.Hx[p + (0,-1,0)] + 
+                                                   self.g / 2 * (self.Hx[p + (0,-1,0)]*self.Hx[p + (0,-1,0)]) ) -
+                                                ( (self.Ux[p + (-1,-1,0)]*self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] + 
+                                                   self.g / 2 * (self.Hx[p + (-1,-1,0)]*self.Hx[p + (-1,-1,0)]) )
+                                              )
+            out_U[p] -= (self.dt / self.dy) * ( ( self.Vy[p + (-1,0,0)] * self.Uy[p + (-1,0,0)] / self.Hy[p + (-1,0,0)] ) - 
+                                                 ( self.Vy[p + (-1,-1,0)] * self.Uy[p + (-1,-1,0)] / self.Hy[p + (-1,-1,0)] )
+                                               )
             # Y momentum
-            #out_V[p] -= (self.dt / self.dx) * ( ( self.Ux[p + (0,-1,0)] * self.Vx[p + (0,-1,0)] / self.Hx[p + (0,-1,0)] ) -
-            #                                     ( self.Ux[p + (-1,-1,0)] * self.Vx[p + (-1,-1,0)] / self.Hx[p + (-1,-1,0)] )
-            #                                   )
-            #out_V[p] -= (self.dt / self.dy) * ( ( (self.Vy[p + (-1,0,0)]*self.Vy[p + (-1,0,0)]) / self.Hy[p + (-1,0,0)] + 
-            #                                       self.g / 2 * (self.Hy[p + (-1,0,0)]*self.Hy[p + (-1,0,0)]) ) -
-            #                                    ( (self.Vy[p + (-1,-1,0)]*self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] + 
-            #                                       self.g / 2 * (self.Hy[p + (-1,-1,0)]*self.Hy[p + (-1,-1,0)]) )
-            #                                  )
+            out_V[p] -= (self.dt / self.dx) * ( ( self.Ux[p + (0,-1,0)] * self.Vx[p + (0,-1,0)] / self.Hx[p + (0,-1,0)] ) -
+                                                 ( self.Ux[p + (-1,-1,0)] * self.Vx[p + (-1,-1,0)] / self.Hx[p + (-1,-1,0)] )
+                                               )
+            out_V[p] -= (self.dt / self.dy) * ( ( (self.Vy[p + (-1,0,0)]*self.Vy[p + (-1,0,0)]) / self.Hy[p + (-1,0,0)] + 
+                                                   self.g / 2 * (self.Hy[p + (-1,0,0)]*self.Hy[p + (-1,0,0)]) ) -
+                                                ( (self.Vy[p + (-1,-1,0)]*self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] + 
+                                                   self.g / 2 * (self.Hy[p + (-1,-1,0)]*self.Hy[p + (-1,-1,0)]) )
+                                              )
 
 
 
@@ -228,7 +228,7 @@ class ShallowWaterTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.WARNING)
 
-        self.domain = (16, 16, 1)
+        self.domain = (66, 66, 1)
 
         self.H = np.ones  (self.domain)
         self.U = np.zeros (self.domain)
@@ -255,7 +255,7 @@ class ShallowWaterTest (unittest.TestCase):
         #
         self.water.create_random_drop (self.H)
 
-        """
+        #
         # show its evolution
         #
         for i in range (100):
@@ -290,12 +290,6 @@ class ShallowWaterTest (unittest.TestCase):
         #
         def draw_frame (framenumber, swobj):
             #
-            # a random drop
-            #
-            if framenumber == 0:
-                self.water.create_random_drop (self.H)
-    
-            #
             # reflective boundary conditions
             #
             swobj.reflect_borders (self.H,
@@ -307,19 +301,16 @@ class ShallowWaterTest (unittest.TestCase):
             swobj.run (out_H=self.H,
                        out_U=self.U,
                        out_V=self.V)
-            #print ("%d - %s - is NaN: %s" % (framenumber,
+            #print ("%d - %s - sum(H): %s" % (framenumber,
             #                                 swobj.backend,
-            #                                 np.any (np.isnan (self.H))))
-            print ("%d - %s - sum(H): %s" % (framenumber,
-                                             swobj.backend,
-                                             np.sum (self.H)))
+            #                                 np.sum (self.H)))
             #
             # reset if the system becomes unstable
             #
-            #if np.any (np.isnan (self.H)):
-            #    self.setUp ( )
-            #    self.water.create_random_drop (self.H)
-            #    print ("Reseting ...")
+            if np.any (np.isnan (self.H)):
+                self.setUp ( )
+                self.water.create_random_drop (self.H)
+                print ("Reseting ...")
 
             ax.cla ( )
             surf = ax.plot_wireframe (X, Y, 
@@ -339,6 +330,7 @@ class ShallowWaterTest (unittest.TestCase):
                                         interval=50,
                                         blit=False)
         plt.show ( )
+        """
 
 
     def not_test_symbol_discovery (self):
