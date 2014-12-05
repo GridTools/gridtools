@@ -82,6 +82,7 @@ namespace gridtools {
 		    std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;
 #endif
 
+		    iterate_domain_type it_domain(local_domain);
 
                     for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
                          i < (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;
@@ -96,7 +97,10 @@ namespace gridtools {
 //#ifndef NDEBUG
 				//std::cout << "Move to : " << i << ", " << j << std::endl;
 //#endif
-
+				//reset the index
+				it_domain.set_index(0);
+				it_domain.template assign_ij<0>(i, f->blk_idx_i);
+				it_domain.template assign_ij<1>(j, f->blk_idx_j);
 			      /** setting an iterator to the address of the current i,j entry to be accessed */
 			      typedef typename boost::mpl::front<loop_intervals_t>::type interval;
 			      typedef typename index_to_level<typename interval::first>::type from;
@@ -104,8 +108,6 @@ namespace gridtools {
 			      typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 			      assert(i>=0);
 			      assert(j>=0);
-			      //TODO put the construction outside the loops
-			      iterate_domain_type it_domain(local_domain, i,j/*, f->m_coords.template value_at<typename Traits::first_hit_t>()*/, f->blk_idx_i, f->blk_idx_j );
 
 			      //printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() );
 			      //setting the initial k level (for backward/parallel iterations it is not 0)

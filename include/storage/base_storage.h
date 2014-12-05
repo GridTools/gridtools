@@ -85,8 +85,6 @@ namespace gridtools {
 	static const int_t value=find_max< Vector, boost::mpl::size<Vector>::type::value-1>::type::value;
     };
 
-
-
     struct multiplies {
 	constexpr multiplies(){}
 	template <typename  T>
@@ -516,7 +514,7 @@ namespace gridtools {
 	    //if(layout::template at_<Coordinate>::value>=0)
 	    if(layout::template at_< Coordinate >::value >=0)
 	    {
-		*index+=strides<Coordinate>(m_strides);
+		*index += strides<Coordinate>(m_strides);
 	    }
         }
 
@@ -555,6 +553,11 @@ namespace gridtools {
 		*index-=strides<Coordinate>(m_strides)*dimension;
 	    }
         }
+
+	GT_FUNCTION
+        void set_index(uint_t value, uint_t* index){
+	    *index=value;
+	}
 
         /**@brief returns the data field*/
         GT_FUNCTION
@@ -952,7 +955,7 @@ namespace gridtools {
 
 
 	template<short_t field_dim, short_t snapshot>
-	void set( pointer_type& field, super::value_type (*lambda)(uint_t, uint_t, uint_t))
+	void set( pointer_type& field, typename super::value_type (*lambda)(uint_t, uint_t, uint_t))
 	    {
 		//std::cout << "dim: "<<field_dim<<" snapshot: "<<snapshot<< "index: "<< access<n_width-(field_dim), traits>::type::n_fields + snapshot<<" total storages: " << n_width <<std::endl;
 		for (uint_t i=0; i<this->m_dims[0]; ++i)
