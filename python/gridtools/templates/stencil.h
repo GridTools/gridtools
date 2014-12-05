@@ -71,12 +71,17 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     {## 
      ## Declaration of the temporary-data-field type
      ##}
-    {% if temp_params %}
-    typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
+    {%- if temp_params -%}
+    //typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
     {% endif %}
+    {% for arg in temp_params -%}
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
+                                 {{ arg.id }}.0,
+                                 std::string ("{{ arg.name }}"));
+    {% endfor %}
 
 
-    {## 
+    {##
      ## Declaration of input data fields
      ##}
     {% for arg in functor_params if arg.input -%}
@@ -114,7 +119,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
     {% endfor %}
     {% for arg in temp_params -%}
-    typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
+    //typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
+    typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
     {% endfor %}
 
 
@@ -133,7 +139,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // (I don't particularly like this)
     //
     gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
-        {{- functor_params|sort(attribute='id')|join_with_prefix('&', attribute='name')|join(', ') }}));
+        {{- all_params|sort(attribute='id')|join_with_prefix('&', attribute='name')|join(', ') }}));
 
     //
     // definition of the physical dimensions of the problem.
@@ -158,30 +164,35 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
-    boost::shared_ptr<gridtools::computation> comp_{{ stencil.name|lower }} =
+    {% for f in functors -%}
+    boost::shared_ptr<gridtools::computation> comp_{{ f.name }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss
             (
                 execute<forward>(),
-                {% for f in functors -%}
                 gridtools::make_esf<{{ f.name }}>(
                    {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
-                    {%- if not loop.last -%}
-                    ,
-                    {%- endif %}
-                {% endfor -%}
                 ),
             domain, coords
             );
+    {% endfor -%}
 
-    comp_{{ stencil.name|lower }}->ready();
-    comp_{{ stencil.name|lower }}->steady();
-    
-    domain.clone_to_gpu ( );
+    //
+    // execute the stencil
+    //
+    {% for f in functors -%}
+    comp_{{ f.name|lower }}->ready();
+    comp_{{ f.name|lower }}->steady();
+    comp_{{ f.name|lower }}->run();
+    {% endfor %}
 
-    comp_{{ stencil.name|lower }}->run();
-    comp_{{ stencil.name|lower }}->finalize();
+    //
+    // clean everything up
+    //
+    {% for f in functors -%}
+    comp_{{ f.name|lower }}->finalize();
+    {% endfor %}
 
     return EXIT_SUCCESS;
 }

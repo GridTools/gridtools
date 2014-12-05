@@ -168,7 +168,7 @@ class MovingTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.domain = (16, 16, 1)
+        self.domain = (64, 64, 1)
 
         self.H = np.ones  (self.domain)
         self.U = np.zeros (self.domain)
@@ -180,7 +180,7 @@ class MovingTest (unittest.TestCase):
     def test_interactive_plot (self):
         import matplotlib.pyplot as plt
         from matplotlib import animation, cm
-        from mpl_toolkits.mplot3d import Axes3D
+        from mpl_toolkits.mplot3d import axes3d
 
         #
         # enable native execution for the stencil
@@ -192,70 +192,58 @@ class MovingTest (unittest.TestCase):
         #
         self.stencil.create_random_drop (self.H)
 
-
-        """
-        for i in range (5):
-            self.stencil.reflect_borders (self.H,
-                                        self.U,
-                                        self.V)
-            self.stencil.run (out_H=self.H,
-                            out_U=self.U,
-                            out_V=self.V)
-            print (self.H)
-            input ("Press Enter to continue ...")
-        """
-
         #
         # initialize 3D plot
         #
         fig = plt.figure ( )
-        ax  = fig.add_subplot (111, 
-                               projection='3d')
+        ax = axes3d.Axes3D (fig)
 
-        rng = np.arange (self.domain[0])
+        rng  = np.arange (self.domain[0])
         X, Y = np.meshgrid (rng, rng)
-        surf = ax.plot_surface (X, Y, 
+        surf = ax.plot_wireframe (X, Y, 
                                 np.squeeze (self.H, axis=(2,)),
                                 rstride=1, 
                                 cstride=1, 
                                 cmap=cm.jet, 
-                                linewidth=0, 
+                                linewidth=1, 
                                 antialiased=False) 
-        fig.show ( )
-         
         #
         # animation update function
         #
         def draw_frame (framenumber, swobj):
+            #
+            # a random drop
+            #
+            if framenumber == 0:
+                self.stencil.create_random_drop (self.H)
+    
+            #
+            # reflective boundary conditions
+            #
             swobj.reflect_borders (self.H,
                                    self.U,
                                    self.V)
+            #
+            # run the stencil
+            #
             swobj.run (out_H=self.H,
                        out_U=self.U,
                        out_V=self.V)
-            #
-            # reset if the system becomes unstable
-            #
-            if np.any (np.isnan (self.H)):
-                self.setUp ( )
-                self.stencil.create_random_drop (self.H)
-                input ("Reseting ...")
 
-            ax.clear ( )
-            surf = ax.plot_surface (X, Y, 
+            ax.cla ( )
+            surf = ax.plot_wireframe (X, Y, 
                                 np.squeeze (self.H, axis=(2,)),
                                 rstride=1, 
                                 cstride=1, 
                                 cmap=cm.jet, 
-                                linewidth=0, 
+                                linewidth=1, 
                                 antialiased=False) 
-            #plt.savefig ("/tmp/stencil_%04d" % framenumber)
             return surf,
 
-        plt.ion ( )
         anim = animation.FuncAnimation (fig,
                                         draw_frame,
                                         fargs=(self.stencil,),
+                                        frames=range (10),
                                         interval=20,
                                         blit=False)
 

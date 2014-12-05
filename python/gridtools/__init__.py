@@ -147,15 +147,16 @@ class StencilSymbols (object):
         each of them.-
         """
         curr_id = 0
-        for k,v in self.items ( ):
-            try:
-                v.id = curr_id
-                curr_id += 1
-            except AttributeError:
-                #
-                # not a data field, ignore it
-                #
-                pass
+        for g in sorted (self.groups, reverse=True):
+            for k,v in self.symbol_table[g].items ( ):
+                try:
+                    v.id = curr_id
+                    curr_id += 1
+                except AttributeError:
+                    #
+                    # not a data field, ignore it
+                    #
+                    pass
 
 
     def get_functor_params (self, funct_name):
@@ -722,13 +723,13 @@ class MultiStageStencil ( ):
             #
             # extract the buffer pointers from the parameters (NumPy arrays)
             #
-            functor_params = [k for k,v in self.inspector.symbols.items ( ) 
-                              if self.inspector.symbols.is_parameter (k)]
+            functor_params = list (self.inspector.symbols.get_functor_params (self.inspector.functors[0].name))
             for p in functor_params:
-                if p in kwargs.keys ( ):
-                    params.append (kwargs[p].ctypes.data_as (ctypes.c_void_p))
+                if p.name in kwargs.keys ( ):
+                    logging.warning ("## Adding parameter '%s'" % p.name)
+                    params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
                 else:
-                    logging.warning ("Missing parameter [%s]" % p)
+                    logging.warning ("Missing parameter [%s]" % p.name)
             #
             # call the compiled stencil
             # 
