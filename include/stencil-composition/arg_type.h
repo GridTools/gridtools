@@ -161,8 +161,9 @@ namespace gridtools {
         template <ushort_t Coordinate>
         struct Dimension{
 
+	    template <typename IntType>
             GT_FUNCTION
-            constexpr Dimension(int_t val) : value
+            constexpr Dimension(IntType val) : value
 #if( (!defined(CXX11_ENABLED)) )
                                              (val)
 #else
@@ -170,12 +171,22 @@ namespace gridtools {
 #endif
                 {}
 
+	    GT_FUNCTION
+	    constexpr Dimension(Dimension const& other):value{other.value}{}
+
             static const ushort_t direction=Coordinate;
             int_t value;
 	    struct Index{
+		GT_FUNCTION
 		Index(){}
+		GT_FUNCTION
+		Index(Index const&){}
+
 		typedef Dimension<Coordinate> super;
 	    };
+
+	private:
+	    Dimension();
         };
 
         /**Aliases for the first three dimensions (x,y,z)*/
@@ -534,6 +545,7 @@ namespace gridtools {
         /** @brief usage: n<3>() returns the offset of extra dimension 3
             loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument.
             Note that here the offset we are talking about here looks the same as the offsets for the arg_type, but it implies actually a change of the base storage pointer.
+	    TODO change this stupid name
         */
 	template<short_t idx>
 	GT_FUNCTION
@@ -585,6 +597,7 @@ template <typename Callable, typename ... Known>
 struct alias{
 
     template<typename ... Args>
+    GT_FUNCTION
     constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
     }
 
@@ -592,6 +605,7 @@ struct alias{
 
     //operator calls the constructor of the arg_type
     template<typename ... Unknowns>
+    GT_FUNCTION
     Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  )
         {
 	    return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}

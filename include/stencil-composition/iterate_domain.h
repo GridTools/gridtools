@@ -388,9 +388,16 @@ namespace gridtools {
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
 
+	    // printf("[");
+	    // for (int i=0; i< N_DATA_POINTERS; ++i)
+	    // 	printf(" %x, ", m_data_pointer[i]);
+	    // printf("]\n");
+
 	    //for the moment the extra dimensionality of the storage is limited to max 2
 	    //(3 space dim + 2 extra= 5, which gives n_args==4)
+	    BOOST_STATIC_ASSERT(N_DATA_POINTERS>0);
 	    BOOST_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4);
+
             return get_value(arg, m_data_pointer[storage_type::get_index(
 				     (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if
 					 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension

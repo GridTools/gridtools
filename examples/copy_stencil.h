@@ -98,7 +98,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #ifdef CXX11_ENABLED\
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-    typedef extend_width<storage_type::basic_type, 0>  extended_type;
+//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
+    typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
+    typedef extend_width<base_type1, 0>  extended_type;
     typedef extend_dim<extended_type, extended_type>  integrator_type;
 #else
     typedef extend<storage_type::basic_type, 0, 0>::type  integrator_type;

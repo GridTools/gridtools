@@ -97,8 +97,8 @@ namespace shallow_water2{
             x::Index i;
             y::Index j;
 
-            eval(hx()       )=  (eval(h(i+1,j+1) +h(j+1)/2. -
-                                      (u(i+1,j+1) - u(j+1))*(dt()/(2*dx()))));
+            eval(hx()       )=  eval(h(i+1,j+1)  +h(j+1)/2. -
+		(u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
 
             eval(ux())=(eval((u(i+1, j+1) +
 			      u(j+1)/2. -
@@ -220,7 +220,7 @@ struct final_step {
             // Definition of placeholders. The order of them reflect the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain
 
-	    storage_type hx(d1,d2,d3),ux(d1,d2,d3),vx(d1,d2,d3),hy(d1,d2,d3),uy(d1,d2,d3),vy(d1,d2,d3),h(d1,d2,d3),u(d1,d2,d3),v(d1,d2,d3);
+	    storage_type hx(d1,d2,d3),ux(d1,d2,d3),vx(d1,d2,d3),hy(d1,d2,d3),uy(d1,d2,d3),vy(d1,d2,d3),h(d1,d2,d3, 1.),u(d1,d2,d3, 1.),v(d1,d2,d3, 1.);
             typedef arg<0, storage_type > p_hx;
             typedef arg<1, storage_type > p_ux;
             typedef arg<2, storage_type > p_vx;
@@ -276,6 +276,8 @@ struct final_step {
             shallow_water_stencil->finalize();
 
             h.print();
+            u.print();
+	    v.print();
         }
         return true;
 
