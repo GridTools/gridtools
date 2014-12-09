@@ -1,4 +1,2 @@
-- Create a templated version of the 'copy_stencil.h'
-- Generate a working C++ version of the copy_stencil from Python code
 - Integrate 'setup.py' with CMake
 

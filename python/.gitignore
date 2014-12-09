@@ -1,8 +1,7 @@
-bin
-build
-include
-lib
-share
+venv
+venv2
+samples
+astviewer
 *.egg-info
 *.bak
 *.swp
