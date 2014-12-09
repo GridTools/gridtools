@@ -53,13 +53,9 @@ namespace shallow_water{
         using comp=Dimension<4>;
 //#endif
 
-	GT_FUNCTION
         static float_type dx(){return 1e-2;}
-	GT_FUNCTION
         static float_type dy(){return 1e-2;}
-	GT_FUNCTION
         static float_type dt(){return 1e-3;}
-	GT_FUNCTION
         static float_type g(){return 9.81;}
     };
 
@@ -103,15 +99,15 @@ namespace shallow_water{
 
         template<typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
         GT_FUNCTION
-        static float_type /*&&*/ half_step(Evaluation const& eval, ComponentU&& U, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
+        static float_type /*&&*/ half_step(Evaluation const& eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const& delta)
             {
                 return /*std::move*/(eval(sol(d1,d2) +sol(d2)/2. -
-                                      (sol(U,d2,d1) - sol(U,d2))*(dt()/(2*delta))));
+					 (sol(U,d2,d1) - sol(U,d2))*(dt()/(2*delta))));
             }
 
         template<typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
         GT_FUNCTION
-        static float_type /*&&*/ half_step_u(Evaluation const& eval, ComponentU&& U, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
+        static float_type /*&&*/ half_step_u(Evaluation const& eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const& delta)
             {
                 return /*std::move*/(eval((sol(U, d1, d2) +
                                        sol(U, d2)/2. -
@@ -122,7 +118,7 @@ namespace shallow_water{
 
         template<typename Evaluation, typename ComponentU, typename ComponentV, typename DimensionX, typename DimensionY>
         GT_FUNCTION
-        static float_type/*&&*/ half_step_v(Evaluation const& eval, ComponentU&& U, ComponentV&& V, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
+        static float_type/*&&*/ half_step_v(Evaluation const& eval, ComponentU U, ComponentV V, DimensionX d1, DimensionY d2, float_type const& delta)
             {
                 return /*std::move*/(eval(( sol(V,d1,d2) +
                                         sol(V,d1)/2. -
@@ -137,13 +133,13 @@ namespace shallow_water{
             // x::Index i;
             // y::Index j;
 
-            eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
-	    eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
-	    eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
+            eval(/*tmp*/out()       )=1.;//half_step  (eval, comp(1), x(1), y(1), dx());
+            // eval(tmp(comp(1)))=1.;//half_step_u(eval, comp(1), x(1), y(1), dx());
+            // eval(tmp(comp(2)))=1.;//half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
 
-	    eval(tmp(comp(0), step(1)))=half_step  (eval, comp(2), y(1), x(1), dy());
-	    eval(tmp(comp(1), step(1)))=half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
-	    eval(tmp(comp(2), step(1)))=half_step_u(eval, comp(2), y(1), x(1), dy());
+            // eval(tmp(comp(0), step(1)))=1.;//half_step  (eval, comp(2), y(1), x(1), dy());
+            // eval(tmp(comp(1), step(1)))=1.;//half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
+            // eval(tmp(comp(2), step(1)))=1.;//half_step_u(eval, comp(2), y(1), x(1), dy());
         }
     };
 
@@ -169,21 +165,21 @@ namespace shallow_water{
             comp::Index c;
             step::Index s;
 
-            eval(sol()) = eval(sol()-
-                               (tmp(c+1, i-1) - tmp(c+1, i-1, j-1))*(dt()/dx())-
-	    		       tmp(c+2, s+1, j-1) - tmp(c+2, s+1, i-1, j-1)*(dt()/dy()));
+            // eval(sol()) = eval(sol()-
+            //                    (tmp(c+1, i-1) - tmp(c+1, i-1, j-1))*(dt()/dx())-
+	    // 		       tmp(c+2, s+1, j-1) - tmp(c+2, s+1, i-1, j-1)*(dt()/dy()));
 
-            eval(sol(comp(1))) = eval(sol(c+1)   -
-				      (pow<2>(tmp(c+1, j-1))                / tmp(j-1)     + tmp(j-1)*tmp(j-1)*((g()/2.))                 -
-				       (pow<2>(tmp(c+1,i-1,j-1))            / tmp(i-1, j-1) +pow<2>(tmp(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-				      (tmp(c+2,s+1,i-1)*tmp(c+1,s+1,i-1)          / tmp(s+1,i-1)                                                   -
-				       tmp(c+2,s+1,i-1, j-1)*tmp(c+1,s+1,i-1,j-1) / tmp(s+1,i-1, j-1) + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
+            // eval(sol(comp(1))) =  eval(sol(comp(1)) -
+            //                            (pow<2>(tmp(c+1, j-1))                / tmp(j-1)      + tmp(j-1)*tmp(j-1)*((g()/2.))                 -
+	    // 				(pow<2>(tmp(c+1,i-1,j-1))            / tmp(i-1, j-1) +pow<2>(tmp(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+	    // 			       (tmp(c+2,s+1,i-1)*tmp(c+1,s+1,i-1)          / tmp(s+1,i-1)                                                   -
+	    // 				tmp(c+2,s+1,i-1, j-1)*tmp(c+1,s+1,i-1,j-1) / tmp(s+1,i-1, j-1) + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
-            eval(sol(comp(2))) = eval(sol(comp(2)) -
-	    			      (tmp(c+1,j-1)    *tmp(c+1,j-1)       /tmp(s+1,j-1) -
-                                       (tmp(c+1,i-1,j-1)*tmp(c+2,i-1, j-1)) /tmp(i-1, j-1))*((dt()/dx()))-
-                                      (pow<2>(tmp(c+2,s+1,i-1))                /tmp(s+1,i-1)      +pow<2>(tmp(s+1,i-1)     )*((g()/2.)) -
-                                       pow<2>(tmp(c+2,s+1,i-1,j-1))           /tmp(s+1,i-1,j-1) +pow<2>(tmp(s+1,i-1, j-1))*((g()/2.))   )*((dt()/dy())));
+            // eval(sol(comp(2))) = eval(sol(comp(2)) -
+	    // 			      (tmp(c+1,j-1)    *tmp(c+1,j-1)       /tmp(s+1,j-1) -
+            //                            (tmp(c+1,i-1,j-1)*tmp(c+2,i-1, j-1)) /tmp(i-1, j-1))*((dt()/dx()))-
+            //                           (pow<2>(tmp(c+2,s+1,i-1))                /tmp(s+1,i-1)      +pow<2>(tmp(s+1,i-1)     )*((g()/2.)) -
+            //                            pow<2>(tmp(c+2,s+1,i-1,j-1))           /tmp(s+1,i-1,j-1) +pow<2>(tmp(s+1,i-1, j-1))*((g()/2.))   )*((dt()/dy())));
 #else
 
             // eval(sol()) = eval(sol()-
@@ -269,12 +265,11 @@ namespace shallow_water{
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type1;
+	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type1;
 	    typedef extend_width<base_type1, 1>  extended_type;
 	    typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
 
-	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type2;
+	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type2;
 	    typedef extend_width<base_type2, 0>  extended_type2;
 	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
 #else
@@ -297,12 +292,12 @@ namespace shallow_water{
             sol_type sol(d1,d2,d3);
             ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
 
-	    tmp.set<0,0>(out1, 0.);
-	    tmp.set<1,0>(out2, 0.);
-	    tmp.set<2,0>(out3, 0.);
-	    tmp.set<0,1>(out4, 0.);
-	    tmp.set<1,1>(out5, 0.);
-	    tmp.set<2,1>(out6, 0.);
+	    tmp.set<0,0>(out1);
+	    tmp.set<1,0>(out2);
+	    tmp.set<2,0>(out3);
+	    tmp.set<0,1>(out4);
+	    tmp.set<1,1>(out5);
+	    tmp.set<2,1>(out6);
 
             sol.push_front<0>(out7, 1.);//h
             sol.push_front<1>(out8, 1.);//u
@@ -353,8 +348,7 @@ namespace shallow_water{
 
             shallow_water_stencil->finalize();
 
-            tmp.print();
-            sol.print();
+            //sol.print();
         }
         return true;
 

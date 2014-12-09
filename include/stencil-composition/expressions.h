@@ -11,6 +11,7 @@ namespace gridtools{
 	template <uint_t Number>
 	struct products{
 	    template<typename Value>
+	    GT_FUNCTION
 	    static Value constexpr apply(Value& v)
 		{
 		    return v*products<Number-1>::apply(v);
@@ -21,6 +22,7 @@ namespace gridtools{
 	template <>
 	struct products<0>{
 	    template<typename Value>
+	    GT_FUNCTION
 	    static Value constexpr apply(Value& v)
 		{
 		    return 1.;
@@ -50,10 +52,15 @@ namespace gridtools{
 #endif
             {}
 
-        /**@brief default empty constructor*/
-        constexpr expr(){}
+	GT_FUNCTION
+        constexpr expr(expr const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
+
         ArgType1 const first_operand;
         ArgType2 const second_operand;
+    private:
+        /**@brief default empty constructor*/
+	GT_FUNCTION
+        constexpr expr(){}
     };
 
 
@@ -70,9 +77,15 @@ namespace gridtools{
 #endif
             {}
 
-        /**@brief default empty constructor*/
-        constexpr unary_expr(){}
+	GT_FUNCTION
+        constexpr unary_expr( unary_expr const& other): first_operand(other.first_operand){}
+
         ArgType1 const first_operand;
+
+    private:
+        /**@brief default empty constructor*/
+	GT_FUNCTION
+	constexpr unary_expr(){}
     };
 
     /**@brief Expression summing two arguments*/
@@ -81,6 +94,11 @@ namespace gridtools{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+	GT_FUNCTION
+        constexpr expr_plus(expr_plus const& other):super(other){};
+
+    private:
         constexpr expr_plus(){};
     };
 
@@ -90,6 +108,12 @@ namespace gridtools{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_minus(expr_minus const& other):super(other){}
+
+    private:
+        GT_FUNCTION
         constexpr expr_minus(){}
     };
 
@@ -99,6 +123,11 @@ namespace gridtools{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_times(expr_times const& other):super(other){}
+    private:
+        GT_FUNCTION
         constexpr expr_times(){}
     };
 
@@ -108,6 +137,12 @@ namespace gridtools{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_divide(expr_divide const& other):super(other){}
+
+    private:
+        GT_FUNCTION
         constexpr expr_divide(){}
     };
 
@@ -119,6 +154,12 @@ namespace gridtools{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_exp(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_exp(expr_exp const& other):super(other){}
+
+    private:
+        GT_FUNCTION
         constexpr expr_exp(){}
     };
 
@@ -135,6 +176,12 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_pow(ArgType1 const& first_operand):super(first_operand){}
 	static const int exponent=Exponent;
+
+        GT_FUNCTION
+        constexpr expr_pow(expr_pow const& other):super(other) {}
+
+    private:
+        GT_FUNCTION
         constexpr expr_pow(){}
     };
 
