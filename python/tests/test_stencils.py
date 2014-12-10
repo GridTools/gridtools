@@ -349,17 +349,17 @@ class CopyStencilTest (unittest.TestCase):
         call to the 'backend' attribute.
         It also checks that the stencil results are correct after execution.-
         """
-        #domain = (512, 512, 60)
-        domain = (2,2,2)
+        domain = (512, 512, 60)
         output_field = np.zeros (domain)
-        input_field = np.random.rand (*domain)
+        input_field  = np.random.rand (*domain)
         copy = Copy ( )
         copy.backend = 'c++'
         copy.run (out_data=output_field,
                   in_data=input_field)
         self.assertNotEqual (copy.inspector.lib_obj, None)
         self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
-        self.assertTrue     (np.array_equal (input_field, output_field))
-        self.assertNotEqual (np.sum (output_field), 0.0,
-                             "The order of the NumPy-array parameters was altered when calling the compiled stencil")
-
+        #
+        # compare the arrays taking a 2D-halo of 1 into account
+        #
+        self.assertEqual (np.sum (input_field[1:511,1:511]),
+                          np.sum (output_field[1:511,1:511]))
