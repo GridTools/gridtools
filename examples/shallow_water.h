@@ -115,19 +115,19 @@ namespace shallow_water{
             {
                 return /*std::move*/(eval((sol(U, d1, d2) +
                                        sol(U, d2)/2. -
-					   (pow<2>(sol(U,d1,d2))/sol(d1,d2)+pow<2>(sol(d1,d2))*g()/2.)*(dt()/(2.*delta)) -
-					   pow<2>(sol(U, d2))/sol(d2) -
-					   pow<2>(sol(d2))*pow<2>(g()/2.))) );
+					   (pow<2>(sol(U,d1,d2))/sol(d1,d2)+pow<2>(sol(d1,d2))*g()/2. -
+					   pow<2>(sol(U, d2))/sol(d2) +
+					    pow<2>(sol(d2))*(g()/2.)))*(dt()/(2.*delta))) );
             }
 
         template<typename Evaluation, typename ComponentU, typename ComponentV, typename DimensionX, typename DimensionY>
         GT_FUNCTION
         static float_type/*&&*/ half_step_v(Evaluation const& eval, ComponentU&& U, ComponentV&& V, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
             {
-                return /*std::move*/(eval(( sol(V,d1,d2) +
+                return /*std::move*/(eval( sol(V,d1,d2) +
                                         sol(V,d1)/2. -
-                                        sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2)*(dt()/(2*delta)) -
-                                        sol(U,d2)*sol(V,d2)/sol(d2))));
+				       (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
+                                        sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) ) );
             }
 
 
@@ -140,7 +140,6 @@ namespace shallow_water{
             eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
 	    eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
 	    eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
-
 	    eval(tmp(comp(0), step(1)))=half_step  (eval, comp(2), y(1), x(1), dy());
 	    eval(tmp(comp(1), step(1)))=half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
 	    eval(tmp(comp(2), step(1)))=half_step_u(eval, comp(2), y(1), x(1), dy());
@@ -171,16 +170,17 @@ namespace shallow_water{
 
             eval(sol()) = eval(sol()-
                                (tmp(c+1, i-1) - tmp(c+1, i-1, j-1))*(dt()/dx())-
-	    		       tmp(c+2, s+1, j-1) - tmp(c+2, s+1, i-1, j-1)*(dt()/dy()));
+	    		       (tmp(c+2, s+1, i/**/-1) - tmp(c+2, s+1, i-1, j-1))*(dt()/dy())/**/);
 
             eval(sol(comp(1))) = eval(sol(c+1)   -
 				      (pow<2>(tmp(c+1, j-1))                / tmp(j-1)     + tmp(j-1)*tmp(j-1)*((g()/2.))                 -
 				       (pow<2>(tmp(c+1,i-1,j-1))            / tmp(i-1, j-1) +pow<2>(tmp(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
 				      (tmp(c+2,s+1,i-1)*tmp(c+1,s+1,i-1)          / tmp(s+1,i-1)                                                   -
-				       tmp(c+2,s+1,i-1, j-1)*tmp(c+1,s+1,i-1,j-1) / tmp(s+1,i-1, j-1) + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
+				       tmp(c+2,s+1,i-1, j-1)*tmp(c+1,s+1,i-1,j-1) / tmp(s+1,i-1, j-1))*((dt()/dy())));/**/
+// + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
             eval(sol(comp(2))) = eval(sol(comp(2)) -
-	    			      (tmp(c+1,j-1)    *tmp(c+1,j-1)       /tmp(s+1,j-1) -
+	    			      (tmp(c+1,j-1)    *tmp(c+2,j-1)       /tmp(s+1,j-1) -
                                        (tmp(c+1,i-1,j-1)*tmp(c+2,i-1, j-1)) /tmp(i-1, j-1))*((dt()/dx()))-
                                       (pow<2>(tmp(c+2,s+1,i-1))                /tmp(s+1,i-1)      +pow<2>(tmp(s+1,i-1)     )*((g()/2.)) -
                                        pow<2>(tmp(c+2,s+1,i-1,j-1))           /tmp(s+1,i-1,j-1) +pow<2>(tmp(s+1,i-1, j-1))*((g()/2.))   )*((dt()/dy())));
@@ -208,13 +208,13 @@ namespace shallow_water{
 
             eval(sol()) = eval(sol()-
                                (ux(i-1) - ux(i-1, j-1))*(dt()/dx())-
-                               vy(j-1) - vy(i-1, j-1)*(dt()/dy()));
+                               (vy(i-1) - vy(i-1, j-1))*(dt()/dy()));
 
-            eval(sol(comp(1))) =  eval(sol(comp(1)) -
+            eval(sol(comp(1))) = eval(sol(comp(1)) -
                                        (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
 	    			       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
                                               (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-                                               vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1) + hy(i-1, j-1)*((g()/2.)))    *((dt()/dy())));
+                                               vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
 
             eval(sol(comp(2))) = eval(sol(comp(2)) -
                                        (ux(j-1)    *vx(j-1)       /hy(j-1) -
@@ -353,8 +353,8 @@ namespace shallow_water{
 
             shallow_water_stencil->finalize();
 
-            tmp.print();
-            sol.print();
+            // tmp.print();
+	    sol.print();
         }
         return true;
 
