@@ -742,14 +742,16 @@ class MultiStageStencil ( ):
             logging.warning ("Unknown backend [%s]" % self.backend)
 
 
-    def get_interior_points (self, data_field, k_direction='forward'):
+    def get_interior_points (self, data_field, k_direction='forward', halo=(0,0,0,0)):
         """
         Returns an iterator over the 'data_field' without including the halo:
 
             data_field      a NumPy array;
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward', 'backward' or
-                            'parallel'.-
+                            'parallel';
+            halo            a tupe defining a 2D halo for the given 'data_field' 
+                            (+i, -i, +j, -j).-
         """
         try:
             if len (data_field.shape) != 3:
@@ -758,7 +760,7 @@ class MultiStageStencil ( ):
             # define the direction in 'k'
             #
             i_dim, j_dim, k_dim = data_field.shape
-            if k_direction == 'forward':
+            if k_direction == 'forward' or k_direction == 'parallel':
                 k_dim_start = 0
                 k_dim_end   = k_dim
                 k_dim_inc   = 1
@@ -767,19 +769,29 @@ class MultiStageStencil ( ):
                 k_dim_end   = -1
                 k_dim_inc   = -1
             else:
-                warnings.warn ("unknown direction '%s'" % k_direction,
-                              UserWarning)
-            #
-            # return the coordinate tuples in the correct order
-            #
-            for i in range (i_dim):
-                for j in range (j_dim):
-                    for k in range (k_dim_start, k_dim_end, k_dim_inc):
-                            yield InteriorPoint ((i, j, k))
+                logging.warning ("Unknown direction '%s'" % k_direction)
 
         except AttributeError:
-            warings.warn ("calling 'get_interior_points' without a NumPy array",
-                          UserWarning)
+            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
+
+        else:
+            #
+            # define the halo over i and j
+            #
+            if len (halo) == 4:
+                start_i = 0 + halo[0]
+                end_i   = i_dim + halo[1]
+                start_j = 0 + halo[2]
+                end_j   = j_dim + halo[3]
+                #
+                # return the coordinate tuples in the correct order
+                #
+                for i in range (start_i, end_i):
+                    for j in range (start_j, end_j):
+                        for k in range (k_dim_start, k_dim_end, k_dim_inc):
+                            yield InteriorPoint ((i, j, k))
+            else:
+                raise ValueError ("Invalid halo: it should contain four values")
 
 
 
