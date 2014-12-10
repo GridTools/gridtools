@@ -333,7 +333,7 @@ class ShallowWaterTest (unittest.TestCase):
         """
 
 
-    def not_test_symbol_discovery (self):
+    def test_symbol_discovery (self):
         """
         Checks that all the symbols have been correctly recognized.-
         """
@@ -374,118 +374,56 @@ class ShallowWaterTest (unittest.TestCase):
         self.assertIsNotNone (self.V)
 
 
-    def not_test_native_execution (self):
+    def test_compare_python_and_native_executions (self):
         """
-        Checks that the stencil results are correct if executing in native mode.-
+        Checks that the stencil results match for Python and C++ after
+        applying the stencil several times.-
         """
-        self.water.backend = 'c++'
-        self.water.run (out_H=self.H,
-                        out_U=self.U,
-                        out_V=self.V)
+        import copy
+
+
+        water_py  = self.water
+        water_cxx = copy.deepcopy (self.water)
+        water_cxx.backend = 'c++'
+
         #
-        # the library object should contain a valid reference
-        # if compilation was successful
+        # disturb the water surface
         #
-        self.assertIsNotNone (self.water.inspector.lib_obj)
+        self.water.create_random_drop (self.H)
 
+        #
+        # show its evolution
+        #
+        for i in range (100):
+            self.water.reflect_borders (self.H,
+                                        self.U,
+                                        self.V)
+            #
+            # original content of the data fields
+            #
+            orig_H = np.array (self.H)
+            orig_U = np.array (self.U)
+            orig_V = np.array (self.V)
 
-
-
-
-"""
-class ShallowWaterEquation (object):
-
-    def step (self, nstep): 
- 
-        # random water drops
-        if nstep == 0:
-            w = self.drop.shape[0]
-
-            rand0 = np.random.rand ( )
-            rand1 = np.random.rand ( )
-            rand2 = np.random.rand ( )
-
-            for i in range (w):
-                i_idx = i + np.ceil (rand0 * (self.n - w))
-                for j in range (w):
-                    j_idx = j + np.ceil (rand1 * (self.n - w))
-                    H[i_idx, j_idx] += rand2 * self.drop[i, j]
-
-        # reflective boundary conditions
-        H[:,0] = H [:,1];      U [:,0] = U [:,1];      V [:,0] = -V[:,1]
-        H[:,n+1] = H [:,n+0];  U [:,n+1] = U [:,n+0];  V [:,n+1] = -V[:,n+0]
-        H[0,:] = H [1,:];      U [0,:] = -U[1,:];      V [0,:] = V [1,:]
-        H[n+1,:] = H [n+0,:];  U [n+1,:] = -U[n+0,:];  V [n+1,:] = V [n+0,:]
-
-        # first half step (stage X direction)
-        for i in range (n + 1):
-            for j in range (n):
-                # height
-                Hx[i, j]  = ( H[i+1, j+1] + H[i, j+1] ) / 2
-                Hx[i, j] -= dt / (2*dx) * ( U[i+1, j+1] - U[i, j+1] )
-
-                # X momentum    
-                Ux[i, j]  = ( U[i+1, j+1] + U[i, j+1] ) / 2
-                Ux[i, j] -= dt / (2*dx) * ( ( U[i+1, j+1]**2 / H[i+1, j+1] + g/2*H[i+1, j+1]**2 ) -
-                                            ( U[i, j+1]**2 / H[i, j+1] + g/2*H[i, j+1]**2 )
-                                          )
-                # Y momentum
-                Vx[i, j]  = ( V[i+1, j+1] + V[i, j+1] ) / 2 
-                Vx[i, j] -= dt / (2*dx) * ( ( U[i+1, j+1] * V[i+1, j+1] / H[i+1, j+1] ) -
-                                            ( U[i, j+1] * V[i, j+1] / H[i, j+1] )
-                                          )
-        # first half step (stage Y direction)
-        for i in range (n):
-            for j in range (n + 1):
-                # height
-                Hy[i, j]  = ( H[i+1, j+1] + H[i+1, j] ) / 2
-                Hy[i, j] -= dt / (2*dy) * ( V[i+1, j+1] - V[i+1, j] )
-
-                # X momentum
-                Uy[i, j]  = ( U[i+1, j+1] + U[i+1, j] ) / 2 
-                Uy[i, j] -= dt / (2*dy) * ( ( V[i+1, j+1] * U[i+1, j+1] / H[i+1, j+1] ) -
-                                            ( V[i+1, j] * U[i+1, j] / H[i+1, j] )
-                                          )
-                # Y momentum
-                Vy[i, j]  = ( V[i+1, j+1] + V[i+1, j] ) / 2
-                Vy[i, j] -= dt / (2*dy) * ( ( V[i+1, j+1]**2 / H[i+1, j+1] + g/2*H[i+1, j+1]**2 ) -
-                                            ( V[i+1, j]**2 / H[i+1, j] + g/2*H[i+1, j]**2 )
-                                          )
-
-        # second half step (stage)
-        for i in range (1, n + 1):
-            for j in range (1, n + 1):
-                # height
-                H[i, j] -= (dt/dx) * ( Ux[i, j-1] - Ux[i-1, j-1] )
-                H[i, j] -= (dt/dy) * ( Vy[i-1, j] - Vy[i-1, j-1] )
-
-                # X momentum
-                U[i, j] -= (dt/dx) * ( ( Ux[i, j-1]**2 / Hx[i, j-1] + g/2*Hx[i, j-1]**2 ) -
-                                       ( Ux[i-1, j-1]**2 / Hx[i-1, j-1] + g/2*Hx[i-1, j-1]**2 )
-                                     )
-                U[i, j] -= (dt/dy) * ( ( Vy[i-1, j] * Uy[i-1, j] / Hy[i-1, j] ) - 
-                                       ( Vy[i-1, j-1] * Uy[i-1, j-1] / Hy[i-1, j-1] )
-                                     )
-                # Y momentum
-                V[i, j] -= (dt/dx) * ( ( Ux[i, j-1] * Vx[i, j-1] / Hx[i, j-1] ) -
-                                       ( Ux[i-1, j-1] * Vx[i-1, j-1] / Hx[i-1, j-1] )
-                                     )
-                V[i, j] -= (dt/dy) * ( ( Vy[i-1, j]**2 / Hy[i-1, j] + g/2*Hy[i-1, j]**2 ) -
-                                       ( Vy[i-1, j-1]**2 / Hy[i-1, j-1] + g/2*Hy[i-1, j-1]**2 )
-                                     )
-
-        # reset if the system becomes unstable
-        #if all (all (isnan (H))), break, end  % Unstable, restart
-        print ("%d " % nstep)
-
-
-
-
-
-
-# the shallow water stencil object
-#
-sw = ShallowWater ( )
-
-"""
+            #
+            # apply the Python version of the stencil
+            #
+            water_py.run (out_H=self.H,
+                          out_U=self.U,
+                          out_V=self.V)
+            #
+            # apply the native version of the stencil
+            #
+            water_cxx.run (out_H=orig_H,
+                           out_U=orig_U,
+                           out_V=orig_V)
+            #
+            # compare the field contents
+            #
+            print ('%d - H - %s == %s' % (i, np.sum (orig_H), np.sum (self.H)))
+            self.assertTrue (np.all (np.equal (orig_H, self.H)))
+            print ('%d - U - %s == %s' % (i, np.sum (orig_U), np.sum (self.U)))
+            self.assertTrue (np.all (np.equal (orig_U, self.U)))
+            print ('%d - V - %s == %s' % (i, np.sum (orig_V), np.sum (self.V)))
+            self.assertTrue (np.all (np.equal (orig_V, self.V)))
 
