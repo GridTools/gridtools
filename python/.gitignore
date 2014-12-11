@@ -1,5 +1,6 @@
 venv
 venv2
+styles
 samples
 astviewer
 *.egg-info
