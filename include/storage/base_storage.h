@@ -219,7 +219,6 @@ namespace gridtools {
             {
 	    BOOST_STATIC_ASSERT(field_dimensions>0);
 	    //static const auto blabla=boost::mpl::print<static_int<field_dimensions> >();
-	    assert(false);
 	    m_strides[0] = ( accumulate( multiplies(), args...) ),
 	    assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(m_strides, args...);
 	    m_fields[0]=pointer_type(m_strides[0]);
