@@ -80,11 +80,11 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
      ## Declaration of input data fields
      ##}
     {% for arg in functor_params if arg.input -%}
-        {% if loop.first %}
+    {% if loop.first %}
     //
     // input data fields share their buffers with NumPy arrays
     //  
-        {% endif -%}
+    {% endif -%}
     storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
                                  (double *) {{ arg.name }}_buff,
                                  std::string ("{{ arg.name }}"));
