@@ -86,9 +86,9 @@ class Moving (MultiStageStencil):
         rand2 = np.random.rand ( )
 
         for i in range (w):
-            i_idx = i + np.ceil (rand0 * (self.n - w))
+            i_idx = int (i + np.ceil (rand0 * (self.n - w)))
             for j in range (w):
-                j_idx = j + np.ceil (rand1 * (self.n - w))
+                j_idx = int (j + np.ceil (rand1 * (self.n - w)))
                 H[i_idx, j_idx] += rand2 * drop[i, j]
 
 
@@ -277,14 +277,14 @@ class Laplace (MultiStageStencil):
     """
     def __init__ (self):
         super ( ).__init__ ( )
-        
+
 
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
         """
         #
-        # iterate over the field's interior points
+        # iterate over the interior points
         #
         for p in self.get_interior_points (out_data,
                                            halo=(1,-1,1,-1),
@@ -292,6 +292,7 @@ class Laplace (MultiStageStencil):
             out_data[p] = 4 * in_data[p] - (
                           in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
 
 
 class LaplaceTests (unittest.TestCase):
@@ -303,6 +304,8 @@ class LaplaceTests (unittest.TestCase):
         Checks that the stencil results match for Python and C++ after
         applying the stencil several times.-
         """
+        domain = (64, 64, 64)
+
         lap_py = Laplace ( )
         lap_cxx = Laplace ( )
         lap_cxx.backend = 'c++'
@@ -310,7 +313,6 @@ class LaplaceTests (unittest.TestCase):
         #
         # domain and fields
         #
-        domain = (64, 64, 64)
         o_field = np.zeros (domain)
         i_field = np.random.rand (*domain)
 
