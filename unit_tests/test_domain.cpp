@@ -114,13 +114,13 @@ bool test_domain() {
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,-3.4, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, ("in"));
+    storage_type out(d1,d2,d3,-7.3, ("out"));
+    storage_type coeff(d1,d2,d3,-3.4, ("coeff"));
 
-    storage_type host_in(d1,d2,d3,-1, std::string("host_in"));
-    storage_type host_out(d1,d2,d3,-7.3, std::string("host_out"));
-    storage_type host_coeff(d1,d2,d3,-3.4, std::string("host_coeff"));
+    storage_type host_in(d1,d2,d3,-1, ("host_in"));
+    storage_type host_out(d1,d2,d3,-7.3, ("host_out"));
+    storage_type host_coeff(d1,d2,d3,-3.4, ("host_coeff"));
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain

@@ -804,6 +804,25 @@ namespace gridtools {
         typedef Sequence type;
     };
 
+    /**recursively advance the ODE finite difference for all the field dimensions*/
+    template<short_t Dimension>
+    struct advance_recursive{
+	template<typename This>
+	void apply(This* t){
+	    t->template advance<Dimension>();
+	    advance_recursive<Dimension-1>::apply(t);
+	}
+    };
+
+    /**template specialization to stop the recursion*/
+    template<>
+    struct advance_recursive<0>{
+	template<typename This>
+	void apply(This* t){
+	    t->template advance<0>();
+	}
+    };
+
     /**@brief implements the discrete vector field structure
 
      It is a collection of arbitrary length discrete scalar fields.
@@ -928,25 +947,8 @@ namespace gridtools {
 	 */
         GT_FUNCTION
         void advance_all(){
-            advance_recursive<n_width>::apply(indexFrom, indexTo);
+            advance_recursive<n_width>::apply(const_cast<extend_dim*>(this));
         }
-
-	/**recursively advance the ODE finite difference for all the field dimensions*/
-	template<short_t Dimension>
-	struct advance_recursive{
-	    void apply(){
-		advance<Dimension>();
-		advance_recursive<Dimension-1>::apply();
-	    }
-	};
-
-	/**template specialization to stop the recursion*/
-	template<>
-	struct advance_recursive<0>{
-	    void apply(){
-		advance<0>();
-	    }
-	};
 
         //for stdcout purposes
         explicit extend_dim(){}

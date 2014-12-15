@@ -1,4 +1,4 @@
-#ifdef CXX11_ENALBED
+#ifdef CXX11_ENABLED
 /**@file
 @brief implementation of a compile time string.
 
@@ -6,9 +6,9 @@ It consists of a sequence of static const char* and of a "callable" operator, wh
 */
 namespace gridtools{
 
-    template<const char* S>
+    template<char const * S>
     struct static_string{
-	static constexpr char* value=S;
+	static const constexpr char* value=S;
     };
 
 /**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
@@ -35,7 +35,7 @@ namespace gridtools{
 	constexpr string_c() {
 	}
 
-	static constexpr char** m_known{Known...};
+	//static constexpr char* m_known[]={Known...};
 	//operator calls the constructor of the arg_type
 	GT_FUNCTION
 	 static void apply (  )
