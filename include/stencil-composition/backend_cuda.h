@@ -15,7 +15,6 @@
 #include <boost/fusion/include/value_at.hpp>
 
 #include "execution_policy.h"
-#include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 #include "../storage/hybrid_pointer.h"
 

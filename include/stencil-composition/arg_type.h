@@ -462,11 +462,12 @@ namespace gridtools {
         }
 
 #ifdef CXX11_ENABLED
-	static constexpr char a[]="arg ";
+#ifndef __CUDACC__
+	static const constexpr char a[]={"arg "};
 	typedef string<print, static_string<a>, static_int<I> > to_string;
 #endif
+#endif
     };
-
 
 
 //################################################################################

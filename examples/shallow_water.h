@@ -250,8 +250,11 @@ namespace shallow_water{
 
     bool test(uint_t x, uint_t y, uint_t z) {
         {
+#ifndef __CUDACC__
+	    //testing the static printing
 	    typedef string_c<print, s1, s2, s1, s1 > s;
 	    s::apply();
+#endif
 
             uint_t d1 = x;
             uint_t d2 = y;

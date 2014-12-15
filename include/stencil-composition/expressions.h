@@ -94,11 +94,13 @@ namespace gridtools{
 
     private:
         constexpr expr_plus(){};
+#ifndef __CUDACC__
 	static char constexpr op[]="+";
 	typedef string_c<print, op> operation;
     public:
 	//currying and recursion (this gets inherited)
 	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+#endif
     };
 
     /**@brief Expression subrtracting two arguments*/
@@ -114,11 +116,13 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_minus(){}
+#ifndef __CUDACC__
 	static char constexpr op[]="-";
 	typedef string_c<print, op> operation;
     public:
 	//currying and recursion (this gets inherited)
 	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+#endif
     };
 
     /**@brief Expression multiplying two arguments*/
@@ -133,10 +137,12 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_times(){}
+#ifndef __CUDACC__
     	static char constexpr op[]="*";
     public:
 	//currying and recursion (this gets inherited)
 	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+#endif
 };
 
     /**@brief Expression dividing two arguments*/
@@ -152,11 +158,13 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_divide(){}
+#ifndef __CUDACC__
     	static char constexpr op[]="/";
 	typedef string_c<print, op> operation;
     public:
 	//currying and recursion (this gets inherited)
 	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+#endif
 };
 
     /**@brief Expression computing the integral exponent of the first arguments
@@ -174,11 +182,13 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_exp(){}
+#ifndef __CUDACC__
 	static char constexpr op[]="^";
 	typedef string_c<print, op> operation;
     public:
 	//currying and recursion (this gets inherited)
 	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+#endif
     };
 
 
@@ -201,11 +211,13 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_pow(){}
+#ifndef __CUDACC__
     	static char constexpr op[]="^2";
 	typedef string_c<print, op> operation;
     public:
 	//currying and recursion (this gets inherited)
 	using to_string = concatenate<  ArgType1, operation >;
+#endif
 };
 
 /*@}*/
