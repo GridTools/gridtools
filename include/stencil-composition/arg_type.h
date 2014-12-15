@@ -54,7 +54,7 @@ namespace gridtools {
     }
 
     /**
-       \addtogroup specialization Specialization
+       \addtogroup specializations Specializations
        @{
     */
     template <typename U>
@@ -461,6 +461,10 @@ namespace gridtools {
             exit (-1);
         }
 
+#ifdef CXX11_ENABLED
+	static constexpr char a[]="arg ";
+	typedef string<print, static_string<a>, static_int<I> > to_string;
+#endif
     };
 
 

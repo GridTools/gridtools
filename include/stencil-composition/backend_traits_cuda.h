@@ -1,29 +1,33 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 
+/**@file
+@brief type definitions and structures specific for the CUDA backend*/
 namespace gridtools{
 
+    /**forward declaration*/
     namespace _impl_cuda{
         template <typename Arguments>
         struct run_functor_cuda;
     }
 
+    /**forward declaration*/
     template <enumtype::backend BE, typename T, typename U, bool B, short_t SpaceDim>
     struct base_storage;
 
+    /**forward declaration*/
     template <typename U>
       struct storage;
 
-    // template <typename ValueType, typename Layout, bool Temp>
-    // struct cuda_storage;
-
+    /**forward declaration*/
     template<typename T>
     struct hybrid_pointer;
 
+    /**forward declaration*/
     template<enumtype::backend T>
     struct backend_from_id;
 
-/** traits struct defining the types which are specific to the CUDA backend*/
+/** @brief traits struct defining the types which are specific to the CUDA backend*/
     template<>
     struct backend_from_id< enumtype::Cuda >
     {
@@ -49,9 +53,6 @@ namespace gridtools{
             {
                 boost::mpl::for_each<Sequence>(f);
             }
-
-        template <typename T>
-	  inline static void delete_storage(hybrid_pointer<T>& data){ data.free_it();}
 
         template <typename T>
         struct pointer

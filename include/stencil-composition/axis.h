@@ -8,6 +8,12 @@
 
 #include <boost/mpl/print.hpp>
 
+/**@file
+@brief file containing the size of the horizontal domain
+
+The domain is currently described in terms of 2 horiozntal axis of type \ref gridtools::halo_descriptor , and the vertical axis bounds which are treated separately.
+TODO This should be easily generalizable to arbitrary dimensions
+*/
 namespace gridtools {
     template <typename MinLevel, typename MaxLevel>
     struct make_axis {
@@ -91,13 +97,6 @@ namespace gridtools {
             if (offs < 0) offs += 1;
             return value_list[Level::Splitter::value] + offs;
         }
-
-        // template <typename Level>
-        // GT_FUNCTION
-        // uint_t& value_at(uint_t val) const {
-        //     BOOST_STATIC_ASSERT(is_level<Level>::value);
-        //     return value_list[Level::Splitter::value];
-        // }
 
         GT_FUNCTION
         uint_t value_at_top() const {

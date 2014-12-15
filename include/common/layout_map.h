@@ -92,13 +92,13 @@ namespace gridtools {
             typedef typename boost::mpl::bool_<T==I>::type type;
         };
 
+
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static /*constexpr*/ typename _impl::first_type<Indices...>::type
+        static constexpr typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
-            typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
-            return vec[pos_<I>::value];
+            return std::get<pos_<I>::value>(std::tuple{indices...});
         }
 
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>

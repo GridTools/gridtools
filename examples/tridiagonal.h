@@ -181,12 +181,12 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    //storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,0., std::string("out"));
-    storage_type inf(d1,d2,d3,-1., std::string("inf"));
-    storage_type diag(d1,d2,d3,3., std::string("diag"));
-    storage_type sup(d1,d2,d3,1., std::string("sup"));
-    storage_type rhs(d1,d2,d3,3., std::string("rhs"));
+    //storage_type in(d1,d2,d3,-1, "in"));
+    storage_type out(d1,d2,d3,0., "out");
+    storage_type inf(d1,d2,d3,-1., "inf");
+    storage_type diag(d1,d2,d3,3., "diag");
+    storage_type sup(d1,d2,d3,1., "sup");
+    storage_type rhs(d1,d2,d3,3., "rhs");
     for(uint_t i=0; i<d1; ++i)
         for(uint_t j=0; j<d2; ++j)
         {
