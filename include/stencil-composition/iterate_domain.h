@@ -468,18 +468,17 @@ namespace gridtools {
     GT_FUNCTION
 	auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return std::pow(arg.first_operand, arg.second_operand);}
 
-#else
+#else //ifndef __CUDACC__
     /** power of scalar evaluation of CUDA*/
 	template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
     GT_FUNCTION
 	auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return products<2>::apply(arg.first_operand);}
 
-#endif
+#endif //ifndef __CUDACC__
 
     // template <typename ArgType1>
     // GT_FUNCTION
     // float_type value_scalar(expr_exp<ArgType1, float_type> const& arg) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
-#endif
 
     /**
        @}
@@ -516,11 +515,9 @@ namespace gridtools {
         // GT_FUNCTION
         // auto value_int(expr_exp< exponent, ArgType1> const& arg) const -> decltype(products<2>::apply((*this)(arg.first_operand))) {return products<2>((*this)(arg.first_operand));}
 //#warning "The power expression for the CUDA backend so far computes only integer positive powers (for the moment only 2 actually)"
-#endif
+#endif //ifndef __CUDACC__
+
 /**@}@}*/
-
-
-#ifdef CXX11_ENABLED
 
 /** @brief method called in the Do methods of the functors. */
         template <typename FirstArg, typename SecondArg, template<typename Arg1, typename Arg2> class Expression >
@@ -556,7 +553,7 @@ namespace gridtools {
             return value_int(arg);
         }
 
-#endif
+#endif //CXX11_ENABLED
 
     private:
         // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)

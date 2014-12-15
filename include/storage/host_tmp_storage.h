@@ -83,7 +83,7 @@ namespace gridtools {
                                   uint_t dim3,
                                   //int initial_offset_k=0,
                                   value_type init = value_type(),
-                                  std::string const& s = std::string("default name") )
+                                  char const* s = "default name" )
             : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, dim3, init, s)
             {
                 m_halo[0]=MinusI;

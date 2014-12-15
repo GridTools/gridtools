@@ -26,11 +26,11 @@ namespace gridtools {
       {}
 
         explicit storage(uint_t dim1, uint_t dim2, uint_t dim3,
-                         typename BaseStorage::value_type init = typename BaseStorage::value_type()/*, std::string const& s = std::string("default name")*/ ): super(dim1, dim2, dim3, init/*, s*/) {
+                         typename BaseStorage::value_type init = typename BaseStorage::value_type(), char const* s = "default name" ): super(dim1, dim2, dim3, init, s) {
         }
 
 	explicit storage(uint_t dim1, uint_t dim2, uint_t dim3, typename BaseStorage::value_type* ptr,
-			 typename BaseStorage::value_type init = value_type()/*, std::string const& s = std::string("default name")*/ ): super(dim1, dim2, dim3, ptr/*, s*/) {}
+			 typename BaseStorage::value_type init = value_type(), char const* s = "default name" ): super(dim1, dim2, dim3, ptr, s) {}
 
 	//    private :
 	explicit storage():super(){}

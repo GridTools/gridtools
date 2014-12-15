@@ -242,12 +242,16 @@ namespace shallow_water{
         return s << "final step";
     }
 
-
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
+    extern char const s1[]="hello ";
+    extern char const s2[]="world";
+
     bool test(uint_t x, uint_t y, uint_t z) {
         {
+	    typedef string_c<print, s1, s2, s1, s1 > s;
+	    s::apply();
 
             uint_t d1 = x;
             uint_t d2 = y;

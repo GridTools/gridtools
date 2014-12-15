@@ -193,11 +193,11 @@ namespace gridtools {
             : storage_pointers()
         {
 
-// #ifndef NDEBUG
+#ifndef NDEBUG
 	    //the following creates an empty storage (problems with its destruction)
-//             std::cout << "These are the original placeholders and their storages" << std::endl;
-//             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
-// #endif
+            std::cout << "These are the original placeholders and their storages" << std::endl;
+            gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
+#endif
 
             typedef boost::fusion::filter_view<arg_list,
                 is_storage<boost::mpl::_1> > view_type;
@@ -206,19 +206,19 @@ namespace gridtools {
 
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
-// #ifndef NDEBUG
+#ifndef NDEBUG
 	    //the following creates an empty storage (problems with its destruction)
-//             // std::cout << "These are the actual placeholders and their storages" << std::endl;
-//             // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
-//             std::cout << "These are the real storages" << std::endl;
-//             boost::fusion::for_each(real_storage, _debug::print_deref());
-//             std::cout << "\nThese are the arg_list elems" << std::endl;
-//             boost::fusion::for_each(arg_list(), _debug::print_deref());
-//             std::cout << "\nThese are the storage_pointers elems" << std::endl;
-//             boost::fusion::for_each(arg_list(), _debug::print_deref());
-//             std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
-//             boost::fusion::for_each(fview, _debug::print_deref());
-// #endif
+            std::cout << "These are the actual placeholders and their storages" << std::endl;
+            gridtools::for_each<placeholders>(_debug::stdcoutstuff());
+            std::cout << "These are the real storages" << std::endl;
+            boost::fusion::for_each(real_storage, _debug::print_deref());
+            std::cout << "\nThese are the arg_list elems" << std::endl;
+            boost::fusion::for_each(arg_list(), _debug::print_deref());
+            std::cout << "\nThese are the storage_pointers elems" << std::endl;
+            boost::fusion::for_each(arg_list(), _debug::print_deref());
+            std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
+            boost::fusion::for_each(fview, _debug::print_deref());
+#endif
             boost::fusion::copy(real_storage, fview);
 
 #ifndef NDEBUG

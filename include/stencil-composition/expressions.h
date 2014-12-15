@@ -1,4 +1,5 @@
 #pragma once
+#include<common/string_c.h>
 /**@file
    @brief Expression templates definition.
    The expression templates are a method to parse at compile time the mathematical expression given
@@ -31,6 +32,8 @@ namespace gridtools{
 #endif
 
 
+#ifdef CXX11_ENABLED
+
     /** \section expressions (Expressions Definition)
         @{
         This is the base class of a binary expression, containing the instances of the two arguments.
@@ -43,13 +46,8 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr(ArgType1 const& first_operand, ArgType2 const& second_operand)
             :
-#if( (!defined(CXX11_ENABLED)))
-            first_operand(first_operand),
-            second_operand(second_operand)
-#else
             first_operand{first_operand},
             second_operand{second_operand}
-#endif
             {}
 
 	GT_FUNCTION
@@ -70,11 +68,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr unary_expr(ArgType1 const& first_operand)
             :
-#if( (!defined(CXX11_ENABLED)))
-            first_operand(first_operand)
-#else
             first_operand{first_operand}
-#endif
             {}
 
 	GT_FUNCTION
@@ -100,6 +94,11 @@ namespace gridtools{
 
     private:
         constexpr expr_plus(){};
+	static char constexpr op[]="+";
+	typedef string_c<print, op> operation;
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
     };
 
     /**@brief Expression subrtracting two arguments*/
@@ -115,6 +114,11 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_minus(){}
+	static char constexpr op[]="-";
+	typedef string_c<print, op> operation;
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
     };
 
     /**@brief Expression multiplying two arguments*/
@@ -129,7 +133,11 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_times(){}
-    };
+    	static char constexpr op[]="*";
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+};
 
     /**@brief Expression dividing two arguments*/
     template <typename ArgType1, typename ArgType2>
@@ -144,7 +152,12 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_divide(){}
-    };
+    	static char constexpr op[]="/";
+	typedef string_c<print, op> operation;
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+};
 
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
@@ -161,6 +174,11 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_exp(){}
+	static char constexpr op[]="^";
+	typedef string_c<print, op> operation;
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
     };
 
 
@@ -183,11 +201,15 @@ namespace gridtools{
     private:
         GT_FUNCTION
         constexpr expr_pow(){}
-    };
+    	static char constexpr op[]="^2";
+	typedef string_c<print, op> operation;
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<  ArgType1, operation >;
+};
 
 /*@}*/
 
-#ifdef CXX11_ENABLED
     /**@brief Overloaded operators
        The algebraic operators are overloaded in order to deal with expressions. To enable these operators the user has to use the namespace expressions.*/
     namespace expressions{
