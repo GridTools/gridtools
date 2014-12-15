@@ -38,7 +38,7 @@ namespace gridtools {
         structure it can be copied without an explicit copy
         constructor.
      */
-    __host__ __device__ halo_descriptor()
+    GT_FUNCTION halo_descriptor()
       : m_minus(0)
       , m_plus(0)
       , m_begin(0)
@@ -60,7 +60,7 @@ namespace gridtools {
       \param[in] e The end parameter (inclusive)
       \param[in] l The total_length parameter
      */
-    __host__ __device__ halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
+    GT_FUNCTION halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
       : m_minus(m)
       , m_plus(p)
       , m_begin(b)
@@ -68,7 +68,7 @@ namespace gridtools {
       , m_total_length(l)
     {}
 
-    __host__ __device__ halo_descriptor& operator=(halo_descriptor const& hh) {
+    GT_FUNCTION halo_descriptor& operator=(halo_descriptor const& hh) {
       m_minus        = hh.minus();
       m_plus         = hh.plus();
       m_begin        = hh.begin();
@@ -77,7 +77,7 @@ namespace gridtools {
       return *this;
     }
 
-    __host__ __device__ halo_descriptor(halo_descriptor const& hh) {
+    GT_FUNCTION halo_descriptor(halo_descriptor const& hh) {
       m_minus        = hh.minus();
       m_plus         = hh.plus();
       m_begin        = hh.begin();
@@ -89,7 +89,7 @@ namespace gridtools {
        Begin index for the loop on the outside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION uint_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_begin;
       if (I==1)
@@ -108,7 +108,7 @@ namespace gridtools {
        End index for the loop on the outside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_high_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION uint_t loop_high_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_end;
       if (I==1)
@@ -127,7 +127,7 @@ namespace gridtools {
        Begin index for the loop on the inside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_low_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION uint_t loop_low_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_begin;
       if (I==1)
@@ -143,7 +143,7 @@ namespace gridtools {
        End index for the loop on the inside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    __host__ __device__ uint_t loop_high_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION uint_t loop_high_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_end;
       if (I==1)
@@ -163,7 +163,7 @@ namespace gridtools {
 
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
     */
-    __host__ __device__ uint_t r_length(short_t I) const {
+    GT_FUNCTION uint_t r_length(short_t I) const {
       switch (I) {
       case 0:
         return (m_end-m_begin+1);
@@ -182,7 +182,7 @@ namespace gridtools {
 
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
     */
-    __host__ __device__ uint_t s_length(short_t I) const {
+    GT_FUNCTION uint_t s_length(short_t I) const {
       switch (I) {
       case 0:
         return (m_end-m_begin+1);
@@ -196,17 +196,17 @@ namespace gridtools {
       }
     }
 
-    __host__ __device__ uint_t minus() const { return m_minus;}
-    __host__ __device__ uint_t plus() const { return m_plus;}
-    __host__ __device__ uint_t begin() const { return m_begin;}
-    __host__ __device__ uint_t end() const { return m_end;}
-    __host__ __device__ uint_t total_length() const { return m_total_length;}
+    GT_FUNCTION uint_t minus() const { return m_minus;}
+    GT_FUNCTION uint_t plus() const { return m_plus;}
+    GT_FUNCTION uint_t begin() const { return m_begin;}
+    GT_FUNCTION uint_t end() const { return m_end;}
+    GT_FUNCTION uint_t total_length() const { return m_total_length;}
 
-    __host__ __device__ void set_minus(uint_t value) {m_minus = value;}
-    __host__ __device__ void set_plus(uint_t value) {m_plus = value;}
-    __host__ __device__ void set_begin(uint_t value) {m_begin = value;}
-    __host__ __device__ void set_end(uint_t value) {m_end = value;}
-    __host__ __device__ void set_total_length(uint_t value) {m_total_length = value;}
+    GT_FUNCTION void set_minus(uint_t value) {m_minus = value;}
+    GT_FUNCTION void set_plus(uint_t value) {m_plus = value;}
+    GT_FUNCTION void set_begin(uint_t value) {m_begin = value;}
+    GT_FUNCTION void set_end(uint_t value) {m_end = value;}
+    GT_FUNCTION void set_total_length(uint_t value) {m_total_length = value;}
   };
 
   inline std::ostream& operator<<(std::ostream &s, halo_descriptor const& hd) {
