@@ -51,6 +51,12 @@ TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
 }
 
+#define BACKEND_BLOCK
+TEST(stencil, horizontaldiffusion_block) {
+    EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
+}
+#undef BACKEND_BLOCK
+
 #define __Size0 512
 #define __Size1 512
 #define __Size2 60
