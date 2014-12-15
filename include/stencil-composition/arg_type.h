@@ -268,11 +268,6 @@ namespace gridtools {
     template <uint_t I, typename Range=range<0,0,0,0>, ushort_t dimension=3 >
     struct arg_type   {
 
-        template <uint_t Im, uint_t Ip, uint_t Jm, uint_t Jp, uint_t Kp, uint_t Km>
-        struct halo {
-            typedef arg_type<I> type;
-        };
-
         int_t m_offset[dimension]
 #ifdef CXX11_ENABLED
         ={0}
@@ -488,7 +483,7 @@ namespace gridtools {
        - specify explicitly the dimension: in this case the order of the arguments is arbitrary:
        \verbatim
        typedef Dimension<4> T;
-       V(x(1), z(-3), T(1))
+       V(x(1), z(-3), T(-1))
        \endverbatim
 
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
