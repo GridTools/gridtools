@@ -41,7 +41,8 @@ namespace gridtools {
 	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
 	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
-	    /* __shared__ float_type* m_data_pointer[Traits::local_domain_t::iterate_domain_t::N_DATA_POINTERS]; */
+	    typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+	    __shared__ typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 
             if ((i < nx) && (j < ny)) {
 	      typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
@@ -50,8 +51,10 @@ namespace gridtools {
 	      typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
 	      //TODO use the shared memory for the iterate_domain storage base pointers
-	      typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 	      typename Traits::iterate_domain_t it_domain(*l_domain);
+	      it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+	      __syncthreads();
+
 	      it_domain.assign_ij<0>(i+starti,0);
 	      it_domain.assign_ij<1>(j+startj,0);
 

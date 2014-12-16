@@ -82,7 +82,9 @@ namespace gridtools {
 		    std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;
 #endif
 
+		    typename iterate_domain_type::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 		    iterate_domain_type it_domain(local_domain);
+		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
 
                     for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
                          i < (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;
