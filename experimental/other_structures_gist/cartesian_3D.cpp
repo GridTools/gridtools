@@ -18,9 +18,12 @@
 struct neighbor_offsets {
     int m_offset[6];
     static const int n_neighbors = 6;
-    neighbor_offsets(int a, int b) 
-        : m_offset{-a, a, -b, b, -1, 1} 
-    {}
+    neighbor_offsets(int , int b, int c) 
+        : m_offset{-b*c, b*c, -c, c, -1, 1} 
+    {
+        // int i=0;
+        // std::for_each(&m_offset[0], &m_offset[6], [&i](int x) {std::cout << "Offset " << i++ << " " << x << std::endl;});
+    }
 
     neighbor_offsets() 
         : m_offset{0,0,0,0,0,0}
@@ -28,8 +31,7 @@ struct neighbor_offsets {
 
 
     int offset(int neighbor_index) const {
-      //      std::cout << ((neighbor_index&1)?m_offset[neighbor_index>>1]:-m_offset[neighbor_index>>1]) << std::endl;;
-        return m_offset[neighbor_index];//(neighbor_index&1)?m_offset[neighbor_index>>1]:-m_offset[neighbor_index>>1];
+        return m_offset[neighbor_index];
     }
 };
 
@@ -203,9 +205,9 @@ int main(int argc, char** argv) {
                   << std::endl;
 
         /** Creating the storages */
-        structured_storage<neighbor_offsets> storage(std::vector<double>(n*m*l), neighbor_offsets(m*l,l));
-        structured_storage<neighbor_offsets> lap(std::vector<double>(n*m*l), neighbor_offsets(m*l,l));
-        structured_storage<neighbor_offsets> lap_cool(std::vector<double>(n*m*l), neighbor_offsets(m*l,l));
+        structured_storage<neighbor_offsets> storage(std::vector<double>(n*m*l), neighbor_offsets(n,m,l));
+        structured_storage<neighbor_offsets> lap(std::vector<double>(n*m*l), neighbor_offsets(n,m,l));
+        structured_storage<neighbor_offsets> lap_cool(std::vector<double>(n*m*l), neighbor_offsets(n,m,l));
 
         for (int i=0; i<n; ++i) {
             for (int j=0; j<m; ++j) {

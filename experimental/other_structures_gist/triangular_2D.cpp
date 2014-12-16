@@ -15,18 +15,17 @@
     of the grid.
 */
 struct triangular_offsets {
+    bool upward;
     int m_offset[3];
     static const int n_neighbors = 3;
-    triangular_offsets(int a) {
-        m_offset[0] = 1;
-        m_offset[1] = -1;
-        m_offset[2] = a;
-    }
+    triangular_offsets(int, int a, bool upward) 
+        : upward(upward)
+        , m_offset{upward?1:-1, upward?-1:1, upward?a:-a}
+    {}
 
     int offset(int neighbor_index, int sign) const {
         return sign*m_offset[neighbor_index];
     }
-
 };
 
 
@@ -189,9 +188,9 @@ int main(int argc, char** argv) {
                   << std::endl;
 
         /** Creating the storages */
-        triangular_storage<triangular_offsets> storage(std::vector<double>(n*m), triangular_offsets(m));
-        triangular_storage<triangular_offsets> lap(std::vector<double>(n*m), triangular_offsets(m));
-        triangular_storage<triangular_offsets> lap_cool(std::vector<double>(n*m), triangular_offsets(m));
+        triangular_storage<triangular_offsets> storage(std::vector<double>(n*m), triangular_offsets(n,m,true));
+        triangular_storage<triangular_offsets> lap(std::vector<double>(n*m), triangular_offsets(n,m,true));
+        triangular_storage<triangular_offsets> lap_cool(std::vector<double>(n*m), triangular_offsets(n,m,true));
 
         for (int i=0; i<n; ++i) {
             for (int j=0; j<m; ++j) {
@@ -218,8 +217,8 @@ int main(int argc, char** argv) {
             for (int j=1; j<m-1; ++j) {
                 lap.data[i*m+j] = 3*storage.data[i*m+j] -
                     (storage.data[i*m+j+1]+storage.data[i*m+j-1]+storage.data[i*m+j+((j&1)?m:-m)]);
-            }
-            for (int j=1; j<m-1; ++j) {
+            // }
+            // for (int j=1; j<m-1; ++j) {
                 lap.data[(i+1)*m+j] = 3*storage.data[(i+1)*m+j] -
                     (storage.data[(i+1)*m+j+1]+storage.data[(i+1)*m+j-1]+storage.data[(i+1)*m+j+((j&1)?-m:m)]);
             }
