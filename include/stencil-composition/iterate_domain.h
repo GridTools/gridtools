@@ -98,24 +98,27 @@ namespace gridtools {
        It enhances the performances, but principle it could be avoided.
        The 'raw' datas are the one or more data fields contained in each storage class
     */
-	template<uint_t Number>
+    template<uint_t Number, uint_t Offset, enumtype::backend Backend>
 	struct assign_raw_data{
+	static const uint_t Id=Number+Offset;
         template<typename Left , typename Right >
-	    GT_FUNCTION
-	    static void assign(Left* l, Right const* r){
-            l[Number]=r[Number].get();
-            assign_raw_data<Number-1>::assign(l, r);
-        }
+	GT_FUNCTION
+	static void assign(Left* l, Right const* r){
+	    once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
+	    assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
+	}
+
 	};
 
-	/**@brief stopping the recursion*/
-	template<>
-	struct assign_raw_data<0>{
-        template<typename Left , typename Right >
+	    /**@brief stopping the recursion*/
+	template<uint_t Offset, enumtype::backend Backend>
+	struct assign_raw_data<0, Offset, Backend>{
+	    static const uint_t Id=Offset;
+	    template<typename Left , typename Right >
 	    GT_FUNCTION
 	    static void assign(Left* l, Right const* r){
-            l[0]=r[0].get();
-        }
+		once_per_block<Backend, Id>::assign(l[0],r[0].get());
+	    }
 	};
 
 	/**@brief this struct counts the total number of data fields are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
@@ -160,7 +163,7 @@ namespace gridtools {
         /**usual specialization to stop the recursion*/
 	    template<uint_t Coordinate>
             struct assign_index<0, Coordinate>{
-            template<typename Storage>
+		template<typename Storage>
             GT_FUNCTION
             static void assign( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
 
@@ -202,7 +205,7 @@ namespace gridtools {
 
 
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID, typename LocalArgTypes>
+	    template<uint_t ID, typename LocalArgTypes, enumtype::backend Backend>
             struct assign_storage{
             template<typename Left, typename Right>
             GT_FUNCTION
@@ -220,15 +223,15 @@ namespace gridtools {
                 //if the following fails, the ID is larger than the number of storage types
                 BOOST_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value);
 		// std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1>::
+                assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
                     assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
-                assign_storage<ID-1, LocalArgTypes>::assign(l,r); //tail recursion
+                assign_storage<ID-1, LocalArgTypes, Backend>::assign(l,r); //tail recursion
             }
         };
 
         /**usual specialization to stop the recursion*/
-        template<typename LocalArgTypes>
-            struct assign_storage<0, LocalArgTypes>{
+        template<typename LocalArgTypes, enumtype::backend Backend>
+            struct assign_storage<0, LocalArgTypes, Backend>{
             template<typename Left, typename Right>
             GT_FUNCTION
             static void assign(Left & l, Right & r){
@@ -238,7 +241,7 @@ namespace gridtools {
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
 		// std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1>::
+                assign_raw_data<storage_type::field_dimensions-1, 0, Backend>::
                     assign(&l[0], boost::fusion::at_c<0>(r)->fields());
             }
         };
@@ -248,6 +251,7 @@ namespace gridtools {
 /**@brief class handling the computation of the */
     template <typename LocalDomain>
     struct iterate_domain {
+	typedef typename boost::remove_pointer<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0>::type>::type::value_type float_t;
         typedef typename LocalDomain::local_args_type local_args_type;
         static const uint_t N_STORAGES=boost::mpl::size<local_args_type>::value;
         static const uint_t N_DATA_POINTERS=total_storages< local_args_type
@@ -260,16 +264,21 @@ namespace gridtools {
         iterate_domain(LocalDomain const& local_domain)
             : local_domain(local_domain)
 #ifdef CXX11_ENABLED
-            , m_index{0}, m_data_pointer{0}/* , m_lru{0} */
+            , m_index{0}/* , m_lru{0} */
 #endif
             {
 #ifndef CXX11_ENABLED
 		for(uint_t it=0; it<N_STORAGES; ++it)
 		    m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
 #endif
-                //                                                      double**        &storage
-                assign_storage< N_STORAGES-1, local_args_type >::assign(m_data_pointer, local_domain.local_args);
-            }
+	    }
+
+	template<enumtype::backend Backend>
+	GT_FUNCTION
+	void assign_storage_pointers( float_t** data_pointer){
+	    m_data_pointer=data_pointer;
+	    assign_storage< N_STORAGES-1, local_args_type, Backend >::assign(m_data_pointer, local_domain.local_args);
+	}
 
         /**@brief method for incrementing the index when moving forward along the k direction */
 	GT_FUNCTION
@@ -560,8 +569,7 @@ namespace gridtools {
         LocalDomain const& local_domain;
         uint_t m_index[N_STORAGES];
 
-	typedef typename boost::remove_pointer<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0>::type>::type::value_type float_t;
-        float_t* m_data_pointer[N_DATA_POINTERS];//the storages could have different types(?)
+        float_t** m_data_pointer/*[N_DATA_POINTERS]*/;//the storages could have different types(?)
 
 	//It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
     	// template<typename Tuple1, typename Tuple2>

@@ -61,4 +61,22 @@ namespace gridtools{
         };
 
     };
+
+    template <enumtype::backend, uint_t Id>
+    struct once_per_block;
+
+#ifdef __CUDACC__
+    template <uint_t Id>
+    struct once_per_block<enumtype::Cuda, Id>{
+	template<typename Left, typename Right>
+	GT_FUNCTION
+	static void assign(Left& l, Right const& r){
+	    if(threadIdx.x==Id)
+	    {
+		l=r;
+	    }
+	}
+    };
+#endif
+
 }//namespace gridtools
