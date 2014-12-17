@@ -60,4 +60,17 @@ namespace gridtools{
         };
 
     };
+
+    /**forward declaration*/
+    template <enumtype::backend, uint_t Id>
+    struct once_per_block;
+
+    template <uint_t Id>
+    struct once_per_block<enumtype::Host, Id>{
+	template<typename Left, typename Right>
+	GT_FUNCTION//inline
+	static void assign(Left& l, Right const& r){
+	    l=r;
+	}
+    };
 }//namespace gridtools
