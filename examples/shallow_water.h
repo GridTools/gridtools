@@ -44,6 +44,7 @@ namespace shallow_water{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
+/**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
 //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
         using tmp=arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type ;
@@ -53,12 +54,16 @@ namespace shallow_water{
         using comp=Dimension<4>;
 //#endif
 
+	/**@brief space discretization step in direction i */
 	GT_FUNCTION
         static float_type dx(){return 1e-2;}
+	/**@brief space discretization step in direction j */
 	GT_FUNCTION
         static float_type dy(){return 1e-2;}
+	/**@brief time discretization step in direction i */
 	GT_FUNCTION
         static float_type dt(){return 1e-3;}
+	/**@brief gravity acceleration */
 	GT_FUNCTION
         static float_type g(){return 9.81;}
     };
@@ -134,9 +139,6 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            // x::Index i;
-            // y::Index j;
-
             eval(tmp()       )=half_step  (eval, comp(1), x(1), y(1), dx());
 	    eval(tmp(comp(1)))=half_step_u(eval, comp(1), x(1), y(1), dx());
 	    eval(tmp(comp(2)))=half_step_v(eval, comp(1), comp(2), x(1), y(1), dx());
@@ -144,6 +146,13 @@ namespace shallow_water{
 	    eval(tmp(comp(1), step(1)))=half_step_v(eval, comp(2), comp(1), y(1), x(1), dy());
 	    eval(tmp(comp(2), step(1)))=half_step_u(eval, comp(2), y(1), x(1), dy());
         }
+
+    // 	void to_string(){
+    // 	    (sol(V,d1,d2) +
+    // 	     sol(V,d1)/2. -
+    // 	     (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
+    // 	      sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
+    // }
     };
 
     struct final_step        : public functor_traits {
@@ -231,7 +240,8 @@ namespace shallow_water{
  * The following operators and structs are for debugging only
  */
     std::ostream& operator<<(std::ostream& s, initial_step const) {
-        return s << "initial step";
+        return s << "initial step: ";
+	// initiali_step.to_string();
     }
 
 

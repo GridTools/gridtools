@@ -31,7 +31,7 @@ namespace gridtools {
             GT_FUNCTION
             void operator()(ElemType*&  e) const {
 //#ifndef __CUDACC__
-                char const*s = ElemType::info_string.c_str();
+                char const* s = ElemType::info_string.c_str();
 //#endif
 
 //calls the constructor of the storage

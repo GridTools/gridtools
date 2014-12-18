@@ -194,7 +194,7 @@ namespace gridtools {
         {
 
 // #ifndef NDEBUG
-// 	    //the following creates an empty storage (problems with its destruction)
+	    //the following creates an empty storage (problems with its destruction)
 //             std::cout << "These are the original placeholders and their storages" << std::endl;
 //             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
 // #endif
@@ -207,9 +207,9 @@ namespace gridtools {
             BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
 
 // #ifndef NDEBUG
-	    // the following creates an empty storage (problems with its destruction)
-            // std::cout << "These are the actual placeholders and their storages" << std::endl;
-            // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
+	    //the following creates an empty storage (problems with its destruction)
+//             // std::cout << "These are the actual placeholders and their storages" << std::endl;
+//             // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
 //             std::cout << "These are the real storages" << std::endl;
 //             boost::fusion::for_each(real_storage, _debug::print_deref());
 //             std::cout << "\nThese are the arg_list elems" << std::endl;

@@ -104,7 +104,8 @@ namespace gridtools {
         template<typename Left , typename Right >
 	GT_FUNCTION
 	static void assign(Left* l, Right const* r){
-	    once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
+	    l[Number]=r[Number].get();
+	    //once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
 	    assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
 	}
 
@@ -117,7 +118,8 @@ namespace gridtools {
 	    template<typename Left , typename Right >
 	    GT_FUNCTION
 	    static void assign(Left* l, Right const* r){
-		once_per_block<Backend, Id>::assign(l[0],r[0].get());
+		l[0]=r[0].get();
+		//once_per_block<Backend, Id>::assign(l[0],r[0].get());
 	    }
 	};
 
@@ -275,7 +277,7 @@ namespace gridtools {
 
 	template<enumtype::backend Backend>
 	GT_FUNCTION
-	void assign_storage_pointers( float_t** data_pointer){
+	void assign_storage_pointers( float_t** data_pointer ){
 	    m_data_pointer=data_pointer;
 	    assign_storage< N_STORAGES-1, local_args_type, Backend >::assign(m_data_pointer, local_domain.local_args);
 	}
@@ -555,7 +557,7 @@ namespace gridtools {
         LocalDomain const& local_domain;
         uint_t m_index[N_STORAGES];
 
-        float_t** m_data_pointer/*[N_DATA_POINTERS]*/;//the storages could have different types(?)
+        float_t** m_data_pointer;//[N_DATA_POINTERS];//the storages could have different types(?)
 	//It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
     };
 } // namespace gridtools
