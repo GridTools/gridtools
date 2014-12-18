@@ -193,11 +193,11 @@ namespace gridtools {
             : storage_pointers()
         {
 
-#ifndef NDEBUG
-	    //the following creates an empty storage (problems with its destruction)
-            std::cout << "These are the original placeholders and their storages" << std::endl;
-            gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
-#endif
+// #ifndef NDEBUG
+// 	    //the following creates an empty storage (problems with its destruction)
+//             std::cout << "These are the original placeholders and their storages" << std::endl;
+//             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
+// #endif
 
             typedef boost::fusion::filter_view<arg_list,
                 is_storage<boost::mpl::_1> > view_type;
@@ -208,8 +208,8 @@ namespace gridtools {
 
 #ifndef NDEBUG
 	    //the following creates an empty storage (problems with its destruction)
-            std::cout << "These are the actual placeholders and their storages" << std::endl;
-            gridtools::for_each<placeholders>(_debug::stdcoutstuff());
+            // std::cout << "These are the actual placeholders and their storages" << std::endl;
+            // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
             std::cout << "These are the real storages" << std::endl;
             boost::fusion::for_each(real_storage, _debug::print_deref());
             std::cout << "\nThese are the arg_list elems" << std::endl;
