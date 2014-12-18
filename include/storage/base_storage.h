@@ -284,9 +284,11 @@ namespace gridtools {
         base_storage(T const& other)
             :
 	    is_set(other.is_set)
-            {
-		for (uint_t i=0; i< field_dimensions; ++i)
-		    m_fields[i]=pointer_type(other.m_fields[i]);
+            , m_name(other.m_name)
+            , m_fields(other.m_fields)
+	    {
+		// for (uint_t i=0; i< field_dimensions; ++i)
+		//     m_fields[i]=pointer_type(other.m_fields[i]);
 		m_dims[0]=other.m_dims[0];
 		m_dims[1]=other.m_dims[1];
 		m_dims[2]=other.m_dims[2];
@@ -342,7 +344,7 @@ namespace gridtools {
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()(uint_t i, uint_t j, uint_t k) {
-#ifdef __CUDACC__
+#ifndef __CUDACC__
             assert(_index(i,j,k) < size());
 #endif
             return (m_fields[0])[_index(i,j,k)];
@@ -352,7 +354,7 @@ namespace gridtools {
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
-#ifdef __CUDACC__
+#ifndef __CUDACC__
             assert(_index(i,j,k) < size());
 #endif
             return (m_fields[0])[_index(i,j,k)];

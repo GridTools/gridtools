@@ -42,7 +42,8 @@ namespace gridtools {
 	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
 	    typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-	    __shared__ typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+	    __shared__
+	    typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 
             if ((i < nx) && (j < ny)) {
 	      typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;

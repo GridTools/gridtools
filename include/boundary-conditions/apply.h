@@ -64,7 +64,6 @@ namespace gridtools {
             , predicate(predicate)
         {}
 
-
 /**
    @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all possible directions.
 this macro expands to n definitions of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
