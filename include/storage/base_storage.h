@@ -672,8 +672,9 @@ namespace gridtools {
         GT_FUNCTION
         void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
 	    //Too many shaphots pushed! exceeding the buffer width allocated of the storage.
+#ifndef __CUDACC__
 	    assert(!m_fields[to-1].get());
-
+#endif
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
             for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
             m_fields[from]=(field);
