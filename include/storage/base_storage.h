@@ -903,7 +903,7 @@ namespace gridtools {
 	   \tparam snapshot the snapshot of dimension field_dim to be set
 	   \param field the input storage
 	 */
-	template<short_t field_dim, short_t snapshot>
+	template<short_t field_dim=0, short_t snapshot=0>
 	void set( pointer_type& field)
 	    {
 		super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
@@ -916,7 +916,7 @@ namespace gridtools {
 	   \param field the input storage
 	   \param val the initializer value
 	 */
-	template<short_t field_dim, short_t snapshot>
+	template<short_t field_dim=0, short_t snapshot=0>
 	void set( pointer_type& field, typename super::value_type const& val)
 	    {
 		for (uint_t i=0; i<super::size(); ++i)
@@ -931,8 +931,8 @@ namespace gridtools {
 	   \param field the input storage
 	   \param lambda the initializer function
 	 */
-	template<short_t field_dim, short_t snapshot>
-	void set( pointer_type& field, typename super::value_type (*lambda)(uint_t, uint_t, uint_t))
+	template<short_t field_dim=0, short_t snapshot=0>
+	void set( pointer_type& field, typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
 	    {
 		for (uint_t i=0; i<this->m_dims[0]; ++i)
 		    for (uint_t j=0; j<this->m_dims[1]; ++j)
