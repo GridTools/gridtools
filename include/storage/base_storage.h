@@ -722,18 +722,18 @@ namespace gridtools {
         typedef typename Storage::basic_type basic_type;
         typedef typename Storage::original_storage original_storage;
 
-#ifdef CXX11_ENABLED
-	/**@brief constructor given the space boundaries*/
-	template<typename IntTypes... >
-        extend_width(  const IntTypes ... & d)
-            : super(d...)
-            {
-	    }
-#else
+// #ifdef CXX11_ENABLED
+	// /**@brief constructor given the space boundaries*/
+	// template<typename IntTypes ... >
+        // extend_width(  const IntTypes ... & d)
+        //     : Storage(d...)
+        //     {
+	//     }
+// #else
         /**@brief default constructor*/
         explicit extend_width(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ): Storage( dim1, dim2, dim3 ) {
         }
-#endif
+// #endif
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~extend_width(){
@@ -846,20 +846,20 @@ namespace gridtools {
         typedef typename super::original_storage original_storage;
 	static const uint n_width=sizeof...(StorageExtended)+1;
 
-#ifdef CXX11_ENABLED
-	/**@brief constructor given the space boundaries*/
-	template<typename IntTypes... >
-        extend_dim(  const IntTypes ... & d)
-            : super(d...)
-            {
-	    }
-#else
+// #ifdef CXX11_ENABLED
+// 	/**@brief constructor given the space boundaries*/
+// 	template<typename IntTypes... >
+//         extend_dim(  const IntTypes ... & d)
+//             : super(d...)
+//             {
+// 	    }
+// #else
 	/**@brief constructor given the space boundaries*/
         extend_dim(  const uint& d1, const uint& d2, const uint& d3 )
             : super(d1, d2, d3)
             {
 	    }
-#endif
+// #endif
 
 	/**@brief device copy constructor*/
         __device__

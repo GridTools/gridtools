@@ -557,5 +557,5 @@ namespace gridtools {
 
         float_t** m_data_pointer/*[N_DATA_POINTERS]*/;//the storages could have different types(?)
 	//It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
-
+    };
 } // namespace gridtools
