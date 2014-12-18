@@ -722,14 +722,24 @@ namespace gridtools {
         typedef typename Storage::basic_type basic_type;
         typedef typename Storage::original_storage original_storage;
 
+#ifdef CXX11_ENABLED
+	/**@brief constructor given the space boundaries*/
+	template<typename IntTypes... >
+        extend_width(  const IntTypes ... & d)
+            : super(d...)
+            {
+	    }
+#else
         /**@brief default constructor*/
         explicit extend_width(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ): Storage( dim1, dim2, dim3 ) {
         }
+#endif
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~extend_width(){
 	}
 
+	/**dimension number of snaphsots for the current field dimension*/
         static const ushort_t n_width = Storage::n_width;
 
 	/**@brief device copy constructor*/
@@ -738,10 +748,13 @@ namespace gridtools {
             : Storage(other)
             {}
 
+#ifdef NDEBUG
     private:
         //for stdcout purposes
-        explicit extend_width(){}
-
+	extend_width();
+#else
+        extend_width(){}
+#endif
     };
 
 #ifdef CXX11_ENABLED
@@ -751,14 +764,13 @@ namespace gridtools {
     template < typename First, typename  ...  StorageExtended>
     struct dimension_extension_traits// : public dimension_extension_traits<StorageExtended ... >
     {
-        //total buffer size
+        //total number of snapshots in the discretized field
         static const uint_t n_fields=First::n_width + dimension_extension_traits<StorageExtended  ...  >::n_fields ;
-        //the buffer size of the current field (i.e. the total number of snapshots)
+        //the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
         static const uint_t n_width=First::n_width;
         //the number of dimensions (i.e. the number of different fields)
         static const uint_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
         //the current field extension
-        // typedef extend_width<First, n_fields>  type;
 	//n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
         typedef extend_width<First, n_fields-1>  type;
         // typedef First type;
@@ -770,7 +782,6 @@ namespace gridtools {
         static const uint_t n_fields=0;
         static const uint_t n_width=0;
         static const uint_t n_dimensions=0;
-        //typedef extend_width<First, n_fields>  type;
         typedef struct error_index_too_large1{} type;
         typedef struct error_index_too_large2{} super;
     };
@@ -778,11 +789,9 @@ namespace gridtools {
 /**@brief template specialization at the end of the recustion.*/
     template < typename First>
     struct dimension_extension_traits<First>  {
-        //total number of dimensions
         static const uint_t n_fields=First::n_width;
         static const uint_t n_width=First::n_width;
         static const uint_t n_dimensions= 1 ;
-        //typedef extend_width<First, n_fields>  type;
         typedef First type;
         typedef dimension_extension_null super;
      };
@@ -804,7 +813,7 @@ namespace gridtools {
         typedef Sequence type;
     };
 
-    /**recursively advance the ODE finite difference for all the field dimensions*/
+    /**@brief recursively advance the ODE finite difference for all the field dimensions*/
     template<short_t Dimension>
     struct advance_recursive{
 	template<typename This>
@@ -814,7 +823,7 @@ namespace gridtools {
 	}
     };
 
-    /**template specialization to stop the recursion*/
+    /**@brief template specialization to stop the recursion*/
     template<>
     struct advance_recursive<0>{
 	template<typename This>
@@ -823,9 +832,9 @@ namespace gridtools {
 	}
     };
 
-    /**@brief implements the discrete vector field structure
+    /**@brief implements the discretized field structure
 
-     It is a collection of arbitrary length discrete scalar fields.
+     It is a collection of arbitrary length discretized scalar fields.
     */
     template <typename First,  typename  ...  StorageExtended>
     struct extend_dim : public dimension_extension_traits<First, StorageExtended ... >::type, clonable_to_gpu<extend_dim<First, StorageExtended ... > >
@@ -835,15 +844,24 @@ namespace gridtools {
         typedef typename super::pointer_type pointer_type;
         typedef typename  super::basic_type basic_type;
         typedef typename super::original_storage original_storage;
-        //inheriting constructors
-        //using typename super::extend_width;
 	static const uint n_width=sizeof...(StorageExtended)+1;
 
+#ifdef CXX11_ENABLED
+	/**@brief constructor given the space boundaries*/
+	template<typename IntTypes... >
+        extend_dim(  const IntTypes ... & d)
+            : super(d...)
+            {
+	    }
+#else
+	/**@brief constructor given the space boundaries*/
         extend_dim(  const uint& d1, const uint& d2, const uint& d3 )
             : super(d1, d2, d3)
             {
 	    }
+#endif
 
+	/**@brief device copy constructor*/
         __device__
         extend_dim( extend_dim const& other )
             : super(other)
@@ -938,20 +956,22 @@ namespace gridtools {
             super::advance(indexFrom, indexTo);
         }
 
+	/**@biref ODE advancing for all dimension
 
-	/**@biref ODE advancing for a single dimension
-
-	   it advances the supposed finite difference scheme of one step for a specific field dimension
-	   \tparam dimension the dimension to be advanced
-	   \param offset the number of steps to advance
+	   it advances the supposed finite difference scheme of one step for all field dimensions
 	 */
         GT_FUNCTION
         void advance_all(){
             advance_recursive<n_width>::apply(const_cast<extend_dim*>(this));
         }
 
+#ifdef NDEBUG
+    private:
         //for stdcout purposes
-        explicit extend_dim(){}
+	extend_dim();
+#else
+        extend_dim(){}
+#endif
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.

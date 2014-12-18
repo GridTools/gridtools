@@ -485,30 +485,22 @@ namespace gridtools {
 
 #endif //ifndef __CUDACC__
 
-    // template <typename ArgType1>
-    // GT_FUNCTION
-    // float_type value_scalar(expr_exp<ArgType1, float_type> const& arg) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
-
     /**
        @}
        \subsection specialization2 (Partial Specializations)
        @brief partial specializations for integer
        Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
-       (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
+       (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
        @{*/
     /** integer power evaluation*/
 #ifndef __CUDACC__
-        // template <int exponent, typename ArgType1>
         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
         auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), arg.second_operand)) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
-        // auto value_int(expr_exp< exponent, ArgType1> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), exponent)) {return std::pow((*this)(arg.first_operand), exponent);}
-        // template <int exponent, typename ArgType1>
 
         template <typename ArgType1, int exponent >
         GT_FUNCTION
         auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), exponent)) {return std::pow((*this)(arg.first_operand), exponent);}
-        // auto value_int(expr_exp< exponent, ArgType1> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), exponent)) {return std::pow((*this)(arg.first_operand), exponent);}
 
 #else
 
@@ -520,10 +512,6 @@ namespace gridtools {
         GT_FUNCTION
         auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
 
-        // template <int exponent, typename ArgType1>
-        // GT_FUNCTION
-        // auto value_int(expr_exp< exponent, ArgType1> const& arg) const -> decltype(products<2>::apply((*this)(arg.first_operand))) {return products<2>((*this)(arg.first_operand));}
-//#warning "The power expression for the CUDA backend so far computes only integer positive powers (for the moment only 2 actually)"
 #endif //ifndef __CUDACC__
 
 /**@}@}*/
@@ -551,14 +539,12 @@ namespace gridtools {
         template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Arg, IntType> const& arg) const ->decltype(this->value_int(arg)) {
-        // auto operator() (Expression<Arg, Arg2> const& arg) const ->decltype(this->value_int(arg)) {
             return value_int(arg);
         }
 
         template <typename Arg, template<typename Arg1, int Arg2> class Expression, /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
         GT_FUNCTION
         auto operator() (Expression<Arg, exponent> const& arg) const ->decltype(this->value_int(arg)) {
-        // auto operator() (Expression<Arg, Arg2> const& arg) const ->decltype(this->value_int(arg)) {
             return value_int(arg);
         }
 
@@ -570,17 +556,6 @@ namespace gridtools {
         uint_t m_index[N_STORAGES];
 
         float_t** m_data_pointer/*[N_DATA_POINTERS]*/;//the storages could have different types(?)
-
 	//It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
-    	// template<typename Tuple1, typename Tuple2>
-	// struct concat_tuple{
-	//     typedef decltype(std::tuple_cat(std::declval<Tuple1>(), std::declval<Tuple2>())) type;
-	// };
-
-	// typedef typename boost::mpl::fold<
-	//     typename LocalDomain::mpl_storages,
-	//     std::tuple<>,
-	//     concat_tuple<boost::mpl::_1, std::tuple<boost::mpl::_2> > >::type tuple_type;
-};
 
 } // namespace gridtools
