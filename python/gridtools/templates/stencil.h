@@ -6,9 +6,18 @@
 #pragma once
 
 #include <gridtools.h>
+#include <common/defs.h>
 #include <stencil-composition/backend_host.h>
 
 #include <boost/fusion/include/make_vector.hpp>
+
+
+
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, Block >
+#else
+#define BACKEND backend<Host, Naive >
+#endif
 
 
 
@@ -29,22 +38,24 @@ namespace {{ stencil.name|lower }}
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-{% block functor %}
-{% endblock %}
+//
+// functor definition - begin
+//
+{{ functor_source }}
+//
+// functor definition - end
+//
 
 
-bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
+
+bool test (uint_t d1, uint_t d2, uint_t d3,
+           {%- for arg in functor_params -%}
+           void *{{ arg.name }}_buff
+               {%- if not loop.last -%}
+               ,
+               {%- endif -%}
+           {%- endfor -%})
 {
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
-
     //
     // Fortran-like memory layout
     //
@@ -54,21 +65,44 @@ bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
+
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+
+    {## 
+     ## Declaration of the temporary-data-field type
+     ##}
+    {%- if temp_params -%}
+    typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
+    {% endif %}
+
+
+    {##
+     ## Declaration of input data fields
+     ##}
+    {% for arg in functor_params if arg.input -%}
+    {% if loop.first %}
     //
-    // input/output data fields share their buffers with NumPy arrays
+    // input data fields share their buffers with NumPy arrays
     //  
-    {% for name,arg in functor.params.items ( ) if arg.input -%}
-    storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
-                                 (double *) in_buff,
-                                 -3.5,
-                                 std::string ("{{ name }}"));
+    {% endif -%}
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
+                                 (double *) {{ arg.name }}_buff,
+                                 std::string ("{{ arg.name }}"));
     {% endfor %}
-    {% for name,arg in functor.params.items ( ) if arg.output -%}
-    storage_type {{ arg.name }} ({{ arg.dim|join(',') }},
-                                 (double *) out_buff,
-                                 1.5,
-                                 std::string ("{{ name }}"));
+
+
+    {## 
+     ## Declaration of output data fields
+     ##}
+    {% for arg in functor_params if arg.output -%}
+    {% if loop.first %}
+    //
+    // output data fields also share their buffers with NumPy arrays
+    //  
+    {% endif -%}
+    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
+                                 (double *) {{ arg.name }}_buff,
+                                 std::string ("{{ arg.name }}"));
     {% endfor %}
 
     // 
@@ -76,14 +110,18 @@ bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
     // parameters, especially the non-temporary ones, during the construction
     // of the domain
     //
-    {% for name,arg in functor.params.items ( ) -%}
+    {% for arg in functor_params -%}
     typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
-    {% endfor -%}
+    {% endfor %}
+    {% for arg in temp_params -%}
+    typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
+    {% endfor %}
+
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<{{ functor.params.keys ( )|join_with_prefix("p_")|join(',') }}> arg_type_list;
-
+    typedef boost::mpl::vector<
+        {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list; 
 
     //
     // construction of the domain.
@@ -94,70 +132,62 @@ bool test (int d1, int d2, int d3, void *out_buff, void *in_buff)
     // order in which they appear scanning the placeholders in order. 
     // (I don't particularly like this)
     //
-    gridtools::domain_type<arg_type_list> domain
-        (boost::fusion::make_vector ({{ functor.params.keys ( )|join_with_prefix('&')|join(',') }}));
+    gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
+        {{- functor_params|sort(attribute='id')|join_with_prefix('&', attribute='name')|join(', ') }}));
 
     //
     // definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon 
-    // after this:
+    // while the vertical ones are set according the the axis 
+    // property soon after this:
     //
     //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
     //
-    int di[5] = {0, 0, 0, d1, d1};
-    int dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {1, 1, 1, d1-1, d1-1};
+    uint_t dj[5] = {1, 1, 1, d2-1, d2-1};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual domain dimensions
-     */
-
-      boost::shared_ptr<gridtools::computation> comp_{{ stencil.name|lower }} =
+    //
+    // Here we do a lot of stuff
+    //
+    // 1) we pass to the intermediate representation ::run function the 
+    // description of the stencil, which is a multi-stage stencil (mss);
+    // 2) the logical physical domain with the fields to use;
+    // 3) the actual domain dimensions
+    //
+    boost::shared_ptr<gridtools::computation> comp_{{ stencil.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss
             (
                 execute<forward>(),
-                gridtools::make_esf<{{ functor.name }}>({{ functor.params.keys ( )|join_with_prefix("p_")|join('(),') }}())
+                {% for f in functors -%}
+                gridtools::make_esf<{{ f.name }}>(
+                   {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
+                   {%- if not loop.last -%}
+                   ,
+                   {%- endif %}
+                {% endfor -%}
                 ),
             domain, coords
             );
 
+    //
+    // execute the stencil
+    //
     comp_{{ stencil.name|lower }}->ready();
     comp_{{ stencil.name|lower }}->steady();
-    
-    domain.clone_to_gpu ( );
-
     comp_{{ stencil.name|lower }}->run();
+
+    //
+    // clean everything up
+    //
     comp_{{ stencil.name|lower }}->finalize();
 
-{% for name,arg in functor.params.items ( ) if arg.output %}
-#ifdef CUDA_EXAMPLE
-    {{ name }}.m_data.update_cpu();
-#endif
-
-    {{ name }}.print_value(0,0,0);
-    {{ name }}.print_value(511,511,0);
-    {{ name }}.print_value(511,0,59);
-    {{ name }}.print_value(0,511,59);
-    {{ name }}.print_value(511,511,59);
-
-    return  {{ name }}(0,0,0)==0. &&
-            {{ name }}(511,511,0)==1022. && 
-            {{ name }}(511,0,59)==570. && 
-            {{ name }}(0,511,59)==570. &&
-            {{ name }}(511,511,59)==1081.;
-{% endfor %}
+    return EXIT_SUCCESS;
 }
 
 } // namespace {{ stencil.name|lower }}

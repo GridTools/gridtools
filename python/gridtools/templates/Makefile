@@ -6,8 +6,9 @@ GRIDTOOLS_HOME ?= ${HOME}/src/gridtools
 #
 # compiler flags
 # 
-CC := c++
-CCFLAGS := -fPIC -std=c++11 -DBACKEND_BLOCK -DFLOAT_PRECISION=8 -DCXX11_DISABLE -fopenmp
+CC := g++
+#CCFLAGS := -O0 -g -fPIC -std=c++11 -DFLOAT_PRECISION=8 -fopenmp
+CCFLAGS := -O2 -fPIC -std=c++11 -DNDEBUG -DFLOAT_PRECISION=8 -fopenmp
 LIBRARIES := -lc
 INCLUDES  := -I. -I$(GRIDTOOLS_HOME)/include -I$(GRIDTOOLS_HOME)/include/communication/high-level -isystem $(GRIDTOOLS_HOME)/fussion/include
 GENCODE := -shared -Wl,-soname,lib{{ stencil.name|lower }}.so

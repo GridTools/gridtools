@@ -6,7 +6,7 @@ import warnings
 
 import numpy as np
 
-from gridtools.functor import StencilFunctor
+from gridtools.functor import StencilFunctor, FunctorBody, FunctorParameter
 
 
 
@@ -19,17 +19,28 @@ class StencilSymbols (object):
         #
         # we categorize all symbols in these groups
         #
-        self.groups = ['constant',    # anything replaceable at runtime
-                       'alias',       # variable aliasing
-                       'temp_field',  # temporary data fields
-                       'func_param']  # functor parameters
+        self.groups = set (('_constant',    # a value, maybe available at runtime;
+                            '_alias',       # variable aliasing;
+                            '_temp_field',  # temporary data fields;
+                           ))              # functor parameters are identified
+                                           # by the functor's name and added later
         #
         # initialize the container (k=group, v=dict), where
-        # dict is k=symbol name, v=symbol value
+        # dict contains k=symbol name, v=symbol value
         #
-        self.symbols = dict ( )
+        self.symbol_table = dict ( )
         for g in self.groups:
-            self.symbols[g] = dict ( )
+            self.symbol_table[g] = dict ( )
+
+
+    def __delitem__ (self, name):
+        """
+        Removes the symbol entry 'name' from this instance.-
+        """
+        for g in self.groups:
+            if name in self.symbol_table[g].keys ( ):
+                return self.symbol_table[g].__delitem__ (name)
+        raise KeyError ("No symbol named '%s'" % name)
 
 
     def __getitem__ (self, name):
@@ -37,8 +48,8 @@ class StencilSymbols (object):
         Returns the value of symbol 'name' or None if not found.-
         """
         for g in self.groups:
-            if name in self.symbols[g].keys ( ):
-                return self.symbols[g][name]
+            if name in self.symbol_table[g].keys ( ):
+                return self.symbol_table[g][name]
         return None
      
 
@@ -51,9 +62,21 @@ class StencilSymbols (object):
             group   container group into which to add the symbol.-
         """
         if group in self.groups:
-            if name in self.symbols[group].keys ( ):
+            if name in self.symbol_table[group].keys ( ):
                 logging.info ("Updated value of symbol '%s'" % name)
-            self.symbols[group][name] = value
+            self.symbol_table[group][name] = value
+
+
+    def add_alias (self, name, value):
+        """
+        Adds an alias to the stencil's symbols:
+
+            name    name of this symbol;
+            value   value of this symbol.-
+        """
+        logging.info ("Alias '%s' points to '%s'" % (name,
+                                                     str (value)))
+        self._add (name, str (value), '_alias')
 
 
     def add_constant (self, name, value):
@@ -80,31 +103,110 @@ class StencilSymbols (object):
         #
         # add the constant as a stencil symbol
         #
-        self._add (name, value, 'constant')
+        self._add (name, value, '_constant')
 
 
-    def add_alias (self, name, value):
+    def add_functor (self, name):
         """
-        Adds an alias to the stencil's symbols:
+        Returns a new dictionary for keeping the functor parameters:
+
+            name    a unique name for the functor.-
+        """
+        if name in self.groups:
+            raise NameError ("Functor '%s' already exists in symbol table.-" % name)
+        else:
+            self.groups.add (name)
+            self.symbol_table[name] = dict ( )
+            return self.symbol_table[name]
+
+
+    def add_temporary (self, name, value):
+        """
+        Adds a temporary data field stencil's symbols:
 
             name    name of this symbol;
-            value   value of this symbol.-
+            value   value of this symbol (a NumPy array).-
         """
-        logging.info ("Alias '%s' points to '%s'" % (name,
-                                                     str (value)))
-        self._add (name, str (value), 'alias')
+        if value is None:
+            raise ValueError ("Value of temporary field '%s' is None" % name)
+        elif isinstance (value, FunctorParameter):
+            #
+            # add the field as a temporary
+            #
+            self._add (name, value, '_temp_field')
+            logging.info ("Temporary field '%s' has dimension %s" % (name,
+                                                                     value.dim))
+        else:
+            raise TypeError ("Invalid type '%s' for temporary field '%s'" % 
+                             (type (value), name))
+
+
+    def arrange_ids (self):
+        """
+        Rearranges the IDs of all data fields in order to uniquely identify
+        each of them.-
+        """
+        curr_id = 0
+        for g in sorted (self.groups, reverse=True):
+            for k,v in self.symbol_table[g].items ( ):
+                try:
+                    v.id = curr_id
+                    curr_id += 1
+                except AttributeError:
+                    #
+                    # not a data field, ignore it
+                    #
+                    pass
+
+
+    def get_functor_params (self, funct_name):
+        """
+        Returns all parameters of functor 'funct_name'.-
+        """
+        if funct_name is not None:
+            if funct_name in self.symbol_table.keys ( ):
+                return self.symbol_table[funct_name].values ( )
+            else:
+                raise KeyError ("Functor '%s' is not a registered symbol in functor '%s'" % (name, funct_name))
+
+
+    def is_parameter (self, name, funct_name=None):
+        """
+        Returns True is symbol 'name' is a functor parameter of 'funct_name'.
+        If 'functor' is None, all registered functors are checked.-
+        """
+        if funct_name is not None:
+            if funct_name in self.symbol_table.keys ( ):
+                return name in self.symbol_table[funct_name].keys ( )
+            else:
+                raise KeyError ("Symbol '%s' is not registered in functor '%s'" % (name, funct_name))
+        else:
+            functors = [k for k in self.symbol_table.keys ( ) if not k.startswith ('_')]
+            for f in functors:
+                if name in self.symbol_table[f].keys ( ):
+                    return True
+            return False
+
+
+    def is_temporary (self, name):
+        """
+        Returns True if symbol 'name' is a temporary data field.-
+        """
+        return name in self.symbol_table['_temp_field'].keys ( )
 
 
     def items (self):
         """
-        Returns all symbols in as (key, value) pairs.-
+        Returns all symbols in as (key, value) pairs, sorted by key.-
         """
-        for g in self.groups:
-            keys = self.symbols[g].keys ( )
-            vals = self.symbols[g].values ( )
-            for k,v in zip (keys, vals):
-                yield (k, v)
+        import operator
 
+        for g in self.groups:
+            sorted_symbols = sorted (self.symbol_table[g].items ( ),
+                                     key=operator.itemgetter (0),
+                                     reverse=True)
+            for k,v in sorted_symbols:
+                yield (k, v)
 
 
 
@@ -193,14 +295,11 @@ class StencilInspector (ast.NodeVisitor):
                         if self.dimensions is None:
                             self.dimensions = v.shape
                         elif self.dimensions != v.shape:
-                            warnings.warn ("dimensions of parameter [%s] do not match %s" % (k, self.dimensions),
-                                           UserWarning)
+                            logging.warning ("Dimensions of parameter '%s':%s do not match %s" % (k, v.shape, self.dimensions))
                     else:
-                        warnings.warn ("parameter [%s] is not a NumPy array" % k,
-                                       UserWarning)
+                        logging.warning ("Parameter '%s' is not a NumPy array" % k)
                 else:
-                    warnings.warn ("ignoring parameter [%s]" % k,
-                                   UserWarning)
+                    logging.warning ("Ignoring parameter '%s'" % k)
 
 
     def translate (self):
@@ -210,6 +309,7 @@ class StencilInspector (ast.NodeVisitor):
         """
         from jinja2 import Environment, PackageLoader
 
+        
         def join_with_prefix (a_list, prefix, attribute=None):
             """
             A custom filter for template rendering.-
@@ -218,19 +318,46 @@ class StencilInspector (ast.NodeVisitor):
                 return ['%s%s' % (prefix, e) for e in a_list]
             else:
                 return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
-
+        #
+        # initialize the template renderer environment
+        #
         jinja_env = Environment (loader=PackageLoader ('gridtools',
                                                        'templates'))
         jinja_env.filters["join_with_prefix"] = join_with_prefix
 
-        header = jinja_env.get_template ("functor.h")
+        #
+        # prepare the parameters used by the template engine
+        #
+        functor_source   = ""
+        functor_template = jinja_env.get_template ("functor.h")
+        temp_params = [v for k,v in self.symbols.items ( ) if self.symbols.is_temporary (k)]
+        functor_params = list (self.symbols.get_functor_params (self.functors[0].name))
+        all_params = temp_params + functor_params
+
+        #
+        # render the source code for each of the functors
+        #
+        for f in self.functors:
+            functor_source += functor_template.render (functor=f,
+                                                       all_params=all_params,
+                                                       temp_params=temp_params,
+                                                       functor_params=functor_params)
+
+        #
+        # instantiate each of the templates and render them
+        #
+        header = jinja_env.get_template ("stencil.h")
         cpp    = jinja_env.get_template ("stencil.cpp")
         make   = jinja_env.get_template ("Makefile")
 
         return (header.render (stencil=self,
-                               functor=self.functors[0]),
+                               functors=self.functors,
+                               functor_source=functor_source,
+                               all_params=all_params,
+                               temp_params=temp_params,
+                               functor_params=functor_params),
                 cpp.render  (stencil=self,
-                             functor=self.functors[0]),
+                             functor_params=functor_params),
                 make.render (stencil=self))
 
 
@@ -238,47 +365,53 @@ class StencilInspector (ast.NodeVisitor):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os         import write, close, path, getcwd, chdir
+        from os         import write, path, getcwd, chdir
         from ctypes     import cdll
         from tempfile   import mkdtemp, mkstemp
         from subprocess import call
 
         #
-        # create temporary files for the generated code
+        # create a temporary directory and files for the generated code
         #
-        tmp_dir = mkdtemp (prefix="__gridtools_")
-        self.lib_file = "%s/lib%s.so" % (tmp_dir,
-                                         self.name.lower ( ))
-        hdr_hdl, self.hdr_file = mkstemp (suffix=".h",
-                                          prefix="%s_" % self.name,
-                                          dir=tmp_dir)
-        cpp_hdl, self.cpp_file = mkstemp (suffix=".cpp",
-                                          prefix="%s_" % self.name,
-                                          dir=tmp_dir)
-        make_hdl, self.make_file = mkstemp (prefix="Makefile_",
-                                            dir=tmp_dir)
+        tmp_dir        = mkdtemp (prefix="__gridtools_")
+        self.lib_file  = path.join (tmp_dir, "lib%s.so" % self.name.lower ( ))
+        self.hdr_file  = path.join (tmp_dir, '%s.h' % self.name)
+        self.cpp_file  = path.join (tmp_dir, '%s.cpp' % self.name)
+        self.make_file = path.join (tmp_dir, 'Makefile')
+
         #
-        # ... and populate them
+        # ... and populate it ...
         #
-        print ("# Compiling C++ code in [%s] ..." % tmp_dir)
+        logging.info ("Compiling C++ code in [%s]" % tmp_dir)
         hdr_src, cpp_src, make_src = self.translate ( )
-        write (hdr_hdl, hdr_src.encode ('utf-8'))
-        write (cpp_hdl, cpp_src.encode ('utf-8'))
-        write (make_hdl, make_src.encode ('utf-8'))
-        close (hdr_hdl)
-        close (cpp_hdl)
-        close (make_hdl)
+
+        with open (self.hdr_file, 'w') as hdr_hdl:
+            hdr_hdl.write (hdr_src)
+
+        with open (self.cpp_file, 'w') as cpp_hdl:
+            cpp_hdl.write (cpp_src)
+
+        with open (self.make_file, 'w') as make_hdl:
+            make_hdl.write (make_src)
+
         #
-        # before starting the compilation of the dynamic library
+        # ... before starting the compilation of the dynamic library
         #
         current_dir = getcwd ( )
         chdir (tmp_dir)
-        call (["make", "--silent", "--file=%s" % self.make_file])
+        call (["make", 
+               "--silent", 
+               "--file=%s" % self.make_file])
         chdir (current_dir)
+
         #
         # attach the library object
         #
-        self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
+        try:
+            self.lib_obj = cdll.LoadLibrary ("%s" % self.lib_file)
+        except OSError:
+            self.lib_obj = None
+            raise RuntimeError ("Cannot load dynamically-compiled library")
 
 
     def visit_Assign (self, node):
@@ -355,7 +488,6 @@ class StencilInspector (ast.NodeVisitor):
                     if parent_call:
                         logging.info ("Parent's constructor call at %d" % n.value.lineno)
                         break
-
                 except AttributeError:
                     parent_call = False
             #
@@ -377,19 +509,51 @@ class StencilInspector (ast.NodeVisitor):
             # this function should return 'None'
             #
             if node.returns is None:
-                self.functors.append (StencilFunctor (node,
-                                                      self.symbols))
-                self.functors[-1].analyze_params ( )
-                self.functors[-1].analyze_loops  ( )
                 #
                 # continue traversing the AST
                 #
                 for n in node.body:
-                    super (StencilInspector, self).visit (n)
+                    #
+                    # looks for 'get_interior_points' comprehensions
+                    # 
+                    if isinstance (n, ast.For):  
+                        from random import choice
+                        from string import digits
+
+                        #
+                        # the iteration should call 'get_interior_points'
+                        #
+                        call = n.iter
+                        if (call.func.value.id == 'self' and 
+                            call.func.attr == 'get_interior_points'):
+                            #
+                            # a name for this functor
+                            #
+                            funct_name = 'functor_%s' % ''.join ([choice (digits) for n in range (4)])
+                            
+                            #
+                            # the functor parameters will be kept here
+                            #
+                            funct_params = self.symbols.add_functor (funct_name)
+
+                            #
+                            # create the functor object and analyze its code
+                            #
+                            funct = StencilFunctor (funct_name,
+                                                    n,
+                                                    funct_params,
+                                                    self.symbols)
+                            funct.analyze_params (node.args.args)
+                            self.functors.append (funct)
+                            #
+                            # functor's body
+                            #
+                            funct.body = FunctorBody (n.body,
+                                                      funct_params,
+                                                      self.symbols)
+                            logging.info ("Functor '%s' created" % funct.name)
             else:
                 raise ValueError ("The 'kernel' function should return 'None'.")
-
-
 
 
 
@@ -427,6 +591,11 @@ class MultiStageStencil ( ):
 
             symbols     the symbols dictionary.-
         """
+        #
+        # we cannot change the symbol table while looping over it,
+        # so we save the changes here and apply them afterwards
+        #
+        add_temps = dict ( )
         for name, value in symbols.items ( ):
             #
             # unresolved symbols have 'None' as their value
@@ -436,9 +605,23 @@ class MultiStageStencil ( ):
                 # is this a stencil's attribute?
                 #
                 if 'self' in name:
-                    attr = name.split ('.')[1]
-                    symbols.add_constant (name, 
-                                          getattr (self, attr, None))
+                    attr  = name.split ('.')[1]
+                    value = getattr (self, attr, None)
+
+                    #
+                    # NumPy arrays kept as stencil attributes are considered
+                    # temporary data fields
+                    #
+                    if isinstance (value, np.ndarray):
+                        #
+                        # the new temporary data field will be added later,
+                        # to prevent changes in the underlying data structure
+                        # during the loop
+                        #
+                        add_temps[name] = value
+                    else:
+                        symbols.add_constant (name, 
+                                              value)
             #
             # TODO some symbols are just aliases to other symbols
             #
@@ -446,6 +629,28 @@ class MultiStageStencil ( ):
                 if value in symbols.keys ( ) and symbols[value] is not None:
                     #symbols[name] = symbols[value]
                     logging.warning ("Variable aliasing is not supported")
+
+        #
+        # update the symbol table now the loop has finished ...
+        #
+        for k,v in add_temps.items ( ):
+            #
+            # remove this field from the symbol table before adding it
+            # as a temporary data field
+            #
+            del symbols[k]
+            #
+            # remove the 'self' from the attribute name
+            #
+            name = k.split ('.')[1]
+            temp_field = FunctorParameter (name)
+            temp_field.dim = v.shape
+            symbols.add_temporary (name, temp_field)
+        #
+        # and rearrange all data fields IDs
+        #
+        symbols.arrange_ids ( )
+
         #
         # print the discovered symbols
         #
@@ -477,42 +682,56 @@ class MultiStageStencil ( ):
         logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
         if self.backend == 'c++':
             #
-            # try to resolve all symbols before compiling:
-            # first with a static code analysis ...
+            # automatic compilation only if the library is not available
             #
-            self.inspector.analyze (**kwargs)
-            
-            #
-            # ... then including run-time information
-            #
-            self._resolve (self.inspector.symbols)
+            if self.inspector.lib_obj is None:
+                #
+                # try to resolve all symbols before compiling:
+                # first with a static code analysis ...
+                #
+                self.inspector.analyze (**kwargs)
+                
+                #
+                # ... then including run-time information
+                #
+                self._resolve (self.inspector.symbols)
 
-            #
-            # generate the code of all functors in this stencil
-            #
-            for func in self.inspector.functors:
-                func.generate_code ( )
+                #
+                # generate the code of all functors in this stencil
+                #
+                try:
+                    for func in self.inspector.functors:
+                        func.generate_code (self.inspector.src)
 
-            #
-            # compile the generated code
-            #
-            self.inspector.compile ( )
+                except Exception as e:
+                    logging.error ("Error while generating code\n%s" % str (e))
+                    raise e
 
+                else:
+                    #
+                    # compile the generated code
+                    #
+                    try:
+                        self.inspector.compile ( )
+                    except RuntimeError:
+                        logging.error ("Compilation failed")
+                        return
+            #
+            # call the compiled library
+            #
+            params = list (self.inspector.dimensions)
             #
             # extract the buffer pointers from the parameters (NumPy arrays)
             #
-            params = list (self.inspector.dimensions)
-            functor_params = self.inspector.functors[0].params
-            for k in sorted (functor_params,
-                             key=lambda name: functor_params[name].id):
-                if k in kwargs.keys ( ):
-                    params.append (kwargs[k].ctypes.data_as (ctypes.c_void_p))
+            functor_params = list (self.inspector.symbols.get_functor_params (self.inspector.functors[0].name))
+            for p in functor_params:
+                if p.name in kwargs.keys ( ):
+                    params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
                 else:
-                    warnings.warn ("missing parameter [%s]" % k,
-                                   UserWarning)
+                    logging.warning ("Missing parameter [%s]" % p.name)
             #
             # call the compiled stencil
-            #
+            # 
             self.inspector.lib_obj.run (*params)
         #
         # run in Python mode
@@ -523,14 +742,16 @@ class MultiStageStencil ( ):
             logging.warning ("Unknown backend [%s]" % self.backend)
 
 
-    def get_interior_points (self, data_field, k_direction='forward'):
+    def get_interior_points (self, data_field, k_direction='forward', halo=(0,0,0,0)):
         """
         Returns an iterator over the 'data_field' without including the halo:
 
             data_field      a NumPy array;
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward', 'backward' or
-                            'parallel'.-
+                            'parallel';
+            halo            a tupe defining a 2D halo for the given 'data_field' 
+                            (+i, -i, +j, -j).-
         """
         try:
             if len (data_field.shape) != 3:
@@ -539,7 +760,7 @@ class MultiStageStencil ( ):
             # define the direction in 'k'
             #
             i_dim, j_dim, k_dim = data_field.shape
-            if k_direction == 'forward':
+            if k_direction == 'forward' or k_direction == 'parallel':
                 k_dim_start = 0
                 k_dim_end   = k_dim
                 k_dim_inc   = 1
@@ -548,19 +769,29 @@ class MultiStageStencil ( ):
                 k_dim_end   = -1
                 k_dim_inc   = -1
             else:
-                warnings.warn ("unknown direction '%s'" % k_direction,
-                              UserWarning)
-            #
-            # return the coordinate tuples in the correct order
-            #
-            for i in range (i_dim):
-                for j in range (j_dim):
-                    for k in range (k_dim_start, k_dim_end, k_dim_inc):
-                            yield InteriorPoint ((i, j, k))
+                logging.warning ("Unknown direction '%s'" % k_direction)
 
         except AttributeError:
-            warings.warn ("calling 'get_interior_points' without a NumPy array",
-                          UserWarning)
+            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
+
+        else:
+            #
+            # define the halo over i and j
+            #
+            if len (halo) == 4:
+                start_i = 0 + halo[0]
+                end_i   = i_dim + halo[1]
+                start_j = 0 + halo[2]
+                end_j   = j_dim + halo[3]
+                #
+                # return the coordinate tuples in the correct order
+                #
+                for i in range (start_i, end_i):
+                    for j in range (start_j, end_j):
+                        for k in range (k_dim_start, k_dim_end, k_dim_inc):
+                            yield InteriorPoint ((i, j, k))
+            else:
+                raise ValueError ("Invalid halo: it should contain four values")
 
 
 
@@ -575,4 +806,3 @@ class InteriorPoint (tuple):
 
     def __sub__ (self, other):
         raise NotImplementedError ("Offsets are not supported with '-'.")
-
