@@ -13,6 +13,8 @@
 */
 namespace gridtools {
 
+#ifndef CXX11_ENABLED
+
     /**
        Struct to apply user specified boundary condition cases on data fields.
 
@@ -114,5 +116,102 @@ this macro expands to n definitions of the function apply, taking a number of ar
 
 #undef GTLOOP
 #undef GTAPPLY
+
+#else //#ifndef CXX11_ENABLED
+
+    template <typename BoundaryFunction, typename Predicate = default_predicate, typename HaloDescriptors = array<halo_descriptor, 3> >
+    struct boundary_apply {
+    private:
+        HaloDescriptors halo_descriptors;
+        BoundaryFunction const boundary_function;
+        Predicate predicate;
+
+
+	/** @brief loops on the halo region defined by the HaloDescriptor member parameter, and evaluates the boundary_function in the specified direction, in the specified halo node.
+	    this macro expands to n definitions of the function loop, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)*/
+        template <typename Direction, typename ... DataField>
+        void loop(DataField& ... data_field) const {
+            for (int_t i=halo_descriptors[0].loop_low_bound_outside(Direction::I);
+                 i<=halo_descriptors[0].loop_high_bound_outside(Direction::I);
+                 ++i) {
+                for (int_t j=halo_descriptors[1].loop_low_bound_outside(Direction::J);
+                     j<=halo_descriptors[1].loop_high_bound_outside(Direction::J);
+                     ++j) {
+                    for (int_t k=halo_descriptors[2].loop_low_bound_outside(Direction::K);
+                         k<=halo_descriptors[2].loop_high_bound_outside(Direction::K);
+                         ++k) {
+                        boundary_function(Direction(),
+					  data_field ... , i, j, k);
+                    }
+                }
+            }
+        }
+
+        public:
+        boundary_apply(HaloDescriptors const& hd, Predicate predicate = Predicate() )
+            : halo_descriptors(hd)
+            , boundary_function(BoundaryFunction())
+            , predicate(predicate)
+        {}
+
+        boundary_apply(HaloDescriptors const& hd, BoundaryFunction const & bf, Predicate predicate = Predicate() )
+            : halo_descriptors(hd)
+            , boundary_function(bf)
+            , predicate(predicate)
+        {}
+
+
+/**
+   @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all possible directions.
+this macro expands to n definitions of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+
+*/
+    template < typename First, typename ... DataFields >
+    void apply( First& first, DataFields & ... data_fields) const {
+
+	if (predicate(direction<minus_,minus_,minus_>())) this->loop<direction<minus_,minus_,minus_> >(first, data_fields...);
+	if (predicate(direction<minus_,minus_, zero_>())) this->loop<direction<minus_,minus_, zero_> >(first, data_fields...);
+	if (predicate(direction<minus_,minus_, plus_>())) this->loop<direction<minus_,minus_, plus_> >(first, data_fields...);
+
+	if (predicate(direction<minus_, zero_,minus_>())) this->loop<direction<minus_, zero_,minus_> >(first, data_fields...);
+	if (predicate(direction<minus_, zero_, zero_>())) this->loop<direction<minus_, zero_, zero_> >(first, data_fields...);
+	if (predicate(direction<minus_, zero_, plus_>())) this->loop<direction<minus_, zero_, plus_> >(first, data_fields...);
+
+	if (predicate(direction<minus_, plus_,minus_>())) this->loop<direction<minus_, plus_,minus_> >(first, data_fields...);
+	if (predicate(direction<minus_, plus_, zero_>())) this->loop<direction<minus_, plus_, zero_> >(first, data_fields...);
+	if (predicate(direction<minus_, plus_, plus_>())) this->loop<direction<minus_, plus_, plus_> >(first, data_fields...);
+
+	if (predicate(direction< zero_,minus_,minus_>())) this->loop<direction< zero_,minus_,minus_> >(first, data_fields...);
+	if (predicate(direction< zero_,minus_, zero_>())) this->loop<direction< zero_,minus_, zero_> >(first, data_fields...);
+	if (predicate(direction< zero_,minus_, plus_>())) this->loop<direction< zero_,minus_, plus_> >(first, data_fields...);
+
+	if (predicate(direction< zero_, zero_,minus_>())) this->loop<direction< zero_, zero_,minus_> >(first, data_fields...);
+	if (predicate(direction< zero_, zero_, plus_>())) this->loop<direction< zero_, zero_, plus_> >(first, data_fields...);
+
+	if (predicate(direction< zero_, plus_,minus_>())) this->loop<direction< zero_, plus_,minus_> >(first, data_fields...);
+	if (predicate(direction< zero_, plus_, zero_>())) this->loop<direction< zero_, plus_, zero_> >(first, data_fields...);
+	if (predicate(direction< zero_, plus_, plus_>())) this->loop<direction< zero_, plus_, plus_> >(first, data_fields...);
+
+	if (predicate(direction< plus_,minus_,minus_>())) this->loop<direction< plus_,minus_,minus_> >(first, data_fields...);
+	if (predicate(direction< plus_,minus_, zero_>())) this->loop<direction< plus_,minus_, zero_> >(first, data_fields...);
+	if (predicate(direction< plus_,minus_, plus_>())) this->loop<direction< plus_,minus_, plus_> >(first, data_fields...);
+
+	if (predicate(direction< plus_, zero_,minus_>())) this->loop<direction< plus_, zero_,minus_> >(first, data_fields...);
+	if (predicate(direction< plus_, zero_, zero_>())) this->loop<direction< plus_, zero_, zero_> >(first, data_fields...);
+	if (predicate(direction< plus_, zero_, plus_>())) this->loop<direction< plus_, zero_, plus_> >(first, data_fields...);
+
+	if (predicate(direction< plus_, plus_,minus_>())) this->loop<direction< plus_, plus_,minus_> >(first, data_fields...);
+	if (predicate(direction< plus_, plus_, zero_>())) this->loop<direction< plus_, plus_, zero_> >(first, data_fields...);
+	if (predicate(direction< plus_, plus_, plus_>())) this->loop<direction< plus_, plus_, plus_> >(first, data_fields...);
+
+	//apply(data_fields ...);
+    }
+
+    private:
+	/** fixing compilation */
+	void apply( ) const {}
+
+    };
+#endif //#ifndef CXX11_ENABLED
 
 } // namespace gridtools

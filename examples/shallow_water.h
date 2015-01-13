@@ -20,7 +20,7 @@
 
 /*
   @file
-  @brief This file shows an implementation of the "shallow water" stencil
+  @brief This file shows an implementation of the "shallow water" stencil, with reflective boundary conditions
   It defines
  */
 
@@ -60,7 +60,7 @@ namespace shallow_water{
 	/**@brief space discretization step in direction j */
 	GT_FUNCTION
         static float_type dy(){return 1e-2;}
-	/**@brief time discretization step in direction i */
+	/**@brief time discretization step */
 	GT_FUNCTION
         static float_type dt(){return 1e-3;}
 	/**@brief gravity acceleration */
@@ -68,17 +68,62 @@ namespace shallow_water{
         static float_type g(){return 9.81;}
     };
 
+    template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_reflecting : functor_traits {
-        // reflective boundary conditions in I and J
-        template <sign I, sign J, typename DataField0, typename DataField1>
+        // reflective boundary conditions in I
+        template <sign I, sign K, typename DataField0>
         GT_FUNCTION
-        void operator()(direction<I, J, zero_>,
-                        DataField0 & data_field0, DataField1 const & data_field1,
+        void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
+                        DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-// TODO use placeholders here instead of the storage
-            data_field0(i,j,k) = data_field1(i,j,k);
+	    // TODO use placeholders here instead of the storage
+	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
-    };
+
+        // reflective boundary conditions in J
+        template <sign J, sign K, typename DataField0>
+        GT_FUNCTION
+        void operator()(direction<minus_, J, K>,
+                        DataField0 & data_field0,
+                        uint_t i, uint_t j, uint_t k) const {
+	    // TODO use placeholders here instead of the storage
+	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+        }
+
+	// default: do nothing
+        template <sign I, sign J, sign K, typename P, typename DataField0>
+        GT_FUNCTION
+        void operator()(direction<I, J, K, P>,
+                        DataField0 & data_field0,
+                        uint_t i, uint_t j, uint_t k) const {
+        }
+
+	static constexpr float_type height=3.;
+	GT_FUNCTION
+    	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
+    	    return height * std::exp(-500*((i*dx())*((i*dx())+(j*dy())*(j*dy()))));
+       }
+
+};
+
+    // struct bc : functor_traits{
+    //     // reflective boundary conditions in K
+    //     typedef arg_type<0> bc1;
+    //     typedef arg_type<0> bc2;
+    // 	static const float_type height=3.;
+
+    // 	GT_FUNCTION
+    // 	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
+    // 	    return height * std::exp(-5*((i*dx())*((i*dx())+(j*dy())*(j*dy())));
+    // 	}
+
+    //     template < typename Evaluation>
+    //     GT_FUNCTION
+    // 	static void Do(Evaluation const & eval, x_interval) {
+    // 	    {
+    // 		bc1() = bc2;
+    // 	    }
+    // };
 
     // struct bc_vertical{
     //     // reflective boundary conditions in K
@@ -90,7 +135,6 @@ namespace shallow_water{
     //         data_field0(i,j,k) = data_field1(i,j,k);
     //     }
     // };
-
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct initial_step        : public functor_traits {
@@ -119,9 +163,9 @@ namespace shallow_water{
         static float_type /*&&*/ half_step_u(Evaluation const& eval, ComponentU&& U, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
             {
                 return /*std::move*/(eval((sol(U, d1, d2) +
-                                       sol(U, d2)/2. -
+					   sol(U, d2)/2. -
 					   (pow<2>(sol(U,d1,d2))/sol(d1,d2)+pow<2>(sol(d1,d2))*g()/2. -
-					   pow<2>(sol(U, d2))/sol(d2) +
+					    pow<2>(sol(U, d2))/sol(d2) +
 					    pow<2>(sol(d2))*(g()/2.)))*(dt()/(2.*delta))) );
             }
 
@@ -130,9 +174,9 @@ namespace shallow_water{
         static float_type/*&&*/ half_step_v(Evaluation const& eval, ComponentU&& U, ComponentV&& V, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
             {
                 return /*std::move*/(eval( sol(V,d1,d2) +
-                                        sol(V,d1)/2. -
-				       (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
-                                        sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) ) );
+					   sol(V,d1)/2. -
+					   (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
+					    sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) ) );
             }
 
 
@@ -195,22 +239,6 @@ namespace shallow_water{
                                        pow<2>(tmp(c+2,s+1,i-1,j-1))           /tmp(s+1,i-1,j-1) +pow<2>(tmp(s+1,i-1, j-1))*((g()/2.))   )*((dt()/dy())));
 #else
 
-            // eval(sol()) = eval(sol()-
-            //                    (ux(x(-1)) - ux(x(-1), y(-1)))*(dt()/dx())-
-            //                     vy(y(-1)) - vy(x(-1), y(-1))*(dt()/dy()));
-
-            // eval(sol(comp(1))) =  eval(sol(comp(1)) -
-            // 			       ((ux(y(-1))^2)               / hx(y(-1))      + hx(y(-1))*hx(y(-1))*((g()/2.))                 -
-            // 			       ((ux(x(-1),y(-1))^2)           / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((g()/2.))))*((dt()/dx())) -
-            // 			        (vy(x(-1))*uy(x(-1))          / hy(x(-1))                                                   -
-            // 				 vy(x(-1), y(-1))*uy(x(-1),y(-1)) / hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((g()/2.)))    *((dt()/dy())));
-
-            // eval(sol(comp(2))) = eval(sol(comp(2)) -
-            // 			      (ux(y(-1))    *vx(y(-1))       /hy(y(-1)) -
-            //                           (ux(x(-1),y(-1))*vx(x(-1), y(-1))) /hx(x(-1), y(-1)))*((dt()/dx()))-
-            //                          ((vy(x(-1))^2)                /hy(x(-1))      +(hy(x(-1))     ^2)*((g()/2.)) -
-            //                           (vy(x(-1), y(-1))^2)           /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((g()/2.))   )*((dt()/dy())));
-
 	    auto hx=alias<tmp, comp, step>(0, 0); auto hy=alias<tmp, comp, step>(0, 1);
             auto ux=alias<tmp, comp, step>(1, 0); auto uy=alias<tmp, comp, step>(1, 1);
             auto vx=alias<tmp, comp, step>(2, 0); auto vy=alias<tmp, comp, step>(2, 1);
@@ -252,11 +280,8 @@ namespace shallow_water{
         return s << "final step";
     }
 
-    void handle_error(int_t)
-    {std::cout<<"error"<<std::endl;}
-
     extern char const s1[]="hello ";
-    extern char const s2[]="world";
+    extern char const s2[]="world ";
 
     bool test(uint_t x, uint_t y, uint_t z) {
         {
@@ -321,9 +346,9 @@ namespace shallow_water{
 	    tmp.set<1,1>(out5, 0.);
 	    tmp.set<2,1>(out6, 0.);
 
-            sol.push_front<0>(out7, 1.);//h
-            sol.push_front<1>(out8, 1.);//u
-            sol.push_front<2>(out9, 1.);//v
+            sol.set<0>(out7, &bc_reflecting<0,0>::droplet);//h
+            sol.set<1>(out8, &bc_reflecting<0,1>::droplet);//u
+            sol.set<2>(out9, 0.);//v
 
             // sol.push_front<3>(out9, [](uint_t i, uint_t j, uint_t k) ->float_type {return 2.0*exp (-5*(i^2+j^2));});//h
 
@@ -344,6 +369,53 @@ namespace shallow_water{
             coords.value_list[0] = 0;
             coords.value_list[1] = d3-1;
 
+// ///////////////////BOUNDARY CONDITIONS (TEST)///////////////////////
+//             uint_t d0[5] = {0, 0, 0, 0, 0};
+//             uint_t d_span_x[5] = {0, 0, 0, d1-1, d1};
+//             uint_t d_span_y[5] = {0, 0, 0, d2-1, d2};
+
+//             typedef gridtools::layout_map<-1,-1,0> layout_x;//2D storage
+// 	    gridtools::coordinates<axis> coords_bc_x(d_span_x, d0);
+// 	    coords.value_list[0] = 0;//only on k=0 (top)
+// 	    coords.value_list[1] = 0;
+
+// 	    typedef gridtools::layout_map<-1,0,-1> layout_y;//2D storage
+// 	    gridtools::coordinates<axis> coords_bc_y(d0, d_span_y);
+// 	    coords.value_list[0] = 0;//only on k=0 (top)
+// 	    coords.value_list[1] = 0;
+
+// 	    typedef gridtools::BACKEND::storage_type<float_type, layout_x >::type storage_bc_x;
+// 	    typedef gridtools::BACKEND::storage_type<float_type, layout_y >::type storage_bc_y;
+
+// 	    typedef arg<0, storage_bc_x > p_bc_x;
+// 	    typedef arg<0, storage_bc_y > p_bc_y;
+//             typedef boost::mpl::vector<p_bc_x> arg_type_list;
+//             gridtools::domain_type<arg_type_list> domain
+//                 (boost::fusion::make_vector(&tmp, &sol));
+
+// 	    auto bc_x =
+//                 gridtools::make_computation<gridtools::BACKEND, layout_x>
+//                 (
+//                     gridtools::make_mss // mss_descriptor
+//                     (
+//                         execute<forward>(),
+//                         gridtools::make_esf<bc>(p_sol(), p_sol()) ,
+//                         ),
+//                     domain, coords_bc_x
+//                     );
+
+// 	    auto bc_y =
+//                 gridtools::make_computation<gridtools::BACKEND, layout_y>
+//                 (
+//                     gridtools::make_mss // mss_descriptor
+//                     (
+//                         execute<forward>(),
+//                         gridtools::make_esf<bc>(p_sol(), p_sol()) ,
+//                         ),
+//                     domain, coords_bc_y
+//                     );
+// ///////////////////END BOUNDARY CONDITIONS///////////////////////
+
             auto shallow_water_stencil =
                 gridtools::make_computation<gridtools::BACKEND, layout_t>
                 (
@@ -356,20 +428,32 @@ namespace shallow_water{
                     domain, coords
                     );
 
+	    // bc_x->ready();
+	    // bc_y->ready();
             shallow_water_stencil->ready();
 
+	    // bc_x->steady();
+	    // bc_y->steady();
             shallow_water_stencil->steady();
 
-            gridtools::array<gridtools::halo_descriptor, 2> halos;
+            gridtools::array<gridtools::halo_descriptor, 3> halos;
             halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
             halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
-            // TODO: use placeholders here instead of the storage
-            //gridtools::boundary_apply< bc_reflecting<uint_t> >(halos, bc_reflecting<uint_t>()).apply(p_sol(), p_sol());
+            halos[2] = gridtools::halo_descriptor(0,0,0,0,0);
 
+            // TODO: use placeholders here instead of the storage
+	    /*                               component,snapshot */
+            gridtools::boundary_apply< bc_reflecting<0,0> >(halos, bc_reflecting<0,0>()).apply(sol);
+            gridtools::boundary_apply< bc_reflecting<1,0> >(halos, bc_reflecting<1,0>()).apply(sol);
+
+	    // bc_x->run();
+	    // bc_y->run();
             shallow_water_stencil->run();
 
             shallow_water_stencil->finalize();
 
+            gridtools::boundary_apply< bc_reflecting<0,0> >(halos, bc_reflecting<0,0>()).apply(sol);
+            gridtools::boundary_apply< bc_reflecting<1,0> >(halos, bc_reflecting<1,0>()).apply(sol);
             // tmp.print();
 	    sol.print();
         }

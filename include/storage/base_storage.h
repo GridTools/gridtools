@@ -443,6 +443,7 @@ namespace gridtools {
 		    m_strides[2] * layout::template find_val<1,uint_t,0>(i,j,k) +
 		    layout::template find_val<2,uint_t,0>(i,j,k);
 	    }
+	    assert(index<size());
             return index;
         }
 
@@ -928,6 +929,7 @@ namespace gridtools {
 	    }
 
 	/**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input lambda function
+	   TODO: this should be merged with the boundary conditions code (repetition)
 
 	   \tparam field_dim the given field dimenisons
 	   \tparam snapshot the snapshot of dimension field_dim to be set
@@ -940,7 +942,21 @@ namespace gridtools {
 		for (uint_t i=0; i<this->m_dims[0]; ++i)
 		    for (uint_t j=0; j<this->m_dims[1]; ++j)
 			for (uint_t k=0; k<this->m_dims[2]; ++k)
-			    (super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot])[super::_index(i,j,k)]=lambda(i, j, k);
+			    (field)[super::_index(i,j,k)]=lambda(i, j, k);
+		set<field_dim, snapshot>(field);
+	    }
+
+
+	/**@biref gets the given storage as the nth snapshot of a specific field dimension
+
+	   \tparam field_dim the given field dimenisons
+	   \tparam snapshot the snapshot of dimension field_dim to be set
+	   \param field the input storage
+	 */
+	template<short_t field_dim=0, short_t snapshot=0>
+	pointer_type& get( )
+	    {
+		return super::m_fields[access<n_width-(field_dim), traits>::type::n_fields + snapshot];
 	    }
 
 	/**@biref ODE advancing for a single dimension
