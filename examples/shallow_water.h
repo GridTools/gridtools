@@ -441,10 +441,19 @@ namespace shallow_water{
             halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
             halos[2] = gridtools::halo_descriptor(0,0,0,0,0);
 
+#ifdef CUDA_EXAMPLE
+	    sol.clone_to_gpu();
+	    sol.h2d_update();
+            // TODO: use placeholders here instead of the storage
+	    /*                                 component,snapshot */
+            gridtools::boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+            gridtools::boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+#else
             // TODO: use placeholders here instead of the storage
 	    /*                               component,snapshot */
             gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
             gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+#endif
 
 	    // bc_x->run();
 	    // bc_y->run();
@@ -452,8 +461,18 @@ namespace shallow_water{
 
             shallow_water_stencil->finalize();
 
+#ifdef CUDA_EXAMPLE
+	    sol.clone_to_gpu();
+	    sol.h2d_update();
+            // TODO: use placeholders here instead of the storage
+	    /*                                 component,snapshot */
+            gridtools::boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+            gridtools::boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+#else
             gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
             gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+#endif
+
             // tmp.print();
 	    sol.print();
         }
