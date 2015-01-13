@@ -380,7 +380,7 @@ class StencilInspector (ast.NodeVisitor):
         self.make_file = path.join (tmp_dir, 'Makefile')
 
         #
-        # ... and populate it
+        # ... and populate it ...
         #
         logging.info ("Compiling C++ code in [%s]" % tmp_dir)
         hdr_src, cpp_src, make_src = self.translate ( )
@@ -395,7 +395,7 @@ class StencilInspector (ast.NodeVisitor):
             make_hdl.write (make_src)
 
         #
-        # before starting the compilation of the dynamic library
+        # ... before starting the compilation of the dynamic library
         #
         current_dir = getcwd ( )
         chdir (tmp_dir)
@@ -704,7 +704,7 @@ class MultiStageStencil ( ):
                         func.generate_code (self.inspector.src)
 
                 except Exception as e:
-                    logging.error ("Error while generating code %s" % str (e))
+                    logging.error ("Error while generating code\n%s" % str (e))
                     raise e
 
                 else:

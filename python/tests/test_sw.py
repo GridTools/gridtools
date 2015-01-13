@@ -138,7 +138,6 @@ class ShallowWater (MultiStageStencil):
         V[self.n+1,:] =  V[self.n,:]
 
 
-
     def kernel (self, out_H, out_U, out_V):
         """
         This stencil comprises multiple stages.-
@@ -146,7 +145,8 @@ class ShallowWater (MultiStageStencil):
         #
         # first half step (stage X direction)
         #
-        for p in self.get_interior_points (self.Hx,
+        for p in self.get_interior_points (out_H,
+                                           halo=(1,-1,1,-1),
                                            k_direction="forward"):
             # height
             self.Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
@@ -169,7 +169,8 @@ class ShallowWater (MultiStageStencil):
         #
         # first half step (stage Y direction)
         #
-        for p in self.get_interior_points (self.Hy,
+        for p in self.get_interior_points (out_H,
+                                           halo=(1,-1,1,-1),
                                            k_direction="forward"):
             # height
             self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2.0
@@ -192,7 +193,8 @@ class ShallowWater (MultiStageStencil):
         #
         # second half step (stage)
         #
-        for p in self.get_interior_points (self.Hx,
+        for p in self.get_interior_points (out_H,
+                                           halo=(1,-1,1,-1),
                                            k_direction="forward"):
             # height
             out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
@@ -228,7 +230,7 @@ class ShallowWaterTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.WARNING)
 
-        self.domain = (66, 66, 1)
+        self.domain = (32, 32, 1)
 
         self.H = np.ones  (self.domain)
         self.U = np.zeros (self.domain)
@@ -255,6 +257,7 @@ class ShallowWaterTest (unittest.TestCase):
         #
         self.water.create_random_drop (self.H)
 
+        """
         #
         # show its evolution
         #
@@ -330,7 +333,6 @@ class ShallowWaterTest (unittest.TestCase):
                                         interval=50,
                                         blit=False)
         plt.show ( )
-        """
 
 
     def test_symbol_discovery (self):
