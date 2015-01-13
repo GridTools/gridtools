@@ -8,6 +8,7 @@ import numpy as np
 
 
 
+
 class FunctorBody (ast.NodeVisitor):
     """
     Represents the Do( ) function of a stencil's functor in AST form.-
@@ -18,7 +19,7 @@ class FunctorBody (ast.NodeVisitor):
 
             node    an AST-node list representing the body of this functor;
             params  a dict of FunctorParameters of this functor;
-            symbols a dict of symbols available within the stencil where
+            symbols the StecilSymbols of all symbols within the stencil where
                     the functor lives.-
         """
         self.params  = params
@@ -34,32 +35,60 @@ class FunctorBody (ast.NodeVisitor):
             warnings.warn ("FunctorBody expects a list of AST nodes.",
                            RuntimeWarning)
 
-    def _sign_operator (self, operation):
+    def _sign_operator (self, op):
         """
         Returns the sign of an operation.-
         """
-        if isinstance (operation, ast.Add):
+        if isinstance (op, ast.Add) or isinstance (op, ast.UAdd):
             sign = '+'
-        elif isinstance (operation, ast.Sub):
+        elif isinstance (op, ast.Sub) or isinstance (op, ast.USub):
             sign = '-'
-        elif isinstance (operation, ast.Mult):
+        elif isinstance (op, ast.Mult):
             sign = '*'
-        elif isinstance (operation, ast.Div):
+        elif isinstance (op, ast.Div):
             sign = '/'
-        elif isinstance (operation, ast.Pow):
-            sign = '^'
+        elif isinstance (op, ast.Pow):
+            #
+            # TODO: translate to a multiplication
+            #
+            sign = None
+            logging.warning ("Cannot translate 'x**y'")
         else:
             sign = None
-            logging.warning ("Cannot translate '%s'" % str (operation))
+            logging.warning ("Cannot translate '%s'" % str (op))
         return sign
 
          
-    def generate_code (self):
+    def generate_code (self, src):
         """
-        Generates C++ code from the AST backing this object.-
+        Generates C++ code from the AST backing this object:
+
+            src     the Python source from which the C++ is generated;
+                    this is used to display friendly error messages.-
         """
         for n in self.nodes:
-            self.cpp += "%s;\n\t\t" % self.visit (n)
+            try:
+                code = self.visit (n)
+                if code is not None:
+                    self.cpp += "%s;\n\t\t" % code
+
+            except Exception as e:
+                #
+                # preprocess the source code to correctly display the line,
+                # because comments are lost in the AST translation
+                #
+                # FIXME: comment_offset is not correctly calculated
+                #
+                src_lines      = src.split ('\n')
+                comment_offset = 0
+                for l in src_lines:
+                    if l.strip (' ').startswith ('#'):
+                        comment_offset += 1
+
+                correct_lineno = n.lineno + comment_offset
+                source_line    = src_lines[correct_lineno].strip (' ')
+                raise type(e) ("at line %d:\n\t%s" % (correct_lineno,
+                                                      source_line))
 
 
     def visit_Assign (self, node):
@@ -136,7 +165,19 @@ class FunctorBody (ast.NodeVisitor):
                 # this subscript has shifting
                 #
                 if isinstance (node.slice.value.op, ast.Add):
-                    indexing = '(%s)' % ','.join ([str(e.n) for e in node.slice.value.right.elts])
+                    indexing = '('
+                    for e in node.slice.value.right.elts:
+                        if isinstance (e, ast.Num):
+                            indexing += "%s," % str (e.n)
+                        elif isinstance (e, ast.UnaryOp):
+                            indexing += "%s%s," % (self._sign_operator (e.op),
+                                                   str (e.operand.n))
+                        else:
+                            logging.error ("Subscript shifting operation unknown")
+                    #
+                    # strip the last comma off
+                    #
+                    indexing = '%s)' % indexing[:-1]
                 else:
                     indexing = ''
                     logging.warning ("Subscript shifting only supported with '+'")
@@ -150,23 +191,23 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
             #
-            # check if subscripting any known symbols
+            # check if subscripting any data fields
             #
             if isinstance (node.value, ast.Attribute):
-                name = '%s.%s' % (node.value.value.id,
-                                  node.value.attr)
-                #
-                # only good for NumPy arrays
-                #
+                name = node.value.attr
                 value = self.symbols[name]
-                if isinstance (value, np.ndarray):
+                if isinstance (value, FunctorParameter):
                     return "dom(%s%s)" % (name, indexing)
             #
             # check if subscripting any functor parameters 
             #
             elif isinstance (node.value, ast.Name):
                 name = node.value.id
-                if name in self.params.keys ( ):
+                value = self.symbols[name]
+                #
+                # FIXME only ask for the parameters of this functor
+                #
+                if self.symbols.is_parameter (name):
                     return "dom(%s%s)" % (name, indexing)
 
 
@@ -191,22 +232,18 @@ class FunctorParameter ( ):
         """
         Sets a new name to this functor parameter.-
         """
-        if name.startswith ('in_'):
-            #
-            # functor input parameter
-            #
+        #
+        # do not add 'self' as a functor parameter
+        #
+        if name != 'self':
             self.name = name
-            self.input = True
-            self.output = False
-        elif name.startswith ('out_'):
             #
-            # functor input parameter
+            # temporary parameters are not 'input' nor 'output'
             #
-            self.name = name
-            self.input = False
-            self.output = True
+            self.input  = self.name.startswith ('in_')
+            self.output = self.name.startswith ('out_')
         else:
-            logging.warning ("Ignoring functor parameter '%s'\n" % name)
+            self.name = None
 
 
 
@@ -214,24 +251,21 @@ class StencilFunctor ( ):
     """
     Represents a functor inside a multi-stage stencil.-
     """
-    def __init__ (self, node, symbols):
+    def __init__ (self, name, node, params, symbols):
         """
         Constructs a new StencilFunctor:
 
-            node    the FunctionDef AST node (see
+            name    a name to uniquely identify this functor;
+            node    the For AST node (see
                     https://docs.python.org/3.4/library/ast.html) of the
-                    Python function from which this functor will be built;
-            symbols data fields and constants gathered from other levels
-                    of AST analysis.-
+                    Python comprehention from which this functor will be built;
+            params  a dict of FunctorParameters of this functor;
+            symbols the StecilSymbols of all symbols within the stencil where
+                    the functor lives.-
         """
-        #
-        # a name to uniquely identify this functor
-        #
-        self.name = None
-        #
-        # a dictionary for the functor parameters (k=name, v=param)
-        #
-        self.params = dict ( )
+        self.name = name
+        self.params = params
+        self.symbols = symbols
         #
         # the body of the functor is inlined from the 'for' loops
         #
@@ -240,7 +274,6 @@ class StencilFunctor ( ):
         # the AST node of the Python function representing this functor
         #
         self.set_ast (node)
-        self.symbols = symbols
 
 
     def set_ast (self, node):
@@ -251,59 +284,41 @@ class StencilFunctor ( ):
             node    a FunctionDef AST node (see
                     https://docs.python.org/3.4/library/ast.html).-
         """
-        self.node  = node 
-        self.name  = "%s_functor" % node.name
+        if isinstance (node, ast.For):
+            self.node = node 
+        else:
+            raise TypeError ("Functor's root AST node should be type ast.For")
 
 
-    def analyze_params (self):
+    def analyze_params (self, nodes):
         """
-        Extracts the parameters of the Python fuction before translating
-        them to C++ functor code.-
+        Extracts the parameters from the Python function:
+
+            nodes   a list of AST nodes representing the parameters.-
         """
-        try:
+        for p in nodes:
             #
-            # analyze the function parameters
+            # do not add the parameter if it already exists as a symbol
             #
-            param_list = self.node.args.args
-            for p in param_list:
-                par = FunctorParameter (p.arg)
+            name = p.arg
+            if self.symbols[name] is None:
+                par = FunctorParameter (name)
                 #
                 # the name is None if the parameter was ignored/invalid
                 #
                 if par.name is not None:
                     par.id = len (self.params)
                     self.params[par.name] = par
-
-        except AttributeError:
-            warnings.warn ("AST node not set or it is not a FunctionDef\n",
-                           RuntimeWarning)
+            else:
+                logging.warning ("Not adding parameter '%s' of functor '%s' because it already exists in the symbol table" % (name, self.name))
 
 
-    def analyze_loops (self):
+    def generate_code (self, src):
         """
-        Looks for 'get_interior_points' comprehensions within the 
-        Python function.-
-        """
-        #
-        # the loops are part of the function body
-        #
-        function_body = self.node.body
-        for node in function_body:
-            if isinstance (node, ast.For):
-                #
-                # the iteration should call 'get_interior_points'
-                #
-                call = node.iter
-                if (call.func.value.id == 'self' and 
-                    call.func.attr == 'get_interior_points'):
-                    self.body = FunctorBody (node.body,
-                                             self.params,
-                                             self.symbols)
+        Generates the C++ code of this functor:
 
-
-    def generate_code (self):
+            src     the Python source from which the C++ is generated;
+                    this is used to display friendly error messages.-
         """
-        Generates the C++ code of this functor.-
-        """
-        self.body.generate_code ( )
+        self.body.generate_code (src)
 

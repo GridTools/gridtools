@@ -95,7 +95,7 @@ namespace gridtools {
 
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static constexpr typename _impl::first_type<Indices...>::type
+        static /* constexpr */ typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});

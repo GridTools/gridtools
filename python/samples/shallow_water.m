@@ -24,7 +24,7 @@ function shallow_water
 
 % Parameters
 
-n = 64;                  % grid size
+n = 8;                  % grid size
 g = 9.8;                 % gravitational constant
 dt = 0.02;               % hardwired timestep
 dx = 1.0;
@@ -40,7 +40,8 @@ D = droplet (2.0,11);     % simulate a water drop
 
 % Outer loop, restarts.
 
-while get (stop,'value') == 0
+%while get (stop,'value') == 0
+while 0 == 0
    set (start,'value',0)
    
    H = ones (n+2,n+2);   U = zeros (n+2,n+2);  V = zeros (n+2,n+2);
@@ -51,7 +52,8 @@ while get (stop,'value') == 0
 
    % Inner loop, time steps.
 
-   while get (start,'value')==0 && get (stop,'value')==0
+   %while get (start,'value')==0 && get (stop,'value')==0
+   while 0 == 0
        nstep = nstep + 1;
 
        % Random water drops
@@ -169,3 +171,4 @@ function [surfplot,top,start,stop] = initgraphics (n);
    top = title ('Click start');
    start = uicontrol ('position',[20 20 80 20],'style','toggle','string','start');
    stop = uicontrol ('position',[120 20 80 20],'style','toggle','string','stop');
+   
