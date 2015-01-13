@@ -182,12 +182,12 @@ namespace gridtools {
 	base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type init = value_type(), char const* s="default storage"):
 	    is_set( true ),
 	    m_name(s),
-	    m_fields{pointer_type(dim1*dim2*dim3)},
 	    m_dims{dim1, dim2, dim3},
 	    m_strides{( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) ) ,
 		    ( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
 		    ( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3) )}
 		    {
+			m_fields[0]=pointer_type(dim1*dim2*dim3);
 
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
@@ -206,7 +206,7 @@ namespace gridtools {
            The number of arguments must me equal to the space dimensions of the specific field
          */
 		    template <class ... UIntTypes>
-		    base_storage( UIntTypes const& ... args, value_type init = value_type(), char const* s="default storage" ):
+		    base_storage(  UIntTypes const& ... args, value_type init/* = value_type()*/, char const* s/*="default storage"*/ ):
 			is_set( true ),
 			m_name(s),
 			m_dims{args...}
