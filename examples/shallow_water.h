@@ -207,6 +207,9 @@ namespace shallow_water{
         typedef Dimension<3> step;
         typedef Dimension<4> comp;
 #endif
+	static uint_t current_time;
+	static uint_t total_time;
+
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
@@ -263,6 +266,9 @@ namespace shallow_water{
     	}
 
     };
+
+    uint_t final_step::current_time=0;
+    uint_t final_step::total_time=3;
 
 /*
  * The following operators and structs are for debugging only
@@ -441,37 +447,26 @@ namespace shallow_water{
             halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
             halos[2] = gridtools::halo_descriptor(0,0,0,0,0);
 
-#ifdef CUDA_EXAMPLE
-	    sol.clone_to_gpu();
-	    sol.h2d_update();
-            // TODO: use placeholders here instead of the storage
-	    /*                                 component,snapshot */
-            gridtools::boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-            gridtools::boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
-#else
-            // TODO: use placeholders here instead of the storage
-	    /*                               component,snapshot */
-            gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-            gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
-#endif
 
 	    // bc_x->run();
 	    // bc_y->run();
-            shallow_water_stencil->run();
+	    for (;final_step::current_time <= final_step::total_time; ++final_step::current_time)
+	    {
+#ifdef CUDA_EXAMPLE
+		// TODO: use placeholders here instead of the storage
+		/*                                 component,snapshot */
+		gridtools::boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+		gridtools::boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+#else
+		// TODO: use placeholders here instead of the storage
+		/*                             component,snapshot */
+		gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+		gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+#endif
+		shallow_water_stencil->run();
+	    }
 
             shallow_water_stencil->finalize();
-
-#ifdef CUDA_EXAMPLE
-	    sol.clone_to_gpu();
-	    sol.h2d_update();
-            // TODO: use placeholders here instead of the storage
-	    /*                                 component,snapshot */
-            gridtools::boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-            gridtools::boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
-#else
-            gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-            gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
-#endif
 
             // tmp.print();
 	    sol.print();
