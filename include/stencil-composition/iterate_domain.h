@@ -104,8 +104,8 @@ namespace gridtools {
         template<typename Left , typename Right >
 	GT_FUNCTION
 	static void assign(Left* l, Right const* r){
-	    l[Number]=r[Number].get();
-	    //once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
+	    //l[Number]=r[Number].get();
+	    once_per_block<Backend, 0/*Id*/>::assign(l[Number],r[Number].get());
 	    assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
 	}
 
@@ -118,8 +118,8 @@ namespace gridtools {
 	    template<typename Left , typename Right >
 	    GT_FUNCTION
 	    static void assign(Left* l, Right const* r){
-		l[0]=r[0].get();
-		//once_per_block<Backend, Id>::assign(l[0],r[0].get());
+		//l[0]=r[0].get();
+		once_per_block<Backend, 0/*Id*/>::assign(l[0],r[0].get());
 	    }
 	};
 

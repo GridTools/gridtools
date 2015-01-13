@@ -208,7 +208,6 @@ namespace shallow_water{
         typedef Dimension<4> comp;
 #endif
 	static uint_t current_time;
-	static uint_t total_time;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -268,7 +267,6 @@ namespace shallow_water{
     };
 
     uint_t final_step::current_time=0;
-    uint_t final_step::total_time=3;
 
 /*
  * The following operators and structs are for debugging only
@@ -447,10 +445,12 @@ namespace shallow_water{
             halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
             halos[2] = gridtools::halo_descriptor(0,0,0,0,0);
 
+	    //the following might be runtime value
+	    uint_t total_time=3;
 
 	    // bc_x->run();
 	    // bc_y->run();
-	    for (;final_step::current_time <= final_step::total_time; ++final_step::current_time)
+	    for (;final_step::current_time <= total_time; ++final_step::current_time)
 	    {
 #ifdef CUDA_EXAMPLE
 		// TODO: use placeholders here instead of the storage
