@@ -20,7 +20,7 @@
 
 /*
   @file
-  @brief This file shows an implementation of the "shallow water" stencil, with reflective boundary conditions
+  @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
   It defines
  */
 
@@ -69,8 +69,8 @@ namespace shallow_water{
     };
 
     template<uint_t Component=0, uint_t Snapshot=0>
-    struct bc_reflecting : functor_traits {
-        // reflective boundary conditions in I
+    struct bc_periodic : functor_traits {
+        // periodic boundary conditions in I
         template <sign I, sign K, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
@@ -80,7 +80,7 @@ namespace shallow_water{
 	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
-        // reflective boundary conditions in J
+        // periodic boundary conditions in J
         template <sign J, sign K, typename DataField0>
         GT_FUNCTION
         void operator()(direction<minus_, J, K>,
@@ -107,7 +107,7 @@ namespace shallow_water{
 };
 
     // struct bc : functor_traits{
-    //     // reflective boundary conditions in K
+    //     // periodic boundary conditions in K
     //     typedef arg_type<0> bc1;
     //     typedef arg_type<0> bc2;
     // 	static const float_type height=3.;
@@ -126,7 +126,7 @@ namespace shallow_water{
     // };
 
     // struct bc_vertical{
-    //     // reflective boundary conditions in K
+    //     // periodic boundary conditions in K
     //     template < sign K, typename DataField0, typename DataField1>
     //     GT_FUNCTION
     //     void operator()(direction<zero_, zero_, K>,
@@ -325,7 +325,7 @@ namespace shallow_water{
 #endif
 	    typedef tmp_type::original_storage::pointer_type ptr;
 
-            // Definition of placeholders. The order of them reflect the order the user will deal with them
+            // Definition of placeholders. The order of them reflects the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain
             typedef arg<0, tmp_type > p_tmp;
             typedef arg<1, sol_type > p_sol;
@@ -346,8 +346,8 @@ namespace shallow_water{
 	    tmp.set<1,1>(out5, 0.);
 	    tmp.set<2,1>(out6, 0.);
 
-            sol.set<0>(out7, &bc_reflecting<0,0>::droplet);//h
-            sol.set<1>(out8, &bc_reflecting<0,1>::droplet);//u
+            sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
+            sol.set<1>(out8, &bc_periodic<0,1>::droplet);//u
             sol.set<2>(out9, 0.);//v
 
             // sol.push_front<3>(out9, [](uint_t i, uint_t j, uint_t k) ->float_type {return 2.0*exp (-5*(i^2+j^2));});//h
@@ -443,8 +443,8 @@ namespace shallow_water{
 
             // TODO: use placeholders here instead of the storage
 	    /*                               component,snapshot */
-            gridtools::boundary_apply< bc_reflecting<0,0> >(halos, bc_reflecting<0,0>()).apply(sol);
-            gridtools::boundary_apply< bc_reflecting<1,0> >(halos, bc_reflecting<1,0>()).apply(sol);
+            gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+            gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
 
 	    // bc_x->run();
 	    // bc_y->run();
@@ -452,8 +452,8 @@ namespace shallow_water{
 
             shallow_water_stencil->finalize();
 
-            gridtools::boundary_apply< bc_reflecting<0,0> >(halos, bc_reflecting<0,0>()).apply(sol);
-            gridtools::boundary_apply< bc_reflecting<1,0> >(halos, bc_reflecting<1,0>()).apply(sol);
+            gridtools::boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+            gridtools::boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
             // tmp.print();
 	    sol.print();
         }
