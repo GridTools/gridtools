@@ -96,8 +96,8 @@ namespace gridtools {
         return m_end+1;
       if (I==-1)
 	{
-	  assert(m_begin-m_minus>=0);
-	  return m_begin-m_minus;
+	    assert((int_t)(m_begin-m_minus)>=0);
+	    return (m_begin-m_minus);
 	}
 
       assert(false);
