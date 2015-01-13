@@ -14,12 +14,12 @@ namespace gridtools {
 */
         struct instantiate_tmps
         {
-            int m_tile_i;// or offset along i
-            int m_tile_j;// or offset along j
-            int m_tile_k;// or offset along k
+            uint_t m_tile_i;// or offset along i
+            uint_t m_tile_j;// or offset along j
+            uint_t m_tile_k;// or offset along k
 
             GT_FUNCTION
-            instantiate_tmps(int tile_i, int tile_j, int tile_k)
+            instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
                 :
                   m_tile_i(tile_i)
                 , m_tile_j(tile_j)
@@ -31,10 +31,11 @@ namespace gridtools {
             GT_FUNCTION
             void operator()(ElemType*&  e) const {
 //#ifndef __CUDACC__
-                std::string s = ElemType::info_string;
+                char const* s = ElemType::info_string.c_str();
 //#endif
 
 //calls the constructor of the storage
+                //noone deletes this f***n new
                 e = new ElemType(m_tile_i,
                                  m_tile_j,
                                  m_tile_k,
@@ -49,7 +50,7 @@ namespace gridtools {
     };
 
 
-
+        // noone calls this!!!
         struct delete_tmps {
             template <typename Elem>
             GT_FUNCTION
@@ -100,11 +101,11 @@ namespace gridtools {
         struct policy<Block>
             {
                 template <typename Coords>
-                static int value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom();}
+                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom()+1;}
                 template <typename Coords>
-                static int value_i(Coords& coords){ return coords.i_low_bound();}
+                static uint_t value_i(Coords& coords){ return coords.i_low_bound();}
                 template <typename Coords>
-                static int value_j(Coords& coords){ return coords.j_low_bound();}
+                static uint_t value_j(Coords& coords){ return coords.j_low_bound();}
         };
 
 /**Policy for the \ref gridtools::domain_type constructor arguments. When the Naive strategy is chosen the arguments value_i and value_j represent the total number of indices in the i and j directions. */
@@ -112,11 +113,11 @@ namespace gridtools {
         struct policy<Naive>
             {
                 template <typename Coords>
-                static int value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom();}
+                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom()+1;}
                 template <typename Coords>
-                static int value_i(Coords& coords){ return coords.direction_i().total_length();}
+                static uint_t value_i(Coords& coords){ return coords.direction_i().total_length();}
                 template <typename Coords>
-                static int value_j(Coords& coords){ return coords.direction_j().total_length();}
+                static uint_t value_j(Coords& coords){ return coords.direction_j().total_length();}
         };
 
         }

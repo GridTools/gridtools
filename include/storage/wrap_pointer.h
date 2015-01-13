@@ -1,4 +1,10 @@
 #pragma once
+#include <common/defs.h>
+
+/**
+@file
+Write my documentation!
+*/
 
 /** This class wraps a raw pointer*/
 namespace gridtools {
@@ -9,7 +15,8 @@ namespace gridtools {
 
 #define NEW_OP(x) template <>                   \
         struct new_op<x> {                      \
-            x* operator()(int size) const {     \
+	  GT_FUNCTION                           \
+            x* operator()(/*u*/int_t size) const {  \
                 return new x[size];             \
             }                                   \
         };
@@ -24,96 +31,133 @@ namespace gridtools {
 
 template <typename T>
 struct wrap_pointer{
+        typedef T pointee_t;
+
+    //default constructor
+    GT_FUNCTION
+    wrap_pointer()
+        : m_cpu_p(NULL),
+	  m_managed(false)
+        {
+	}
+
 
     GT_FUNCTION
-    explicit wrap_pointer(wrap_pointer const& other)
-        : cpu_p(other.cpu_p)
-        {}
+    wrap_pointer(wrap_pointer const& other)
+        : m_cpu_p(other.m_cpu_p),
+	  m_managed(false)
+        {
+	}
 
     GT_FUNCTION
-    explicit wrap_pointer(T* p)
-        : cpu_p(p)
-        {}
+    wrap_pointer(T* p)
+        : m_cpu_p(p)
+        , m_managed(true)
+    {}
+
+    wrap_pointer<T>& operator = (T& p)
+        {
+            m_cpu_p=p;
+	    m_managed=true;
+            return *this;
+        }
+
+    pointee_t* get() const {return m_cpu_p;}
+
+    bool managed(){return m_managed;}
+
+  GT_FUNCTION
+  virtual ~wrap_pointer(){
+#ifndef NDEBUG
+#ifndef __CUDACC__
+      std::cout<<"deleting wrap pointer "<<this<<std::endl;
+#endif
+#endif
+      if(m_managed)
+       	  free_it();
+  }
 
     GT_FUNCTION
     void update_gpu() {}//\todo find a way to remove this method
 
     GT_FUNCTION
-    wrap_pointer(int size) {
+    wrap_pointer(uint_t size, bool managed=false): m_managed(managed) {
         allocate_it(size);
-
-
 #ifndef NDEBUG
-            printf(" - %X %d\n", cpu_p, size);
+            printf(" - %X %d\n", m_cpu_p, size);
 #endif
         }
 
     GT_FUNCTION
-    void allocate_it(int size){
-#if (CUDA_VERSION > 5050)
-        cpu_p = new T[size];
-#else
-        cpu_p = workaround_::new_op<T>()(size);
-#endif
+    void allocate_it(uint_t size){
+/* #if (CUDA_VERSION > 5050) */
+        m_cpu_p = new T[size];
+/* #else */
+/* 	m_cpu_p = workaround_::new_op<T>()(size); */
+/* #endif */
     }
 
     GT_FUNCTION
     void free_it() {
-      //delete cpu_p;
+	if(m_cpu_p)
+	{
+#ifndef NDEBUG
+#ifndef __CUDACC__
+	    std::cout<<"deleting data pointer "<<m_cpu_p<<std::endl;
+#endif
+#endif
+	    delete [] m_cpu_p  ;
+	    m_cpu_p=NULL;
+	}
     }
 
 
-        __host__ __device__
-        operator T*() {
-            return cpu_p;
+    __host__ __device__
+    operator T*() {
+        return m_cpu_p;
+    }
+
+    __host__ __device__
+    operator T const*() const {
+        return m_cpu_p;
+    }
+
+    __host__ __device__
+    T& operator[](uint_t i) {
+	return m_cpu_p[i];
+    }
+
+    __host__ __device__
+    T const& operator[](uint_t i) const {
+	return m_cpu_p[i];
         }
 
-        __host__ __device__
-        operator T const*() const {
-            return cpu_p;
-        }
+    __host__ __device__
+    T& operator*() {
+        return *m_cpu_p;
+    }
 
-        __host__ __device__
-        T& operator[](int i) {
-            assert(i>=0);
-            // printf(" [%d %e] ", i, cpu_p[i]);
-            return cpu_p[i];
-        }
+    __host__ __device__
+    T const& operator*() const {
+        return *m_cpu_p;
+    }
 
-        __host__ __device__
-        T const& operator[](int i) const {
-            assert(i>=0);
-            // printf(" [%d %e] ", i, cpu_p[i]);
+    __host__ __device__
+    T* operator+(uint_t i) {
+	return &m_cpu_p[i];
+    }
 
-            return cpu_p[i];
-        }
+    __host__ __device__
+    T* const& operator+(uint_t i) const {
+	return &m_cpu_p[i];
+    }
 
-        __host__ __device__
-        T& operator*() {
-            return *cpu_p;
-        }
-
-        __host__ __device__
-        T const& operator*() const {
-            return *cpu_p;
-        }
-
-        __host__ __device__
-        T* operator+(int i) {
-            return &cpu_p[i];
-        }
-
-        __host__ __device__
-        T* const& operator+(int i) const {
-            return &cpu_p[i];
-        }
-
-        GT_FUNCTION
-        const T* get_cpu_p(){return cpu_p;};
+    GT_FUNCTION
+    const T* get_m_cpu_p(){return m_cpu_p;};
 
 protected:
-    T * cpu_p;
-
+    T * m_cpu_p;
+    bool m_managed;
 
 
 };

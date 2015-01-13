@@ -15,7 +15,6 @@
 #include <boost/fusion/include/value_at.hpp>
 
 #include "execution_policy.h"
-#include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 #include "../storage/hybrid_pointer.h"
 
@@ -34,18 +33,39 @@ namespace gridtools {
                   typename Traits,
                   typename ExtraArguments>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, int starti, int startj, int nx, int ny) {
-            int i = blockIdx.x * blockDim.x + threadIdx.x;
-            int j = blockIdx.y * blockDim.y + threadIdx.y;
-            int z = coords->template value_at<typename Traits::first_hit_t>();
+        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
+            /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
+            /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
+	    uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-	    /* int i = (blockIdx.x * blockDim.x + threadIdx.x)%ny; */
-	    /* int j = (blockIdx.x * blockDim.x + threadIdx.x)/ny; */
+	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
+	    typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+	    __shared__
+	    typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+
+	    //Doing construction and assignment before the following 'if', so that we can
+	    //exploit parallel shared memory initialization
+	    typename Traits::iterate_domain_t it_domain(*l_domain);
+	    it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+	    __syncthreads();
 
             if ((i < nx) && (j < ny)) {
-                typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-                typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj, z, 0, 0);
+
+		it_domain.assign_ij<0>(i+starti,0);
+		it_domain.assign_ij<1>(j+startj,0);
+
+		typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
+		typedef typename index_to_level<typename interval::first>::type from;
+		typedef typename index_to_level<typename interval::second>::type to;
+		typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
+
+		//printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
+		//setting the initial k level (for backward/parallel iterations it is not 0)
+		if( !iteration_policy::value==enumtype::forward )
+		    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
                      <
@@ -68,7 +88,7 @@ namespace gridtools {
                 : super( domain_list, coords)
                 {}
 
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, int i, int j, int bi, int bj)
+            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
                 : super(domain_list, coords, i, j, bi, bj)
                 {}
 
@@ -129,7 +149,7 @@ namespace gridtools {
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
-		int count;
+		short_t count;
 		cudaGetDeviceCount ( &count  );
 
 		if(count)
@@ -164,24 +184,27 @@ namespace gridtools {
 
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
-                int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
-                int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
+		// number of threads
+                uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
+                uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
 
-                int ntx = 8, nty = 32, ntz = 1;
-                dim3 threads(ntx, nty, ntz);
+		// blocks dimension
+                uint_t ntx = 8, nty = 32;//, ntz = 1;
+                /* dim3 threads(ntx, nty, ntz); */
 
-                int nbx = (nx + ntx - 1) / ntx;
-                int nby = (ny + nty - 1) / nty;
-                int nbz = 1;
-                dim3 blocks(nbx, nby, nbz);
+		//number of blocks
+                ushort_t nbx = (nx + ntx - 1) / ntx;
+                ushort_t nby = (ny + nty - 1) / nty;
+                //ushort_t nbz = 1;
+                /* dim3 blocks(nbx, nby, nbz); */
 
-#ifndef NDEBUG
-                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
-                printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
-                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
-#endif
+// #ifndef NDEBUG
+                // printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+                // printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
+                // printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+// #endif
 
-		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>/*<<<nbx*nby, ntx*nty>>>*/
+		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
