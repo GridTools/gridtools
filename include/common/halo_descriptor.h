@@ -89,7 +89,7 @@ namespace gridtools {
        Begin index for the loop on the outside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    GT_FUNCTION uint_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION int_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_begin;
       if (I==1)
@@ -108,7 +108,7 @@ namespace gridtools {
        End index for the loop on the outside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    GT_FUNCTION uint_t loop_high_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION int_t loop_high_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_end;
       if (I==1)
@@ -127,7 +127,7 @@ namespace gridtools {
        Begin index for the loop on the inside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    GT_FUNCTION uint_t loop_low_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION int_t loop_low_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_begin;
       if (I==1)
@@ -143,7 +143,7 @@ namespace gridtools {
        End index for the loop on the inside region.
        \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
      */
-    GT_FUNCTION uint_t loop_high_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+    GT_FUNCTION int_t loop_high_bound_inside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
       if (I==0)
         return m_end;
       if (I==1)
