@@ -160,7 +160,6 @@ class Moving (MultiStageStencil):
             out_V[p] = self.Vx[p]
 
 
-
 class MovingTest (unittest.TestCase):
     """
     A test case for the Moving stencil defined above.-
@@ -249,8 +248,6 @@ class MovingTest (unittest.TestCase):
 
 
 
-
-
 class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
@@ -268,79 +265,6 @@ class Copy (MultiStageStencil):
         for p in self.get_interior_points (out_data,
                                            k_direction="forward"):
               out_data[p] = in_data[p]
-
-
-
-class Laplace (MultiStageStencil):
-    """
-    A Laplacian operator, as the one used in COSMO.-
-    """
-    def __init__ (self):
-        super ( ).__init__ ( )
-
-
-    def kernel (self, out_data, in_data):
-        """
-        Stencil's entry point.-
-        """
-        #
-        # iterate over the interior points
-        #
-        for p in self.get_interior_points (out_data,
-                                           halo=(1,-1,1,-1),
-                                           k_direction="forward"):
-            out_data[p] = 4 * in_data[p] - (
-                          in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
-                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
-
-
-
-class LaplaceTests (unittest.TestCase):
-    """
-    Testing the Laplace operator.-
-    """
-    def test_compare_python_and_native_executions (self):
-        """
-        Checks that the stencil results match for Python and C++ after
-        applying the stencil several times.-
-        """
-        domain = (64, 64, 64)
-
-        lap_py = Laplace ( )
-        lap_cxx = Laplace ( )
-        lap_cxx.backend = 'c++'
-
-        #
-        # domain and fields
-        #
-        o_field = np.zeros (domain)
-        i_field = np.random.rand (*domain)
-
-        #
-        # apply the Laplace operator 10 times
-        #
-        for i in range (10):
-            #
-            # original content of the data fields
-            #
-            orig_o = np.array (o_field)
-            orig_i = np.array (i_field)
-
-            #
-            # apply the Python version of the stencil
-            #
-            lap_py.run (out_data=o_field,
-                        in_data=i_field)
-            #
-            # apply the native version of the stencil
-            #
-            lap_cxx.run (out_data=orig_o,
-                         in_data=orig_i)
-            #
-            # compare the field contents
-            #
-            self.assertTrue (np.all (np.equal (orig_o, o_field)))
-            self.assertTrue (np.all (np.equal (orig_i, i_field)))
 
 
 
@@ -436,4 +360,76 @@ class CopyTests (unittest.TestCase):
         #
         self.assertEqual (np.sum (input_field[1:511,1:511]),
                           np.sum (output_field[1:511,1:511]))
+
+
+
+class Laplace (MultiStageStencil):
+    """
+    A Laplacian operator, as the one used in COSMO.-
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_data, in_data):
+        """
+        Stencil's entry point.-
+        """
+        #
+        # iterate over the interior points
+        #
+        for p in self.get_interior_points (out_data,
+                                           halo=(1,-1,1,-1),
+                                           k_direction="forward"):
+            out_data[p] = 4 * in_data[p] - (
+                          in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
+class LaplaceTests (unittest.TestCase):
+    """
+    Testing the Laplace operator.-
+    """
+    def test_compare_python_and_native_executions (self):
+        """
+        Checks that the stencil results match for Python and C++ after
+        applying the stencil several times.-
+        """
+        domain = (64, 64, 64)
+
+        lap_py = Laplace ( )
+        lap_cxx = Laplace ( )
+        lap_cxx.backend = 'c++'
+
+        #
+        # domain and fields
+        #
+        o_field = np.zeros (domain)
+        i_field = np.random.rand (*domain)
+
+        #
+        # apply the Laplace operator 10 times
+        #
+        for i in range (10):
+            #
+            # original content of the data fields
+            #
+            orig_o = np.array (o_field)
+            orig_i = np.array (i_field)
+
+            #
+            # apply the Python version of the stencil
+            #
+            lap_py.run (out_data=o_field,
+                        in_data=i_field)
+            #
+            # apply the native version of the stencil
+            #
+            lap_cxx.run (out_data=orig_o,
+                         in_data=orig_i)
+            #
+            # compare the field contents
+            #
+            self.assertTrue (np.all (np.equal (orig_o, o_field)))
+            self.assertTrue (np.all (np.equal (orig_i, i_field)))
 
