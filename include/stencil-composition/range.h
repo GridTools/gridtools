@@ -8,29 +8,36 @@
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/push_front.hpp>
 
-namespace gridtools { 
+namespace gridtools {
     /**
      * Class to specify access ranges for stencil functions
      */
-    template <int IMinus=0, int IPlus=0,
-              int JMinus=0, int JPlus=0>
+    template <int_t IMinus=0, int_t IPlus=0,
+              int_t JMinus=0, int_t JPlus=0>
     struct range {
+#ifndef CXX11_ENABLED
         typedef boost::mpl::int_<IMinus> iminus;
         typedef boost::mpl::int_<IPlus> iplus;
         typedef boost::mpl::int_<JMinus> jminus;
         typedef boost::mpl::int_<JPlus> jplus;
+#else
+        typedef static_int<IMinus> iminus;
+        typedef static_int<IPlus> iplus;
+        typedef static_int<JMinus> jminus;
+        typedef static_int<JPlus> jplus;
+#endif
     };
 
     /**
      * Output operator for ranges - for debug purposes
-     * 
+     *
      * @param s The ostream
      * @param n/a Arguemnt to deduce range type
      * @return The ostream
      */
-    template <int I1, int I2, int I3, int I4>
+    template <int_t I1, int_t I2, int_t I3, int_t I4>
     std::ostream& operator<<(std::ostream &s, range<I1,I2,I3,I4>) {
-        return s << "[" 
+        return s << "["
                  << I1 << ", "
                  << I2 << ", "
                  << I3 << ", "
@@ -48,7 +55,7 @@ namespace gridtools {
     /**
      * Metafunction to check if a type is a range - Specialization yielding true
      */
-    template <int I, int J, int K, int L>
+    template <int_t I, int_t J, int_t K, int_t L>
     struct is_range<range<I,J,K,L> >
       : boost::true_type
     {};

@@ -151,7 +151,7 @@ namespace gridtools {
         BOOST_MPL_ASSERT_MSG(
                              (
                               boost::mpl::fold<
-                              boost::mpl::range_c<int, 0, boost::mpl::size<DoMethods>::value - 1>,
+                              boost::mpl::range_c<uint_t, 0, boost::mpl::size<DoMethods>::value - 1>,
                               boost::mpl::true_,
                               boost::mpl::if_<
                               are_do_methods_continuous<

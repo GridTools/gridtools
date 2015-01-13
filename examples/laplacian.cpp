@@ -127,9 +127,9 @@ int main(int argc, char** argv) {
 
 	- Definition of the domain:
     */
-    int d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
-    int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
-    int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
+    u_int d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
+    u_int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
+    u_int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
     using namespace gridtools;
     using namespace enumtype;
@@ -148,12 +148,12 @@ int main(int argc, char** argv) {
     /**
 	- definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     /**
     - definition of the temporary storage type, also depends on the backend
 	\todo unused here?
     */
-    typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
     std::ofstream file_i("full_in");
     std::ofstream file_o("full_out");
@@ -161,8 +161,8 @@ int main(int argc, char** argv) {
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
     out.print(file_i);
 
     /**
@@ -189,32 +189,32 @@ int main(int argc, char** argv) {
         (boost::fusion::make_vector(&in, &out));
 
        /**
-	  - Definition of the physical dimensions of the problem.
-	  The coordinates constructor takes the horizontal plane dimensions,
-	  while the vertical ones are set according the the axis property soon after
+          - Definition of the physical dimensions of the problem.
+          The coordinates constructor takes the horizontal plane dimensions,
+          while the vertical ones are set according the the axis property soon after
        */
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+       uint_t di[5] = {2, 2, 2, d1-2, d1};
+       uint_t dj[5] = {2, 2, 2, d2-2, d2};
 
        gridtools::coordinates<axis> coords(di,dj);
        coords.value_list[0] = 0;
        coords.value_list[1] = d3;
 
-    /*!
-      - Here we do lot of stuff:
+       /*!
+         - Here we do lot of stuff:
 
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
+         1) We pass to the intermediate representation ::run function the description
+         of the stencil, which is a multi-stage stencil (mss)
+         The mss includes (in order of execution) a laplacian, two fluxes which are independent
+         and a final step that is the out_function
 
-      2) The logical physical domain with the fields to use
+         2) The logical physical domain with the fields to use
 
-      3) The actual domain dimensions
+         3) The actual domain dimensions
 
-      \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and coords), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
-      \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
-     */
+         \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and coords), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
+         \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
+       */
 
 #ifdef __CUDACC__
     computation* horizontal_diffusion =
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
 
     //    in.print();

@@ -3,8 +3,8 @@
 // Copyright Peter Dimov and Multi Media Ltd 2001, 2002
 // Copyright David Abrahams 2001
 //
-// Distributed under the Boost Software License, Version 1.0. 
-// (See accompanying file LICENSE_1_0.txt or copy at 
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 // See http://www.boost.org/libs/mpl for documentation.
@@ -14,6 +14,7 @@
 // $Revision: 49267 $
 
 #include <boost/ref.hpp>
+#include <common/defs.h>
 
 namespace gridtools {
     namespace gt_aux {
@@ -21,7 +22,7 @@ namespace gridtools {
         template< typename F >
         BOOST_MPL_GPU_ENABLED
         inline
-        F& unwrap(F& f, long)
+        F& unwrap(F& f, long int_t)
         {
             return f;
         }
@@ -30,7 +31,7 @@ namespace gridtools {
         BOOST_MPL_GPU_ENABLED
         inline
         F&
-        unwrap(boost::reference_wrapper<F>& f, int)
+        unwrap(boost::reference_wrapper<F>& f, int_t)
         {
             return f;
         }
@@ -39,11 +40,10 @@ namespace gridtools {
         BOOST_MPL_GPU_ENABLED
         inline
         F&
-        unwrap(boost::reference_wrapper<F> const& f, int)
+        unwrap(boost::reference_wrapper<F> const& f, int_t)
         {
             return f;
         }
 
     } // namespace gt_aux
 } // namespace gridtools
-
