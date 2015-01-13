@@ -49,6 +49,10 @@ namespace gridtools {
 
     namespace iterate_domain_aux {
 
+//this value is available so far only at runtime (we might not have enough threads)
+//should be increased to get parallel shared memory initialization
+#define BLOCK_SIZE 32
+
         /**@brief static function incrementing the iterator with the stride on the vertical direction*/
         template<uint_t ID>
         struct increment_k {
@@ -100,12 +104,12 @@ namespace gridtools {
     */
     template<uint_t Number, uint_t Offset, enumtype::backend Backend>
 	struct assign_raw_data{
-	static const uint_t Id=Number+Offset;
+	static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
         template<typename Left , typename Right >
 	GT_FUNCTION
 	static void assign(Left* l, Right const* r){
 	    //l[Number]=r[Number].get();
-	    once_per_block<Backend, 0/*Id*/>::assign(l[Number],r[Number].get());
+	    once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
 	    assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
 	}
 
@@ -114,12 +118,12 @@ namespace gridtools {
 	    /**@brief stopping the recursion*/
 	template<uint_t Offset, enumtype::backend Backend>
 	struct assign_raw_data<0, Offset, Backend>{
-	    static const uint_t Id=Offset;
+	    static const uint_t Id=(Offset)%BLOCK_SIZE;
 	    template<typename Left , typename Right >
 	    GT_FUNCTION
 	    static void assign(Left* l, Right const* r){
 		//l[0]=r[0].get();
-		once_per_block<Backend, 0/*Id*/>::assign(l[0],r[0].get());
+		once_per_block<Backend, Id>::assign(l[0],r[0].get());
 	    }
 	};
 

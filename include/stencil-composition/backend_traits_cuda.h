@@ -66,6 +66,9 @@ namespace gridtools{
     struct once_per_block;
 
 #ifdef __CUDACC__
+    /**
+       @brief assigns the two given values using the given thread Id whithin the block
+     */
     template <uint_t Id>
     struct once_per_block<enumtype::Cuda, Id>{
 	template<typename Left, typename Right>
