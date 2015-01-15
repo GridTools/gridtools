@@ -75,8 +75,6 @@ struct wrap_pointer{
       std::cout<<"deleting wrap pointer "<<this<<std::endl;
 #endif
 #endif
-      if(!m_managed)
-       	  free_it();
   }
 
     GT_FUNCTION
