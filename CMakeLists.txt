@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required( VERSION 2.8.8 )
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project( GRIDTOOLS )
@@ -181,11 +181,6 @@ endif()
 
 ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h)
 
-add_subdirectory( unit_tests )
-add_subdirectory( examples )
-
-
-
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
@@ -196,3 +191,30 @@ WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
+
+find_package(PythonLibs)
+find_package(PythonInterp)
+
+#"from distutils.sysconfig import get_python_lib; print get_python_lib()"
+
+if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+  execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
+  message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
+  string( REGEX MATCH [0-9].[0-9] PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
+
+  set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
+  set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
+  message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
+
+  add_custom_target(python)
+  add_custom_command(TARGET python
+		     POST_BUILD
+		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
+		    )
+
+endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+
+
+add_subdirectory( unit_tests )
+add_subdirectory( examples )

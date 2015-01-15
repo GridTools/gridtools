@@ -257,18 +257,23 @@ namespace gridtools {
 
 	 This interface handles the case in which the storage is allocated from the python interface. Since this storege gets freed inside python, it must be instantiated as a
 	'managed outside' wrap_pointer. In this way the storage destructor will not free the pointer.*/
-        explicit base_storage(uint_t dim1, uint_t dim2, uint_t dim3, value_type* ptr, char const* s="default storage"
+        explicit base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type* ptr, char const* s="default storage"
 	    ):
             is_set( true ),
-            m_name(s)
+            m_name(s),
+	    m_fields{pointer_type(ptr, true)}
             {
-		m_fields[0]=pointer_type(ptr, true);//the storage does not own the pointer
 		m_dims[0]=dim1;
 		m_dims[1]=dim2;
 		m_dims[2]=dim3;
+
 		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-		m_strides[1]=( (m_strides[0]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-		m_strides[2]=( (m_strides[1]==1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+
+		for (uint_t i = 0; i < size(); ++i)
+                (m_fields[0])[i] = 0.;
+
             }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
@@ -675,9 +680,9 @@ namespace gridtools {
         GT_FUNCTION
         void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
 	    //Too many shaphots pushed! exceeding the buffer width allocated of the storage.
-#ifndef __CUDACC__
-	    assert(!m_fields[to-1].get());
-#endif
+// #ifndef __CUDACC__
+// 	    assert(!m_fields[to-1].get());
+// #endif
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
             for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
             m_fields[from]=(field);

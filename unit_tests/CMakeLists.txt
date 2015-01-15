@@ -73,3 +73,15 @@ endif()
 endif()
 
 add_subdirectory( communication )
+
+if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+add_custom_target(python_tests)
+  message("enabling Python unit tests")
+  message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
+
+  add_custom_command(TARGET python_tests
+		     POST_BUILD
+		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_run_tests.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
+		     COMMENT "Running Python automatic tests" VERBATIM
+		   )
+endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)

@@ -53,26 +53,13 @@ namespace gridtools{
 
 /**
    @brief partial specialization for the parallel case (to be implemented)
+   stub
 */
-        template<
-            typename ExtraArguments>
-        struct run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > >
-        {
-            typedef run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > > super;
-            typedef enumtype::execute<enumtype::parallel>::type execution_engine;
-            typedef ExtraArguments traits;
-
-            GT_FUNCTION
-            explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
-
-            template<typename IterationPolicy, typename IntervalType>
-            GT_FUNCTION
-            void loop(uint_t from, uint_t to)  {
-                for (uint_t k=from; IterationPolicy::condition(k, to); IterationPolicy::increment(k)) {
-                    traits::functor_t::Do(this->m_domain, IntervalType());
-                    this->m_domain.increment();
-                }
-            }
-        };
+        // template<
+        //     typename ExtraArguments>
+        // struct run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > >
+        // {
+	//     exit(-37);
+        // };
     } // namespace _impl
 } // namespace gridtools
