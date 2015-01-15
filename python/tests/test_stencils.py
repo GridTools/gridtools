@@ -67,7 +67,7 @@ class Moving (MultiStageStencil):
         #zeros = np.zeros (shape[:-1])
         #zeros[:drop.shape[0], :drop.shape[1]] = drop
         #return zeros.reshape (zeros.shape[0],
-        #                      zeros.shape[1], 
+        #                      zeros.shape[1],
         #                      1)
         return drop.reshape ((drop.shape[0],
                               drop.shape[1],
@@ -100,8 +100,8 @@ class Moving (MultiStageStencil):
         U[:,0] =  U[:,1]
         V[:,0] = -V[:,1]
 
-        H[:,self.n+1] =  H[:,self.n]  
-        U[:,self.n+1] =  U[:,self.n]  
+        H[:,self.n+1] =  H[:,self.n]
+        U[:,self.n+1] =  U[:,self.n]
         V[:,self.n+1] = -V[:,self.n]
 
         H[0,:] =  H[1,:]
@@ -125,7 +125,7 @@ class Moving (MultiStageStencil):
             # height
             self.Hx[p]  = out_H[p + (-1,-1,0)]
 
-            # X momentum    
+            # X momentum
             self.Ux[p]  = out_U[p + (-1,-1,0)]
 
             # Y momentum
@@ -139,7 +139,7 @@ class Moving (MultiStageStencil):
             # height
             self.Hy[p]  = out_H[p + (1,1,0)]
 
-            # X momentum    
+            # X momentum
             self.Uy[p]  = out_U[p + (1,1,0)]
 
             # Y momentum
@@ -199,13 +199,13 @@ class MovingTest (unittest.TestCase):
 
         rng  = np.arange (self.domain[0])
         X, Y = np.meshgrid (rng, rng)
-        surf = ax.plot_wireframe (X, Y, 
+        surf = ax.plot_wireframe (X, Y,
                                 np.squeeze (self.H, axis=(2,)),
-                                rstride=1, 
-                                cstride=1, 
-                                cmap=cm.jet, 
-                                linewidth=1, 
-                                antialiased=False) 
+                                rstride=1,
+                                cstride=1,
+                                cmap=cm.jet,
+                                linewidth=1,
+                                antialiased=False)
         #
         # animation update function
         #
@@ -215,7 +215,7 @@ class MovingTest (unittest.TestCase):
             #
             if framenumber == 0:
                 self.stencil.create_random_drop (self.H)
-    
+
             #
             # reflective boundary conditions
             #
@@ -230,13 +230,13 @@ class MovingTest (unittest.TestCase):
                        out_V=self.V)
 
             ax.cla ( )
-            surf = ax.plot_wireframe (X, Y, 
+            surf = ax.plot_wireframe (X, Y,
                                 np.squeeze (self.H, axis=(2,)),
-                                rstride=1, 
-                                cstride=1, 
-                                cmap=cm.jet, 
-                                linewidth=1, 
-                                antialiased=False) 
+                                rstride=1,
+                                cstride=1,
+                                cmap=cm.jet,
+                                linewidth=1,
+                                antialiased=False)
             return surf,
 
         anim = animation.FuncAnimation (fig,
@@ -335,7 +335,7 @@ class CopyTests (unittest.TestCase):
         copy = Copy ( )
         copy.run (out_data=output_field,
                   in_data=input_field)
-        self.assertTrue (np.array_equal (input_field, 
+        self.assertTrue (np.array_equal (input_field,
                                          output_field))
 
 
@@ -386,50 +386,49 @@ class Laplace (MultiStageStencil):
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
-class LaplaceTests (unittest.TestCase):
-    """
-    Testing the Laplace operator.-
-    """
-    def test_compare_python_and_native_executions (self):
-        """
-        Checks that the stencil results match for Python and C++ after
-        applying the stencil several times.-
-        """
-        domain = (64, 64, 64)
+# class LaplaceTests (unittest.TestCase):
+#     """
+#     Testing the Laplace operator.-
+#     """
+#     def test_compare_python_and_native_executions (self):
+#         """
+#         Checks that the stencil results match for Python and C++ after
+#         applying the stencil several times.-
+#         """
+#         domain = (64, 64, 64)
 
-        lap_py = Laplace ( )
-        lap_cxx = Laplace ( )
-        lap_cxx.backend = 'c++'
+#         lap_py = Laplace ( )
+#         lap_cxx = Laplace ( )
+#         lap_cxx.backend = 'c++'
 
-        #
-        # domain and fields
-        #
-        o_field = np.zeros (domain)
-        i_field = np.random.rand (*domain)
+#         #
+#         # domain and fields
+#         #
+#         o_field = np.zeros (domain)
+#         i_field = np.random.rand (*domain)
 
-        #
-        # apply the Laplace operator 10 times
-        #
-        for i in range (10):
-            #
-            # original content of the data fields
-            #
-            orig_o = np.array (o_field)
-            orig_i = np.array (i_field)
+#         #
+#         # apply the Laplace operator 10 times
+#         #
+#         for i in range (10):
+#             #
+#             # original content of the data fields
+#             #
+#             orig_o = np.array (o_field)
+#             orig_i = np.array (i_field)
 
-            #
-            # apply the Python version of the stencil
-            #
-            lap_py.run (out_data=o_field,
-                        in_data=i_field)
-            #
-            # apply the native version of the stencil
-            #
-            lap_cxx.run (out_data=orig_o,
-                         in_data=orig_i)
-            #
-            # compare the field contents
-            #
-            self.assertTrue (np.all (np.equal (orig_o, o_field)))
-            self.assertTrue (np.all (np.equal (orig_i, i_field)))
-
+#             #
+#             # apply the Python version of the stencil
+#             #
+#             lap_py.run (out_data=o_field,
+#                         in_data=i_field)
+#             #
+#             # apply the native version of the stencil
+#             #
+#             lap_cxx.run (out_data=orig_o,
+#                          in_data=orig_i)
+#             #
+#             # compare the field contents
+#             #
+#             self.assertTrue (np.all (np.equal (orig_o, o_field)))
+#             self.assertTrue (np.all (np.equal (orig_i, i_field)))

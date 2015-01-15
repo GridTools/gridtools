@@ -60,7 +60,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // Fortran-like memory layout
     //
     //typedef gridtools::layout_map<2,1,0> layout_t;
-    
+
     //
     // C-like memory layout
     //
@@ -68,7 +68,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
 
     typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
 
-    {## 
+    {##
      ## Declaration of the temporary-data-field type
      ##}
     {%- if temp_params -%}
@@ -83,29 +83,29 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     {% if loop.first %}
     //
     // input data fields share their buffers with NumPy arrays
-    //  
+    //
     {% endif -%}
     storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (double *) {{ arg.name }}_buff,
-                                 std::string ("{{ arg.name }}"));
+                                 (float_type *) {{ arg.name }}_buff,
+								     "{{ arg.name }}");
     {% endfor %}
 
 
-    {## 
+    {##
      ## Declaration of output data fields
      ##}
     {% for arg in functor_params if arg.output -%}
     {% if loop.first %}
     //
     // output data fields also share their buffers with NumPy arrays
-    //  
+    //
     {% endif -%}
     storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (double *) {{ arg.name }}_buff,
-                                 std::string ("{{ arg.name }}"));
+                                 (float_type *) {{ arg.name }}_buff,
+                                 "{{ arg.name }}");
     {% endfor %}
 
-    // 
+    //
     // place-holder definition: their order reflect matches the stencil
     // parameters, especially the non-temporary ones, during the construction
     // of the domain
@@ -121,15 +121,15 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<
-        {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list; 
+        {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list;
 
     //
     // construction of the domain.
     // The domain is the physical domain of the problem, with all the physical
     // fields that are used, temporary and not.
-    // It must be noted that the only fields to be passed to the constructor 
+    // It must be noted that the only fields to be passed to the constructor
     // are the non-temporary. The order in which they have to be passed is the
-    // order in which they appear scanning the placeholders in order. 
+    // order in which they appear scanning the placeholders in order.
     // (I don't particularly like this)
     //
     gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
@@ -138,7 +138,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     // definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis 
+    // while the vertical ones are set according the the axis
     // property soon after this:
     //
     //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
@@ -153,7 +153,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     // Here we do a lot of stuff
     //
-    // 1) we pass to the intermediate representation ::run function the 
+    // 1) we pass to the intermediate representation ::run function the
     // description of the stencil, which is a multi-stage stencil (mss);
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
@@ -191,4 +191,3 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
 }
 
 } // namespace {{ stencil.name|lower }}
-

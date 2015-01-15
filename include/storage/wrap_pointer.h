@@ -35,9 +35,9 @@ struct wrap_pointer{
 
     //default constructor
     GT_FUNCTION
-    wrap_pointer()
+    wrap_pointer(bool managed=false)
         : m_cpu_p(NULL),
-	  m_managed(false)
+	  m_managed(managed)
         {
 	}
 
@@ -50,9 +50,9 @@ struct wrap_pointer{
 	}
 
     GT_FUNCTION
-    wrap_pointer(T* p)
+    wrap_pointer(T* p, bool managed=true)
         : m_cpu_p(p)
-        , m_managed(true)
+        , m_managed(managed)
     {}
 
     wrap_pointer<T>& operator = (T& p)
@@ -64,6 +64,8 @@ struct wrap_pointer{
 
     pointee_t* get() const {return m_cpu_p;}
 
+    void reset(T* cpu_p){m_cpu_p=cpu_p;}
+
     bool managed(){return m_managed;}
 
   GT_FUNCTION
@@ -73,7 +75,7 @@ struct wrap_pointer{
       std::cout<<"deleting wrap pointer "<<this<<std::endl;
 #endif
 #endif
-      if(m_managed)
+      if(!m_managed)
        	  free_it();
   }
 

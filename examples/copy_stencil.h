@@ -122,7 +122,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #endif
     /* typedef arg<1, integrator_type > p_out; */
 
-
     // Definition of the actual data fields that are used for input/output
 #ifdef CXX11_ENABLED
     integrator_type in(d1,d2,d3);
@@ -131,8 +130,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     in.push_front<0>(init1, 1.5);
     in.push_front<1>(init2, -1.5);
 #else
-    storage_type in(d1,d2,d3,-3.5);
-    storage_type out(d1,d2,d3,1.5);
+    storage_type in(d1,d2,d3,-3.5,"in");
+    storage_type out(d1,d2,d3,1.5,"out");
 #endif
 
     for(uint_t i=0; i<d1; ++i)
