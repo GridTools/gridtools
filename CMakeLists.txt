@@ -198,10 +198,14 @@ find_package(PythonInterp)
 #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
 
 if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+  string( REGEX MATCH [0-9]* PYTHON_VERSION_MAJOR "${PYTHONLIBS_VERSION_STRING}")
+  message("version major: " PYTHON_VERSION_MAJOR)
+  if(${PYTHON_VERSION_MAJOR} GREATER 2)
+
   execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
   message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
   message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
-  string( REGEX MATCH [0-9].[0-9] PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
+  string( REGEX MATCH [0-9].[0-9]* PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
 
   set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
   set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
@@ -212,6 +216,7 @@ if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 		     POST_BUILD
 		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
 		    )
+endif(${PYTHON_VERSION_MAJOR} GREATER 2)
 
 endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 
