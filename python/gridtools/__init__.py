@@ -235,7 +235,15 @@ class StencilInspector (ast.NodeVisitor):
             #
             # the user's stencil code is kept here
             #
-            self.src = inspect.getsource (cls)
+            try:
+                self.src = inspect.getsource (cls)
+
+            except TypeError:
+                #
+                # the code will not be available if it has been written
+                # in an interactive interpreter
+                #
+                self.src = None
             #
             # symbols gathered from the AST of the user's stencil
             #
@@ -267,10 +275,18 @@ class StencilInspector (ast.NodeVisitor):
         #
         # analyze the source code
         #
-        module = ast.parse (self.src)
-        self.visit (module)
-        if len (self.functors) == 0:
-            raise NameError ("Class must implement a 'kernel' function")
+        if self.src:
+            module = ast.parse (self.src)
+            self.visit (module)
+            if len (self.functors) == 0:
+                raise NameError ("Class must implement a 'kernel' function")
+        else:
+            #
+            # if the source code is not available, we can infer the user is
+            # running from an interactive session
+            #
+            logging.warning ("Please save your stencil classes to a file before changing the backend.-")
+            raise RuntimeError
         #
         # print out the discovered symbols
         #
