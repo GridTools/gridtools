@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <iostream>
+
 #include <sstream>
 #include <fstream>
 #include <communication/halo_exchange.h>
@@ -8,6 +9,7 @@
 #include <common/layout_map.h>
 #include <common/boollist.h>
 #include <sys/time.h>
+#include "triplet.h"
 
 int pid;
 int nprocs;
@@ -24,6 +26,9 @@ double lapse_time2;
 double lapse_time3;
 double lapse_time4;
 
+#define B_ADD 1
+#define C_ADD 2
+
 typedef gridtools::gcl_cpu arch_type;
 
 //#define VECTOR_INT
@@ -37,35 +42,6 @@ typedef float type2;
 typedef double type3;
 #endif
 
-template <typename T, typename lmap>
-struct array {
-  T *ptr;
-  int n,m,l;
-
-  array(T* _p, int _n, int _m, int _l)
-    : ptr(_p)
-    , n(lmap::template find<2>(_n,_m,_l))
-    , m(lmap::template find<1>(_n,_m,_l))
-    , l(lmap::template find<0>(_n,_m,_l))  
-  {}
-
-  T &operator()(int i, int j, int k) {
-    // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  T const &operator()(int i, int j, int k) const {
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  operator void*() const {return reinterpret_cast<void*>(ptr);}
-  operator T*() const {return ptr;}
-};
-
 /** \file Example of use of halo_exchange pattern for regular
     grids. The comments in the code aim at highlight the process of
     instantiating and running a halo exchange pattern.
@@ -75,36 +51,15 @@ inline int gcl_modulus(int __i, int __j) {
   return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
 }
 
-#include "triplet.h"
-
-/* Just and utility to print values
- */
-template <typename array_t>
-void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
-  if (d1<=6 && d2<=6 && d3<=6) {
-    file << "------------\n";
-    for (int kk=0; kk<d3; ++kk) {
-      file << "|";
-      for (int jj=0; jj<d2; ++jj) {
-        for (int ii=0; ii<d1; ++ii) {
-          file << a(ii,jj,kk);
-        }
-        file << "|\n";
-      }
-      file << "\n\n";
-    }
-    file << "------------\n\n";
-  }
-}
-
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
-void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
+inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
-  
-  array<triple_t<USE_DOUBLE>,    layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
-  array<triple_t<USE_DOUBLE>,  layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
+    typedef gridtools::layout_map<I1,I2,I3> layoutmap;
+
+
+  array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
+  array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
   array<triple_t<USE_DOUBLE>, layoutmap > c(_c, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
 
   /* Just an initialization */
@@ -188,13 +143,13 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
                    jj-H+(DIM2)*coords[1],
                    kk-H+(DIM3)*coords[2]);
         b(ii,jj,kk) = 
-          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+1,
-                   jj-H+(DIM2)*coords[1]+1,
-                   kk-H+(DIM3)*coords[2]+1);
+          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+B_ADD,
+                   jj-H+(DIM2)*coords[1]+B_ADD,
+                   kk-H+(DIM3)*coords[2]+B_ADD);
         c(ii,jj,kk) = 
-          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+2,
-                   jj-H+(DIM2)*coords[1]+2,
-                   kk-H+(DIM3)*coords[2]+2);
+          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+C_ADD,
+                   jj-H+(DIM2)*coords[1]+C_ADD,
+                   kk-H+(DIM3)*coords[2]+C_ADD);
       }
 
   printbuff(file,a, DIM1+2*H, DIM2+2*H, DIM3+2*H);
@@ -284,17 +239,17 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         int tbx, tby, tbz;
         int tcx, tcy, tcz;
 
-        tax = gcl_modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]);
-        tbx = gcl_modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1;
-        tcx = gcl_modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+2;
+        tax = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]);
+        tbx = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+B_ADD;
+        tcx = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+C_ADD;
 
-        tay = gcl_modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]);
-        tby = gcl_modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1;
-        tcy = gcl_modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+2;
+        tay = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]);
+        tby = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+B_ADD;
+        tcy = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+C_ADD;
 
-        taz = gcl_modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2]);
-        tbz = gcl_modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+1;
-        tcz = gcl_modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+2;
+        taz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2]);
+        tbz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+B_ADD;
+        tcz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
         if (!per0) {
           if ( ((coords[0]==0) && (ii<H)) || 
@@ -329,7 +284,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
 
         if (a(ii,jj,kk) != ta) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " -> "
+          file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
                << "a " << a(ii,jj,kk) << " != " 
                << ta
                << "\n";
@@ -337,7 +292,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
 
         if (b(ii,jj,kk) != tb) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " -> "
+          file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
                << "b " << b(ii,jj,kk) << " != " 
                << tb
                << "\n";
@@ -345,7 +300,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
 
         if (c(ii,jj,kk) != tc) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " -> "
+          file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
                << "c " << c(ii,jj,kk) << " != " 
                << tc
                << "\n";
@@ -461,17 +416,17 @@ int main(int argc, char** argv) {
 
   file << "Permutation 0,1,2\n";
 
-#ifndef BENCH
-#define BENCH 5
-#endif
+// #ifndef BENCH
+// #define BENCH 5
+// #endif
 
-#ifdef BENCH
-  for (int i=0; i<BENCH; ++i) {
-    file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
-    run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
-    file.flush();
-  }
-#else
+// #ifdef BENCH
+//   for (int i=0; i<BENCH; ++i) {
+//     file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
+//     run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
+//     file.flush();
+//   }
+// #else
   file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
   run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
   file.flush();
@@ -684,7 +639,7 @@ int main(int argc, char** argv) {
   run<std::ostream, 2,1,0, false, false, false>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
   file.flush();
   file << "---------------------------------------------------\n";
-#endif
+// #endif
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();

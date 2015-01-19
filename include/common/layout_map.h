@@ -488,6 +488,37 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     };
 
 
+    template <typename LM>
+    struct reverse_map;
+
+    template <int I1, int I2>
+    struct reverse_map<layout_map<I1, I2> > {
+        typedef layout_map<I2,I1> type;
+    };
+
+    template <int I1, int I2, int I3>
+    struct reverse_map<layout_map<I1, I2,I3> > {
+        template <int I, int Dummy>
+        struct new_value;
+
+        template <int Dummy>
+        struct new_value<0, Dummy> {
+            static const int value = 2;
+        };
+
+        template <int Dummy>
+        struct new_value<1, Dummy> {
+            static const int value = 1;
+        };
+
+        template <int Dummy>
+        struct new_value<2, Dummy> {
+            static const int value = 0;
+        };
+
+        typedef layout_map<new_value<I1,0>::value, new_value<I2,0>::value, new_value<I3,0>::value > type;
+    };
+
     template <typename DATALO, typename PROCLO>
     struct layout_transform;
 
@@ -538,6 +569,17 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     struct default_layout_map<4> {
         typedef layout_map<0,1,2,3> type;
     };
+
+    template <int I1, int I2, int I3, int I4>
+    std::ostream& operator<<(std::ostream& s, layout_map<I1,I2,I3,I4>) {
+        return s << "layout_map< " 
+                 << I1 << ", "
+                 << I2 << ", "
+                 << I3 << ", "
+                 << I4 << "> ";
+
+    }
+
 } // namespace gridtools
 
 
