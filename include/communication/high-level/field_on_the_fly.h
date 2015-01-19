@@ -10,8 +10,9 @@ namespace gridtools {
      \tparam DIMS Number of dimensions of the array
      \tparam layoutmap Specification of the layout map of the data (as in halo_exchange_dynamic)
    */
-  template <typename DataType, typename layoutmap, template <typename> class Traits>
+  template <typename DataType, typename t_layoutmap, template <typename> class Traits>
   struct field_on_the_fly: public Traits<DataType>::base_field {
+      typedef typename reverse_map<t_layoutmap>::type layoutmap; // This is necessary since the internals of gcl use "increasing stride order" instead of "decreasing stride order"
 
     static const int DIMS = Traits<DataType>::I;
 
@@ -61,6 +62,8 @@ namespace gridtools {
     field_on_the_fly(DataType* p, array<halo_descriptor, DIMS> const & halos)
       : ptr(p)
     {
+        //        std::cout << "FOF                                          " << t_layoutmap() << " " << layoutmap() << std::endl;
+
       for (int i=0; i<DIMS; ++i) {
         base_type::add_halo(layoutmap()[i], 
                             halos[i].minus(), 

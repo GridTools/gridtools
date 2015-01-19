@@ -92,6 +92,14 @@ namespace gridtools {
 
     template <typename iterator_in, typename iterator_out>
     void pack(gridtools::array<int, 3> const& eta, iterator_in const* field_ptr, iterator_out *& it) const {
+        // std::cout << "BASE ADDR IN PACK " << std::hex << reinterpret_cast<void*>(it) << std::dec << std::endl;
+        // std::cout << "k=" << base_type::halos[2].loop_low_bound_inside(eta[2])
+        //           << " to <= " << base_type::halos[2].loop_high_bound_inside(eta[2]) << ",\n"
+        //           << "j=" << base_type::halos[1].loop_low_bound_inside(eta[1])
+        //           << " to <= " << base_type::halos[1].loop_high_bound_inside(eta[1]) << ",\n"
+        //           << "i=" << base_type::halos[0].loop_low_bound_inside(eta[0])
+        //           << " to <= " << base_type::halos[0].loop_high_bound_inside(eta[0])
+        //           << std::endl;
       for (int k=base_type::halos[2].loop_low_bound_inside(eta[2]);
            k<=base_type::halos[2].loop_high_bound_inside(eta[2]);
            ++k) {
@@ -101,6 +109,20 @@ namespace gridtools {
           for (int i=base_type::halos[0].loop_low_bound_inside(eta[0]);
                i<=base_type::halos[0].loop_high_bound_inside(eta[0]);
                ++i) {
+
+              // std::cout << "      " 
+              //           << i << ", "
+              //           << j << ", "
+              //           << k << ", "
+              //           << base_type::halos[0].total_length() << ", "
+              //           << base_type::halos[1].total_length() << ", "
+              //           << base_type::halos[2].total_length() << ", "
+              //           << field_ptr[gridtools::access
+              //                        (i,j,k,
+              //                         base_type::halos[0].total_length(),
+              //                         base_type::halos[1].total_length(),
+              //                         base_type::halos[2].total_length())]
+              //           << std::endl;
 
             *(reinterpret_cast<iterator_in*>(it)) = field_ptr[gridtools::access
                                                              (i,j,k,
@@ -143,6 +165,13 @@ namespace gridtools {
 
     template <typename iterator_in, typename iterator_out>
     void unpack(gridtools::array<int, 3> const& eta, iterator_in * field_ptr, iterator_out* &it) const {
+        // std::cout << "k=" << base_type::halos[2].loop_low_bound_outside(eta[2])
+        //           << " to <= " << base_type::halos[2].loop_high_bound_outside(eta[2]) << ",\n"
+        //           << "j=" << base_type::halos[1].loop_low_bound_outside(eta[1])
+        //           << " to <= " << base_type::halos[1].loop_high_bound_outside(eta[1]) << ",\n"
+        //           << "i=" << base_type::halos[0].loop_low_bound_outside(eta[0])
+        //           << " to <= " << base_type::halos[0].loop_high_bound_outside(eta[0])
+        //           << std::endl;
       for (int k=base_type::halos[2].loop_low_bound_outside(eta[2]);
            k<=base_type::halos[2].loop_high_bound_outside(eta[2]);
            ++k) {
@@ -152,6 +181,15 @@ namespace gridtools {
           for (int i=base_type::halos[0].loop_low_bound_outside(eta[0]);
                i<=base_type::halos[0].loop_high_bound_outside(eta[0]);
                ++i) {
+              // std::cout << "      " 
+              //           << i << ", "
+              //           << j << ", "
+              //           << k << ", "
+              //           << base_type::halos[0].total_length() << ", "
+              //           << base_type::halos[1].total_length() << ", "
+              //           << base_type::halos[2].total_length() << ", "
+              //           << *(reinterpret_cast<iterator_in*>(it))
+              //           << std::endl;
             field_ptr[gridtools::access(i,j,k,
                                   base_type::halos[0].total_length(),
                                   base_type::halos[1].total_length(),

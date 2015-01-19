@@ -101,12 +101,14 @@ namespace gridtools {
        \param[in] halo_example The (at least) maximal grid that is goinf to be used
        \param[in] typesize In case the DataType of the halo_example is not the same as the maximum data type used in the computation, this parameter can be given
      */
-    template <typename DataType, typename t_layoutmap, template <typename> class traits>
+      template <typename DataType, typename f_layoutmap, template <typename> class traits>
     void setup(int max_fields_n,
-               field_on_the_fly<DataType, t_layoutmap, traits> const & halo_example,
+               field_on_the_fly<DataType, f_layoutmap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
-      gridtools::array<int, DIMS> eta;
+     
+        typedef typename field_on_the_fly<DataType, f_layoutmap, traits>::layoutmap t_layoutmap;
+        gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
