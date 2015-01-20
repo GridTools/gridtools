@@ -67,9 +67,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         int collector_execute = pw_new_collector("Execute");
 #endif
 
-        int d1 = x;
-        int d2 = y;
-        int d3 = z;
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -119,8 +119,8 @@ namespace copy_stencils_3D_2D_1D_0D {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        int di[5] = {0, 0, 0, d1, d1};
-        int dj[5] = {0, 0, 0, d2, d2};
+        uint_t di[5] = {0, 0, 0, d1, d1};
+        uint_t dj[5] = {0, 0, 0, d2, d2};
 
         gridtools::coordinates<axis> coords(di, dj);
         coords.value_list[0] = 0;
@@ -210,7 +210,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         copy->finalize();
 
 #ifdef CUDA_EXAMPLE
-        out.m_data.update_cpu();
+        out.data().update_cpu();
 #endif
 
 #ifdef USE_PAPI_WRAP

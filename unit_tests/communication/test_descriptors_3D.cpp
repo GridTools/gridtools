@@ -10,20 +10,20 @@
 #define DIM 10
 
 struct triple_t {
-  int x,y,z;
-  triple_t(int a, int b, int c): x(a), y(b), z(c) {}
+  uint_t x,y,z;
+  triple_t(uint_t a, uint_t b, uint_t c): x(a), y(b), z(c) {}
   triple_t(): x(-1), y(-1), z(-1) {}
 };
 
-std::ostream& operator<<(std::ostream &s, triple_t const & t) { 
-  return s << " (" 
+std::ostream& operator<<(std::ostream &s, triple_t const & t) {
+  return s << " ("
            << t.x << ", "
            << t.y << ", "
            << t.z << ") ";
 }
 
 bool operator==(triple_t const & a, triple_t const & b) {
-  return (a.x == b.x && 
+  return (a.x == b.x &&
           a.y == b.y &&
           a.z == b.z);
 }
@@ -42,11 +42,11 @@ int main(int argc, char** argv) {
   triple_t *b = new triple_t[DIM*DIM*DIM];
   triple_t *c = new triple_t[DIM*DIM*DIM];
 
-  int I; 
+  uint_t I;
 
-  int pid;
+  uint_t pid;
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-  int nprocs;
+  uint_t nprocs;
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
   std::cout << pid << " " << nprocs << "\n";
@@ -62,17 +62,17 @@ int main(int argc, char** argv) {
   file << pid << "  " << nprocs << "\n";
 
   MPI_Comm CartComm;
-  int dims[3] = {0,0,0};
+  uint_t dims[3] = {0,0,0};
   MPI_Dims_create(nprocs, 3, dims);
-  int period[3] = {0, 0, 0};
+  uint_t period[3] = {0, 0, 0};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   typedef gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > grid_type;
 
-  gridtools::hndlr_descriptor_ut<triple_t,3, 
+  gridtools::hndlr_descriptor_ut<triple_t,3,
     gridtools::Halo_Exchange_3D<grid_type> > hd(gridtools::boollist<3>(false,false,false),CartComm);
 
   I = hd.register_field(a);
@@ -89,30 +89,30 @@ int main(int argc, char** argv) {
   hd.register_halo(I, 0, 0, 0, 0, 9, DIM);
 
 
-  int pi, pj, pk;
+  uint_t pi, pj, pk;
   hd.pattern().proc_grid().coords(pk, pj, pi);
-  int PI, PJ, PK;
+  uint_t PI, PJ, PK;
   hd.pattern().proc_grid().dims(PK, PJ, PI);
 
   file << "COORDINATES " << pi << ", " << pj << ", " << pk << std::endl;
 
-  for (int ii=3; ii<=6; ++ii)
-    for (int jj=3; jj<=6; ++jj)
-      for (int kk=3; kk<=6; ++kk) {
+  for (uint_t ii=3; ii<=6; ++ii)
+    for (uint_t jj=3; jj<=6; ++jj)
+      for (uint_t kk=3; kk<=6; ++kk) {
         a[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk);
-    }      
+    }
 
-  for (int ii=3; ii<=6; ++ii)
-    for (int jj=3; jj<=6; ++jj)
-      for (int kk=4; kk<=6; ++kk) {
+  for (uint_t ii=3; ii<=6; ++ii)
+    for (uint_t jj=3; jj<=6; ++jj)
+      for (uint_t kk=4; kk<=6; ++kk) {
         b[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk);
-    }      
+    }
 
-  for (int ii=0; ii<=6; ++ii)
-    for (int jj=3; jj<=6; ++jj)
-      for (int kk=0; kk<=9; ++kk) {
+  for (uint_t ii=0; ii<=6; ++ii)
+    for (uint_t jj=3; jj<=6; ++jj)
+      for (uint_t kk=0; kk<=9; ++kk) {
         c[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] = triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk);
-    }      
+    }
 
   hd.allocate_buffers();
 
@@ -124,12 +124,12 @@ int main(int argc, char** argv) {
 
   // CHECK!
   bool err=false;
-  for (int ii=3-((pi>0)?2:0); ii<=6+((pi<PI-1)?1:0); ++ii)
-    for (int jj=3-((pj>0)?2:0); jj<=6+((pj<PJ-1)?1:0); ++jj)
-      for (int kk=3-((pk>0)?2:0); kk<=6+((pk<PK-1)?1:0); ++kk) {
+  for (uint_t ii=3-((pi>0)?2:0); ii<=6+((pi<PI-1)?1:0); ++ii)
+    for (uint_t jj=3-((pj>0)?2:0); jj<=6+((pj<PJ-1)?1:0); ++jj)
+      for (uint_t kk=3-((pk>0)?2:0); kk<=6+((pk<PK-1)?1:0); ++kk) {
         if (a[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii-3+4*pi,jj-3+4*pj,kk-3+4*pk)) {
           err=true;
-          file << " A " 
+          file << " A "
                     << ii << ", "
                     << jj << ", "
                     << kk << ", "
@@ -138,9 +138,9 @@ int main(int argc, char** argv) {
         }
     }
 
-  for (int ii=3-((pi>0)?3:0); ii<=6+((pi<PI-1)?2:0); ++ii)
-    for (int jj=3-((pj>0)?2:0); jj<=6+((pj<PJ-1)?1:0); ++jj)
-      for (int kk=4-((pk>0)?3:0); kk<=6+((pk<PK-1)?2:0); ++kk) {
+  for (uint_t ii=3-((pi>0)?3:0); ii<=6+((pi<PI-1)?2:0); ++ii)
+    for (uint_t jj=3-((pj>0)?2:0); jj<=6+((pj<PJ-1)?1:0); ++jj)
+      for (uint_t kk=4-((pk>0)?3:0); kk<=6+((pk<PK-1)?2:0); ++kk) {
         if (b[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii-3+4*pi,jj-3+4*pj,kk-4+3*pk)) {
           err=true;
           file << " B "
@@ -152,9 +152,9 @@ int main(int argc, char** argv) {
         }
     }
 
-  for (int ii=0-((pi>0)?0:0); ii<=6+((pi<PI-1)?2:0); ++ii)
-    for (int jj=3-((pj>0)?3:0); jj<=6+((pj<PJ-1)?2:0); ++jj)
-      for (int kk=0-((pk>0)?0:0); kk<=9+((pk<PK-1)?0:0); ++kk) {
+  for (uint_t ii=0-((pi>0)?0:0); ii<=6+((pi<PI-1)?2:0); ++ii)
+    for (uint_t jj=3-((pj>0)?3:0); jj<=6+((pj<PJ-1)?2:0); ++jj)
+      for (uint_t kk=0-((pk>0)?0:0); kk<=9+((pk<PK-1)?0:0); ++kk) {
         if (c[gridtools::access(kk,jj,ii,DIM,DIM,DIM)] != triple_t(ii+7*pi,jj-3+4*pj,kk+DIM*pk)) {
           err=true;
           file << " C "
