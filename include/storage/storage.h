@@ -2,16 +2,38 @@
 #include<common/defs.h>
 #include"base_storage.h"
 
+/**
+@file
+@brief Storage class
+This extra layer is added on top of the base_storage class because it extends the clonabl_to_gpu interface. Due to the multiple inheritance pattern this class should not be further inherited.
+*/
+
 namespace gridtools {
-    template < typename ValueType
-             , typename Layout
-             , bool IsTemporary = false
-        >
-    struct storage : public base_storage< enumtype::Host
-                                         , ValueType
-                                         , Layout
-                                         , IsTemporary
-                                         >
+    template < typename BaseStorage >
+      struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
     {
+	typedef BaseStorage super;
+	typedef typename BaseStorage::basic_type basic_type;
+	typedef storage<BaseStorage> original_storage;
+	typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
+	typedef typename BaseStorage::iterator_type iterator_type;
+	typedef typename BaseStorage::value_type value_type;
+	static const ushort_t n_args = basic_type::n_width;
+
+      __device__
+	storage(storage const& other)
+	  :  super(other)
+      {}
+
+        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ,
+                         typename BaseStorage::value_type init = typename BaseStorage::value_type(), char const* s = "default name" ): super(dim1, dim2, dim3, init, s) {
+        }
+
+	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, typename BaseStorage::value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
+
+	//    private :
+	explicit storage():super(){}
     };
+
+
 }//namespace gridtools
