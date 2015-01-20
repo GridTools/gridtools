@@ -142,7 +142,7 @@ bool basic() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
+    storage_type in(d1,d2,d3,-1, "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -279,7 +279,7 @@ bool predicate() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
+    storage_type in(d1,d2,d3,-1, "in");
 
 
     for (uint_t i=0; i<d1; ++i) {
@@ -438,7 +438,7 @@ bool twosurfaces() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
+    storage_type in(d1,d2,d3,-1, "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -594,7 +594,7 @@ bool usingzero_1() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
+    storage_type in(d1,d2,d3,-1,"in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -731,8 +731,8 @@ bool usingzero_2() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-1, std::string("out"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-1,"out");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -892,8 +892,8 @@ bool usingvalue_2() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-1, std::string("out"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-1, "out");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -1052,9 +1052,9 @@ bool usingcopy_3() {
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type src(d1,d2,d3,-1, std::string("src"));
-    storage_type one(d1,d2,d3,-1, std::string("one"));
-    storage_type two(d1,d2,d3,-1, std::string("two"));
+    storage_type src(d1,d2,d3,-1, "src");
+    storage_type one(d1,d2,d3,-1, "one");
+    storage_type two(d1,d2,d3,-1, "two");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {

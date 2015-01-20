@@ -1,4 +1,8 @@
 #pragma once
+/**
+@file
+TODO Document me!! :-(
+*/
 
 #include "../common/layout_map.h"
 #include "../common/array.h"

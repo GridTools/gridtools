@@ -124,9 +124,9 @@ using namespace enumtype;
         typedef extend_width<storage_type, 2> extended_type;
         typedef extend_dim<extended_type> integrator_type;
 
-        storage_type out(10,10,3,4., std::string("out"));
-        integrator_type in(10,10,3,1., std::string("in"));;
-        storage_type init(10,10,3,2., std::string("init"));
+        storage_type out(10,10,3,4., "out");
+        integrator_type in(10,10,3,1., "in");;
+        storage_type init(10,10,3,2., "init");
 
         //initialization
         in.push_front(init.data());//using the same data pointer might generate hazards!

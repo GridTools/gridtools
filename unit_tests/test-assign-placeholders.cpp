@@ -38,9 +38,9 @@ bool assign_placeholders() {
     uint_t d2=5;
     uint_t d3=5;
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
+    storage_type coeff(d1,d2,d3,8, "coeff");
 
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them

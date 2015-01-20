@@ -54,7 +54,7 @@ namespace gridtools {
     }
 
     /**
-       \addtogroup specialization Specialization
+       \addtogroup specializations Specializations
        @{
     */
     template <typename U>
@@ -161,8 +161,9 @@ namespace gridtools {
         template <ushort_t Coordinate>
         struct Dimension{
 
+	    template <typename IntType>
             GT_FUNCTION
-            constexpr Dimension(int_t val) : value
+            constexpr Dimension(IntType val) : value
 #if( (!defined(CXX11_ENABLED)) )
                                              (val)
 #else
@@ -170,12 +171,22 @@ namespace gridtools {
 #endif
                 {}
 
+	    GT_FUNCTION
+	    constexpr Dimension(Dimension const& other):value{other.value}{}
+
             static const ushort_t direction=Coordinate;
             int_t value;
 	    struct Index{
+		GT_FUNCTION
 		Index(){}
+		GT_FUNCTION
+		Index(Index const&){}
+
 		typedef Dimension<Coordinate> super;
 	    };
+
+	private:
+	    Dimension();
         };
 
         /**Aliases for the first three dimensions (x,y,z)*/
@@ -209,6 +220,7 @@ namespace gridtools {
         return X::direction==N? x.value : initialize<N>(rest...);
     }
 #else
+
     /**@brief method for initializing the offsets in the placeholder
        Version valid for two dimension
        \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
@@ -256,11 +268,6 @@ namespace gridtools {
      */
     template <uint_t I, typename Range=range<0,0,0,0>, ushort_t dimension=3 >
     struct arg_type   {
-
-        template <uint_t Im, uint_t Ip, uint_t Jm, uint_t Jp, uint_t Kp, uint_t Km>
-        struct halo {
-            typedef arg_type<I> type;
-        };
 
         int_t m_offset[dimension]
 #ifdef CXX11_ENABLED
@@ -449,8 +456,14 @@ namespace gridtools {
             printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", idx+1);
             exit (-1);
         }
-    };
 
+#ifdef CXX11_ENABLED
+#ifndef __CUDACC__
+	static const constexpr char a[]={"arg "};
+	typedef string<print, static_string<a>, static_int<I> > to_string;
+#endif
+#endif
+    };
 
 
 //################################################################################
@@ -471,7 +484,7 @@ namespace gridtools {
        - specify explicitly the dimension: in this case the order of the arguments is arbitrary:
        \verbatim
        typedef Dimension<4> T;
-       V(x(1), z(-3), T(1))
+       V(x(1), z(-3), T(-1))
        \endverbatim
 
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
@@ -533,11 +546,15 @@ namespace gridtools {
         /** @brief usage: n<3>() returns the offset of extra dimension 3
             loops recursively over the children, decreasing each time the index, until it has reached the dimension matching the index specified as template argument.
             Note that here the offset we are talking about here looks the same as the offsets for the arg_type, but it implies actually a change of the base storage pointer.
+	    TODO change this stupid name
         */
 	template<short_t idx>
 	GT_FUNCTION
 	short_t n() const {//recursively travel the list of offsets
+	    //the following assert cannot be compile time, since a version with idx=-1 may indeed be compiled (at the end of the template recursion), but should never be executed
+#ifndef __CUDACC__
 	    assert(idx>0);
+#endif
 	    //BOOST_STATIC_ASSERT( index>0 );
 	    // printf("index to the n method:%d \n", index);
 	    BOOST_STATIC_ASSERT( idx<=n_args );
@@ -546,6 +563,8 @@ namespace gridtools {
             return idx==1? m_offset : super::template n<idx-1>();
 	    // return static_if<idx==1>::apply( m_offset,super::template n<idx-1>());
 	}
+
+	//std::string m_arg_string(m_offset+ std::string(", ") +super::arg_string);
 
     private:
         short_t m_offset;
@@ -579,13 +598,15 @@ template <typename Callable, typename ... Known>
 struct alias{
 
     template<typename ... Args>
+    GT_FUNCTION
     constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
-    };
+    }
 
     typedef boost::mpl::vector<Known...> dim_vector;
 
     //operator calls the constructor of the arg_type
     template<typename ... Unknowns>
+    GT_FUNCTION
     Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  )
         {
 	    return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}

@@ -28,8 +28,8 @@ using namespace enumtype;
 uint_t count;
 bool result;
 
-struct print {
-    print(void)
+struct print_ {
+    print_(void)
     {}
 
     template <typename T>
@@ -97,9 +97,9 @@ bool test_domain_indices() {
     uint_t d2 = 10;
     uint_t d3 = 10;
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
+    storage_type coeff(d1,d2,d3,8, "coeff");
 
     typedef arg<2, tmp_storage_type > p_lap;
     typedef arg<1, tmp_storage_type > p_flx;
@@ -116,9 +116,9 @@ bool test_domain_indices() {
        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
 #ifndef NDEBUG
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::raw_index_list>(print());
+    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::raw_index_list>(print_());
     std::cout << std::endl;
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::range_t>(print());
+    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::range_t>(print_());
     std::cout << std::endl;
     boost::mpl::for_each<gridtools::domain_type<arg_type_list>::arg_list_mpl>(print_pretty());
 #endif

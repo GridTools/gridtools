@@ -26,29 +26,30 @@ namespace gridtools {
 	GT_FUNCTION
 	explicit  hybrid_pointer(T* p) : wrap_pointer<T>(p), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
-        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size) {
+
+        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
             allocate_it(size);
-            m_pointer_to_use = this->cpu_p;
+
 #ifndef NDEBUG
-            printf(" - %X %X %X %d\n", this->cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
         }
 
 // copy constructor passes on the ownership
         __device__ __host__
-        explicit hybrid_pointer(hybrid_pointer const& other)
+        hybrid_pointer(hybrid_pointer const& other)
             : wrap_pointer<T>(other)
             , m_gpu_p(other.m_gpu_p)
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 3200)
             , m_pointer_to_use(m_gpu_p)
 #else
-            , m_pointer_to_use(this->cpu_p)
+            , m_pointer_to_use(this->m_cpu_p)
 #endif
             , m_size(other.m_size)
         {
 #ifndef NDEBUG
             printf("cpy const hp ");
-            printf("%X ", this->cpu_p);
+            printf("%X ", this->m_cpu_p);
             printf("%X ", m_gpu_p);
             printf("%X ", m_pointer_to_use);
             printf("%d ", m_size);
@@ -85,7 +86,7 @@ namespace gridtools {
 #ifndef NDEBUG
             printf("update gpu "); out();
 #endif
-            cudaMemcpy(m_gpu_p, this->cpu_p, m_size*sizeof(T), cudaMemcpyHostToDevice);
+            cudaMemcpy(m_gpu_p, this->m_cpu_p, m_size*sizeof(T), cudaMemcpyHostToDevice);
 #endif
         }
 
@@ -94,14 +95,14 @@ namespace gridtools {
 #ifndef NDEBUG
             printf("update cpu "); out();
 #endif
-            cudaMemcpy(this->cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
+            cudaMemcpy(this->m_cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
 #endif
         }
 
         __host__ __device__
         void out() const {
             printf("out hp ");
-            printf("%X ", this->cpu_p);
+            printf("%X ", this->m_cpu_p);
             printf("%X ", m_gpu_p);
             printf("%X ", m_pointer_to_use);
             printf("%d ", m_size);
@@ -157,6 +158,9 @@ namespace gridtools {
 
         GT_FUNCTION
         T* get_gpu_p(){return m_gpu_p;};
+
+        GT_FUNCTION
+        T* get_cpu_p(){return this->m_cpu_p;};
 
         GT_FUNCTION
         T* get_pointer_to_use(){return m_pointer_to_use;}

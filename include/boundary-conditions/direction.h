@@ -47,7 +47,7 @@ namespace gridtools {
        \endverbatim
        - the case in which all three are zero does not belong to the boundary and is excluded.
      */
-    template <sign I_, sign J_, sign K_>
+    template <sign I_, sign J_, sign K_, class Predicate=boost::enable_if_c<true>::type >
     struct direction {
         static const sign I = I_;
         static const sign J = J_;

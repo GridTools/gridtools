@@ -59,8 +59,8 @@ bool test_interface(int x, int y, int z) {
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type out(d1,d2,d3,2., std::string("out"));
-    storage_type in(d1,d2,d3,2., std::string("out"));
+    storage_type out(d1,d2,d3,2., "out");
+    storage_type in(d1,d2,d3,2., "out");
 
     printf("Print OUT field\n");
     out.print();

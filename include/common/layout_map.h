@@ -49,7 +49,7 @@ namespace gridtools {
         static constexpr ushort_t length=sizeof...(Args);
         //typedef boost::mpl::vector_c<short_t, Args...> t;
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
-
+	typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
         /* static const int s=t::fuck(); */
         /* BOOST_STATIC_ASSERT(s); */
 
@@ -92,18 +92,18 @@ namespace gridtools {
             typedef typename boost::mpl::bool_<T==I>::type type;
         };
 
+
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
         static /* constexpr */ typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
-            typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
-            return vec[pos_<I>::value];
+            return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
-        static /* constexpr */ typename _impl::first_type<Indices...>::type
+        static /*constexpr*/ typename _impl::first_type<Indices...>::type
         find_val(Indices & ... indices) {
             static_assert(sizeof...(Indices)==length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
@@ -132,7 +132,7 @@ namespace gridtools {
         template <ushort_t I>
         struct at_ {
             static_assert(I<length, "Index out of bound");
-            static const ushort_t value = layout_vector[I];
+            static const short_t value = layout_vector[I];
         };
 
         template <ushort_t I, short_t DefaultVal>
@@ -147,6 +147,7 @@ namespace gridtools {
         template <ushort_t I>
         struct pos_ {
             static_assert(I<=length, "Index out of bound");
+            static_assert(I>=0, "Accessing a negative dimension");
 
             template <ushort_t X, bool IsHere>
             struct _find_pos
@@ -154,10 +155,15 @@ namespace gridtools {
                 static constexpr ushort_t value = _find_pos<X+1, layout_vector[ (X+1>=length)?X:X+1 ] == I>::value;
             };
 
-
             template <ushort_t X>
             struct _find_pos<X, true> {
                 static constexpr ushort_t value = X;
+            };
+
+
+            template <bool IsHere>
+            struct _find_pos<length+1, IsHere> {
+                static constexpr short_t value=-2;
             };
 
             // stops the recursion and returns a nonsense value
@@ -261,13 +267,13 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     template <short_t I1>
     struct layout_map<I1, -2, -2, -2> {
         static const ushort_t length=1;
-        typedef boost::mpl::vector1_c<short_t, I1> t;
+        typedef boost::mpl::vector4_c<short_t, I1, -2, -2, -2> layout_vector_t;
 
         template <ushort_t I>
         GT_FUNCTION
         static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<t, I >::type::value;
+            return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
@@ -275,7 +281,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             assert( i<length );
             switch (i) {
             case 0:
-                return boost::mpl::at_c<t, 0 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
             }
             return -1;
         }
@@ -283,7 +289,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         template <ushort_t I, typename T>
         GT_FUNCTION
         static T select(T & a, T & b) {
-            return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
+            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b);
         }
 
         template <ushort_t I, typename T>
@@ -297,13 +303,13 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     template <short_t I1, short_t I2>
     struct layout_map<I1, I2, -2, -2> {
         static const ushort_t length=2;
-        typedef boost::mpl::vector2_c<short_t, I1, I2> t;
+        typedef boost::mpl::vector4_c<short_t, I1, I2, -2, -2> layout_vector_t;
 
         template <ushort_t I>
         GT_FUNCTION
         static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<t, I >::type::value;
+            return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
@@ -311,9 +317,9 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             assert( i<length );
             switch (i) {
             case 0:
-                return boost::mpl::at_c<t, 0 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
             case 1:
-                return boost::mpl::at_c<t, 1 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 1 >::type::value;
             }
             return -1;
         }
@@ -321,16 +327,16 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         template <ushort_t I, typename T>
         GT_FUNCTION
         static T& select(T & a, T & b) {
-            return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b);
+            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b);
         }
 
         template <ushort_t I, typename T>
         GT_FUNCTION
         static T& find(T & a, T & b) {
-            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 }
             }
@@ -361,34 +367,29 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     */
     template <int I1, short_t I2, short_t I3>
     struct layout_map<I1, I2, I3, -2> {
-        static  const ushort_t length=3;
-        typedef boost::mpl::vector3_c<short_t, I1, I2, I3> t;
+        static  const short_t length=3;
+        typedef boost::mpl::vector4_c<short_t, I1, I2, I3, -2> layout_vector_t;
 
-        template <ushort_t I>
+        template <short_t I>
         struct at_ {
-            static const short_t value = boost::mpl::at_c<t, I >::type::value;
+            static const short_t value = boost::mpl::at_c<layout_vector_t, I >::type::value;
         };
 
-        template <ushort_t I, short_t DefaultVal>
+        template <short_t I, short_t DefaultVal>
         struct at_default {
-            static const short_t _value = boost::mpl::at_c<t, I >::type::value;
+            static const short_t _value = boost::mpl::at_c<layout_vector_t, I >::type::value;
             static const short_t value = (_value<0)?DefaultVal:_value;
         };
 
-        template <unsigned int I, int DefaultVal>
-        struct at_default {
-            static const int _value = boost::mpl::at_c<t, I >::type::value;
-            static const int value = (_value<0)?DefaultVal:_value;
-        };
-
-        // Gives the position at which I is.
-        template <ushort_t I>
+        // Gives the position at which I is. e.g., I want to know which is the stride of i (0)?
+        //then if pos_<0> is 0, then the index i has stride 1, and so on ...
+        template <short_t I>
         struct pos_ {
 
             template <short_t X, bool IsHere>
             struct _find_pos
             {
-                static const short_t value = _find_pos<X+1, boost::mpl::at_c<t, X+1 >::type::value == I>::value;
+                static const short_t value = _find_pos<X+1, boost::mpl::at_c<layout_vector_t, X+1 >::type::value == I>::value;
             };
 
             template <short_t X>
@@ -396,12 +397,17 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
                 static const short_t value = X;
             };
 
+            template <bool IsThere>
+            struct _find_pos<length+1, IsThere> {
+                static const short_t value = -2;//value_is_not_there___print_a_compiler_error value = X;
+            };
+
             template <bool IsHere>
-            struct _find_pos<3, IsHere> {
+            struct _find_pos<length, IsHere> {
                 static const short_t value = -1;
             };
 
-            static const short_t value = _find_pos<0, boost::mpl::at_c<t, 0 >::type::value == I>::value;
+            static const short_t value = _find_pos<0, boost::mpl::at_c<layout_vector_t, 0 >::type::value == I>::value;
 
         };
 
@@ -411,11 +417,11 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
             \tparam I The index to be queried
         */
-        template <ushort_t I>
+        template <short_t I>
         GT_FUNCTION
         static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<t, I >::type::value;
+            return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
@@ -423,11 +429,11 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             assert( i<length );
             switch (i) {
             case 0:
-                return boost::mpl::at_c<t, 0 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
             case 1:
-                return boost::mpl::at_c<t, 1 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 1 >::type::value;
             case 2:
-                return boost::mpl::at_c<t, 2 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 2 >::type::value;
             }
             return -1;
         }
@@ -445,10 +451,10 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I, typename T>
+        template <short_t I, typename T>
         GT_FUNCTION
         static T& select(T & a, T & b, T & c) {
-            return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c);
+            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b,c);
         }
 
         /** Given a tuple of values and a static index I, the function
@@ -464,16 +470,16 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I, typename T>
+        template <short_t I, typename T>
         GT_FUNCTION
         static T& find(T & a, T & b, T & c) {
-            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -498,16 +504,16 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I, typename T>
+        template <short_t I, typename T>
         GT_FUNCTION
         static T const& find(T const& a, T const& b, T const& c) {
-            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -528,7 +534,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <ushort_t I, typename T>
+        template <short_t I, typename T>
         GT_FUNCTION
         static T& find(T* a) {
             return find<I>(a[0], a[1], a[2]);
@@ -554,16 +560,16 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I, typename T, T DefaultVal>
+        template <short_t I, typename T, T DefaultVal>
         GT_FUNCTION
         static T find_val(T const& a, T const& b, T const& c) {
-            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -587,7 +593,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <ushort_t I, typename T, T DefaultVal>
+        template <short_t I, typename T, T DefaultVal>
         GT_FUNCTION
         static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
@@ -596,14 +602,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
     template <short_t I1, short_t I2, short_t I3, short_t I4>
     struct layout_map {
-        static const ushort_t length=4;
-        typedef boost::mpl::vector4_c<short_t, I1, I2, I3, I4> t;
+        static const short_t length=4;
+        typedef boost::mpl::vector4_c<short_t, I1, I2, I3, I4> layout_vector_t;
 
-        template <ushort_t I>
+        template <short_t I>
         GT_FUNCTION
         static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<t, I >::type::value;
+            return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
@@ -611,36 +617,36 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             assert( i<length );
             switch (i) {
             case 0:
-                return boost::mpl::at_c<t, 0 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
             case 1:
-                return boost::mpl::at_c<t, 1 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 1 >::type::value;
             case 2:
-                return boost::mpl::at_c<t, 2 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 2 >::type::value;
             case 3:
-                return boost::mpl::at_c<t, 3 >::type::value;
+                return boost::mpl::at_c<layout_vector_t, 3 >::type::value;
             }
             return -1;
         }
 
-        template <ushort_t I, typename T>
+        template <short_t I, typename T>
         GT_FUNCTION
         static T& select(T & a, T & b, T & c, T & d) {
-            return _impl::select_s<boost::mpl::at_c<t, I >::type::value>().get(a,b,c,d);
+            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b,c,d);
         }
 
-        template <ushort_t I, typename T>
+        template <short_t I, typename T>
         GT_FUNCTION
         static T& find(T & a, T & b, T & c, T & d) {
-            if (boost::mpl::at_c<t, 0 >::type::value == I) {
+            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<t, 1 >::type::value == I) {
+                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
                         return c;
                     } else {
-                        if (boost::mpl::at_c<t, 3 >::type::value == I) {
+                        if (boost::mpl::at_c<layout_vector_t, 3 >::type::value == I) {
                             return c;
                         }
                     }

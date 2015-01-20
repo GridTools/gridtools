@@ -89,16 +89,22 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-    //                      dims  z y x
-    //                   strides xy x 1
+    //                   strides  1 x xy
+    //                      dims  x y z
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     //typedef storage_type::basic_type integrator_type;
     /* typedef extend<storage_type::basic_type, 2> integrator_type; */
-#ifdef CXX11_ENABLED
-    // typedef extend_width<storage_type::basic_type, 0>  extended_type;
-    // typedef extend_dim<extended_type, extended_type>  integrator_type;
+#ifdef CXX11_ENABLED\
+    /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+#ifdef __CUDACC__
+//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
+    typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
+    typedef extend_width<base_type1, 0>  extended_type;
+    typedef extend_dim<extended_type, extended_type>  integrator_type;
+#else
     typedef extend<storage_type::basic_type, 0, 0>::type  integrator_type;
+#endif
 #endif
     //out.print();
 
@@ -116,7 +122,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #endif
     /* typedef arg<1, integrator_type > p_out; */
 
-
     // Definition of the actual data fields that are used for input/output
 #ifdef CXX11_ENABLED
     integrator_type in(d1,d2,d3);
@@ -125,8 +130,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     in.push_front<0>(init1, 1.5);
     in.push_front<1>(init2, -1.5);
 #else
-    storage_type in(d1,d2,d3,-3.5);
-    storage_type out(d1,d2,d3,1.5);
+    storage_type in(d1,d2,d3,-3.5,"in");
+    storage_type out(d1,d2,d3,1.5,"out");
 #endif
 
     for(uint_t i=0; i<d1; ++i)
