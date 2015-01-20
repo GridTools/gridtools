@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include "defs.h"
 
 /** @file
 @brief serie of loops unrolled at compile time
