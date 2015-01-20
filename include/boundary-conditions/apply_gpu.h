@@ -25,10 +25,10 @@ namespace gridtools {
     __global__                                                          \
     void loop_kernel(BoundaryFunction boundary_function,                \
                      Direction direction,                               \
-                     BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, * data_field),int starti, int startj, int startk, int nx, int ny, int nz) { \
-        int i = blockIdx.x * blockDim.x + threadIdx.x;                  \
-        int j = blockIdx.y * blockDim.y + threadIdx.y;                  \
-        int k = blockIdx.z * blockDim.z + threadIdx.z;                  \
+                     BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, * data_field),uint_t starti, uint_t startj, uint_t startk, uint_t nx, uint_t ny, uint_t nz) { \
+        uint_t i = blockIdx.x * blockDim.x + threadIdx.x;                  \
+        uint_t j = blockIdx.y * blockDim.y + threadIdx.y;                  \
+        uint_t k = blockIdx.z * blockDim.z + threadIdx.z;                  \
         if ((i<nx) && (j<ny) && (k<nz)) {                               \
             boundary_function(direction,                                \
                               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), *data_field), \
@@ -50,7 +50,7 @@ namespace gridtools {
         HaloDescriptors halo_descriptors;
         BoundaryFunction const boundary_function;
         Predicate predicate;
-        static const int ntx = 8, nty = 32, ntz = 1;
+        static const uint_t ntx = 8, nty = 32, ntz = 1;
         const dim3 threads;
 
 
@@ -77,12 +77,12 @@ namespace gridtools {
         template <typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
         void apply_it(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field) ) const { \
             std::cout << Direction() << std::endl;                      \
-            int nx = halo_descriptors[0].loop_high_bound_outside(Direction::I) - halo_descriptors[0].loop_low_bound_outside(Direction::I) + 1; \
-            int ny = halo_descriptors[1].loop_high_bound_outside(Direction::J) - halo_descriptors[1].loop_low_bound_outside(Direction::J) + 1; \
-            int nz = halo_descriptors[2].loop_high_bound_outside(Direction::K) - halo_descriptors[2].loop_low_bound_outside(Direction::K) + 1; \
-            int nbx = (nx + ntx - 1) / ntx;                             \
-            int nby = (ny + nty - 1) / nty;                             \
-            int nbz = (nz + ntz - 1) / ntz;                             \
+            uint_t nx = halo_descriptors[0].loop_high_bound_outside(Direction::I) - halo_descriptors[0].loop_low_bound_outside(Direction::I) + 1; \
+            uint_t ny = halo_descriptors[1].loop_high_bound_outside(Direction::J) - halo_descriptors[1].loop_low_bound_outside(Direction::J) + 1; \
+            uint_t nz = halo_descriptors[2].loop_high_bound_outside(Direction::K) - halo_descriptors[2].loop_low_bound_outside(Direction::K) + 1; \
+            uint_t nbx = (nx + ntx - 1) / ntx;                             \
+            uint_t nby = (ny + nty - 1) / nty;                             \
+            uint_t nbz = (nz + ntz - 1) / ntz;                             \
             dim3 blocks(nbx, nby, nbz);                                 \
             printf("nx = %d, ny = %d, nz = %d\n", nx,ny,nz);            \
             loop_kernel<<<blocks,threads>>>(boundary_function,          \
@@ -97,7 +97,7 @@ namespace gridtools {
         BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY_IT, _)
 
 /**
-   @brief this macro expands to n definition of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+   @brief this macro expands to n definitions of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
 */
 #define GTAPPLY(z, n, nil)                                                \
         template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) > \

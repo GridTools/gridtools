@@ -222,7 +222,6 @@ int main(int argc, char** argv) {
                 lap.data[(i+1)*m+j] = 3*storage.data[(i+1)*m+j] -
                     (storage.data[(i+1)*m+j+1]+storage.data[(i+1)*m+j-1]+storage.data[(i+1)*m+j+((j&1)?-m:m)]);
             }
-
         }
         boost::timer::cpu_times lapse_time_lap = time_lap.elapsed();
 

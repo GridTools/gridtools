@@ -12,7 +12,7 @@ Recursive templates used to perform compile-time loop unrolling
 namespace gridtools {
 
 /** @brief Product of all the elements of a generic array accessed with the [] operator, whose dimension is a compile-time constant*/
-    template <int D>
+    template <int_t D>
     struct prod;
 
     template <>
@@ -24,7 +24,7 @@ namespace gridtools {
     };
 
 
-    template <int D>
+    template <int_t D>
     struct prod {
       template <typename ARRAY>
       int operator()(ARRAY const & dimensions) const {
@@ -34,7 +34,7 @@ namespace gridtools {
     };
 
 /** @brief given two vectors \f$a\f$ and \f$b\f$ it implements: \f$\sum_i(a(i)\prod_{j=0}^{i-1}b(j))\f$ */
-    template <int D>
+    template <uint_t D>
     struct access_to;
 
     template <>
@@ -47,7 +47,7 @@ namespace gridtools {
       }
     };
 
-    template <int D>
+    template <uint_t D>
     struct access_to {
       template <typename ARRAY>
       int operator()(ARRAY const & indices,
@@ -61,18 +61,18 @@ namespace gridtools {
 
 
     struct bounds_sizes {
-      int imin;
-      int imax;
-      int sizes;
+      uint_t imin;
+      uint_t imax;
+      uint_t sizes;
     };
 
     struct bounds {
-      int imin;
-      int imax;
+      uint_t imin;
+      uint_t imax;
     };
 
 /**@brief of each element of an array it performs a loop between the array bounds defined in a template parameter, and it computes a function of type F */
-    template <int I, typename F>
+    template <uint_t I, typename F>
     struct access_loop;
 
     template <typename F>
@@ -80,19 +80,19 @@ namespace gridtools {
       template <typename arraybounds, typename array>
       void operator()(arraybounds const & ab,
                       array const &sizes,
-                      F &f, int idx=0) {
+                      F &f, uint_t idx=0) {
         f(idx);
       }
     };
 
-    template <int I, typename F>
+    template <uint_t I, typename F>
     struct access_loop {
       template <typename arraybounds, typename array>
       void operator()(arraybounds const & ab,
                       array const &sizes,
-                      F &f, int idx=0) {
-        int midx;
-        for (int i=ab[I-1].imin; i<=ab[I-1].imax; ++i) {
+                      F &f, uint_t idx=0) {
+        uint_t midx;
+        for (uint_t i=ab[I-1].imin; i<=ab[I-1].imax; ++i) {
           midx = idx+i* prod<I-2>()(sizes);
           access_loop<I-1,F>()(ab, sizes, f, midx);
         }
@@ -100,7 +100,7 @@ namespace gridtools {
     };
 
 
-    template <int I>
+    template <uint_t I>
     struct loop;
 
     template <>
@@ -112,12 +112,12 @@ namespace gridtools {
       }
     };
 
-    template <int I>
+    template <uint_t I>
     struct loop {
       template <typename F, typename arraybounds, typename array>
       void operator()(arraybounds const & ab,
                       F const &f, array & tuple) {
-        for (int i=ab[I-1].imin; i<=ab[I-1].imax; ++i) {
+        for (uint_t i=ab[I-1].imin; i<=ab[I-1].imax; ++i) {
           tuple[I-1]=i;
           loop<I-1>()(ab, f, tuple);
         }
@@ -125,10 +125,10 @@ namespace gridtools {
     };
 
 /** @brief similar to the previous struct, given the upper and lower bound */
-    template <int I, int LB=-1, int UB=1>
+    template <uint_t I, int_t LB=-1, uint_t UB=1>
     struct neigh_loop;
 
-    template <int LB, int UB>
+    template <int_t LB, uint_t UB>
     struct neigh_loop<0,LB,UB> {
       template <typename F, typename array>
       void operator()(F &f, array & tuple) {
@@ -136,7 +136,7 @@ namespace gridtools {
       }
     };
 
-    template <int I, int LB, int UB>
+    template <uint_t I, int_t LB, uint_t UB>
     struct neigh_loop {
       template <typename F, typename array>
       void operator()(F &f, array & tuple) {

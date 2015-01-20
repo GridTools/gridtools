@@ -1,35 +1,41 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 
+/**@file
+@brief type definitions and structures specific for the CUDA backend*/
 namespace gridtools{
 
+    /**forward declaration*/
     namespace _impl_cuda{
         template <typename Arguments>
         struct run_functor_cuda;
     }
 
-    template <enumtype::backend BE, typename T, typename U, bool B>
+    /**forward declaration*/
+    template <enumtype::backend BE, typename T, typename U, bool B, short_t SpaceDim>
     struct base_storage;
 
-    // template <typename ValueType, typename Layout, bool Temp>
-    // struct cuda_storage;
+    /**forward declaration*/
+    template <typename U>
+      struct storage;
 
+    /**forward declaration*/
     template<typename T>
     struct hybrid_pointer;
 
+    /**forward declaration*/
     template<enumtype::backend T>
     struct backend_from_id;
 
-/** traits struct defining the types which are specific to the CUDA backend*/
+/** @brief traits struct defining the types which are specific to the CUDA backend*/
     template<>
     struct backend_from_id< enumtype::Cuda >
     {
 
-        template <typename ValueType, typename Layout, bool Temp=false >
+        template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            //POL
-            typedef base_storage< enumtype::Cuda, ValueType, Layout, Temp> storage_t;
+            typedef storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp, SpaceDim> > storage_t;
         };
 
         template <typename Arguments>
@@ -49,17 +55,31 @@ namespace gridtools{
             }
 
         template <typename T>
-	  inline static void delete_storage(hybrid_pointer<T>& data){ data.free_it();}
-
-        template <typename T>
         struct pointer
         {
             typedef hybrid_pointer<T> type;
         };
 
-        GT_FUNCTION
-        static void assertion(bool const condition)  {
-        }
-
     };
+
+    template <enumtype::backend, uint_t Id>
+    struct once_per_block;
+
+#ifdef __CUDACC__
+    /**
+       @brief assigns the two given values using the given thread Id whithin the block
+     */
+    template <uint_t Id>
+    struct once_per_block<enumtype::Cuda, Id>{
+	template<typename Left, typename Right>
+	GT_FUNCTION
+	static void assign(Left& l, Right const& r){
+	    if(threadIdx.x==Id)
+	    {
+		l=r;
+	    }
+	}
+    };
+#endif
+
 }//namespace gridtools

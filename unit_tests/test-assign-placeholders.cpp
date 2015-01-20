@@ -31,16 +31,16 @@ bool assign_placeholders() {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
 
-    int d1=5;
-    int d2=5;
-    int d3=5;
+    uint_t d1=5;
+    uint_t d2=5;
+    uint_t d3=5;
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
+    storage_type coeff(d1,d2,d3,8, "coeff");
 
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
@@ -66,5 +66,3 @@ bool assign_placeholders() {
             (boost::fusion::at_c<4>(domain.storage_pointers) == &in) &&
             (boost::fusion::at_c<5>(domain.storage_pointers) == &out));
 }
-
-
