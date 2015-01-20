@@ -260,9 +260,9 @@ namespace gridtools {
         explicit base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type* ptr, char const* s="default storage"
 	    ):
             is_set( true ),
-            m_name(s),
-	    m_fields{pointer_type(ptr, true)}
+            m_name(s)
             {
+		m_fields[0]=pointer_type(ptr, true);
 		m_dims[0]=dim1;
 		m_dims[1]=dim2;
 		m_dims[2]=dim3;
