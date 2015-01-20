@@ -78,7 +78,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
      irrelevant. Setting it to be periodic is the best choice, then
      GCL can deal with any periodicity easily.
   */
-  pattern_type he(typename pattern_type::grid_type::period_type(per0, per1, per2), CartComm, file);
+  pattern_type he(typename pattern_type::grid_type::period_type(per0, per1, per2), CartComm);
 
 
   /* Next we need to describe the data arrays in terms of halo

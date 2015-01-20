@@ -283,18 +283,9 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        template <typename File>
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, File& file = std::cout)
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
             : hd(c.template permute<layout2proc_map_abs>(), comm)//, periodicity(c)
-        {
-            file << "T_layout_map "
-                 << T_layout_map()
-                 << ", layout2proc_map_abs "
-                 << layout2proc_map_abs()
-                 << ", layout2proc_map "
-                 << layout2proc_map()
-                 << std::endl;
-        }
+        { }
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
 
