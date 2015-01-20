@@ -97,7 +97,12 @@ namespace gridtools {
         struct l_get_index {
             template <typename U>
             struct apply {
-                typedef typename boost::mpl::integral_c<int, U::index_type::value> type;
+#ifndef CXX11_ENABLED
+                typedef typename static_uint< U::index_type::value >::type
+#else
+                typedef static_uint< U::index_type::value >
+#endif
+type;
             };
         };
 
@@ -132,9 +137,9 @@ namespace gridtools {
         };
 
         struct moveto_functor {
-            int i,j,k;
+            uint_t i,j,k;
             GT_FUNCTION
-            moveto_functor(int i, int j, int k)
+            moveto_functor(uint_t i, uint_t j, uint_t k)
                 : i(i)
                 , j(j)
                 , k(k)
@@ -147,11 +152,11 @@ namespace gridtools {
                 printf("CIAOLLLL %X\n", &a);//, (boost::fusion::at<boost::mpl::int_<1> >(a)));
 #endif
                 //                (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k);
-                boost::fusion::at<boost::mpl::int_<0> >(a) = &( (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k) );
+                boost::fusion::at<static_int<0> >(a) = &( (*(boost::fusion::at<static_int<1> >(a)))(i,j,k) );
             }
         };
 
-        template <int DIR>
+        template <ushort_t DIR>
         struct increment_functor {
             template <typename ZipElem>
             GT_FUNCTION

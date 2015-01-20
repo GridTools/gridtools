@@ -9,7 +9,7 @@ add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
 if ( ENABLE_CXX11 )
     add_executable(test-independent test-independent.cpp)
-    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 endif()
 
@@ -23,7 +23,7 @@ if (GTEST_FOUND)
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
   link_directories( ${Boost_LIBRARY_DIRS} )
 
-  set_target_properties(tests PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}")
+  set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
@@ -73,3 +73,15 @@ endif()
 endif()
 
 add_subdirectory( communication )
+
+if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+add_custom_target(python_tests)
+  message("enabling Python unit tests")
+  message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
+
+  add_custom_command(TARGET python_tests
+		     POST_BUILD
+		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_run_tests.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
+		     COMMENT "Running Python automatic tests" VERBATIM
+		   )
+endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)

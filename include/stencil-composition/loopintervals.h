@@ -38,7 +38,7 @@ namespace gridtools {
         BOOST_MPL_ASSERT_MSG(
                              (!boost::mpl::empty<TDoMethods>::value),
                              NO_FUNCTOR_DO_METHODS_DEFINED_IN_THE_GIVEN_AXIS_INTERVAL,
-                             (TDoMethods) 
+                             (TDoMethods)
                              );
 
         // add all do method vector from level indexes
@@ -103,11 +103,11 @@ namespace gridtools {
 
         // check that there are at least two levels
         BOOST_STATIC_ASSERT(boost::mpl::size<OrderedFromIndexes>::value >= 2);
-    
+
         // iterate over all levels and group succeeding levels into intervals
         // (note that the prior is ok as do methods do not end at the maximum or minimum offsets of a splitter)
         typedef typename boost::mpl::fold<
-            boost::mpl::range_c<int, 0, boost::mpl::size<OrderedFromIndexes>::value - 1>,
+            boost::mpl::range_c<uint_t, 0, boost::mpl::size<OrderedFromIndexes>::value - 1>,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
@@ -115,8 +115,8 @@ namespace gridtools {
                     boost::mpl::at<OrderedFromIndexes, boost::mpl::_2>,
                     boost::mpl::prior<
                         boost::mpl::at<
-                            OrderedFromIndexes, 
-                            boost::mpl::next<boost::mpl::_2> 
+                            OrderedFromIndexes,
+                            boost::mpl::next<boost::mpl::_2>
                             >
                         >
                     >

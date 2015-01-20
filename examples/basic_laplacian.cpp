@@ -26,8 +26,8 @@ int main_naive(int argc, char** argv) {
     std::ofstream file_i("basic_naive_in");
     std::ofstream file_o("basic_naive_out");
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
+    storage_type in(d1,d2,d3,-1., "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
     out.print(file_i);
 
     boost::timer::cpu_timer time;
@@ -71,8 +71,8 @@ int main_block(int argc, char** argv) {
     std::ofstream file_i("basic_block_in");
     std::ofstream file_o("basic_block_out");
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
     out.print(file_i);
 
     boost::timer::cpu_timer time;

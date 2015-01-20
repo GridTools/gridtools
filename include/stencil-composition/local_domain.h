@@ -28,18 +28,18 @@ namespace gridtools {
             };
         };
 
-	// iterator decorator
-	template <typename U>
-	  struct strided_iterator  {
-	    typename U::iterator_type value; //double*
-	    int stride;
-	  };
+	/* // iterator decorator */
+	/* template <typename U> */
+	/*   struct strided_iterator  { */
+	/*     typename U::iterator_type value; //double* */
+	/*     /\* uint_t stride; *\/ */
+	/*   }; */
 
         struct get_iterator {
             template <typename U>
             struct apply {
-	      typedef strided_iterator<U> type;
-	      
+	      typedef typename  U::iterator_type type;
+
             };
         };
 
@@ -92,7 +92,7 @@ namespace gridtools {
         typedef typename EsfDescriptor::esf_function esf_function;
 
 
-        typedef boost::mpl::range_c<int, 0, boost::mpl::size<esf_args>::type::value > the_range;
+        typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<esf_args>::type::value > the_range;
         typedef typename boost::mpl::fold<the_range,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -122,14 +122,14 @@ namespace gridtools {
 
         local_args_type local_args;
 
-        template <typename Dom, typename IsActuallyClonable, int DUMMY = 0>
+        template <typename Dom, typename IsActuallyClonable, uint_t DUMMY = 0>
         struct pointer_if_clonable {
             static Dom* get(Dom* d) {
                 return d;
             }
         };
 
-        template <typename Dom, int DUMMY>
+        template <typename Dom, uint_t DUMMY>
         struct pointer_if_clonable<Dom, boost::true_type, DUMMY> {
             static Dom* get(Dom* d) {
                 return d->gpu_object_ptr;
@@ -230,7 +230,7 @@ namespace gridtools {
 
         template <typename Domain, typename ArgList>
         GT_FUNCTION
-        void init(Domain const& dom, ArgList const& arg_list, int, int, int)
+        void init(Domain const& dom, ArgList const& arg_list, uint_t, uint_t, uint_t)
         {
             base_type::init(dom, arg_list);
 #ifndef NDEBUG
@@ -240,12 +240,13 @@ namespace gridtools {
 #endif
         }
 
+/**stub methods*/
         GT_FUNCTION
-        int i() const {return -1; }
+        uint_t i() const {return 1e9; }
         GT_FUNCTION
-        int j() const {return -1; }
+        uint_t j() const {return 1e9; }
         GT_FUNCTION
-        int k() const {return -1; }
+        uint_t k() const {return 1e9; }
     };
 
     template <typename StoragePointers, typename Iterators, typename EsfDescriptor>

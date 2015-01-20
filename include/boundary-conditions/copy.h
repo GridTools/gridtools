@@ -15,7 +15,7 @@ namespace gridtools {
         void operator()(Direction,
                         DataField0 & data_field0,
                         DataField1 const & data_field1,
-                        int i, int j, int k) const {
+                        uint_t i, uint_t j, uint_t k) const {
             data_field0(i,j,k) = data_field1(i,j,k);
         }
 
@@ -25,7 +25,7 @@ namespace gridtools {
                         DataField0 & data_field0,
                         DataField1 & data_field1,
                         DataField2 const & data_field2,
-                        int i, int j, int k) const {
+                        uint_t i, uint_t j, uint_t k) const {
             data_field0(i,j,k) = data_field2(i,j,k);
             data_field1(i,j,k) = data_field2(i,j,k);
         }
