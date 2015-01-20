@@ -74,11 +74,11 @@ namespace gridtools {
             return layout_vector[i];
         }
 
-        GT_FUNCTION
-        ushort_t constexpr operator[](ushort_t i) const {
-            //assert( i<length );
-            return get(i);
-        }
+        // GT_FUNCTION
+        // ushort_t constexpr operator[](ushort_t i) const {
+        //     //assert( i<length );
+        //     return get(i);
+        // }
 
         struct transform_in_type{
             template<ushort_t T>
@@ -177,6 +177,7 @@ namespace gridtools {
         };
 
     };
+
 #else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
     namespace _impl {
@@ -740,16 +741,6 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     struct default_layout_map<4> {
         typedef layout_map<0,1,2,3> type;
     };
-
-    template <int I1, int I2, int I3, int I4>
-    std::ostream& operator<<(std::ostream& s, layout_map<I1,I2,I3,I4>) {
-        return s << "layout_map< " 
-                 << I1 << ", "
-                 << I2 << ", "
-                 << I3 << ", "
-                 << I4 << "> ";
-
-    }
 
 } // namespace gridtools
 
