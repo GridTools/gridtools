@@ -172,7 +172,7 @@ namespace gridtools {
                 {}
 
 	    GT_FUNCTION
-	    constexpr Dimension(Dimension const& other):value{other.value}{}
+	    constexpr Dimension(Dimension const& other):value(other.value){}
 
             static const ushort_t direction=Coordinate;
             int_t value;
