@@ -38,7 +38,7 @@ bool test_cuda_storage() {
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type data(d1,d2,d3,-1, std::string("data"));
+    storage_type data(d1,d2,d3,-1, ("data"));
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {

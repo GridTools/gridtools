@@ -161,8 +161,8 @@ int main(int argc, char** argv) {
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
     out.print(file_i);
 
     /**
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
 
     //    in.print();

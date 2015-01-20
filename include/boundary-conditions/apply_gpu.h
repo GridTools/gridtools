@@ -97,7 +97,7 @@ namespace gridtools {
         BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY_IT, _)
 
 /**
-   @brief this macro expands to n definition of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
+   @brief this macro expands to n definitions of the function apply, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
 */
 #define GTAPPLY(z, n, nil)                                                \
         template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) > \

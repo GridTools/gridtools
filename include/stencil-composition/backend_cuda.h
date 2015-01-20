@@ -15,7 +15,6 @@
 #include <boost/fusion/include/value_at.hpp>
 
 #include "execution_policy.h"
-#include "../storage/cuda_storage.h"
 #include "heap_allocated_temps.h"
 #include "../storage/hybrid_pointer.h"
 
@@ -42,19 +41,30 @@ namespace gridtools {
 	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
 	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
-	    /* __shared__ float_type* m_data_pointer[Traits::local_domain_t::iterate_domain_t::N_DATA_POINTERS]; */
+	    typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+	    __shared__
+	    typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+
+	    //Doing construction and assignment before the following 'if', so that we can
+	    //exploit parallel shared memory initialization
+	    typename Traits::iterate_domain_t it_domain(*l_domain);
+	    it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+	    __syncthreads();
 
             if ((i < nx) && (j < ny)) {
-	      typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
-	      typedef typename index_to_level<typename interval::first>::type from;
-	      typedef typename index_to_level<typename interval::second>::type to;
-	      typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
-	      typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-	      typename Traits::iterate_domain_t it_domain(*l_domain, i+starti,j+startj/*, m_data_pointer*/,0,0);
-	      //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );	      //setting the initial k level (for backward/parallel iterations it is not 0)
-	      if( !iteration_policy::value==enumtype::forward )
-              it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+		it_domain.assign_ij<0>(i+starti,0);
+		it_domain.assign_ij<1>(j+startj,0);
+
+		typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
+		typedef typename index_to_level<typename interval::first>::type from;
+		typedef typename index_to_level<typename interval::second>::type to;
+		typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
+
+		//printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
+		//setting the initial k level (for backward/parallel iterations it is not 0)
+		if( !iteration_policy::value==enumtype::forward )
+		    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
@@ -174,12 +184,15 @@ namespace gridtools {
 
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
+		// number of threads
                 uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
                 uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
 
+		// blocks dimension
                 uint_t ntx = 8, nty = 32;//, ntz = 1;
                 /* dim3 threads(ntx, nty, ntz); */
 
+		//number of blocks
                 ushort_t nbx = (nx + ntx - 1) / ntx;
                 ushort_t nby = (ny + nty - 1) / nty;
                 //ushort_t nbz = 1;

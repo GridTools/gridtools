@@ -95,14 +95,14 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 }
 
 
-struct print {
+struct print_independent {
     std::string prefix_;
 
-    print()
+    print_independent()
         :prefix_("")
     {}
 
-    print(std::string const &s)
+    print_independent(std::string const &s)
         : prefix_(s)
     {}
 
@@ -115,7 +115,7 @@ struct print {
     template <typename MplVector>
     void operator()(independent_esf<MplVector> const&) const {
         std::cout << "Independent" << std::endl;
-        boost::mpl::for_each<MplVector>(print(prefix_ + std::string("    ")));
+        boost::mpl::for_each<MplVector>(print_independent(prefix_ + std::string("    ")));
         std::cout << "End Independent" << std::endl;
     }
 };
@@ -154,11 +154,11 @@ struct print_ {
 template<typename MSS>
 void print_mss(MSS)
 {
-    boost::mpl::for_each<typename MSS::linear_esf>(print(std::string(">")));
+    boost::mpl::for_each<typename MSS::linear_esf>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
-    boost::mpl::for_each<typename MSS::esf_array>(print(std::string(">")));
+    boost::mpl::for_each<typename MSS::esf_array>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 

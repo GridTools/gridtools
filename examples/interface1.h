@@ -163,9 +163,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
+    storage_type coeff(d1,d2,d3,8, "coeff");
 
 #ifndef SILENT_RUN
     out.print();
@@ -310,7 +310,7 @@ PAPI_stop(event_set, values);
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
 
 #ifndef SILENT_RUN
