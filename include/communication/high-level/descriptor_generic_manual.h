@@ -1,6 +1,7 @@
 #ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
 #define _DESCRIPTOR_GENERIC_MANUAL_H_
 
+#include "gcl_parameters.h"
 #include "descriptor_base.h"
 
 #ifdef __CUDACC__
@@ -109,36 +110,36 @@ namespace gridtools {
      
         typedef typename field_on_the_fly<DataType, f_layoutmap, traits>::layoutmap t_layoutmap;
         gridtools::array<int, DIMS> eta;
-      for (int i=-1; i<=1; ++i) {
-        for (int j=-1; j<=1; ++j) {
-          for (int k=-1; k<=1; ++k) {
-            if (i!=0 || j!=0 || k!=0) {
-              eta[0]=i;
-              eta[1]=j;
-              eta[2]=k;
-              int S=1;
-              S = halo_example.send_buffer_size(eta);
-              int R=1;
-              R = halo_example.recv_buffer_size(eta);
+        for (int i=-1; i<=1; ++i) {
+            for (int j=-1; j<=1; ++j) {
+                for (int k=-1; k<=1; ++k) {
+                    if (i!=0 || j!=0 || k!=0) {
+                        eta[0]=i;
+                        eta[1]=j;
+                        eta[2]=k;
+                        int S=1;
+                        S = halo_example.send_buffer_size(eta);
+                        int R=1;
+                        R = halo_example.recv_buffer_size(eta);
 
-              send_buffer_size[translate()(i,j,k)] = (S*max_fields_n*typesize);
-              recv_buffer_size[translate()(i,j,k)] = (R*max_fields_n*typesize);
+                        send_buffer_size[translate()(i,j,k)] = (S*max_fields_n*typesize);
+                        recv_buffer_size[translate()(i,j,k)] = (R*max_fields_n*typesize);
 
-              // std::cout << halo_example << std::endl;
-              // std::cout << "Send size to " 
-              //           << i << ", "
-              //           << j << ", "
-              //           << k << ": "
-              //           << send_buffer_size[translate()(i,j,k)]
-              //           << std::endl;
-              // std::cout << "Recv size fr " 
-              //           << i << ", "
-              //           << j << ", "
-              //           << k << ": "
-              //           << recv_buffer_size[translate()(i,j,k)]
-              //           << std::endl;
-              // std::cout << std::endl;
-              // std::cout.flush();
+                        // std::cout << halo_example << std::endl;
+                        // std::cout << "Send size to " 
+                        //           << i << ", "
+                        //           << j << ", "
+                        //           << k << ": "
+                        //           << send_buffer_size[translate()(i,j,k)]
+                        //           << std::endl;
+                        // std::cout << "Recv size fr " 
+                        //           << i << ", "
+                        //           << j << ", "
+                        //           << k << ": "
+                        //           << recv_buffer_size[translate()(i,j,k)]
+                        //           << std::endl;
+                        // std::cout << std::endl;
+                        // std::cout.flush();
 
               send_buffer[translate()(i,j,k)] = _impl::gcl_alloc<char, arch_type>::alloc(send_buffer_size[translate()(i,j,k)]);
               recv_buffer[translate()(i,j,k)] = _impl::gcl_alloc<char, arch_type>::alloc(recv_buffer_size[translate()(i,j,k)]);

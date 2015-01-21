@@ -22,7 +22,7 @@ else(GCL_ONLY)
   ### L2
   if( GCL_MPI )
     #CPU 2D MPI tests
-    foreach(srcfile test_async_progress_3D_generic test_all_to_all_halo test_all_to_all_ij_ji test_all_to_all_halo_3D test_halo_exchange test_halo_exchange_2D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_2D_generic test_halo_exchange_3D_generic_full)
+    foreach(srcfile test_all_to_all_halo test_all_to_all_ij_ji test_all_to_all_halo_3D test_halo_exchange test_halo_exchange_2D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_2D_generic test_halo_exchange_3D_generic_full)
       add_executable( ${srcfile} ../../examples/communication/${srcfile}.cpp)
       add_dependencies(${srcfile} gcl)
       set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS}")
@@ -66,10 +66,6 @@ else(GCL_ONLY)
         cuda_add_executable( cuda_test_halo_exchange_3D_generic ../../examples/communication/test_halo_exchange_3D_generic.cu )
         add_dependencies( cuda_test_halo_exchange_3D_generic gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_generic gcl ${CUDA_MPI_LIB} )
-
-        cuda_add_executable( cuda_test_async_progress_3D_generic ../../examples/communication/test_async_progress_3D_generic.cu )
-        add_dependencies( cuda_test_async_progress_3D_generic gcl )
-        target_link_libraries( cuda_test_async_progress_3D_generic gcl ${CUDA_MPI_LIB} )
 
         cuda_add_executable( cuda_test_halo_exchange_3D_generic_full ../../examples/communication/test_halo_exchange_3D_generic_full.cu )
         add_dependencies( cuda_test_halo_exchange_3D_generic_full gcl )

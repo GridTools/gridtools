@@ -74,11 +74,11 @@ namespace gridtools {
             return layout_vector[i];
         }
 
-        // GT_FUNCTION
-        // ushort_t constexpr operator[](ushort_t i) const {
-        //     //assert( i<length );
-        //     return get(i);
-        // }
+        GT_FUNCTION
+        short_t operator[](ushort_t i) {
+            assert( i<length );
+            return layout_vector[i];
+        }
 
         struct transform_in_type{
             template<ushort_t T>
