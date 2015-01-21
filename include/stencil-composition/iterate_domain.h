@@ -76,7 +76,7 @@ namespace gridtools {
             }
         };
 
-        /**@brief static function decrementin the iterator with the stride on the vertical direction*/
+        /**@brief static function decrementing the iterator with the stride on the vertical direction*/
         template<uint_t ID>
         struct decrement_k {
             template<typename LocalArgs>
@@ -259,7 +259,9 @@ namespace gridtools {
     struct iterate_domain {
 	typedef typename boost::remove_pointer<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0>::type>::type::value_type float_t;
         typedef typename LocalDomain::local_args_type local_args_type;
+	//the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<local_args_type>::value;
+	//the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages< local_args_type
                                                             , boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
         /**@brief constructor of the iterate_domain struct
@@ -343,11 +345,15 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value(ArgType const& arg , StoragePointer & storage_pointer) const
             {
-
+		//the following assert fails when an out of bound access is observed, i.e. either one of
+		//i+offset_i or j+offset_j or k+offset_k is too large.
+		//Most probably this is due to you specifying an offset which is larger than expected,
+		//or maybe you did a mistake when specifying the ranges in the placehoders definition
 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->offset(arg.i(),arg.j(),arg.k()));
 
+		//the following assert should never fail, unless bugs in the library
 		assert( m_index[ArgType::index_type::value]
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->offset(arg.i(),arg.j(),arg.k()) >= 0);

@@ -35,6 +35,46 @@ namespace gridtools{
             typedef typename enumtype::execute<IterationType>::type execution_engine;
             typedef ExtraArguments traits;
 
+
+	    //////////////////////Compile time checks ////////////////////////////////////////////////////////////
+	    //checking that all the placeholders have a different index
+	    /**
+	     * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
+	     * note that the static const indexes are transformed into types using mpl::integral_c
+	     */
+	    typedef typename boost::mpl::transform<typename traits::functor_t::arg_list,
+						   _impl::l_get_index
+						   >::type raw_index_list;
+
+	    static const uint_t len=boost::mpl::size<raw_index_list>::value;
+
+
+	    //check if the indexes are repeated (a common error is to define 2 types with the same index)
+	    //this method is the same one used in \ref gridtools::domain_type to verify that the indices are not repeated
+	    typedef typename boost::mpl::fold<raw_index_list,
+					      boost::mpl::set<>,
+					      boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+					      >::type index_set;
+	    //actual check if the user specified placeholder arguments with the same index
+	    BOOST_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ));
+
+	    //checking if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+
+	    typedef boost::mpl::range_c<uint_t ,0,len> range_t;
+	    typedef typename boost::mpl::fold<range_t,
+					      boost::mpl::vector<>,
+					      boost::mpl::if_<boost::mpl::less<boost::mpl::at<raw_index_list, boost::mpl::_2>, static_int<len> >,
+							      boost::mpl::push_back<
+							      boost::mpl::_1,
+								  boost::mpl::find<raw_index_list, boost::mpl::_2>
+								  >,
+							      boost::mpl::_1>
+                                          >::type test_holes;
+	    //actual check if the user specified placeholder arguments missing some indexes (there's a hole in the indexing)
+	    BOOST_STATIC_ASSERT((len == boost::mpl::size<test_holes>::type::value ));
+	    //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
             GT_FUNCTION
             explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
 

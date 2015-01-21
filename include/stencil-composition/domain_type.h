@@ -13,6 +13,7 @@
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/set.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
@@ -59,12 +60,33 @@ namespace gridtools {
                                                _impl::l_get_index
                                                >::type raw_index_list;
 
+	//check if the indexes are repeated (a common error is to define 2 types with the same index)
+	typedef typename boost::mpl::fold<raw_index_list,
+					  boost::mpl::set<>,
+					  boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+					  >::type index_set;
+	//actual check if the user specified placeholder arguments with the same index
+	BOOST_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ));
+
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
          e.g. [0,1,2,3,4]
          */
         typedef boost::mpl::range_c<uint_t ,0,len> range_t;
     private:
+
+	//check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+        typedef typename boost::mpl::fold<range_t,
+                                          boost::mpl::vector<>,
+					  boost::mpl::if_<boost::mpl::less<boost::mpl::at<raw_index_list, boost::mpl::_2>, static_int<len> >,
+							  boost::mpl::push_back<
+							      boost::mpl::_1,
+							      boost::mpl::find<raw_index_list, boost::mpl::_2>
+							      >,
+							  boost::mpl::_1>
+                                          >::type test_holes;
+	//actual check if the user specified placeholder arguments missing some indexes
+	BOOST_STATIC_ASSERT((len == boost::mpl::size<test_holes>::type::value ));
 
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
@@ -204,7 +226,7 @@ namespace gridtools {
 
             view_type fview(storage_pointers);
 
-            BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
+	    BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type> ) );
 
 // #ifndef NDEBUG
 	    //the following creates an empty storage (problems with its destruction)
@@ -273,7 +295,7 @@ namespace gridtools {
             //           << std::endl;
         }
 
-        /** @brief copy the pointers from the hdevice to the host */
+        /** @brief copy the pointers from the device to the host */
         void finalize_computation() {
             boost::fusion::for_each(original_pointers, _impl::call_d2h());
             boost::fusion::copy(original_pointers, storage_pointers);
