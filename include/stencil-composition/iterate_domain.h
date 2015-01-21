@@ -347,13 +347,18 @@ namespace gridtools {
             {
 		//the following assert fails when an out of bound access is observed, i.e. either one of
 		//i+offset_i or j+offset_j or k+offset_k is too large.
-		//Most probably this is due to you specifying an offset which is larger than expected,
+		//Most probably this is due to you specifying a positive offset which is larger than expected,
 		//or maybe you did a mistake when specifying the ranges in the placehoders definition
 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->offset(arg.i(),arg.j(),arg.k()));
 
-		//the following assert should never fail, unless bugs in the library
+		//the following assert fails when an out of bound access is observed,
+		//i.e. when some offset is negative and either one of
+		//i+offset_i or j+offset_j or k+offset_k is too small.
+		//Most probably this is due to you specifying a negative offset which is
+		//smaller than expected, or maybe you did a mistake when specifying the ranges
+		//in the placehoders definition
 		assert( m_index[ArgType::index_type::value]
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->offset(arg.i(),arg.j(),arg.k()) >= 0);
