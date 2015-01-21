@@ -18,11 +18,11 @@ namespace gridtools {
 
     typedef typename Traits<DataType>::base_field base_type;
 
-    typedef field_on_the_fly<DataType, layoutmap, Traits> this_type;
+    typedef field_on_the_fly<DataType, t_layoutmap, Traits> this_type;
 
     typedef DataType value_type;
 
-    typedef layoutmap layout_map;
+    typedef t_layoutmap layout_map;
 
     mutable DataType *ptr;
 
@@ -31,15 +31,15 @@ namespace gridtools {
     field_on_the_fly() {};
 
     template <typename T1>
-    field_on_the_fly<T1, layoutmap, Traits>& retarget() {
+    field_on_the_fly<T1, t_layoutmap, Traits>& retarget() {
       void* tmp = this;
-      return *(reinterpret_cast<field_on_the_fly<T1, layoutmap, Traits>*>(tmp));
+      return *(reinterpret_cast<field_on_the_fly<T1, t_layoutmap, Traits>*>(tmp));
     }
 
     template <typename T1>
-    field_on_the_fly<T1, layoutmap, Traits> copy() const {
+    field_on_the_fly<T1, t_layoutmap, Traits> copy() const {
       const void* tmp = this;
-      return *(reinterpret_cast<const field_on_the_fly<T1, layoutmap, Traits>*>(tmp));
+      return *(reinterpret_cast<const field_on_the_fly<T1, t_layoutmap, Traits>*>(tmp));
     }
 
     void set_pointer(DataType* pointer) {

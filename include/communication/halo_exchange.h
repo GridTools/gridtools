@@ -588,6 +588,7 @@ namespace gridtools {
         */
         pattern_type const& pattern() const {return hd.pattern();}
 
+
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers. The sizes are computed mulplitplying the entities.
 
