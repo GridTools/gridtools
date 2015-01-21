@@ -49,7 +49,7 @@ namespace gridtools {
 
 		//check that the axis specified by the user are strictly containing the k interval
 		BOOST_STATIC_ASSERT(
-		    level_to_index<typename traits::coords_t::axis_type::FromLevel>::value < Interval::first::value &&
+		    level_to_index<typename traits::coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
 		    level_to_index<typename traits::coords_t::axis_type::ToLevel>::value >= Interval::second::value );
 
 		typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;

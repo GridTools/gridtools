@@ -14,6 +14,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/set.hpp>
+#include <boost/mpl/insert.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
