@@ -635,7 +635,7 @@ namespace gridtools {
     template <typename T1, typename T2, template <typename> class T3>
     void pack(std::vector<field_on_the_fly<T1,T2,T3> > const& _fields) {
 
-      typedef typename layout_transform<T2, proc_layout_abs>::type map_type;
+      typedef typename layout_transform<typename field_on_the_fly<T1,T2,T3>::inner_layoutmap, proc_layout_abs>::type map_type;
 
       std::vector<field_on_the_fly<T1,T2,T3> > fields = _fields;
 
@@ -795,7 +795,7 @@ namespace gridtools {
     */
     template <typename T1, typename T2, template <typename> class T3>
     void unpack(std::vector<field_on_the_fly<T1,T2,T3> > const& _fields) {
-      typedef typename layout_transform<T2, proc_layout_abs>::type map_type;
+        typedef typename layout_transform<typename field_on_the_fly<T1,T2,T3>::inner_layoutmap, proc_layout_abs>::type map_type;
 
       std::vector<field_on_the_fly<T1,T2,T3> > fields = _fields;
 
