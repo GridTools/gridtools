@@ -65,7 +65,7 @@ namespace gridtools{  namespace enumtype{
 }
 
 #ifdef CXX11_ENABLED
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, Message);
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "GRIDTOOLS ERROR=> " Message);
 #else
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition);
 #endif
