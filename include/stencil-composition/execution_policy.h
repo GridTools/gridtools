@@ -42,19 +42,11 @@ namespace gridtools{
 	     * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
 	     * note that the static const indexes are transformed into types using mpl::integral_c
 	     */
-	    typedef typename boost::mpl::transform<typename traits::functor_t::arg_list,
-						   _impl::l_get_index
-						   >::type raw_index_list;
+	    typedef _impl::compute_index_set<typename traits::functor_t::arg_list> check_holes;
+	    typedef typename check_holes::raw_index_list raw_index_list;
+	    typedef typename check_holes::index_set index_set;
+	    static const ushort_t len=check_holes::len;
 
-	    static const uint_t len=boost::mpl::size<raw_index_list>::value;
-
-
-	    //check if the indexes are repeated (a common error is to define 2 types with the same index)
-	    //this method is the same one used in \ref gridtools::domain_type to verify that the indices are not repeated
-	    typedef typename boost::mpl::fold<raw_index_list,
-					      boost::mpl::set<>,
-					      boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
-					      >::type index_set;
 	    //actual check if the user specified placeholder arguments with the same index
 	    GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "You specified different placeholders with the same index. Check the indexes of the arg_type definitions.");
 

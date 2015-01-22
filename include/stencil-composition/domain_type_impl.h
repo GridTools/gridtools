@@ -193,6 +193,31 @@ type;
             };
         };
 
+	template <typename OriginalPlaceholders>
+	struct compute_index_set{
+
+	    /**
+	     * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
+	     * note that the static const indexes are transformed into types using mpl::integral_c
+	     */
+	    typedef typename boost::mpl::transform<OriginalPlaceholders,
+						   l_get_index
+						   >::type raw_index_list;
+
+	    /**@brief length of the index list eventually with duplicated indices */
+	    static const uint_t len=boost::mpl::size<raw_index_list>::value;
+
+	    /**
+	       @brief filter out duplicates
+	       check if the indexes are repeated (a common error is to define 2 types with the same index)
+	     */
+	    typedef typename boost::mpl::fold<raw_index_list,
+					      boost::mpl::set<>,
+					      boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+					      >::type index_set;
+	};
+
+
     } // namespace _impl
 
 } // namespace gridtoold
