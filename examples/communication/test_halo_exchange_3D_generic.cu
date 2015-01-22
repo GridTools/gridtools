@@ -168,7 +168,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_c), halo_dsc);
   std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
 
-  //#define VECTOR_INTERFACE
+#define VECTOR_INTERFACE
 #ifdef VECTOR_INTERFACE
   vect[0] = field1_gpu;
   vect[1] = field2_gpu;

@@ -159,6 +159,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
   /* This is self explanatory now
    */
 
+#define VECTOR_INT
 #ifdef VECTOR_INT
   std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
   vect[0] = field1;
@@ -420,13 +421,13 @@ int main(int argc, char** argv) {
 // #define BENCH 5
 // #endif
 
-// #ifdef BENCH
-//   for (int i=0; i<BENCH; ++i) {
-//     file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
-//     run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
-//     file.flush();
-//   }
-// #else
+#ifdef BENCH
+  for (int i=0; i<BENCH; ++i) {
+    file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
+    run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
+    file.flush();
+  }
+#else
   file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
   run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
   file.flush();
@@ -639,7 +640,7 @@ int main(int argc, char** argv) {
   run<std::ostream, 2,1,0, false, false, false>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
   file.flush();
   file << "---------------------------------------------------\n";
-// #endif
+#endif
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
