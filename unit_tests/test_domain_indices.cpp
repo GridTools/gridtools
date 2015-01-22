@@ -97,9 +97,9 @@ bool test_domain_indices() {
     uint_t d2 = 10;
     uint_t d3 = 10;
 
-    storage_type in(d1,d2,d3,-1, "in");
+    storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
-    storage_type coeff(d1,d2,d3,8, "coeff");
+    storage_type coeff(d1,d2,d3,8., "coeff");
 
     typedef arg<2, tmp_storage_type > p_lap;
     typedef arg<1, tmp_storage_type > p_flx;

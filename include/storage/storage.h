@@ -25,12 +25,24 @@ namespace gridtools {
 	  :  super(other)
       {}
 
+	template<typename FloatType>
         explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ,
-                         typename BaseStorage::value_type init = typename BaseStorage::value_type(), char const* s = "default name" ): super(dim1, dim2, dim3, init, s) {
+                         FloatType init = float(), char const* s = "default name" ): super(dim1, dim2, dim3, init, s) {
         }
 
+
+	template<typename FloatType>
 	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, typename BaseStorage::value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
 
+#ifdef CXX11_ENABLED
+#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
+	//arbitrary dimensional field
+	template <class ... UIntTypes>
+	explicit storage(  UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(args ...)
+            {
+	    }
+#endif
+#endif
 	//    private :
 	explicit storage():super(){}
     };

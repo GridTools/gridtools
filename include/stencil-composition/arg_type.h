@@ -219,6 +219,25 @@ namespace gridtools {
     {
         return X::direction==N? x.value : initialize<N>(rest...);
     }
+
+    template<ushort_t ID>
+    struct initialize_all{
+	template <typename ... X>
+	static void constexpr apply(int_t* offset, X ... x)
+	    {
+		offset[ID]=initialize<ID>(x...);
+		initialize_all<ID-1>::apply(offset, x...);
+	    }
+    };
+
+    template<>
+    struct initialize_all<0>{
+	template <typename ... X>
+	static void constexpr apply(int_t* offset, X ... x)
+	    {
+		offset[0]=initialize<0>(x...);
+	    }
+    };
 #else
 
     /**@brief method for initializing the offsets in the placeholder
@@ -300,7 +319,7 @@ namespace gridtools {
 
 #if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9) )
 #warning "Obsolete version of the GCC compiler"
-        // GCC compiler bug solved in versions 4.9+, Clang is OK, the others were not tested
+        // GCC compiler bug solved in versions 4.9+, Clang is OK, other copmilers were not tested
         // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
         // we implement a suboptimal solution
         /**
@@ -372,14 +391,19 @@ namespace gridtools {
          */
         template <typename... X >
         GT_FUNCTION
-        constexpr arg_type ( X... x):m_offset{initialize<0>(x...), initialize<1>(x...), initialize<2>(x...)}{
-            //      if you get a compiler error here, use the version above
-        }
+        /*constexpr*/ arg_type ( X... x)//:m_offset{initialize<0>(x...), initialize<1>(x...), initialize<2>(x...)}
+	    {
+		/**how to initialize before the constructor body?
+		   Because of that this isn't a constexpr constructor, but it should be*/
+		/*TODO: initialize only the dimensions affected*/
+		initialize_all<dimension-1>::apply(m_offset, x...);
+		//      if you get a compiler error here, use the version above
+	    }
 #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
 
         /**@brief Default constructor
-           NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions, and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
+           NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
 #if( (!defined(CXX11_ENABLED)) || (defined(__CUDACC__ )))
         explicit arg_type()
@@ -392,6 +416,12 @@ namespace gridtools {
         constexpr explicit arg_type()
             : m_offset{0}  {}
 #endif
+
+        /**@brief returns the offset array*/
+        GT_FUNCTION
+        constexpr int_t const* offset() const {
+            return m_offset;
+        }
 
         /**@brief returns the offset in x direction*/
         GT_FUNCTION
@@ -467,7 +497,7 @@ namespace gridtools {
 
 
 //################################################################################
-//                              Multidimensionality
+//                              Multidimensional Fields
 //################################################################################
 
     /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
@@ -581,7 +611,7 @@ namespace gridtools {
        arg_extend<arg_type, 2>
        \endverbatim
      */
-    template <typename ArgType, uint_t Number>
+    template < typename ArgType, uint_t Number=2>
     struct arg_extend{
         typedef arg_decorator<typename arg_extend<ArgType, Number-1>::type>  type;
     };
@@ -591,12 +621,14 @@ namespace gridtools {
     struct arg_extend<ArgType, 0>{typedef ArgType type;};
 
 #ifdef CXX11_ENABLED
-/**this struct allows the specification of SOME of the arguments before instantiating the arg_type
-   it must become a language keyword (move it to arg_type.h?)
+/**this struct allows the specification of SOME of the arguments before instantiating the arg_type.
+   It is a language keyword.
 */
 template <typename Callable, typename ... Known>
 struct alias{
 
+    /**@brief constructor
+       \param args are the offsets which are already known*/
     template<typename ... Args>
     GT_FUNCTION
     constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
@@ -604,7 +636,11 @@ struct alias{
 
     typedef boost::mpl::vector<Known...> dim_vector;
 
-    //operator calls the constructor of the arg_type
+    /** @brief operator calls the constructor of the arg_type
+	\param unknowns are the parameters which were not known beforehand. They might be instances of
+	the enumtype::Dimension class. Together with the m_knowns offsets form the arguments to be
+	passed to the Callable functor (which is normally an instance of arg_type)
+     */
     template<typename ... Unknowns>
     GT_FUNCTION
     Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  )
@@ -635,10 +671,16 @@ private:
     struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
     {};
 
+    /**
+     * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding true
+     */
     template <uint_t I, enumtype::backend X, typename T, typename U, short_t Dim>
     struct is_plchldr_to_temp<arg<I, base_storage<X, T, U,  true, Dim> > > : boost::true_type
     {};
 
+    /**
+     * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding false
+     */
     template <uint_t I, enumtype::backend X, typename T, typename U, short_t Dim>
     struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false, Dim> > > : boost::false_type
     {};

@@ -324,8 +324,8 @@ namespace shallow_water{
 	    typedef extend_width<base_type2, 0>  extended_type2;
 	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
 #else
-	    typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
-            typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
+	    typedef field<storage_type::basic_type, 2, 2, 2>::type tmp_type;
+            typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;
 #endif
 	    typedef tmp_type::original_storage::pointer_type ptr;
 
@@ -351,7 +351,7 @@ namespace shallow_water{
 	    tmp.set<2,1>(out6, 0.);
 
             sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
-            sol.set<1>(out8, &bc_periodic<0,1>::droplet);//u
+            sol.set<1>(out8, 0.);//u
             sol.set<2>(out9, 0.);//v
 
             // sol.push_front<3>(out9, [](uint_t i, uint_t j, uint_t k) ->float_type {return 2.0*exp (-5*(i^2+j^2));});//h
