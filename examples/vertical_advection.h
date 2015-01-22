@@ -149,7 +149,7 @@ using namespace enumtype;
             (
                 gridtools::make_mss // mss_descriptor
                 (
-                    execute<parallel>(),
+                    execute<forward>(),
                     gridtools::make_esf<functor>(p_out(), p_in()) ),
                 domain, coords
                 );
