@@ -42,12 +42,26 @@ namespace gridtools {
                 return std::get<I>(std::make_tuple(args...));
             }
         };
+
+        template <int index>
+        static int __get(int i) {
+            return -1;
+        }
+ 
+        template <int index, int first, int... Vals>
+        static int __get(int i) {
+            if (i == index) {
+                return first;
+            } else {
+                return __get<index+1, Vals...>(i);
+            }
+        }
+ 
     }//namespace _impl
 
     template <short_t ... Args>
     struct layout_map{
         static constexpr ushort_t length=sizeof...(Args);
-        //typedef boost::mpl::vector_c<short_t, Args...> t;
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
 	typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
         /* static const int s=t::fuck(); */
@@ -77,7 +91,7 @@ namespace gridtools {
         GT_FUNCTION
         short_t operator[](ushort_t i) {
             assert( i<length );
-            return layout_vector[i];
+            return _impl::__get<0, Args...>(i);
         }
 
         struct transform_in_type{
