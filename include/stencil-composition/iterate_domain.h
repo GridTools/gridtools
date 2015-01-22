@@ -133,7 +133,7 @@ namespace gridtools {
 	template <typename StoragesVector, int_t index>
     struct total_storages{
 	    //the index must not exceed the number of storages
-	    BOOST_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value);
+	    GRIDTOOLS_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value, "the index must not exceed the number of storages");
 	    static const uint_t count=total_storages<StoragesVector, index-1>::count+
             boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<StoragesVector, index >::type>::type>
             ::type::field_dimensions;
@@ -227,7 +227,7 @@ namespace gridtools {
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #endif
                 //if the following fails, the ID is larger than the number of storage types
-                BOOST_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value);
+                GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value, "the ID is larger than the number of storage types");
 		// std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
                 assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
                     assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
@@ -421,8 +421,9 @@ namespace gridtools {
 
 	    //for the moment the extra dimensionality of the storage is limited to max 2
 	    //(3 space dim + 2 extra= 5, which gives n_args==4)
-	    BOOST_STATIC_ASSERT(N_DATA_POINTERS>0);
-	    BOOST_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4);
+	    GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
+	    GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4, "A storage with snapshots in more than 2 dimensions has not been implemented,\n\
+ you specicied a number too high for the arg_extension in the placeholder definition");
 
             return get_value(arg, m_data_pointer[storage_type::get_index(
 				     (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if

@@ -56,22 +56,13 @@ namespace gridtools{
 					      boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
 					      >::type index_set;
 	    //actual check if the user specified placeholder arguments with the same index
-	    BOOST_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ));
+	    GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "You specified different placeholders with the same index. Check the indexes of the arg_type definitions.");
 
 	    //checking if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
-
-	    typedef boost::mpl::range_c<uint_t ,0,len> range_t;
-	    typedef typename boost::mpl::fold<range_t,
-					      boost::mpl::vector<>,
-					      boost::mpl::if_<boost::mpl::less<boost::mpl::at<raw_index_list, boost::mpl::_2>, static_int<len> >,
-							      boost::mpl::push_back<
-							      boost::mpl::_1,
-								  boost::mpl::find<raw_index_list, boost::mpl::_2>
-								  >,
-							      boost::mpl::_1>
-                                          >::type test_holes;
-	    //actual check if the user specified placeholder arguments missing some indexes (there's a hole in the indexing)
-	    BOOST_STATIC_ASSERT((len == boost::mpl::size<test_holes>::type::value ));
+ 	    typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
+	    //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+	    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
+The numeration of the placeholders is not contiguous. You have to define each arg_type with a unique identifier ranging from 1 to N without \"holes\".");
 	    //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -95,11 +86,11 @@ namespace gridtools{
    @brief partial specialization for the parallel case (to be implemented)
    stub
 */
-        // template<
-        //     typename ExtraArguments>
-        // struct run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > >
-        // {
-	//     exit(-37);
-        // };
+        template<
+            typename ExtraArguments>
+        struct run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > >
+	{
+	    //*TODO implement me
+	};
     } // namespace _impl
 } // namespace gridtools

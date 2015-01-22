@@ -15,7 +15,7 @@ namespace gridtools {
     template<
         typename TFromLevel,
         typename TToLevel>
-    struct interval 
+    struct interval
     {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
@@ -27,16 +27,17 @@ namespace gridtools {
 
       static void static_info(){
 	printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);
-	printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);      
+	printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);
       }
         // check the parameters are of type level
-        BOOST_STATIC_ASSERT(is_level<TFromLevel>::value);
-        BOOST_STATIC_ASSERT(is_level<TToLevel>::value);
+        GRIDTOOLS_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");
+        GRIDTOOLS_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level");
 
         // check the from level is lower or equal to the to level
-        BOOST_STATIC_ASSERT(
+        GRIDTOOLS_STATIC_ASSERT(
                             (TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
-                            (TFromLevel::Splitter::value == TToLevel::Splitter::value && TFromLevel::Offset::value <= TToLevel::Offset::value)
+                            (TFromLevel::Splitter::value == TToLevel::Splitter::value && TFromLevel::Offset::value <= TToLevel::Offset::value),
+			    "check the from level is lower or equal to the to level"
                             );
 
         // define the from and to splitter indexes

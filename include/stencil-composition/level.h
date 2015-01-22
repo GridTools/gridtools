@@ -24,8 +24,12 @@ namespace gridtools {
     {
         // check offset and splitter value ranges
         // (note that non negative splitter values simplify the index computation)
-        BOOST_STATIC_ASSERT(VSplitter >= 0 && VOffset != 0);
-        BOOST_STATIC_ASSERT(-cLevelOffsetLimit <= VOffset && VOffset <= cLevelOffsetLimit);
+        GRIDTOOLS_STATIC_ASSERT(VSplitter >= 0 && VOffset != 0,
+				"check offset and splitter value ranges \n\
+         (note that non negative splitter values simplify the index computation)");
+        GRIDTOOLS_STATIC_ASSERT(-cLevelOffsetLimit <= VOffset && VOffset <= cLevelOffsetLimit,
+				"check offset and splitter value ranges \n\
+         (note that non negative splitter values simplify the index computation)");
 
 #ifdef CXX11_ENABLED
         // define splitter and level offset

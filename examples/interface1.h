@@ -260,7 +260,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
         (
             gridtools::make_mss // mss_descriptor
             (
-                execute<parallel>(),
+                execute<forward>(),
                 gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
