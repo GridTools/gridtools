@@ -345,7 +345,7 @@ namespace gridtools {
 
            \param[in] _fields data fields to be packed
         */
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef CXX11_ENABLED
         template <typename... FIELDS>
         void pack(const FIELDS&... _fields) const {
             hd.pack(_fields... );
@@ -366,7 +366,7 @@ namespace gridtools {
 
            \param[in] _fields data fields where to unpack data
         */
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef CXX11_ENABLED
         template <typename... FIELDS>
         void unpack(const FIELDS&... _fields) const {
             hd.unpack(_fields... );
@@ -608,7 +608,7 @@ namespace gridtools {
 
            \param[in] _fields data fields to be packed
         */
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef CXX11_ENABLED
         template <typename... FIELDS>
         void pack(const FIELDS&... _fields) const {
             hd.pack(_fields... );
@@ -629,7 +629,7 @@ namespace gridtools {
 
            \param[in] _fields data fields where to unpack data
         */
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef CXX11_ENABLED
         template <typename... FIELDS>
         void unpack(const FIELDS&... _fields) const {
             hd.unpack(_fields... );

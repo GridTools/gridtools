@@ -34,7 +34,7 @@ typedef gridtools::gcl_cpu arch_type;
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-    typedef /*typename gridtools::reverse_map<*/gridtools::layout_map<I1,I2,I3>/* >::type*/ layoutmap;
+    typedef gridtools::layout_map<I1,I2,I3> layoutmap;
   
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));

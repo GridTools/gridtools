@@ -67,7 +67,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, gridtools::version_mpi_pack > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
