@@ -17,6 +17,7 @@
 #endif
 
 /*
+  @file
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
 
@@ -163,9 +164,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, "in");
+    storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
-    storage_type coeff(d1,d2,d3,8, "coeff");
+    storage_type coeff(d1,d2,d3,8., "coeff");
 
 #ifndef SILENT_RUN
     out.print();
@@ -260,7 +261,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
         (
             gridtools::make_mss // mss_descriptor
             (
-                execute<parallel>(),
+                execute<forward>(),
                 gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (

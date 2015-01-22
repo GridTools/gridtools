@@ -17,9 +17,9 @@ int main_naive(int argc, char** argv) {
 
 	- Definition of the domain:
     */
-    int d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
-    int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
-    int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
+    uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
+    uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
+    uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
     typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
 
@@ -62,16 +62,16 @@ int main_block(int argc, char** argv) {
 
 	- Definition of the domain:
     */
-    int d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
-    int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
-    int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
+    uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
+    uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
+    uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
     typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
 
     std::ofstream file_i("basic_block_in");
     std::ofstream file_o("basic_block_out");
 
-    storage_type in(d1,d2,d3,-1, "in");
+    storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
     out.print(file_i);
 

@@ -346,16 +346,16 @@ namespace gridtools {
 
 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.i(),arg.j(),arg.k()));
+                       ->offset(arg.offset()));
 
 		assert( m_index[ArgType::index_type::value]
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.i(),arg.j(),arg.k()) >= 0);
+                       ->offset(arg.offset()) >= 0);
 
                 return *(storage_pointer
                          +(m_index[ArgType::index_type::value])
                          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                         ->offset(arg.i(),arg.j(),arg.k()));
+                         ->offset(arg.offset()));
             }
 
 
@@ -376,15 +376,24 @@ namespace gridtools {
         /** @brief method called in the Do methods of the functors.
             specialization for the arg_type placeholders
          */
-        template <uint_t Index, typename Range>
+        template <uint_t Index, typename Range, ushort_t Dim>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
-        operator()(arg_type<Index, Range> const& arg) const {
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range, Dim>::index_type>::type::value_type&
+        operator()(arg_type<Index, Range, Dim> const& arg) const {
 
-            return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range>::index_type::value==0), LocalDomain, arg_type<Index, Range> >::value]);
+            return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range, Dim>::index_type::value==0), LocalDomain, arg_type<Index, Range, Dim> >::value]);
         }
 
+	/** @brief method called in the Do methods of the functors.
+            specialization for the expr_direct_access<arg_type> placeholders
+         */
+        template <uint_t Index, typename Range, ushort_t Dim>
+        GT_FUNCTION
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range, Dim>::index_type>::type::value_type&
+        operator()(expr_direct_access<arg_type<Index, Range, Dim> > const& arg) const {
 
+            return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range, Dim>::index_type::value==0), LocalDomain, arg_type<Index, Range, Dim> >::value]);
+        }
 
         /** @brief method called in the Do methods of the functors.
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -424,81 +433,100 @@ namespace gridtools {
 						 + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
         }
 
+
+        /** @brief method called in the Do methods of the functors.
+
+            specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
+	    Allows direct access to the storage by only using the offsets
+	*/
+        template <typename ArgType, typename StoragePointer>
+        GT_FUNCTION
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
+
+	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+		   ->offset(arg.first_operand.offset()));
+
+	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+		   ->offset(arg.first_operand.offset()) >= 0);
+
+	    return *(storage_pointer
+		     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+		     ->offset(arg.first_operand.offset()));
+        }
+
+
 #ifdef CXX11_ENABLED
 /**\section binding_expressions (Expressions Bindings)
    @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
    They evalueate the operator passed as argument, by recursively evaluating its arguments
    @{
 */
-    /** plus evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
+	/** plus evaluation*/
+	template <typename ArgType1, typename ArgType2>
+	GT_FUNCTION
+	auto value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
 
-    /** minus evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
+	/** minus evaluation*/
+	template <typename ArgType1, typename ArgType2>
+	GT_FUNCTION
+	auto value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
 
-    /** multiplication evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
+	/** multiplication evaluation*/
+	template <typename ArgType1, typename ArgType2>
+	GT_FUNCTION
+	auto value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
 
-    /** division evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
+	/** division evaluation*/
+	template <typename ArgType1, typename ArgType2>
+	GT_FUNCTION
+	auto value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
 
-    // template <typename ArgType1, typename ArgType2>
-    // GT_FUNCTION
-    // auto value(expr_exp<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) ^ (*this)(arg.second_operand)) {return (*this)(arg.first_operand) ^ (*this)(arg.second_operand);}
-
-    /**\subsection specialization (Partial Specializations)
-       partial specializations for double (or float)
-       @{*/
-    /** sum with scalar evaluation*/
+	/**\subsection specialization (Partial Specializations)
+	   partial specializations for double (or float)
+	   @{*/
+	/** sum with scalar evaluation*/
 	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_plus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
+	GT_FUNCTION
+	auto value_scalar(expr_plus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
 
-    /** subtract with scalar evaluation*/
+	/** subtract with scalar evaluation*/
 	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_minus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
+	GT_FUNCTION
+	auto value_scalar(expr_minus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
 
-    /** multiply with scalar evaluation*/
+	/** multiply with scalar evaluation*/
 	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_times<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
+	GT_FUNCTION
+	auto value_scalar(expr_times<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
 
-    /** divide with scalar evaluation*/
+	/** divide with scalar evaluation*/
 	template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_divide<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
+	GT_FUNCTION
+	auto value_scalar(expr_divide<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
 
 #ifndef __CUDACC__
-    /** power of scalar evaluation*/
+	/** power of scalar evaluation*/
 	template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-    GT_FUNCTION
+	GT_FUNCTION
 	auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return std::pow(arg.first_operand, arg.second_operand);}
 
 #else //ifndef __CUDACC__
-    /** power of scalar evaluation of CUDA*/
+	/** power of scalar evaluation of CUDA*/
 	template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-    GT_FUNCTION
+	GT_FUNCTION
 	auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return products<2>::apply(arg.first_operand);}
 
 #endif //ifndef __CUDACC__
 
-    /**
-       @}
-       \subsection specialization2 (Partial Specializations)
-       @brief partial specializations for integer
-       Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
-       (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
-       @{*/
-    /** integer power evaluation*/
+	/**
+	   @}
+	   \subsection specialization2 (Partial Specializations)
+	   @brief partial specializations for integer
+	   Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
+	   (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
+	   @{*/
+	/** integer power evaluation*/
 #ifndef __CUDACC__
         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION

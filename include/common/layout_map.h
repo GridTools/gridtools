@@ -97,20 +97,38 @@ namespace gridtools {
         GT_FUNCTION
         static /* constexpr */ typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
-            static_assert(sizeof...(Indices)==length, "Too many arguments");
+            static_assert(sizeof...(Indices)<=length, "Too many arguments");
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
-        static /*constexpr*/ typename _impl::first_type<Indices...>::type
+        static typename _impl::first_type<Indices...>::type
         find_val(Indices & ... indices) {
-            static_assert(sizeof...(Indices)==length, "Too many arguments");
+            static_assert(sizeof...(Indices)<=length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
-            if (pos_<I>::value > length) {
+            if (pos_<I>::value >= sizeof...(Indices) ) {
                 return DefaultVal;
             } else {
                 return vec[pos_<I>::value];
+            }
+        }
+
+	/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
+	 \tparam I dimension (0->i, 1->j, 2->k, ...)
+	 \tparam T type of the return value
+	 \tparam DefaultVal default value return when the dimension I does not exist
+	 \tparam Indices type of the indices passed as argument
+	 \param indices argument vector of indices
+	*/
+	template <ushort_t I, typename T, T DefaultVal, typename Indices>
+        GT_FUNCTION
+        static Indices
+        find_val(Indices* indices) {
+            if (pos_<I>::value >= length ) {
+                return DefaultVal;
+            } else {
+                return indices[pos_<I>::value];
             }
         }
 

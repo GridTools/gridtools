@@ -220,6 +220,33 @@ namespace gridtools{
 #endif
 };
 
+
+
+    /**@brief Expression enabling the direct access to the storage.
+
+       The offsets only (without the index) identify the memory address to be used
+    */
+    template <typename ArgType1>
+    struct expr_direct_access : public unary_expr<ArgType1 >{
+        typedef unary_expr<ArgType1> super;
+        GT_FUNCTION
+        constexpr expr_direct_access(ArgType1 const& first_operand):super(first_operand){}
+
+        GT_FUNCTION
+        constexpr expr_direct_access(expr_direct_access const& other):super(other) {}
+
+    private:
+        GT_FUNCTION
+        constexpr expr_direct_access(){}
+#ifndef __CUDACC__
+    	static char constexpr op[]="&x";
+	typedef string_c<print, op> operation;
+    public:
+	//currying and recursion (this gets inherited)
+	using to_string = concatenate<  ArgType1, operation >;
+#endif
+};
+
 /*@}*/
 
     /**@brief Overloaded operators
@@ -249,18 +276,19 @@ namespace gridtools{
         constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** power expression*/
-        // template<int Arg2, typename ArgType1>
         template<int exponent, typename ArgType1, typename boost::disable_if<typename boost::is_floating_point<ArgType1>::type, int >::type=0>
         GT_FUNCTION
-        // constexpr expr_exp<Arg2, ArgType1 >    pow ( ArgType1 arg1 ){return expr_exp<Arg2, ArgType1 >(arg1);}
         constexpr expr_pow<ArgType1, exponent >    pow (ArgType1 arg1){return expr_pow<ArgType1, exponent >(arg1);}
 
         /** power expression*/
-        // template<int Arg2, typename ArgType1>
         template<typename ArgType1>
         GT_FUNCTION
-        // constexpr expr_exp<Arg2, ArgType1 >    pow ( ArgType1 arg1 ){return expr_exp<Arg2, ArgType1 >(arg1);}
         constexpr expr_exp<ArgType1, int >    pow (ArgType1 arg1, int arg2){return expr_exp<ArgType1, int >(arg1, arg2);}
+
+	/** direct access expression*/
+        template<typename ArgType1>
+        GT_FUNCTION
+        constexpr expr_direct_access<ArgType1>    operator ! (ArgType1 arg1){return expr_direct_access<ArgType1>(arg1);}
 
 	template <int Exponent, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0>
         GT_FUNCTION
@@ -271,6 +299,8 @@ namespace gridtools{
         {return std::pow(arg1, Exponent);}
 #endif
 
+	/**Expressions defining the interface for specifiyng a given offset for a specified dimension
+	   \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
 	template<typename Left>
 	GT_FUNCTION
 	constexpr typename Left::super operator +(Left d1, int  offset) {return typename Left::super( offset);}

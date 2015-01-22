@@ -44,6 +44,16 @@ template <typename T1, typename T2  >
 	constexpr T operator() (const T& x, const T& y) const {return x*y;}
     };
 
+
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_and {
+	GT_FUNCTION
+	constexpr logical_and(){}
+	template <typename  T>
+	GT_FUNCTION
+	constexpr T operator() (const T& x, const T& y) const {return x&&y;}
+    };
+
     /**@brief operation to be used inside the accumulator*/
     struct add {
 	GT_FUNCTION

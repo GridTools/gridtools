@@ -57,11 +57,11 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
         typedef arg_type<3> sup; //c
         typedef arg_type<4> rhs; //d
 
-        static constexpr auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
+        static  auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
 
-        static constexpr auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
+        static  auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
 
-        static constexpr auto expr_out=rhs{}-sup{}*out{0,0,1};
+        static  auto expr_out=rhs{}-sup{}*out{0,0,1};
     }
 #endif
 
