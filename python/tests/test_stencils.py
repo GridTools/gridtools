@@ -160,12 +160,13 @@ class Moving (MultiStageStencil):
             out_V[p] = self.Vx[p]
 
 
+
 class MovingTest (unittest.TestCase):
     """
     A test case for the Moving stencil defined above.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.INFO)
+        logging.basicConfig (level=logging.DEBUG)
 
         self.domain = (64, 64, 1)
 
@@ -176,7 +177,35 @@ class MovingTest (unittest.TestCase):
         self.stencil = Moving (self.domain)
 
 
+    def test_symbol_discovery (self):
+        """
+        Checks that the symbols and their scope have been correctly recognized.-
+        """
+        self.stencil.backend = 'c++'
+        self.stencil.run (out_H=self.H,
+                          out_U=self.U,
+                          out_V=self.V)
+        #
+        # check input/output fields were correctly discovered
+        #
+        insp = self.stencil.inspector
+        out_fields = ['out_H', 'out_U', 'out_V']
+        for f in out_fields:
+            self.assertIsNotNone (insp.symbols[f])
+            self.assertTrue (insp.symbols.is_parameter (f))
+
+        #
+        # check temporary fields were correctly discovered
+        #
+        tmp_fields = ['Hx', 'Hy', 'Ux', 'Uy', 'Vx', 'Vy']
+        for f in tmp_fields:
+            self.assertIsNotNone (insp.symbols[f])
+            self.assertTrue (insp.symbols.is_temporary (f))
+
+        
     def test_interactive_plot (self):
+        """
+        Displays a matplotlib-based animation.-
         import matplotlib.pyplot as plt
         from matplotlib import animation, cm
         from mpl_toolkits.mplot3d import axes3d
@@ -245,6 +274,8 @@ class MovingTest (unittest.TestCase):
                                         frames=range (10),
                                         interval=20,
                                         blit=False)
+        """
+        pass
 
 
 
@@ -272,6 +303,79 @@ class CopyTests (unittest.TestCase):
     """
     A test case for the copy stencil defined above.-
     """
+    def setUp (self):
+        logging.basicConfig (level=logging.DEBUG)
+
+        self.domain = (128, 128, 64)
+
+        self.output_field = np.zeros (self.domain)
+        self.input_field  = np.random.rand (*self.domain)
+
+        self.stencil = Copy ( )
+
+
+    def test_code_generation (self):
+        """
+        Checks the automatic generation of C++ code creates the expected code.-
+        """
+        self.stencil.backend = 'c++'
+
+
+    def test_compare_python_and_native_executions (self):
+        """
+        Checks that the stencil results match for Python and C++ after
+        applying the stencil several times.-
+        """
+        import copy
+
+        stencil_native         = copy.deepcopy (self.stencil)
+        stencil_native.backend = 'c++'
+
+        #
+        # data fields
+        #
+        out_field_py  = np.zeros (self.domain)
+        out_field_cxx = np.array (out_field_py)
+        in_field_py   = np.random.rand (*self.domain)
+        in_field_cxx  = np.array (in_field_py)
+
+        #
+        # apply the stencil 10 times
+        #
+        for i in range (10):
+            #
+            # apply the Python version of the stencil
+            #
+            self.stencil.run (out_data=out_field_py,
+                              in_data=in_field_py)
+            #
+            # apply the native version of the stencil
+            #
+            stencil_native.run (out_data=out_field_cxx,
+                                in_data=in_field_cxx)
+            #
+            # compare the field contents
+            #
+            self.assertTrue (np.all (np.equal (out_field_py, out_field_cxx)))
+            self.assertTrue (np.all (np.equal (in_field_py, in_field_py)))
+
+
+    def test_symbol_discovery (self):
+        """
+        Checks that the symbols and their scope have been correctly recognized.-
+        """
+        self.stencil.backend = 'c++'
+        self.stencil.run (out_data=self.output_field,
+                          in_data=self.input_field)
+        #
+        # check input/output fields were correctly discovered
+        #
+        scope  = self.stencil.inspector.stencil_scope
+        params = ('out_data', 'in_data')
+        for p in params:
+            self.assertTrue (scope.is_parameter (p))
+
+
     def test_extends (self):
         """
         A user-defined stencil should inherit from the MultiStageStencil class.-
@@ -281,7 +385,7 @@ class CopyTests (unittest.TestCase):
                 pass
             insp = StencilInspector (DoesNotExtendAndShouldFail)
 
-        insp = StencilInspector (Copy)
+        insp = self.stencil.inspector
         insp.analyze ( )
         self.assertNotEqual (insp, None)
 
@@ -316,27 +420,19 @@ class CopyTests (unittest.TestCase):
         """
         When calling 'run' on a stencil, only keyword arguments should be used.-
         """
-        domain = (128, 128, 60)
-        output_field = np.zeros (domain)
-        input_field = np.random.rand (*domain)
-        copy = Copy ( )
         with self.assertRaises (KeyError):
-            copy.run (output_field,
-                      input_field)
+            self.stencil.run (self.output_field,
+                              self.input_field)
 
 
     def test_python_execution (self):
         """
         Checks that the stencil results are correct if executing in Python mode.-
         """
-        domain = (128, 128, 60)
-        output_field = np.zeros (domain)
-        input_field = np.random.rand (*domain)
-        copy = Copy ( )
-        copy.run (out_data=output_field,
-                  in_data=input_field)
-        self.assertTrue (np.array_equal (input_field,
-                                         output_field))
+        self.stencil.run (out_data=self.output_field,
+                          in_data=self.input_field)
+        self.assertTrue (np.array_equal (self.input_field,
+                                         self.output_field))
 
 
     def test_native_execution (self):
@@ -346,20 +442,18 @@ class CopyTests (unittest.TestCase):
         call to the 'backend' attribute.
         It also checks that the stencil results are correct after execution.-
         """
-        domain = (512, 512, 60)
-        output_field = np.zeros (domain)
-        input_field  = np.random.rand (*domain)
-        copy = Copy ( )
-        copy.backend = 'c++'
-        copy.run (out_data=output_field,
-                  in_data=input_field)
-        self.assertNotEqual (copy.inspector.lib_obj, None)
-        self.assertTrue     ('_FuncPtr' in dir (copy.inspector.lib_obj))
+        self.stencil.backend = 'c++'
+        self.stencil.run (out_data=self.output_field,
+                          in_data=self.input_field)
+        self.assertNotEqual (self.stencil.inspector.lib_obj, None)
+        self.assertTrue     ('_FuncPtr' in dir (self.stencil.inspector.lib_obj))
         #
         # compare the arrays taking a 2D-halo of 1 into account
         #
-        self.assertEqual (np.sum (input_field[1:511,1:511]),
-                          np.sum (output_field[1:511,1:511]))
+        self.assertEqual (np.sum (self.input_field[1:self.domain[1] - 1,
+                                                   1:self.domain[1] - 1]),
+                          np.sum (self.output_field[1:self.domain[1] - 1,
+                                                    1:self.domain[1] - 1]))
 
 
 
@@ -386,49 +480,50 @@ class Laplace (MultiStageStencil):
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
-# class LaplaceTests (unittest.TestCase):
-#     """
-#     Testing the Laplace operator.-
-#     """
-#     def test_compare_python_and_native_executions (self):
-#         """
-#         Checks that the stencil results match for Python and C++ after
-#         applying the stencil several times.-
-#         """
-#         domain = (64, 64, 64)
+class LaplaceTests (unittest.TestCase):
+    """
+    Testing the Laplace operator.-
+    """
+    def test_compare_python_and_native_executions (self):
+        """
+        Checks that the stencil results match for Python and C++ after
+        applying the stencil several times.-
+        """
+        domain = (64, 64, 64)
 
-#         lap_py = Laplace ( )
-#         lap_cxx = Laplace ( )
-#         lap_cxx.backend = 'c++'
+        lap_py = Laplace ( )
+        lap_cxx = Laplace ( )
+        lap_cxx.backend = 'c++'
 
-#         #
-#         # domain and fields
-#         #
-#         o_field = np.zeros (domain)
-#         i_field = np.random.rand (*domain)
+        #
+        # domain and fields
+        #
+        o_field = np.zeros (domain)
+        i_field = np.random.rand (*domain)
 
-#         #
-#         # apply the Laplace operator 10 times
-#         #
-#         for i in range (10):
-#             #
-#             # original content of the data fields
-#             #
-#             orig_o = np.array (o_field)
-#             orig_i = np.array (i_field)
+        #
+        # apply the Laplace operator 10 times
+        #
+        for i in range (10):
+            #
+            # original content of the data fields
+            #
+            orig_o = np.array (o_field)
+            orig_i = np.array (i_field)
 
-#             #
-#             # apply the Python version of the stencil
-#             #
-#             lap_py.run (out_data=o_field,
-#                         in_data=i_field)
-#             #
-#             # apply the native version of the stencil
-#             #
-#             lap_cxx.run (out_data=orig_o,
-#                          in_data=orig_i)
-#             #
-#             # compare the field contents
-#             #
-#             self.assertTrue (np.all (np.equal (orig_o, o_field)))
-#             self.assertTrue (np.all (np.equal (orig_i, i_field)))
+            #
+            # apply the Python version of the stencil
+            #
+            lap_py.run (out_data=o_field,
+                        in_data=i_field)
+            #
+            # apply the native version of the stencil
+            #
+            lap_cxx.run (out_data=orig_o,
+                         in_data=orig_i)
+            #
+            # compare the field contents
+            #
+            self.assertTrue (np.all (np.equal (orig_o, o_field)))
+            self.assertTrue (np.all (np.equal (orig_i, i_field)))
+

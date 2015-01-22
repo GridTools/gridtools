@@ -1,42 +1,31 @@
 {% block functor %}
 
 //
-// definition of the operators that compose the multistage stencil:
-// this is extracted from the AST analysis of the loop operations
-// in Python, using the 'kernel' function as a starting point
+// the definition of the operators that compose a multistage stencil
+// is extracted from the AST analysis of the loop comprehensions
+// in Python, which use the 'kernel' function as a starting point
 //
 struct {{ functor.name }}
 {
     //
     // the number of arguments of this functor 
     //
-    static const int n_args = {{ all_params|length }};
+    static const int n_args = {{ params|length }};
 
     //
-    // the input and output data fields of this functor
-    // (input fields are always 'const')
+    // the input data fields of this functor are marked as 'const'
     //
-    {% for arg in functor_params|sort(attribute='id') %}
-        {%- if arg.input %}
-    typedef const arg_type<{{ arg.id }}> {{ arg.name }};
-        {% else %}
-    typedef arg_type<{{ arg.id }}> {{ arg.name }};
-        {%- endif -%}
+    {% for p in params -%}
+    typedef {% if functor.scope.is_parameter (p.name, read_only=True) -%}
+            const
+            {%- endif -%}
+            arg_type<{{ loop.index0 }}> {{ p.name }};
     {% endfor %}
 
     //
-    // the temporary data fields of this functor
+    // the ordered list of arguments of this functor
     //
-    {% for arg in temp_params|sort(attribute='id') -%}
-    //typedef arg_type<{{ arg.id }}, range<-1,1,-1,1> > {{ arg.name }};
-    typedef arg_type<{{ arg.id }}> {{ arg.name }};
-    {% endfor %}
-
-    //
-    // the complete list of arguments of this functor
-    //
-    typedef boost::mpl::vector<{{ all_params|sort(attribute='id')|
-                                  join(',', attribute='name') }}> arg_list;
+    typedef boost::mpl::vector<{{ params|join(',', attribute='name') }}> arg_list;
 
     //
     // the operation of this functor
@@ -45,7 +34,7 @@ struct {{ functor.name }}
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) 
     {
-        {{ functor.body.cpp }}
+        {{ functor.body.cpp_src }}
     }
 };
 
