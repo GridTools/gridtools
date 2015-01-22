@@ -67,7 +67,7 @@ namespace gridtools{  namespace enumtype{
 #ifdef CXX11_ENABLED
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, Message);
 #else
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(condition);
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition);
 #endif
 
 #include <boost/mpl/integral_c.hpp>
