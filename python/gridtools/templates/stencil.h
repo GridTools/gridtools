@@ -41,7 +41,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 //
 // functor definition - begin
 //
-{{ functor_source }}
+{{ functor_src }}
 //
 // functor definition - end
 //
@@ -49,7 +49,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 
 bool test (uint_t d1, uint_t d2, uint_t d3,
-           {%- for arg in functor_params -%}
+           {%- for arg in params -%}
            void *{{ arg.name }}_buff
                {%- if not loop.last -%}
                ,
@@ -66,62 +66,48 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
 
-    typedef gridtools::BACKEND::storage_type<double, layout_t >::type storage_type;
-
-    {##
-     ## Declaration of the temporary-data-field type
-     ##}
-    {%- if temp_params -%}
-    typedef gridtools::BACKEND::temporary_storage_type<double, layout_t >::type tmp_storage_type;
-    {% endif %}
-
-
-    {##
-     ## Declaration of input data fields
-     ##}
-    {% for arg in functor_params if arg.input -%}
-    {% if loop.first %}
     //
-    // input data fields share their buffers with NumPy arrays
+    // define the storage unit used by the backend
     //
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+
+    {% if temps %}
+    //
+    // define a special data type for the temporary, i.e., intermediate buffers
+    //
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
     {% endif -%}
-    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (float_type *) {{ arg.name }}_buff,
-								     "{{ arg.name }}");
+
+    {% if params %}
+    //
+    // parameter data fields use the memory buffers received from NumPy arrays
+    // 
+    {% for p in params -%}
+    storage_type {{ p.name }} ({{ p.value.shape|join_with_prefix('(uint_t) ')|join(',') }},
+                                 (float_type *) {{ p.name }}_buff,
+								 "{{ p.name }}");
     {% endfor %}
-
-
-    {##
-     ## Declaration of output data fields
-     ##}
-    {% for arg in functor_params if arg.output -%}
-    {% if loop.first %}
-    //
-    // output data fields also share their buffers with NumPy arrays
-    //
     {% endif -%}
-    storage_type {{ arg.name }} ({{ arg.dim|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (float_type *) {{ arg.name }}_buff,
-                                 "{{ arg.name }}");
-    {% endfor %}
 
     //
-    // place-holder definition: their order reflect matches the stencil
-    // parameters, especially the non-temporary ones, during the construction
-    // of the domain
+    // place-holder definition: their order matches the stencil parameters,
+    // especially the non-temporary ones, during the construction of the domain
     //
-    {% for arg in functor_params -%}
-    typedef arg<{{ arg.id }}, storage_type> p_{{ arg.name }};
-    {% endfor %}
-    {% for arg in temp_params -%}
-    typedef arg<{{ arg.id }}, tmp_storage_type> p_{{ arg.name }};
-    {% endfor %}
+    {% for p in params_temps -%}
+    typedef arg<{{ loop.index0 }}, 
+        {%- if stencil.stencil_scope.is_temporary (p.name) -%}
+            tmp_storage_type>
+        {%- else -%}
+            storage_type>
+        {%- endif %}
+        p_{{ p.name }};
+    {% endfor -%}
 
-
-    // An array of placeholders to be passed to the domain
-    // I'm using mpl::vector, but the final API should look slightly simpler
+    //
+    // an array of placeholders to be passed to the domain
+    //
     typedef boost::mpl::vector<
-        {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list;
+        {{- params_temps|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list;
 
     //
     // construction of the domain.
@@ -133,7 +119,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // (I don't particularly like this)
     //
     gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
-        {{- functor_params|sort(attribute='id')|join_with_prefix('&', attribute='name')|join(', ') }}));
+        {{- params|join_with_prefix('&', attribute='name')|join(', ') }}));
 
     //
     // definition of the physical dimensions of the problem.
@@ -166,7 +152,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                 execute<forward>(),
                 {% for f in functors -%}
                 gridtools::make_esf<{{ f.name }}>(
-                   {{- all_params|sort(attribute='id')|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
+                   {{- params_temps|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
                    {%- if not loop.last -%}
                    ,
                    {%- endif %}
