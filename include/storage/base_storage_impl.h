@@ -93,48 +93,6 @@ namespace gridtools{
 	    }
 	};
 
-	// //forward declaration
-	// template < typename Storage, ushort_t ExtraWidth>
-	// struct extend_width;
-
-// 	/** @brief traits class defining some useful compile-time counters
-// 	 */
-// 	template < typename First, typename  ...  StorageExtended>
-// 	struct dimension_extension_traits// : public dimension_extension_traits<StorageExtended ... >
-// 	{
-// 	    //total number of snapshots in the discretized field
-// 	    static const uint_t n_fields=First::n_width + dimension_extension_traits<StorageExtended  ...  >::n_fields ;
-// 	    //the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
-// 	    static const uint_t n_width=First::n_width;
-// 	    //the number of dimensions (i.e. the number of different fields)
-// 	    static const uint_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
-// 	    //the current field extension
-// 	    //n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
-// 	    typedef extend_width<First, n_fields-1>  type;
-// 	    // typedef First type;
-// 	    typedef dimension_extension_traits<StorageExtended ... > super;
-// 	};
-
-// 	/**@brief fallback in case the snapshot we try to access exceeds the width diemnsion assigned to a discrete scalar field*/
-// 	struct dimension_extension_null{
-// 	    static const uint_t n_fields=0;
-// 	    static const uint_t n_width=0;
-// 	    static const uint_t n_dimensions=0;
-// 	    typedef struct error_index_too_large1{} type;
-// 	    typedef struct error_index_too_large2{} super;
-// 	};
-
-// /**@brief template specialization at the end of the recustion.*/
-// 	template < typename First>
-// 	struct dimension_extension_traits<First>  {
-// 	    static const uint_t n_fields=First::n_width;
-// 	    static const uint_t n_width=First::n_width;
-// 	    static const uint_t n_dimensions= 1 ;
-// 	    typedef First type;
-// 	    typedef dimension_extension_null super;
-// 	};
-
-
 	/**@brief recursively advance the ODE finite difference for all the field dimensions*/
 	template<short_t Dimension>
 	struct advance_recursive{
