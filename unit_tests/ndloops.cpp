@@ -12,25 +12,25 @@
 #include <sys/time.h>
 struct sumup {
   mutable double res;
-  int N;
+  uint_t N;
   double *storage;
-  sumup(int _N, double *st): res(0), N(_N), storage(st) { }
+  sumup(uint_t _N, double *st): res(0), N(_N), storage(st) { }
 
   template <typename TUPLE>
   void operator()(TUPLE const &tuple) const {
-    int idx = tuple[0]+tuple[1]*N+tuple[2]*N*N+tuple[3]*N*N*N;
+    uint_t idx = tuple[0]+tuple[1]*N+tuple[2]*N*N+tuple[3]*N*N*N;
     res += storage[idx];
   }
 };
 
 struct sumup2 {
   mutable double res;
-  int N;
+  uint_t N;
   //int i;
   double *storage;
-  sumup2(int _N, double *st): res(0), N(_N), /*i(0),*/ storage(st) { }
+  sumup2(uint_t _N, double *st): res(0), N(_N), /*i(0),*/ storage(st) { }
 
-  void operator()(int idx) const {
+  void operator()(uint_t idx) const {
     // std::cout << ++i << " " << idx << "\n";
     res += storage[idx];
   }
@@ -40,7 +40,7 @@ struct print_tuple {
   template <typename TUPLE>
   void operator()(TUPLE const &tuple) const {
     std::cout << "(";
-    for (unsigned int i=0; i<tuple.size()-1; ++i) {
+    for (unsigned uint_t i=0; i<tuple.size()-1; ++i) {
       std::cout << tuple[i] << ", ";
     }
     std::cout << tuple[tuple.size()-1] << ") x\n";
@@ -48,7 +48,7 @@ struct print_tuple {
 };
 
 struct print_int {
-  void operator()(int idx) const {
+  void operator()(uint_t idx) const {
     std::cout << "(" << idx << ")\n";
   }
 };
@@ -56,19 +56,19 @@ struct print_int {
 
 int main(int argc, char** argv) {
 
-  GCL::array<int, 4> indices; /*= {3, 4, 3, 2}; // enabled in C++0x */
+  GCL::array<uint_t, 4> indices; /*= {3, 4, 3, 2}; // enabled in C++0x */
   indices[0] = 3;
   indices[1] = 4;
   indices[2] = 3;
   indices[3] = 2;
-  GCL::array<int, 4> dimensions; /*= {5, 5, 5, 5};  // enabled in C++0x */
+  GCL::array<uint_t, 4> dimensions; /*= {5, 5, 5, 5};  // enabled in C++0x */
   dimensions[0] = 5;
   dimensions[1] = 5;
   dimensions[2] = 5;
   dimensions[3] = 5;
   std::cout << GCL::utils::access_to<4>()(indices, dimensions) << "\n";
 
-  int N=atoi(argv[1]);
+  uint_t N=atoi(argv[1]);
 
   GCL::array<GCL::utils::bounds,4> ab;
 //   ab[0].imin=2;
@@ -97,18 +97,18 @@ int main(int argc, char** argv) {
   double time;
 
   std::cout << "\n\n\n\n";
-  GCL::array<int,4> tuple;
+  GCL::array<uint_t,4> tuple;
   print_tuple tmp2;
   GCL::utils::loop<4>()(ab,tmp2,tuple);
 
 
   double *storage = new double[N*N*N*N];
 
-  for (int i=0; i<N; ++i)
-    for (int j=0; j<N; ++j)
-      for (int k=0; k<N; ++k)
-        for (int l=0; l<N; ++l) {
-          int idx = l+k*N+j*N*N+i*N*N*N;
+  for (uint_t i=0; i<N; ++i)
+    for (uint_t j=0; j<N; ++j)
+      for (uint_t k=0; k<N; ++k)
+        for (uint_t l=0; l<N; ++l) {
+          uint_t idx = l+k*N+j*N*N+i*N*N*N;
           storage[idx] = i+j+k+l;
         }
 
@@ -130,25 +130,25 @@ int main(int argc, char** argv) {
 
   gettimeofday(&start_tv, NULL);
   double res = 0;
-  for (int i=0; i<N; ++i)
-    for (int j=0; j<N; ++j)
-      for (int k=0; k<N; ++k)
-        for (int l=0; l<N; ++l) {
-          int idx = l+k*N+j*N*N+i*N*N*N;
+  for (uint_t i=0; i<N; ++i)
+    for (uint_t j=0; j<N; ++j)
+      for (uint_t k=0; k<N; ++k)
+        for (uint_t l=0; l<N; ++l) {
+          uint_t idx = l+k*N+j*N*N+i*N*N*N;
           res += storage[idx];
         }
   gettimeofday(&stop_tv, NULL);
 
-  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
+  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec)
           - ((double)start_tv.tv_sec+1/1000000.0*(double)start_tv.tv_usec)) * 1000.0;
 
   std::cout << "result " << res << " time " << time << "\n";
 
-  for (int i=0; i<N; ++i)
-    for (int j=0; j<N; ++j)
-      for (int k=0; k<N; ++k)
-        for (int l=0; l<N; ++l) {
-          int idx = l+k*N+j*N*N+i*N*N*N;
+  for (uint_t i=0; i<N; ++i)
+    for (uint_t j=0; j<N; ++j)
+      for (uint_t k=0; k<N; ++k)
+        for (uint_t l=0; l<N; ++l) {
+          uint_t idx = l+k*N+j*N*N+i*N*N*N;
           storage[idx] = (i+j+k+l)/10.;
         }
 
@@ -159,16 +159,16 @@ int main(int argc, char** argv) {
   GCL::utils::loop<4>()(ab,summ, tuple);
   gettimeofday(&stop_tv, NULL);
 
-  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
+  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec)
           - ((double)start_tv.tv_sec+1/1000000.0*(double)start_tv.tv_usec)) * 1000.0;
 
   std::cout << "result " << summ.res << " time " << time << "\n";
 
-  for (int i=0; i<N; ++i)
-    for (int j=0; j<N; ++j)
-      for (int k=0; k<N; ++k)
-        for (int l=0; l<N; ++l) {
-          int idx = l+k*N+j*N*N+i*N*N*N;
+  for (uint_t i=0; i<N; ++i)
+    for (uint_t j=0; j<N; ++j)
+      for (uint_t k=0; k<N; ++k)
+        for (uint_t l=0; l<N; ++l) {
+          uint_t idx = l+k*N+j*N*N+i*N*N*N;
           storage[idx] = (i+j+k+l)/100.;
         }
 
@@ -179,11 +179,10 @@ int main(int argc, char** argv) {
   GCL::utils::access_loop<4,sumup2>()(ab,dimensions,summ2);
   gettimeofday(&stop_tv, NULL);
 
-  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec) 
+  time = (((double)stop_tv.tv_sec+1/1000000.0*(double)stop_tv.tv_usec)
           - ((double)start_tv.tv_sec+1/1000000.0*(double)start_tv.tv_usec)) * 1000.0;
 
   std::cout << "result " << summ2.res << " time " << time << "\n";
 
   return 0;
 }
-      

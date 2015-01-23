@@ -10,5 +10,10 @@
 #define __device__
 #endif
 
-#define GT_FUNCTION __host__ __device__
+#ifdef __CUDACC__
+#define GT_FUNCTION __host__ __device__ __forceinline__
+#else
+#define GT_FUNCTION inline
+#endif
+
 #define GT_FUNCTION_WARNING __host__ __device__

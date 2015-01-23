@@ -1,0 +1,11 @@
+dist
+venv
+venv2
+styles
+samples
+astviewer
+.ipynb_checkpoints
+*.egg-info
+*.bak
+*.swp
+*.pyc

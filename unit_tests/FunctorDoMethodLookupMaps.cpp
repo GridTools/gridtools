@@ -15,21 +15,21 @@
 using namespace gridtools;
 
 // test functor 1
-struct Functor0 
+struct Functor0
 {
     template <typename TArguments>
     static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >) {}
 };
 
 // test functor 1
-struct Functor1 
+struct Functor1
 {
     template <typename TArguments>
     static void Do(TArguments& args, interval<level<0,1>, level<2,-1> >) {}
 };
 
 // test functor 2
-struct Functor2 
+struct Functor2
 {
     template <typename TArguments>
     static void Do(TArguments& args, interval<level<0,1>, level<1,-1> >) {}
@@ -42,21 +42,21 @@ struct Functor2
 template<typename TDoMethodLookUpMap>
 struct PrintLoopInterval
 {
-    template<typename TLoopInterval> 
-    void operator()(TLoopInterval) 
-    { 
+    template<typename TLoopInterval>
+    void operator()(TLoopInterval)
+    {
         // extract the do method interval
         typedef typename boost::mpl::at<
-            TDoMethodLookUpMap, 
+            TDoMethodLookUpMap,
             TLoopInterval
         >::type DoInterval;
 
         // print the loop interval
         typedef typename index_to_level<typename TLoopInterval::first>::type FromLevel;
         typedef typename index_to_level<typename TLoopInterval::second>::type ToLevel;
-        std::cout 
-            << "Loop (" << FromLevel::Splitter::value << "," << ToLevel::Offset::value << ") - " 
-            << "(" << FromLevel::Splitter::value << "," << ToLevel::Offset::value << ")\t->\t"; 
+        std::cout
+            << "Loop (" << FromLevel::Splitter::value << "," << ToLevel::Offset::value << ") - "
+            << "(" << FromLevel::Splitter::value << "," << ToLevel::Offset::value << ")\t->\t";
 
         // print the do method
         printDoInterval(static_cast<DoInterval*>(0));
@@ -64,16 +64,16 @@ struct PrintLoopInterval
 
 private:
     // either print void or the do method interval
-    void printDoInterval(boost::mpl::void_*) 
-    { 
-        std::cout << "idle!" << std::endl; 
+    void printDoInterval(boost::mpl::void_*)
+    {
+        std::cout << "idle!" << std::endl;
     }
     template<typename TInterval>
-    void printDoInterval(TInterval*) 
-    { 
-        std::cout 
-            << "Do (" << TInterval::FromLevel::Splitter::value << "," << TInterval::FromLevel::Offset::value << ") - " 
-            << "(" << TInterval::ToLevel::Splitter::value << "," << TInterval::ToLevel::Offset::value << ")" << std::endl; 
+    void printDoInterval(TInterval*)
+    {
+        std::cout
+            << "Do (" << TInterval::FromLevel::Splitter::value << "," << TInterval::FromLevel::Offset::value << ") - "
+            << "(" << TInterval::ToLevel::Splitter::value << "," << TInterval::ToLevel::Offset::value << ")" << std::endl;
     }
 };
 
@@ -84,9 +84,9 @@ template<
     typename TFunctorDoMethodLookupMaps>
 struct PrintDoMethodLookupMap
 {
-    template<typename TIndex> 
-    void operator()(TIndex) 
-    { 
+    template<typename TIndex>
+    void operator()(TIndex)
+    {
         typedef typename boost::mpl::at<TFunctors, TIndex>::type Functor;
         typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, TIndex>::type DoMethodLookUpMap;
 
@@ -114,7 +114,7 @@ struct PrintDoMethodLookupMap
 // test method computing do method lookup maps
 int main(int argc, char *argv[])
 {
-    std::cout 
+    std::cout
         << "Functor Do Method Lookup Map" << std::endl
         << "============================" << std::endl;
 
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
         FunctorsDoMethods,
         AxisInterval
     >::type LoopIntervals;
-    
+
     // compute the functor do method lookup maps
     typedef boost::mpl::transform<
         FunctorsDoMethods,
@@ -145,10 +145,9 @@ int main(int argc, char *argv[])
     // print all loop intervals of functor 0, 1 and 2
     std::cout << "Print the Functor0, Functor1 and Functor2 do method lookup maps:" << std::endl;
     gridtools::for_each<
-        boost::mpl::range_c<int, 0, boost::mpl::size<FunctorsDoMethods>::value>
+        boost::mpl::range_c<uint_t, 0, boost::mpl::size<FunctorsDoMethods>::value>
     >(PrintDoMethodLookupMap<Functors, LoopIntervals, FunctorDoMethodLookupMaps>());
     std::cout << "Done!" << std::endl;
 
     return 0;
 }
-

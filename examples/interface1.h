@@ -27,7 +27,9 @@ using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
-
+#ifdef CXX11_ENABLED
+using namespace expressions;
+#endif
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
@@ -38,7 +40,6 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    static const int n_args = 2;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
@@ -54,7 +55,6 @@ struct lap_function {
 };
 
 struct flx_function {
-    static const int n_args = 3;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
@@ -73,7 +73,6 @@ struct flx_function {
 };
 
 struct fly_function {
-    static const int n_args = 3;
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
@@ -91,7 +90,6 @@ struct fly_function {
 };
 
 struct out_function {
-    static const int n_args = 5;
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
@@ -103,10 +101,17 @@ struct out_function {
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
 
+#ifdef CXX11_ENABLED
+        dom(out()) = dom(in()) - dom(coeff()) *
+            (dom(flx() - flx( -1,0,0) +
+             fly() - fly( 0,-1,0))
+             );
+#else
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
+#endif
         // printf("final dom(out()) => %e\n", dom(out()));
     }
 };
@@ -130,16 +135,16 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(int x, int y, int z) {
+bool test(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
 #endif
 
-    int d1 = x;
-    int d2 = y;
-    int d3 = z;
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -158,9 +163,9 @@ bool test(int x, int y, int z) {
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,8, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, "in");
+    storage_type out(d1,d2,d3,-7.3, "out");
+    storage_type coeff(d1,d2,d3,8, "coeff");
 
 #ifndef SILENT_RUN
     out.print();
@@ -191,12 +196,12 @@ bool test(int x, int y, int z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    int di[5] = {2, 2, 2, d1-2, d1};
-    int dj[5] = {2, 2, 2, d2-2, d2};
+    uint_t di[5] = {2, 2, 2, d1-2, d1};
+    uint_t dj[5] = {2, 2, 2, d2-2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
-    coords.value_list[1] = d3;
+    coords.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff
@@ -269,13 +274,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 
     horizontal_diffusion->ready();
 
-    // domain.storage_info<boost::mpl::int_<0> >();
-    // domain.storage_info<boost::mpl::int_<1> >();
-    // domain.storage_info<boost::mpl::int_<2> >();
-    domain.storage_info<boost::mpl::int_<3> >();
-    domain.storage_info<boost::mpl::int_<4> >();
-    domain.storage_info<boost::mpl::int_<5> >();
-
     horizontal_diffusion->steady();
     domain.clone_to_gpu();
 
@@ -312,7 +310,7 @@ PAPI_stop(event_set, values);
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.m_data.update_cpu();
+    out.data().update_cpu();
 #endif
 
 #ifndef SILENT_RUN
