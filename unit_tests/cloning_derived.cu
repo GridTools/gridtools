@@ -14,9 +14,9 @@ using namespace gridtools;
 
 template <typename t_derived>
 struct base : public clonable_to_gpu<t_derived> {
-    int m_size;
+    uint_t m_size;
 
-    base(int s) : m_size(s) {}
+    base(uint_t s) : m_size(s) {}
 
     __host__ __device__
     base(base const& other) // default construct clonable_to_gpu
@@ -28,11 +28,11 @@ template <typename value_type>
 struct derived: public base<derived<value_type> > {
     hybrid_pointer<value_type> data;
 
-    derived(int s)
+    derived(uint_t s)
         : base<derived<value_type> >(s)
         , data(s)
     {
-        for (int i = 0; i < data.get_size(); ++i)
+        for (uint_t i = 0; i < data.get_size(); ++i)
             data[i] = data.get_size()-i;
         data.update_gpu();
     }
@@ -46,14 +46,14 @@ struct derived: public base<derived<value_type> > {
 };
 
 __host__ __device__
-void printwhatever(derived<int> * ptr) {
+void printwhatever(derived<uint_t> * ptr) {
     printf("Ecco %X ", ptr);
     // printf("%d ", ptr->m_size);
     // printf("%d ", ptr->data.size);
     // printf("%X ", ptr->data.pointer_to_use);
     printf("%X ", ptr->data.get_cpu_p());
     printf("%X\n", ptr->data.get_gpu_p());
-    for (int i = 0; i < ptr->data.get_size(); ++i) {
+    for (uint_t i = 0; i < ptr->data.get_size(); ++i) {
 #ifdef __CUDA_ARCH__
         ptr->data[i]++;
 #endif
@@ -76,24 +76,24 @@ int main(int argc, char** argv) {
     }
 
     char *pend = 0;
-    int buffer_size = strtol(argv[1], &pend, 10);
+    uint_t buffer_size = strtol(argv[1], &pend, 10);
     if(buffer_size == 0 || pend == 0 || *pend != '\0' || errno == ERANGE) {
         printf("ERROR: invalid buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    SIZE(int);
-    SIZE(int*);
-    SIZE(derived<int>*);
-    SIZE(derived<int>);
-    SIZE(base<derived<int> >);
-    SIZE(hybrid_pointer<int>);
+    SIZE(uint_t);
+    SIZE(uint_t*);
+    SIZE(derived<uint_t>*);
+    SIZE(derived<uint_t>);
+    SIZE(base<derived<uint_t> >);
+    SIZE(hybrid_pointer<uint_t>);
 
     std::cout << "Initialize" << std::endl;
-    int res = EXIT_SUCCESS;
+    int_t res = EXIT_SUCCESS;
 
-    derived<int> a(buffer_size);
-    for(int i = 0; i < a.data.get_size(); ++i) {
+    derived<uint_t> a(buffer_size);
+    for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
@@ -111,13 +111,13 @@ int main(int argc, char** argv) {
               << std::endl;
 
     printwhatever(&a);
-    for(int i = 0; i < a.data.get_size(); ++i) {
+    for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
 
     print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
-    for(int i = 0; i < a.data.get_size(); ++i) {
+    for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     a.data.update_cpu();
 
     printwhatever(&a);
-    for(int i = 0; i < a.data.get_size(); ++i) {
+    for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i + 1)
             res = EXIT_FAILURE;
     }

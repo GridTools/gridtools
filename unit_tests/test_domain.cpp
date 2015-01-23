@@ -15,7 +15,7 @@
 #include <iostream>
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
-#include <storage/cuda_storage.h>
+#include <storage/storage.h>
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/intermediate.h>
@@ -32,14 +32,14 @@ struct out_value {
     void operator()(T *x) const {
 #ifndef NDEBUG
         printf("gigigi ");
-        printf("%X\n", x->m_data.get_pointer_to_use());
-        printf("%X\n", x->m_data.get_cpu_p());
-        printf("%X\n", x->m_data.get_gpu_p());
-        printf("%d\n", x->m_data.get_size());
+        // printf("%X\n", x->data().get_pointer_to_use());
+        // printf("%X\n", x->data().get_cpu_p());
+        // printf("%X\n", x->data().get_gpu_p());
+        // printf("%d\n", x->data().get_size());
 #endif
-        for (int i=0; i<3; ++i) {
-            for (int j=0; j<3; ++j) {
-                for (int k=0; k<3; ++k) {
+        for (uint_t i=0; i<3; ++i) {
+            for (uint_t j=0; j<3; ++j) {
+                for (uint_t k=0; k<3; ++k) {
 #ifndef NDEBUG
                     printf("%e ", (*x)(i,j,k));
 #endif
@@ -63,10 +63,10 @@ struct out_value_ {
     __host__ __device__
     void operator()(T const& stor) const {
         //std::cout << BOOST_CURRENT_FUNCTION << std::endl;
-        //printf(" > %X %X\n", &stor, stor.m_data.get_pointer_to_use());
-        for (int i=0; i<3; ++i) {
-            for (int j=0; j<3; ++j) {
-                for (int k=0; k<3; ++k) {
+        //printf(" > %X %X\n", &stor, stor.data().get_pointer_to_use());
+        for (uint_t i=0; i<3; ++i) {
+            for (uint_t j=0; j<3; ++j) {
+                for (uint_t k=0; k<3; ++k) {
                     printf("%e, ", stor(i,j,k));
                 }
                 printf("\n");
@@ -85,9 +85,9 @@ void print_values(StoragePtrs const* storage_pointers) {
 template <typename One, typename Two>
 bool the_same(One const& storage1, Two const& storage2) {
     bool same = true;
-    for (int i=0; i<3; ++i) {
-        for (int j=0; j<3; ++j) {
-            for (int k=0; k<3; ++k) {
+    for (uint_t i=0; i<3; ++i) {
+        for (uint_t j=0; j<3; ++j) {
+            for (uint_t k=0; k<3; ++k) {
                 same &= (storage1(i,j,k) == storage2(i,j,k));
                 if ((storage1(i,j,k) != storage2(i,j,k))) {
                     std::cout << i << ", "
@@ -108,19 +108,19 @@ bool the_same(One const& storage1, Two const& storage2) {
  */
 bool test_domain() {
 
-    typedef gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > storage_type;
+  typedef gridtools::storage<gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > > storage_type;
 
-    int d1 = 3;
-    int d2 = 3;
-    int d3 = 3;
+    uint_t d1 = 3;
+    uint_t d2 = 3;
+    uint_t d3 = 3;
 
-    storage_type in(d1,d2,d3,-1, std::string("in"));
-    storage_type out(d1,d2,d3,-7.3, std::string("out"));
-    storage_type coeff(d1,d2,d3,-3.4, std::string("coeff"));
+    storage_type in(d1,d2,d3,-1, ("in"));
+    storage_type out(d1,d2,d3,-7.3, ("out"));
+    storage_type coeff(d1,d2,d3,-3.4, ("coeff"));
 
-    storage_type host_in(d1,d2,d3,-1, std::string("host_in"));
-    storage_type host_out(d1,d2,d3,-7.3, std::string("host_out"));
-    storage_type host_coeff(d1,d2,d3,-3.4, std::string("host_coeff"));
+    storage_type host_in(d1,d2,d3,-1, ("host_in"));
+    storage_type host_out(d1,d2,d3,-7.3, ("host_out"));
+    storage_type host_coeff(d1,d2,d3,-3.4, ("host_coeff"));
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -132,9 +132,9 @@ bool test_domain() {
     typedef gridtools::arg<2, storage_type > p_out;
 
 
-    for (int i = 0; i < d1; ++i) {
-        for (int j = 0; j < d2; ++j) {
-            for (int k = 0; k < d3; ++k) {
+    for (uint_t i = 0; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
                 coeff(i,j,k) = -1*(i+j+k)*3.4;
                 out(i,j,k) = -1*(i+j+k)*100;
                 in(i,j,k) = -1*(i+j+k)*0.45;
@@ -156,19 +156,19 @@ bool test_domain() {
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
 
-#ifndef NDEBUG
-    printf("coeff > %X %X\n", &coeff, coeff.m_data.get_pointer_to_use());
-    out_value_()(coeff);
-    printf("in    > %X %X\n", &in, in.m_data.get_pointer_to_use());
-    out_value_()(in);
-    printf("out   > %X %X\n", &out, out.m_data.get_pointer_to_use());
-    out_value_()(out);
-#endif
+// #ifndef NDEBUG
+//     printf("coeff > %X %X\n", &coeff, coeff.data().get_pointer_to_use());
+//     out_value_()(coeff);
+//     printf("in    > %X %X\n", &in, in.data().get_pointer_to_use());
+//     out_value_()(in);
+//     printf("out   > %X %X\n", &out, out.data().get_pointer_to_use());
+//     out_value_()(out);
+// #endif
 
     typedef boost::mpl::vector<
-  gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<0> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<1> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<boost::mpl::int_<2> >::type
+  gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<0> >::type,
+    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<1> >::type,
+    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<2> >::type
     > mpl_arg_type_list;
 
     typedef typename boost::fusion::result_of::as_vector<mpl_arg_type_list>::type actual_arg_list_type;
@@ -197,20 +197,20 @@ bool test_domain() {
 #endif
     domain.finalize_computation();
 
-    coeff.m_data.update_cpu();
-    in.m_data.update_cpu();
-    out.m_data.update_cpu();
+    coeff.data().update_cpu();
+    in.data().update_cpu();
+    out.data().update_cpu();
 
-#ifndef NDEBUG
-    printf("back coeff > %X %X\n", coeff.m_data.get_cpu_p(), coeff.m_data.get_pointer_to_use());
-    out_value_()(coeff);
-    printf("back in    > %X %X\n", in.m_data.get_cpu_p(), in.m_data.get_pointer_to_use());
-    out_value_()(in);
-    printf("back out   > %X %X\n", out.m_data.get_cpu_p(), out.m_data.get_pointer_to_use());
-    out_value_()(out);
+// #ifndef NDEBUG
+//     printf("back coeff > %X %X\n", coeff.data().get_cpu_p(), coeff.data().get_pointer_to_use());
+//     out_value_()(coeff);
+//     printf("back in    > %X %X\n", in.data().get_cpu_p(), in.data().get_pointer_to_use());
+//     out_value_()(in);
+//     printf("back out   > %X %X\n", out.data().get_cpu_p(), out.data().get_pointer_to_use());
+//     out_value_()(out);
 
-    std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
-#endif
+//     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
+// #endif
 
     boost::fusion::copy(domain.storage_pointers, actual_arg_list);
 
@@ -235,19 +235,19 @@ bool test_domain() {
 
     domain.finalize_computation();
 
-    coeff.m_data.update_cpu();
-    in.m_data.update_cpu();
-    out.m_data.update_cpu();
+    coeff.data().update_cpu();
+    in.data().update_cpu();
+    out.data().update_cpu();
 
     cudaFree(arg_list_device_ptr);
-#ifndef NDEBUG
-    printf(" > %X %X\n", coeff.m_data.get_cpu_p(), coeff.m_data.get_pointer_to_use());
-    out_value_()(coeff);
-    printf(" > %X %X\n", in.m_data.get_cpu_p(), in.m_data.get_pointer_to_use());
-    out_value_()(in);
-    printf(" > %X %X\n", out.m_data.get_cpu_p(), out.m_data.get_pointer_to_use());
-    out_value_()(out);
-#endif
+// #ifndef NDEBUG
+//     printf(" > %X %X\n", coeff.data().get_cpu_p(), coeff.data().get_pointer_to_use());
+//     out_value_()(coeff);
+//     printf(" > %X %X\n", in.data().get_cpu_p(), in.data().get_pointer_to_use());
+//     out_value_()(in);
+//     printf(" > %X %X\n", out.data().get_cpu_p(), out.data().get_pointer_to_use());
+//     out_value_()(out);
+// #endif
 
     out_value()(&host_in);
     out_value()(&host_in);
@@ -256,15 +256,15 @@ bool test_domain() {
     out_value()(&host_coeff);
     out_value()(&host_coeff);
 
-#ifndef NDEBUG
-    printf("\n\nON THE HOST\n\n");
-    printf(" > %X %X\n", &coeff, coeff.m_data.get_pointer_to_use());
-    out_value_()(coeff);
-    printf(" > %X %X\n", &in, in.m_data.get_pointer_to_use());
-    out_value_()(in);
-    printf(" > %X %X\n", &out, out.m_data.get_pointer_to_use());
-    out_value_()(out);
-#endif
+// #ifndef NDEBUG
+//     printf("\n\nON THE HOST\n\n");
+//     printf(" > %X %X\n", &coeff, coeff.data().get_pointer_to_use());
+//     out_value_()(coeff);
+//     printf(" > %X %X\n", &in, in.data().get_pointer_to_use());
+//     out_value_()(in);
+//     printf(" > %X %X\n", &out, out.data().get_pointer_to_use());
+//     out_value_()(out);
+// #endif
 
     bool failed = false;
     failed |= !the_same(in, host_in);

@@ -22,7 +22,7 @@ namespace gridtools {
     template <typename T, size_t D>
     class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
 
-        static const int _size = (D>0)?D:1;
+        static const uint_t _size = (D>0)?D:1;
 
         T _array[_size];
 
@@ -64,7 +64,7 @@ namespace gridtools {
     template <typename T, size_t D>
     class array<T,D, typename boost::disable_if<typename boost::has_trivial_constructor<T>::type>::type > {
 
-        static const int _size = (D>0)?D:1;
+        static const uint_t _size = (D>0)?D:1;
 
         struct _data_item {
             char _data_storage[sizeof(T)];
