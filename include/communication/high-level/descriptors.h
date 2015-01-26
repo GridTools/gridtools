@@ -593,14 +593,7 @@ namespace gridtools {
       std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
-      for (int i = -1; i <= 1; ++i)
-        for (int j = -1; j <= 1; ++j)
-          for (int k = -1; k <= 1; ++k) {
-            if (!send_buffer[translate()(i,j,k)])
-              _impl::gcl_alloc<DataType, arch_type>::free(send_buffer[translate()(i,j,k)]);
-            if (!recv_buffer[translate()(i,j,k)])
-              _impl::gcl_alloc<DataType, arch_type>::free(recv_buffer[translate()(i,j,k)]);
-          }
+        _destroy_dynamic_ut<DIMS,0>().do_it(this);
     }
 
     /**
@@ -1029,6 +1022,40 @@ namespace gridtools {
       }
     };
 
+      template <int D, int Dummy>
+      struct _destroy_dynamic_ut {};
+
+      template <int Dummy>
+      struct _destroy_dynamic_ut<3, Dummy> {
+          template <typename T>
+          void do_it(T hm) const {
+              for (int i = -1; i <= 1; ++i) {
+                  for (int j = -1; j <= 1; ++j) {
+                      for (int k = -1; k <= 1; ++k) {
+                          if (!hm->send_buffer[translate()(i,j,k)])
+                              _impl::gcl_alloc<DataType, arch_type>::free(hm->send_buffer[translate()(i,j,k)]);
+                          if (!hm->recv_buffer[translate()(i,j,k)])
+                              _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i,j,k)]);
+                      }
+                  }
+              }
+          }
+      };
+
+      template <int Dummy>
+      struct _destroy_dynamic_ut<2, Dummy> {
+          template <typename T>
+          void do_it(T hm) const {
+              for (int i = -1; i <= 1; ++i) {
+                  for (int j = -1; j <= 1; ++j) {
+                      if (!hm->send_buffer[translate()(i,j)])
+                          _impl::gcl_alloc<DataType, arch_type>::free(hm->send_buffer[translate()(i,j)]);
+                      if (!hm->recv_buffer[translate()(i,j)])
+                          _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i,j)]);
+                  }
+              }
+          }
+      };
 
   };
 

@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
      logically to processor (p+1,q).
    */
   typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0>, 
-    gridtools::layout_map<0,1>, pair_t, 2, gridtools::gcl_cpu, 1 > pattern_type;
+        gridtools::layout_map<0,1>, pair_t, 2, gridtools::gcl_cpu, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
