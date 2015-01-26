@@ -667,8 +667,8 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         typedef layout_map<I1,I2> L1;
         typedef layout_map<P1,P2> L2;
 
-        static const short_t N1 = boost::mpl::at_c<typename L1::t, P1>::type::value;
-        static const short_t N2 = boost::mpl::at_c<typename L1::t, P2>::type::value;
+        static const short_t N1 = boost::mpl::at_c<typename L1::layout_vector_t, P1>::type::value;
+        static const short_t N2 = boost::mpl::at_c<typename L1::layout_vector_t, P2>::type::value;
 
         typedef layout_map<N1,N2> type;
 
@@ -679,9 +679,9 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         typedef layout_map<I1,I2,I3> L1;
         typedef layout_map<P1,P2,P3> L2;
 
-        static const short_t N1 = boost::mpl::at_c<typename L1::t, P1>::type::value;
-        static const short_t N2 = boost::mpl::at_c<typename L1::t, P2>::type::value;
-        static const short_t N3 = boost::mpl::at_c<typename L1::t, P3>::type::value;
+        static const short_t N1 = boost::mpl::at_c<typename L1::layout_vector_t, P1>::type::value;
+        static const short_t N2 = boost::mpl::at_c<typename L1::layout_vector_t, P2>::type::value;
+        static const short_t N3 = boost::mpl::at_c<typename L1::layout_vector_t, P3>::type::value;
 
         typedef layout_map<N1,N2,N3> type;
 
