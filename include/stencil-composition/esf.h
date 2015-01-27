@@ -69,10 +69,11 @@ namespace gridtools {
             range,
             boost::mpl::vector<>,
             boost::mpl::if_<
-            typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
+                typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
                 boost::mpl::push_back<
-                boost::mpl::_1,
-                typename get_arg_index<EsfF>::template apply<boost::mpl::_2> >,
+                    boost::mpl::_1,
+                    typename get_arg_index<EsfF>::template apply<boost::mpl::_2>
+                >,
                 boost::mpl::_1
             >
         >::type type;
