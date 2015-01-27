@@ -918,11 +918,12 @@ namespace gridtools {
        \param[in] halo_example The (at least) maximal grid that is goinf to be used
        \param[in] typesize In case the DataType of the halo_example is not the same as the maximum data type used in the computation, this parameter can be given
      */
-    template <typename DataType, typename layomap, template <typename> class traits>
+    template <typename DataType, typename _layomap, template <typename> class traits>
     void setup(int max_fields_n, 
-               field_on_the_fly<DataType, layomap, traits> const & halo_example,
+               field_on_the_fly<DataType, _layomap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
+        typedef typename field_on_the_fly<DataType, _layomap, traits>::inner_layoutmap layomap;
       gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
@@ -1165,7 +1166,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
       template <typename T, typename iterator, typename FIRST, typename... FIELDS>
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, FIRST const& first, const FIELDS&... _fields) const {
-        typedef typename layout_transform<typename FIRST::layout_map, proc_layout_abs>::type proc_layout;
+        typedef typename layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>::type proc_layout;
         const int ii_P = proc_layout().template select<0>(ii,jj,kk);
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
@@ -1182,7 +1183,7 @@ namespace gridtools {
 #define MACRO_IMPL(z, n, _)                                             \
       template <typename T, typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field) ) const { \
-        typedef typename layout_transform<typename FIELD0::layout_map, proc_layout_abs>::type proc_layout; \
+        typedef typename layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>::type proc_layout; \
         const int ii_P = proc_layout().template select<0>(ii,jj,kk);    \
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);    \
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);    \
@@ -1211,7 +1212,7 @@ namespace gridtools {
  
       template <typename T, typename iterator, typename array_of_fotf>
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, array_of_fotf const& _fields) const {
-        typedef typename layout_transform<typename array_of_fotf::value_type::layout_map, proc_layout_abs>::type proc_layout;
+        typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>::type proc_layout;
         const int ii_P = proc_layout().template select<0>(ii,jj,kk);
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
@@ -1232,7 +1233,7 @@ namespace gridtools {
  
       template <typename T, typename iterator, typename array_of_fotf>
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, array_of_fotf const& _fields) const {
-        typedef typename layout_transform<typename array_of_fotf::value_type::layout_map, proc_layout_abs>::type proc_layout;
+        typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>::type proc_layout;
         const int ii_P = proc_layout().template select<0>(ii,jj,kk);
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
@@ -1305,11 +1306,12 @@ namespace gridtools {
        \param[in] halo_example The (at least) maximal grid that is goinf to be used
        \param[in] typesize In case the DataType of the halo_example is not the same as the maximum data type used in the computation, this parameter can be given
      */
-    template <typename DataType, typename layomap, template <typename> class traits>
+    template <typename DataType, typename _layomap, template <typename> class traits>
     void setup(int max_fields_n, 
-               field_on_the_fly<DataType, layomap, traits> const & halo_example,
+               field_on_the_fly<DataType, _layomap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
+      typedef typename field_on_the_fly<DataType, _layomap, traits>::inner_layoutmap layomap;
       gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
