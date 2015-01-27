@@ -1118,7 +1118,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
       template <typename T, typename iterator, typename FIRST, typename... FIELDS>
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, FIRST const& first, const FIELDS&... _fields) const {
-        typedef typename layout_transform<typename FIRST::layout_map, proc_layout_abs>::type proc_layout;
+        typedef typename layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>::type proc_layout;
         const int ii_P = proc_layout().template select<0>(ii,jj,kk);
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);
@@ -1135,7 +1135,7 @@ namespace gridtools {
 #define MACRO_IMPL(z, n, _)                                             \
       template <typename T, typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field) ) const { \
-        typedef typename layout_transform<typename FIELD0::layout_map, proc_layout_abs>::type proc_layout; \
+        typedef typename layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>::type proc_layout; \
         const int ii_P = proc_layout().template select<0>(ii,jj,kk);    \
         const int jj_P = proc_layout().template select<1>(ii,jj,kk);    \
         const int kk_P = proc_layout().template select<2>(ii,jj,kk);    \

@@ -160,7 +160,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
   /* This is self explanatory now
    */
 
-#define VECTOR_INT
+  //#define VECTOR_INT
 #ifdef VECTOR_INT
   std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
   vect[0] = field1;
