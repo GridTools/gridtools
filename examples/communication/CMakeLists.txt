@@ -78,4 +78,257 @@ else(GCL_ONLY)
       endif()
     endif()
   endif()
+
+  if( GCL_MPI )
+    if ( $ENV{JENKINS_COMMUNICATION_TESTS} )
+##      foreach(srcfile test_all_to_all_halo test_all_to_all_ij_ji test_all_to_all_halo_3D test_halo_exchange test_halo_exchange_2D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_2D_generic test_halo_exchange_3D_generic_full)
+
+        cuda_add_executable( test_halo_exchange_3D_generic_0 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_0 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_generic_0 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_1 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_1 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_1 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_generic_1 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_2 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_2 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_2 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_generic_2 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_3 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_3 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_3 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_generic_3 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_4 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_4 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_4 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_generic_4 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_5 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_5 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_5 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_generic_5 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_6 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_6 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_6 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_generic_6 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_generic_7 test_halo_exchange_3D_generic.cpp)
+        add_dependencies( test_halo_exchange_3D_generic_7 gcl)
+        set_target_properties( test_halo_exchange_3D_generic_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_generic_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_0 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_0 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_0 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_1 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_1 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_1 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_1 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_2 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_3 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_3 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_3 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_3 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_4 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_4 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_4 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_4 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_5 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_5 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_5 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_5 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_6 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_6 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_6 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_6 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_7 test_halo_exchange_3D_all.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_7 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_0 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_0 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_0 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_1 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_1 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_1 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_1 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_2 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_2 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_2 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_2 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_3 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_3 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_3 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_3 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_4 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_4 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_4 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_4 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_5 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_5 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_5 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_5 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_6 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_6 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_6 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_6 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_all_test_2_7 test_halo_exchange_3D_all_2.cpp)
+        add_dependencies( test_halo_exchange_3D_all_test_2_7 gcl)
+        set_target_properties( test_halo_exchange_3D_all_test_2_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_all_test_2_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+
+################################## GPU 
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_0 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_0 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_0 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_1 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_1 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_1 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_1 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_2 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_2 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_2 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_2 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_3 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_3 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_3 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_3 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_4 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_4 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_4 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_4 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_5 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_5 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_5 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_5 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_6 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_6 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_6 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_6 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_generic_7 test_halo_exchange_3D_generic.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_generic_7 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_generic_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_generic_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_0 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_0 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_0 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_1 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_1 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_1 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_1 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_3 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_3 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_3 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_3 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_4 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_4 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_4 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_4 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_5 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_5 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_5 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_5 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_6 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_6 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_6 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_6 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_7 test_halo_exchange_3D_all.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_7 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_0 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_0 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_0 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_1 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_1 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_1 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_1 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_2 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_2 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_2 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_2 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_3 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_3 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_3 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -std=c++11")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_3 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_4 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_4 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_4 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_4 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_5 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_5 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_5 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_5 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_6 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_6 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_6 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_6 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+        cuda_add_executable( test_halo_exchange_3D_cuda_all_test_2_7 test_halo_exchange_3D_all_2.cu)
+        add_dependencies( test_halo_exchange_3D_cuda_all_test_2_7 gcl)
+        set_target_properties( test_halo_exchange_3D_cuda_all_test_2_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
+        target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
+
+    endif()
+  endif()
+
+
 endif()
