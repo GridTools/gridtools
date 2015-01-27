@@ -20,17 +20,15 @@ namespace gridtools {
         {};
 
         template <typename Array>
-        struct linearize_esf_array
-	    : boost::mpl::fold<
-	    Array,
-	    boost::mpl::vector<>,
-	    boost::mpl::if_<
-		is_independent<boost::mpl::_2>,
-		keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-		boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-                >
-            >
-        {};
+        struct linearize_esf_array : boost::mpl::fold<
+	          Array,
+	          boost::mpl::vector<>,
+	          boost::mpl::if_<
+	              is_independent<boost::mpl::_2>,
+	              keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+	              boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+              >
+        >{};
 
         typedef ArrayEsfDescr esf_array; // may contain independent constructs
         typedef ExecutionEngine execution_engine_t;
@@ -41,9 +39,9 @@ namespace gridtools {
 
         /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
         typedef typename boost::mpl::fold<linear_esf,
-					  boost::mpl::vector<>,
-					  boost::mpl::push_back<boost::mpl::_1, get_temps_per_functor<boost::mpl::_2> >
-					  >::type written_temps_per_functor;
+                boost::mpl::vector<>,
+                boost::mpl::push_back<boost::mpl::_1, get_temps_per_functor<boost::mpl::_2> >
+        >::type written_temps_per_functor;
     };
 
 } // namespace gridtools
