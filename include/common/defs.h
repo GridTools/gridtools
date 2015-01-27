@@ -4,7 +4,8 @@
    @brief global definitions
 */
 
-#define GT_MAX_ARGS 10
+#define FUSION_MAX_VECTOR_SIZE 20
+#define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
 
 #ifdef __GNUC__
