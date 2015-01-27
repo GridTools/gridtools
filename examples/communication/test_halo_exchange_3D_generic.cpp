@@ -26,6 +26,7 @@ double lapse_time2;
 double lapse_time3;
 double lapse_time4;
 
+#define A_ADD 7
 #define B_ADD 1
 #define C_ADD 2
 
@@ -136,25 +137,25 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
   /* Data is initialized in the inner region of size DIM1xDIM2
    */
   for (int ii=H; ii<DIM1+H; ++ii)
-    for (int jj=H; jj<DIM2+H; ++jj) 
-      for (int kk=H; kk<DIM3+H; ++kk) {
-        a(ii,jj,kk) = 
-          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0],
-                   jj-H+(DIM2)*coords[1],
-                   kk-H+(DIM3)*coords[2]);
-        b(ii,jj,kk) = 
-          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+B_ADD,
-                   jj-H+(DIM2)*coords[1]+B_ADD,
-                   kk-H+(DIM3)*coords[2]+B_ADD);
-        c(ii,jj,kk) = 
-          triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+C_ADD,
-                   jj-H+(DIM2)*coords[1]+C_ADD,
-                   kk-H+(DIM3)*coords[2]+C_ADD);
-      }
+      for (int jj=H; jj<DIM2+H; ++jj) 
+          for (int kk=H; kk<DIM3+H; ++kk) {
+              a(ii,jj,kk) = 
+                  triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+A_ADD,
+                                       jj-H+(DIM2)*coords[1]+A_ADD,
+                                       kk-H+(DIM3)*coords[2]+A_ADD);
+              b(ii,jj,kk) = 
+                  triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+B_ADD,
+                                       jj-H+(DIM2)*coords[1]+B_ADD,
+                                       kk-H+(DIM3)*coords[2]+B_ADD);
+              c(ii,jj,kk) = 
+                  triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+C_ADD,
+                                       jj-H+(DIM2)*coords[1]+C_ADD,
+                                       kk-H+(DIM3)*coords[2]+C_ADD);
+          }
 
   printbuff(file,a, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-  //  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-  //  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
+  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
+  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
   
   /* This is self explanatory now
    */
@@ -221,8 +222,8 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
   file << "\n********************************************************************************\n";
 
   printbuff(file,a, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-  //  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-  //  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
+  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
+  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
 
   int passed = true;
 
@@ -240,15 +241,15 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         int tbx, tby, tbz;
         int tcx, tcy, tcz;
 
-        tax = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]);
+        tax = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+A_ADD;
         tbx = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+B_ADD;
         tcx = modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+C_ADD;
 
-        tay = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]);
+        tay = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+A_ADD;
         tby = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+B_ADD;
         tcy = modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+C_ADD;
 
-        taz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2]);
+        taz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+A_ADD;
         tbz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+B_ADD;
         tcz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
