@@ -43,9 +43,9 @@ namespace gridtools {
         struct apply {
             // TODO: boolean logic, replace with mpl::and_ and mpl::or_
             typedef typename boost::mpl::if_<
-            is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
-                    typename boost::mpl::if_<
-            boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
+                is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
+                typename boost::mpl::if_<
+                    boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
                     boost::false_type,
                     boost::true_type
                 >::type,
