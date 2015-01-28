@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include "defs.h"
 
 /** @file
 @brief serie of loops unrolled at compile time
@@ -125,10 +126,10 @@ namespace gridtools {
     };
 
 /** @brief similar to the previous struct, given the upper and lower bound */
-    template <uint_t I, int_t LB=-1, uint_t UB=1>
+    template <uint_t I, int_t LB=-1, int_t UB=1>
     struct neigh_loop;
 
-    template <int_t LB, uint_t UB>
+    template <int_t LB, int_t UB>
     struct neigh_loop<0,LB,UB> {
       template <typename F, typename array>
       void operator()(F &f, array & tuple) {
@@ -136,7 +137,7 @@ namespace gridtools {
       }
     };
 
-    template <uint_t I, int_t LB, uint_t UB>
+    template <uint_t I, int_t LB, int_t UB>
     struct neigh_loop {
       template <typename F, typename array>
       void operator()(F &f, array & tuple) {

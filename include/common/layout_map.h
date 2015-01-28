@@ -33,26 +33,58 @@ namespace gridtools {
             using type = T0;
         };
 
-        template <uint_t I>
-        struct select_s
-        {
-            template <typename ... T>
-            GT_FUNCTION
-            auto get(T&... args) ->decltype(std::get<I>(std::make_tuple(args...))) {
-                return std::get<I>(std::make_tuple(args...));
+        template <int index>
+        static int __get(int i) {
+            return -1;
+        }
+ 
+        template <int index, int first, int... Vals>
+        static int __get(int i) {
+            if (i == index) {
+                return first;
+            } else {
+                return __get<index+1, Vals...>(i);
             }
-        };
+        }
+ 
     }//namespace _impl
 
+    /**
+       Layout maps are simple sequences of integers specified
+       statically. The specification happens as
+
+       \code
+       gridtools::layout_map<a,b,c>
+       \endcode
+
+       where a, b, and c are integer static constants. To access the
+       elements of this sequences the user should call the static method
+
+       \code
+       ::at<I>()
+       \endcode
+
+       For instance:
+       \code
+       gridtools::layout_map<3,4,1,5>::at<2> == 1
+       gridtools::layout_map<3,4,1,5>::at<0> == 3
+       etc.
+       \endcode
+    */
     template <short_t ... Args>
     struct layout_map{
         static constexpr ushort_t length=sizeof...(Args);
-        //typedef boost::mpl::vector_c<short_t, Args...> t;
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
 	typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
         /* static const int s=t::fuck(); */
         /* BOOST_STATIC_ASSERT(s); */
 
+        /** This function returns the value in the map that is stored at
+            position 'I', where 'I' is passed in input as template
+            argument.
+
+            \tparam I The index to be queried
+        */
         template <ushort_t I>
         GT_FUNCTION
         static constexpr short_t at() {
@@ -61,10 +93,32 @@ namespace gridtools {
         }
 
 
+        template <typename T>
+        struct remove_refref;
+
+        template <typename T>
+        struct remove_refref<T&&> {
+            using type=T;
+        };
+
+        /** Given a tuple of values and a static index, the function
+            returns the reference to the value in the position indicated
+            at position 'I' in the map.
+
+            \code
+            gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be queried
+            \tparam T Sequence of types 
+            \param[in] args Values from where to select the element  (length must be equal to the length of the layout_map length)
+        */
         template <ushort_t I, typename ... T>
         GT_FUNCTION
-        static auto select(T & ... args) ->decltype(_impl::select_s<layout_vector[I]>().get(args ... )) {
-            return _impl::select_s<layout_vector[I]>().get(args ... );
+        static auto select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
+            auto thetuple = std::make_tuple(args ...);
+            int x = std::template get<layout_vector[I]>(thetuple );
+            return x;
         }
 
         //returns the dimension corresponding to the given strides (get<0> for stride 1)
@@ -75,9 +129,9 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        ushort_t constexpr operator[](ushort_t i) const {
-            //assert( i<length );
-            return get(i);
+        short_t operator[](ushort_t i) {
+            assert( i<length );
+            return _impl::__get<0, Args...>(i);
         }
 
         struct transform_in_type{
@@ -93,6 +147,18 @@ namespace gridtools {
         };
 
 
+        /** Given a tuple of values and a static index I, the function
+            returns the reference to the element whose position
+            corresponds to the position of 'I' in the map.
+
+            \code
+            gridtools::layout_map<2,0,1>::find<1>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam[in] Indices List of values where element is selected
+            \param[in] indices  (length must be equal to the length of the layout_map length)
+        */
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
         static /* constexpr */ typename _impl::first_type<Indices...>::type
@@ -101,6 +167,24 @@ namespace gridtools {
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \tparam[in] Indices List of argument where to return the found value
+            \param[in] indices List of values (length must be equal to the length of the layout_map length)
+        */
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
         static /*constexpr*/ typename _impl::first_type<Indices...>::type
@@ -121,6 +205,19 @@ namespace gridtools {
             return boost::mpl::at_c< MplVector, pos_<I>::value>::type::value;
         }
 
+        /** Given a tuple of values and a static index I, the function
+            returns the reference to the element whose position
+            corresponds to the position of 'I' in the map.
+
+            \code
+            a[0] = a; a[1] = b; a[3] = c;
+            gridtools::layout_map<2,0,1>::find<1>(a) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam T Types of elements
+            \param[in] a Pointer to a region with the elements to match
+        */
         template <ushort_t I, typename T>
         GT_FUNCTION
         static uint_t find(const T* indices) {
@@ -177,6 +274,7 @@ namespace gridtools {
         };
 
     };
+
 #else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
     namespace _impl {
@@ -659,6 +757,37 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
 #endif // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
+    template <typename LM>
+    struct reverse_map;
+
+    template <int I1, int I2>
+    struct reverse_map<layout_map<I1, I2> > {
+        typedef layout_map<I2,I1> type;
+    };
+
+    template <int I1, int I2, int I3>
+    struct reverse_map<layout_map<I1, I2,I3> > {
+        template <int I, int Dummy>
+        struct new_value;
+
+        template <int Dummy>
+        struct new_value<0, Dummy> {
+            static const int value = 2;
+        };
+
+        template <int Dummy>
+        struct new_value<1, Dummy> {
+            static const int value = 1;
+        };
+
+        template <int Dummy>
+        struct new_value<2, Dummy> {
+            static const int value = 0;
+        };
+
+        typedef layout_map<new_value<I1,0>::value, new_value<I2,0>::value, new_value<I3,0>::value > type;
+    };
+
     template <typename DATALO, typename PROCLO>
     struct layout_transform;
 
@@ -709,6 +838,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     struct default_layout_map<4> {
         typedef layout_map<0,1,2,3> type;
     };
+
 } // namespace gridtools
 
 

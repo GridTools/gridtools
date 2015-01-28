@@ -78,7 +78,7 @@ namespace gridtools {
         GT_FUNCTION
         array() {}
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef CXX11_ENABLED
         array(std::initializer_list<T> c) {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
