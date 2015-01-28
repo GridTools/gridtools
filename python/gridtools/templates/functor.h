@@ -16,12 +16,8 @@ struct {{ functor.name }}
     // the input data fields of this functor are marked as 'const'
     //
     {% for p in params -%}
-    typedef {% if functor.scope.is_parameter (p.name, read_only=True) -%}
-            const
-            {%- endif -%}
-            arg_type<{{ loop.index0 }}> {{ p.name }};
+    typedef{% if functor.scope.is_parameter (p.name, read_only=True) %} const{%- endif %} arg_type<{{ loop.index0 }}> {{ p.name }};
     {% endfor %}
-
     //
     // the ordered list of arguments of this functor
     //

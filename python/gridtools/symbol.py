@@ -217,7 +217,7 @@ class Scope (object):
             read_only   whether the returned list should contain just read-only
                         parameters or not (default).-
         """
-        kinds = ['params_ro']
+        kinds = ['param_ro']
         if not read_only:
             kinds.append ('param_rw')
 
@@ -385,7 +385,10 @@ class StencilSymbols (object):
                     #
                     # update the value of this parameter
                     #
-                    self.stencil_scope.add_parameter (k, v)
+                    self.stencil_scope.add_parameter (k,
+                                                      v,
+                                                      read_only=self.stencil_scope.is_parameter (k,
+                                                                                                 read_only=True))
                     #
                     #
                     # check the dimensions of different parameters match

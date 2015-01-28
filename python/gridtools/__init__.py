@@ -108,7 +108,12 @@ class StencilInspector (ast.NodeVisitor):
             # do not add the 'self' parameter
             #
             if n.arg != 'self':
-                self.stencil_scope.add_parameter (n.arg)
+                #
+                # parameters starting with the 'in_' prefix are considered 'read only'
+                #
+                read_only = n.arg.startswith ('in_')
+                self.stencil_scope.add_parameter (n.arg,
+                                                  read_only=read_only)
 
 
     def compile (self):
