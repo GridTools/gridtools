@@ -147,7 +147,9 @@ class FunctorBody (ast.NodeVisitor):
         #
         if attr_name not in self.scope:
             self.scope.add_parameter (attr_name,
-                                      symbol.value)
+                                      symbol.value,
+                                      read_only=self.encl_scope.is_parameter (attr_name,
+                                                                              read_only=True))
         #
         # do not replace strings or NumPy arrays
         #
@@ -214,7 +216,9 @@ class FunctorBody (ast.NodeVisitor):
         #
         if name not in self.scope:
             self.scope.add_parameter (name,
-                                      symbol.value)
+                                      symbol.value,
+                                      read_only=self.encl_scope.is_parameter (name,
+                                                                              read_only=True))
         #
         # try to inline the value of this symbol
         #
@@ -268,8 +272,8 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
 
-            return "dom(%s%s)" % (self.visit (node.value), 
-                                  indexing)
+            return "eval(%s%s)" % (self.visit (node.value), 
+                                   indexing)
 
 
 
