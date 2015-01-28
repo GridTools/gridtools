@@ -30,9 +30,9 @@ struct {{ functor.name }}
     //
     // the operation of this functor
     //
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_interval) 
+    static void Do(Evaluation const & eval, x_interval) 
     {
         {{ functor.body.cpp_src }}
     }
