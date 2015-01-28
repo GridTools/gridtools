@@ -49,6 +49,7 @@ include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
 set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
+set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
 if ( ENABLE_CXX11 )
 message ("CXX11 enabled: " "${ENABLE_CXX11}")
@@ -77,6 +78,7 @@ if( USE_GPU )
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
+  set(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
   set(exe_LIBS "${CUDA_CUDART_LIBRARY}" "${exe_LIBS}" )
 ## #   message("exelibs ${exe_LIBS}")
 ## # message("${CUDA_INCLUDE_DIRS}")
@@ -154,8 +156,8 @@ else()
 endif()
 ##################################################################
 
-set( GCL_MPI "${USE_MPI}" CACHE BOOL "internal: tells whether MPI is used" )
-set( GCL_GPU "${USE_GPU}"  CACHE BOOL "internal: tells whether GPUs are used")
+set( GCL_MPI "${USE_MPI}" )
+set( GCL_GPU "${USE_GPU}" )
 set( GCL_ONLY "OFF" CACHE BOOL "If on only library is build but not the examples and tests" )
 set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
@@ -192,33 +194,34 @@ COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
 
-find_package(PythonLibs)
-find_package(PythonInterp)
+if (ENABLE_PYTHON)
+    find_package(PythonLibs)
+    find_package(PythonInterp)
 
-#"from distutils.sysconfig import get_python_lib; print get_python_lib()"
+    #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
 
-if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-  string( REGEX MATCH [0-9]* PYTHON_VERSION_MAJOR "${PYTHONLIBS_VERSION_STRING}")
-  if(${PYTHON_VERSION_MAJOR} GREATER 2)
+    if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+      string( REGEX MATCH [0-9]* PYTHON_VERSION_MAJOR "${PYTHONLIBS_VERSION_STRING}")
+      if(${PYTHON_VERSION_MAJOR} GREATER 2)
 
-  execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
-  message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
-  string( REGEX MATCH [0-9].[0-9]* PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
+      execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+      message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
+      message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
+      string( REGEX MATCH [0-9].[0-9]* PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
 
-  set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
-  set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
-  message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
+      set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
+      set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
+      message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
 
-  add_custom_target(python)
-  add_custom_command(TARGET python
-		     POST_BUILD
-		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
-		    )
-endif(${PYTHON_VERSION_MAJOR} GREATER 2)
+      add_custom_target(python)
+      add_custom_command(TARGET python
+    		     POST_BUILD
+    		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
+    		    )
+    endif(${PYTHON_VERSION_MAJOR} GREATER 2)
 
-endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-
+    endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
+endif(ENABLE_PYTHON)
 
 add_subdirectory( unit_tests )
 add_subdirectory( examples )

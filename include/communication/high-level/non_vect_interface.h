@@ -16,7 +16,6 @@
 
 #else
 
-
 #define n_o_i BOOST_PP_ITERATION()
 
 // #define _TRIM_FIELDS(z, m, s) field ## m 
@@ -38,10 +37,9 @@
 // #define PREFIX_SEND(m) BOOST_PP_REPEAT(m, _PREFIX_SEND, nil)
 
 template <BOOST_PP_ENUM_PARAMS(n_o_i, typename FIELD)> 
-void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) { 
-
+void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const { 
   ////////////////////////////////// Only FIELD0 is taken for layout... all should have the same
-  typedef typename layout_transform<typename FIELD0::layout_map, proc_layout_abs>::type map_type;
+  typedef typename layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>::type map_type;
 
   std::vector<FIELD0> fields(n_o_i);
   
@@ -209,9 +207,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) {
    \param[in] fields vector with data fields pointers to be unpacked into
 */
 template <BOOST_PP_ENUM_PARAMS(n_o_i, typename FIELD)> 
-void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) { 
+void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const { 
   ////////////////////////////////// Only FIELD0 is taken for layout... all should have the same
-  typedef typename layout_transform<typename FIELD0::layout_map, proc_layout_abs>::type map_type;
+  typedef typename layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>::type map_type;
 
   std::vector<FIELD0> fields(n_o_i);
 
