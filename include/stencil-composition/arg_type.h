@@ -181,7 +181,6 @@ namespace gridtools {
 		Index(){}
 		GT_FUNCTION
 		Index(Index const&){}
-
 		typedef Dimension<Coordinate> super;
 	    };
 
@@ -189,10 +188,29 @@ namespace gridtools {
 	    Dimension();
         };
 
+        /**We must distinguish the case of the first 3 dimensions, so that the arg_decorator
+           (implemented below for the multidimensional case) knows when he has to forward the construction to the base class.
+           a unification of arg_types would be better but requires extra coding effort.
+*/
+        template<ushort_t Coordinate>
+        struct DimensionIJK : public Dimension<Coordinate>{
+            using Dimension<Coordinate>::Dimension;
+            GRIDTOOLS_STATIC_ASSERT(Coordinate<3, "you must be knowing what you do (cryptic error msg)");
+
+            //repeating for the same reason written above.
+	    struct Index{
+	        GT_FUNCTION
+		Index(){}
+		GT_FUNCTION
+		Index(Index const&){}
+		typedef DimensionIJK<Coordinate> super;
+	    };
+};
+
         /**Aliases for the first three dimensions (x,y,z)*/
-        typedef Dimension<0> x;
-        typedef Dimension<1> y;
-        typedef Dimension<2> z;
+        typedef DimensionIJK<0> x;
+        typedef DimensionIJK<1> y;
+        typedef DimensionIJK<2> z;
 
     }
 
@@ -303,7 +321,7 @@ namespace gridtools {
            \param j the offset in y direction
            \param k the offset in z direction
            NOTE: templating on the int type, because if we use int_t directly, and if int_t is different from int, then the user would have to explicitly specify the cast to int_t*/
-        template <typename IntType>
+        template <typename IntType>//boost::enable_if
         GT_FUNCTION
         constexpr arg_type(IntType i, IntType j, IntType k)
 #if( (!defined(CXX11_ENABLED)))
@@ -531,9 +549,9 @@ namespace gridtools {
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-        template <typename IntType, typename... Whatever>
+        template <typename... Whatever>
         GT_FUNCTION
-        arg_decorator ( IntType const& t, Whatever... x): super( x... ) {
+        arg_decorator ( int const& t, Whatever... x): super( x... ) {
             m_offset=t;
         }
 

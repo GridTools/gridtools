@@ -98,7 +98,7 @@ namespace gridtools {
         struct extract_ranges {
             typedef typename FunctorDesc::esf_function Functor;
 
-            /**@brief here the ranges for the functors are calculated: the resulting type will be the range (i,j) which is enclosing all the ranges of the field used by the specific functor*/
+            /**@brief here the ranges for the functors are calculated: the resulting type will be the range (i,j) which is enclosing all the ranges of the fields used by the specific functor*/
             template <typename RangeState, typename ArgumentIndex>
             struct update_range {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;

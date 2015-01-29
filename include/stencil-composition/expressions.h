@@ -303,11 +303,11 @@ namespace gridtools{
 	   \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
 	template<typename Left>
 	GT_FUNCTION
-	constexpr typename Left::super operator +(Left d1, int  offset) {return typename Left::super( offset);}
+	constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
 
 	template<typename Left>
 	GT_FUNCTION
-	constexpr typename Left::super operator -(Left d1, int  offset) {return typename Left::super(-offset);}
+	constexpr typename Left::super operator -(Left d1, int const&  offset) {return typename Left::super(-offset);}
 
 /**@}*/
     }//namespace expressions
