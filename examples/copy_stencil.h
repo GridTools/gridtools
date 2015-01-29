@@ -130,7 +130,7 @@ namespace copy_stencil{
         in.push_front<1>(init2, -1.5);
 #else
         storage_type in(d1,d2,d3,-3.5,"in");
-        storage_type out(d1,d2,d3,1.5,"out");
+        storage_type out(d1,d2,d3,666.5,"out");
 #endif
 
         for(uint_t i=0; i<d1; ++i)
@@ -159,8 +159,8 @@ namespace copy_stencil{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1, d1};
-        uint_t dj[5] = {0, 0, 0, d2, d2};
+        uint_t di[5] = {0, 0, 0, d1-1, d1};
+        uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
         gridtools::coordinates<axis> coords(di, dj);
         coords.value_list[0] = 0;
@@ -264,19 +264,28 @@ namespace copy_stencil{
         pw_print();
 #endif
 
+        bool success = true;
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
+                    {
 #ifdef CXX11_ENABLED
-        in.print_value(NX,NY,0);
-        in.print_value(NX,0,NZ);
-        in.print_value(0,NY,NZ);
-        in.print_value(NX,NY,NZ);
-        return  in(0,0,0)==0. && in(NX,NY,0)==NX+NY && in(NX,0,NZ)==NX+NZ && in(0,NY,NZ)==NY+NZ && in(NX,NY,NZ)==NX+NY+NZ;
+                        //NONO                        if (in(i, j, k) == in.get<0,1>->(i,j,k));
 #else
-        out.print_value(NX,NY,0);
-        out.print_value(NX,0,NZ);
-        out.print_value(0,NY,NZ);
-        out.print_value(NX,NY,NZ);
-        return  out(0,0,0)==0. && out(NX,NY,0)==NX+NY && out(NX,0,NZ)==NX+NZ && out(0,NY,NZ)==NY+NZ && out(NX,NY,NZ)==NX+NY+NZ;
+                        if (in(i, j, k)!=out(i,j,k)) {
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+                                      << "in = " << in(i, j, k)
+                                      << ", out = " << out(i, j, k)
+                                      << std::endl;
+                            success = false;
+                        }
 #endif
+                    }
+        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        return success;
 
     }
 
