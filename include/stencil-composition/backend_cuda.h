@@ -36,35 +36,35 @@ namespace gridtools {
         void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
             /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
             /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
-	    uint_t z = coords->template value_at<typename Traits::first_hit_t>();
+            uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
-	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
+            uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+            uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
 
-	    typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-	    __shared__
-	    typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+            typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+            __shared__
+                typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 
-	    //Doing construction and assignment before the following 'if', so that we can
-	    //exploit parallel shared memory initialization
-	    typename Traits::iterate_domain_t it_domain(*l_domain);
-	    it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
-	    __syncthreads();
+            //Doing construction and assignment before the following 'if', so that we can
+            //exploit parallel shared memory initialization
+            typename Traits::iterate_domain_t it_domain(*l_domain);
+            it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+            __syncthreads();
 
             if ((i < nx) && (j < ny)) {
 
-		it_domain.assign_ij<0>(i+starti,0);
-		it_domain.assign_ij<1>(j+startj,0);
+                it_domain.assign_ij<0>(i+starti,0);
+                it_domain.assign_ij<1>(j+startj,0);
 
-		typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
-		typedef typename index_to_level<typename interval::first>::type from;
-		typedef typename index_to_level<typename interval::second>::type to;
-		typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
+                typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
+                typedef typename index_to_level<typename interval::first>::type from;
+                typedef typename index_to_level<typename interval::second>::type to;
+                typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
-		//printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
-		//setting the initial k level (for backward/parallel iterations it is not 0)
-		if( !iteration_policy::value==enumtype::forward )
-		    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+                //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
+                //setting the initial k level (for backward/parallel iterations it is not 0)
+                if( !iteration_policy::value==enumtype::forward )
+                    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
