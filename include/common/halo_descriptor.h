@@ -115,7 +115,7 @@ namespace gridtools {
         return m_end+m_plus;
       if (I==-1)
 	{
-	  assert(m_begin-1>=0);
+        //	  assert(m_begin-1>=0);
 	  return m_begin-1;
 	}
 
@@ -150,7 +150,7 @@ namespace gridtools {
         return m_end;
       if (I==-1)
 	{
-	  assert(m_begin+m_plus-1>=0);
+        //	  assert(m_begin+m_plus-1>=0);
 	  return m_begin+m_plus-1;
 	}
 
