@@ -24,7 +24,7 @@ endif()
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "../build")
+  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "${CMAKE_SOURCE_DIR}/build")
 endif()
 
 include_directories( include/ include/communication/high-level ) ## Library header files

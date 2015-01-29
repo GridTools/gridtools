@@ -11,6 +11,8 @@
 #include "test-assign-placeholders.h"
 #endif
 
+#include "communication/layout_map.cpp"
+
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
 }
@@ -142,6 +144,10 @@ TEST(testdomain, assignplchdrs) {
     EXPECT_EQ(assign_placeholders(), true);
 }
 #endif
+
+TEST(testcommon, layoutmap) {
+    EXPECT_EQ(test_layout_map(), true);
+}
 
 int main(int argc, char** argv)
 {
