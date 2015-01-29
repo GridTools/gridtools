@@ -270,21 +270,26 @@ namespace copy_stencil{
                 for(uint_t k=0; k<d3; ++k)
                     {
 #ifdef CXX11_ENABLED
-                        //NONO                        if (in(i, j, k) == in.get<0,1>->(i,j,k));
+                        if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
 #else
                         if (in(i, j, k)!=out(i,j,k)) {
+#endif
                             std::cout << "error in "
                                       << i << ", "
                                       << j << ", "
                                       << k << ": "
+#ifdef CXX11_ENABLED
+                                      << "in = " << (in.get_value<0,0>(i, j, k))
+                                      << ", out = " << (in.get_value<0,1>(i, j, k))
+#else
                                       << "in = " << in(i, j, k)
                                       << ", out = " << out(i, j, k)
+#endif
                                       << std::endl;
                             success = false;
                         }
-#endif
                     }
-        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
         return success;
 
     }
