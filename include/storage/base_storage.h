@@ -786,7 +786,21 @@ namespace gridtools {
         template<short_t field_dim=0, short_t snapshot=0>
         pointer_type& get( )
 		{
-            return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+                    return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+		}
+
+        /**@biref gets a given value as the given field i,j,k coordinates
+
+           \tparam field_dim the given field dimenisons
+           \tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
+           \param i index in the horizontal direction
+           \param j index in the horizontal direction
+           \param k index in the vertical direction
+        */
+        template<short_t field_dim=0, short_t snapshot=0>
+        typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
+		{
+                    return get<field_dim, snapshot>()[super::_index(i,j,k)];
 		}
 
         /**@biref ODE advancing for a single dimension
