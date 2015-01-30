@@ -469,7 +469,6 @@ namespace gridtools {
                                           boost::mpl::vector<>,
                                           _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
                                           >::type ranges_list;
-
         /*
          *  Compute prefix sum to compute bounding boxes for calling a given functor
          */
