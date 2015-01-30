@@ -351,7 +351,8 @@ namespace gridtools {
 		//or maybe you did a mistake when specifying the ranges in the placehoders definition
 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->_index(arg.offset()));
+                       ->_index(arg.template n<ArgType::extra_args>()
+                           /*arg.offset()*/));
 
 		//the following assert fails when an out of bound access is observed,
 		//i.e. when some offset is negative and either one of
@@ -361,12 +362,14 @@ namespace gridtools {
 		//in the placehoders definition
 		assert( m_index[ArgType::index_type::value]
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->_index(arg.offset()) >= 0);
+                        ->_index(arg.template n<ArgType::extra_args>()
+                                /*arg.offset()*/) >= 0);
 
                 return *(storage_pointer
                          +(m_index[ArgType::index_type::value])
                          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                         ->_index(arg.offset()));
+                         ->_index(arg.template n<ArgType::extra_args>()
+                                  /*arg.offset()*/));
             }
 
 
@@ -387,63 +390,63 @@ namespace gridtools {
         /** @brief method called in the Do methods of the functors.
             specialization for the arg_type placeholders
         */
-        template <uint_t Index, typename Range, ushort_t Dim>
+        template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range, Dim>::index_type>::type::value_type&
-        operator()(arg_type<Index, Range, Dim> const& arg) const {
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
+        operator()(arg_decorator<ArgType> const& arg) const {
 
-            return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range, Dim>::index_type::value==0), LocalDomain, arg_type<Index, Range, Dim> >::value]);
+            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
         }
 
         /** @brief method called in the Do methods of the functors.
             specialization for the expr_direct_access<arg_type> placeholders
         */
-        template <uint_t Index, typename Range, ushort_t Dim>
-        GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range, Dim>::index_type>::type::value_type&
-        operator()(expr_direct_access<arg_type<Index, Range, Dim> > const& arg) const {
-
-            return get_value(arg, m_data_pointer[current_storage<(arg_type<Index, Range, Dim>::index_type::value==0), LocalDomain, arg_type<Index, Range, Dim> >::value]);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
-        operator()(gridtools::arg_decorator<ArgType> const& arg) const {
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
+        operator()(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
 
-#ifdef CXX11_ENABLED
-            typedef typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type storage_type;
-#else
-            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
-
-            //if the following assertion fails you have specified a dimension for the extended storage
-            //which does not correspond to the size of the extended placeholder for that storage
-            /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
-
-            // printf("[");
-            // for (int i=0; i< N_DATA_POINTERS; ++i)
-            //      printf(" %x, ", m_data_pointer[i]);
-            // printf("]\n");
-
-            //for the moment the extra dimensionality of the storage is limited to max 2
-            //(3 space dim + 2 extra= 5, which gives n_args==4)
-            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-            GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4, "A storage with snapshots in more than 2 dimensions has not been implemented,\n\
- you specicied a number too high for the arg_extension in the placeholder definition");
-
-            return get_value(arg, m_data_pointer[storage_type::get_index(
-                                                                         (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if
-                                                                             arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
-                                                                             :
-                                                                             arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
-                                                                             + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()
-                                                                             *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
-                                                                             ))//+ the offset of the other extra dimension
-                                                 + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
         }
+
+//         /** @brief method called in the Do methods of the functors.
+//             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+//         template <typename ArgType>
+//         GT_FUNCTION
+//         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+//         operator()(gridtools::arg_decorator<ArgType> const& arg) const {
+
+// #ifdef CXX11_ENABLED
+//             typedef typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type storage_type;
+// #else
+//             typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+// #endif
+
+//             //if the following assertion fails you have specified a dimension for the extended storage
+//             //which does not correspond to the size of the extended placeholder for that storage
+//             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
+
+//             // printf("[");
+//             // for (int i=0; i< N_DATA_POINTERS; ++i)
+//             //      printf(" %x, ", m_data_pointer[i]);
+//             // printf("]\n");
+
+//             //for the moment the extra dimensionality of the storage is limited to max 2
+//             //(3 space dim + 2 extra= 5, which gives n_args==4)
+//             GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
+//             GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4, "A storage with snapshots in more than 2 dimensions has not been implemented,\n\
+//  you specicied a number too high for the arg_extension in the placeholder definition");
+
+//             return get_value(arg, m_data_pointer[storage_type::get_index(
+//                                                                          (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if
+//                                                                              arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+//                                                                              :
+//                                                                              arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+//                                                                              + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()
+//                                                                              *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
+//                                                                              ))//+ the offset of the other extra dimension
+//                                                  + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+//         }
 
 
         /** @brief method called in the Do methods of the functors.
@@ -457,14 +460,17 @@ namespace gridtools {
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
 	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-		   ->_index(arg.first_operand.offset()));
+		   ->_index(arg.first_operand.template n<gridtools::arg_decorator<ArgType>::extra_arg>()
+                            /*soffset()*/));
 
 	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-		   ->_index(arg.first_operand.offset()) >= 0);
+		   ->_index(arg.first_operand.template n<gridtools::arg_decorator<ArgType>::extra_args>()
+                            /*offset()*/) >= 0);
 
 	    return *(storage_pointer
 		     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-		     ->_index(arg.first_operand.offset()));
+		     ->_index(arg.first_operand.template n<gridtools::arg_decorator<ArgType>::extra_args>()
+                              /*offset()*/));
         }
 
 

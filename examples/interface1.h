@@ -42,7 +42,7 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
     typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> > in;
+    typedef const arg_type<1/*, range<-1, 1, -1, 1>*/ > in;
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -167,6 +167,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
     storage_type coeff(d1,d2,d3,8., "coeff");
+    storage_type lap(d1,d2,d3,-1., "in");
+    storage_type flx(d1,d2,d3,-7.3, "out");
+    storage_type fly(d1,d2,d3,8., "coeff");
 
 #ifndef SILENT_RUN
     out.print();
@@ -174,9 +177,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, tmp_storage_type > p_lap;
-    typedef arg<1, tmp_storage_type > p_flx;
-    typedef arg<2, tmp_storage_type > p_fly;
+    typedef arg<0, storage_type > p_lap;
+    typedef arg<1, storage_type > p_flx;
+    typedef arg<2, storage_type > p_fly;
     typedef arg<3, storage_type > p_coeff;
     typedef arg<4, storage_type > p_in;
     typedef arg<5, storage_type > p_out;
@@ -188,8 +191,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#ifdef CXX11_ENABLE
-    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+#ifdef CXX11_ENABLED
+    gridtools::domain_type<arg_type_list> domain( (p_lap()=lap), (p_flx()=flx), (p_fly()=fly), (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
 #else
     gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif

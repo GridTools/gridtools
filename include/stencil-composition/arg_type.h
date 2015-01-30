@@ -61,13 +61,9 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-
-
     template <enumtype::backend X, typename T, typename U, short_t Dim>
     struct is_storage<base_storage<X,T,U,true, Dim>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
-
-
 
     template <enumtype::backend X, typename T, typename U, short_t Dim>
     struct is_storage<base_storage<X,T,U,false, Dim>  *  > : public boost::true_type
@@ -301,215 +297,223 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Range Bounds over which the function access the argument
      */
-    template <uint_t I, typename Range=range<0,0,0,0>, ushort_t dimension=3 >
-    struct arg_type   {
+    template <uint_t I, typename Range=range<0,0,0,0>/*, ushort_t dimension=3*/ >
+    struct arg_type  {
 
-        int_t m_offset[dimension]
-#ifdef CXX11_ENABLED
-        ={0}
-#endif
-            ;
+        static const ushort_t n_args=0;
+        static const ushort_t extra_args=0;
 
         typedef static_uint<I> index_type;
         typedef Range range_type;
+//         int_t m_offset[dimension]
+// #ifdef CXX11_ENABLED
+//         ={0}
+// #endif
+//             ;
 
-        /**
-           @brief Constructor with three integer offsets
-           \param i the offset in x direction
-           \param j the offset in y direction
-           \param k the offset in z direction
-           NOTE: templating on the int type, because if we use int_t directly, and if int_t is different from int, then the user would have to explicitly specify the cast to int_t*/
-        template <typename IntType>//boost::enable_if
-        GT_FUNCTION
-        constexpr arg_type(IntType i, IntType j, IntType k)
-#if( (!defined(CXX11_ENABLED)))
-            {
-                m_offset[0]=i;
-                m_offset[1]=j;
-                m_offset[2]=k;
-            }
-#else
-        : m_offset{i,j,k} {}
-#endif
+        // typedef static_uint<I> index_type;
+        // typedef Range range_type;
 
-
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9) )
-#warning "Obsolete version of the GCC compiler"
-        // GCC compiler bug solved in versions 4.9+, Clang is OK, other copmilers were not tested
-        // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
-        // we implement a suboptimal solution
-        /**
-           @brief Constructor with three dimensions
-           The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
-           \param x1 the first Dimension, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
-           \param x2 the second Dimension, can be in x,y,z direction
-           \param x3 the third Dimension, can be in x,y,z direction
-         */
-        template <typename X1, typename X2, typename X3 >
-        GT_FUNCTION
-        arg_type ( X1 x, X2 y, X3 z)
-#if( (!defined(CXX11_ENABLED)))
-            {
-                m_offset[0]=initialize<0>(x,y,z);
-                m_offset[1]=initialize<1>(x,y,z);
-                m_offset[2]=initialize<2>(x,y,z);
-                GRIDTOOLS_STATIC_ASSERT(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
-            }
-#else
-        :m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{
-            GRIDTOOLS_STATIC_ASSERT(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
-        }
-#endif
-
-        /**
-           @brief Constructor with two dimensions
-           The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
-           \param x1 the first Dimension, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
-           \param x2 the second Dimension, can be in x,y,z direction
-         */
-        template <typename X1, typename X2 >
-        GT_FUNCTION
-        constexpr arg_type ( X1 x, X2 y)
-#if( (!defined(CXX11_ENABLED)))
-            {
-                m_offset[0]=initialize<0>(x,y);
-                m_offset[1]=initialize<1>(x,y);
-                m_offset[2]=initialize<2>(x,y);
-            }
-#else
-        :m_offset{initialize<0>(x,y), initialize<1>(x,y), initialize<2>(x,y)}{ }
-#endif
-
-        /**
-           @brief Constructor with one dimension
-           The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
-           \param x1 the first Dimension, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
-         */
-        template <typename X1>
-        GT_FUNCTION
-        constexpr arg_type ( X1 x)
-#if( (!defined(CXX11_ENABLED)) )
-            {
-                m_offset[0]=initialize<0>(x);
-                m_offset[1]=initialize<1>(x);
-                m_offset[2]=initialize<2>(x);
-            }
-#else
-        :m_offset{initialize<0>(x), initialize<1>(x), initialize<2>(x)}{ }
-#endif
-
-#else // __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-
-        /**
-           @brief Constructor with arbitrary dimension
-           The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
-           \param x the Dimensions, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
-         */
-        template <typename... X >
-        GT_FUNCTION
-        /*constexpr*/ arg_type ( X... x)//:m_offset{initialize<0>(x...), initialize<1>(x...), initialize<2>(x...)}
-	    {
-		/**how to initialize before the constructor body?
-		   Because of that this isn't a constexpr constructor, but it should be*/
-		/*TODO: initialize only the dimensions affected*/
-		initialize_all<dimension-1>::apply(m_offset, x...);
-		//      if you get a compiler error here, use the version above
-	    }
-#endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+//         /**
+//            @brief Constructor with three integer offsets
+//            \param i the offset in x direction
+//            \param j the offset in y direction
+//            \param k the offset in z direction
+//            NOTE: templating on the int type, because if we use int_t directly, and if int_t is different from int, then the user would have to explicitly specify the cast to int_t*/
+//         template <typename IntType>//boost::enable_if
+//         GT_FUNCTION
+//         constexpr arg_type(IntType i, IntType j, IntType k)
+// #if( (!defined(CXX11_ENABLED)))
+//             {
+//                 m_offset[0]=i;
+//                 m_offset[1]=j;
+//                 m_offset[2]=k;
+//             }
+// #else
+//         : m_offset{i,j,k} {}
+// #endif
 
 
-        /**@brief Default constructor
-           NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
-        GT_FUNCTION
-#if( (!defined(CXX11_ENABLED)) || (defined(__CUDACC__ )))
-        explicit arg_type()
-            {
-                m_offset[0]=0;
-                m_offset[1]=0;
-                m_offset[2]=0;
-            }
-#else
-        constexpr explicit arg_type()
-            : m_offset{0}  {}
-#endif
+// #if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9) )
+// #warning "Obsolete version of the GCC compiler"
+//         // GCC compiler bug solved in versions 4.9+, Clang is OK, other copmilers were not tested
+//         // while waiting for an update in nvcc (which is not supporting gcc 4.9 at present)
+//         // we implement a suboptimal solution
+//         /**
+//            @brief Constructor with three dimensions
+//            The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
+//            \param x1 the first Dimension, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
+//            \param x2 the second Dimension, can be in x,y,z direction
+//            \param x3 the third Dimension, can be in x,y,z direction
+//          */
+//         template <typename X1, typename X2, typename X3 >
+//         GT_FUNCTION
+//         arg_type ( X1 x, X2 y, X3 z)
+// #if( (!defined(CXX11_ENABLED)))
+//             {
+//                 m_offset[0]=initialize<0>(x,y,z);
+//                 m_offset[1]=initialize<1>(x,y,z);
+//                 m_offset[2]=initialize<2>(x,y,z);
+//                 GRIDTOOLS_STATIC_ASSERT(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
+//             }
+// #else
+//         :m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{
+//             GRIDTOOLS_STATIC_ASSERT(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
+//         }
+// #endif
 
-        /**@brief returns the offset array*/
-        GT_FUNCTION
-        constexpr int_t const* offset() const {
-            return m_offset;
-        }
+//         /**
+//            @brief Constructor with two dimensions
+//            The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
+//            \param x1 the first Dimension, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
+//            \param x2 the second Dimension, can be in x,y,z direction
+//          */
+//         template <typename X1, typename X2 >
+//         GT_FUNCTION
+//         constexpr arg_type ( X1 x, X2 y)
+// #if( (!defined(CXX11_ENABLED)))
+//             {
+//                 m_offset[0]=initialize<0>(x,y);
+//                 m_offset[1]=initialize<1>(x,y);
+//                 m_offset[2]=initialize<2>(x,y);
+//             }
+// #else
+//         :m_offset{initialize<0>(x,y), initialize<1>(x,y), initialize<2>(x,y)}{ }
+// #endif
 
-        /**@brief returns the offset in x direction*/
-        GT_FUNCTION
-        constexpr int_t i() const {
-            return m_offset[0];
-        }
+//         /**
+//            @brief Constructor with one dimension
+//            The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
+//            \param x1 the first Dimension, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
+//          */
+//         template <typename X1>
+//         GT_FUNCTION
+//         constexpr arg_type ( X1 x)
+// #if( (!defined(CXX11_ENABLED)) )
+//             {
+//                 m_offset[0]=initialize<0>(x);
+//                 m_offset[1]=initialize<1>(x);
+//                 m_offset[2]=initialize<2>(x);
+//             }
+// #else
+//         :m_offset{initialize<0>(x), initialize<1>(x), initialize<2>(x)}{ }
+// #endif
 
-        /**@brief returns the offset in y direction*/
-        GT_FUNCTION
-        constexpr int_t j() const {
-            return m_offset[1];
-        }
+// #else // __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
-        /**@brief returns the offset in z direction*/
-        GT_FUNCTION
-        constexpr int_t k() const {
-            return m_offset[2];
-        }
+//         /**
+//            @brief Constructor with arbitrary dimension
+//            The arguments are of type \ref gridtools::enumtype::Dimension , containing an offset (run time) and the dimension index (compile time)
+//            \param x the Dimensions, can be in x,y,z direction (i.e. an instance of either Dimension<0>, Dimension<1> or Dimension<2>, which are conveniently aliased with x, y, z)
+//          */
+//         template <typename... X >
+//         GT_FUNCTION
+//         /*constexpr*/ arg_type ( X... x)//:m_offset{initialize<0>(x...), initialize<1>(x...), initialize<2>(x...)}
+// 	    {
+// 		/**how to initialize before the constructor body?
+// 		   Because of that this isn't a constexpr constructor, but it should be*/
+// 		/*TODO: initialize only the dimensions affected*/
+// 		initialize_all<dimension-1>::apply(m_offset, x...);
+// 		//      if you get a compiler error here, use the version above
+// 	    }
+// #endif //__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
 
-        /**@brief returns a copy of the arg_type with all offsets set to zero*/
-        GT_FUNCTION
-#ifdef CXX11_ENABLED
-        static constexpr  arg_type<I>&& center() {
-            return std::move(arg_type<I>());
-        }
-#else
-        static constexpr  arg_type<I> center() {
-            return arg_type<I>();
-        }
-#endif
 
-        /**@brief returns the pointer to the first element of the array of offsets*/
-        GT_FUNCTION
-        constexpr int_t const* offset_ptr() const {
-            return &m_offset[0];
-        }
+//         /**@brief Default constructor
+//            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
+//         GT_FUNCTION
+// #if( (!defined(CXX11_ENABLED)) || (defined(__CUDACC__ )))
+//         explicit arg_type()
+//             {
+//                 m_offset[0]=0;
+//                 m_offset[1]=0;
+//                 m_offset[2]=0;
+//             }
+// #else
+//         constexpr explicit arg_type()
+//             : m_offset{0}  {}
+// #endif
 
-        /**returns a new arg_type where the offsets are the sum of the current offsets plus the values specified via the argument*/
-        GT_FUNCTION
-#ifdef CXX11_ENABLED
-        constexpr arg_type<I>&& plus(int_t _i, int_t _j, int_t _k) const {
-            return std::move(arg_type<I>(i()+_i, j()+_j, k()+_k));
-        }
-#else
-        constexpr arg_type<I> plus(int_t _i, int_t _j, int_t _k) const {
-            return arg_type<I>(i()+_i, j()+_j, k()+_k);
-        }
-#endif
+//         /**@brief returns the offset array*/
+//         GT_FUNCTION
+//         constexpr int_t const* offset() const {
+//             return m_offset;
+//         }
 
-        static  void info() {
-            std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
-        }
+//         /**@brief returns the offset in x direction*/
+//         GT_FUNCTION
+//         constexpr int_t i() const {
+//             return m_offset[0];
+//         }
 
-        // Methods to stop the recursion when dealing with extra dimensions
-	/**TODO: this should not be hardcoded*/
-        static const ushort_t n_args=2;// max space dimensions
-        static const ushort_t extra_args=0;// extra dimensions
+//         /**@brief returns the offset in y direction*/
+//         GT_FUNCTION
+//         constexpr int_t j() const {
+//             return m_offset[1];
+//         }
+
+//         /**@brief returns the offset in z direction*/
+//         GT_FUNCTION
+//         constexpr int_t k() const {
+//             return m_offset[2];
+//         }
+
+//         /**@brief returns a copy of the arg_type with all offsets set to zero*/
+//         GT_FUNCTION
+// #ifdef CXX11_ENABLED
+//         static constexpr  arg_type<I>&& center() {
+//             return std::move(arg_type<I>());
+//         }
+// #else
+//         static constexpr  arg_type<I> center() {
+//             return arg_type<I>();
+//         }
+// #endif
+
+//         /**@brief returns the pointer to the first element of the array of offsets*/
+//         GT_FUNCTION
+//         constexpr int_t const* offset_ptr() const {
+//             return &m_offset[0];
+//         }
+
+//         /**returns a new arg_type where the offsets are the sum of the current offsets plus the values specified via the argument*/
+//         GT_FUNCTION
+// #ifdef CXX11_ENABLED
+//         constexpr arg_type<I>&& plus(int_t _i, int_t _j, int_t _k) const {
+//             return std::move(arg_type<I>(i()+_i, j()+_j, k()+_k));
+//         }
+// #else
+//         constexpr arg_type<I> plus(int_t _i, int_t _j, int_t _k) const {
+//             return arg_type<I>(i()+_i, j()+_j, k()+_k);
+//         }
+// #endif
+
+//         static  void info() {
+//             std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
+//         }
+
+//         // Methods to stop the recursion when dealing with extra dimensions
+// 	/**TODO: this should not be hardcoded*/
+//         static const ushort_t n_args=2;// max space dimensions
+//         static const ushort_t extra_args=0;// extra dimensions
 
         template<short_t idx>
         GT_FUNCTION
         int_t n() const {//stop recursion
             printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", idx+1);
+#ifndef __CUDACC__
+            assert(false);
+#endif
             exit (-1);
         }
 
-#ifdef CXX11_ENABLED
-#ifndef __CUDACC__
-	static const constexpr char a[]={"arg "};
-	typedef string<print, static_string<a>, static_int<I> > to_string;
-#endif
-#endif
-    };
+// #ifdef CXX11_ENABLED
+// #ifndef __CUDACC__
+// 	static const constexpr char a[]={"arg "};
+// 	typedef string<print, static_string<a>, static_int<I> > to_string;
+// #endif
+// #endif
+     };
 
 
 //################################################################################
@@ -535,7 +539,7 @@ namespace gridtools {
 
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
     */
-    template< class ArgType>
+    template< class ArgType >
     struct arg_decorator : public ArgType{
 
         typedef ArgType super;
@@ -603,11 +607,11 @@ namespace gridtools {
 #endif
 	    //BOOST_STATIC_ASSERT( index>0 );
 	    // printf("index to the n method:%d \n", index);
-	    GRIDTOOLS_STATIC_ASSERT( idx<=n_args, "the index passed as template argument is too large" );
+	    //GRIDTOOLS_STATIC_ASSERT( idx<=n_args, "the index passed as template argument is too large" );
 	    //this might not be compile-time efficient for large indexes,
 	    //because both taken and not taken branches are compiled. boost::mpl::if would be better.
+            std::cout<<"idx is: "<<idx<<std::endl;
             return idx==1? m_offset : super::template n<idx-1>();
-	    // return static_if<idx==1>::apply( m_offset,super::template n<idx-1>());
 	}
 
 	//std::string m_arg_string(m_offset+ std::string(", ") +super::arg_string);
@@ -615,7 +619,6 @@ namespace gridtools {
     private:
         short_t m_offset;
     };
-
 
     /**@brief Convenient syntactic sugar for specifying an extended-width storage with size 'Number' (similar to currying)
        The extra width is specified using concatenation, e.g. extending arg_type with 2 extra data fields is obtained by doing
@@ -627,14 +630,14 @@ namespace gridtools {
        arg_extend<arg_type, 2>
        \endverbatim
      */
-    template < typename ArgType, uint_t Number=2>
+    template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=2>
     struct arg_extend{
-        typedef arg_decorator<typename arg_extend<ArgType, Number-1>::type>  type;
+        typedef arg_decorator<typename arg_extend<ID, Range, Number-1>::type>  type;
     };
 
     /**@brief specialization to stop the recursion*/
-    template<typename ArgType>
-    struct arg_extend<ArgType, 0>{typedef ArgType type;};
+    template<ushort_t ID, typename Range >
+    struct arg_extend<ID, Range, 0>{typedef arg_type<ID, Range> type;};
 
 #ifdef CXX11_ENABLED
 /**this struct allows the specification of SOME of the arguments before instantiating the arg_type.

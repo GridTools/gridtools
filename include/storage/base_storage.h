@@ -72,6 +72,7 @@ namespace gridtools {
 	static const bool is_temporary = IsTemporary;
 	static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
+        //field_dimensions is the total dimension of the storage
         static const short_t field_dimensions = FieldDimension;
 
     public:
@@ -91,19 +92,26 @@ namespace gridtools {
 		    ( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
 		    ( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3) )}
 	    {
-		BOOST_STATIC_ASSERT( boost::is_float<FloatType>::value);
-		m_fields[0]=pointer_type(dim1*dim2*dim3);
+		GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value for the storage must me a floating point number (e.g. 1.0)");
+
+                for(ushort_t i=0; i<field_dimensions; ++i)
+                    m_fields[i]=pointer_type(dim1*dim2*dim3);
 
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
 #endif
-                for (uint_t i = 0; i < size(); ++i)
+                for(ushort_t f=0; f<field_dimensions; ++f)
+                {
+                    for (uint_t i = 0; i < size(); ++i)
+                    {
 #ifdef _GT_RANDOM_INPUT
-                    (m_fields[0])[i] = init * rand();
+                        (m_fields[f])[i] = init * rand();
 #else
-                (m_fields[0])[i] = init;
+                        (m_fields[f])[i] = init;
 #endif
-	    }
+                    }
+                }
+            }
 
 #if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
 	/**@brief generic multidimensional constructor
@@ -376,7 +384,7 @@ namespace gridtools {
         uint_t _index( UInt const& ... dims) const {
             typedef boost::mpl::vector<UInt...> tlist;
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_<boost::is_same<boost::mpl::_1, uint_t> > >::type iter;
-            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
+            //GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
             return _impl::compute_offset<space_dimensions, layout>::apply(m_strides, dims ...);
         }
 
