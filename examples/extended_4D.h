@@ -57,7 +57,7 @@ namespace assembly{
         typedef arg_type<3, range<-1, 1, -1, 1> > const f;
 	typedef arg_type<4, range<-1, 1, -1, 1> > result;
 	typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
-	using quad=Dimension<3>;
+	using quad=DimensionIJK<3>;
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
@@ -128,6 +128,21 @@ namespace assembly{
 	    //Or alternatively computing the values on the quadrature points on the GPU
 	    integration_type jac(d1,d2,d3,nbQuadPt);
 
+            for(uint_t i=0; i<d1; ++i)
+                for(uint_t j=0; j<d2; ++j)
+                    for(uint_t k=0; k<d3; ++k)
+                        for(uint_t q=0; q<nbQuadPt; ++q)
+                        {
+                            jac(i,j,k,q)=1.+q;
+                        }
+            for(uint_t i=0; i<b1; ++i)
+                for(uint_t j=0; j<b2; ++j)
+                    for(uint_t k=0; k<b3; ++k)
+                        for(uint_t q=0; q<nbQuadPt; ++q)
+                        {
+                            phi(i,j,k,q)=10.;
+                            psi(i,j,k,q)=11.;
+                        }
 	    storage_type f(d1, d2, d3, (float_type)1.3, "f");
 	    storage_type result(d1, d2, d3, (float_type)0., "result");
 
@@ -162,6 +177,9 @@ namespace assembly{
 	    fe_comp->ready();
 	    fe_comp->steady();
 	    fe_comp->run();
+            fe_comp->finalize();
+
+            result.print();
 	}
 
 }; //namespace assembly

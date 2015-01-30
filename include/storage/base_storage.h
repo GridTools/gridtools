@@ -154,9 +154,22 @@ namespace gridtools {
     struct compute_offset{
 	static const ushort_t space_dimensions = Layout::length;
 
+        /**interface with an array of coordinates as argument
+           \param strides the strides
+           \param indices the array of coordinates
+         */
 	template<typename IntType>
 	static int_t apply(uint_t const* strides, IntType* indices){
 	    return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
+	}
+
+        /**interface with an the coordinates as variadic arguments
+           \param strides the strides
+           \param indices comma-separated list of coordinates
+         */
+        template<typename ... UInt>
+	static int_t apply(uint_t const* strides, UInt const& ... indices){
+	    return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices...)+compute_offset<Id-1, Layout>::apply(strides, indices... );
 	}
     };
 
@@ -170,7 +183,12 @@ namespace gridtools {
 	static int_t apply(uint_t const* /*strides*/, IntType* indices){
 	    return Layout::template find_val<space_dimensions-1, int, 0>(indices);
 	}
-    };
+
+    	template<typename ... IntType>
+	static int_t apply(uint_t const* /*strides*/, IntType const& ... indices){
+	    return Layout::template find_val<space_dimensions-1, int, 0>(indices ...);
+	}
+};
 
 
 /**
@@ -389,22 +407,25 @@ namespace gridtools {
         }
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
+        template <typename ... UInt>
         GT_FUNCTION
-        value_type& operator()(uint_t i, uint_t j, uint_t k) {
+        value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
-            assert(_index(i,j,k) < size());
+            std::cout<< "The index: " << _index(dims...) << std::endl;
+            assert(_index(dims...) < size());
 #endif
-            return (m_fields[0])[_index(i,j,k)];
+            return (m_fields[0])[_index(dims...)];
         }
 
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
+        template <typename ... UInt>
         GT_FUNCTION
-        value_type const & operator()(uint_t i, uint_t j, uint_t k) const {
+        value_type const & operator()(UInt const& ... dims) const {
 #ifndef __CUDACC__
-            assert(_index(i,j,k) < size());
+            assert(_index(dims...) < size());
 #endif
-            return (m_fields[0])[_index(i,j,k)];
+            return (m_fields[0])[_index(dims...)];
         }
 
         /** @brief returns the memory access index of the element with coordinate (i,j,k) */
@@ -473,11 +494,13 @@ namespace gridtools {
 		stream << std::endl;
 	}
 
-	    /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
-         This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
-        index for temporary storages is computed in the subclass gridtools::host_tmp_storge*/
+        /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
+           This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
+           index for temporary storages is computed in the subclass gridtools::host_tmp_storge
+           NOTE: this version will be preferred over the templated overloads
+        */
         GT_FUNCTION
-        uint_t _index(uint_t i, uint_t j, uint_t k) const {
+        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const {
             uint_t index;
             if (IsTemporary) {
                 index =
@@ -496,10 +519,17 @@ namespace gridtools {
             return index;
         }
 
+        //first index, with stride=1
+        template <typename ... UInt>
+        GT_FUNCTION
+        uint_t _index( UInt const& ... dims) const {
+            return compute_offset<space_dimensions, layout>::apply(m_strides, dims ...);
+        }
+
         /** @brief method to increment the memory address index by moving forward one step in the given Coordinate direction
 
 	    SFINAE: design pattern used to avoid the compilation of the overloaded method which are not used (and which would produce a compilation error)
-*/
+        */
         template <uint_t Coordinate>
         GT_FUNCTION
         void increment( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
