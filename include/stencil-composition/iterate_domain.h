@@ -35,10 +35,10 @@
    #   dimensions | |*|*|*|          dim_2    #
    #              v |*|*|*|*|*|      dim_3    #
    #                                          #
-   #                 ^ ^ ^ ^ ^ ^          #
-   #                 | | | | | |          #
-   #                 snapshots            #
-   #                          #
+   #                 ^ ^ ^ ^ ^ ^              #
+   #                 | | | | | |              #
+   #                 snapshots                #
+   #                                          #
    ################## Storage #################
    \endverbatim
 
@@ -48,8 +48,8 @@ namespace gridtools {
 
     namespace iterate_domain_aux {
 
-//this value is available so far only at runtime (we might not have enough threads)
-//should be increased to get parallel shared memory initialization
+        //this value is available so far only at runtime (we might not have enough threads)
+        //should be increased to get parallel shared memory initialization
 #define BLOCK_SIZE 32
 
         /**@brief static function incrementing the iterator with the stride on the vertical direction*/
@@ -59,8 +59,8 @@ namespace gridtools {
             template<typename LocalArgs>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t factor, uint_t* index) {
-        // k direction does does not have bolcks
-        boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, (uint_t)0, &index[ID]);
+                // k direction does does not have bolcks
+                boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, (uint_t)0, &index[ID]);
                 increment_k<ID-1>::apply(local_args,  factor, index);
             }
         };
@@ -103,32 +103,32 @@ namespace gridtools {
     */
     template<uint_t Number, uint_t Offset, enumtype::backend Backend>
     struct assign_raw_data{
-    static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
+        static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
         template<typename Left , typename Right >
-    GT_FUNCTION
-    static void assign(Left* l, Right const* r){
-        //l[Number]=r[Number].get();
-        once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
-        assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
-    }
+        GT_FUNCTION
+        static void assign(Left* l, Right const* r){
+            //l[Number]=r[Number].get();
+            once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
+            assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
+        }
 
     };
 
-        /**@brief stopping the recursion*/
+    /**@brief stopping the recursion*/
     template<uint_t Offset, enumtype::backend Backend>
     struct assign_raw_data<0, Offset, Backend>{
         static const uint_t Id=(Offset)%BLOCK_SIZE;
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const* r){
-        //l[0]=r[0].get();
-        once_per_block<Backend, Id>::assign(l[0],r[0].get());
+            //l[0]=r[0].get();
+            once_per_block<Backend, Id>::assign(l[0],r[0].get());
         }
     };
 
     /**@brief this struct counts the total number of data fields are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
        TODO code repetition in the _traits class
-*/
+    */
     template <typename StoragesVector, int_t index>
     struct total_storages{
         //the index must not exceed the number of storages
@@ -168,7 +168,7 @@ namespace gridtools {
         /**usual specialization to stop the recursion*/
         template<uint_t Coordinate>
             struct assign_index<0, Coordinate>{
-        template<typename Storage>
+            template<typename Storage>
             GT_FUNCTION
             static void assign( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
 
@@ -180,32 +180,32 @@ namespace gridtools {
 
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
         template<uint_t ID>
-        struct set_index_recur{
-        template<typename Storage>
-        /**@brief does the actual assignment
-           This method is responsible of computing the index for the memory access at
-           the location (i,j,k). Such index is shared among all the fields contained in the
-           same storage class instance, and it is not shared among different storage instances.
-        */
-        GT_FUNCTION
-        static void set(Storage & r, uint_t id, uint_t* index){
-            //if the following fails, the ID is larger than the number of storage types,
-            //or the index was not properly initialized to 0,
-            //or you know what you are doing (then comment out the assert)
-            boost::fusion::at_c<ID>(r)->set_index(id, &index[ID]);
-            set_index_recur<ID-1>::set(r,id,index);
-        }
+            struct set_index_recur{
+            template<typename Storage>
+            /**@brief does the actual assignment
+               This method is responsible of computing the index for the memory access at
+               the location (i,j,k). Such index is shared among all the fields contained in the
+               same storage class instance, and it is not shared among different storage instances.
+            */
+            GT_FUNCTION
+            static void set(Storage & r, uint_t id, uint_t* index){
+                //if the following fails, the ID is larger than the number of storage types,
+                //or the index was not properly initialized to 0,
+                //or you know what you are doing (then comment out the assert)
+                boost::fusion::at_c<ID>(r)->set_index(id, &index[ID]);
+                set_index_recur<ID-1>::set(r,id,index);
+            }
         };
 
         /**usual specialization to stop the recursion*/
         template<>
-        struct set_index_recur<0>{
-        template<typename Storage>
-        GT_FUNCTION
-        static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
+            struct set_index_recur<0>{
+            template<typename Storage>
+            GT_FUNCTION
+            static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
 
-            boost::fusion::at_c<0>(r)->set_index(id, &index[0]);
-        }
+                boost::fusion::at_c<0>(r)->set_index(id, &index[0]);
+            }
         };
 
 
@@ -227,8 +227,8 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value, "the ID is larger than the number of storage types")
-        // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
+                    // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
+                    assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
                     assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
                 assign_storage<ID-1, LocalArgTypes, Backend>::assign(l,r); //tail recursion
             }
@@ -245,7 +245,7 @@ namespace gridtools {
 #else
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
-        // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
+                // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
                 assign_raw_data<storage_type::field_dimensions-1, 0, Backend>::
                     assign(&l[0], boost::fusion::at_c<0>(r)->fields());
             }
@@ -253,14 +253,14 @@ namespace gridtools {
     }
 
 
-/**@brief class handling the computation of the */
+    /**@brief class handling the computation of the */
     template <typename LocalDomain>
     struct iterate_domain {
-    typedef typename boost::remove_pointer<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0>::type>::type::value_type float_t;
+        typedef typename boost::remove_pointer<typename boost::mpl::at_c<typename LocalDomain::mpl_storages, 0>::type>::type::value_type float_t;
         typedef typename LocalDomain::local_args_type local_args_type;
-    //the number of storages  used in the current functor
+        //the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<local_args_type>::value;
-    //the total number of snapshot (one or several per storage)
+        //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages< local_args_type
                                                             , boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
         /**@brief constructor of the iterate_domain struct
@@ -273,33 +273,33 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             , m_index{0}/* , m_lru{0} */
 #endif
-            {
+        {
 #ifndef CXX11_ENABLED
-        for(uint_t it=0; it<N_STORAGES; ++it)
-            m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
+            for(uint_t it=0; it<N_STORAGES; ++it)
+                m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
 #endif
         }
 
-    template<enumtype::backend Backend>
-    GT_FUNCTION
-    void assign_storage_pointers( float_t** data_pointer ){
-        m_data_pointer=data_pointer;
-        assign_storage< N_STORAGES-1, local_args_type, Backend >::assign(m_data_pointer, local_domain.local_args);
-    }
-
-        /**@brief method for incrementing the index when moving forward along the k direction */
-    GT_FUNCTION
-    void set_index(uint_t index)
-        {
-                set_index_recur< N_STORAGES-1>::set(local_domain.local_args, index, &m_index[0]);
+        template<enumtype::backend Backend>
+        GT_FUNCTION
+        void assign_storage_pointers( float_t** data_pointer ){
+            m_data_pointer=data_pointer;
+            assign_storage< N_STORAGES-1, local_args_type, Backend >::assign(m_data_pointer, local_domain.local_args);
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
-    template <ushort_t Coordinate>
-    GT_FUNCTION
-    void increment_ij(uint_t index, uint_t block)
+        GT_FUNCTION
+        void set_index(uint_t index)
         {
-                assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, 1, block, &m_index[0]);
+            set_index_recur< N_STORAGES-1>::set(local_domain.local_args, index, &m_index[0]);
+        }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void increment_ij(uint_t index, uint_t block)
+        {
+            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, 1, block, &m_index[0]);
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
@@ -307,7 +307,7 @@ namespace gridtools {
         GT_FUNCTION
         void assign_ij(uint_t index, uint_t block)
         {
-                assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0]);
+            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0]);
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
@@ -325,9 +325,9 @@ namespace gridtools {
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from)
-            {
-                iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, from, &m_index[0]);
-            }
+        {
+            iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, from, &m_index[0]);
+        }
 
         template <typename T>
         GT_FUNCTION
@@ -339,34 +339,34 @@ namespace gridtools {
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
-         */
+        */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& get_value(ArgType const& arg , StoragePointer & storage_pointer) const
-            {
-        //the following assert fails when an out of bound access is observed, i.e. either one of
-        //i+offset_i or j+offset_j or k+offset_k is too large.
-        //Most probably this is due to you specifying a positive offset which is larger than expected,
-        //or maybe you did a mistake when specifying the ranges in the placehoders definition
-        assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
-                       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.i(),arg.j(),arg.k()));
+        {
+            //the following assert fails when an out of bound access is observed, i.e. either one of
+            //i+offset_i or j+offset_j or k+offset_k is too large.
+            //Most probably this is due to you specifying a positive offset which is larger than expected,
+            //or maybe you did a mistake when specifying the ranges in the placehoders definition
+            assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
+                   +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                   ->offset(arg.i(),arg.j(),arg.k()));
 
-        //the following assert fails when an out of bound access is observed,
-        //i.e. when some offset is negative and either one of
-        //i+offset_i or j+offset_j or k+offset_k is too small.
-        //Most probably this is due to you specifying a negative offset which is
-        //smaller than expected, or maybe you did a mistake when specifying the ranges
-        //in the placehoders definition
-        assert( m_index[ArgType::index_type::value]
-               +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.i(),arg.j(),arg.k()) >= 0);
+            //the following assert fails when an out of bound access is observed,
+            //i.e. when some offset is negative and either one of
+            //i+offset_i or j+offset_j or k+offset_k is too small.
+            //Most probably this is due to you specifying a negative offset which is
+            //smaller than expected, or maybe you did a mistake when specifying the ranges
+            //in the placehoders definition
+            assert( m_index[ArgType::index_type::value]
+                    +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                    ->offset(arg.i(),arg.j(),arg.k()) >= 0);
 
-                return *(storage_pointer
-                         +(m_index[ArgType::index_type::value])
-                         +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                         ->offset(arg.i(),arg.j(),arg.k()));
-            }
+            return *(storage_pointer
+                     +(m_index[ArgType::index_type::value])
+                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                     ->offset(arg.i(),arg.j(),arg.k()));
+        }
 
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
@@ -385,7 +385,7 @@ namespace gridtools {
 
         /** @brief method called in the Do methods of the functors.
             specialization for the arg_type placeholders
-         */
+        */
         template <uint_t Index, typename Range>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_type<Index, Range>::index_type>::type::value_type&
@@ -413,103 +413,103 @@ namespace gridtools {
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
 
-        // printf("[");
-        // for (int i=0; i< N_DATA_POINTERS; ++i)
-        //      printf(" %x, ", m_data_pointer[i]);
-        // printf("]\n");
+            // printf("[");
+            // for (int i=0; i< N_DATA_POINTERS; ++i)
+            //      printf(" %x, ", m_data_pointer[i]);
+            // printf("]\n");
 
-        //for the moment the extra dimensionality of the storage is limited to max 2
-        //(3 space dim + 2 extra= 5, which gives n_args==4)
-        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-        GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4, "A storage with snapshots in more than 2 dimensions has not been implemented,\n\
+            //for the moment the extra dimensionality of the storage is limited to max 2
+            //(3 space dim + 2 extra= 5, which gives n_args==4)
+            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
+                GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args<=4, "A storage with snapshots in more than 2 dimensions has not been implemented,\n\
  you specicied a number too high for the arg_extension in the placeholder definition")
 
-            return get_value(arg, m_data_pointer[storage_type::get_index(
-                     (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if
-                     arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
-                     :
-                     arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
-                     + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()
-                     *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
-                     ))//+ the offset of the other extra dimension
-                         + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+                return get_value(arg, m_data_pointer[storage_type::get_index(
+                                                                             (   gridtools::arg_decorator<ArgType>::extra_args <= 1 ? // static if
+                                                                                 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+                                                                                 :
+                                                                                 arg.template n<gridtools::arg_decorator<ArgType>::extra_args>() //offset for the current dimension
+                                                                                 + arg.template n<gridtools::arg_decorator<ArgType>::extra_args-1>()
+                                                                                 *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
+                                                                                 ))//+ the offset of the other extra dimension
+                                                     + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
         }
 
 #ifdef CXX11_ENABLED
-/**\section binding_expressions (Expressions Bindings)
-   @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
-   They evalueate the operator passed as argument, by recursively evaluating its arguments
-   @{
-*/
-    /** plus evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
+        /**\section binding_expressions (Expressions Bindings)
+           @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
+           They evalueate the operator passed as argument, by recursively evaluating its arguments
+           @{
+        */
+        /** plus evaluation*/
+        template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
 
-    /** minus evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
+        /** minus evaluation*/
+        template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
 
-    /** multiplication evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
+        /** multiplication evaluation*/
+        template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
 
-    /** division evaluation*/
-    template <typename ArgType1, typename ArgType2>
-    GT_FUNCTION
-    auto value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
+        /** division evaluation*/
+        template <typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
 
-    // template <typename ArgType1, typename ArgType2>
-    // GT_FUNCTION
-    // auto value(expr_exp<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) ^ (*this)(arg.second_operand)) {return (*this)(arg.first_operand) ^ (*this)(arg.second_operand);}
+        // template <typename ArgType1, typename ArgType2>
+        // GT_FUNCTION
+        // auto value(expr_exp<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) ^ (*this)(arg.second_operand)) {return (*this)(arg.first_operand) ^ (*this)(arg.second_operand);}
 
-    /**\subsection specialization (Partial Specializations)
-       partial specializations for double (or float)
-       @{*/
-    /** sum with scalar evaluation*/
-    template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_plus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
+        /**\subsection specialization (Partial Specializations)
+           partial specializations for double (or float)
+           @{*/
+        /** sum with scalar evaluation*/
+        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto value_scalar(expr_plus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
 
-    /** subtract with scalar evaluation*/
-    template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_minus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
+        /** subtract with scalar evaluation*/
+        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto value_scalar(expr_minus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
 
-    /** multiply with scalar evaluation*/
-    template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_times<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
+        /** multiply with scalar evaluation*/
+        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto value_scalar(expr_times<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
 
-    /** divide with scalar evaluation*/
-    template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_divide<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
+        /** divide with scalar evaluation*/
+        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto value_scalar(expr_divide<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
 
 #ifndef __CUDACC__
-    /** power of scalar evaluation*/
-    template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return std::pow(arg.first_operand, arg.second_operand);}
+        /** power of scalar evaluation*/
+        template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return std::pow(arg.first_operand, arg.second_operand);}
 
 #else //ifndef __CUDACC__
-    /** power of scalar evaluation of CUDA*/
-    template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-    GT_FUNCTION
-    auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return products<2>::apply(arg.first_operand);}
+        /** power of scalar evaluation of CUDA*/
+        template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return products<2>::apply(arg.first_operand);}
 
 #endif //ifndef __CUDACC__
 
-    /**
-       @}
-       \subsection specialization2 (Partial Specializations)
-       @brief partial specializations for integer
-       Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
-       (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
-       @{*/
-    /** integer power evaluation*/
+        /**
+           @}
+           \subsection specialization2 (Partial Specializations)
+           @brief partial specializations for integer
+           Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
+           (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
+           @{*/
+        /** integer power evaluation*/
 #ifndef __CUDACC__
         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
@@ -526,32 +526,32 @@ namespace gridtools {
         auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(products<2>::apply((*this)(arg.first_operand))) {return products<2>::apply((*this)(arg.first_operand));}
 
         template <typename ArgType1, /*typename IntType, IntType*/int exponent/*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */>
-        GT_FUNCTION
-        auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
+            GT_FUNCTION
+            auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
 
 #endif //ifndef __CUDACC__
 
-/**@}@}*/
+        /**@}@}*/
 
-/** @brief method called in the Do methods of the functors. */
+        /** @brief method called in the Do methods of the functors. */
         template <typename FirstArg, typename SecondArg, template<typename Arg1, typename Arg2> class Expression >
         GT_FUNCTION
         auto operator() (Expression<FirstArg, SecondArg> const& arg) const ->decltype(this->value(arg)) {
-        //arg.to_string();
+            //arg.to_string();
             return value(arg);
         }
 
-/** @brief method called in the Do methods of the functors.
-    partial specializations for double (or float)*/
+        /** @brief method called in the Do methods of the functors.
+            partial specializations for double (or float)*/
         template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Arg, FloatType> const& arg) const ->decltype(this->value_scalar(arg)) {
             return value_scalar(arg);
         }
 
-/** @brief method called in the Do methods of the functors.
-    partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
-    (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
+        /** @brief method called in the Do methods of the functors.
+            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
+            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
         // template <typename Arg, int Arg2, template<typename Arg1, int a> class Expression >
         template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
@@ -573,6 +573,6 @@ namespace gridtools {
         uint_t m_index[N_STORAGES];
 
         float_t** m_data_pointer;//[N_DATA_POINTERS];//the storages could have different types(?)
-    //It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
+        //It would be nice if the m_data_pointer was a tuple. Performance penalty? nvcc support?
     };
 } // namespace gridtools
