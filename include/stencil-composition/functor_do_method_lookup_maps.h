@@ -59,7 +59,7 @@ namespace gridtools {
         typedef typename boost::mpl::deref<NextDoIterator>::type NextDoInterval;
 
         // check that the computed do method includes the loop interval
-        GRIDTOOLS_STATIC_ASSERT((is_sub_interval<TLoopInterval, NextDoInterval>::value), "check that the computed do method includes the loop interval");
+        GRIDTOOLS_STATIC_ASSERT((is_sub_interval<TLoopInterval, NextDoInterval>::value), "check that the computed do method includes the loop interval")
 
         // add the loop interval to the do method lookup map
         // (only add empty loop intervals if the functor loop interval is empty)
@@ -89,8 +89,8 @@ namespace gridtools {
     struct compute_functor_do_method_lookup_map
     {
         // check the collection is not empty
-        GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty<TDoMethods>::value, " check that the collection of Do methods is not empty");
-        GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty<TLoopIntervals>::value, " check that the collection of loop intervals is not empty");
+        GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty<TDoMethods>::value, " check that the collection of Do methods is not empty")
+        GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty<TLoopIntervals>::value, " check that the collection of loop intervals is not empty")
 
         // compute the ranged spanned by all do methods
         typedef boost::mpl::pair<
@@ -105,7 +105,7 @@ namespace gridtools {
             > LoopRange;
 
         // make sure the do range is a sub interval of the loop range
-        GRIDTOOLS_STATIC_ASSERT((is_sub_interval<DoRange, LoopRange>::value), "make sure the do range is a sub interval of the loop range");
+        GRIDTOOLS_STATIC_ASSERT((is_sub_interval<DoRange, LoopRange>::value), "make sure the do range is a sub interval of the loop range")
 
         // extract all loop intervals inside the functor do method interval
         typedef typename boost::mpl::copy_if<
@@ -114,7 +114,7 @@ namespace gridtools {
             >::type LoopIntervals;
 
         // check there is a loop interval for every functor
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<LoopIntervals>::value > 0, "check there is a loop interval for every functor");
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<LoopIntervals>::value > 0, "check there is a loop interval for every functor")
 
         // iterate over all loop intervals and compute the do method lookup map
         // (the state of the fold operation contains the map as well as an iterator
