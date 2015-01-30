@@ -351,7 +351,7 @@ namespace gridtools {
 		//or maybe you did a mistake when specifying the ranges in the placehoders definition
 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.offset()));
+                       ->_index(arg.offset()));
 
 		//the following assert fails when an out of bound access is observed,
 		//i.e. when some offset is negative and either one of
@@ -361,12 +361,12 @@ namespace gridtools {
 		//in the placehoders definition
 		assert( m_index[ArgType::index_type::value]
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->offset(arg.offset()) >= 0);
+                       ->_index(arg.offset()) >= 0);
 
                 return *(storage_pointer
                          +(m_index[ArgType::index_type::value])
                          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                         ->offset(arg.offset()));
+                         ->_index(arg.offset()));
             }
 
 
@@ -457,14 +457,14 @@ namespace gridtools {
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
 	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-		   ->offset(arg.first_operand.offset()));
+		   ->_index(arg.first_operand.offset()));
 
 	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-		   ->offset(arg.first_operand.offset()) >= 0);
+		   ->_index(arg.first_operand.offset()) >= 0);
 
 	    return *(storage_pointer
 		     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-		     ->offset(arg.first_operand.offset()));
+		     ->_index(arg.first_operand.offset()));
         }
 
 
