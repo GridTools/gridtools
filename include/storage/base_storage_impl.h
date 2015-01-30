@@ -53,6 +53,7 @@ namespace gridtools{
 	};
 
 
+#ifdef CXX11_ENABLED
 	/**@brief metafunction to recursively compute the next stride*/
 	template<short_t ID, short_t SpaceDimensions,  typename Layout>
 	struct next_stride{
@@ -92,6 +93,7 @@ namespace gridtools{
 		strides[SpaceDimensions] = next_stride<0, SpaceDimensions, Layout>::apply(args...);
 	    }
 	};
+#endif
 
 	/**@brief recursively advance the ODE finite difference for all the field dimensions*/
 	template<short_t Dimension>

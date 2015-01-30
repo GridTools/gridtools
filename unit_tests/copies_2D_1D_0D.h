@@ -118,9 +118,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1, d1};
-        uint_t dj[5] = {0, 0, 0, d2, d2};
+        // gridtools::coordinates<axis> coords(??2,d1-2,2,d2-2??);
+        uint_t di[5] = {0, 0, 0, d1-1, d1};
+        uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
         gridtools::coordinates<axis> coords(di, dj);
         coords.value_list[0] = 0;
@@ -225,7 +225,10 @@ namespace copy_stencils_3D_2D_1D_0D {
                 for(int k=0; k<d3; ++k)
                     {
                         if (in(i, j, k)!=out(i,j,k)) {
-                            // std::cout << in(i,j,k) << ", " << out(i,j,k) << std::endl;
+                            std::cout << "i = " << i
+                                      << "j = " << j
+                                      << "k = " << k
+                                      << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
                             ok=false;
                         }
                     }
