@@ -195,8 +195,6 @@ namespace gridtools {
         template<ushort_t Coordinate>
         struct DimensionIJK : public Dimension<Coordinate>{
             using Dimension<Coordinate>::Dimension;
-            GRIDTOOLS_STATIC_ASSERT(Coordinate<3, "you must be knowing what you do (cryptic error msg)");
-
             //repeating for the same reason written above.
 	    struct Index{
 	        GT_FUNCTION

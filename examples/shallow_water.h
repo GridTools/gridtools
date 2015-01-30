@@ -434,60 +434,11 @@ namespace shallow_water{
             sol.print();
             std::cout<<"#####################################################"<<std::endl;
 
-            // sol.push_front<3>(out9, [](uint_t i, uint_t j, uint_t k) ->float_type {return 2.0*exp (-5*(i^2+j^2));});//h
-
             // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
             // It must be noted that the only fields to be passed to the constructor are the non-temporary.
             // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
             gridtools::domain_type<arg_type_list> domain
                 (boost::fusion::make_vector(&tmpx, &tmpy, &sol));
-
-// ///////////////////BOUNDARY CONDITIONS (TEST)///////////////////////
-//             uint_t d0[5] = {0, 0, 0, 0, 0};
-//             uint_t d_span_x[5] = {0, 0, 0, d1-1, d1};
-//             uint_t d_span_y[5] = {0, 0, 0, d2-1, d2};
-
-//             typedef gridtools::layout_map<-1,-1,0> layout_x;//2D storage
-// 	    gridtools::coordinates<axis> coords_bc_x(d_span_x, d0);
-// 	    coords.value_list[0] = 0;//only on k=0 (top)
-// 	    coords.value_list[1] = 0;
-
-// 	    typedef gridtools::layout_map<-1,0,-1> layout_y;//2D storage
-// 	    gridtools::coordinates<axis> coords_bc_y(d0, d_span_y);
-// 	    coords.value_list[0] = 0;//only on k=0 (top)
-// 	    coords.value_list[1] = 0;
-
-// 	    typedef gridtools::BACKEND::storage_type<float_type, layout_x >::type storage_bc_x;
-// 	    typedef gridtools::BACKEND::storage_type<float_type, layout_y >::type storage_bc_y;
-
-// 	    typedef arg<0, storage_bc_x > p_bc_x;
-// 	    typedef arg<0, storage_bc_y > p_bc_y;
-//             typedef boost::mpl::vector<p_bc_x> arg_type_list;
-//             gridtools::domain_type<arg_type_list> domain
-//                 (boost::fusion::make_vector(&tmp, &sol));
-
-// 	    auto bc_x =
-//                 gridtools::make_computation<gridtools::BACKEND, layout_x>
-//                 (
-//                     gridtools::make_mss // mss_descriptor
-//                     (
-//                         execute<forward>(),
-//                         gridtools::make_esf<bc>(p_sol(), p_sol()) ,
-//                         ),
-//                     domain, coords_bc_x
-//                     );
-
-// 	    auto bc_y =
-//                 gridtools::make_computation<gridtools::BACKEND, layout_y>
-//                 (
-//                     gridtools::make_mss // mss_descriptor
-//                     (
-//                         execute<forward>(),
-//                         gridtools::make_esf<bc>(p_sol(), p_sol()) ,
-//                         ),
-//                     domain, coords_bc_y
-//                     );
-// ///////////////////END BOUNDARY CONDITIONS///////////////////////
 
             // Definition of the physical dimensions of the problem.
             // The constructor takes the horizontal plane dimensions,
