@@ -7,6 +7,7 @@
 #include "../examples/interface1.h"
 #include "copies_2D_1D_0D.h"
 #include "../examples/tridiagonal.h"
+#include "external_ptr_test/CopyStencil.h"
 #ifdef CXX11_ENABLED
 #include "test-assign-placeholders.h"
 #endif
@@ -147,6 +148,10 @@ TEST(testdomain, assignplchdrs) {
 
 TEST(testcommon, layoutmap) {
     EXPECT_EQ(test_layout_map(), true);
+}
+
+TEST(python, copy) {
+    EXPECT_EQ(test_copystencil_python(), false);
 }
 
 int main(int argc, char** argv)
