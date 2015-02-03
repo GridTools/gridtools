@@ -56,7 +56,7 @@ struct copy_functor {
 #else
         eval(out())
 #endif
-            =1.;//eval(in());
+=eval(in());
       }
 };
 
