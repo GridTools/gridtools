@@ -1111,9 +1111,9 @@ bool usingcopy_3() {
         printf("\n");
     }
     std::cout << "two" << std::endl;
-    for (int i=0; i<d1; ++i) {
-        for (int j=0; j<d2; ++j) {
-            for (int k=0; k<d3; ++k) {
+    for (uint_t i=0; i<d1; ++i) {
+        for (uint_t j=0; j<d2; ++j) {
+            for (uint_t k=0; k<d3; ++k) {
                 printf("%d ", two(i,j,k));
             }
             printf("\n");

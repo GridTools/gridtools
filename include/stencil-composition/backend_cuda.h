@@ -63,7 +63,7 @@ namespace gridtools {
 
                 //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
                 //setting the initial k level (for backward/parallel iterations it is not 0)
-                if( !iteration_policy::value==enumtype::forward )
+                if( !(iteration_policy::value==enumtype::forward) )
                     it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>

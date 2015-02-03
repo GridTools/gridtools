@@ -404,9 +404,12 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         uint_t _index( UInt const& ... dims) const {
+#ifndef __CUDACC__
             typedef boost::mpl::vector<UInt...> tlist;
-            typedef typename boost::mpl::find_if<tlist, boost::mpl::not_<boost::is_same<boost::mpl::_1, uint_t> > >::type iter;
-            //GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
+            //boost::is_same<boost::mpl::_1, uint_t>
+            typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
+            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
+#endif
             return _impl::compute_offset<space_dimensions, layout>::apply(m_strides, dims ...);
         }
 #endif
@@ -685,8 +688,9 @@ namespace gridtools {
         static const ushort_t n_width = Storage::n_width;
 
 	/**@brief device copy constructor*/
+        template<typename T>
         __device__
-        extend_width(extend_width const& other)
+        extend_width(T const& other)
             : Storage(other)
             {}
 
