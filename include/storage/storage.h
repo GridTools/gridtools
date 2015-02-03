@@ -42,6 +42,19 @@ namespace gridtools {
 	    }
 #endif
 #endif
+
+        /**
+           @brief method issuing an error
+
+           The call to this method detects a runtime error (when the wrong storage type is used)
+        */
+        GT_FUNCTION
+        static ushort_t get_index (short_t const& offset) {
+            //if this assert is failing you are using the wrong storage_type (you should use the field storage: field<storage, dimensions...>)
+            assert(false);
+            return ushort_t(0);
+        }
+
 	//    private :
 	explicit storage():super(){}
     };

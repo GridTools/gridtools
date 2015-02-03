@@ -67,11 +67,19 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b
     typedef arg_type<3> sup; //c
     typedef arg_type<4> rhs; //d
+#else
+    typedef arg_type<0>::type out;
+    typedef arg_type<1>::type inf; //a
+    typedef arg_type<2>::type diag; //b
+    typedef arg_type<3>::type sup; //c
+    typedef arg_type<4>::type rhs; //d
+#endif
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
     template <typename Domain>
@@ -108,11 +116,19 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b
     typedef arg_type<3> sup; //c
     typedef arg_type<4> rhs; //d
+#else
+    typedef arg_type<0>::type out;
+    typedef arg_type<1>::type inf; //a
+    typedef arg_type<2>::type diag; //b
+    typedef arg_type<3>::type sup; //c
+    typedef arg_type<4>::type rhs; //d
+#endif
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
 

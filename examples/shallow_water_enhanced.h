@@ -49,7 +49,7 @@ namespace shallow_water{
 
 /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
-        using comp=Dimension<4>;
+        using comp=Dimension<5>;
 
 	/**@brief space discretization step in direction i */
 	GT_FUNCTION
@@ -64,7 +64,14 @@ namespace shallow_water{
 	GT_FUNCTION
         static float_type g(){return 9.81;}
 
+        static x::Index i;
+        static y::Index j;
+        typedef decltype(i) i_t;        typedef decltype(j) j_t;
+
     };
+
+    functor_traits::i_t functor_traits::i;
+    functor_traits::j_t functor_traits::j;
 
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic : functor_traits {
@@ -108,8 +115,8 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
-        typedef arg_extend<arg_type<0>, 2>::type tmpx;
-        typedef arg_extend<arg_type<1>, 2>::type sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
         template <typename Evaluation>
@@ -118,9 +125,6 @@ namespace shallow_water{
         auto hx=alias<tmpx, comp>(0); auto h=alias<sol, comp>(0);
         auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
         auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
-
-        x::Index i;
-        y::Index j;
 
         eval(hx())=eval((h(i+1,j+1) +h(j+1))/2. -
             (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
@@ -141,8 +145,8 @@ namespace shallow_water{
 
     struct second_step_y        : public functor_traits {
 
-        typedef arg_extend<arg_type<0>, 2>::type tmpy;
-        typedef arg_extend<arg_type<1>, 2>::type sol;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy;
+        typedef arg_type<1,range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -152,9 +156,6 @@ namespace shallow_water{
         auto hy=alias<tmpy, comp>(0); auto h=alias<sol, comp>(0);
         auto uy=alias<tmpy, comp>(1); auto u=alias<sol, comp>(1);
         auto vy=alias<tmpy, comp>(2); auto v=alias<sol, comp>(2);
-
-        x::Index i;
-        y::Index j;
 
         eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
                          (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
@@ -175,9 +176,9 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
-        typedef arg_extend<arg_type<0, range<-1,0,-1,1>>, 2>::type tmpx;
-        typedef arg_extend<arg_type<1, range<-1,1,-1,0> >, 2>::type tmpy;
-        typedef arg_extend<arg_type<2>, 2>::type sol;
+        typedef arg_type<0, range<-1,0,-1,1>, 5> tmpx;
+        typedef arg_type<1, range<-1,1,-1,0>, 5> tmpy;
+        typedef arg_type<2,range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 	static uint_t current_time;
 
@@ -186,16 +187,21 @@ namespace shallow_water{
         //notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
         //Using a strategy to define some arguments beforehand
 
-        static x::Index i;
-        static y::Index j;
-
-        static auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
-        static auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
-        static auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
+        // static constexpr auto hx=alias<tmpy, comp>(0); static constexpr auto hy=alias<sol, comp>(0);
+        // static constexpr auto ux=alias<tmpy, comp>(1); static constexpr auto uy=alias<sol, comp>(0);
+        // static constexpr auto vx=alias<tmpy, comp>(2); static constexpr auto vy=alias<sol, comp>(0);
+        // typedef decltype(hx) hx_t;         typedef decltype(hy) hy_t;
+        // typedef decltype(ux) ux_t;         typedef decltype(uy) uy_t;
+        // typedef decltype(vx) vx_t;         typedef decltype(vy) vy_t;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+
+
+	    auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
+            auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
+            auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
 
             eval(sol()) = eval(sol()-
                                (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
@@ -214,9 +220,18 @@ namespace shallow_water{
                                         (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
                                       (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
                                        (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
-    	}
+    	 }
 
     };
+
+    // constexpr final_step::hy_t final_step::hy;
+    // constexpr final_step::uy_t final_step::uy;
+    // constexpr final_step::vy_t final_step::vy;
+    // constexpr final_step::hx_t final_step::hx;
+    // constexpr final_step::ux_t final_step::ux;
+    // constexpr final_step::vx_t final_step::vx;
+
+
 
     uint_t final_step::current_time=0;
 
@@ -287,7 +302,6 @@ namespace shallow_water{
 
             // Definition of placeholders. The order of them reflects the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain
-            // typedef arg<0, tmp_type > p_tmp;
             typedef arg<0, tmp_type > p_tmpx;
             typedef arg<1, tmp_type > p_tmpy;
             typedef arg<2, sol_type > p_sol;

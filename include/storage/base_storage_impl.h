@@ -35,6 +35,7 @@ namespace gridtools{
 #endif
         };
 
+#ifdef CXX11_ENABLED
 	/**@brief metafunction to recursively compute the next stride
 	   ID goes from space_dimensions-2 to 0
 	   MaxIndex is space_dimensions-1
@@ -77,6 +78,7 @@ namespace gridtools{
 		strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
 	    }
 	};
+#endif
 
 	/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
 	 */
@@ -91,6 +93,8 @@ namespace gridtools{
 	    static int_t apply(uint_t const* strides, IntType* indices){
 		return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
 	    }
+
+#ifdef CXX11_ENABLED
             /**interface with an the coordinates as variadic arguments
                \param strides the strides
                \param indices comma-separated list of coordinates
@@ -99,6 +103,7 @@ namespace gridtools{
             static int_t apply(uint_t const* strides, UInt const& ... indices){
                 return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices...)+compute_offset<Id-1, Layout>::apply(strides, indices... );
             }
+#endif
         };
 
 	/**@brief stops the recursion
@@ -112,10 +117,12 @@ namespace gridtools{
 		return Layout::template find_val<space_dimensions-1, int, 0>(indices);
 	    }
 
+#ifdef CXX11_ENABLED
             template<typename ... IntType>
             static int_t apply(uint_t const* /*strides*/, IntType const& ... indices){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices ...);
             }
+#endif
 	};
 
 	/**@brief metafunction to access a type sequence at a given position, numeration from 0

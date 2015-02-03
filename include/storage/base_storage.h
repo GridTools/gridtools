@@ -270,12 +270,12 @@ namespace gridtools {
             return &((m_fields[0])[/*m_size*/m_strides[0]]);
         }
 
+#ifdef CXX11_ENABLED
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
-            std::cout<< "The index: " << _index(dims...) << std::endl;
             assert(_index(dims...) < size());
 #endif
             return (m_fields[0])[_index(dims...)];
@@ -291,7 +291,26 @@ namespace gridtools {
 #endif
             return (m_fields[0])[_index(dims...)];
         }
+#else
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
+       GT_FUNCTION
+       value_type& operator()(uint_t const& i, uint_t const& j, uint_t const& k) {
+#ifndef __CUDACC__
+           assert(_index(i,j,k) < size());
+#endif
+            return (m_fields[0])[_index(i,j,k)];
+        }
 
+
+        /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
+        GT_FUNCTION
+        value_type const & operator()(uint_t const& i, uint_t const& j, uint_t const& k) const {
+#ifndef __CUDACC__
+            assert(_index(i,j,k) < size());
+#endif
+            return (m_fields[0])[_index(i,j,k)];
+        }
+#endif
         /**@brief returns the size of the data field*/
         GT_FUNCTION
         uint_t const& size() const {
@@ -374,6 +393,7 @@ namespace gridtools {
             return index;
         }
 
+#ifdef CXX11_ENABLED
         /**
            @brief computing index to access the storage relative to the coordinates passed as parameters.
 
@@ -387,9 +407,10 @@ namespace gridtools {
             //GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
             return _impl::compute_offset<space_dimensions, layout>::apply(m_strides, dims ...);
         }
+#endif
 
         /** @brief returns the memory access index of the element with coordinate (i,j,k) */
-        //note: offset returns a signed int because it might be negative (used i.e. in iterate_domain)
+        //note: returns a signed int because it might be negative (used e.g. in iterate_domain)
 	template<typename IntType>
         GT_FUNCTION
         int_t _index(IntType* indices) const {
@@ -501,6 +522,7 @@ namespace gridtools {
 #endif
     };
 
+#ifdef CXX11_ENABLED
     /** @brief storage class containing a buffer of data snapshots
 
         the goal of this struct is to  implement a cash for the solutions, in order e.g. to ease the finite differencing between the different scalar fields.
@@ -674,9 +696,6 @@ namespace gridtools {
         extend_width(){}
 #endif
     };
-
-#ifdef CXX11_ENABLED
-
 
     /** @brief traits class defining some useful compile-time counters
      */

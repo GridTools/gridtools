@@ -38,12 +38,11 @@
 
   In this example we introduce also another syntactic element in the high level expression: the operator exclamation mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like. It is used in this case to address the basis functions values.
  */
+#ifdef CXX11_ENABLED
 
 using namespace gridtools;
 using namespace enumtype;
-#ifdef CXX11_ENABLED
 using namespace expressions;
-#endif
 
 namespace assembly{
 
@@ -57,7 +56,7 @@ namespace assembly{
         typedef arg_type<3, range<-1, 1, -1, 1> > const f;
 	typedef arg_type<4, range<-1, 1, -1, 1> > result;
 	typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
-	using quad=DimensionIJK<3>;
+        using quad=Dimension<4>;
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
@@ -183,3 +182,4 @@ namespace assembly{
 	}
 
 }; //namespace assembly
+#endif //CXX11_ENABLED

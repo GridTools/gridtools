@@ -239,7 +239,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="&x";
+    	static char constexpr op[]="!x";
 	typedef string_c<print, op> operation;
     public:
 	//currying and recursion (this gets inherited)

@@ -48,7 +48,7 @@ namespace shallow_water{
     struct functor_traits{
 //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
         //using step=Dimension<3> ;
-        using comp=Dimension<4>;
+        using comp=Dimension<5>;
 //#endif
 
 	/**@brief space discretization step in direction i */
@@ -63,37 +63,6 @@ namespace shallow_water{
 	/**@brief gravity acceleration */
 	GT_FUNCTION
         static float_type g(){return 9.81;}
-
-
-
-        template<typename Sol, typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
-        GT_FUNCTION
-        static float_type /*&&*/ half_step(Evaluation const& eval, ComponentU&& U, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
-            {
-                return /*std::move*/(eval(Sol(d1,d2) +Sol(d2)/2. -
-                                          (Sol(U,d2,d1) - Sol(U,d2))*(dt()/(2*delta))));
-            }
-
-        template<typename Sol, typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
-        GT_FUNCTION
-        static float_type /*&&*/ half_step_u(Evaluation const& eval, ComponentU&& U, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
-            {
-                return /*std::move*/(eval((Sol(U, d1, d2) +
-					   Sol(U, d2)/2. -
-					   (pow<2>(Sol(U,d1,d2))/Sol(d1,d2)+pow<2>(Sol(d1,d2))*g()/2. -
-					    pow<2>(Sol(U, d2))/Sol(d2) +
-					    pow<2>(Sol(d2))*(g()/2.)))*(dt()/(2.*delta))) );
-            }
-
-        template<typename Sol, typename Evaluation, typename ComponentU, typename ComponentV, typename DimensionX, typename DimensionY>
-        GT_FUNCTION
-        static float_type/*&&*/ half_step_v(Evaluation const& eval, ComponentU&& U, ComponentV&& V, DimensionX&& d1, DimensionY&& d2, float_type const& delta)
-            {
-                return /*std::move*/(eval( Sol(V,d1,d2) +
-					   Sol(V,d1)/2. -
-					   (Sol(U,d1,d2)*Sol(V,d1,d2)/Sol(d1,d2) -
-					    Sol(U,d2)*Sol(V,d2)/Sol(d2))*(dt()/(2*delta)) ) );
-            }
 
     };
 
@@ -173,14 +142,14 @@ namespace shallow_water{
         /**GCC 4.8.2  bug: inheriting the 'using' aliases (or replacing the typedefs below with the 'using' syntax) from the base class produces an internal compiler error (segfault).
            The compilation runs fine without warnings with GCC >= 4.9 and Clang*/
 
-        typedef arg_extend<arg_type<0>, 2>::type tmpx;
-        typedef arg_extend<arg_type<1>, 2>::type sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
         //shielding the base class aliases
         //typedef Dimension<3> step;
-        typedef Dimension<4> comp;
+        typedef Dimension<5> comp;
 #endif
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -194,9 +163,9 @@ namespace shallow_water{
         x::Index i;
         y::Index j;
 
+
         eval(hx())=eval((h(i+1,j+1) +h(j+1))/2. -
-            (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
-        // //eval(tmpx()       )=half_step<sol>  (eval, comp(1), x(1), y(1), dx());
+                        (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
         eval(ux())=eval(u(i+1, j+1) +
                         u(j+1)/2.-
                         ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
@@ -208,23 +177,20 @@ namespace shallow_water{
                           v(j+1))/2. -
                          (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
                           u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
-            //half_step_u<sol>(eval, comp(1), x(1), y(1), dx());
-        // eval(tmpx(comp(2)))=half_step_v<sol>(eval, comp(1), comp(2), x(1), y(1), dx());
-        }
 
     // 	void to_string(){
     // 	    (sol(V,d1,d2) +
     // 	     sol(V,d1)/2. -
     // 	     (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
     // 	      sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
-    // }
+        }
     };
 
 
     struct second_step_y        : public functor_traits {
 
-        typedef arg_extend<arg_type<0>, 2>::type tmpy;
-        typedef arg_extend<arg_type<1>, 2>::type sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpy;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -252,27 +218,21 @@ namespace shallow_water{
                          (pow<2>(v(i+1))/h(i+1) +
                           pow<2>(h(i+1))*(g()/2.)
                              ))*(dt()/(2.*dy())));
-        // eval(hy())=eval(h(i+1,j+1) +h(i+1)/2. -
-        //                           (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())));
-
-        // //eval(tmpy(comp(0)))=half_step<sol>  (eval, comp(2), y(1), x(1), dy());
-        // eval(tmpy(comp(1)))=half_step_v<sol>(eval, comp(2), comp(1), y(1), x(1), dy());
-        // eval(tmpy(comp(2)))=half_step_u<sol>(eval, comp(2), y(1), x(1), dy());
         }
     };
 
     struct final_step        : public functor_traits {
 
-        typedef arg_extend<arg_type<0>, 2>::type tmpx;
-        typedef arg_extend<arg_type<1>, 2>::type tmpy;
-        typedef arg_extend<arg_type<2>, 2>::type sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> tmpy;
+        typedef arg_type<2, range<0, 0, 0, 0>, 5> sol;
         // typedef arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type tmp;
         // typedef arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
         //typedef Dimension<3> step;
-        typedef Dimension<4> comp;
+        typedef Dimension<5> comp;
 #endif
 	static uint_t current_time;
 
@@ -286,6 +246,7 @@ namespace shallow_water{
 
             x::Index i;
             y::Index j;
+
 #ifdef __CUDACC__
             comp::Index c;
             //step::Index s;
@@ -509,7 +470,7 @@ namespace shallow_water{
             halos[2] = halo_descriptor(0,0,1,d3-1,d3);
 
 	    //the following might be runtime value
-	    uint_t total_time=3;
+	    uint_t total_time=1;
 
 	    for (;final_step::current_time < total_time; ++final_step::current_time)
 	    {
@@ -527,6 +488,7 @@ namespace shallow_water{
 		shallow_water_stencil1->run();
 		shallow_water_stencil2->run();
 		shallow_water_stencil->run();
+
                 sol.print();
 	    }
 

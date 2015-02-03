@@ -34,7 +34,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_extend;
+using gridtools::arg_type;
 using gridtools::range;
 using gridtools::arg;
 
@@ -74,11 +74,19 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. arg_type contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef arg_extend<0, range<-1, 1, -1, 1>, 3 >::type out;
-    /**
+#ifdef CXX11_ENABLED
+    typedef arg_type<0, range<-1, 1, -1, 1>, 3 > out;
+#else
+    typedef arg_type<0, range<-1, 1, -1, 1>, 3 >::type out;
+#endif
+/**
        @brief  placeholder for the input field, index 1
     */
-    typedef const arg_extend<1, range<-1, 1, -1, 1>, 3 >::type in;
+#ifdef CXX11_ENABLED
+    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 > in;
+#else
+    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 >::type in;
+#endif
     /**
        @brief MPL vector of the out and in types
     */
