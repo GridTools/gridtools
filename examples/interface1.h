@@ -222,8 +222,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    uint_t di[5] = {2, 2, 2, d1-2, d1};
-    uint_t dj[5] = {2, 2, 2, d2-2, d2};
+    uint_t di[5] = {2, 2, 2, d1-3, d1};
+    uint_t dj[5] = {2, 2, 2, d2-3, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
