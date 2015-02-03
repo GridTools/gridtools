@@ -67,9 +67,9 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 srun "/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/gpu/build/build/tests_gpu"
+salloc --gres=gpu:1 srun "/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/gpu/build/tests_gpu"
 else
 make tests;
-/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/$TARGET/build/build/tests
+/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/$TARGET/build/tests
 fi
 rm -rf *
