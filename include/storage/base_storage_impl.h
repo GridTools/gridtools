@@ -43,7 +43,8 @@ namespace gridtools{
 	template<short_t ID, short_t MaxIndex,  typename Layout>
 	struct next_stride{
 	    template<typename First, typename ... IntTypes>
-	    static First constexpr apply ( First first, IntTypes ... args){
+            GT_FUNCTION
+            static First constexpr apply ( First first, IntTypes ... args){
 		return (Layout::template at_<MaxIndex-ID+1>::value==vec_max<typename Layout::layout_vector_t>::value)?0:Layout::template find_val<MaxIndex-ID,short_t,1>(first, args...) * next_stride<ID-1, MaxIndex, Layout>::apply(first, args...);
 	    }
 	};
@@ -52,7 +53,8 @@ namespace gridtools{
 	template< short_t MaxIndex, typename Layout>
 	struct next_stride<0, MaxIndex, Layout>{
 	    template<typename First, typename ... IntTypes>
-	    static First constexpr apply(First first, IntTypes ... args){
+            GT_FUNCTION
+            static First constexpr apply(First first, IntTypes ... args){
 		return Layout::template find_val<MaxIndex,short_t,1>(first, args...);
 	    }
 	};
@@ -61,7 +63,8 @@ namespace gridtools{
 	template<int_t ID, int_t MaxIndex,  typename Layout>
 	struct assign_strides{
 	    template<typename ... UIntType>
-	    static void apply(uint_t* strides, UIntType ... args){
+            GT_FUNCTION
+            static void apply(uint_t* strides, UIntType ... args){
 		BOOST_STATIC_ASSERT(MaxIndex>=ID);
 		BOOST_STATIC_ASSERT(ID>=0);
 		strides[MaxIndex-ID] = next_stride<ID, MaxIndex, Layout>::apply(args...);
@@ -73,6 +76,7 @@ namespace gridtools{
 	template< int_t MaxIndex,  typename Layout>
 	struct assign_strides<0, MaxIndex, Layout>{
 	    template<typename ... UIntType>
+            GT_FUNCTION
 	    static void apply(uint_t* strides, UIntType ... args){
 		BOOST_STATIC_ASSERT(MaxIndex>=0);
 		strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
@@ -90,6 +94,7 @@ namespace gridtools{
                \param strides the strides
                \param indices the array of coordinates
             */template<typename IntType>
+            GT_FUNCTION
 	    static int_t apply(uint_t const* strides, IntType* indices){
 		return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
 	    }
@@ -100,6 +105,7 @@ namespace gridtools{
                \param indices comma-separated list of coordinates
             */
             template<typename ... UInt>
+            GT_FUNCTION
             static int_t apply(uint_t const* strides, UInt const& ... indices){
                 return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices...)+compute_offset<Id-1, Layout>::apply(strides, indices... );
             }
@@ -113,12 +119,14 @@ namespace gridtools{
 	    static const ushort_t space_dimensions = Layout::length;
 
 	    template<typename IntType>
+            GT_FUNCTION
 	    static int_t apply(uint_t const* /*strides*/, IntType* indices){
 		return Layout::template find_val<space_dimensions-1, int, 0>(indices);
 	    }
 
 #ifdef CXX11_ENABLED
             template<typename ... IntType>
+            GT_FUNCTION
             static int_t apply(uint_t const* /*strides*/, IntType const& ... indices){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices ...);
             }
@@ -146,7 +154,8 @@ namespace gridtools{
 	template<short_t Dimension>
 	struct advance_recursive{
 	    template<typename This>
-	    void apply(This* t){
+            GT_FUNCTION
+            void apply(This* t){
 		t->template advance<Dimension>();
 		advance_recursive<Dimension-1>::apply(t);
 	    }
@@ -156,6 +165,7 @@ namespace gridtools{
 	template<>
 	struct advance_recursive<0>{
 	    template<typename This>
+            GT_FUNCTION
 	    void apply(This* t){
 		t->template advance<0>();
 	    }

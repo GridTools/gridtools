@@ -25,35 +25,23 @@ namespace gridtools {
 	  :  super(other)
       {}
 
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3 ,
-                         typename BaseStorage::value_type init = float(), char const* s = "default name" ): super(dim1, dim2, dim3, init, s) {
+	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type const& value, char const* s="default name"): super(dim1, dim2, dim3, value, s) {
+            GRIDTOOLS_STATIC_ASSERT( boost::is_float<value_type>::value, "The initialization value in the storage constructor must me a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
         }
 
 
-	template<typename FloatType>
-	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, typename BaseStorage::value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
+	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
 
-#ifdef CXX11_ENABLED
-#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
+#if defined(CXX11_ENABLED) && !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
 	//arbitrary dimensional field
 	template <class ... UIntTypes>
 	explicit storage(  UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(args ...)
             {
 	    }
+#else
+        //constructor picked in absence of CXX11 or which GCC<4.9
+	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
 #endif
-#endif
-
-        /**
-           @brief method issuing an error
-
-           The call to this method detects a runtime error (when the wrong storage type is used)
-        */
-        GT_FUNCTION
-        static ushort_t get_index (short_t const& offset) {
-            //if this assert is failing you are using the wrong storage_type (you should use the field storage: field<storage, dimensions...>)
-            assert(false);
-            return ushort_t(0);
-        }
 
 	//    private :
 	explicit storage():super(){}

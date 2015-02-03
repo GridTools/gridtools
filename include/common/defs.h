@@ -65,7 +65,7 @@ namespace gridtools{  namespace enumtype{
 }
 
 #ifdef CXX11_ENABLED
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message);
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message"\n\n");
 #else
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition);
 #endif
@@ -91,7 +91,7 @@ typedef unsigned int            uint_t;
 typedef unsigned int                 ushort_t;
 template<int_t N>
 struct static_int : boost::mpl::integral_c<int_t,N>{
-    typedef boost::mpl::integral_c<uint_t,N> type;
+    typedef boost::mpl::integral_c<int_t,N> type;
 };
 template<uint_t N>
 struct static_uint : boost::mpl::integral_c<uint_t,N>{
@@ -99,11 +99,11 @@ struct static_uint : boost::mpl::integral_c<uint_t,N>{
 };
 template<short_t N>
 struct static_short : boost::mpl::integral_c<short_t,N>{
-    typedef boost::mpl::integral_c<uint_t,N> type;
+    typedef boost::mpl::integral_c<short_t,N> type;
 };
 template<ushort_t N>
 struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
-    typedef boost::mpl::integral_c<uint_t,N> type;
+    typedef boost::mpl::integral_c<ushort_t,N> type;
 };
 
 #endif

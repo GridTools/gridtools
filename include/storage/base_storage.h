@@ -77,26 +77,10 @@ namespace gridtools {
 
     public:
 
-#ifdef CXX11_ENABLED
-
-	/**
-	   @brief 3D storage constructor
-	   \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
-        */
-	template<typename FloatType, typename boost::enable_if<boost::is_float<FloatType>, int>::type=0>
-	base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType init, char const* s="default storage"):
-	    is_set( true ),
-	    m_name(s),
-	    m_dims{dim1, dim2, dim3},
-	    m_strides{( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) ) ,
-		    ( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
-		    ( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3) )}
-	    {
-		GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value for the storage must me a floating point number (e.g. 1.0)");
-
-                for(ushort_t i=0; i<field_dimensions; ++i)
-                    m_fields[i]=pointer_type(dim1*dim2*dim3);
-
+        /** @brief initializes with a constant value */
+        GT_FUNCTION
+        void initialize(value_type const& init)
+            {
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
 #endif
@@ -111,6 +95,34 @@ namespace gridtools {
 #endif
                     }
                 }
+            }
+
+        /**@brief sets the name of the current field*/
+        GT_FUNCTION
+        void set_name(char* const& string){
+            m_name=string;
+        }
+
+#ifdef CXX11_ENABLED
+
+	/**
+	   @brief 3D storage constructor
+	   \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
+        */
+	template<typename FloatType=float_type, typename boost::enable_if<boost::is_float<FloatType>, int>::type=0>
+	base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType const& init=float_type(), char const* s="default storage"):
+	    is_set( true ),
+	    m_name(s),
+	    m_dims{dim1, dim2, dim3},
+	    m_strides{( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) ) ,
+		    ( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
+		    ( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3) )}
+	    {
+		GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
+
+                for(ushort_t i=0; i<field_dimensions; ++i)
+                    m_fields[i]=pointer_type(dim1*dim2*dim3);
+                initialize(init);
             }
 
 #if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
@@ -141,7 +153,6 @@ namespace gridtools {
 		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
 		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
 	    }
-
 #endif // GCC<4.9.0
 
 #else //CXX11_ENABLED
@@ -163,17 +174,8 @@ namespace gridtools {
 		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
 		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
 
-#ifdef _GT_RANDOM_INPUT
-                srand(12345);
-#endif
-                for (uint_t i = 0; i < size(); ++i)
-#ifdef _GT_RANDOM_INPUT
-                    (m_fields[0])[i] = init * rand();
-#else
-                (m_fields[0])[i] = init;
-#endif
+                initialize(init);
             }
-
 #endif //CXX11_ENABLED
 
         /**@brief 3D constructor with the storage pointer provided externally
