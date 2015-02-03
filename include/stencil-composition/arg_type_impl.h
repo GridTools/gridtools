@@ -195,7 +195,10 @@ namespace gridtools {
         template <typename... Whatever>
         GT_FUNCTION
         constexpr arg_type_base ( int const& t, Whatever const& ... x): m_offset{ t, x... } {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the highest dimension to the lowest one.");
+            //this static check fails on GCC<4.9 even when it should not
+#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.");
+#endif
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.");
         }
 #else
