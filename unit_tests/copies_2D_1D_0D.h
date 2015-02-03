@@ -36,8 +36,13 @@ namespace copy_stencils_3D_2D_1D_0D {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         static const int n_args = 2;
+#ifdef CXX11_ENABLED
         typedef const arg_type<0> in;
         typedef arg_type<1> out;
+#else
+        typedef const arg_type<0>::type in;
+        typedef arg_type<1>::type out;
+#endif
         typedef boost::mpl::vector<in, out> arg_list;
 
         template <typename Domain>

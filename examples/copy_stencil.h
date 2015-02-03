@@ -38,12 +38,12 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
 #ifdef CXX11_ENABLED
-    typedef arg_extend<arg_type<0>, 1>::type in;
+    typedef arg_type<0, range<0,0,0,0>, 4> in;
     typedef boost::mpl::vector<in> arg_list;
     typedef Dimension<3> time;
 #else
-    typedef const arg_type<0> in;
-    typedef arg_type<1> out;
+    typedef arg_type<0, range<0,0,0,0>, 3>::type in;
+    typedef arg_type<1, range<0,0,0,0>, 3>::type out;
     typedef boost::mpl::vector<in,out> arg_list;
 #endif
     /* static const auto expression=in(1,0,0)-out(); */
@@ -56,7 +56,7 @@ struct copy_functor {
 #else
         eval(out())
 #endif
-=eval(in());
+            =1.;//eval(in());
       }
 };
 

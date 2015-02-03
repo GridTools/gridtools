@@ -104,7 +104,7 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
         static typename _impl::first_type<Indices...>::type
-        find_val(Indices & ... indices) {
+        find_val(Indices const& ... indices) {
             static_assert(sizeof...(Indices)<=length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
             if (pos_<I>::value >= sizeof...(Indices) ) {
@@ -124,7 +124,7 @@ namespace gridtools {
 	template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
         static Indices
-        find_val(Indices* indices) {
+        find_val(Indices const * indices) {
             if (pos_<I>::value >= length ) {
                 return DefaultVal;
             } else {
@@ -613,7 +613,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         */
         template <short_t I, typename T, T DefaultVal>
         GT_FUNCTION
-        static T find_val(T const* a) {
+        static int_t find_val(int_t const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
         }
     };

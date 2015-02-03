@@ -41,8 +41,13 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
-    typedef const arg_type<1/*, range<-1, 1, -1, 1>*/ > in;
+    typedef const arg_type<1 > in;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1 >::type in;
+#endif
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -56,9 +61,15 @@ struct lap_function {
 };
 
 struct flx_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
+    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
+#endif
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -74,9 +85,15 @@ struct flx_function {
 };
 
 struct fly_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
+    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
+#endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -91,11 +108,19 @@ struct fly_function {
 };
 
 struct out_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1>::type in;
+    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
+    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
+    typedef const arg_type<4>::type coeff;
+#endif
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Domain>
@@ -167,9 +192,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
     storage_type coeff(d1,d2,d3,8., "coeff");
-    storage_type lap(d1,d2,d3,-1., "in");
-    storage_type flx(d1,d2,d3,-7.3, "out");
-    storage_type fly(d1,d2,d3,8., "coeff");
 
 #ifndef SILENT_RUN
     out.print();
@@ -177,9 +199,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, storage_type > p_lap;
-    typedef arg<1, storage_type > p_flx;
-    typedef arg<2, storage_type > p_fly;
+    typedef arg<0, tmp_storage_type > p_lap;
+    typedef arg<1, tmp_storage_type > p_flx;
+    typedef arg<2, tmp_storage_type > p_fly;
     typedef arg<3, storage_type > p_coeff;
     typedef arg<4, storage_type > p_in;
     typedef arg<5, storage_type > p_out;
@@ -192,7 +214,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
-    gridtools::domain_type<arg_type_list> domain( (p_lap()=lap), (p_flx()=flx), (p_fly()=fly), (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
 #else
     gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
