@@ -132,9 +132,9 @@ bool test_domain() {
     typedef gridtools::arg<2, storage_type > p_out;
 
 
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
+    for (int_t i = 0; i < d1; ++i) {
+        for (int_t j = 0; j < d2; ++j) {
+            for (int_t k = 0; k < d3; ++k) {
                 coeff(i,j,k) = -1*(i+j+k)*3.4;
                 out(i,j,k) = -1*(i+j+k)*100;
                 in(i,j,k) = -1*(i+j+k)*0.45;

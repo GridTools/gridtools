@@ -6,8 +6,6 @@
 #include "../common/halo_descriptor.h"
 #include "../common/gpu_clone.h"
 
-#include <boost/mpl/print.hpp>
-
 /**@file
 @brief file containing the size of the horizontal domain
 

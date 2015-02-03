@@ -88,7 +88,7 @@ namespace gridtools {
     template<ushort_t ID>
     struct initialize_all{
         template <typename ... X>
-        static void constexpr apply(int_t* offset, X ... x)
+        static void apply(int_t* offset, X ... x)
             {
                 offset[ID]=initialize<ID>(x...);
                 initialize_all<ID-1>::apply(offset, x...);
@@ -98,7 +98,7 @@ namespace gridtools {
     template<>
     struct initialize_all<0>{
         template <typename ... X>
-        static void constexpr apply(int_t* offset, X ... x)
+        static void apply(int_t* offset, X ... x)
             {
                 offset[0]=initialize<0>(x...);
             }
@@ -285,7 +285,6 @@ namespace gridtools {
         typedef typename ArgType::base_t base_t;
         typedef ArgType super;
         static const ushort_t n_args=super::n_args+1;
-        static const ushort_t extra_args=super::extra_args+1;
         typedef typename super::index_type index_type;
 
 #ifdef CXX11_ENABLED

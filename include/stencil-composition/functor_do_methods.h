@@ -16,8 +16,6 @@
 #include "level.h"
 #include "interval.h"
 
-#include <boost/mpl/print.hpp>
-
 namespace gridtools {
     // implementation of the do method overload search
 
@@ -147,8 +145,6 @@ namespace gridtools {
                              NO_DO_METHOD_FOUND,
                              (TFunctor, TAxisInterval, DoMethods)
                              );
-
-        // static const auto blabla=boost::mpl::print<DoMethods>();
 
         // check the do methods are continuous
         BOOST_MPL_ASSERT_MSG(

@@ -203,8 +203,8 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     storage_type diag(d1,d2,d3,3., "diag");
     storage_type sup(d1,d2,d3,1., "sup");
     storage_type rhs(d1,d2,d3,3., "rhs");
-    for(uint_t i=0; i<d1; ++i)
-        for(uint_t j=0; j<d2; ++j)
+    for(int_t i=0; i<d1; ++i)
+        for(int_t j=0; j<d2; ++j)
         {
             rhs(i, j, 0)=4.;
             rhs(i, j, 5)=2.;

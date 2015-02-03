@@ -2,7 +2,6 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/print.hpp>
 #include "expressions.h"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
@@ -361,8 +360,7 @@ namespace gridtools {
 		//smaller than expected, or maybe you did a mistake when specifying the ranges
 		//in the placehoders definition
                 // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
-                // std::cout<<"and n_args = "<<ArgType::n_args<<std::endl;
-		assert( m_index[ArgType::index_type::value]
+		assert( (int_t)(m_index[ArgType::index_type::value])
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                         ->_index(/*arg.template n<ArgType::n_args>()*/
                             arg.offset()) >= 0);

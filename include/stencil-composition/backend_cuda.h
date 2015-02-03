@@ -185,8 +185,8 @@ namespace gridtools {
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
                 // number of threads
-                uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1;
-                uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1;
+                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1);
+                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1);
 
                 // blocks dimension
                 uint_t ntx = 8, nty = 32;
