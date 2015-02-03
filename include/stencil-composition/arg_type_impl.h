@@ -293,7 +293,7 @@ namespace gridtools {
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_decorator ( int const& t, Whatever const& ... x): super( x... ) {
+        constexpr arg_decorator ( int const& t, Whatever const& ... x): super( t, x... ) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -302,7 +302,7 @@ namespace gridtools {
         */
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
+        /*constexpr*/ arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
             super( t, x... )
             {
                 //this constructor should be a constexpr one (waiting for future standards (C++14) for that)
@@ -313,7 +313,7 @@ namespace gridtools {
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         GT_FUNCTION
-        constexpr arg_decorator ( int const& i, int const& j, int const& k): super( i, j, k ) {
+        arg_decorator ( int const& i, int const& j, int const& k): super( i, j, k ) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -350,7 +350,7 @@ namespace gridtools {
 
         //initializes recursively all the offsets to 0
         GT_FUNCTION
-        arg_decorator ( ):
+        /*constexpr*/ arg_decorator ( ):
             super( )
             {
                 base_t::m_offset[n_args-1] = 0;
