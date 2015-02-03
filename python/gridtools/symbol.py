@@ -185,6 +185,25 @@ class Scope (object):
                     pass
 
 
+    def dump (self):
+        """
+        Prints a formatted list of all in this scope.-
+        """
+        for k,v in self.symbol_table.items ( ):
+            #
+            # display only the dimensions of NumPy arrays
+            #
+            try:
+                val = v.shape
+            except AttributeError:
+                val = str (v)
+
+            logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k, 
+                                                     v.kind,
+                                                     v.name,
+                                                     val))
+
+
     def is_parameter (self, name, read_only=False):
         """
         Returns True is symbol 'name' is a parameter in this scope:
@@ -249,7 +268,7 @@ class StencilSymbols (object):
     """
     def __init__ (self):
         #
-        # the top-most stencil scope (a.k.a. global)
+        # the top-most stencil scope
         #
         self.stencil_scope = Scope ( )
 
@@ -272,31 +291,6 @@ class StencilSymbols (object):
         else:
             self.functor_scopes[funct_name] = Scope ( )
             return self.functor_scopes[funct_name]
-
-
-    def dump (self):
-        """
-        Prints a formatted list of all symbols.-
-        """
-        all_scopes = {'stencil': self.stencil_scope}
-        for k,v in self.functor_scopes.items ( ):
-            all_scopes[k] = v
-
-        for k,v in all_scopes.items ( ):
-            for s in v.get_all ( ):
-                #
-                # display only the dimensions of NumPy arrays
-                #
-                try:
-                    val = s.value.shape
-                except AttributeError:
-                    val = str (s.value)
-
-                logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k, 
-                                                         s.kind,
-                                                         s.name,
-                                                         val))
-
 
 
     def resolve (self, stencil_obj):
@@ -369,7 +363,9 @@ class StencilSymbols (object):
         #
         if __debug__:
             logging.debug ("Symbols found after using using run-time resolution:")
-            self.dump ( )
+            self.stencil_scope.dump ( )
+            for k,v in self.functor_scopes.items ( ):
+                v.dump ( )
 
 
     def resolve_params (self, **kwargs):

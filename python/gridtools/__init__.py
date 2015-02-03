@@ -96,7 +96,7 @@ class StencilInspector (ast.NodeVisitor):
         #
         if __debug__:
             logging.debug ("Symbols found after static code analysis:")
-            self.symbols.dump ( )
+            self.stencil_scope.dump ( )
 
 
     def analyze_params (self, nodes):
