@@ -102,7 +102,7 @@ namespace gridtools {
             >::type OrderedFromIndexes;
 
         // check that there are at least two levels
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<OrderedFromIndexes>::value >= 2, "there must be at least two levels");
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<OrderedFromIndexes>::value >= 2, "there must be at least two levels")
 
         // iterate over all levels and group succeeding levels into intervals
         // (note that the prior is ok as do methods do not end at the maximum or minimum offsets of a splitter)

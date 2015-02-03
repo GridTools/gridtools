@@ -36,35 +36,35 @@ namespace gridtools {
         void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
             /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
             /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
-	    uint_t z = coords->template value_at<typename Traits::first_hit_t>();
+            uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-	    uint_t i = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
-	    uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)/ny;
+            uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+            uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
 
-	    typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
-	    __shared__
-	    typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+            typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+            __shared__
+                typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 
-	    //Doing construction and assignment before the following 'if', so that we can
-	    //exploit parallel shared memory initialization
-	    typename Traits::iterate_domain_t it_domain(*l_domain);
-	    it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
-	    __syncthreads();
+            //Doing construction and assignment before the following 'if', so that we can
+            //exploit parallel shared memory initialization
+            typename Traits::iterate_domain_t it_domain(*l_domain);
+            it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+            __syncthreads();
 
             if ((i < nx) && (j < ny)) {
 
-		it_domain.assign_ij<0>(i+starti,0);
-		it_domain.assign_ij<1>(j+startj,0);
+                it_domain.assign_ij<0>(i+starti,0);
+                it_domain.assign_ij<1>(j+startj,0);
 
-		typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
-		typedef typename index_to_level<typename interval::first>::type from;
-		typedef typename index_to_level<typename interval::second>::type to;
-		typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
+                typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
+                typedef typename index_to_level<typename interval::first>::type from;
+                typedef typename index_to_level<typename interval::second>::type to;
+                typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
-		//printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
-		//setting the initial k level (for backward/parallel iterations it is not 0)
-		if( !iteration_policy::value==enumtype::forward )
-		    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+                //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
+                //setting the initial k level (for backward/parallel iterations it is not 0)
+                if( !iteration_policy::value==enumtype::forward )
+                    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
@@ -81,7 +81,7 @@ namespace gridtools {
          * \brief this struct is the core of the ESF functor
          */
         template < typename Arguments >
-	    struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
+        struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
             typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
             explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
@@ -149,31 +149,31 @@ namespace gridtools {
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
-		short_t count;
-		cudaGetDeviceCount ( &count  );
+        short_t count;
+        cudaGetDeviceCount ( &count  );
 
-		if(count)
-		  {
-		    cudaDeviceProp prop;
-		    cudaGetDeviceProperties(&prop, 0);
-		    std::cout << "total global memory "<<       prop.totalGlobalMem<<std::endl;
-		    std::cout << "shared memory per block "<<   prop.sharedMemPerBlock<<std::endl;
-		    std::cout << "registers per block "<<       prop.regsPerBlock<<std::endl;
-		    std::cout << "maximum threads per block "<< prop.maxThreadsPerBlock <<std::endl;
-		    std::cout << "maximum threads dimension "<< prop.maxThreadsDim <<std::endl;
-		    std::cout << "clock rate "<<                prop.clockRate <<std::endl;
-		    std::cout << "total const memory "<<        prop.totalConstMem <<std::endl;
-		    std::cout << "compute capability "<<        prop.major<<"."<<prop.minor <<std::endl;
-		    std::cout << "multiprocessors count "<< prop.multiProcessorCount <<std::endl;
-		    std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "<< prop.computeMode <<std::endl;
-		    std::cout << "concurrent kernels "<< prop.concurrentKernels <<std::endl;
-		    std::cout << "Number of asynchronous engines  "<< prop.asyncEngineCount <<std::endl;
-		    std::cout << "unified addressing "<< prop.unifiedAddressing <<std::endl;
-		    std::cout << "memoryClockRate "<< prop.memoryClockRate <<std::endl;
-		    std::cout << "memoryBusWidth "<< prop.memoryBusWidth <<std::endl;
-		    std::cout << "l2CacheSize "<< prop.l2CacheSize <<std::endl;
-		    std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
-		  }
+        if(count)
+          {
+            cudaDeviceProp prop;
+            cudaGetDeviceProperties(&prop, 0);
+            std::cout << "total global memory "<<       prop.totalGlobalMem<<std::endl;
+            std::cout << "shared memory per block "<<   prop.sharedMemPerBlock<<std::endl;
+            std::cout << "registers per block "<<       prop.regsPerBlock<<std::endl;
+            std::cout << "maximum threads per block "<< prop.maxThreadsPerBlock <<std::endl;
+            std::cout << "maximum threads dimension "<< prop.maxThreadsDim <<std::endl;
+            std::cout << "clock rate "<<                prop.clockRate <<std::endl;
+            std::cout << "total const memory "<<        prop.totalConstMem <<std::endl;
+            std::cout << "compute capability "<<        prop.major<<"."<<prop.minor <<std::endl;
+            std::cout << "multiprocessors count "<< prop.multiProcessorCount <<std::endl;
+            std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "<< prop.computeMode <<std::endl;
+            std::cout << "concurrent kernels "<< prop.concurrentKernels <<std::endl;
+            std::cout << "Number of asynchronous engines  "<< prop.asyncEngineCount <<std::endl;
+            std::cout << "unified addressing "<< prop.unifiedAddressing <<std::endl;
+            std::cout << "memoryClockRate "<< prop.memoryClockRate <<std::endl;
+            std::cout << "memoryBusWidth "<< prop.memoryBusWidth <<std::endl;
+            std::cout << "l2CacheSize "<< prop.l2CacheSize <<std::endl;
+            std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
+          }
 #endif
 
 
@@ -184,33 +184,24 @@ namespace gridtools {
 
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
-		// number of threads
-                uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
-                uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
+                // number of threads
+                uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1;
+                uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1;
 
-		// blocks dimension
-                uint_t ntx = 8, nty = 32;//, ntz = 1;
-                /* dim3 threads(ntx, nty, ntz); */
+                // blocks dimension
+                uint_t ntx = 8, nty = 32;
 
-		//number of blocks
+                //number of blocks
                 ushort_t nbx = (nx + ntx - 1) / ntx;
                 ushort_t nby = (ny + nty - 1) / nty;
-                //ushort_t nbz = 1;
-                /* dim3 blocks(nbx, nby, nbz); */
 
-// #ifndef NDEBUG
-                // printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
-                // printf("nbx = %d, nby = %d, nbz = %d\n",ntx, nty, ntz);
-                // printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
-// #endif
-
-		_impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
+                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
                      f->m_coords.j_low_bound() + range_t::jminus::value,
                      (nx),
-		     (ny));
+                     (ny));
                 cudaDeviceSynchronize();
 
             }
@@ -221,7 +212,7 @@ namespace gridtools {
 /**@brief given the backend \ref gridtools::_impl_cuda::run_functor_cuda returns the backend ID gridtools::enumtype::Cuda
    wasted code because of the lack of constexpr*/
         template <typename Arguments>
-	    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
+        struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
         {
             static const enumtype::backend s_backend=enumtype::Cuda;
         };
