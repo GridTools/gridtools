@@ -16,7 +16,8 @@ module load cuda/6.5
 echo "exporting variables"
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
-export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"module unload gcc
+export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
+module unload gcc
 module load gcc/4.8.2
 
 
@@ -41,6 +42,8 @@ echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 pwd
 #mkdir build; cd build;
 
+export JENKINS_COMMUNICATION_TESTS=1
+
 /apps/dom/cmake/repository/gnu_446/bin/cmake \
 -DCUDA_NVCC_FLAGS:STRING="-arch=sm_35 -G " \
 -DCMAKE_CXX_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/c++" \
@@ -55,8 +58,8 @@ pwd
 -DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \
 -DPAPI_WRAP_LIBRARY:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
--DUSE_MPI:BOOL=OFF \
--DUSE_MPI_COMPILER:BOOL=OFF  \
+-DUSE_MPI:BOOL=ON \
+-DUSE_MPI_COMPILER:BOOL=ON  \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g  -m64  -DBOOST_SYSTEM_NO_DEPRECATED"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
 -DENABLE_CXX11=ON \
@@ -68,6 +71,8 @@ if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
 salloc --gres=gpu:1 srun "/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/gpu/build/build/tests_gpu"
+
+salloc --gres=gpu:2 examples/communication/run_communication_tests.sh
 else
 make tests;
 ./build/tests
