@@ -78,6 +78,7 @@ then
 make tests_gpu;
 module unload cuda
 module load cuda/6.0; # load runtime libs
+find . |grep tests_gpu
 salloc --gres=gpu:2 srun ./build/build/tests_gpu
 
 salloc --gres=gpu:2 ./examples/communication/run_communication_tests.sh
