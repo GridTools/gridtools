@@ -146,7 +146,7 @@ class ShallowWater (MultiStageStencil):
         # first half step (stage X direction)
         #
         for p in self.get_interior_points (out_H,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             # height
             self.Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
@@ -170,7 +170,7 @@ class ShallowWater (MultiStageStencil):
         # first half step (stage Y direction)
         #
         for p in self.get_interior_points (out_H,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             # height
             self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2.0
@@ -194,7 +194,7 @@ class ShallowWater (MultiStageStencil):
         # second half step (stage)
         #
         for p in self.get_interior_points (out_H,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             # height
             out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
