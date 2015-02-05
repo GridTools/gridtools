@@ -9,7 +9,10 @@ module load boost
 #echo "loading PAPI"
 #module load papi
 
+module unload gcc
+module load gcc/4.8.2
 echo "loading MPI"
+module unload mvapich2
 module load mvapich2/1.9-gcc-4.8.2
 echo "loading cuda"
 module unload cuda
@@ -19,17 +22,15 @@ echo "exporting variables"
 export PAPI_ROOT=/opt/cray/papi/5.2.0
 export PAPI_WRAP_ROOT=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount/
 export CSCSPERF_EVENTS="SIMD_FP_256|PAPI_VEC_DP|PAPI_VEC_SP"
-module unload gcc
-module load gcc/4.8.2
 
 
 TARGET=$1
 REAL_TYPE=$2
 if [ "x$TARGET" == "xgpu" ]
 then
-USE_GPU=ON
+export USE_GPU=ON
 else
-USE_GPU=OFF
+export USE_GPU=OFF
 fi
 echo "USE_GPU=$USE_GPU"
 
@@ -66,18 +67,22 @@ export JENKINS_COMMUNICATION_TESTS=1
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g  -m64  -DBOOST_SYSTEM_NO_DEPRECATED"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
 -DENABLE_CXX11=ON \
- ../
+ ./
 
 make -j8;
 
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 srun ./build/tests_gpu
+module unload cuda
+module load cuda/6.0; # load runtime libs
+salloc --gres=gpu:2 srun ./build/tests_gpu
 
 salloc --gres=gpu:2 ./examples/communication/run_communication_tests.sh
 else
 make tests;
-./build/tests
+module load cuda/6.0; # load runtime libs
+salloc srun ./build/tests
+salloc ./examples/communication/run_communication_tests.sh
 fi
-rm -rf *
+#rm -rf *
