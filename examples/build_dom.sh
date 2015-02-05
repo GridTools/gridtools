@@ -42,6 +42,7 @@ fi
 echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 
 pwd
+WHERE_=`pwd`
 #mkdir build; cd build;
 
 export JENKINS_COMMUNICATION_TESTS=1
@@ -72,9 +73,9 @@ make -j8;
 if [ "x$TARGET" == "xgpu" ]
 then
 make tests_gpu;
-salloc --gres=gpu:1 srun "/scratch/shared/castor/jenkins/dom/~/test/real_type/$REAL_TYPE/slave/dom/target/gpu/build/build/tests_gpu"
+salloc --gres=gpu:1 srun ./build/tests_gpu
 
-salloc --gres=gpu:2 examples/communication/run_communication_tests.sh
+salloc --gres=gpu:2 ./examples/communication/run_communication_tests.sh
 else
 make tests;
 ./build/tests
