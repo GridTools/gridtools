@@ -44,6 +44,7 @@ echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 
 pwd
 WHERE_=`pwd`
+ls -l
 #mkdir build; cd build;
 
 export JENKINS_COMMUNICATION_TESTS=1
@@ -85,4 +86,4 @@ module load cuda/6.0; # load runtime libs
 salloc srun ./build/tests
 salloc ./examples/communication/run_communication_tests.sh
 fi
-#rm -rf *
+rm -rf *
