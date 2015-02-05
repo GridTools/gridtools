@@ -1,5 +1,6 @@
 #pragma once
 #include "iteration_policy.h"
+#include "level.h"
 
 namespace gridtools {
     namespace _impl {

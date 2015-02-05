@@ -7,8 +7,8 @@
 #include <stencil-composition/backend_host.h>
 #endif
 
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>

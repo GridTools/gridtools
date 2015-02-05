@@ -1,15 +1,13 @@
-
 #pragma once
 
 #include <gridtools.h>
+#include "stencil-composition/make_computation.h"
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
 #include <stencil-composition/backend_host.h>
 #endif
-
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>

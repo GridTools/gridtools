@@ -1,4 +1,5 @@
 #ifdef CXX11_ENABLED
+#include <boost/type_traits.hpp>
 /**@file
 @brief implementation of a compile time string.
 

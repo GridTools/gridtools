@@ -5,7 +5,6 @@
 #include <common/halo_descriptor.h>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/construct.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -18,6 +17,8 @@
 #else
 #include <boundary-conditions/apply.h>
 #endif
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 /*
   @file

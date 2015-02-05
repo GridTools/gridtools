@@ -10,6 +10,7 @@ add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 if ( ENABLE_CXX11 )
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test-independent ${exe_LIBS})
     add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 endif()
 

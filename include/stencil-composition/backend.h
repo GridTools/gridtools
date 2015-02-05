@@ -91,13 +91,14 @@ namespace gridtools {
            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
            \tparam Temporaries is the vector of temporary placeholder types.
         */
-        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
+        template <typename Temporaries, typename Ranges, uint_t BI, uint_t BJ, typename StrategyTraits>
         struct get_storage_type {
             template <typename Index>
             struct apply {
                 typedef typename boost::mpl::at<Ranges, Index>::type range_type;
 
-                typedef pair<typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+                typedef pair<typename StrategyTraits::template tmp<typename boost::mpl::at<Temporaries, Index>::type::storage_type::type, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+                // typedef typename boost::mpl::at<Temporaries, Index>::type::storage_type::type::fuck fuck;
             };
         };
 
@@ -179,12 +180,9 @@ namespace gridtools {
                     typename _impl::get_storage_type<
                         temporaries,
                         list_of_ranges,
-                        ValueType,
-                        LayoutType,
                         tileI,
                         tileJ,
-                        strategy_traits_t,
-                        s_backend_id
+                        strategy_traits_t
                         >::template apply<boost::mpl::_2>
                     >
                 >::type type;

@@ -1,8 +1,4 @@
-#include <iostream>
-#include <storage/storage.h>
-#include <common/layout_map.h>
-#include <fstream>
-#include <boost/timer/timer.hpp>
+#include <gridtools.h>
 #include <stencil-composition/backend.h>
 
 int main_naive(int argc, char** argv) {

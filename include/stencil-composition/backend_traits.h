@@ -150,17 +150,18 @@ namespace gridtools{
             };
 
             //with the naive algorithms, the temporary storages are like the non temporary ones
-            template <enumtype::backend Backend, typename ValueType, typename LayoutType , uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
+            template <typename StorageType, uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
             struct tmp
                 {
-                    typedef storage<base_storage<Backend, ValueType, LayoutType, true> > host_storage_t;
+//#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
+                    typedef clonable_storage< StorageType > host_storage_t;
                 };
 
         };
 
 
 //forward declaration
-    template< enumtype::backend A,typename B,typename C,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
+    template< typename StorageBase, uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
     struct host_tmp_storage;
 
 /**
@@ -227,10 +228,12 @@ namespace gridtools{
             };
 
 
-            template <enumtype::backend Backend, typename ValueType, typename LayoutType , uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
+            template <typename StorageBase , uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
             struct tmp
                 {
-                    typedef host_tmp_storage <  Backend, ValueType, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> host_storage_t;
+                    GRIDTOOLS_STATIC_ASSERT(StorageBase::backend==enumtype::Host, "The Block strategy with backends other than Host has not been tested and is disabled by default.\n\
+ If you know what you do comment out this assert.");
+                    typedef host_tmp_storage < StorageBase, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> host_storage_t;
                 };
 
         };

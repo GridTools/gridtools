@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../storage/storage.h"
-#include "../storage/host_tmp_storage.h"
 #include "../common/layout_map.h"
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
@@ -17,31 +16,6 @@
 
 namespace gridtools {
 
-    /**
-     * @brief Type to indicate that the type is not decided yet
-     */
-    template <typename RegularStorageType>
-    struct no_storage_type_yet {
-        typedef void storage_type;
-        typedef typename RegularStorageType::iterator_type iterator_type;
-        typedef typename RegularStorageType::value_type value_type;
-        static const ushort_t space_dimensions=RegularStorageType::space_dimensions;
-        static void text() {
-            std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
-        }
-        //std::string name() {return std::string("no_storage_yet NAMEname");}
-        void info() const {
-            std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl;
-        }
-    };
-
-    /**
-       @brief stream operator, for debugging purpose
-    */
-    template <typename RST>
-    std::ostream& operator<<(std::ostream& s, no_storage_type_yet<RST>) {
-        return s << "no_storage_type_yet<" << RST() << ">" ;
-    }
 
     /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
     template<typename ArgType, typename Storage>
@@ -196,9 +170,10 @@ namespace gridtools {
         GT_FUNCTION
         constexpr arg_type_base ( int const& t, Whatever const& ... x): m_offset{ t, x... } {
             //this static check fails on GCC<4.9 even when it should not
-#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.");
-#endif
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected");
+
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Whatever)+1)>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.");
+
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.");
         }
 #else

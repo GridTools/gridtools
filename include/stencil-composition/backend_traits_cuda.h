@@ -1,9 +1,13 @@
 #pragma once
+#include <common/gpu_clone.h>
 #include <boost/mpl/for_each.hpp>
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
 namespace gridtools{
+
+    template<typename Storage>
+    struct clonable_storage: public Storage, clonable_to_gpu< Storage >{};
 
     /**forward declaration*/
     namespace _impl_cuda{
@@ -15,9 +19,9 @@ namespace gridtools{
     template <enumtype::backend BE, typename T, typename U, bool B, short_t SpaceDim>
     struct base_storage;
 
-    /**forward declaration*/
-    template <typename U>
-      struct storage;
+    // /**forward declaration*/
+    // template <typename U>
+    //   struct storage;
 
     /**forward declaration*/
     template<typename T>
@@ -35,7 +39,7 @@ namespace gridtools{
         template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            typedef storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp, SpaceDim> > storage_t;
+            typedef clonable_storage< base_storage<enumtype::Cuda, ValueType, Layout, Temp, SpaceDim> > storage_t;
         };
 
         template <typename Arguments>

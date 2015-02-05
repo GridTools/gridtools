@@ -19,6 +19,7 @@
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include "gt_for_each/for_each.hpp"
+#include "../common/gpu_clone.h"
 
 #include "domain_type_impl.h"
 

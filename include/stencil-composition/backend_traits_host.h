@@ -17,9 +17,9 @@ namespace gridtools{
     template <enumtype::backend BE, typename T, typename U, bool B, short_t SpaceDim>
     struct base_storage;
 
-    /**forward declaration*/
-    template <typename U>
-    struct storage;
+    // /**forward declaration*/
+    // template <typename U>
+    // struct storage;
 
     /**forward declaration*/
     template<typename T>
@@ -34,7 +34,7 @@ namespace gridtools{
     struct backend_from_id<enumtype::Host>{
         template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1>
         struct storage_traits{
-            typedef storage<base_storage<enumtype::Host, ValueType, Layout, Temp, SpaceDim > >   storage_t;
+            typedef base_storage<enumtype::Host, ValueType, Layout, Temp, SpaceDim >   storage_t;
         };
 
         template <typename Arguments>
