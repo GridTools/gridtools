@@ -73,10 +73,12 @@ namespace gridtools {
 
 #ifndef NDEBUG
 		    std::cout << "Functor " <<  functor_type() << "\n";
-		    std::cout << "I loop " << (int_t)f->m_starti  + range_t::iminus::value << " -> "
-			      << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
-		    std::cout << "J loop " << (int_t)f->m_startj + range_t::jminus::value << " -> "
-			      << (int_t)f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+		    std::cout << "I loop " 
+                      << (int_t)f->m_starti  + range_t::iminus::value << " -> "
+                      << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
+		    std::cout << "J loop " 
+                      << (int_t)f->m_startj + range_t::jminus::value << " -> "
+                      << (int_t)f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
 		    std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
 		    std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 		    std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;
@@ -87,12 +89,12 @@ namespace gridtools {
 		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
 
                     for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
-                         i < (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;
+                         i <= (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;
                          ++i)
 		      {
 			// for_each<local_domain.local_args>(increment<0>);
                         for (int_t j = (int_t)f->m_startj + range_t::jminus::value;
-                             j < (int_t)f->m_startj + (int_t)f->m_BJ + range_t::jplus::value;
+                             j <= (int_t)f->m_startj + (int_t)f->m_BJ + range_t::jplus::value;
                              ++j)
                             {
 			      // for_each<local_domain.local_args>(increment<1>());

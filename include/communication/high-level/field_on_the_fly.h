@@ -10,18 +10,17 @@ namespace gridtools {
      \tparam DIMS Number of dimensions of the array
      \tparam layoutmap Specification of the layout map of the data (as in halo_exchange_dynamic)
    */
-  template <typename DataType, typename layoutmap, template <typename> class Traits>
+  template <typename DataType, typename _t_layoutmap, template <typename> class Traits>
   struct field_on_the_fly: public Traits<DataType>::base_field {
-
+      typedef typename reverse_map<_t_layoutmap>::type inner_layoutmap; // This is necessary since the internals of gcl use "increasing stride order" instead of "decreasing stride order"
+      typedef _t_layoutmap outer_layoutmap;
     static const int DIMS = Traits<DataType>::I;
 
     typedef typename Traits<DataType>::base_field base_type;
 
-    typedef field_on_the_fly<DataType, layoutmap, Traits> this_type;
+    typedef field_on_the_fly<DataType, _t_layoutmap, Traits> this_type;
 
     typedef DataType value_type;
-
-    typedef layoutmap layout_map;
 
     mutable DataType *ptr;
 
@@ -30,15 +29,15 @@ namespace gridtools {
     field_on_the_fly() {};
 
     template <typename T1>
-    field_on_the_fly<T1, layoutmap, Traits>& retarget() {
+    field_on_the_fly<T1, _t_layoutmap, Traits>& retarget() {
       void* tmp = this;
-      return *(reinterpret_cast<field_on_the_fly<T1, layoutmap, Traits>*>(tmp));
+      return *(reinterpret_cast<field_on_the_fly<T1, _t_layoutmap, Traits>*>(tmp));
     }
 
     template <typename T1>
-    field_on_the_fly<T1, layoutmap, Traits> copy() const {
+    field_on_the_fly<T1, _t_layoutmap, Traits> copy() const {
       const void* tmp = this;
-      return *(reinterpret_cast<const field_on_the_fly<T1, layoutmap, Traits>*>(tmp));
+      return *(reinterpret_cast<const field_on_the_fly<T1, _t_layoutmap, Traits>*>(tmp));
     }
 
     void set_pointer(DataType* pointer) {
@@ -61,8 +60,10 @@ namespace gridtools {
     field_on_the_fly(DataType* p, array<halo_descriptor, DIMS> const & halos)
       : ptr(p)
     {
+        //        std::cout << "FOF                                          " << t_layoutmap() << " " << layoutmap() << std::endl;
+
       for (int i=0; i<DIMS; ++i) {
-        base_type::add_halo(layoutmap()[i], 
+        base_type::add_halo(inner_layoutmap()[i], 
                             halos[i].minus(), 
                             halos[i].plus(), 
                             halos[i].begin(), 
@@ -85,7 +86,7 @@ namespace gridtools {
     {
       ptr = p;
       for (int i=0; i<DIMS; ++i) {
-        base_type::add_halo(layoutmap()[i], 
+        base_type::add_halo(inner_layoutmap()[i], 
                             halos[i].minus(), 
                             halos[i].plus(), 
                             halos[i].begin(), 
