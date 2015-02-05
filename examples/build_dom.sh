@@ -45,12 +45,13 @@ echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 pwd
 WHERE_=`pwd`
 ls -l
+ls -l ..
 #mkdir build; cd build;
 
 export JENKINS_COMMUNICATION_TESTS=1
 
 /apps/dom/cmake/repository/gnu_446/bin/cmake \
--DCUDA_NVCC_FLAGS:STRING="-arch=sm_35 -G " \
+-DCUDA_NVCC_FLAGS:STRING="-arch=sm_30 -G " \
 -DCMAKE_CXX_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/c++" \
 -DCMAKE_C_COMPILER:STRING="/apps/dom/gcc/4.8.2/bin/gcc" \
 -DUSE_GPU:BOOL=$USE_GPU \
@@ -82,6 +83,7 @@ salloc --gres=gpu:2 srun ./build/tests_gpu
 salloc --gres=gpu:2 ./examples/communication/run_communication_tests.sh
 else
 make tests;
+module unload cuda
 module load cuda/6.0; # load runtime libs
 salloc srun ./build/tests
 salloc ./examples/communication/run_communication_tests.sh
