@@ -90,9 +90,9 @@ int main(int argc, char** argv) {
   /* Just an initialization */
   for (int ii=0; ii<DIM1+2*H; ++ii)
     for (int jj=0; jj<DIM2+2*H; ++jj) {
-      a[ii*(DIM2+2*H)+jj] = pair_t(0,0);
-      b[ii*(DIM2+2*H)+jj] = pair_t(0,0);                                      
-      c[ii*(DIM2+2*H)+jj] = pair_t(0,0);
+      a[jj*(DIM1+2*H)+ii] = pair_t(0,0);
+      b[jj*(DIM1+2*H)+ii] = pair_t(0,0);                                      
+      c[jj*(DIM1+2*H)+ii] = pair_t(0,0);
     }      
 
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
      logically to processor (p+1,q).
    */
   typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0>, 
-    gridtools::layout_map<0,1>, pair_t, 2, gridtools::gcl_cpu, 1 > pattern_type;
+        gridtools::layout_map<0,1>, pair_t, 2, gridtools::gcl_cpu, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -175,9 +175,9 @@ int main(int argc, char** argv) {
    */
   for (int ii=H; ii<DIM1+H; ++ii)
     for (int jj=H; jj<DIM2+H; ++jj) {
-      a[ii*(DIM2+2*H)+jj] = pair_t(ii-H+(DIM1)*coords[0],jj-H+(DIM2)*coords[1]);
-      b[ii*(DIM2+2*H)+jj] = pair_t(ii-H+(DIM1)*coords[0]+1,jj-H+(DIM2)*coords[1]+1);
-      c[ii*(DIM2+2*H)+jj] = pair_t(ii-H+(DIM1)*coords[0]+100,jj-H+(DIM2)*coords[1]+100);
+      a[jj*(DIM1+2*H)+ii] = pair_t(ii-H+(DIM1)*coords[0],jj-H+(DIM2)*coords[1]);
+      b[jj*(DIM1+2*H)+ii] = pair_t(ii-H+(DIM1)*coords[0]+1,jj-H+(DIM2)*coords[1]+1);
+      c[jj*(DIM1+2*H)+ii] = pair_t(ii-H+(DIM1)*coords[0]+100,jj-H+(DIM2)*coords[1]+100);
     }
 
   //printbuff(file,a, DIM1+2*H, DIM2+2*H);
@@ -210,31 +210,34 @@ int main(int argc, char** argv) {
    */
   for (int ii=0; ii<DIM1+2*H; ++ii)
     for (int jj=0; jj<DIM2+2*H; ++jj) {
-      if (a[ii*(DIM2+2*H)+jj] != 
+      if (a[jj*(DIM1+2*H)+ii] != 
           pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
                  modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])) ) {
         passed = false;
-        file << "a " << a[ii*(DIM2+2*H)+jj] << " != " 
+        file << ii << ", " << jj << ": "
+             << "a " << a[jj*(DIM1+2*H)+ii] << " != " 
              << pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
                        modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])) 
              << "\n";
       }
 
-      if (b[ii*(DIM2+2*H)+jj] != 
+      if (b[jj*(DIM1+2*H)+ii] != 
           pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
                  modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1) ) {
         passed = false;
-        file << "b " << b[ii*(DIM2+2*H)+jj] << " != " 
+        file << ii << ", " << jj << ": "
+             << "b " << b[jj*(DIM1+2*H)+ii] << " != " 
              << pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
                        modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1) 
              << "\n";
       }
 
-      if (c[ii*(DIM2+2*H)+jj] != 
+      if (c[jj*(DIM1+2*H)+ii] != 
           pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
                  modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100) ) {
         passed = false;
-        file << "c " << c[ii*(DIM2+2*H)+jj] << " != " 
+        file << ii << ", " << jj << ": "
+             << "c " << c[jj*(DIM1+2*H)+ii] << " != " 
              << pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
                        modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100) 
              << "\n";

@@ -8,58 +8,7 @@
 #include <common/layout_map.h>
 #include <common/boollist.h>
 
-/** \file Example of use of halo_exchange pattern for regular
-    grids. The comments in the code aim at highlight the process of
-    instantiating and running a halo exchange pattern.
-*/
-
-inline int modulus(int __i, int __j) {
-  return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
-}
-
-/* This is the data type of the elements of the data arrays.
- */
-struct triple_t {
-  int x,y,z;
-  triple_t(int a, int b, int c): x(a), y(b), z(c) {}
-  triple_t(): x(-1), y(-1), z(-1) {}
-};
-
-std::ostream& operator<<(std::ostream &s, triple_t const & t) { 
-  return s << " (" 
-           << t.x << ", "
-           << t.y << ", "
-           << t.z << ") ";
-}
-
-bool operator==(triple_t const & a, triple_t const & b) {
-  return (a.x == b.x && 
-          a.y == b.y &&
-          a.z == b.z);
-}
-
-bool operator!=(triple_t const & a, triple_t const & b) {
-  return !(a==b);
-}
-
-/* Just and utility to print values
- */
-void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
-  if (d1<6 && d2<6 && d3<6) {
-    file << "------------\n";
-    for (int ii=0; ii<d1; ++ii) {
-      file << "|";
-      for (int jj=0; jj<d2; ++jj) {
-        for (int kk=0; kk<d2; ++kk) {
-          file << a[d1*d2*kk+ii*d2+jj];
-        }
-        file << "|\n";
-      }
-      file << "\n\n";
-    }
-    file << "------------\n\n";
-  }
-}
+#include "triplet.h"
 
 
 
@@ -75,6 +24,7 @@ int main(int argc, char** argv) {
   */
   gridtools::GCL_Init(argc, argv);
 
+  typedef gridtools::layout_map<1,0,2> layoutmap;
 
   /* Each process will hold a tile of size
      (DIM1+2*H)x(DIM2+2*H)x(DIM3+2*H). The DIM1xDIM2xDIM3 area inside
@@ -89,17 +39,21 @@ int main(int argc, char** argv) {
   /* This example will exchange 3 data arrays at the same time with
      different values.
    */
-  triple_t *a = new triple_t[(DIM1+2*H)*(DIM2+2*H)*(DIM3+2*H)];
-  triple_t *b = new triple_t[(DIM1+2*H)*(DIM2+2*H)*(DIM3+2*H)];
-  triple_t *c = new triple_t[(DIM1+2*H)*(DIM2+2*H)*(DIM3+2*H)];
+  triple_t<USE_DOUBLE> *_a = new triple_t<USE_DOUBLE>[(DIM1+2*H)*(DIM2+2*H)*(DIM3+2*H)];
+  triple_t<USE_DOUBLE> *_b = new triple_t<USE_DOUBLE>[(DIM1+2*H)*(DIM2+2*H)*(DIM3+2*H)];
+  triple_t<USE_DOUBLE> *_c = new triple_t<USE_DOUBLE>[(DIM1+2*H)*(DIM2+2*H)*(DIM3+2*H)];
+
+  array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
+  array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
+  array<triple_t<USE_DOUBLE>, layoutmap > c(_c, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
 
   /* Just an initialization */
   for (int ii=0; ii<DIM1+2*H; ++ii)
     for (int jj=0; jj<DIM2+2*H; ++jj) {
       for (int kk=0; kk<DIM3+2*H; ++kk) {
-        a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] = triple_t(0,0,0);
-        b[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] = triple_t(0,0,0);                                      
-        c[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] = triple_t(0,0,0);
+          a(ii,jj,kk) = triple_t<USE_DOUBLE>(0,0,0);
+          b(ii,jj,kk) = triple_t<USE_DOUBLE>(0,0,0); 
+          c(ii,jj,kk) = triple_t<USE_DOUBLE>(0,0,0);
       }
     }
 
@@ -151,8 +105,8 @@ int main(int argc, char** argv) {
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0,2>, 
-    gridtools::layout_map<0,1,2>, triple_t, 3, gridtools::gcl_cpu, 1 > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<layoutmap, 
+        gridtools::layout_map<0,1,2>, triple_t<USE_DOUBLE>, 3, gridtools::gcl_cpu, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -188,18 +142,18 @@ int main(int argc, char** argv) {
   for (int ii=H; ii<DIM1+H; ++ii)
     for (int jj=H; jj<DIM2+H; ++jj) 
       for (int kk=H; kk<DIM3+H; ++kk) {
-        a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] = 
-          triple_t(ii-H+(DIM1)*coords[0],
-                   jj-H+(DIM2)*coords[1],
-                   kk-H+(DIM3)*coords[2]);
-        b[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] = 
-          triple_t(ii-H+(DIM1)*coords[0]+1,
-                   jj-H+(DIM2)*coords[1]+1,
-                   kk-H+(DIM3)*coords[2]+1);
-        c[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] = 
-          triple_t(ii-H+(DIM1)*coords[0]+100,
-                   jj-H+(DIM2)*coords[1]+100,
-                   kk-H+(DIM3)*coords[2]+100);
+          a(ii,jj,kk) =
+            triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0],
+                                 jj-H+(DIM2)*coords[1],
+                                 kk-H+(DIM3)*coords[2]);
+          b(ii,jj,kk) =
+            triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+1,
+                                 jj-H+(DIM2)*coords[1]+1,
+                                 kk-H+(DIM3)*coords[2]+1);
+          c(ii,jj,kk) =
+            triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+100,
+                                 jj-H+(DIM2)*coords[1]+100,
+                                 kk-H+(DIM3)*coords[2]+100);
       }
 
   printbuff(file,a, DIM1+2*H, DIM2+2*H, DIM3+2*H);
@@ -208,7 +162,7 @@ int main(int argc, char** argv) {
   
   /* This is self explanatory now
    */
-std::vector<triple_t*> vect(3);
+std::vector<triple_t<USE_DOUBLE>*> vect(3);
 vect[0] = a;
 vect[1] = b;
 vect[2] = c;
@@ -233,42 +187,42 @@ vect[2] = c;
   for (int ii=0; ii<DIM1+2*H; ++ii)
     for (int jj=0; jj<DIM2+2*H; ++jj)
       for (int kk=0; kk<DIM3+2*H; ++kk) {
-        if (a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] != 
-            triple_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
-                     modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]), 
-                     modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])) 
+        if (a(ii,jj,kk) != 
+            triple_t<USE_DOUBLE>(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
+                                 modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]), 
+                                 modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])) 
             ) {
           passed = false;
-          file << "a " << a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] << " != " 
-               << triple_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
-                           modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]), 
-                           modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])) 
+          file << "a " << a(ii,jj,kk) << " != " 
+               << triple_t<USE_DOUBLE>(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
+                                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]), 
+                                       modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])) 
                << "\n";
         }
 
-        if (b[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] != 
-            triple_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
-                     modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1, 
-                     modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+1) 
+        if (b(ii,jj,kk) != 
+            triple_t<USE_DOUBLE>(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
+                                 modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1, 
+                                 modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+1) 
             ) {
           passed = false;
-          file << "b " << b[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] << " != " 
-               << triple_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
-                           modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1, 
-                           modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+1) 
+          file << "b " << b(ii,jj,kk) << " != " 
+               << triple_t<USE_DOUBLE>(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
+                                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1, 
+                                       modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+1) 
                << "\n";
         }
 
-        if (c[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] != 
-            triple_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
-                     modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100, 
-                     modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+100) 
+        if (c(ii,jj,kk) != 
+            triple_t<USE_DOUBLE>(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
+                                 modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100, 
+                                 modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+100) 
             ) {
           passed = false;
-          file << "c " << c[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj] << " != " 
-               << triple_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
-                           modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100, 
-                           modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+100) 
+          file << "c " << c(ii,jj,kk) << " != " 
+               << triple_t<USE_DOUBLE>(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
+                                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100, 
+                                       modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+100) 
                << "\n";
         }
       }

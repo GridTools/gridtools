@@ -10,7 +10,7 @@
 #include <sys/time.h>
 
  //#define USE_DOUBLE true
-#define USE_DOUBLE false
+//#define USE_DOUBLE false
 #include "triplet.h"
 
 int pid;
@@ -43,75 +43,6 @@ typedef long long int T3;
 #endif
 
 typedef gridtools::gcl_cpu arch_type;
-
-template <typename T, typename lmap>
-struct array {
-  T *ptr;
-  int n,m,l;
-  int size;
-
-  array(T* _p, int _n, int _m, int _l)
-    : ptr(_p)
-    , n(lmap::template find<2>(_n,_m,_l))
-    , m(lmap::template find<1>(_n,_m,_l))
-    , l(lmap::template find<0>(_n,_m,_l))  
-    , size(_n*_m*_l)
-  {}
-
-  T &operator()(int i, int j, int k) {
-    assert(lmap::template find<2>(i,j,k)>=0 && lmap::template find<2>(i,j,k)<n);
-    assert(lmap::template find<1>(i,j,k)>=0 && lmap::template find<1>(i,j,k)<m);
-    assert(lmap::template find<0>(i,j,k)>=0 && lmap::template find<0>(i,j,k)<l);
-    assert(l*m*lmap::template find<2>(i,j,k)+l*lmap::template find<1>(i,j,k)+lmap::template find<0>(i,j,k) < size);
-    assert(l*m*lmap::template find<2>(i,j,k)+l*lmap::template find<1>(i,j,k)+lmap::template find<0>(i,j,k) >= 0);
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  T const &operator()(int i, int j, int k) const {
-    assert(lmap::template find<2>(i,j,k)>=0 && lmap::template find<2>(i,j,k)<n);
-    assert(lmap::template find<1>(i,j,k)>=0 && lmap::template find<1>(i,j,k)<m);
-    assert(lmap::template find<0>(i,j,k)>=0 && lmap::template find<0>(i,j,k)<l);
-    assert(l*m*lmap::template find<2>(i,j,k)+l*lmap::template find<1>(i,j,k)+lmap::template find<0>(i,j,k) < size);
-    assert(l*m*lmap::template find<2>(i,j,k)+l*lmap::template find<1>(i,j,k)+lmap::template find<0>(i,j,k) >= 0);
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  operator void*() const {return reinterpret_cast<void*>(ptr);}
-  operator T*() const {return ptr;}
-};
-
-/** \file Example of use of halo_exchange pattern for regular
-    grids. The comments in the code aim at highlight the process of
-    instantiating and running a halo exchange pattern.
-*/
-
-inline int modulus(int __i, int __j) {
-  return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
-}
-
-/* Just and utility to print values
- */
-template <typename array_t>
-void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
-  if (d1<=7 && d2<=7 && d3<=7) {
-    file << "------------\n";
-    for (int kk=0; kk<d3; ++kk) {
-      file << "|";
-      for (int jj=0; jj<d2; ++jj) {
-        for (int ii=0; ii<d1; ++ii) {
-          file << a(ii,jj,kk);
-        }
-        file << "|\n";
-      }
-      file << "\n\n";
-    }
-    file << "------------\n\n";
-  }
-}
 
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>

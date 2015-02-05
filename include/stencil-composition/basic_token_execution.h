@@ -46,9 +46,15 @@ namespace gridtools {
             void operator()(Interval const&) const {
                 typedef typename index_to_level<typename Interval::first>::type from_t;
                 typedef typename index_to_level<typename Interval::second>::type to_t;
-                typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
 
-		if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) { 
+		//check that the axis specified by the user are containing the k interval
+		GRIDTOOLS_STATIC_ASSERT(
+		    level_to_index<typename traits::coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
+		    level_to_index<typename traits::coords_t::axis_type::ToLevel>::value >= Interval::second::value , "the k interval exceeds the axis you specified for the coordinates instance");
+
+		typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
+
+		if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
 		  typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
 
 		uint_t from=m_coords.template value_at<from_t>();
