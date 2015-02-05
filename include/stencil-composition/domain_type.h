@@ -13,6 +13,8 @@
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/insert.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
@@ -51,20 +53,25 @@ namespace gridtools {
                                                >::type raw_iterators_list;
 
     public:
-        /**
-         * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
-         * note that the static const indexes are transformed into types using mpl::integral_c
-         */
-        typedef typename boost::mpl::transform<original_placeholders,
-                                               _impl::l_get_index
-                                               >::type raw_index_list;
+
+	typedef _impl::compute_index_set<original_placeholders> check_holes;
+	typedef typename check_holes::raw_index_list raw_index_list;
+	typedef typename check_holes::index_set index_set;
+
+	//actual check if the user specified placeholder arguments with the same index
+	GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.")
 
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
          e.g. [0,1,2,3,4]
          */
         typedef boost::mpl::range_c<uint_t ,0,len> range_t;
+
     private:
+	typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
+	//check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
+The numeration of the placeholders is not contiguous. You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".")
 
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
@@ -204,7 +211,7 @@ namespace gridtools {
 
             view_type fview(storage_pointers);
 
-            BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type>) );
+	    BOOST_MPL_ASSERT_MSG( (boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value), _NUMBER_OF_ARGS_SEEMS_WRONG_, (boost::fusion::result_of::size<view_type> ) );
 
 // #ifndef NDEBUG
 	    //the following creates an empty storage (problems with its destruction)
@@ -273,7 +280,7 @@ namespace gridtools {
             //           << std::endl;
         }
 
-        /** @brief copy the pointers from the hdevice to the host */
+        /** @brief copy the pointers from the device to the host */
         void finalize_computation() {
             boost::fusion::for_each(original_pointers, _impl::call_d2h());
             boost::fusion::copy(original_pointers, storage_pointers);

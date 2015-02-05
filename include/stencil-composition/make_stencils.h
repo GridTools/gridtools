@@ -48,8 +48,7 @@ namespace gridtools {
               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename A)>        \
     esf_descriptor<ESF, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)> > \
     make_esf(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)) {                \
-        BOOST_MPL_ASSERT_RELATION(boost::mpl::size<typename ESF::arg_list>::value, ==, BOOST_PP_INC(n)); \
-        return esf_descriptor<ESF, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)> >(); \
+	return esf_descriptor<ESF, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), A)> >(); \
     }
 
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_ESF, _)
