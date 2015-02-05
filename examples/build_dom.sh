@@ -82,6 +82,9 @@ find . |grep tests_gpu
 salloc --gres=gpu:2 srun ./tests_gpu
 
 find . |grep test_halo_exchange
+ls -l
+ls -l ..
+
 salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
 else
 make tests;
