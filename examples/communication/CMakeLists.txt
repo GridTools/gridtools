@@ -205,7 +205,9 @@ endif()
         add_dependencies( test_halo_exchange_3D_cuda_all_test_2_7 gcl)
         set_target_properties( test_halo_exchange_3D_cuda_all_test_2_7 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -DVECTOR_INT -DPACKING_TYPE=gridtools::version_mpi_pack -DCXX11_DISABLE")
         target_link_libraries( test_halo_exchange_3D_cuda_all_test_2_7 gcl ${MPI_ADDITIONAL_LIBS} ${CUDA_LIBRARIES})
+
      else()
+
         add_executable( test_halo_exchange_3D_generic_0 ../../examples/communication/test_halo_exchange_3D_generic.cpp)
         add_dependencies( test_halo_exchange_3D_generic_0 gcl)
         set_target_properties( test_halo_exchange_3D_generic_0 PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} -std=c++11")
