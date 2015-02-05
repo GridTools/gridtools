@@ -5,10 +5,8 @@
 
 #include <gridtools.h>
 #include <stencil-composition/backend_host.h>
-
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
+#include <stencil-composition/interval.h>
+#include "stencil-composition/make_computation.h"
 
 using gridtools::level;
 using gridtools::arg_type;

@@ -55,18 +55,11 @@ namespace gridtools {
             }
         };
 
-
-
-
-
-
-
-
         namespace{
             using namespace enumtype;
             template< strategy Str >
                 struct policy;
-        }
+        }//unnamed namespace
 
 /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments to the constructor depending on the specific strategy */
     template <typename ArgList, typename Coords, enumtype::strategy StrategyType>

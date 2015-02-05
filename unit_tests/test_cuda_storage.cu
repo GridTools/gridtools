@@ -12,7 +12,6 @@
 #include <iostream>
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
-#include <storage/storage.h>
 #include <common/layout_map.h>
 #include <common/defs.h>
 

@@ -4,7 +4,8 @@
 #include <common/halo_descriptor.h>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/construct.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -18,14 +19,12 @@
 #include <boundary-conditions/apply.h>
 #endif
 
+#define BACKEND_BLOCK 1
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
   It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
  */
-#if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-#error This test must be compiled with GCC>=4.9 and C++11 enabled
-#endif
 
 using gridtools::level;
 using gridtools::arg_type;
@@ -115,6 +114,7 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
+        //using xrange=range<0,0,0,-1>;
         typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
         typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpx, sol> ;
@@ -126,8 +126,9 @@ namespace shallow_water{
         auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
         auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
 
-        eval(hx())=eval((h(i+1,j+1) +h(j+1))/2. -
-            (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
+        eval(hx())= eval((h(i+1,j+1) +h(j+1))/2. -
+                         (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
+
         eval(ux())=eval(u(i+1, j+1) +
                         u(j+1)/2.-
                         ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
@@ -145,6 +146,7 @@ namespace shallow_water{
 
     struct second_step_y        : public functor_traits {
 
+        //using xrange=range<0,-1,0,0>;
         typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy;
         typedef arg_type<1,range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpy, sol> ;
@@ -176,6 +178,7 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
+        //using xrange=range<1,0,0,0>;
         typedef arg_type<0, range<-1,0,-1,1>, 5> tmpx;
         typedef arg_type<1, range<-1,1,-1,0>, 5> tmpy;
         typedef arg_type<2,range<0, 0, 0, 0>, 5> sol;
@@ -209,7 +212,7 @@ namespace shallow_water{
                                (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
                 );
 
-            eval(sol(comp(1))) = eval(sol(comp(1)) -
+            eval(sol(comp(1))) =  eval(sol(comp(1)) -
                                        (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
 	    			       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
                                               (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
@@ -220,7 +223,7 @@ namespace shallow_water{
                                         (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
                                       (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
                                        (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
-    	 }
+        }
 
     };
 
@@ -295,8 +298,8 @@ namespace shallow_water{
 	    typedef extend_width<base_type2, 0>  extended_type2;
 	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
 #else
-            typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;
-            typedef field<tmp_storage_type::basic_type, 1, 1, 1>::type tmp_type;
+            typedef field<storage_type, 1, 1, 1>::type sol_type;
+            typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
 #endif
 	    typedef sol_type::original_storage::pointer_type ptr;
 
@@ -330,8 +333,8 @@ namespace shallow_water{
             // The constructor takes the horizontal plane dimensions,
             // while the vertical ones are set according the the axis property soon after
             // coordinates<axis> coords(2,d1-2,2,d2-2);
-            uint_t di2[5] = {1, 0, 1, d1-2, d1};
-            uint_t dj2[5] = {1, 0, 1, d2-2, d2};
+            uint_t di2[5] = {1, 0, 1, d1-3, d1};
+            uint_t dj2[5] = {1, 0, 1, d2-3, d2};
             coordinates<axis> coords(di2, dj2);
             coords.value_list[0] = 0;
             coords.value_list[1] = d3-1;

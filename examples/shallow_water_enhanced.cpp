@@ -1,3 +1,5 @@
+//#if defined(CXX11_ENABLED) && (!defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) ) )
+
 #include "shallow_water_enhanced.h"
 #include <iostream>
 
@@ -11,3 +13,4 @@ int main(int argc, char** argv)
 
     return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 }
+//#endif

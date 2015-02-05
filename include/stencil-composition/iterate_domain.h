@@ -430,10 +430,9 @@ namespace gridtools {
 #else
             typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
-
             //if the following assertion fails you have specified a dimension for the extended storage
             //which does not correspond to the size of the extended placeholder for that storage
-            /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
+            /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_args); */
 
             //for the moment the extra dimensionality of the storage is limited to max 2
             //(3 space dim + 2 extra= 5, which gives n_args==4)

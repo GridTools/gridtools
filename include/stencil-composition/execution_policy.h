@@ -1,9 +1,9 @@
 #pragma once
 #include "basic_token_execution.h"
+#include "domain_type_impl.h"
 #ifdef __CUDACC__
 #include "cuda_profiler_api.h"
 #endif
-
 /**
 @file Implementation of the k loop execution policy
 The policies which are currently considered are

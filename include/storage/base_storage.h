@@ -47,6 +47,40 @@
 
 namespace gridtools {
 
+
+    /**
+     * @brief Type to indicate that the type is not decided yet
+     */
+    template <typename RegularStorageType>
+    struct no_storage_type_yet {
+        typedef RegularStorageType type;
+        typedef typename  RegularStorageType::basic_type basic_type;
+        typedef typename RegularStorageType::original_storage original_storage;
+        typedef typename RegularStorageType::pointer_type pointer_type;
+        static const enumtype::backend backend=basic_type::backend;
+        static const uint_t n_width=basic_type::n_width;
+        static const uint_t filed_dimensions=basic_type::field_dimensions;
+        typedef void storage_type;
+        typedef typename RegularStorageType::iterator_type iterator_type;
+        typedef typename RegularStorageType::value_type value_type;
+        static const ushort_t space_dimensions=RegularStorageType::space_dimensions;
+        static void text() {
+            std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
+        }
+        //std::string name() {return std::string("no_storage_yet NAMEname");}
+        void info() const {
+            std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl;
+        }
+    };
+
+    /**
+       @brief stream operator, for debugging purpose
+    */
+    template <typename RST>
+    std::ostream& operator<<(std::ostream& s, no_storage_type_yet<RST>) {
+        return s << "no_storage_type_yet<" << RST() << ">" ;
+    }
+
 /**
    @brief main class for the basic storage
    The base_storage class contains one snapshot. It univocally defines the access pattern with three integers: the total storage sizes and the two strides different from one.
@@ -59,6 +93,7 @@ namespace gridtools {
                >
     struct base_storage
     {
+        typedef base_storage<Backend, ValueType, Layout, IsTemporary, FieldDimension> type;
         typedef Layout layout;
         typedef ValueType value_type;
         typedef value_type* iterator_type;
@@ -510,6 +545,16 @@ namespace gridtools {
             return m_strides[i];
         }
 
+        /**
+           @brief returns the index (in the array of data snapshots) corresponding to the specified offset
+           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the latter case it returns offset modulo the size of the array.
+           In the former case it returns the array size's complement of -offset.
+        */
+        GT_FUNCTION
+        static constexpr ushort_t get_index (short_t const& offset) {
+            return (offset+n_width)%n_width;
+        }
+
     protected:
         bool is_set;
 	const char* m_name;
@@ -535,8 +580,10 @@ namespace gridtools {
     template < typename Storage, short_t ExtraWidth>
     struct extend_width : public Storage//, clonable_to_gpu<extend_width<Storage, ExtraWidth> >
     {
+
+        typedef extend_width<Storage, ExtraWidth> type;
 	/*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
-	BOOST_STATIC_ASSERT(ExtraWidth>0);
+	GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.");
         typedef Storage super;
         typedef typename super::pointer_type pointer_type;
 
@@ -554,7 +601,7 @@ namespace gridtools {
         virtual ~extend_width(){
 	}
 
-	using super::m_fields;
+	//using super::m_fields;
 
         /**@brief device copy constructor*/
 	template <typename T>
@@ -570,14 +617,13 @@ namespace gridtools {
         void copy_data_to_gpu(){
             //the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
             for (uint_t i=0; i< super::field_dimensions; ++i)
-                m_fields[i].update_gpu();
+                super::m_fields[i].update_gpu();
         }
 
         /** @brief returns the address to the first element of the current data field (pointed by (m_fields[0]))*/
         GT_FUNCTION
         typename pointer_type::pointee_t* get_address() const {
             return super::get_address();}
-
 
         /**
            @brief returns the index (in the array of data snapshots) corresponding to the specified offset
@@ -594,17 +640,17 @@ namespace gridtools {
         */
         GT_FUNCTION
         typename pointer_type::pointee_t* get_address(short_t offset) const {
-            return m_fields[get_index(offset)].get();}
+            return super::m_fields[get_index(offset)].get();}
         GT_FUNCTION
-        pointer_type const& get_field(int index) const {return m_fields[index];};
+        pointer_type const& get_field(int index) const {return super::m_fields[index];};
 
         /**@brief swaps the argument with the last data snapshots*/
         GT_FUNCTION
         void swap(pointer_type & field){
             //the integration takes ownership over all the pointers?
             //cycle in a ring
-            pointer_type swap(m_fields[super::field_dimensions-1]);
-            m_fields[super::field_dimensions-1]=field;
+            pointer_type swap(super::m_fields[super::field_dimensions-1]);
+            super::m_fields[super::field_dimensions-1]=field;
             field = swap;
         }
 
@@ -616,20 +662,20 @@ namespace gridtools {
         void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
 	    //Too many shaphots pushed! exceeding the buffer width allocated of the storage.
 // #ifndef __CUDACC__
-// 	    assert(!m_fields[to-1].get());
+// 	    assert(!super::m_fields[to-1].get());
 // #endif
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
-            for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
-            m_fields[from]=(field);
+            for(uint_t i=from+1;i<to;i++) super::m_fields[i]=super::m_fields[i-1];
+            super::m_fields[from]=(field);
         }
 
         //the time integration takes ownership over all the pointers?
 	/**TODO code repetition*/
         GT_FUNCTION
         void advance(uint_t from=(uint_t)0, uint_t to=(uint_t)(n_width)){
-            pointer_type tmp(m_fields[to-1]);
-            for(uint_t i=from+1;i<to;i++) m_fields[i]=m_fields[i-1];
-            m_fields[from]=tmp;
+            pointer_type tmp(super::m_fields[to-1]);
+            for(uint_t i=from+1;i<to;i++) super::m_fields[i]=super::m_fields[i-1];
+            super::m_fields[from]=tmp;
         }
 
         GT_FUNCTION
@@ -748,6 +794,7 @@ namespace gridtools {
     template <typename First,  typename  ...  StorageExtended>
     struct extend_dim : public dimension_extension_traits<First, StorageExtended ... >::type, clonable_to_gpu<extend_dim<First, StorageExtended ... > >
     {
+        typedef extend_dim<First, StorageExtended...> type;
         typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;
         typedef dimension_extension_traits<First, StorageExtended ...  > traits;
         typedef typename super::pointer_type pointer_type;
@@ -906,17 +953,6 @@ namespace gridtools {
         extend_dim(){}
 #endif
     };
-
-    /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
-
-       Annoyngly enough does not work with CUDA 6.5
-    */
-#if !defined(__CUDACC__)
-    template< class Storage, uint_t ... Number >
-    struct field{
-	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;
-    };
-#endif
 
 #endif //CXX11_ENABLED
 

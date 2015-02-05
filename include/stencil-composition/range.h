@@ -60,6 +60,15 @@ namespace gridtools {
       : boost::true_type
     {};
 
+
+    /**
+     * Metafunction to check if a type is a range - Specialization yielding true
+     */
+    template <typename T>
+    struct is_range<const T >
+        : is_range<T>
+    {};
+
     template<typename T> struct undef_t;
     /**
      * Metafunction taking two ranges and yielding a range containing them

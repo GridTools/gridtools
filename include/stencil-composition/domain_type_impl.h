@@ -1,10 +1,15 @@
 #pragma once
 
 #include <stdio.h>
-#ifndef __CUDACC__
-#endif
+#include <boost/type_traits/remove_pointer.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/insert.hpp>
+#include <gt_for_each/for_each.hpp>
 
-#include "arg_type.h"
+    template <typename RegularStorageType>
+    struct no_storage_type_yet;
 
 namespace gridtools {
     namespace _debug {
