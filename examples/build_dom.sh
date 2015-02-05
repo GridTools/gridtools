@@ -63,8 +63,8 @@ module load cuda/6.0; # load runtime libs
 -DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \
 -DPAPI_WRAP_LIBRARY:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
--DUSE_MPI:BOOL=ON \
--DUSE_MPI_COMPILER:BOOL=ON  \
+-DUSE_MPI:BOOL=$SINGLE_PRECISION \
+-DUSE_MPI_COMPILER:BOOL=$SINGLE_PRECISION  \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g  -m64  -DBOOST_SYSTEM_NO_DEPRECATED"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
 -DENABLE_CXX11=ON \
@@ -80,12 +80,21 @@ module load cuda/6.0; # load runtime libs
 
 salloc --gres=gpu:2 srun ./build/tests_gpu
 
-salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
+  if [ "$SINGLE_PRECISION" == "ON" ]
+  then
+    salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
+  fi
+
 else
 make tests;
 module unload cuda
 module load cuda/6.0; # load runtime libs
 salloc srun ./build/tests
-salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
+
+  if [ "$SINGLE_PRECISION" == "ON" ]
+  then
+    salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
+  fi
+
 fi
 rm -rf *
