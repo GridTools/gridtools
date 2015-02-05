@@ -9,6 +9,8 @@ module load boost
 #echo "loading PAPI"
 #module load papi
 
+echo "loading MPI"
+module load mvapich2/1.9-gcc-4.8.2
 echo "loading cuda"
 module unload cuda
 module load cuda/6.5
