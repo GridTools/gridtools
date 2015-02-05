@@ -95,7 +95,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     {% for p in params_temps -%}
     typedef arg<{{ loop.index0 }}, 
-        {%- if stencil.stencil_scope.is_temporary (p.name) -%}
+        {%- if scope.is_temporary (p.name) -%}
             tmp_storage_type>
         {%- else -%}
             storage_type>
@@ -123,13 +123,28 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
 
     //
     // definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis
-    // property soon after this
+    // The constructor takes the horizontal plane dimensions, i.e.:
     //
-    uint_t di[5] = {2, 2, 2, d1-3, d1};
-    uint_t dj[5] = {2, 2, 2, d2-3, d2};
+    // { halo in negative direction,
+    //   halo in positive direction,
+    //   index of the first interior element,
+    //   index of the last interior element,
+    //   total number of elements in dimension }
+    //
+    uint_t di[5] = { {{ stencil.halo[0] }},
+                     {{ stencil.halo[1] }},
+                     {{ stencil.halo[1] }},
+                     d1-{{ stencil.halo[0] }}-1,
+                     d1 };
+    uint_t dj[5] = { {{ stencil.halo[2] }},
+                     {{ stencil.halo[3] }},
+                     {{ stencil.halo[3] }},
+                     d2-{{ stencil.halo[2] }}-1,
+                     d2 };
 
+    //
+    // the vertical dimension of the problem is a property of this object
+    //
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;

@@ -23,6 +23,7 @@ class Copy (MultiStageStencil):
         # iterate over the points, excluding halo ones
         #
         for p in self.get_interior_points (out_data,
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
               out_data[p] = in_data[p]
 
@@ -166,8 +167,14 @@ class CopyTest (unittest.TestCase):
         """
         self.stencil.run (out_data=self.output_field,
                           in_data=self.input_field)
-        self.assertTrue (np.array_equal (self.input_field,
-                                         self.output_field))
+
+        beg_i = self.stencil.halo[0]
+        end_i = self.domain[0] - self.stencil.halo[1]
+        beg_j = self.stencil.halo[2]
+        end_j = self.domain[1] - self.stencil.halo[3]
+
+        self.assertTrue (np.array_equal (self.input_field[beg_i:end_i, beg_j:end_j],
+                                         self.output_field[beg_i:end_i, beg_j:end_j]))
 
 
     def test_native_execution (self):
@@ -201,7 +208,7 @@ class Laplace (MultiStageStencil):
         # iterate over the interior points
         #
         for p in self.get_interior_points (out_data,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             out_data[p] = 4 * in_data[p] - (
                           in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
@@ -217,12 +224,13 @@ class LaplaceTests (CopyTest):
         logging.basicConfig (level=logging.DEBUG)
         logging.info ("Running tests [%s] ..." % type (self)) 
 
-        self.domain = (128, 128, 64)
+        self.domain = (64, 64, 32)
 
         self.output_field = np.zeros (self.domain)
         self.input_field  = np.random.rand (*self.domain)
 
         self.stencil = Laplace ( ) 
+
 
     def test_automatic_range_detection (self):
         """

@@ -17,16 +17,21 @@ class StencilInspector (ast.NodeVisitor):
     """
     Inspects the source code of a stencil definition using its AST.-
     """
-    def __init__ (self, cls):
+    def __init__ (self, obj):
         """
         Creates an inspector object using the source code of a stencil:
 
-            cls     a class extending the MultiStageStencil.-
+            obj     an object extending the MultiStageStencil.-
         """
         import inspect
 
-        if issubclass (cls, MultiStageStencil):
+        if issubclass (obj.__class__, MultiStageStencil):
             super (StencilInspector, self).__init__ ( )
+
+            #
+            # a reference to the MultiStageStencil we have to inspect
+            #
+            self.stencil = obj
             #
             # the domain dimensions over which this stencil operates
             #
@@ -35,7 +40,7 @@ class StencilInspector (ast.NodeVisitor):
             # the user's stencil code is kept here
             #
             try:
-                self.src = inspect.getsource (cls)
+                self.src = inspect.getsource (obj.__class__)
             except TypeError:
                 #
                 # the code will not be available if it has been written
@@ -54,7 +59,7 @@ class StencilInspector (ast.NodeVisitor):
             #
             self.functors = list ( )
         else:
-            raise TypeError ("Class %s must extend 'MultiStageStencil'" % cls)
+            raise TypeError ("Class %s must extend 'MultiStageStencil'" % obj.__class__)
 
 
     def analyze (self):
@@ -247,14 +252,21 @@ class StencilInspector (ast.NodeVisitor):
                             functor_scope = self.symbols.add_functor (funct_name)
 
                             #
-                            # create the functor object
+                            # create a functor object
                             #
                             funct = Functor (funct_name,
                                              n,
                                              functor_scope,
                                              self.stencil_scope)
                             self.functors.append (funct)
-                            logging.info ("Functor '%s' created" % funct.name)
+                            logging.debug ("Functor '%s' created" % funct.name)
+
+                            # 
+                            # update halo information if present
+                            #
+                            for k in call.keywords:
+                                if k.arg == 'halo':
+                                    self.stencil.halo = tuple ([e.n for e in k.value.elts])
             else:
                 raise ValueError ("The 'kernel' function should return 'None'")
 
@@ -279,18 +291,12 @@ class MultiStageStencil ( ):
         #
         # the inspector object is used to JIT-compile this stencil
         #
-        self.inspector = StencilInspector (self.__class__)
+        self.inspector = StencilInspector (self)
 
         #
-        # TODO a default halo - it goes:
+        # a halo descriptor - see 'set_halo' bellow
         #
-        #   (halo in minus direction, 
-        #    halo in plus direction,
-        #    index of first interior element,
-        #    index of last interior element,
-        #    total length in dimension)
-        #
-        self.halo = None
+        self.halo = (0, 0, 0, 0)
 
         #
         # these files are automatically generated compile time
@@ -368,8 +374,8 @@ class MultiStageStencil ( ):
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward', 'backward' or
                             'parallel';
-            halo            a tupe defining a 2D halo for the given 'data_field' 
-                            (+i, -i, +j, -j).-
+            halo            a tuple defining a 2D halo over the given 
+                            'data_field'. See 'set_halo'.-
         """
         try:
             if len (data_field.shape) != 3:
@@ -388,28 +394,22 @@ class MultiStageStencil ( ):
                 k_dim_inc   = -1
             else:
                 logging.warning ("Unknown direction '%s'" % k_direction)
-
         except AttributeError:
             raise TypeError ("Calling 'get_interior_points' without a NumPy array")
-
         else:
+            self.set_halo (halo)
+
+            start_i = 0 + self.halo[1]
+            end_i   = i_dim - self.halo[0]
+            start_j = 0 + self.halo[3]
+            end_j   = j_dim - self.halo[2]
             #
-            # define the halo over i and j
+            # return the coordinate tuples in the correct order
             #
-            if len (halo) == 4:
-                start_i = 0 + halo[0]
-                end_i   = i_dim + halo[1]
-                start_j = 0 + halo[2]
-                end_j   = j_dim + halo[3]
-                #
-                # return the coordinate tuples in the correct order
-                #
-                for i in range (start_i, end_i):
-                    for j in range (start_j, end_j):
-                        for k in range (k_dim_start, k_dim_end, k_dim_inc):
-                            yield InteriorPoint ((i, j, k))
-            else:
-                raise ValueError ("Invalid halo: it should contain four values")
+            for i in range (start_i, end_i):
+                for j in range (start_j, end_j):
+                    for k in range (k_dim_start, k_dim_end, k_dim_inc):
+                        yield InteriorPoint ((i, j, k))
 
 
     def kernel (self, *args, **kwargs):
@@ -498,6 +498,27 @@ class MultiStageStencil ( ):
             logging.warning ("Unknown backend [%s]" % self.backend)
 
 
+    def set_halo (self, halo=(0,0,0,0)):
+        """
+        Applies the received 'halo' setting, which is defined as
+
+            (halo in negative direction over _i_, 
+             halo in positive direction over _i_,
+             halo in negative direction over _j_,
+             halo in positive direction over _j_).-
+        """
+        if len (halo) == 4:
+            if halo[0] >= 0 and halo[2] >= 0:
+                if halo[1] >= 0 and halo[3] >= 0:
+                    self.halo = halo
+                else:
+                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer")
+            else:
+                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer")
+        else:
+            raise ValueError ("Invalid halo %s: it should contain four values")
+
+
     def translate (self):
         """
         Translates this functor to C++, using the gridtools interface.
@@ -546,7 +567,8 @@ class MultiStageStencil ( ):
         temps  = list (self.inspector.stencil_scope.get_temporaries ( ))
 
         return (header.render (namespace=self.name.lower ( ),
-                               stencil=self.inspector,
+                               stencil=self,
+                               scope=self.inspector.stencil_scope,
                                params=params,
                                temps=temps,
                                params_temps=params + temps,
