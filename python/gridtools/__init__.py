@@ -3,6 +3,7 @@ import sys
 import ast
 import logging
 import warnings
+import redbaron
 
 import numpy as np
 
@@ -26,10 +27,6 @@ class StencilInspector (ast.NodeVisitor):
 
         if issubclass (cls, MultiStageStencil):
             super (StencilInspector, self).__init__ ( )
-            #
-            # a unique name for the stencil object
-            #
-            self.name = "%sStencil" % cls.__name__.capitalize ( )
             #
             # the domain dimensions over which this stencil operates
             #
@@ -56,30 +53,15 @@ class StencilInspector (ast.NodeVisitor):
             # the kernel function is the entry functor of any stencil
             #
             self.functors = list ( )
-
-            #
-            # these files are automatically generated compile time
-            #
-            self.lib_file  = None
-            self.hdr_file  = None
-            self.cpp_file  = None
-            self.make_file = None
-
-            #
-            # a reference to the compiled dynamic library
-            #
-            self.lib_obj = None
         else:
             raise TypeError ("Class %s must extend 'MultiStageStencil'" % cls)
 
 
     def analyze (self):
         """
-        Analyzes the parameters and source code of this stencil.-
+        Analyzes the source code of this stencil as a first step 
+        to generate its C++ counterpart.-
         """
-        #
-        # analyze the source code
-        #
         if self.src:
             module = ast.parse (self.src)
             self.visit (module)
@@ -116,60 +98,6 @@ class StencilInspector (ast.NodeVisitor):
                                                   read_only=read_only)
 
 
-    def compile (self):
-        """
-        Compiles the translated code to a shared library, ready to be used.-
-        """
-        from os         import write, path, getcwd, chdir
-        from ctypes     import cdll
-        from tempfile   import mkdtemp, mkstemp
-        from subprocess import call
-
-        #
-        # create a temporary directory and files for the generated code
-        #
-        tmp_dir        = mkdtemp (prefix="__gridtools_")
-        self.lib_file  = 'lib%s.so' % self.name.lower ( )
-        self.hdr_file  = '%s.h' % self.name
-        self.cpp_file  = '%s.cpp' % self.name
-        self.make_file = 'Makefile'
-
-        #
-        # ... and populate it ...
-        #
-        logging.info ("Compiling C++ code in [%s]" % tmp_dir)
-        hdr_src, cpp_src, make_src = self.translate ( )
-
-        with open (path.join (tmp_dir, self.hdr_file), 'w') as hdr_hdl:
-            hdr_hdl.write (hdr_src)
-
-        with open (path.join (tmp_dir, self.cpp_file), 'w') as cpp_hdl:
-            cpp_hdl.write (cpp_src)
-
-        with open (path.join (tmp_dir, self.make_file), 'w') as make_hdl:
-            make_hdl.write (make_src)
-
-        #
-        # ... before starting the compilation of the dynamic library
-        #
-        current_dir = getcwd ( )
-        chdir (tmp_dir)
-        call (["make", 
-               "--silent", 
-               "--file=%s" % self.make_file])
-        chdir (current_dir)
-
-        #
-        # attach the library object
-        #
-        try:
-            self.lib_obj = cdll.LoadLibrary ("%s" % path.join (tmp_dir, 
-                                                               self.lib_file))
-        except OSError:
-            self.lib_obj = None
-            raise RuntimeError ("Cannot load dynamically-compiled library")
-
-
     def resolve (self, stencil_obj, **kwargs):
         """
         Attempts to aquire more information about the discovered symbols
@@ -181,64 +109,6 @@ class StencilInspector (ast.NodeVisitor):
         if len (kwargs.keys ( )) > 0:
             self.domain = self.symbols.resolve_params (**kwargs)
         self.symbols.resolve (stencil_obj)
-
-
-    def translate (self):
-        """
-        Translates this functor to C++, using the gridtools interface.
-        It returns a string pair of rendered (header, cpp, make) files.-
-        """
-        from os.path import basename
-        from jinja2  import Environment, PackageLoader
-
-        
-        def join_with_prefix (a_list, prefix, attribute=None):
-            """
-            A custom filter for template rendering.-
-            """
-            if attribute is None:
-                return ['%s%s' % (prefix, e) for e in a_list]
-            else:
-                return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
-        #
-        # initialize the template renderer environment
-        #
-        jinja_env = Environment (loader=PackageLoader ('gridtools',
-                                                       'templates'))
-        jinja_env.filters["join_with_prefix"] = join_with_prefix
-
-        #
-        # prepare the functor template
-        #
-        functor_tpl = jinja_env.get_template ("functor.h")
-
-        #
-        # render the source code for each of the functors
-        #
-        functor_src = ""
-        for f in self.functors:
-            params       = list (f.scope.get_parameters ( ))
-            functor_src += functor_tpl.render (functor=f,
-                                               params=params)
-        #
-        # instantiate each of the templates and render them
-        #
-        header = jinja_env.get_template ("stencil.h")
-        cpp    = jinja_env.get_template ("stencil.cpp")
-        make   = jinja_env.get_template ("Makefile")
-
-        params = list (self.stencil_scope.get_parameters ( ))
-        temps  = list (self.stencil_scope.get_temporaries ( ))
-
-        return (header.render (stencil=self,
-                               params=params,
-                               temps=temps,
-                               params_temps=params + temps,
-                               functor_src=functor_src,
-                               functors=self.functors),
-                cpp.render  (stencil=self,
-                             params=params),
-                make.render (stencil=self))
 
 
     def visit_Assign (self, node):
@@ -255,12 +125,15 @@ class StencilInspector (ast.NodeVisitor):
         else:
             lvalue = None
             lvalue_node = node.targets[0]
-            # 
-            # attribute or variable assignments only
-            # 
+            #
+            # attribute assignment
+            #
             if isinstance (lvalue_node, ast.Attribute):
                 lvalue = "%s.%s" % (lvalue_node.value.id,
                                     lvalue_node.attr)
+            # 
+            # parameter or local variable assignment
+            # 
             elif isinstance (lvalue_node, ast.Name):
                 lvalue = lvalue_node.id
             else:
@@ -387,13 +260,17 @@ class StencilInspector (ast.NodeVisitor):
 
 
 
-
 class MultiStageStencil ( ):
     """
     A base class for defining stencils involving several stages.
     All stencils should inherit for this class.-
     """
     def __init__ (self):
+        #
+        # a unique name for the stencil object
+        #
+        self.name = "%sStencil" % self.__class__.__name__.capitalize ( )
+
         #
         # defines the way to execute the stencil, one of 'python' or 'c++'
         #
@@ -415,87 +292,72 @@ class MultiStageStencil ( ):
         #
         self.halo = None
 
+        #
+        # these files are automatically generated compile time
+        #
+        self.lib_file  = None
+        self.hdr_file  = None
+        self.cpp_file  = None
+        self.make_file = None
 
-    def kernel (self, *args, **kwargs):
-        raise NotImplementedError ( )
+        #
+        # a reference to the compiled dynamic library
+        #
+        self.lib_obj = None
 
 
-    def run (self, *args, **kwargs):
+    def compile (self):
         """
-        Starts the execution of the stencil.-
+        Compiles the translated code to a shared library, ready to be used.-
         """
-        import ctypes
+        from os         import write, path, getcwd, chdir
+        from ctypes     import cdll
+        from tempfile   import mkdtemp, mkstemp
+        from subprocess import call
 
         #
-        # we only accept keyword arguments to avoid confusion
+        # create a temporary directory and files for the generated code
         #
-        if len (args) > 0:
-            raise KeyError ("Only keyword arguments are accepted.-")
+        tmp_dir        = mkdtemp (prefix="__gridtools_")
+        self.lib_file  = 'lib%s.so' % self.name.lower ( )
+        self.hdr_file  = '%s.h' % self.name
+        self.cpp_file  = '%s.cpp' % self.name
+        self.make_file = 'Makefile'
 
         #
-        # run the selected backend version
+        # ... and populate it ...
         #
-        logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
-        if self.backend == 'c++':
-            #
-            # automatic compilation only if the library is not available
-            #
-            if self.inspector.lib_obj is None:
-                #
-                # try to resolve all symbols before compiling:
-                # first with doing a static code analysis, ...
-                #
-                self.inspector.analyze ( )
+        logging.info ("Compiling C++ code in [%s]" % tmp_dir)
+        hdr_src, cpp_src, make_src = self.translate ( )
 
-                #
-                # ... then including runtime information
-                #
-                self.inspector.resolve (self, **kwargs)
-                
-                #
-                # generate the code of all functors in this stencil
-                #
-                try:
-                    for func in self.inspector.functors:
-                        func.generate_code (self.inspector.src)
+        with open (path.join (tmp_dir, self.hdr_file), 'w') as hdr_hdl:
+            hdr_hdl.write (hdr_src)
 
-                except Exception as e:
-                    logging.error ("Error while generating code\n%s" % str (e))
-                    raise e
+        with open (path.join (tmp_dir, self.cpp_file), 'w') as cpp_hdl:
+            cpp_hdl.write (cpp_src)
 
-                else:
-                    #
-                    # compile the generated code
-                    #
-                    try:
-                        self.inspector.compile ( )
-                    except RuntimeError:
-                        logging.error ("Compilation failed")
-                        return
-            #
-            # prepare the list of parameters to call the library function
-            #
-            lib_params = list (self.inspector.domain)
+        with open (path.join (tmp_dir, self.make_file), 'w') as make_hdl:
+            make_hdl.write (make_src)
 
-            #
-            # extract the buffer pointers from the NumPy arrays
-            #
-            for p in self.inspector.stencil_scope.get_parameters ( ):
-                if p.name in kwargs.keys ( ):
-                    lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
-                else:
-                    logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
-            #
-            # call the compiled stencil
-            # 
-            self.inspector.lib_obj.run (*lib_params)
         #
-        # run in Python mode
+        # ... before starting the compilation of the dynamic library
         #
-        elif self.backend == 'python':
-            self.kernel (**kwargs)
-        else:
-            logging.warning ("Unknown backend [%s]" % self.backend)
+        current_dir = getcwd ( )
+        chdir (tmp_dir)
+        call (["make", 
+               "--silent", 
+               "--file=%s" % self.make_file])
+        chdir (current_dir)
+
+        #
+        # attach the library object
+        #
+        try:
+            self.lib_obj = cdll.LoadLibrary ("%s" % path.join (tmp_dir, 
+                                                               self.lib_file))
+        except OSError:
+            self.lib_obj = None
+            raise RuntimeError ("Cannot load dynamically-compiled library")
 
 
     def get_interior_points (self, data_field, k_direction='forward', halo=(0,0,0,0)):
@@ -549,6 +411,151 @@ class MultiStageStencil ( ):
             else:
                 raise ValueError ("Invalid halo: it should contain four values")
 
+
+    def kernel (self, *args, **kwargs):
+        """
+        This function is the entry point of the stencil and 
+        should be implemented by the user.-
+        """
+        raise NotImplementedError ( )
+
+
+    def run (self, *args, **kwargs):
+        """
+        Starts the execution of the stencil.-
+        """
+        import ctypes
+
+        #
+        # we only accept keyword arguments to avoid confusion
+        #
+        if len (args) > 0:
+            raise KeyError ("Only keyword arguments are accepted.-")
+
+        #
+        # run the selected backend version
+        #
+        logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
+        if self.backend == 'c++':
+            #
+            # automatic compilation only if the library is not available
+            #
+            if self.lib_obj is None:
+                #
+                # try to resolve all symbols before compiling:
+                # first with doing a static code analysis, ...
+                #
+                self.inspector.analyze ( )
+
+                #
+                # ... then including runtime information
+                #
+                self.inspector.resolve (self, **kwargs)
+                
+                #
+                # generate the code of all functors in this stencil
+                #
+                try:
+                    for func in self.inspector.functors:
+                        func.generate_code (self.inspector.src)
+
+                except Exception as e:
+                    logging.error ("Error while generating code\n%s" % str (e))
+                    raise e
+
+                else:
+                    #
+                    # compile the generated code
+                    #
+                    try:
+                        self.compile ( )
+                    except RuntimeError:
+                        logging.error ("Compilation failed")
+                        return
+            #
+            # prepare the list of parameters to call the library function
+            #
+            lib_params = list (self.inspector.domain)
+
+            #
+            # extract the buffer pointers from the NumPy arrays
+            #
+            for p in self.inspector.stencil_scope.get_parameters ( ):
+                if p.name in kwargs.keys ( ):
+                    lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
+                else:
+                    logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
+            #
+            # call the compiled stencil
+            # 
+            self.lib_obj.run (*lib_params)
+        #
+        # run in Python mode
+        #
+        elif self.backend == 'python':
+            self.kernel (**kwargs)
+        else:
+            logging.warning ("Unknown backend [%s]" % self.backend)
+
+
+    def translate (self):
+        """
+        Translates this functor to C++, using the gridtools interface.
+        It returns a string pair of rendered (header, cpp, make) files.-
+        """
+        from os.path import basename
+        from jinja2  import Environment, PackageLoader
+
+        
+        def join_with_prefix (a_list, prefix, attribute=None):
+            """
+            A custom filter for template rendering.-
+            """
+            if attribute is None:
+                return ['%s%s' % (prefix, e) for e in a_list]
+            else:
+                return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
+        #
+        # initialize the template renderer environment
+        #
+        jinja_env = Environment (loader=PackageLoader ('gridtools',
+                                                       'templates'))
+        jinja_env.filters["join_with_prefix"] = join_with_prefix
+
+        #
+        # prepare the functor template
+        #
+        functor_tpl = jinja_env.get_template ("functor.h")
+
+        #
+        # render the source code for each of the functors
+        #
+        functor_src = ""
+        for f in self.inspector.functors:
+            params       = list (f.scope.get_parameters ( ))
+            functor_src += functor_tpl.render (functor=f,
+                                               params=params)
+        #
+        # instantiate each of the templates and render them
+        #
+        header = jinja_env.get_template ("stencil.h")
+        cpp    = jinja_env.get_template ("stencil.cpp")
+        make   = jinja_env.get_template ("Makefile")
+
+        params = list (self.inspector.stencil_scope.get_parameters ( ))
+        temps  = list (self.inspector.stencil_scope.get_temporaries ( ))
+
+        return (header.render (namespace=self.name.lower ( ),
+                               stencil=self.inspector,
+                               params=params,
+                               temps=temps,
+                               params_temps=params + temps,
+                               functor_src=functor_src,
+                               functors=self.inspector.functors),
+                cpp.render  (stencil=self,
+                             params=params),
+                make.render (stencil=self))
+    
 
 
 class InteriorPoint (tuple):
