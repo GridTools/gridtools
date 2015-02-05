@@ -49,6 +49,7 @@ ls -l ..
 #mkdir build; cd build;
 
 export JENKINS_COMMUNICATION_TESTS=1
+module load cuda/6.0; # load runtime libs
 
 /apps/dom/cmake/repository/gnu_446/bin/cmake \
 -DCUDA_NVCC_FLAGS:STRING="-arch=sm_30 -G " \
