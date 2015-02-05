@@ -44,8 +44,6 @@ echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 
 pwd
 WHERE_=`pwd`
-ls -l
-ls -l ..
 #mkdir build; cd build;
 
 export JENKINS_COMMUNICATION_TESTS=1
@@ -79,10 +77,8 @@ then
 make tests_gpu;
 module unload cuda
 module load cuda/6.0; # load runtime libs
-find . |grep tests_gpu
-salloc --gres=gpu:2 srun ./build/tests_gpu
 
-find ../.. |grep test_halo_exchange
+salloc --gres=gpu:2 srun ./build/tests_gpu
 
 salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
 else
