@@ -30,7 +30,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-namespace {{ stencil.name|lower }}
+namespace {{ namespace }}
 {
 //
 // definition of the special regions in the vertical (k) direction
@@ -127,8 +127,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // while the vertical ones are set according the the axis
     // property soon after this
     //
-    uint_t di[5] = {0, 0, 0, d1, d1};
-    uint_t dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {2, 2, 2, d1-3, d1};
+    uint_t dj[5] = {2, 2, 2, d2-3, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
@@ -174,4 +174,4 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     return EXIT_SUCCESS;
 }
 
-} // namespace {{ stencil.name|lower }}
+} // namespace {{ namespace }}
