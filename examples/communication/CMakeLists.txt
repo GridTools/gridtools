@@ -78,6 +78,7 @@ else(GCL_ONLY)
       endif()
     endif()
   endif()
+endif()
 
   if( GCL_MPI )
     if ( $ENV{JENKINS_COMMUNICATION_TESTS} )
@@ -332,4 +333,3 @@ else(GCL_ONLY)
   endif()
 
 
-endif()
