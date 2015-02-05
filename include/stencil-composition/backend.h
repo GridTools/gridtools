@@ -67,8 +67,22 @@ namespace gridtools {
             void operator()(Index const& ) const {
 
                 typename derived_traits_t::template traits<Index>::local_domain_t& local_domain = boost::fusion::at<Index>(m_domain_list);
-                typedef execute_kernel_functor<  derived_t > functor_t;
-                functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
+                typedef execute_kernel_functor<  derived_t > exec_functor_t;
+
+		//check that the number of placeholders passed to the elementary stencil function
+		//(constructed during the computation) is the same as the number of arguments referenced
+		//in the functor definition (in the high level interface). This means that we cannot
+		// (although in theory we could) pass placeholders to the computation which are not
+		//also referenced in the functor.
+		GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
+					boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value, "GRIDTOOLS ERROR:\n\
+		check that the number of placeholders passed to the elementary stencil function\n \
+		(constructed during the computation) is the same as the number of arguments referenced\n\
+		in the functor definition (in the high level interface). This means that we cannot\n\
+		 (although in theory we could) pass placeholders to the computation which are not\n\
+		also referenced in the functor.");
+
+                exec_functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
 
             }
         };
