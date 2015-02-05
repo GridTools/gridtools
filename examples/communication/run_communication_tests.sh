@@ -2,7 +2,7 @@
 
 module ()
 {
-    eval `/apps/dom/Modules/$MODULE_VERSION/bin/modulecmd bash $*`
+    eval `/apps/dom/Modules/3.2.10/bin/modulecmd bash $*`
 }
 module load boost
 module load gcc/4.8.2 
