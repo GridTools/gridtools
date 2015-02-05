@@ -63,7 +63,7 @@ export JENKINS_COMMUNICATION_TESTS=1
 -DGNU_COVERAGE:BOOL=ON \
 -DGCOVR_PATH:PATH=/users/crosetto/gcovr-3.2/scripts \
 -DPAPI_WRAP_LIBRARY:BOOL=OFF \
--DGCL_ONLY:BOOL=ON \
+-DGCL_ONLY:BOOL=OFF \
 -DUSE_MPI:BOOL=ON \
 -DUSE_MPI_COMPILER:BOOL=ON  \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g  -m64  -DBOOST_SYSTEM_NO_DEPRECATED"  \
@@ -91,4 +91,4 @@ module load cuda/6.0; # load runtime libs
 salloc srun ./build/tests
 salloc --gres=gpu:2 ../examples/communication/run_communication_tests.sh
 fi
-#rm -rf *
+rm -rf *
