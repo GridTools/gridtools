@@ -78,14 +78,14 @@ then
 make tests_gpu;
 module unload cuda
 module load cuda/6.0; # load runtime libs
-salloc --gres=gpu:2 srun ./build/tests_gpu
+salloc --gres=gpu:2 srun ./build/build/tests_gpu
 
 salloc --gres=gpu:2 ./examples/communication/run_communication_tests.sh
 else
 make tests;
 module unload cuda
 module load cuda/6.0; # load runtime libs
-salloc srun ./build/tests
+salloc srun ./build/build/tests
 salloc ./examples/communication/run_communication_tests.sh
 fi
 rm -rf *
