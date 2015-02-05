@@ -29,71 +29,13 @@ double lapse_time4;
 
 typedef gridtools::gcl_cpu arch_type;
 
-template <typename T, typename lmap>
-struct array {
-  T *ptr;
-  int n,m,l;
-
-  array(T* _p, int _n, int _m, int _l)
-    : ptr(_p)
-    , n(lmap::template find<2>(_n,_m,_l))
-    , m(lmap::template find<1>(_n,_m,_l))
-    , l(lmap::template find<0>(_n,_m,_l))  
-  {}
-
-  T &operator()(int i, int j, int k) {
-    // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  T const &operator()(int i, int j, int k) const {
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  operator void*() const {return reinterpret_cast<void*>(ptr);}
-  operator T*() const {return ptr;}
-};
-
-/** \file Example of use of halo_exchange pattern for regular
-    grids. The comments in the code aim at highlight the process of
-    instantiating and running a halo exchange pattern.
-*/
-
-inline int modulus(int __i, int __j) {
-  return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
-}
-
 #include "triplet.h"
-
-/* Just and utility to print values
- */
-template <typename array_t>
-void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
-  if (d1<=7 && d2<=7 && d3<=7) {
-    file << "------------\n";
-    for (int kk=0; kk<d3; ++kk) {
-      file << "|";
-      for (int jj=0; jj<d2; ++jj) {
-        for (int ii=0; ii<d1; ++ii) {
-          file << a(ii,jj,kk);
-        }
-        file << "|\n";
-      }
-      file << "\n\n";
-    }
-    file << "------------\n\n";
-  }
-}
 
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
-  typedef gridtools::layout_map<I1,I2,I3> layoutmap;
+      typedef typename gridtools::reverse_map<gridtools::layout_map<I1,I2,I3> >::type layoutmap;
   
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));

@@ -38,18 +38,18 @@ struct array {
 
   array(T* _p, int _n, int _m)
     : ptr(_p)
-    , n(lmap::template find<1>(_n,_m))
-    , m(lmap::template find<0>(_n,_m))  
+    , n(lmap::template find<0>(_n,_m))
+    , m(lmap::template find<1>(_n,_m))  
   {}
 
   T& operator()(int i, int j) {
-    return ptr[m*lmap::template find<1>(i,j)+
-               lmap::template find<0>(i,j)];
+    return ptr[m*lmap::template find<0>(i,j)+
+               lmap::template find<1>(i,j)];
   }
 
   T const& operator()(int i, int j) const {
-    return ptr[m*lmap::template find<1>(i,j)+
-               lmap::template find<0>(i,j)];
+    return ptr[m*lmap::template find<0>(i,j)+
+               lmap::template find<1>(i,j)];
   }
 
   operator void*() const {return reinterpret_cast<void*>(ptr);}
@@ -156,7 +156,7 @@ void run(ST & file, int DIM1, int DIM2, int H, pair_t<type1> *_a, pair_t<type2> 
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1>, 2, arch_type > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1>, 2, arch_type, gridtools::version_mpi_pack > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the

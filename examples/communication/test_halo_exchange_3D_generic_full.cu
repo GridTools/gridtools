@@ -31,64 +31,6 @@ double lapse_time4;
 
 typedef gridtools::gcl_gpu arch_type;
 
-template <typename T, typename lmap>
-struct array {
-  T *ptr;
-  int n,m,l;
-
-  array(T* _p, int _n, int _m, int _l)
-    : ptr(_p)
-    , n(lmap::template find<2>(_n,_m,_l))
-    , m(lmap::template find<1>(_n,_m,_l))
-    , l(lmap::template find<0>(_n,_m,_l))  
-  {}
-
-  T &operator()(int i, int j, int k) {
-    // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  T const &operator()(int i, int j, int k) const {
-    return ptr[l*m*lmap::template find<2>(i,j,k)+
-               l*lmap::template find<1>(i,j,k)+
-               lmap::template find<0>(i,j,k)];
-  }
-
-  operator void*() const {return reinterpret_cast<void*>(ptr);}
-  operator T*() const {return ptr;}
-};
-
-/** \file Example of use of halo_exchange pattern for regular
-    grids. The comments in the code aim at highlight the process of
-    instantiating and running a halo exchange pattern.
-*/
-
-inline int modulus(int __i, int __j) {
-  return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
-}
-
-/* Just and utility to print values
- */
-template <typename array_t>
-void printbuff(std::ostream &file, array_t const & a, int d1, int d2, int d3) {
-  if (d1<=7 && d2<=7 && d3<=7) {
-    file << "------------\n";
-    for (int kk=0; kk<d3; ++kk) {
-      file << "|";
-      for (int jj=0; jj<d2; ++jj) {
-        for (int ii=0; ii<d1; ++ii) {
-          file << a(ii,jj,kk);
-        }
-        file << "|\n";
-      }
-      file << "\n\n";
-    }
-    file << "------------\n\n";
-  }
-}
-
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int H2p, int H3m, int H3p, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
@@ -125,7 +67,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, gridtools::version_mpi_pack > pattern_type;
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, arch_type, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -141,9 +83,12 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   halo_dsc[1] = gridtools::halo_descriptor(H2m, H2p, H2m, DIM2+H2m-1, DIM2+H2m+H2p);
   halo_dsc[2] = gridtools::halo_descriptor(H3m, H3p, H3m, DIM3+H3m-1, DIM3+H3m+H3p);
 
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+      field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+      field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+      field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
 
   /* Pattern is set up. This must be done only once per pattern. The
      parameter must me greater or equal to the largest number of
@@ -186,32 +131,41 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   triple_t<USE_DOUBLE>::data_type* gpu_b = 0;
   triple_t<USE_DOUBLE>::data_type* gpu_c = 0;
   cudaError_t status;
-  status = cudaMalloc( &gpu_a, (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>::data_type));
+  status = cudaMalloc( &gpu_a, (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type));
   if( !checkCudaStatus( status ) ) return;
-  status = cudaMalloc( &gpu_b, (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>::data_type));
+  status = cudaMalloc( &gpu_b, (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type));
   if( !checkCudaStatus( status ) ) return;
-  status = cudaMalloc( &gpu_c, (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>::data_type));
+  status = cudaMalloc( &gpu_c, (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type));
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_a, a.ptr,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_b, b.ptr,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_c, c.ptr,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
 
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field1_gpu(gpu_a, halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field2_gpu(gpu_b, halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> field3_gpu(gpu_c, halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+      field1_gpu(gpu_a, halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+      field2_gpu(gpu_b, halo_dsc);
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+      field3_gpu(gpu_c, halo_dsc);
   std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>, layoutmap, pattern_type::traits> > vect(3);
 
   //#define VECTOR_INTERFACE
@@ -268,17 +222,20 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   file << "TIME TOT : " << lapse_time4 << std::endl;
 
   status = cudaMemcpy( a.ptr, gpu_a,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( b.ptr, gpu_b,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( c.ptr, gpu_c,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t<USE_DOUBLE>), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)
+                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 

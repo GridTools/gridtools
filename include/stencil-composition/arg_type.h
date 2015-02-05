@@ -172,7 +172,7 @@ namespace gridtools {
                 {}
 
 	    GT_FUNCTION
-	    constexpr Dimension(Dimension const& other):value{other.value}{}
+	    constexpr Dimension(Dimension const& other):value(other.value){}
 
             static const ushort_t direction=Coordinate;
             int_t value;
@@ -318,11 +318,11 @@ namespace gridtools {
                 m_offset[0]=initialize<0>(x,y,z);
                 m_offset[1]=initialize<1>(x,y,z);
                 m_offset[2]=initialize<2>(x,y,z);
-                BOOST_STATIC_ASSERT_MSG(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
+                GRIDTOOLS_STATIC_ASSERT(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
             }
 #else
         :m_offset{initialize<0>(x,y,z), initialize<1>(x,y,z), initialize<2>(x,y,z)}{
-            BOOST_STATIC_ASSERT_MSG(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
+            GRIDTOOLS_STATIC_ASSERT(X1::direction<3 && X2::direction<3 && X3::direction<3, "You specified a dimension index exceeding the total number of dimensions");
         }
 #endif
 
@@ -534,7 +534,7 @@ namespace gridtools {
         template <typename... Whatever>
         GT_FUNCTION
         arg_decorator ( Whatever... x ): super( x... ) {
-            BOOST_STATIC_ASSERT(sizeof...(x)<=n_args);
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_args, "the number of arguments passed to the arg_type constructor exceeds the number of space dimensions of the storage");
             // printf("no offsets for extra dimension was specified (but there are %d) \n", n_args);
             m_offset=0;
         }//just forward
@@ -557,7 +557,7 @@ namespace gridtools {
 #endif
 	    //BOOST_STATIC_ASSERT( index>0 );
 	    // printf("index to the n method:%d \n", index);
-	    BOOST_STATIC_ASSERT( idx<=n_args );
+	    GRIDTOOLS_STATIC_ASSERT( idx<=n_args, "the index passed as template argument is too large" );
 	    //this might not be compile-time efficient for large indexes,
 	    //because both taken and not taken branches are compiled. boost::mpl::if would be better.
             return idx==1? m_offset : super::template n<idx-1>();
