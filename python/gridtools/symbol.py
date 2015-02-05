@@ -47,10 +47,44 @@ class Symbol (object):
             value   the value of the symbol.-
         """
         assert (kind in Symbol.kinds)
+
         self.name  = name
         self.kind  = kind
         self.value = value
+
+        #
+        # a range defines the extent of data accessed during stencil execution;
+        # its structure is defined like this:
+        #
+        #   (minimum index accessed in _i_, maximum index accessed in _i_, 
+        #    minimum index accessed in _j_, maximum index accessed in _j_)
+        #
+        self.range = None
         
+
+    def set_range (self, rng):
+        """
+        Sets or updates the range of this symbol.-
+        """
+        try:
+            i, j, k = rng
+
+            if self.range is None:
+                self.range = [0, 0, 0, 0]
+
+            if self.range[0] > i:
+                self.range[0] = i
+            elif self.range[1] < i:
+                self.range[1] = i
+
+            if self.range[2] > j:
+                self.range[2] = j
+            elif self.range[3] < j:
+                self.range[3] = j
+
+        except IndexError:
+            logging.error ("Range descriptor %s should be 3-dimensional" % rng)
+
 
 
 

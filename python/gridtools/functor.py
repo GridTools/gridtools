@@ -210,7 +210,7 @@ class FunctorBody (ast.NodeVisitor):
         elif name in self.encl_scope:
             symbol = self.encl_scope[name]
         else:
-            raise RuntimeError ("Unknown symbol '%s'" % attr_name)
+            raise RuntimeError ("Unknown symbol '%s'" % name)
         #
         # update the scope of this functor
         #
@@ -250,30 +250,51 @@ class FunctorBody (ast.NodeVisitor):
                     for e in node.slice.value.right.elts:
                         if isinstance (e, ast.Num):
                             indexing += "%s," % str (e.n)
+                        #
+                        # shifting with negative numbers
+                        #
                         elif isinstance (e, ast.UnaryOp):
                             indexing += "%s%s," % (self._sign_operator (e.op),
                                                    str (e.operand.n))
                         else:
-                            logging.error ("Subscript shifting operation unknown")
+                            raise RuntimeError ("Subscript shifting operation %s unknown"
+                                                % str (e.op))
                     #
                     # strip the last comma off
                     #
                     indexing = '%s)' % indexing[:-1]
+
+                    #
+                    # range detection for data fields
+                    #
+                    if isinstance (node.value, ast.Name):
+                        name   = self.visit_Name (node.value)
+                        symbol = self.scope[name]
+                        #
+                        # range only makes sense for data fields, i.e., NumPy arrays
+                        #
+                        if isinstance (symbol.value, np.ndarray):
+                            symbol.set_range (eval (indexing))
                 else:
                     indexing = ''
                     logging.warning ("Subscript shifting only supported with '+'")
             #
-            # TODO previously extract the subscripting symbol over 'get_interior_points'
+            # subscript without shifting
             #
             elif isinstance (node.slice.value, ast.Name):
                 if node.slice.value.id == 'p':
                     indexing = '( )'
                 else:
+                    #
+                    # FIXME should previously extract the subscripting symbol
+                    #       over 'get_interior_points'
+                    #
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
 
-            return "eval(%s%s)" % (self.visit (node.value), 
-                                   indexing)
+        return "eval(%s%s)" % (self.visit (node.value), 
+                               indexing)
+            
 
 
 

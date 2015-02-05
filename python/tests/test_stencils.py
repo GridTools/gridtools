@@ -43,12 +43,18 @@ class CopyTest (unittest.TestCase):
 
         self.stencil = Copy ( )
 
-
-    def test_code_generation (self):
+    def test_automatic_range_detection (self):
         """
-        Checks the automatic generation of C++ code creates the expected code.-
+        Range access of data-field symbols is extracted from functor's source.-
         """
         self.stencil.backend = 'c++'
+        self.stencil.run (out_data=self.output_field,
+                          in_data=self.input_field)
+
+        scope = self.stencil.inspector.functors[0].scope
+        
+        self.assertTrue (scope['out_data'].range is None)
+        self.assertTrue (scope['in_data'].range is None)
 
 
     def test_compare_python_and_native_executions (self):
@@ -174,8 +180,8 @@ class CopyTest (unittest.TestCase):
         self.stencil.backend = 'c++'
         self.stencil.run (out_data=self.output_field,
                           in_data=self.input_field)
-        self.assertNotEqual (self.stencil.inspector.lib_obj, None)
-        self.assertTrue     ('_FuncPtr' in dir (self.stencil.inspector.lib_obj))
+        self.assertNotEqual (self.stencil.lib_obj, None)
+        self.assertTrue     ('_FuncPtr' in dir (self.stencil.lib_obj))
 
 
 
@@ -216,7 +222,20 @@ class LaplaceTests (CopyTest):
         self.output_field = np.zeros (self.domain)
         self.input_field  = np.random.rand (*self.domain)
 
-        self.stencil = Laplace ( )
+        self.stencil = Laplace ( ) 
+
+    def test_automatic_range_detection (self):
+        """
+        Range access of data-field symbols is extracted from functor's source.-
+        """
+        self.stencil.backend = 'c++'
+        self.stencil.run (out_data=self.output_field,
+                          in_data=self.input_field)
+
+        scope = self.stencil.inspector.functors[0].scope
+        
+        self.assertTrue (scope['out_data'].range is None)
+        self.assertTrue (scope['in_data'].range == [-1,1,-1,1])
 
 
     def test_python_execution (self):
