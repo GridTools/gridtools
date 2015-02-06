@@ -51,7 +51,7 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            eval(in(1))
+            eval(in(0,0,0,1))
 #else
                 eval(out())
 #endif
