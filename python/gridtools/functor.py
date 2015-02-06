@@ -95,9 +95,10 @@ class FunctorBody (ast.NodeVisitor):
             src     the Python source used to display user-friendly 
                     error messages.-
         """
+        self.cpp_src = ''
         for n in self.nodes:
             try:
-                self.cpp_src = self.visit (n)
+                self.cpp_src += self.visit (n)
                 if self.cpp_src:
                     self.cpp_src = "%s;\n\t\t" % self.cpp_src
 
@@ -129,33 +130,37 @@ class FunctorBody (ast.NodeVisitor):
         """
         Generates code for attribute references in Python.-
         """
-        symbol    = None
-        attr_name = "%s.%s" % (node.value.id,
-                               node.attr)
+        name = "%s.%s" % (node.value.id,
+                          node.attr)
+        symbol = None
+
         #
         # looking for the symbol name in this order forces
         # correct symbol name shadowing
         #
-        if attr_name in self.scope:
-            symbol = self.scope[attr_name]
-        elif attr_name in self.encl_scope:
-            symbol = self.encl_scope[attr_name]
+        if name in self.scope:
+            symbol = self.scope[name]
+        elif name in self.encl_scope:
+            symbol = self.encl_scope[name]
+            #
+            # existing symbols in the enclosing scope
+            # are parameters to this functor
+            #
+            self.scope.add_parameter (name,
+                                      symbol.value,
+                                      read_only=self.encl_scope.is_parameter (name,
+                                                                              read_only=True))
         else:
             raise RuntimeError ("Unknown symbol '%s'" % attr_name)
-        #
-        # update the scope of this functor
-        #
-        if attr_name not in self.scope:
-            self.scope.add_parameter (attr_name,
-                                      symbol.value,
-                                      read_only=self.encl_scope.is_parameter (attr_name,
-                                                                              read_only=True))
         #
         # do not replace strings or NumPy arrays
         #
         if (isinstance (symbol.value, str) or
             isinstance (symbol.value, np.ndarray)):
-            return attr_name
+            #
+            # replacing the dot with underscore gives a valid C++ name
+            #
+            return name.replace ('.', '_')
         else:
             #
             # otherwise, we just inline the value of the symbol
@@ -209,16 +214,16 @@ class FunctorBody (ast.NodeVisitor):
             symbol = self.scope[name]
         elif name in self.encl_scope:
             symbol = self.encl_scope[name]
-        else:
-            raise RuntimeError ("Unknown symbol '%s'" % name)
-        #
-        # update the scope of this functor
-        #
-        if name not in self.scope:
+            #
+            # existing symbols in the enclosing scope
+            # are parameters to this functor
+            #
             self.scope.add_parameter (name,
                                       symbol.value,
                                       read_only=self.encl_scope.is_parameter (name,
                                                                               read_only=True))
+        else:
+            raise RuntimeError ("Unknown symbol '%s'" % name)
         #
         # try to inline the value of this symbol
         #

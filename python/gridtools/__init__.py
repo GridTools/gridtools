@@ -103,17 +103,64 @@ class StencilInspector (ast.NodeVisitor):
                                                   read_only=read_only)
 
 
-    def resolve (self, stencil_obj, **kwargs):
+    def resolve (self):
         """
         Attempts to aquire more information about the discovered symbols
-        using runtime and parameter information:
-
-            stencil_obj     the instance of the user's stencil;
-            kwargs          the parameters with which is was started.-
+        with runtime information of user's stencil instance.-
         """
-        if len (kwargs.keys ( )) > 0:
-            self.domain = self.symbols.resolve_params (**kwargs)
-        self.symbols.resolve (stencil_obj)
+        for s in self.stencil_scope.get_all ( ):
+            #
+            # unresolved symbols have 'None' as their value
+            #
+            if s.value is None:
+                #
+                # is this a stencil's attribute?
+                #
+                if 'self' in s.name:
+                    attr  = s.name.split ('.')[1]
+                    s.value = getattr (self.stencil, attr, None)
+
+                    #
+                    # NumPy arrays are considered temporary data fields
+                    #
+                    if isinstance (s.value, np.ndarray):
+                        #
+                        # update the symbol table in this scope
+                        #
+                        self.stencil_scope.add_temporary (s.name,
+                                                          s.value)
+                    else:
+                        self.stencil_scope.add_constant (s.name, 
+                                                         s.value)
+
+
+    def resolve_params (self, **kwargs):
+        """
+        Attempts to aquire more information about the discovered parameters 
+        using runtime information.
+        """
+        for k,v in kwargs.items ( ):
+            if self.stencil_scope.is_parameter (k):
+                if isinstance (v, np.ndarray):
+                    #
+                    # update the value of this parameter
+                    #
+                    self.stencil_scope.add_parameter (k,
+                                                      v,
+                                                      read_only=self.stencil_scope.is_parameter (k,
+                                                                                                 read_only=True))
+                    #
+                    #
+                    # check the dimensions of different parameters match
+                    #
+                    if self.domain is None:
+                        self.domain = v.shape
+                    elif self.domain != v.shape:
+                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" % (k, 
+                                                                                              v.shape,
+                                                                                              self.domain))
+                else:
+                    logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
     def visit_Assign (self, node):
@@ -144,28 +191,45 @@ class StencilInspector (ast.NodeVisitor):
             else:
                 logging.debug ("Ignoring assignment at %d" % node.lineno)
                 return
+
+            rvalue_node = node.value
             #
             # a constant if its rvalue is a Num
             #
-            if isinstance (node.value, ast.Num):
-                rvalue = float (node.value.n)
+            if isinstance (rvalue_node, ast.Num):
+                rvalue = float (rvalue_node.n)
                 self.stencil_scope.add_constant (lvalue, rvalue)
                 logging.debug ("Adding numeric constant '%s'" % lvalue)
             #
+            # variable names are resolved using runtime information
+            #
+            elif isinstance (rvalue_node, ast.Name):
+                try:
+                    rvalue = eval (rvalue_node.id)
+                    self.stencil_scope.add_constant (lvalue, rvalue)
+                    logging.debug ("Adding constant '%s'" % lvalue)
+
+                except NameError:
+                    self.stencil_scope.add_constant (lvalue, None)
+                    logging.debug ("Delayed resolution of constant '%s'" % lvalue)
+            #
             # function calls are resolved later by name
             #
-            elif isinstance (node.value, ast.Call):
+            elif isinstance (rvalue_node, ast.Call):
                 rvalue = None
                 self.stencil_scope.add_constant (lvalue, rvalue)
                 logging.debug ("Constant '%s' holds a function value" % lvalue)
             #
-            # attributes are resolved later by name
+            # attributes are resolved using runtime information
             #
-            elif isinstance (node.value, ast.Attribute):
-                rvalue = '%s.%s' % (node.value.value.id,
-                                    node.value.attr)
+            elif isinstance (rvalue_node, ast.Attribute):
+                rvalue = getattr (eval (rvalue_node.value.id),
+                                  rvalue_node.attr)
                 self.stencil_scope.add_constant (lvalue, rvalue)
                 logging.debug ("Constant '%s' holds an attribute value" % lvalue)
+            #
+            # try to discover the correct type using runtime information
+            #
             else:
                 #
                 # we keep all other expressions and try to resolve them later
@@ -450,8 +514,18 @@ class MultiStageStencil ( ):
                 #
                 # ... then including runtime information
                 #
-                self.inspector.resolve (self, **kwargs)
+                self.inspector.resolve ( )
+                self.inspector.resolve_params (**kwargs)
                 
+                #
+                # print out the discovered symbols if in DEBUG mode
+                #
+                if __debug__:
+                    logging.debug ("Symbols found after using run-time resolution:")
+                    self.inspector.stencil_scope.dump ( )
+                    for f in self.inspector.functors:
+                        f.scope.dump ( )
+
                 #
                 # generate the code of all functors in this stencil
                 #
