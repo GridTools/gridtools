@@ -216,7 +216,7 @@ class Laplace (MultiStageStencil):
 
 
 
-class LaplaceTests (CopyTest):
+class LaplaceTest (CopyTest):
     """
     Testing the Laplace operator.-
     """
@@ -227,7 +227,8 @@ class LaplaceTests (CopyTest):
         self.domain = (64, 64, 32)
 
         self.output_field = np.zeros (self.domain)
-        self.input_field  = np.random.rand (*self.domain)
+        self.input_field  = np.arange (np.prod (self.domain)).reshape (self.domain)
+        self.input_field /= 7.0
 
         self.stencil = Laplace ( ) 
 
@@ -247,7 +248,17 @@ class LaplaceTests (CopyTest):
 
 
     def test_python_execution (self):
-        self.assertTrue (False, "To be implemented")
+        import os
+
+        self.stencil.backend = 'python'
+        self.stencil.run (out_data=self.output_field,
+                          in_data=self.input_field)
+
+        cur_dir  = os.path.dirname (os.path.abspath (__file__))
+        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+
+        self.assertTrue (np.all (np.equal (self.output_field,
+                                           expected)))
 
 
 
