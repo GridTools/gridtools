@@ -43,10 +43,10 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 struct lap_function {
 #ifdef CXX11_ENABLED
     typedef arg_type<0> out;
-    typedef const arg_type<1 > in;
+    typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
 #else
     typedef arg_type<0>::type out;
-    typedef const arg_type<1 >::type in;
+    typedef const arg_type<1, range<-1, 1, -1, 1>  >::type in;
 #endif
     typedef boost::mpl::vector<out, in> arg_list;
 
