@@ -99,15 +99,14 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
             tmp_storage_type>
         {%- else -%}
             storage_type>
-        {%- endif %}
-        p_{{ p.name }};
+        {%- endif %} p_{{ p.name|replace('.', '_') }};
     {% endfor -%}
 
     //
     // an array of placeholders to be passed to the domain
     //
     typedef boost::mpl::vector<
-        {{- params_temps|join_with_prefix ('p_', attribute='name')|join (', ') }}> arg_type_list;
+        {{- params_temps|join_with_prefix ('p_', attribute='name')|join (', ')|replace('.', '_') }}> arg_type_list;
 
     //
     // construction of the domain.
@@ -165,7 +164,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                 execute<forward>(),
                 {% for f in functors -%}
                 gridtools::make_esf<{{ f.name }}>(
-                   {{- params_temps|join_with_prefix ('p_', attribute='name')|join ('(), ') }}())
+                   {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
                    {%- if not loop.last -%}
                    ,
                    {%- endif %}

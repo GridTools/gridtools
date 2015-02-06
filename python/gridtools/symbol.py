@@ -10,7 +10,7 @@ class Symbol (object):
     When traversing the AST of a user-generated stencil, the recognized
     symbols are instances of this class.-
     """
-    kinds = (
+    KINDS = (
         #
         # the 'param_rw' kind indicates a read-write stencil and/or functor 
         # data-field parameter
@@ -43,10 +43,10 @@ class Symbol (object):
         Creates a new symbol instance:
 
             name    the name of the symbol;
-            kind    a valid Symbol.kinds value;
+            kind    a valid Symbol.KINDS value;
             value   the value of the symbol.-
         """
-        assert (kind in Symbol.kinds)
+        assert (kind in Symbol.KINDS)
 
         self.name  = name
         self.kind  = kind
@@ -87,7 +87,6 @@ class Symbol (object):
 
 
 
-
 class Scope (object):
     """
     Defines the scope within which a symbol is defined.-
@@ -115,18 +114,13 @@ class Scope (object):
         return self.symbol_table[name]
 
 
-    def add_symbol (self, name, kind, value=None):
+    def add_symbol (self, symbol):
         """
-        Adds the received symbol to this scope:
-
-            name        name of this symbol;
-            kind        its kind (should be one of Symbol.kinds);
-            value       its value.-
+        Adds the received 'symbol' to this scope.-
         """
-        symbol = Symbol (name, kind, value)
-        if name in self:
-            logging.info ("Updated symbol '%s'" % name)
-        self.symbol_table[name] = symbol
+        if symbol.name in self:
+            logging.info ("Updated symbol '%s'" % symbol.name)
+        self.symbol_table[symbol.name] = symbol
 
 
     def add_constant (self, name, value=None):
@@ -149,8 +143,8 @@ class Scope (object):
                     logging.info ("Constant '%s' has value %s" % (name,
                                                                   value))
         else:
-            logging.info ("Constant '%s' will be resolved later" % name)
-        self.add_symbol (name, 'const', value)
+            logging.info ("Constant '%s' is None" % name)
+        self.add_symbol (Symbol (name, 'const', value))
 
 
     def add_parameter (self, name, value=None, read_only=False):
@@ -165,15 +159,15 @@ class Scope (object):
             kind = 'param_ro'
         else:
             kind = 'param_rw'
-        self.add_symbol (name, kind, value)
+        self.add_symbol (Symbol (name, kind, value))
         if value is not None:
             if isinstance (value, np.ndarray):
                 logging.info ("Parameter '%s' has dimension %s" % (name,
                                                                    value.shape))
             else:
                 try:
-                    logging.info ("Parameter '%s' has value %f.3f" % (name,
-                                                                      float (value)))
+                    logging.info ("Parameter '%s' has value %.3f" % (name,
+                                                                     float (value)))
                 except ValueError:
                     logging.info ("Parameter '%s' has value %s" % (name,
                                                                    value))
@@ -186,14 +180,14 @@ class Scope (object):
             name    name of the temporary data field;
             value   its value (should be a NumPy array).-
         """
-        if value:
+        if value is not None:
             if isinstance (value, np.ndarray):
                 #
                 # add the field as a temporary
                 #
-                self.add_symbol (name, 'temp', value)
+                self.add_symbol (Symbol (name, 'temp', value))
                 logging.info ("Temporary field '%s' has dimension %s" % (name,
-                                                                         value.dim))
+                                                                         value.shape))
             else:
                 raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" % 
                                  (type (value), name))
@@ -207,7 +201,7 @@ class Scope (object):
         each of them.-
         """
         curr_id = 0
-        for k in sorted (self.kinds, reverse=True):
+        for k in sorted (Symbol.KINDS, reverse=True):
             for k,v in self.symbol_table[k].items ( ):
                 try:
                     v.id = curr_id
@@ -224,13 +218,13 @@ class Scope (object):
         Prints a formatted list of all in this scope.-
         """
         for k,v in self.symbol_table.items ( ):
-            #
-            # display only the dimensions of NumPy arrays
-            #
             try:
-                val = v.shape
+                #
+                # for NumPy arrays we display only its dimensions
+                #
+                val = v.value.shape
             except AttributeError:
-                val = str (v)
+                val = str (v.value)
 
             logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k, 
                                                      v.kind,
@@ -291,7 +285,6 @@ class Scope (object):
 
 
 
-
 class StencilSymbols (object):
     """
     Stencil symbols are organized into scopes that alter the visibility 
@@ -326,108 +319,4 @@ class StencilSymbols (object):
             self.functor_scopes[funct_name] = Scope ( )
             return self.functor_scopes[funct_name]
 
-
-    def resolve (self, stencil_obj):
-        """
-        Attempts to aquire more information about the discovered symbols
-        with runtime information of the stencil object 'stencil_obj'.-
-        """
-        #
-        # we cannot change the symbol table while looping over it,
-        # so we save the changes here and apply them afterwards
-        #
-        add_temps = dict ( )
-        for s in self.stencil_scope.get_all ( ):
-            #
-            # unresolved symbols have 'None' as their value
-            #
-            if s.value is None:
-                #
-                # is this a stencil's attribute?
-                #
-                if 'self' in s.name:
-                    attr  = s.name.split ('.')[1]
-                    s.value = getattr (self, attr, None)
-
-                    #
-                    # NumPy arrays kept as stencil attributes are considered
-                    # temporary data fields
-                    #
-                    if isinstance (s.value, np.ndarray):
-                        #
-                        # the new temporary data field will be added later,
-                        # to prevent changes in the underlying data structure
-                        # during the loop
-                        #
-                        add_temps[s.name] = s.value
-                    else:
-                        self.stencil_scope.add_constant (s.name, 
-                                                         s.value)
-            #
-            # TODO some symbols are just aliases to other symbols
-            #
-            if isinstance (s.value, str):
-                if s.value in symbols.keys ( ) and symbols[s.value] is not None:
-                    #symbols[name] = symbols[value]
-                    logging.warning ("Variable aliasing is not supported")
-
-        #
-        # update the symbol table now the loop has finished ...
-        #
-        for k,v in add_temps.items ( ):
-            #
-            # remove this field from the symbol table before adding it
-            # as a temporary data field
-            #
-            del symbols[k]
-            #
-            # remove the 'self' from the attribute name
-            #
-            name = k.split ('.')[1]
-            temp_field = FunctorParameter (name)
-            temp_field.dim = v.shape
-            symbols.add_temporary (name, temp_field)
-        #
-        # and rearrange all data fields IDs
-        #
-        #symbols.arrange_ids ( )
-
-        #
-        # print out the discovered symbols if in DEBUG mode
-        #
-        if __debug__:
-            logging.debug ("Symbols found after using using run-time resolution:")
-            self.stencil_scope.dump ( )
-            for k,v in self.functor_scopes.items ( ):
-                v.dump ( )
-
-
-    def resolve_params (self, **kwargs):
-        """
-        Attempts to aquire more information about the discovered parameters 
-        using runtime information.
-        It returns the domain dimensions over which the stencil operates.-
-        """
-        domain = None
-        for k,v in kwargs.items ( ):
-            if self.stencil_scope.is_parameter (k):
-                if isinstance (v, np.ndarray):
-                    #
-                    # update the value of this parameter
-                    #
-                    self.stencil_scope.add_parameter (k,
-                                                      v,
-                                                      read_only=self.stencil_scope.is_parameter (k,
-                                                                                                 read_only=True))
-                    #
-                    #
-                    # check the dimensions of different parameters match
-                    #
-                    if domain is None:
-                        domain = v.shape
-                    elif domain != v.shape:
-                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" % (k, v.shape, domain))
-                else:
-                    logging.warning ("Parameter '%s' is not a NumPy array" % k)
-        return domain
 

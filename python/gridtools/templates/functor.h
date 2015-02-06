@@ -20,12 +20,12 @@ struct {{ functor.name }}
                 const
             {%- endif %} arg_type<{{ loop.index0 }} {%- if p.range -%}
                                                         , range<{{ p.range|join(',') }}>
-                                                    {%- endif %} > {{ p.name }};
+                                                    {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //
     // the ordered list of arguments of this functor
     //
-    typedef boost::mpl::vector<{{ params|join(',', attribute='name') }}> arg_list;
+    typedef boost::mpl::vector<{{ params|join(', ', attribute='name')|replace('.', '_') }}> arg_list;
 
     //
     // the operation of this functor
