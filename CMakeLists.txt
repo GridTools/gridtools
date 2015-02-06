@@ -6,7 +6,7 @@ enable_language( CXX )
 
 
 ## enable to use ctest:
-enable_testing()
+## enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 if(GNU_COVERAGE)
