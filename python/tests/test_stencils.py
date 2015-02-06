@@ -468,8 +468,6 @@ class MovingTest (CopyTest):
 
         
     def test_interactive_plot (self):
-        """
-        Displays a matplotlib-based animation.-
         import matplotlib.pyplot as plt
         from matplotlib import animation, cm
         from mpl_toolkits.mplot3d import axes3d
@@ -477,12 +475,12 @@ class MovingTest (CopyTest):
         #
         # enable native execution for the stencil
         #
-        #self.stencil.backend = 'c++'
+        self.stencil.backend = 'c++'
 
         #
         # disturb the water surface
         #
-        self.stencil.create_random_drop (self.H)
+        self.stencil.create_random_drop (self.out_H)
 
         #
         # initialize 3D plot
@@ -493,7 +491,7 @@ class MovingTest (CopyTest):
         rng  = np.arange (self.domain[0])
         X, Y = np.meshgrid (rng, rng)
         surf = ax.plot_wireframe (X, Y,
-                                np.squeeze (self.H, axis=(2,)),
+                                np.squeeze (self.out_H, axis=(2,)),
                                 rstride=1,
                                 cstride=1,
                                 cmap=cm.jet,
@@ -507,24 +505,24 @@ class MovingTest (CopyTest):
             # a random drop
             #
             if framenumber == 0:
-                self.stencil.create_random_drop (self.H)
+                self.stencil.create_random_drop (self.out_H)
 
             #
             # reflective boundary conditions
             #
-            swobj.reflect_borders (self.H,
-                                   self.U,
-                                   self.V)
+            swobj.reflect_borders (self.out_H,
+                                   self.out_U,
+                                   self.out_V)
             #
             # run the stencil
             #
-            swobj.run (out_H=self.H,
-                       out_U=self.U,
-                       out_V=self.V)
+            swobj.run (out_H=self.out_H,
+                       out_U=self.out_U,
+                       out_V=self.out_V)
 
             ax.cla ( )
             surf = ax.plot_wireframe (X, Y,
-                                np.squeeze (self.H, axis=(2,)),
+                                np.squeeze (self.out_H, axis=(2,)),
                                 rstride=1,
                                 cstride=1,
                                 cmap=cm.jet,
@@ -538,6 +536,3 @@ class MovingTest (CopyTest):
                                         frames=range (10),
                                         interval=20,
                                         blit=False)
-        """
-        pass
-
