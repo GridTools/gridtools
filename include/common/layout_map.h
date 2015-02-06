@@ -37,7 +37,7 @@ namespace gridtools {
         static int __get(int i) {
             return -1;
         }
- 
+
         template <int index, int first, int... Vals>
         static int __get(int i) {
             if (i == index) {
@@ -46,7 +46,7 @@ namespace gridtools {
                 return __get<index+1, Vals...>(i);
             }
         }
- 
+
     }//namespace _impl
 
     /**
@@ -110,7 +110,7 @@ namespace gridtools {
             \endcode
 
             \tparam I Index to be queried
-            \tparam T Sequence of types 
+            \tparam T Sequence of types
             \param[in] args Values from where to select the element  (length must be equal to the length of the layout_map length)
         */
         template <ushort_t I, typename ... T>
@@ -711,7 +711,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         */
         template <short_t I, typename T, T DefaultVal>
         GT_FUNCTION
-        static int_t find_val(int_t const* a) {
+        static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
         }
     };
