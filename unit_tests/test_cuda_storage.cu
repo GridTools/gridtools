@@ -12,6 +12,7 @@
 #include <iostream>
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
+#include <stencil-composition/backend.h>
 #include <common/layout_map.h>
 #include <common/defs.h>
 
@@ -29,9 +30,11 @@ void add_on_gpu(T * ptr, uint_t d1, uint_t d2, uint_t d3) {
 }
 #endif
 
+using namespace gridtools;
+using namespace enumtype;
 bool test_cuda_storage() {
 
-    typedef gridtools::storage<gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > > storage_type;
+    typedef gridtools::backend<Cuda, Naive>::storage_type<float_type, layout_map<0,1,2> > >::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
