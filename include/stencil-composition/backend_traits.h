@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gridtools.h>
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include "level.h"
@@ -154,7 +155,7 @@ namespace gridtools{
             struct tmp
                 {
 //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-                    typedef clonable_storage< StorageType > host_storage_t;
+                    typedef storage< StorageType > host_storage_t;
                 };
 
         };

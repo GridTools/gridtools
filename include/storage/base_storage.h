@@ -160,7 +160,6 @@ namespace gridtools {
                 initialize(init);
             }
 
-#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
         /**@brief generic multidimensional constructor
 
 	   There are two possible types of storage dimension. One (space dimension) defines the number of indexes
@@ -188,7 +187,6 @@ namespace gridtools {
 		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
 		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
 	    }
-#endif // GCC<4.9.0
 
 #else //CXX11_ENABLED
 
