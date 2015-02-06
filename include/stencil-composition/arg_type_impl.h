@@ -159,7 +159,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr arg_type_base ( Whatever... x)
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the arg_decorator constructor exceeds the number of space dimensions of the storage");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the arg_decorator constructor exceeds the number of space dimensions of the storage")
             }
 #endif
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -170,11 +170,11 @@ namespace gridtools {
         GT_FUNCTION
         constexpr arg_type_base ( int const& t, Whatever const& ... x): m_offset{ t, x... } {
             //this static check fails on GCC<4.9 even when it should not
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected")
 
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(Whatever)+1)>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Whatever)+1)>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.")
 
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.")
         }
 #else
         GT_FUNCTION

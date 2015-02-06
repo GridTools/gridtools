@@ -22,7 +22,7 @@ namespace gridtools{
       {}
 
 	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type const& value, char const* s="default name"): super(dim1, dim2, dim3, value, s) {
-            GRIDTOOLS_STATIC_ASSERT( boost::is_float<value_type>::value, "The initialization value in the storage constructor must me a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
+            GRIDTOOLS_STATIC_ASSERT( boost::is_float<value_type>::value, "The initialization value in the storage constructor must me a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
         }
 
 
@@ -47,7 +47,7 @@ namespace gridtools{
 
        Annoyngly enough does not work with CUDA 6.5
     */
-#if !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))
     template< class Storage, uint_t ... Number >
     struct field{
 	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;

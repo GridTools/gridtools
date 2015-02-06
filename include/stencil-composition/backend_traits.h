@@ -233,7 +233,7 @@ namespace gridtools{
             struct tmp
                 {
                     GRIDTOOLS_STATIC_ASSERT(StorageBase::backend==enumtype::Host, "The Block strategy with backends other than Host has not been tested and is disabled by default.\n\
- If you know what you do comment out this assert.");
+ If you know what you do comment out this assert.")
                     typedef host_tmp_storage < StorageBase, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> host_storage_t;
                 };
 
