@@ -468,71 +468,78 @@ class MovingTest (CopyTest):
 
         
     def test_interactive_plot (self):
-        import matplotlib.pyplot as plt
-        from matplotlib import animation, cm
-        from mpl_toolkits.mplot3d import axes3d
-
-        #
-        # enable native execution for the stencil
-        #
-        self.stencil.backend = 'c++'
-
-        #
-        # disturb the water surface
-        #
-        self.stencil.create_random_drop (self.out_H)
-
-        #
-        # initialize 3D plot
-        #
-        fig = plt.figure ( )
-        ax = axes3d.Axes3D (fig)
-
-        rng  = np.arange (self.domain[0])
-        X, Y = np.meshgrid (rng, rng)
-        surf = ax.plot_wireframe (X, Y,
-                                np.squeeze (self.out_H, axis=(2,)),
-                                rstride=1,
-                                cstride=1,
-                                cmap=cm.jet,
-                                linewidth=1,
-                                antialiased=False)
-        #
-        # animation update function
-        #
-        def draw_frame (framenumber, swobj):
-            #
-            # a random drop
-            #
-            if framenumber == 0:
-                self.stencil.create_random_drop (self.out_H)
+        try:
+            import matplotlib.pyplot as plt
+            from matplotlib import animation, cm
+            from mpl_toolkits.mplot3d import axes3d
 
             #
-            # reflective boundary conditions
+            # enable native execution for the stencil
             #
-            swobj.reflect_borders (self.out_H,
-                                   self.out_U,
-                                   self.out_V)
-            #
-            # run the stencil
-            #
-            swobj.run (out_H=self.out_H,
-                       out_U=self.out_U,
-                       out_V=self.out_V)
+            self.stencil.backend = 'c++'
 
-            ax.cla ( )
+            #
+            # disturb the water surface
+            #
+            self.stencil.create_random_drop (self.out_H)
+
+            #
+            # initialize 3D plot
+            #
+            fig = plt.figure ( )
+            ax = axes3d.Axes3D (fig)
+
+            rng  = np.arange (self.domain[0])
+            X, Y = np.meshgrid (rng, rng)
             surf = ax.plot_wireframe (X, Y,
-                                np.squeeze (self.out_H, axis=(2,)),
-                                rstride=1,
-                                cstride=1,
-                                cmap=cm.jet,
-                                linewidth=1,
-                                antialiased=False)
-            return surf,
+                                    np.squeeze (self.out_H, axis=(2,)),
+                                    rstride=1,
+                                    cstride=1,
+                                    cmap=cm.jet,
+                                    linewidth=1,
+                                    antialiased=False)
+            #
+            # animation update function
+            #
+            def draw_frame (framenumber, swobj):
+                #
+                # a random drop
+                #
+                if framenumber == 0:
+                    self.stencil.create_random_drop (self.out_H)
 
-        anim = animation.FuncAnimation (fig,
-                                        draw_frame,
-                                        fargs=(self.stencil,),
-                                        frames=range (10),
-                                        interval=20,
-                                        blit=False)
+                #
+                # reflective boundary conditions
+                #
+                swobj.reflect_borders (self.out_H,
+                                       self.out_U,
+                                       self.out_V)
+                #
+                # run the stencil
+                #
+                swobj.run (out_H=self.out_H,
+                           out_U=self.out_U,
+                           out_V=self.out_V)
+
+                ax.cla ( )
+                surf = ax.plot_wireframe (X, Y,
+                                    np.squeeze (self.out_H, axis=(2,)),
+                                    rstride=1,
+                                    cstride=1,
+                                    cmap=cm.jet,
+                                    linewidth=1,
+                                    antialiased=False)
+                return surf,
+
+            anim = animation.FuncAnimation (fig,
+                                            draw_frame,
+                                            fargs=(self.stencil,),
+                                            frames=range (10),
+                                            interval=20,
+                                            blit=False)
+        except ImportError:
+            #
+            # don't run this test if matplotlib is not available
+            #
+            pass
+
