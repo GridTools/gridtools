@@ -15,8 +15,10 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/timer/timer.hpp>
 #include <boost/mpl/contains.hpp>
-#ifdef GCL_MPI
+
+#ifdef _GCL_MPI_
 #include <mpi.h>
+#include<communication/GCL.h>
 #endif
 
 #include "common/gt_assert.h"

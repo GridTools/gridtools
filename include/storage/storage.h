@@ -1,7 +1,8 @@
 #pragma once
-#include <common/gpu_clone.h>
 #include "base_storage.h"
+#include <common/gpu_clone.h>
 #include "host_tmp_storage.h"
+#include "accumulate.h"
 
 namespace gridtools{
 
@@ -47,7 +48,8 @@ namespace gridtools{
 
        Annoyngly enough does not work with CUDA 6.5
     */
-#if defined(CXX11_ENABLED) && !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))
+#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9)))
+
     template< class Storage, uint_t ... Number >
     struct field{
 	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;
@@ -67,7 +69,7 @@ namespace gridtools{
                , uint_t PlusI
                , uint_t PlusJ
                , uint_t ... Number >
-    struct field<host_tmp_storage<base_storage<Backend, ValueType, Layout, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
+    struct field<host_tmp_storage<base_storage<Backend, ValueType, Layout, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
 	typedef host_tmp_storage<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, accumulate(add(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> type;
     };
 
@@ -89,16 +91,6 @@ namespace gridtools{
     struct field<no_storage_type_yet<base_storage<Backend, ValueType, Layout, true, FieldDimension> >, Number... >{
 	typedef no_storage_type_yet<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, accumulate(add(), ((uint_t)Number) ... ) >, Number-1> ... > > type;
     };
-
-    // template<  enumtype::backend Backend
-    //            ,typename ValueType
-    //            ,typename Layout
-    //            ,short_t FieldDimension
-    //            ,uint_t ... Number >
-    // struct field<no_storage_type_yet<base_storage<Backend, ValueType, Layout, true, FieldDimension> >, Number... >{
-    //     typedef extend_dim< extend_width<host_tmp_storage<Backend, ValueType, Layout, accumulate(add(), ((uint_t)Number) ... ), 2, 2, 0, 0, 0, 0 >, Number-1> ... > type;
-    // };
-
 
 #endif
 

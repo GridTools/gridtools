@@ -1,6 +1,6 @@
 #pragma once
 #include<common/defs.h>
-
+#include<communication/halo_exchange.h>
 /**
 @file
 @brief Simple Partitioner Class

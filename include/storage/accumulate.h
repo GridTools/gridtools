@@ -1,3 +1,4 @@
+#pragma once
 /**@file @brief implementation of a compile-time accumulator and max
 
 The accumulator allows to perform operations on static const value to be passed as template argument. E.g. to pass the sum of all the storage dimensions as template argument of \ref gridtools::base_storage

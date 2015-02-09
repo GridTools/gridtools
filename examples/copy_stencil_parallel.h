@@ -1,7 +1,5 @@
-
 #pragma once
 
-#include <gridtools.h>
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
 #else
@@ -9,15 +7,12 @@
 #endif
 #include <storage/partitioner_trivial.h>
 #include <storage/parallel_storage.h>
-
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
-
-#include <communication/halo_exchange.h>
 #include <communication/high-level/mpi_driver.h>
-/*
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
-*/
+
+/** @file
+    @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the backend*/
 
 using gridtools::level;
 using gridtools::arg_type;
@@ -29,52 +24,6 @@ using namespace enumtype;
 
 
 namespace copy_stencil{
-
-
-/* This is the data type of the elements of the data arrays.
- */
-struct triple_t {
-  int x,y,z;
-  triple_t(int a, int b, int c): x(a), y(b), z(c) {}
-  triple_t(): x(-1), y(-1), z(-1) {}
-};
-
-std::ostream& operator<<(std::ostream &s, triple_t const & t) {
-  return s << " ("
-           << t.x << ", "
-           << t.y << ", "
-           << t.z << ") ";
-}
-
-bool operator==(triple_t const & a, triple_t const & b) {
-  return (a.x == b.x &&
-          a.y == b.y &&
-          a.z == b.z);
-}
-
-bool operator!=(triple_t const & a, triple_t const & b) {
-  return !(a==b);
-}
-
-/* Just and utility to print values
- */
-void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
-  if (d1<6 && d2<6 && d3<6) {
-    file << "------------\n";
-    for (int ii=0; ii<d1; ++ii) {
-      file << "|";
-      for (int jj=0; jj<d2; ++jj) {
-        for (int kk=0; kk<d2; ++kk) {
-          file << a[d1*d2*kk+ii*d2+jj];
-        }
-        file << "|\n";
-      }
-      file << "\n\n";
-    }
-    file << "------------\n\n";
-  }
-}
-
 // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -131,11 +80,12 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-	typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
-	typedef extend_width<base_type1, 0>  extended_type;
-	typedef storage<extend_dim<extended_type, extended_type> >  vec_storage_type;
+        typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
+        typedef extend_width<base_type1, 0>  extended_type;
+        typedef extend_dim<extended_type, extended_type>  vec_storage_type;
 #else
-	typedef field<storage_type, 2>::type  vec_storage_type;
+        //vector field of dimension 2
+        typedef field<storage_type::basic_type, 1, 1>::type  vec_storage_type;
 #endif
 #endif
 
@@ -263,8 +213,8 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 
 	copy->finalize();
 
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
+ 	MPI_Barrier(MPI_COMM_WORLD);
+ 	MPI_Finalize();
 
 	return true;
     }
