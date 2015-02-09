@@ -85,7 +85,7 @@ namespace copy_stencil{
         typedef extend_dim<extended_type, extended_type>  vec_storage_type;
 #else
         //vector field of dimension 2
-        typedef field<storage_type::basic_type, 1, 1>::type  vec_storage_type;
+        typedef field<storage_type::basic_type, 2>::type  vec_storage_type;
 #endif
 #endif
 
