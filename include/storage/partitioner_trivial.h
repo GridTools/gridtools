@@ -1,6 +1,6 @@
 #pragma once
-#include <common/halo_descriptor.h>
 #include "partitioner.h"
+#include <common/halo_descriptor.h>
 
 /**
 @file

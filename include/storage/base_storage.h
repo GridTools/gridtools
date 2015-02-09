@@ -790,7 +790,7 @@ namespace gridtools {
        It is a collection of arbitrary length discretized scalar fields.
     */
     template <typename First,  typename  ...  StorageExtended>
-    struct extend_dim : public dimension_extension_traits<First, StorageExtended ... >::type, clonable_to_gpu<extend_dim<First, StorageExtended ... > >
+    struct extend_dim : public dimension_extension_traits<First, StorageExtended ... >::type/*, clonable_to_gpu<extend_dim<First, StorageExtended ... > >*/
     {
         typedef extend_dim<First, StorageExtended...> type;
         typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;

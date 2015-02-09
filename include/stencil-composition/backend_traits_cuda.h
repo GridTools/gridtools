@@ -1,5 +1,4 @@
 #pragma once
-#include <storage/storage.h>
 #include <boost/mpl/for_each.hpp>
 
 /**@file
