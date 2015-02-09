@@ -14,6 +14,7 @@
 #include <stencil-composition/make_computation.h>
 
 #include <communication/halo_exchange.h>
+#include <communication/high-level/mpi_driver.h>
 /*
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
@@ -110,31 +111,7 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 	return s << "copy_functor";
     }
 
-    void handle_error(int_t)
-    {std::cout<<"error"<<std::endl;}
-
-    // uint_t low_bound(int pid, int ntasks, uint_t dimension)
-    // {
-    //     if (pid==0)
-    //         return 0;
-    //     div_t value=std::div(dimension,ntasks);
-    //     return ((int)(value.quot/**(pid)*/) + (int)((value.rem>=pid) ? /*(pid)*/1 : 0/*value.rem*/));
-    // }
-
-
-    int high_bound(int pid, int ntasks, uint_t dimension)
-    {
-	// if (pid==ntasks-1)
-	//     return dimension-1;
-	div_t value=std::div(dimension,ntasks);
-	std::cout<<"quotient: "<< value.quot <<std::endl;
-	std::cout<<"pid*4: "<< value.quot <<std::endl;
-	std::cout<<"offset: "<<(int)((value.rem>pid) ? (pid+1): value.rem) <<std::endl;
-	std::cout<<"ret val: "<< ((int)(value.quot*(pid+1)) + (int)((value.rem>pid) ? (pid+1) : value.rem)) <<std::endl;
-	return ((int)(value.quot/**(pid+1)*/) + (int)((value.rem>pid) ? (/*pid+*/1) : value.rem));
-    }
-
-    bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -149,79 +126,23 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 	//                      dims  x y z
 	typedef gridtools::layout_map<0,1,2> layout_t;
 	typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-	//typedef storage_type::basic_type integrator_type;
-	/* typedef extend<storage_type::basic_type, 2> integrator_type; */
-#ifdef CXX11_ENABLED							\
+
+#ifdef CXX11_ENABLED
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
 	typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
 	typedef extend_width<base_type1, 0>  extended_type;
-	typedef storage<extend_dim<extended_type, extended_type> >  integrator_type;
+	typedef storage<extend_dim<extended_type, extended_type> >  vec_storage_type;
 #else
-	typedef field<storage_type, 2>::type  integrator_type;
+	typedef field<storage_type, 2>::type  vec_storage_type;
 #endif
 #endif
-
-	uint_t d1 = x;
-	uint_t d2 = y;
-	uint_t d3 = z;
-	uint_t H  = 1;
-
-	int pid;
-	MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-	int nprocs;
-	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-
-	std::cout << pid << " " << nprocs << "\n";
-
-	std::stringstream ss;
-	ss << pid;
-
-	std::string filename = "out" + ss.str() + ".txt";
-
-	std::cout << filename << std::endl;
-	std::ofstream file(filename.c_str());
-
-	file << pid << "  " << nprocs << "\n";
-
-	MPI_Comm CartComm;
-	int dims[3] = { 0, 0, 0 };
-	MPI_Dims_create(nprocs, 3, dims);
-	int period[3] = { 1, 1, 1 };
-
-	file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1]
-	     << " - " << dims[2] << "\n";
-
-	MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
-	int coordinates[3] = { 0, 0, 0 };
-	MPI_Cart_get(CartComm, 3, dims, period, coordinates);
-
-	typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
-						    gridtools::layout_map<0, 1, 2>, integrator_type::original_storage::pointer_type::pointee_t, 3, gridtools::gcl_cpu, gridtools::version_manual> pattern_type;
-
-	pattern_type he(pattern_type::grid_type::period_type(true, true, true), CartComm);
-
-	int low_bound_i=0;//low_bound(coordinates[0], dims[0], d1-H-H);
-	int low_bound_j=0;//low_bound(coordinates[1], dims[1], d2-H-H);
-	int high_bound_i=high_bound(coordinates[0], dims[0], d1-H-H);
-	int high_bound_j=high_bound(coordinates[1], dims[1], d2-H-H);
-
-        std::cout<<"d1= "<<d1<<"d2= "<<d2<<std::endl;
-	std::cout<< " "<<H<< " "<<H<< " "<<H<< " "<<high_bound_i+H-1<< " "<<high_bound_i-low_bound_i+H+H<< " "<<std::endl;
-	std::cout<< " "<<H<< " "<<H<< " "<<H<< " "<<high_bound_j+H-1<< " "<<high_bound_j-low_bound_j+H+H<< " "<<std::endl;
-	he.add_halo<0>(H, H, H, high_bound_i+H-1, high_bound_i+H+H);
-	he.add_halo<1>(H, H, H, high_bound_j+H-1, high_bound_j+H+H);
-	he.add_halo<2>(0, 0, 0, d3 - 1, d3);
-
-        he.setup(2);
-
-	//out.print();
 
 	// Definition of placeholders. The order of them reflect the order the user will deal with them
 	// especially the non-temporary ones, in the construction of the domain
 #ifdef CXX11_ENABLED
-	typedef arg<0, integrator_type > p_in;
+	typedef arg<0, vec_storage_type > p_in;
 	typedef boost::mpl::vector<p_in> arg_type_list;
 #else
 	typedef arg<0, storage_type> p_in;
@@ -230,16 +151,22 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 	// I'm using mpl::vector, but the final API should look slightly simpler
 	typedef boost::mpl::vector<p_in, p_out> arg_type_list;
 #endif
-	/* typedef arg<1, integrator_type > p_out; */
-
+	/* typedef arg<1, vec_storage_type > p_out; */
+        typedef vec_storage_type::original_storage::pointer_type pointer_type;
 	// Definition of the actual data fields that are used for input/output
 #ifdef CXX11_ENABLED
-        ushort_t halo[3]={H,H,H};
-        partitioner_trivial<integrator_type> part(coordinates, dims, halo);
-	parallel_storage<integrator_type> in(part, d1, d2, d3);
-	//integrator_type in(d1,d2,d3);
-	integrator_type::original_storage::pointer_type  init1(d1*d2*d3);
-	integrator_type::original_storage::pointer_type  init2(d1*d2*d3);
+        mpi_cart_comm<3> comm;
+        comm.set_periodicity<0>(true);
+        comm.set_periodicity<1>(true);
+        comm.set_periodicity<2>(true);
+        comm.activate_world();
+        ushort_t halo[3]={1,1,1};
+        typedef partitioner_trivial<vec_storage_type> partitioner_t;
+        partitioner_t part(comm.coordinates(), comm.dimensions(), halo);
+	parallel_storage<partitioner_t> in(part, d1, d2, d3);
+
+	pointer_type  init1(d1*d2*d3);
+	pointer_type  init2(d1*d2*d3);
 	in.push_front<0>(init1, 1.5);
 	in.push_front<0>(init2, -1.5);
 #else
@@ -251,8 +178,34 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 	    for(uint_t j=0; j<in.template dims<1>(); ++j)
 		for(uint_t k=0; k<in.template dims<2>(); ++k)
 		{
-		    in(i, j, k)=i+j+k+coordinates[0]*100+coordinates[1]*200+coordinates[2]*300;
+		    in(i, j, k)=i+j+k+comm.coordinates()[0]*100+comm.coordinates()[1]*200+comm.coordinates()[2]*300;
 		}
+
+        std::cout<< "Halo descriptor 0 : [ " << part.template get_halo_descriptor<0>().minus() << ", "<< part.template get_halo_descriptor<0>().plus() << ", "<<part.template get_halo_descriptor<0>().begin() << ", "<<part.template get_halo_descriptor<0>().end() << ", "<<part.template get_halo_descriptor<0>().total_length()<<"];"<<std::endl;
+
+        std::cout<< "Halo descriptor 1 : [ " << part.template get_halo_descriptor<1>().minus() << ", "<< part.template get_halo_descriptor<1>().plus() << ", "<<part.template get_halo_descriptor<1>().begin() << ", "<<part.template get_halo_descriptor<1>().end() << ", "<<part.template get_halo_descriptor<1>().total_length()<<"];"<<std::endl;
+// Definition of the physical dimensions of the problem.
+	// The constructor takes the horizontal plane dimensions,
+	// while the vertical ones are set according the the axis property soon after
+        gridtools::coordinates<axis> coords(part.template get_halo_descriptor<0>(), part.template get_halo_descriptor<1>());
+        //k dimension not partitioned
+	coords.value_list[0] = 0;
+	coords.value_list[1] = d3-1;
+
+
+        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+                                                    gridtools::layout_map<0, 1, 2>,
+                                                    pointer_type::pointee_t, 3,
+                                                    gridtools::gcl_cpu,
+                                                    gridtools::version_manual> pattern_type;
+
+        pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.get());
+
+        he.add_halo<0>(part.template get_halo_descriptor<0>());
+        he.add_halo<1>(part.template get_halo_descriptor<1>());
+        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+
+        he.setup(2);
 
 
 	// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -265,21 +218,6 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 	gridtools::domain_type<arg_type_list> domain
 	    (boost::fusion::make_vector(&in, &out));
 #endif
-	// Definition of the physical dimensions of the problem.
-	// The constructor takes the horizontal plane dimensions,
-	// while the vertical ones are set according the the axis property soon after
-	// gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-	// uint_t di[5] = {0, 0, 0, d1, d1};
-	// uint_t dj[5] = {0, 0, 0, d2, d2};
-	uint_t di[5] = {H, H, H, high_bound_i+H-1, high_bound_i+H+H};
-	uint_t dj[5] = {H, H, H, high_bound_j+H-1, high_bound_j+H+H};
-
-	// std::cout<< " "<<H<< " "<<H<< " "<<H<< " "<<high_bound_i+H-1<< " "<<high_bound_i+H+H<< " "<<std::endl;
-	// std::cout<< " "<<H<< " "<<H<< " "<<H<< " "<<high_bound_j+H-1<< " "<<high_bound_j+H+H<< " "<<std::endl;
-
-	gridtools::coordinates<axis> coords(di, dj);
-	coords.value_list[0] = 0;
-	coords.value_list[1] = d3-1;
 
 	/*
 	  Here we do lot of stuff
@@ -314,11 +252,7 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 
 	copy->run();
 
-// #define NX 5
-// #define NY 5
-// #define NZ 5
-
-	std::vector<integrator_type::original_storage::pointer_type::pointee_t*> vec={in.fields()[0].get(), in.fields()[1].get()};
+	std::vector<pointer_type::pointee_t*> vec={in.fields()[0].get(), in.fields()[1].get()};
 	he.pack(vec);
 
 	he.exchange();
@@ -326,11 +260,6 @@ void printbuff(std::ostream &file, triple_t* a, int d1, int d2, int d3) {
 	he.unpack(vec);
 
         in.print();
-
-	// in.print_value(NX,NY,0);
-	// in.print_value(NX,0,NZ);
-	// in.print_value(0,NY,NZ);
-	// in.print_value(NX,NY,NZ);
 
 	copy->finalize();
 

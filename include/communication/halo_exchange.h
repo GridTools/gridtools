@@ -340,6 +340,13 @@ namespace gridtools {
             hd.halo.add_halo(layout_map::template at<DI>(), minus, plus, begin, end, t_len);
         }
 
+        template <int DI>
+        void add_halo(halo_descriptor const& halo) {
+
+            hd.halo.add_halo(layout_map::template at<DI>(), halo);
+        }
+
+
         /**
            Function to pack data to be sent
 

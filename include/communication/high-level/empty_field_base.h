@@ -34,10 +34,10 @@ namespace gridtools {
           return std::make_pair(MPI_INT,false);
 
         MPI_Datatype res;
-        MPI_Type_create_subarray(d, 
-                                 &sizes[0], 
-                                 &subsizes[0], 
-                                 &starts[0], 
+        MPI_Type_create_subarray(d,
+                                 &sizes[0],
+                                 &subsizes[0],
+                                 &starts[0],
                                  MPI_ORDER_FORTRAN, // increasing strides
                                  type(),
                                  &res);
@@ -62,10 +62,10 @@ namespace gridtools {
           return std::make_pair(MPI_INT,false);
 
         MPI_Datatype res;
-        MPI_Type_create_subarray(d, 
-                                 &sizes[0], 
-                                 &subsizes[0], 
-                                 &starts[0], 
+        MPI_Type_create_subarray(d,
+                                 &sizes[0],
+                                 &subsizes[0],
+                                 &starts[0],
                                  MPI_ORDER_FORTRAN, // increasing strides
                                  type(),
                                  &res);
@@ -98,7 +98,7 @@ namespace gridtools {
       set_mpdt(HALO_t const& h, MPDT_t & t, MPDT_t & e)
         : mpdt_out(t)
         , mpdt_in(e)
-        , halo(h) 
+        , halo(h)
       {}
 
       template <typename Tuple>
@@ -115,7 +115,7 @@ namespace gridtools {
   class empty_field_base {
     typedef array<halo_descriptor, DIMS> HALO_t;
 
-  public: 
+  public:
     array<halo_descriptor, DIMS> halos;
     typedef array<std::pair<MPI_Datatype,bool>, _impl::static_pow3<DIMS>::value> MPDT_t;
     MPDT_t MPDT_OUTSIDE;
@@ -144,6 +144,11 @@ namespace gridtools {
       halos[D] = halo_descriptor(minus, plus, begin, end, t_len);
     }
 
+      void add_halo(int D, halo_descriptor const& halo) {
+      halos[D] = halo;
+    }
+
+
     void setup() {
       generate_datatypes();
     }
@@ -157,9 +162,9 @@ namespace gridtools {
     }
 
 
-    /** 
+    /**
         Return the number of elements (not bytes) that have to be sent to a the neighbor
-        indicated as an argument. This is the product of the lengths as in 
+        indicated as an argument. This is the product of the lengths as in
         \link MULTI_DIM_ACCESS \endlink
 
         \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
@@ -172,9 +177,9 @@ namespace gridtools {
       return S;
     }
 
-    /** 
+    /**
         Return the number of elements (not bytes) that be receiver from the the neighbor
-        indicated as an argument. This is the product of the lengths as in 
+        indicated as an argument. This is the product of the lengths as in
         \link MULTI_DIM_ACCESS \endlink
 
         \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink

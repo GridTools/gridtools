@@ -11,6 +11,9 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    MPI_Init(&argc, &argv);
+    gridtools::GCL_Init(argc, argv);
+
     return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 }
 //#endif

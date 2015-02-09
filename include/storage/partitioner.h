@@ -7,7 +7,8 @@
 This file defines a simple partitioner splitting a structured cartesian grid
 */
 
-class partitioner{
+template <typename Derived>
+class partitioner {
 
 public:
     /**@brief constructor
@@ -18,6 +19,6 @@ public:
 
     // virtual uint_t size(ushort_t const& component) const=0;
     // virtual uint_t* sizes()=0;
-    virtual uint_t compute_bounds(ushort_t const& component, uint_t const&size) =0;
+    // virtual uint_t compute_bounds(ushort_t const& component, uint_t const&size)=0;
 
 };

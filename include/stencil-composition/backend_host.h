@@ -40,12 +40,6 @@ namespace gridtools {
 
     // namespace _impl{
 
-            // define an SFINAE structure
-            template <typename T>
-            struct SFINAE;
-
-            template <>
-            struct SFINAE<int>{};
 
 
 /** @brief Partial specialization: naive and block implementation for the host backend */
@@ -66,77 +60,6 @@ namespace gridtools {
         //     typedef typename sum_range<RangeType, OtherRange >::type type;
         // };
 
-
-        template<typename TFunctor>
-        struct sfinae
-        {
-            // define a MixIn class providing a Do member
-            struct MixIn
-            {
-                using xrange = int ;
-            };
-            // multiple inheritance form TFunctor and MixIn
-            // (if both define a Do it will be ambiguous in the Derived struct)
-            struct derived : public TFunctor, public MixIn {};
-
-
-            // SFINAE test methods which try to match the MixIn Do method signature
-            // (note that multiple inheritance hides all symbols which are defined in more than one base class,
-            // i.e. if TFunctor and MixIn both define a Do symbol then it will be ambiguous in the Derived class
-            // and we will fall back to the ellipsis test method)
-            template<typename TDerived>
-            static boost::mpl::false_ test( SFINAE<typename TDerived::xrange>* x );
-            template<typename TDerived>
-            static boost::mpl::true_ test(...);
-
-            typedef decltype(test<derived>(0)) type;
-            typedef TFunctor functor_t;
-        };
-
-
-        template<typename Sfinae>
-        struct extend_loop_bounds
-        {
-            // template <typename RangeType, typename Dummy=void>
-            // struct apply{
-            //     typedef typename sum_range<RangeType, decltype(Sfinae::functor_t::xrange)>::type type;
-            // };
-
-            template <typename RangeType, typename Dummy=void>
-            struct apply;
-
-            template <typename RangeType>
-            struct apply<RangeType, typename boost::enable_if<typename Sfinae::type>::type >{
-                typedef /*typename sum_range<*/RangeType/*, decltype(Sfinae::functor_t::xrange)>::type*/ type;
-            };
-
-            template <typename RangeType>
-            struct apply<RangeType, typename boost::disable_if<typename Sfinae::type>::type >{
-                typedef RangeType type;
-            };
-
-        };
-
-        template<bool Cond, typename True, typename False, typename Dummy=void>
-        struct static_if;
-
-        template< typename True, typename False>
-        struct static_if<true, True, False>{
-            typedef True type;
-        };
-
-        template<typename True, typename False>
-        struct static_if<false, True, False>{
-            typedef False type;
-        };
-
-        template<typename Functor>
-        struct get_xrange{
-            struct apply{
-                typedef typename Functor::xrange type;
-            };
-            typedef typename Functor::xrange type;
-        };
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
@@ -153,10 +76,14 @@ namespace gridtools {
                     typedef typename Traits::iterate_domain_t iterate_domain_type;
                     typedef typename Arguments::execution_type_t execution_type_t;
 
-                    //typedef typename sfinae<functor_type>::type::fuck fuck;
-                    typedef typename boost::mpl::eval_if_c<sfinae<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+#ifdef CXX11_ENABLED
+                    typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
 
                     typedef typename sum_range<new_range_t, range_t>::type xrange_t;
+#else
+                    typedef range_t xrange_t;
+#endif
+
                     //typedef typename extend_loop_bounds<sfinae<functor_type> >::template apply<range_t>::type xrange_t;
                     //typedef typename xrange_t::fuck fuck;
 

@@ -74,8 +74,7 @@ namespace gridtools {
 		//in the functor definition (in the high level interface). This means that we cannot
 		// (although in theory we could) pass placeholders to the computation which are not
 		//also referenced in the functor.
-		GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
-					boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value, "GRIDTOOLS ERROR:\n\
+		GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value, "GRIDTOOLS ERROR:\n\
 		check that the number of placeholders passed to the elementary stencil function\n \
 		(constructed during the computation) is the same as the number of arguments referenced\n\
 		in the functor definition (in the high level interface). This means that we cannot\n\
@@ -212,13 +211,13 @@ namespace gridtools {
                   typename LocalDomainList
                   > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            //wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
 
-/**
-   @brief template arguments container
-   the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
-*/
+            //wrapping all the template arguments in a single container
+            /**
+               @brief template arguments container
+               the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
+            */
             /* struct arguments */
             /* { */
             /*     typedef FunctorList functor_list_t; */
@@ -237,11 +236,10 @@ namespace gridtools {
         strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
         }
 
-
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
             {
-                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(/*std::forward<ArgList&>*/(arg_list), /*std::forward<Coords const&>*/(coords));
+                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(arg_list, coords);
             }
     };
 
