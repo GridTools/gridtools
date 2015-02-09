@@ -45,46 +45,37 @@ namespace gridtools {
         gridtools::array<uint_t, size_type::value > value_list;
 
         GT_FUNCTION
-        explicit coordinates(uint_t il, uint_t ih, uint_t jl, uint_t jh/*, uint_t kl, uint_t kh*/)
-            : m_i_low_bound(il)
-            , m_i_high_bound(ih)
-            , m_j_low_bound(jl)
-            , m_j_high_bound(jh)
-            , m_direction_i()
-            , m_direction_j()
-        {}
+        explicit coordinates( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
+            m_direction_i(direction_i),
+            m_direction_j(direction_j)
+            {}
+
 
         GT_FUNCTION
         explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)
-            : m_i_low_bound(i[begin])
-            , m_i_high_bound(i[end])
-            , m_j_low_bound(j[begin])
-            , m_j_high_bound(j[end])
-            // , m_k_low_bound(k[begin])
-            // , m_k_high_bound(k[end])
-            , m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
+            :
+              m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
             , m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
-            // , m_direction_k(k[minus], k[plus], k[begin], k[end], k[length])
         {}
 
         GT_FUNCTION
         uint_t i_low_bound() const {
-            return m_i_low_bound;
+            return m_direction_i.begin();
         }
 
         GT_FUNCTION
         uint_t i_high_bound() const {
-            return m_i_high_bound;
+            return m_direction_i.end();
         }
 
         GT_FUNCTION
         uint_t j_low_bound() const {
-            return m_j_low_bound;
+            return m_direction_j.begin();
         }
 
         GT_FUNCTION
         uint_t j_high_bound() const {
-            return m_j_high_bound;
+            return m_direction_j.end();
         }
 
         template <typename Level>
@@ -116,14 +107,6 @@ namespace gridtools {
 
         gridtools::halo_descriptor m_direction_i;
         gridtools::halo_descriptor m_direction_j;
-        // gridtools::halo_descriptor m_direction_k;
-
-        uint_t m_i_low_bound;
-        uint_t m_i_high_bound;
-        uint_t m_j_low_bound;
-        uint_t m_j_high_bound;
-        // int m_k_low_bound;
-        // int m_k_high_bound;
 
     };
 } // namespace gridtools

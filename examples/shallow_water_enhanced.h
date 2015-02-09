@@ -6,6 +6,7 @@
 #include <boost/lambda/construct.hpp>
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
+#include <storage/parallel_storage.h>
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -288,19 +289,8 @@ namespace shallow_water{
             typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-#ifdef __CUDACC__
-//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type1;
-	    typedef extend_width<base_type1, 1>  extended_type;
-	    typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
-
-	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type2;
-	    typedef extend_width<base_type2, 0>  extended_type2;
-	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
-#else
             typedef field<storage_type, 1, 1, 1>::type sol_type;
             typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
-#endif
 	    typedef sol_type::original_storage::pointer_type ptr;
 
             // Definition of placeholders. The order of them reflects the order the user will deal with them
@@ -311,7 +301,23 @@ namespace shallow_water{
             typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
 
 
-            // // Definition of the actual data fields that are used for input/output
+            // typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+            //                                             gridtools::layout_map<0, 1, 2>,
+            //                                             pointer_type::pointee_t, 3,
+            //                                             gridtools::gcl_cpu,
+            //                                             gridtools::version_manual> pattern_type;
+
+            // pattern_type he(pattern_type::grid_type::period_type(true, true, true), CartComm);
+
+            // he.add_halo<0>(H, H, H, high_bound_i+H-1, high_bound_i+H+H);
+            // he.add_halo<1>(H, H, H, high_bound_j+H-1, high_bound_j+H+H);
+            // he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+
+            // he.setup(2);
+
+            // // // Definition of the actual data fields that are used for input/output
+            // partitioner_trivial<integrator_type> part(coordinates, dims, halo);
+            // parallel_storage<sol_type> sol(d1,d2,d3);
             sol_type sol(d1,d2,d3);
             ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
 
@@ -384,6 +390,10 @@ namespace shallow_water{
 
             shallow_water_stencil->finalize();
         }
+
+        MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+
         return true;
 
     }

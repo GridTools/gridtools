@@ -120,6 +120,66 @@ namespace gridtools{
             };
         };
 
+#ifdef CXX11_ENABLED
+    /**
+       @brief Sobstitution Failure is Not An Error
+
+       design pattern used to detect at compile-time whether a class contains a member or not (introspection)
+    */
+    // define an SFINAE structure
+    template <typename T>
+    struct SFINAE;
+
+    template <>
+    struct SFINAE<int>{};
+
+    /**@brief Implementation of introspection
+
+     returning true when the template functor has a type alias called 'xrange'.
+     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
+     for the current functor at compile-time.
+     NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
+     to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
+ */
+    template<typename TFunctor>
+    struct has_xrange
+    {
+        // define a MixIn class providing a Do member
+        struct MixIn
+        {
+            using xrange = int ;
+        };
+        // multiple inheritance form TFunctor and MixIn
+        // (if both define a Do it will be ambiguous in the Derived struct)
+        struct derived : public TFunctor, public MixIn {};
+
+
+        // SFINAE test methods which try to match the MixIn Do method signature
+        // (note that multiple inheritance hides all symbols which are defined in more than one base class,
+        // i.e. if TFunctor and MixIn both define a Do symbol then it will be ambiguous in the Derived class
+        // and we will fall back to the ellipsis test method)
+        template<typename TDerived>
+        static boost::mpl::false_ test( SFINAE<typename TDerived::xrange>* x );
+        template<typename TDerived>
+        static boost::mpl::true_ test(...);
+
+        typedef decltype(test<derived>(0)) type;
+        typedef TFunctor functor_t;
+    };
+
+    /** @brief Unary metafunction used to delay computation
+
+        when using e.g. booat::mpl::eval_if, the untaken branches get not compiled since they are unary metafunctions.
+        This makes the SFINAE work properly (otherwise the compiler would complain that a member is missing)
+    */
+    template<typename Functor>
+    struct get_xrange{
+        struct apply{
+            typedef typename Functor::xrange type;
+        };
+        typedef typename Functor::xrange type;
+    };
+#endif
 
 /**
    @brief specialization for the \ref gridtools::_impl::Naive strategy
@@ -164,6 +224,7 @@ namespace gridtools{
     template< typename StorageBase, uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
     struct host_tmp_storage;
 
+
 /**
    @brief specialization for the \ref gridtools::_impl::Block strategy
    The loops over i and j are split according to the values of BI and BJ
@@ -188,6 +249,7 @@ namespace gridtools{
                         typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
 
                         typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
+
                         uint_t n = coords.i_high_bound() + range_t::iplus::value - (coords.i_low_bound() + range_t::iminus::value);
                         uint_t m = coords.j_high_bound() + range_t::jplus::value - (coords.j_low_bound() + range_t::jminus::value);
 
@@ -226,7 +288,6 @@ namespace gridtools{
                         }
                     }
             };
-
 
             template <typename StorageBase , uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
             struct tmp
