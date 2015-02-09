@@ -3,7 +3,6 @@ import sys
 import ast
 import logging
 import warnings
-import redbaron
 
 import numpy as np
 
