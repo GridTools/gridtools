@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gridtools.h>
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include "level.h"
@@ -214,7 +215,7 @@ namespace gridtools{
             struct tmp
                 {
 //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-                    typedef clonable_storage< StorageType > host_storage_t;
+                    typedef storage< StorageType > host_storage_t;
                 };
 
         };
@@ -293,7 +294,7 @@ namespace gridtools{
             struct tmp
                 {
                     GRIDTOOLS_STATIC_ASSERT(StorageBase::backend==enumtype::Host, "The Block strategy with backends other than Host has not been tested and is disabled by default.\n\
- If you know what you do comment out this assert.");
+ If you know what you do comment out this assert.")
                     typedef host_tmp_storage < StorageBase, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> host_storage_t;
                 };
 

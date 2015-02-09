@@ -153,14 +153,13 @@ namespace gridtools {
 		    ( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
 		    ( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3) )}
 	    {
-		GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
+		GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
 
                 for(ushort_t i=0; i<field_dimensions; ++i)
                     m_fields[i]=pointer_type(dim1*dim2*dim3);
                 initialize(init);
             }
 
-#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
         /**@brief generic multidimensional constructor
 
 	   There are two possible types of storage dimension. One (space dimension) defines the number of indexes
@@ -188,7 +187,6 @@ namespace gridtools {
 		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
 		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
 	    }
-#endif // GCC<4.9.0
 
 #else //CXX11_ENABLED
 
@@ -443,7 +441,7 @@ namespace gridtools {
             typedef boost::mpl::vector<UInt...> tlist;
             //boost::is_same<boost::mpl::_1, uint_t>
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
-            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
+            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type")
 #endif
             return _impl::compute_offset<space_dimensions, layout>::apply(m_strides, dims ...);
         }
@@ -583,7 +581,7 @@ namespace gridtools {
 
         typedef extend_width<Storage, ExtraWidth> type;
 	/*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
-	GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.");
+	GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.")
         typedef Storage super;
         typedef typename super::pointer_type pointer_type;
 
