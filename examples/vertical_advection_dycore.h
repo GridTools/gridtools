@@ -318,7 +318,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     vertical_advection->finalize();
 
 #ifdef CUDA_EXAMPLE
-    ().update_cpu();
+    repository.update_cpu();
 #endif
 
 
