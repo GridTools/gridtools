@@ -190,6 +190,14 @@ public:
         }
     }
 
+    void update_cpu()
+    {
+#ifdef CUDA_EXAMPLE
+        utens_stage_ref_.update_cpu();
+        utens_stage_.update_cpu();
+#endif
+    }
+
     void backward_sweep(storage_type& ccol, storage_type& dcol, ij_storage_type& datacol)
     {
         double dtr_stage = dtr_stage_(0,0,0);
