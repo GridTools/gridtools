@@ -17,16 +17,16 @@ namespace gridtools {
    * Class that provides a generic 3D process grid from a linear
    * process distribution.  Given a contiguos range of P processes,
    * from 0 to P-1, this class provide a distribution of these
-   * processes as a 3D grid 
+   * processes as a 3D grid
 
-   1) by row in the best possible aspect ratio if GCL_3D_PROC_GRID environment variable is set to BLOCKED (default). 
+   1) by row in the best possible aspect ratio if GCL_3D_PROC_GRID environment variable is set to BLOCKED (default).
 
    2) by linear layout by I, J or K if GCL_3D_PROC_GRID environment variable is set BY_I, BY_J, or BY_K, resp.
 
    3) others to come
 
    * \n
-   * \tparam CYCLIC is a boollist class \link boollist_concept \endlink template parameter that specifies which dimensions of the grid are clyclic 
+   * \tparam CYCLIC is a boollist class \link boollist_concept \endlink template parameter that specifies which dimensions of the grid are clyclic
    * \n
    * This is a process grid matching the \ref proc_grid_concept concept
    */
@@ -45,8 +45,8 @@ namespace gridtools {
 
   private:
     int proc_idx(int rr, int cc, int ss) const {
-      if (rr >= R || rr < 0 
-          || cc >= C || cc < 0 
+      if (rr >= R || rr < 0
+          || cc >= C || cc < 0
           || ss >= S || ss < 0)
         return -1;
       return rr*S*C+cc*S+ss;
@@ -143,7 +143,7 @@ namespace gridtools {
         \param[in] pid Number of processes that will make the grid
      */
     _3D_process_grid_t(period_type const &c, int P, int pid)
-      : cyclic(c) 
+      : cyclic(c)
       , R(0)
       , C(0)
       , S(0)
@@ -201,7 +201,7 @@ namespace gridtools {
               std::cout << "Blocked grid of processes (not recognized env. variable)" << std::endl;
 #endif
               create_blocked(P, pid);
-            }        
+            }
           }
         }
       }
@@ -304,14 +304,14 @@ namespace gridtools {
 
     /** number of dimensions
      */
-    static const int ndims = 3;
+      static const int ndims = CYCLIC::size;
 
-    MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
-    period_type cyclic;
-    int R,C,S;
-    int r,c,s;
+      MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
+      period_type cyclic;
+      int m_dimensions[ndims];
+      int m_coordinates[ndims];
 
-    /** 
+    /**
         Returns communicator
      */
       MPI_Comm communicator() const {
@@ -322,9 +322,11 @@ namespace gridtools {
         \param c Object containing information about periodicities as defined in \ref boollist_concept
         \param comm MPI Communicator describing the MPI 3D computing grid
      */
-    MPI_3D_process_grid_t(period_type const &c, MPI_Comm comm)
-      : m_communicator(comm)
-      , cyclic(c)
+    MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm)
+        : //m_communicator(comm)
+        cyclic(c),
+        m_dimensions{0},
+        m_coordinates{0}
     {create(comm);}
 
     /** Function to create the grid. This can be called in case the
@@ -332,15 +334,22 @@ namespace gridtools {
 
         \param comm MPI Communicator describing the MPI 3D computing grid
      */
-    void create(MPI_Comm comm) {
-      int dims[3]={0,0,0}, periods[3]={true,true,true}, coords[3]={0,0,0};
-      MPI_Cart_get(m_communicator, 3, dims, periods/*does not really care*/, coords);
-      R=dims[0];
-      C=dims[1];
-      S=dims[2];
-      r = coords[0];
-      c = coords[1];
-      s = coords[2];
+    void create(MPI_Comm const& comm) {
+        //int dims[ndims]={0,0,0}, periods[ndims]={true,true,true}, coords[ndims]={0,0,0};
+        int period[ndims];
+        period[0]=cyclic.value0;
+        period[1]=cyclic.value1;
+        period[2]=cyclic.value2;
+        int nprocs;
+        MPI_Comm_size(comm, &nprocs);
+        MPI_Dims_create(nprocs, ndims, m_dimensions);
+        MPI_Cart_create(comm, ndims, m_dimensions, period, false, &m_communicator);
+        MPI_Cart_get(m_communicator, ndims, m_dimensions, period/*does not really care*/, m_coordinates);
+      // for(ushort_t i=0; i<ndims; ++i)
+      // {
+      //     m_dimensions[i]=dims[i];
+      //     m_coordinates[i] = coords[i];
+      // }
     }
 
     /** Returns in t_R and t_C the lenght of the dimensions of the process grid AS PRESCRIBED BY THE CONCEPT
@@ -349,17 +358,18 @@ namespace gridtools {
         \param[out] t_S Number of elements in third dimension
     */
     void dims(int &t_R, int &t_C, int &t_S) const {
-      t_R=R;
-      t_C=C;
-      t_S=S;
+        GRIDTOOLS_STATIC_ASSERT(ndims==3, "this interface supposes ndims=3")
+        t_R=m_dimensions[0];
+        t_C=m_dimensions[1];
+        t_S=m_dimensions[2];
     }
 
-    /** Returns the number of processors of the processor grid
+      /** Returns the number of processors of the processor grid
 
         \return Number of processors
     */
     int size() const {
-      return R*C*S;
+      return m_dimensions[0]*m_dimensions[1]*m_dimensions[2];
     }
 
     /** Returns in t_R and t_C the coordinates ot the caller process in the grid AS PRESCRIBED BY THE CONCEPT
@@ -368,9 +378,10 @@ namespace gridtools {
         \param[out] t_S Coordinate in third dimension
     */
     void coords(int &t_R, int &t_C, int &t_S) const {
-      t_R = r;
-      t_C = c;
-      t_S = s;
+        GRIDTOOLS_STATIC_ASSERT(ndims==3, "this interface supposes ndims=3")
+            t_R = m_coordinates[0];
+        t_C = m_coordinates[1];
+        t_S = m_coordinates[2];
     }
 
     /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
@@ -379,7 +390,7 @@ namespace gridtools {
         \tparam K Relative coordinate in the third dimension
         \return The process ID of the required process
     */
-    template <int I, int J, int K>
+      template <int I, int J, int K>
     int proc() const {
       return proc(I,J,K);
     }
@@ -390,30 +401,30 @@ namespace gridtools {
         \param[in] K Relative coordinate in the third dimension
         \return The process ID of the required process
     */
-    int proc(int I, int J, int K) const {
+      int proc(int I, int J, int K) const {
       int _coords[3];
 
       if (cyclic.value0)
-        _coords[0] = (r+I)%R;
+        _coords[0] = (m_coordinates[0]+I)%m_dimensions[0];
       else {
-        _coords[0] = r+I;
-        if (_coords[0]<0 || _coords[0]>=R)
+        _coords[0] = m_coordinates[0]+I;
+        if (_coords[0]<0 || _coords[0]>=m_dimensions[0])
           return -1;
       }
 
       if (cyclic.value1)
-        _coords[1] = (c+J)%C;
+        _coords[1] = (m_coordinates[1]+J)%m_dimensions[1];
       else {
-        _coords[1] = c+J;
-        if (_coords[1]<0 || _coords[1]>=C)
+        _coords[1] = m_coordinates[1]+J;
+        if (_coords[1]<0 || _coords[1]>=m_dimensions[1])
           return -1;
       }
 
       if (cyclic.value2)
-        _coords[2] = (s+K)%S;
+        _coords[2] = (m_coordinates[2]+K)%m_dimensions[2];
       else {
-        _coords[2] = s+K;
-        if (_coords[2]<0 || _coords[2]>=S)
+        _coords[2] = m_coordinates[2]+K;
+        if (_coords[2]<0 || _coords[2]>=m_dimensions[2])
           return -1;
       }
 
@@ -422,13 +433,15 @@ namespace gridtools {
       return res;
     }
 
+      int* coordinates(){return m_coordinates;}
+      int* dimensions(){return m_dimensions;}
     /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
         \param[in] crds gridtools::aray of coordinates of the processor of which the ID is needed
 
         \return The process ID of the required process
     */
     int abs_proc(gridtools::array<int,ndims> const & crds) const {
-      return proc(crds[0]-r, crds[1]-c, crds[2]-s);
+      return proc(crds[0]-coordinates[0], crds[1]-coordinates[1], crds[2]-coordinates[2]);
     }
 
   };

@@ -20,12 +20,16 @@ namespace gridtools {
        \endcode
        See \link Concepts \endlink, \link proc_grid_2D_concept \endlink, \link proc_grid_3D_concept \endlink
      */
+
+
     template <ushort_t I>
     struct boollist {}; // brackets to get it into documentation
 
     template <>
     struct boollist<1>
     {
+      static const ushort_t size=1;
+
       const bool value0;
       boollist(bool v0)
         :value0(v0)
@@ -49,6 +53,7 @@ namespace gridtools {
     template <>
     struct boollist<2>
     {
+      static const ushort_t size=2;
       const bool value0;
       const bool value1;
       boollist(bool v0, bool v1)
@@ -77,6 +82,7 @@ namespace gridtools {
     template <>
     struct boollist<3>
     {
+      static const ushort_t size=3;
       const bool value0;
       const bool value1;
       const bool value2;
@@ -109,6 +115,7 @@ namespace gridtools {
     template <>
     struct boollist<4>
     {
+      static const ushort_t size=4;
       const bool value0;
       const bool value1;
       const bool value2;
@@ -142,7 +149,6 @@ namespace gridtools {
             arr[3] = value3;
       }
     };
-
 
 }
 
