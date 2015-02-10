@@ -138,7 +138,7 @@ namespace gridtools {
             m_name=string;
         }
 
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && !defined( __CUDACC__)
 
 	/**
 	   @brief 3D storage constructor
@@ -187,7 +187,6 @@ namespace gridtools {
 		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
 		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
 	    }
-
 #else //CXX11_ENABLED
 
         /**@brief default constructor
@@ -710,19 +709,12 @@ namespace gridtools {
         typedef typename Storage::basic_type basic_type;
         typedef typename Storage::original_storage original_storage;
 
-// #ifdef CXX11_ENABLED
-	// /**@brief constructor given the space boundaries*/
-	// template<typename IntTypes ... >
-        // extend_width(  const IntTypes ... & d)
-        //     : Storage(d...)
-        //     {
-	//     }
-// #else
+#ifdef CXX11_ENABLED
         /**@brief default constructor*/
 	template<typename ... UIntTypes>
         explicit extend_width(UIntTypes const& ... args ): Storage( args ... ) {
         }
-// #endif
+#endif
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~extend_width(){
@@ -800,16 +792,19 @@ namespace gridtools {
         typedef typename super::original_storage original_storage;
 	static const short_t n_width=sizeof...(StorageExtended)+1;
 
+#if defined(CXX11_ENABLED)
 	/**@brief constructor given the space boundaries*/
 	template<typename ... UIntTypes>
         extend_dim(  UIntTypes const& ... args )
             : super(args...)
             {
 	    }
+#endif
 
 	/**@brief device copy constructor*/
+        template <typename T>
         __device__
-        extend_dim( extend_dim const& other )
+        extend_dim( T const& other )
             : super(other)
             {}
 
