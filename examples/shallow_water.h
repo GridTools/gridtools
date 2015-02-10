@@ -349,7 +349,7 @@ namespace shallow_water{
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-#ifdef __CUDACC__
+#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && !defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9)))
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
 	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type1;
 	    typedef extend_width<base_type1, 1>  extended_type;
