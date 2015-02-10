@@ -29,7 +29,7 @@ add_executable(shallow_water  shallow_water.cpp)
     set_target_properties(shallow_water PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
 add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
-    target_link_libraries(shallow_water_enhanced ${exe_LIBS})
+    target_link_libraries(shallow_water_enhanced ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
     set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
     # add_executable( unstructured unstructured.cpp )

@@ -9,8 +9,7 @@
 #include <storage/parallel_storage.h>
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
-#include <communication/high-level/mpi_driver.h>
-
+#include <communication/low-level/proc_grids_3D.h>
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the backend*/
 
@@ -105,11 +104,7 @@ namespace copy_stencil{
         typedef vec_storage_type::original_storage::pointer_type pointer_type;
 	// Definition of the actual data fields that are used for input/output
 #ifdef CXX11_ENABLED
-        mpi_cart_comm<3> comm;
-        comm.set_periodicity<0>(true);
-        comm.set_periodicity<1>(true);
-        comm.set_periodicity<2>(true);
-        comm.activate_world();
+        MPI_3D_process_grid_t<gridtools::boollist<3> > comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<vec_storage_type> partitioner_t;
         partitioner_t part(comm.coordinates(), comm.dimensions(), halo);
@@ -149,7 +144,7 @@ namespace copy_stencil{
                                                     gridtools::gcl_cpu,
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.get());
+        pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
 
         he.add_halo<0>(part.template get_halo_descriptor<0>());
         he.add_halo<1>(part.template get_halo_descriptor<1>());
@@ -213,8 +208,8 @@ namespace copy_stencil{
 
 	copy->finalize();
 
- 	MPI_Barrier(MPI_COMM_WORLD);
- 	MPI_Finalize();
+ 	MPI_Barrier(GCL_WORLD);
+ 	GCL_Finalize();
 
 	return true;
     }

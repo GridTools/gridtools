@@ -7,6 +7,7 @@
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
+#include <storage/partitioner_trivial.h>
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -262,16 +263,15 @@ namespace shallow_water{
     extern char const s2[]="world ";
 
     bool test(uint_t x, uint_t y, uint_t z) {
-        {
 #ifndef __CUDACC__
-	    //testing the static printing
-	    typedef string_c<print, s1, s2, s1, s1 > s;
-	    s::apply();
+        //testing the static printing
+        typedef string_c<print, s1, s2, s1, s1 > s;
+        s::apply();
 #endif
 
-            uint_t d1 = x;
-            uint_t d2 = y;
-            uint_t d3 = z;
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -282,117 +282,123 @@ namespace shallow_water{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-            //                      dims  z y x
-            //                   strides xy x 1
-            typedef layout_map<2,1,0> layout_t;
-            typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-            typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+        //                      dims  z y x
+        //                   strides xy x 1
+        typedef layout_map<2,1,0> layout_t;
+        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
-    /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-            typedef field<storage_type, 1, 1, 1>::type sol_type;
-            typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
-	    typedef sol_type::original_storage::pointer_type ptr;
+        /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+        typedef field<storage_type, 1, 1, 1>::type sol_type;
+        typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
+        typedef sol_type::original_storage::pointer_type ptr;
 
-            // Definition of placeholders. The order of them reflects the order the user will deal with them
-            // especially the non-temporary ones, in the construction of the domain
-            typedef arg<0, tmp_type > p_tmpx;
-            typedef arg<1, tmp_type > p_tmpy;
-            typedef arg<2, sol_type > p_sol;
-            typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
+        // Definition of placeholders. The order of them reflects the order the user will deal with them
+        // especially the non-temporary ones, in the construction of the domain
+        typedef arg<0, tmp_type > p_tmpx;
+        typedef arg<1, tmp_type > p_tmpy;
+        typedef arg<2, sol_type > p_sol;
+        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
 
+        MPI_3D_process_grid_t<gridtools::boollist<3> > comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
+        ushort_t halo[3]={1,1,1};
+        typedef partitioner_trivial<sol_type> partitioner_t;
+        typedef sol_type::original_storage::pointer_type pointer_type;
+        partitioner_t part(comm.coordinates(), comm.dimensions(), halo);
+        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
 
-            // typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
-            //                                             gridtools::layout_map<0, 1, 2>,
-            //                                             pointer_type::pointee_t, 3,
-            //                                             gridtools::gcl_cpu,
-            //                                             gridtools::version_manual> pattern_type;
+        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+                                                    gridtools::layout_map<0, 1, 2>,
+                                                    pointer_type::pointee_t, 3,
+                                                    gridtools::gcl_cpu,
+                                                    gridtools::version_manual> pattern_type;
 
-            // pattern_type he(pattern_type::grid_type::period_type(true, true, true), CartComm);
+        pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
 
-            // he.add_halo<0>(H, H, H, high_bound_i+H-1, high_bound_i+H+H);
-            // he.add_halo<1>(H, H, H, high_bound_j+H-1, high_bound_j+H+H);
-            // he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+        he.add_halo<0>(part.template get_halo_descriptor<0>());
+        he.add_halo<1>(part.template get_halo_descriptor<1>());
+        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
-            // he.setup(2);
+        he.setup(3);
 
-            // // // Definition of the actual data fields that are used for input/output
-            // partitioner_trivial<integrator_type> part(coordinates, dims, halo);
-            // parallel_storage<sol_type> sol(d1,d2,d3);
-            sol_type sol(d1,d2,d3);
-            ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
+        ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
+        sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
+        sol.set<1>(out8, 0.);//u
+        sol.set<2>(out9, 0.);//v
 
-            sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
-            sol.set<1>(out8, 0.);//u
-            sol.set<2>(out9, 0.);//v
+        std::cout<<"INITIALIZED VALUES"<<std::endl;
+        sol.print();
+        std::cout<<"#####################################################"<<std::endl;
 
-            std::cout<<"INITIALIZED VALUES"<<std::endl;
-            sol.print();
-            std::cout<<"#####################################################"<<std::endl;
+        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
+        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+        // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+        domain_type<arg_type_list> domain
+            (boost::fusion::make_vector(&sol));
 
-            // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
-            // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-            // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-            domain_type<arg_type_list> domain
-                (boost::fusion::make_vector(&sol));
+        // Definition of the physical dimensions of the problem.
+        // The constructor takes the horizontal plane dimensions,
+        // while the vertical ones are set according the the axis property soon after
+        // coordinates<axis> coords(2,d1-2,2,d2-2);
+        uint_t di2[5] = {1, 0, 1, d1-3, d1};
+        uint_t dj2[5] = {1, 0, 1, d2-3, d2};
+        coordinates<axis> coords(di2, dj2);
+        coords.value_list[0] = 0;
+        coords.value_list[1] = d3-1;
 
-            // Definition of the physical dimensions of the problem.
-            // The constructor takes the horizontal plane dimensions,
-            // while the vertical ones are set according the the axis property soon after
-            // coordinates<axis> coords(2,d1-2,2,d2-2);
-            uint_t di2[5] = {1, 0, 1, d1-3, d1};
-            uint_t dj2[5] = {1, 0, 1, d2-3, d2};
-            coordinates<axis> coords(di2, dj2);
-            coords.value_list[0] = 0;
-            coords.value_list[1] = d3-1;
-
-            auto shallow_water_stencil =
-                make_computation<gridtools::BACKEND, layout_t>
+        auto shallow_water_stencil =
+            make_computation<gridtools::BACKEND, layout_t>
+            (
+                make_mss // mss_descriptor
                 (
-                    make_mss // mss_descriptor
-                    (
-                        execute<forward>(),
-                        make_independent(
-                            make_esf<first_step_x> (p_tmpx(), p_sol() ),
-                            make_esf<second_step_y>(p_tmpy(), p_sol() )),
-                        make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
-                        ),
-                    domain, coords
-                    );
+                    execute<forward>(),
+                    make_independent(
+                        make_esf<first_step_x> (p_tmpx(), p_sol() ),
+                        make_esf<second_step_y>(p_tmpy(), p_sol() )),
+                    make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
+                    ),
+                domain, coords
+                );
 
-            shallow_water_stencil->ready();
+        shallow_water_stencil->ready();
 
-            shallow_water_stencil->steady();
+        shallow_water_stencil->steady();
 
-            array<halo_descriptor, 3> halos;
-            halos[0] = halo_descriptor(1,0,1,d1-1,d1);
-            halos[1] = halo_descriptor(1,0,1,d2-1,d2);
-            halos[2] = halo_descriptor(0,0,1,d3-1,d3);
+        array<halo_descriptor, 3> halos;
+        halos[0] = halo_descriptor(1,0,1,d1-1,d1);
+        halos[1] = halo_descriptor(1,0,1,d2-1,d2);
+        halos[2] = halo_descriptor(0,0,1,d3-1,d3);
 
-	    //the following might be runtime value
-	    uint_t total_time=1;
+        //the following might be runtime value
+        uint_t total_time=1;
 
-	    for (;final_step::current_time < total_time; ++final_step::current_time)
-	    {
+        for (;final_step::current_time < total_time; ++final_step::current_time)
+        {
 #ifdef CUDA_EXAMPLE
-		// TODO: use placeholders here instead of the storage
-		/*                                 component,snapshot */
-		boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-		boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+            // TODO: use placeholders here instead of the storage
+            /*                                 component,snapshot */
+            boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+            boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
 #else
-		// TODO: use placeholders here instead of the storage
-		/*                             component,snapshot */
-		boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-		boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+            // TODO: use placeholders here instead of the storage
+            /*                             component,snapshot */
+            boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+            boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
 #endif
-		shallow_water_stencil->run();
-                sol.print();
-	    }
+            shallow_water_stencil->run();
 
-            shallow_water_stencil->finalize();
+            std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
+            he.pack(vec);
+            he.exchange();
+            he.unpack(vec);
+
+            sol.print();
         }
 
-        MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
+        shallow_water_stencil->finalize();
+        he.wait();
+
+        GCL_Finalize();
 
         return true;
 
