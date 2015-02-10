@@ -349,18 +349,18 @@ namespace shallow_water{
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && !defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9)))
+#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))))
+	    //typedef field<storage_type::basic_type, 1, 1, 1>::type tmp_type;
+            typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;
+#else
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
 	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type1;
 	    typedef extend_width<base_type1, 1>  extended_type;
-	    typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
+	    typedef storage<extend_dim<extended_type, extended_type, extended_type> >  tmp_type;
 
 	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type2;
 	    typedef extend_width<base_type2, 0>  extended_type2;
-	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
-#else
-	    //typedef field<storage_type::basic_type, 1, 1, 1>::type tmp_type;
-            typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;
+	    typedef storage<extend_dim<extended_type2, extended_type2, extended_type2> >  sol_type;
 #endif
 	    typedef sol_type::original_storage::pointer_type ptr;
 

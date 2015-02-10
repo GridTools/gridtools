@@ -95,16 +95,15 @@ namespace copy_stencil{
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && !defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9)))
+#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))))
+        //vector field of dimension 2
+        typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
+#else
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
         typedef extend_width<base_type1, 0>  extended_type;
-        typedef extend_dim<extended_type, extended_type>  vec_field_type;
-#else
-        //vector field of dimension 2
-        typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
-#endif
+        typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
 #endif
         //out.print();
 

@@ -4,6 +4,12 @@
 #include "host_tmp_storage.h"
 #include "accumulate.h"
 
+/**
+@file
+@brief Storage class
+This extra layer is added on top of the base_storage class because it extends the clonabl_to_gpu interface. Due to the multiple inheritance pattern this class should not be further inherited.
+*/
+
 namespace gridtools{
 
     template < typename BaseStorage >
