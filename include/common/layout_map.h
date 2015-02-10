@@ -74,7 +74,7 @@ namespace gridtools {
     template <short_t ... Args>
     struct layout_map{
         static constexpr ushort_t length=sizeof...(Args);
-        static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
+        static constexpr short_t layout_vector[sizeof...(Args)]={Args...};
 	typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
         /* static const int s=t::fuck(); */
         /* BOOST_STATIC_ASSERT(s); */
@@ -292,6 +292,9 @@ namespace gridtools {
         };
 
     };
+
+    template <short_t ... Args>
+    constexpr short_t layout_map<Args ... >::layout_vector[sizeof...(Args)];
 
 #else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 

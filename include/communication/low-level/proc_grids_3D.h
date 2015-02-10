@@ -322,12 +322,21 @@ namespace gridtools {
         \param c Object containing information about periodicities as defined in \ref boollist_concept
         \param comm MPI Communicator describing the MPI 3D computing grid
      */
-    MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm)
-        : //m_communicator(comm)
-        cyclic(c),
-        m_dimensions{0},
-        m_coordinates{0}
-    {create(comm);}
+      MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm)
+          :
+          cyclic(c)
+#ifndef __clang__
+          ,m_dimensions{0},
+          m_coordinates{0}
+          {
+#else
+          {
+              for (ushort_t i=0; i<ndims; ++i){
+                  m_dimensions[i]=0;
+                  m_coordinates[i]=0;
+              }
+#endif
+                  create(comm);}
 
     /** Function to create the grid. This can be called in case the
         grid is default constructed. Its direct use is discouraged
@@ -441,7 +450,7 @@ namespace gridtools {
         \return The process ID of the required process
     */
     int abs_proc(gridtools::array<int,ndims> const & crds) const {
-      return proc(crds[0]-coordinates[0], crds[1]-coordinates[1], crds[2]-coordinates[2]);
+      return proc(crds[0]-m_coordinates[0], crds[1]-m_coordinates[1], crds[2]-m_coordinates[2]);
     }
 
   };
