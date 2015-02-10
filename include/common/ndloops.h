@@ -73,7 +73,7 @@ namespace gridtools {
     };
 
 /**@brief of each element of an array it performs a loop between the array bounds defined in a template parameter, and it computes a function of type F */
-    template <uint_t I, typename F>
+    template <int_t I, typename F>
     struct access_loop;
 
     template <typename F>
@@ -86,7 +86,7 @@ namespace gridtools {
       }
     };
 
-    template <uint_t I, typename F>
+    template <int_t I, typename F>
     struct access_loop {
       template <typename arraybounds, typename array>
       void operator()(arraybounds const & ab,
@@ -101,7 +101,7 @@ namespace gridtools {
     };
 
 
-    template <uint_t I>
+    template <int_t I>
     struct loop;
 
     template <>
@@ -113,7 +113,7 @@ namespace gridtools {
       }
     };
 
-    template <uint_t I>
+    template <int_t I>
     struct loop {
       template <typename F, typename arraybounds, typename array>
       void operator()(arraybounds const & ab,
@@ -126,7 +126,7 @@ namespace gridtools {
     };
 
 /** @brief similar to the previous struct, given the upper and lower bound */
-    template <uint_t I, int_t LB=-1, int_t UB=1>
+    template <int_t I, int_t LB=-1, int_t UB=1>
     struct neigh_loop;
 
     template <int_t LB, int_t UB>
@@ -137,7 +137,7 @@ namespace gridtools {
       }
     };
 
-    template <uint_t I, int_t LB, int_t UB>
+    template <int_t I, int_t LB, int_t UB>
     struct neigh_loop {
       template <typename F, typename array>
       void operator()(F &f, array & tuple) {

@@ -69,7 +69,7 @@ namespace gridtools{
                 }
 
                 uint_t tile_dimension = coord_length(component);
-                m_coordinates[component] = halo_descriptor({m_halo[component], m_halo[component], m_halo[component], tile_dimension, tile_dimension+m_halo[component]+1});
+                m_coordinates[component] = halo_descriptor(m_halo[component], m_halo[component], m_halo[component], tile_dimension, tile_dimension+m_halo[component]+1);
 
 #ifndef NDEBUG
                 std::cout<<"partitioning"<<std::endl;
@@ -88,7 +88,7 @@ namespace gridtools{
         int_t m_low_bound[Storage::space_dimensions];
         int_t m_up_bound[Storage::space_dimensions];
         uint_t m_sizes[Storage::space_dimensions];
-        ushort_t* m_halo;
+        uint_t* m_halo;
         int* m_pid;
         int* m_ntasks;
         halo_descriptor m_coordinates[Storage::space_dimensions];
