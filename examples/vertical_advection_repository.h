@@ -26,6 +26,9 @@ public:
         wcon_(idim, jdim, kdim, -1, "wcon"),
         u_pos_(idim, jdim, kdim, -1, "u_pos"),
         utens_(idim, jdim, kdim, -1, "utens"),
+        ipos_(idim, jdim, kdim, -1, "ipos"),
+        jpos_(idim, jdim, kdim, -1, "jpos"),
+        kpos_(idim, jdim, kdim, -1, "kpos"),
         dtr_stage_(0,0,0, -1, "dtr_stage"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
@@ -66,6 +69,9 @@ public:
                     wcon_(i,j,k) = 2e-4*(-1 + 2*(2.+cos(PI*(x+z)) + cos(PI*y))/4. + 0.1*(0.5-double(rand()%100)/50.));
 
                     utens_stage_(i,j,k) = -1;
+                    ipos_(i,j,k) = i;
+                    jpos_(i,j,k) = j;
+                    kpos_(i,j,k)=k;
                 }
             }
         }
@@ -113,7 +119,6 @@ public:
 
     void forward_sweep(int ishift, int jshift, storage_type& ccol, storage_type& dcol)
     {
-
         double dtr_stage = dtr_stage_(0,0,0);
         // k minimum
         int k = 0;
@@ -135,6 +140,11 @@ public:
                 double divided = (double) 1.0 / bcol;
                 ccol(i, j, k) = ccol(i, j, k) * divided;
                 dcol(i, j, k) = dcol(i, j, k) * divided;
+
+                if(i==3 && j == 3)
+                std::cout << "AT ref at  " << k << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "  " << gcv <<
+                "  " << wcon_(i,j,k+1) << "  " << wcon_(i+ishift, j+jshift, k+1) << std::endl;
+
             }
         }
 
@@ -163,6 +173,8 @@ public:
                     double divided = (double)1.0 / (bcol - (ccol(i,j,k-1) * acol));
                     ccol(i,j,k) = ccol(i,j,k) * divided;
                     dcol(i,j,k) = (dcol(i,j,k) - (dcol(i,j,k-1) * acol)) * divided;
+                    if(i==3 && j == 3)
+                    std::cout << "AT ref at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << std::endl;
                 }
             }
         }
@@ -186,6 +198,8 @@ public:
 
                 double divided = (double)1.0 / (bcol - (ccol(i,j,k-1) * acol));
                 dcol(i,j,k) = (dcol(i,j,k) - (dcol(i,j,k-1) * acol)) * divided;
+                if(i==3 && j == 3)
+                std::cout << "AT KMAX ref at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "  " << gav << std::endl;
             }
         }
     }
@@ -209,6 +223,8 @@ public:
             {
                 datacol(i,j,0) = dcol(i,j,k);
                 utens_stage_ref_(i,j,k) = dtr_stage*(datacol(i,j,k) - u_pos_(i,j,k));
+                if(i==3 && j == 3)
+                std::cout << "AT RES KMAX ref at  " << k << "  " <<  utens_stage_ref_(i,j,k) << std::endl;
             }
         }
         // kbody
@@ -220,6 +236,8 @@ public:
                 {
                     datacol(i,j,0) = dcol(i,j,k) - (ccol(i,j,k)*datacol(i,j,k+1));
                     utens_stage_ref_(i,j,k) = dtr_stage*(datacol(i,j,k) - u_pos_(i,j,k));
+                    if(i==3 && j == 3)
+                    std::cout << "AT RES KBODY ref at  " << k << "  " <<  utens_stage_ref_(i,j,k) << std::endl;
                 }
             }
         }
@@ -229,6 +247,9 @@ public:
     storage_type& wcon() {return wcon_;}
     storage_type& u_pos() {return u_pos_;}
     storage_type& utens() {return utens_;}
+    storage_type& ipos() {return ipos_;}
+    storage_type& jpos() {return jpos_;}
+    storage_type& kpos() {return kpos_;}
     scalar_storage_type& dtr_stage() {return dtr_stage_;}
 
     //output fields
@@ -236,6 +257,7 @@ public:
     storage_type& utens_stage_ref() {return utens_stage_ref_;}
 private:
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
+    storage_type ipos_, jpos_, kpos_;
     scalar_storage_type dtr_stage_;
     const int halo_size_;
     const int idim_, jdim_, kdim_;

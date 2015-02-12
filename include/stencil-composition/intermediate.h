@@ -125,7 +125,7 @@ namespace gridtools {
             typedef boost::false_type type;
         };
 
-	/**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing ranges, one per functor*/
+    /**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing ranges, one per functor*/
         template <typename T>
         struct from_independents<independent_esf<T> > {
             typedef typename boost::mpl::fold<
@@ -135,143 +135,139 @@ namespace gridtools {
                 >::type raw_type;
 
         typedef wrap_type<raw_type> type;
-	};
+    };
 
-	/** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing ranges (in case of "independent" esf), or the single range enclosing all the ranges. */
-	template <typename State, typename Elem>
-	  struct traverse_ranges {
-	    typedef typename boost::mpl::push_back<
-            State,
-	      typename boost::mpl::if_<
-	      is_independent<Elem>,
-	      typename from_independents<Elem>::type,
-	      typename extract_ranges<Elem>::type
-	      >::type
-	      >::type type;
-	  };
-
-
-	/**@brief prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.*/
-        template <typename ListOfRanges>
-	  struct prefix_on_ranges {
-
-            template <typename List, typename Range/*, typename NextRange*/>
-            struct state {
-	      typedef List list;
-	      typedef Range range;
-	      // typedef NextRange next_range;
-            };
-
-            template <typename PreviousState, typename CurrentElement>
-	      struct update_state {
-                typedef typename sum_range<typename PreviousState::range,
-                                           CurrentElement>::type new_range;
-                typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
-                typedef state<new_list, new_range> type;
-	      };
-
-            template <typename PreviousState, typename IndVector>
-            struct update_state<PreviousState, wrap_type<IndVector> > {
-	      typedef typename boost::mpl::fold<
-		IndVector,
-		boost::mpl::vector<>,
-		boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
-                    >::type raw_ranges;
-
-                typedef typename boost::mpl::fold<
-                        IndVector,
-                        range<0,0,0,0>,
-                        enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
-                >::type final_range;
-
-                typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
-
-                typedef state<new_list, final_range> type;
-            };
-
-            typedef typename boost::mpl::reverse_fold<
-                ListOfRanges,
-                state<boost::mpl::vector<>, range<0,0,0,0> >,
-                update_state<boost::mpl::_1, boost::mpl::_2> >::type final_state;
-
-            typedef typename final_state::list type;
-        };
-
-        template <typename State, typename SubArray>
-        struct keep_scanning {
-            typedef typename boost::mpl::fold<
-                typename SubArray::type,
+    /** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing ranges (in case of "independent" esf), or the single range enclosing all the ranges. */
+    template <typename State, typename Elem>
+        struct traverse_ranges {
+            typedef typename boost::mpl::push_back<
                 State,
-                boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
-                >::type type;
-        };
-
-        template <typename Array>
-        struct linearize_range_sizes {
-            typedef typename boost::mpl::fold<Array,
-                                              boost::mpl::vector<>,
-                                              boost::mpl::if_<
-                                                  is_wrap_type<boost::mpl::_2>,
-                                                  keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                                                  boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
-                                                  >
+                typename boost::mpl::if_<
+                    is_independent<Elem>,
+                    typename from_independents<Elem>::type,
+                    typename extract_ranges<Elem>::type
+                >::type
             >::type type;
+    };
+
+
+    /**@brief prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.*/
+    template <typename ListOfRanges>
+    struct prefix_on_ranges {
+
+        template <typename List, typename Range/*, typename NextRange*/>
+        struct state {
+            typedef List list;
+            typedef Range range;
+            // typedef NextRange next_range;
         };
 
+        template <typename PreviousState, typename CurrentElement>
+        struct update_state {
+            typedef typename sum_range<typename PreviousState::range,
+                                           CurrentElement>::type new_range;
+            typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
+            typedef state<new_list, new_range> type;
+        };
+
+        template <typename PreviousState, typename IndVector>
+        struct update_state<PreviousState, wrap_type<IndVector> > {
+            typedef typename boost::mpl::fold<
+                IndVector,
+                boost::mpl::vector<>,
+                boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
+            >::type raw_ranges;
+
+            typedef typename boost::mpl::fold<
+                IndVector,
+                range<0,0,0,0>,
+                enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
+            >::type final_range;
+
+            typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
+
+            typedef state<new_list, final_range> type;
+        };
+
+        typedef typename boost::mpl::reverse_fold<
+            ListOfRanges,
+            state<boost::mpl::vector<>, range<0,0,0,0> >,
+            update_state<boost::mpl::_1, boost::mpl::_2>
+        >::type final_state;
+
+        typedef typename final_state::list type;
+    };
+
+    template <typename State, typename SubArray>
+    struct keep_scanning {
+        typedef typename boost::mpl::fold<
+            typename SubArray::type,
+            State,
+            boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
+        >::type type;
+    };
+
+    template <typename Array>
+    struct linearize_range_sizes {
+        typedef typename boost::mpl::fold<Array,
+            boost::mpl::vector<>,
+            boost::mpl::if_<
+                is_wrap_type<boost::mpl::_2>,
+                keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
+            >
+        >::type type;
+    };
+
+    template <typename Index>
+    struct has_index_ {
+        typedef static_int<Index::value> val1;
+        template <typename Elem>
+        struct apply {
+            typedef static_int<Elem::second::value> val2;
+
+            typedef typename boost::is_same<val1, val2>::type type;
+        };
+    };
+
+    /**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
+       default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
+    template <typename Placeholders,
+    typename TmpPairs=boost::mpl::na>
+    struct select_storage {
+        template <typename T, typename Dummy = void>
+        struct is_temp : public boost::false_type
+        { };
+
+        template <typename T>
+        struct is_temp<no_storage_type_yet<T> > : public boost::true_type
+        { };
+
+        template <bool b, typename Storage, typename tmppairs, typename index>
+        struct get_the_type;
+
+        template <typename Storage, typename tmppairs, typename index>
+        struct get_the_type<true, Storage, tmppairs,index> {
+            typedef typename boost::mpl::deref<
+                typename boost::mpl::find_if<
+                    tmppairs,
+                    has_index_<index>
+                >::type
+            >::type::first type;
+        };
+
+        template <typename Storage, typename tmppairs, typename index>
+        struct get_the_type<false, Storage, tmppairs,index> {
+            typedef Storage type;
+        };
 
         template <typename Index>
-        struct has_index_ {
-            typedef static_int<Index::value> val1;
-            template <typename Elem>
-            struct apply {
-                typedef static_int<Elem::second::value> val2;
-
-                typedef typename boost::is_same<val1, val2>::type type;
-            };
+        struct apply {
+            typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
+            static const bool b = is_temp<storage_type>::value;
+            typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
         };
-
-	/**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
-	   default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
-        template <typename Placeholders,
-	  typename TmpPairs=boost::mpl::na>
-        struct select_storage {
-            template <typename T, typename Dummy = void>
-            struct is_temp : public boost::false_type
-            { };
-
-            template <typename T>
-            struct is_temp<no_storage_type_yet<T> > : public boost::true_type
-            { };
-
-            template <bool b, typename Storage, typename tmppairs, typename index>
-            struct get_the_type;
-
-            template <typename Storage, typename tmppairs, typename index>
-            struct get_the_type<true, Storage, tmppairs,index> {
-                typedef typename boost::mpl::deref<
-                    typename boost::mpl::find_if<
-                        tmppairs,
-                        has_index_<index>
-                        >::type
-                    >::type::first type;
-            };
-
-            template <typename Storage, typename tmppairs, typename index>
-            struct get_the_type<false, Storage, tmppairs,index> {
-                typedef Storage type;
-            };
-
-            template <typename Index>
-            struct apply {
-                typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
-                static const bool b = is_temp<storage_type>::value;
-                typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
-            };
-        };
-
-/**
- * @}
- * */
+    };
 
     } //namespace _impl
 
@@ -364,64 +360,62 @@ namespace gridtools {
 
 
 //\todo move inside the traits classes
-        template<enumtype::backend>
-        struct finalize_computation;
+    template<enumtype::backend>
+    struct finalize_computation;
 
-        template<>
-        struct finalize_computation<enumtype::Cuda>{
-            template <typename DomainType>
-            static void apply(DomainType& dom)
-                {dom.finalize_computation();}
-        };
+    template<>
+    struct finalize_computation<enumtype::Cuda>{
+        template <typename DomainType>
+        static void apply(DomainType& dom)
+        {dom.finalize_computation();}
+    };
 
 
-        template<>
-        struct finalize_computation<enumtype::Host>{
-            template <typename DomainType>
-            static void apply(DomainType& dom)
-                {}
-        };
+    template<>
+    struct finalize_computation<enumtype::Host>{
+        template <typename DomainType>
+        static void apply(DomainType& dom)
+        {}
+    };
 
 
 
 //\todo move inside the traits classes?
 
-        /**
-           This functor calls h2d_update on all storages, in order to
+    /**
+       This functor calls h2d_update on all storages, in order to
            get the data prepared in the case of GPU execution.
 
-           Returns 0 (GT_NO_ERRORS) on success
-        */
-        template<enumtype::backend>
-        struct setup_computation;
+       Returns 0 (GT_NO_ERRORS) on success
+     */
+    template<enumtype::backend>
+    struct setup_computation;
 
-        template<>
-        struct setup_computation<enumtype::Cuda>{
-            template<typename ArgListType, typename DomainType>
+    template<>
+    struct setup_computation<enumtype::Cuda>{
+        template<typename ArgListType, typename DomainType>
 
-	      static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
-	      boost::fusion::copy(storage_pointers, domain.original_pointers);
+        static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
+            boost::fusion::copy(storage_pointers, domain.original_pointers);
 
-	      boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+            boost::fusion::for_each(storage_pointers, _impl::update_pointer());
 #ifndef NDEBUG
-                printf("POINTERS\n");
-                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-                printf("ORIGINAL\n");
-                boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
+            printf("POINTERS\n");
+            boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+            printf("ORIGINAL\n");
+            boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
 #endif
-                return GT_NO_ERRORS;
+            return GT_NO_ERRORS;
         }
-        };
+    };
 
-        template<>
-        struct setup_computation<enumtype::Host>{
-            template<typename ArgListType, typename DomainType>
-            static int_t apply(ArgListType const& storage_pointers, DomainType &  domain){
-                return GT_NO_ERRORS;
+    template<>
+    struct setup_computation<enumtype::Host>{
+        template<typename ArgListType, typename DomainType>
+        static int_t apply(ArgListType const& storage_pointers, DomainType &  domain){
+            return GT_NO_ERRORS;
         }
-        };
-
-
+    };
 
     // /** runtime function applying a lambda/functor with 2 arguments a const number of times (e.g. assignment of constant-sized arrays) */
     //       template <int iterator >
@@ -442,7 +436,6 @@ namespace gridtools {
  * */
     template <typename Backend, typename LayoutType,  typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
-
 
         /**
          * typename MssType::linear_esf is a list of all the esf nodes in the multi-stage descriptor.
@@ -513,7 +506,7 @@ namespace gridtools {
                 boost::mpl::_1,
                 typename _impl::select_storage<
                     typename DomainType::placeholders,
-              	    mpl_actual_tmp_pairs
+                      mpl_actual_tmp_pairs
                     >::template apply<boost::mpl::_2>
                 >
             >::type mpl_actual_arg_list;
@@ -589,11 +582,11 @@ namespace gridtools {
             std::cout << "end2" <<std::endl;
 #endif
 
-	    //filter the non temporary storages among the storage pointers in the domain
+        //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
                 is_storage<boost::mpl::_1> > t_domain_view;
 
-	    //filter the non temporary storages among the placeholders passed to the intermediate
+        //filter the non temporary storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<actual_arg_list_type,
                 is_storage<boost::mpl::_1> > t_args_view;
 
@@ -630,7 +623,7 @@ namespace gridtools {
            is passed to the instantiate_local_domain struct
          */
         virtual void steady () {
-	  if(is_storage_ready)
+            if(is_storage_ready)
             {
                 setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
 #ifndef NDEBUG
@@ -652,9 +645,7 @@ namespace gridtools {
 #ifndef NDEBUG
             m_domain.info();
 #endif
-
         }
-
 
         virtual void finalize () {
             finalize_computation<Backend::s_backend_id>::apply(m_domain);
