@@ -130,7 +130,7 @@ namespace gridtools {
         struct from_independents<independent_esf<T> > {
             typedef typename boost::mpl::fold<
                 typename independent_esf<T>::esf_list,
-                boost::mpl::vector<>,
+                boost::mpl::vector0<>,
                 boost::mpl::push_back<boost::mpl::_1, extract_ranges<boost::mpl::_2> >
                 >::type raw_type;
 
@@ -174,7 +174,7 @@ namespace gridtools {
         struct update_state<PreviousState, wrap_type<IndVector> > {
             typedef typename boost::mpl::fold<
                 IndVector,
-                boost::mpl::vector<>,
+                boost::mpl::vector0<>,
                 boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
             >::type raw_ranges;
 
@@ -191,7 +191,7 @@ namespace gridtools {
 
         typedef typename boost::mpl::reverse_fold<
             ListOfRanges,
-            state<boost::mpl::vector<>, range<0,0,0,0> >,
+            state<boost::mpl::vector0<>, range<0,0,0,0> >,
             update_state<boost::mpl::_1, boost::mpl::_2>
         >::type final_state;
 
@@ -210,7 +210,7 @@ namespace gridtools {
     template <typename Array>
     struct linearize_range_sizes {
         typedef typename boost::mpl::fold<Array,
-            boost::mpl::vector<>,
+            boost::mpl::vector0<>,
             boost::mpl::if_<
                 is_wrap_type<boost::mpl::_2>,
                 keep_scanning<boost::mpl::_1, boost::mpl::_2>,
@@ -474,7 +474,7 @@ namespace gridtools {
          * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
          */
         typedef typename boost::mpl::fold<typename MssType::esf_array,
-                                          boost::mpl::vector<>,
+                                          boost::mpl::vector0<>,
                                           _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
                                           >::type ranges_list;
 
@@ -501,7 +501,7 @@ namespace gridtools {
 
         typedef typename boost::mpl::fold<
             iter_range,
-            boost::mpl::vector<>,
+            boost::mpl::vector0<>,
             typename boost::mpl::push_back<
                 boost::mpl::_1,
                 typename _impl::select_storage<
