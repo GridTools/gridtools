@@ -267,8 +267,8 @@ namespace shallow_water{
 	GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        static x::Index i;
-        static y::Index j;
+        // static const x::Index i;
+        // static const y::Index j;
 
         typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
         typedef arg_type<1, range<0, 0, 0, 0>, 5>::type sol;
@@ -278,6 +278,8 @@ namespace shallow_water{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
+            x::Index i;
+            y::Index j;
             // eval(tmpx(comp(1), x(-1), y(-2)))=eval(sol(comp(+5), x(+6), y(+7)))+3;
             eval(tmpx())= (eval(sol(comp(0),i+1,j+1)) +eval(sol(comp(0),j+1)))/2. -
                 (eval(sol(comp(1),i+1,j+1)) - eval(sol(comp(1),j+1)))*(dt()/(2*dx()));
@@ -295,8 +297,8 @@ namespace shallow_water{
                  eval(sol(comp(1),j+1))*eval(sol(comp(2),j+1))/eval(sol(comp(0),j+1)))*(dt()/(2*dx())) ;
         }
     };
-    x::Index first_step_x::i;
-    y::Index first_step_x::j;
+    // const x::Index first_step_x::i;
+    // const y::Index first_step_x::j;
 
     struct second_step_y {
 
@@ -314,8 +316,8 @@ namespace shallow_water{
 	GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        static x::Index i;
-        static y::Index j;
+        // static const x::Index i;
+        // static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
         typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpy;
@@ -325,6 +327,9 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+
+            x::Index i;
+            y::Index j;
 
         eval(tmpy(comp(0)))= (eval(sol(comp(0),i+1,j+1)) + eval(sol(comp(0),i+1)))/2. -
             (eval(sol(comp(2),i+1,j+1)) - eval(sol(comp(2),i+1)))*(dt()/(2*dy()));
@@ -342,8 +347,8 @@ namespace shallow_water{
                  ))*(dt()/(2.*dy()));
         }
     };
-    x::Index second_step_y::i;
-    y::Index second_step_y::j;
+    // const x::Index second_step_y::i;
+    // const y::Index second_step_y::j;
 
     struct final_step {
 
@@ -361,8 +366,8 @@ namespace shallow_water{
 	GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        static x::Index i;
-        static y::Index j;
+        static const x::Index i;
+        static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
         typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpx;
@@ -379,6 +384,9 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+
+            x::Index i;
+            y::Index j;
 
             eval(sol()) = eval(sol())-
                 (eval(tmpx(comp(1),j-1)) - eval(tmpx(comp(1),i-1, j-1)))*(dt()/dx())
@@ -400,8 +408,8 @@ namespace shallow_water{
         }
 
     };
-    x::Index final_step::i;
-    y::Index final_step::j;
+    // const x::Index final_step::i;
+    // const y::Index final_step::j;
 
 
     uint_t final_step::current_time=0;
