@@ -62,6 +62,17 @@ if(CUDA_FOUND)
             target_link_libraries(${srcfile}_cuda ${exe_LIBS})
         endforeach(srcfile)
     endif()
+
+if( NOT ENABLE_CXX11 )
+    cuda_add_executable(shallow_water_cxx03_cuda  shallow_water_cxx03.cu)
+    target_link_libraries(shallow_water_cxx03_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+    cuda_add_executable(shallow_water_cxx03_cuda_split  shallow_water_cxx03_split.cu)
+    target_link_libraries(shallow_water_cxx03_cuda_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03_cuda_split PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+endif()
+
 endif()
 
 add_subdirectory( communication )

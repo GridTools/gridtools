@@ -8,7 +8,10 @@
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
+
+#ifdef HDF5_ENABLED
 #include <storage/io.h>
+#endif
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -22,7 +25,7 @@
 #include <boundary-conditions/apply.h>
 #endif
 
-#define BACKEND_BLOCK 1
+//#define BACKEND_BLOCK 1
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil using the CXX03 interfaces, with periodic boundary conditions.
@@ -269,7 +272,7 @@ namespace shallow_water{
 
         typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
         typedef arg_type<1, range<0, 0, 0, 0>, 5>::type sol;
-        using arg_list=boost::mpl::vector<tmpx, sol> ;
+        typedef boost::mpl::vector<tmpx, sol> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -317,7 +320,7 @@ namespace shallow_water{
         //using xrange=range<0,-1,0,0>;
         typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpy;
         typedef arg_type<1,range<0, 0, 0, 0>, 5>::type sol;
-        using arg_list=boost::mpl::vector<tmpy, sol> ;
+        typedef boost::mpl::vector<tmpy, sol> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -365,7 +368,7 @@ namespace shallow_water{
         typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpx;
         typedef arg_type<1,range<0, 0, 0, 0>, 5>::type tmpy;
         typedef arg_type<2,range<-1, 1, -1, 1>, 5>::type sol;
-        using arg_list=boost::mpl::vector<tmpx, tmpy, sol> ;
+        typedef boost::mpl::vector<tmpx, tmpy, sol>  arg_list;
         static uint_t current_time;
 
         //########## FINAL STEP #############
@@ -478,15 +481,15 @@ namespace shallow_water{
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(!comm.pid())
-            sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
-            sol.set<0>(out7, 1.);//h
-        sol.set<1>(out8, 0.);//u
-        sol.set<2>(out9, 0.);//v
+            sol.set<0,0>(out7, 1.);//h
+        sol.set<1,0>(out8, 0.);//u
+        sol.set<2,0>(out9, 0.);//v
 
-        std::cout<<"INITIALIZED VALUES"<<std::endl;
-        sol.print();
-        std::cout<<"#####################################################"<<std::endl;
+//         std::cout<<"INITIALIZED VALUES"<<std::endl;
+//         sol.print();
+//         std::cout<<"#####################################################"<<std::endl;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -504,7 +507,12 @@ namespace shallow_water{
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 
-        auto shallow_water_stencil =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
+#endif
+            shallow_water_stencil =
             make_computation<gridtools::BACKEND, layout_t>
             (
                 make_mss // mss_descriptor
@@ -534,14 +542,14 @@ namespace shallow_water{
         {
 #ifdef CUDA_EXAMPLE
             /*                        component,snapshot */
-            boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-            boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-            boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
+//             boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
+//             boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
+//             boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #else
             /*                    component,snapshot */
-            boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-            boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-            boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
+//             boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
+//             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
+//             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
             shallow_water_stencil->run();
 

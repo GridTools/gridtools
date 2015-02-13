@@ -58,7 +58,7 @@ namespace gridtools{
 
     template< class Storage, uint_t ... Number >
     struct field{
-	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;
+	typedef storaeg< extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
     // template< class TmpStorage, uint_t ... Number >
@@ -76,7 +76,7 @@ namespace gridtools{
                , uint_t PlusJ
                , uint_t ... Number >
     struct field<host_tmp_storage<base_storage<Backend, ValueType, Layout, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
-	typedef host_tmp_storage<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, accumulate(add(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> type;
+	typedef storage<host_tmp_storage<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, accumulate(add(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
     template<  enumtype::backend Backend
@@ -85,7 +85,7 @@ namespace gridtools{
 	       ,short_t FieldDimension
                ,uint_t ... Number >
     struct field<base_storage<Backend, ValueType, Layout, true, FieldDimension>, Number... >{
-	typedef extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;
+	typedef storage< extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
 
@@ -105,7 +105,7 @@ namespace gridtools{
 
     template< class Storage, uint_t Number1, uint_t Number2, uint_t Number3 >
     struct field{
-	typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number3-1> > type;
+	typedef storage< extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number3-1> > > type;
     };
 
     // template< class TmpStorage, uint_t ... Number >
@@ -123,7 +123,7 @@ namespace gridtools{
                , uint_t PlusJ
                , uint_t Number1, uint_t Number2, uint_t Number3 >
     struct field<host_tmp_storage<base_storage<Backend, ValueType, Layout, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number1, Number2, Number3 >{
-	typedef host_tmp_storage<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> type;
+	typedef storage< host_tmp_storage<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
     template<  enumtype::backend Backend
@@ -132,7 +132,7 @@ namespace gridtools{
 	       ,short_t FieldDimension
                , uint_t Number1, uint_t Number2, uint_t Number3 >
     struct field<base_storage<Backend, ValueType, Layout, true, FieldDimension>, Number1, Number2, Number3 >{
-	typedef extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number3-1> > type;
+	typedef storage<extend_dim< extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Backend, ValueType, Layout, true, Number1+Number2+Number3>, Number3-1> > > type;
     };
 
 

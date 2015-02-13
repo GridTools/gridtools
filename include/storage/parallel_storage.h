@@ -40,6 +40,7 @@ namespace gridtools {
             {
             }
 
+#ifdef CXX11_ENABLED
         template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
         typename super::value_type& get_value( UInt const& ... i )
 		{
@@ -51,6 +52,7 @@ namespace gridtools {
 #endif
                     return -1.;
 		}
+#endif
 
         /**
          @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index

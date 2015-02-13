@@ -910,7 +910,11 @@ namespace gridtools {
            \param field the pointer to the input data field
 	   \tparam dimension specifies which field dimension we want to access
         */
-        template<uint_t dimension=1>
+        template<uint_t dimension
+#ifdef CXX11_ENABLED
+=1
+#endif
+>
         GT_FUNCTION
         void push_front( pointer_type& field ){//copy constructor
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless storage)
@@ -925,7 +929,11 @@ namespace gridtools {
         }
 
 	/**@brief Pushes the given storage as the first snapshot at the specified field dimension*/
-        template<uint_t dimension=1>
+        template<uint_t dimension
+#ifdef CXX11_ENABLED
+=1
+#endif
+>
         GT_FUNCTION
         void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
 	    for (uint_t i=0; i<super::size(); ++i)
@@ -939,7 +947,11 @@ namespace gridtools {
 	   \tparam snapshot the snapshot of dimension field_dim to be set
 	   \param field the input storage
         */
+#ifdef CXX11_ENABLED
 	template<short_t field_dim=0, short_t snapshot=0>
+#else
+	template<short_t field_dim, short_t snapshot>
+#endif
 	void set( pointer_type& field)
 	    {
 		super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
@@ -952,7 +964,11 @@ namespace gridtools {
 	   \param field the input storage
 	   \param val the initializer value
         */
+#ifdef CXX11_ENABLED
 	template<short_t field_dim=0, short_t snapshot=0>
+#else
+	template<short_t field_dim, short_t snapshot>
+#endif
 	void set( pointer_type& field, typename super::value_type const& val)
 	    {
 		for (uint_t i=0; i<super::size(); ++i)
@@ -968,7 +984,11 @@ namespace gridtools {
 	   \param field the input storage
 	   \param lambda the initializer function
         */
+#ifdef CXX11_ENABLED
 	template<short_t field_dim=0, short_t snapshot=0>
+#else
+	template<short_t field_dim, short_t snapshot  >
+#endif
 	void set( pointer_type& field, typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
 	    {
 		for (uint_t i=0; i<this->m_dims[0]; ++i)
@@ -985,7 +1005,11 @@ namespace gridtools {
 	   \tparam snapshot the snapshot of dimension field_dim to be set
 	   \param field the input storage
         */
+#ifdef CXX11_ENABLED
 	template<short_t field_dim=0, short_t snapshot=0>
+#else
+	template<short_t field_dim  , short_t snapshot  >
+#endif
 	pointer_type& get( )
 	    {
 		return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
@@ -1000,7 +1024,11 @@ namespace gridtools {
            \param j index in the horizontal direction
            \param k index in the vertical direction
         */
-        template<short_t field_dim=0, short_t snapshot=0>
+#ifdef CXX11_ENABLED
+	template<short_t field_dim=0, short_t snapshot=0>
+#else
+	template<short_t field_dim, short_t snapshot  >
+#endif
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
 		{
                     return get<field_dim, snapshot>()[super::_index(i,j,k)];
@@ -1012,7 +1040,11 @@ namespace gridtools {
 	   \tparam dimension the dimension to be advanced
 	   \param offset the number of steps to advance
         */
-        template<uint_t dimension=1>
+        template<uint_t dimension
+#ifdef CXX11_ENABLED
+=1
+#endif
+>
         GT_FUNCTION
         void advance(){
             BOOST_STATIC_ASSERT(dimension<traits::n_dimensions);

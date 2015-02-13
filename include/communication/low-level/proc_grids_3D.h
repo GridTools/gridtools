@@ -327,7 +327,7 @@ namespace gridtools {
       MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm)
           :
           cyclic(c)
-#ifndef __clang__
+#if  !defined(__clang__) && defined(CXX11_ENABLED)
           ,m_dimensions{0},
           m_coordinates{0}
           {
