@@ -140,7 +140,7 @@ namespace gridtools {
 	    // no blocking along k
 	    if(Coordinate != 2)
 	    {
-                std::cout<<"dimension: "<<(int)dimension<<"block: "<<(int)b<<"tile: "<<(int) (Coordinate?TileI:TileJ) << std::endl;
+//                 std::cout<<"dimension: "<<(int)dimension<<"block: "<<(int)b<<"tile: "<<(int) (Coordinate?TileI:TileJ) << std::endl;
 		uint_t tile=Coordinate==0?TileI:TileJ;
 		uint_t var=dimension - b * tile;
 
