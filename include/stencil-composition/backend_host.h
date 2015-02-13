@@ -10,7 +10,7 @@
 #include "backend.h"
 
 #include "iteration_policy.h"
-
+#include <common/basic_utils.h>
 /**
    @file
    @brief Implements the stencil operations for the host backend
@@ -98,8 +98,10 @@ namespace gridtools {
 		    std::cout<<"iminus::value: "<<xrange_t::iminus::value<<std::endl;
 #endif
 
-		    typename iterate_domain_type::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
-		    iterate_domain_type it_domain(local_domain);
+                     void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+                     /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
+
+                     iterate_domain_type it_domain(local_domain);
 		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
 
                     for (int_t i = (int_t)f->m_starti + xrange_t::iminus::value;

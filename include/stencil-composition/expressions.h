@@ -298,7 +298,9 @@ namespace gridtools{
 #else
         {return std::pow(arg1, Exponent);}
 #endif
-
+    }
+#endif
+    namespace expressions{
 	/**Expressions defining the interface for specifiyng a given offset for a specified dimension
 	   \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
 	template<typename Left>
@@ -312,6 +314,5 @@ namespace gridtools{
 /**@}*/
     }//namespace expressions
 
-#endif
 
 }//namespace gridtools

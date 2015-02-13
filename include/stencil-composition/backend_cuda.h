@@ -42,8 +42,14 @@ namespace gridtools {
             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
 
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+
+#ifdef CXX11_ENABLED
+            __shared__
+                storage_sequence_to_tuple<local_domain_t::mpl_storages>::type* data_pointer;
+#else
             __shared__
                 typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+#endif
 
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization

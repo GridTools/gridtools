@@ -306,11 +306,13 @@ namespace gridtools {
      */
       static const int ndims = CYCLIC::size;
 
+  private:
       MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
       period_type cyclic;
       int m_dimensions[ndims];
       int m_coordinates[ndims];
-
+      int m_nprocs;
+  public:
     /**
         Returns communicator
      */
@@ -336,7 +338,7 @@ namespace gridtools {
                   m_coordinates[i]=0;
               }
 #endif
-                  create(comm);}
+          create(comm);}
 
     /** Function to create the grid. This can be called in case the
         grid is default constructed. Its direct use is discouraged
@@ -349,9 +351,8 @@ namespace gridtools {
         period[0]=cyclic.value0;
         period[1]=cyclic.value1;
         period[2]=cyclic.value2;
-        int nprocs;
-        MPI_Comm_size(comm, &nprocs);
-        MPI_Dims_create(nprocs, ndims, m_dimensions);
+        MPI_Comm_size(comm, &m_nprocs);
+        MPI_Dims_create(m_nprocs, ndims, m_dimensions);
         MPI_Cart_create(comm, ndims, m_dimensions, period, false, &m_communicator);
         MPI_Cart_get(m_communicator, ndims, m_dimensions, period/*does not really care*/, m_coordinates);
       // for(ushort_t i=0; i<ndims; ++i)
@@ -404,6 +405,10 @@ namespace gridtools {
       return proc(I,J,K);
     }
 
+      int pid() const {
+          return m_coordinates[0]+m_coordinates[1]+m_coordinates[2];
+      }
+
     /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
         \param[in] I Relative coordinate in the first dimension
         \param[in] J Relative coordinate in the second dimension
@@ -449,9 +454,11 @@ namespace gridtools {
 
         \return The process ID of the required process
     */
-    int abs_proc(gridtools::array<int,ndims> const & crds) const {
-      return proc(crds[0]-m_coordinates[0], crds[1]-m_coordinates[1], crds[2]-m_coordinates[2]);
+      int abs_proc(gridtools::array<int,ndims> const & crds) const {
+          return proc(crds[0]-m_coordinates[0], crds[1]-m_coordinates[1], crds[2]-m_coordinates[2]);
     }
+
+      int ntasks(){return m_nprocs;}
 
   };
 

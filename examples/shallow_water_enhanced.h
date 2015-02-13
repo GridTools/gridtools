@@ -8,6 +8,7 @@
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
+#include <storage/io.h>
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -304,7 +305,7 @@ namespace shallow_water{
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<sol_type> partitioner_t;
         typedef sol_type::original_storage::pointer_type pointer_type;
-        partitioner_t part(comm.coordinates(), comm.dimensions(), halo);
+        partitioner_t part(comm.ntasks(), comm.coordinates(), comm.dimensions(), halo);
         parallel_storage<partitioner_t> sol(part, d1, d2, d3);
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
@@ -396,6 +397,10 @@ namespace shallow_water{
         }
 
         shallow_water_stencil->finalize();
+
+        hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
+        out.write(sol.get<0,0>());
+
         he.wait();
 
         GCL_Finalize();

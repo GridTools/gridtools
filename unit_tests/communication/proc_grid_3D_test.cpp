@@ -16,9 +16,9 @@ int _main(int pid, int nprocs) {
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);
-  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";  
+  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";
 
-  (*filep) << "@" << gridtools::PID << "@ PROC GRID " 
+  (*filep) << "@" << gridtools::PID << "@ PROC GRID "
     OUT(-1,-1,-1)
     OUT(0,-1,-1)
     OUT(1,-1,-1)
@@ -57,9 +57,9 @@ int MPImain(MPI_Comm &comm) {
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);
-  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";  
+  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";
 
-  (*filep) << "@" << gridtools::PID << "@ PROC GRID " 
+  (*filep) << "@" << gridtools::PID << "@ PROC GRID "
     OUT(-1,-1,-1)
     OUT(0,-1,-1)
     OUT(1,-1,-1)
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
   MPImain(CartComm);

@@ -104,7 +104,6 @@ namespace copy_stencil{
         typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
         typedef extend_width<base_type1, 0>  extended_type;
         typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
-#endif
         //out.print();
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them

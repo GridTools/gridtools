@@ -187,8 +187,7 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type
-        find_val(Indices const& ... indices) {
+        static T find_val(Indices const& ... indices) {
             static_assert(sizeof...(Indices)<=length, "Too many arguments");
             typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
             if (pos_<I>::value >= sizeof...(Indices) ) {
@@ -215,6 +214,37 @@ namespace gridtools {
                 return indices[pos_<I>::value];
             }
         }
+
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \tparam[in] Indices List of argument where to return the found value
+            \param[in] indices List of values (length must be equal to the length of the layout_map length)
+        */
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        GT_FUNCTION
+        static T find_val(Tuple const& indices) {
+            if (pos_<I>::value >= Tuple::n_args ) {
+                return DefaultVal;
+            } else {
+                //this calls arg_decorator::get
+                return indices.template get<pos_<I>::value>();
+            }
+        }
+
 
         template <ushort_t I, typename MplVector>
         GT_FUNCTION
@@ -373,6 +403,18 @@ namespace gridtools {
                 return d;
             }
         };
+
+        //         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        // GT_FUNCTION
+        // find_val(Tuple const& indices) {
+        //     if (pos_<I>::value >= Tuple::n_args ) {
+        //         return DefaultVal;
+        //     } else {
+        //         //this calls arg_decorator::get
+        //         return indices.get<pos_<I>::value>();
+        //     }
+        // }
+
     }
 
 /**
@@ -417,6 +459,17 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             return a;
         }
 
+        //         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        // GT_FUNCTION
+        // find_val(Tuple const& indices) {
+        //     if (pos_<I>::value >= Tuple::n_args ) {
+        //         return DefaultVal;
+        //     } else {
+        //         //this calls arg_decorator::get
+        //         return indices.get<pos_<I>::value>();
+        //     }
+        // }
+
     };
 
     template <short_t I1, short_t I2>
@@ -460,6 +513,18 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
                 }
             }
         }
+
+        //         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        // GT_FUNCTION
+        // find_val(Tuple const& indices) {
+        //     if (pos_<I>::value >= Tuple::n_args ) {
+        //         return DefaultVal;
+        //     } else {
+        //         //this calls arg_decorator::get
+        //         return indices.get<pos_<I>::value>();
+        //     }
+        // }
+
     };
 
     /**
@@ -717,6 +782,38 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
         }
+
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \tparam[in] Indices List of argument where to return the found value
+            \param[in] indices List of values (length must be equal to the length of the layout_map length)
+        */
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        GT_FUNCTION
+        static T find_val(Tuple const& indices) {
+            if (pos_<I>::value >= Tuple::n_args ) {
+                return DefaultVal;
+            } else {
+                //this calls arg_decorator::get
+                return indices.template get<pos_<I>::value>();
+            }
+        }
+
+
     };
 
     template <short_t I1, short_t I2, short_t I3, short_t I4>
@@ -777,6 +874,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
     };
 
 #endif // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+
 
     template <typename LM>
     struct reverse_map;

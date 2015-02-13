@@ -111,6 +111,7 @@ namespace gridtools {
                                               >
                                           >::type mpl_storages;
 
+        //typedef typename  mpl_storages::fuck fuck;
         typedef typename boost::mpl::transform<domain_indices,
                                                local_domain_aux::get_iterator
                                                >::type mpl_iterators;
