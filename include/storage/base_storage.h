@@ -193,11 +193,13 @@ namespace gridtools {
            sets all the data members given the storage dimensions
         */
 	base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3,
-		     value_type init = value_type(), char const* s="default storage" ):
+		     value_type init = value_type(0.), char const* s="default storage" ):
 	    is_set( true )
 	    , m_name(s)
             {
-		m_fields[0]=pointer_type(dim1*dim2*dim3);
+                for(ushort_t i=0; i<field_dimensions; ++i)
+                    m_fields[i]=pointer_type(dim1*dim2*dim3);
+		// m_fields[0]=pointer_type(dim1*dim2*dim3);
 		m_dims[0]=dim1;
 		m_dims[1]=dim2;
 		m_dims[2]=dim3;
@@ -446,8 +448,26 @@ namespace gridtools {
         }
 #endif
 
-        /** @brief returns the memory access index of the element with coordinate (i,j,k) */
-        //note: returns a signed int because it might be negative (used e.g. in iterate_domain)
+        /**
+           @brief computing index to access the storage relative to the coordinates passed as parameters.
+
+           This method returns signed integers of type int_t (used e.g. in iterate_domain)
+        */
+        template <typename OffsetTuple>
+        GT_FUNCTION
+        int_t _index(  OffsetTuple  const& tuple) const {
+// #ifndef __CUDACC__
+//             typedef boost::mpl::vector<UInt...> tlist;
+//             //boost::is_same<boost::mpl::_1, uint_t>
+//             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
+//             GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type")
+// #endif
+            return _impl::compute_offset<space_dimensions, layout>::apply(m_strides, tuple);
+        }
+
+
+        /** @brief returns the memory access index of the element with coordinate (i,j,k)
+            note: returns a signed int because it might be negative (used e.g. in iterate_domain)*/
 	template<typename IntType>
         GT_FUNCTION
         int_t _index(IntType* indices) const {
@@ -533,6 +553,10 @@ namespace gridtools {
         GT_FUNCTION
         uint_t dims() const {return m_dims[I];}
 
+        /** @brief returns the dimension fo the field along I*/
+        GT_FUNCTION
+        uint_t dims(const ushort_t I) const {return m_dims[I];}
+
         /**@brief returns the storage strides*/
         GT_FUNCTION
         uint_t strides(ushort_t i) const {
@@ -569,7 +593,6 @@ namespace gridtools {
 #endif
     };
 
-#ifdef CXX11_ENABLED
     /** @brief storage class containing a buffer of data snapshots
 
         the goal of this struct is to  implement a cash for the solutions, in order e.g. to ease the finite differencing between the different scalar fields.
@@ -588,10 +611,16 @@ namespace gridtools {
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
+#ifdef CXX11_ENABLED
         /**@brief default constructor*/
 	template<typename ... UIntTypes>
         explicit extend_width(UIntTypes const& ... args ): super( args ... ) {
         }
+#else
+        /**@brief default constructor*/
+        explicit extend_width(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): super( d1, d2, d3 ) {
+        }
+#endif
 
 
         /**@brief destructor: frees the pointers to the data fields */
@@ -714,6 +743,10 @@ namespace gridtools {
 	template<typename ... UIntTypes>
         explicit extend_width(UIntTypes const& ... args ): Storage( args ... ) {
         }
+#else
+        /**@brief default constructor*/
+        explicit extend_width(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( d1, d2, d3 ) {
+        }
 #endif
 
         /**@brief destructor: frees the pointers to the data fields */
@@ -730,7 +763,7 @@ namespace gridtools {
             : Storage(other)
             {}
 
-#ifdef NDEBUG
+#ifdef NDEBUG//opt
     private:
         //for stdcout purposes
 	extend_width();
@@ -739,6 +772,7 @@ namespace gridtools {
 #endif
     };
 
+#ifdef CXX11_ENABLED
     /** @brief traits class defining some useful compile-time counters
      */
     template < typename First, typename  ...  StorageExtended>
@@ -756,6 +790,7 @@ namespace gridtools {
 	// typedef First type;
 	typedef dimension_extension_traits<StorageExtended ... > super;
     };
+#endif
 
     /**@brief fallback in case the snapshot we try to access exceeds the width diemnsion assigned to a discrete scalar field*/
     struct dimension_extension_null{
@@ -768,7 +803,11 @@ namespace gridtools {
 
 /**@brief template specialization at the end of the recustion.*/
     template < typename First>
-    struct dimension_extension_traits<First>  {
+    struct dimension_extension_traits
+#ifdef CXX11_ENABLED
+    <First>
+#endif
+    {
         static const ushort_t n_fields=First::n_width;
         static const short_t n_width=First::n_width;
         static const ushort_t n_dimensions= 1 ;
@@ -776,7 +815,45 @@ namespace gridtools {
         typedef dimension_extension_null super;
     };
 
+#ifndef CXX11_ENABLED// big code repetition
 
+    /** @brief non-C++11 crap
+     */
+    template < typename First, typename Second>
+    struct dimension_extension_traits2// : public dimension_extension_traits<StorageExtended ... >
+    {
+        //total number of snapshots in the discretized field
+        static const ushort_t n_fields=First::n_width + dimension_extension_traits< Second >::n_fields ;
+        //the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
+        static const short_t n_width=First::n_width;
+        //the number of dimensions (i.e. the number of different fields)
+        static const ushort_t n_dimensions=  dimension_extension_traits< Second>::n_dimensions  +1 ;
+        //the current field extension
+	//n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
+	typedef extend_width<First, n_fields-1>  type;
+	// typedef First type;
+	typedef dimension_extension_traits< Second> super;
+    };
+
+    template < typename First, typename Second, typename Third>
+    struct dimension_extension_traits3// : public dimension_extension_traits<StorageExtended ... >
+    {
+        //total number of snapshots in the discretized field
+        static const ushort_t n_fields=First::n_width + dimension_extension_traits2< Second, Third >::n_fields ;
+        //the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
+        static const short_t n_width=First::n_width;
+        //the number of dimensions (i.e. the number of different fields)
+        static const ushort_t n_dimensions=  dimension_extension_traits2< Second, Third >::n_dimensions  +1 ;
+        //the current field extension
+	//n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
+	typedef extend_width<First, n_fields-1>  type;
+	// typedef First type;
+	typedef dimension_extension_traits2< Second, Third > super;
+    };
+#endif //CXX11_ENABLED
+
+
+#ifdef CXX11_ENABLED
     /**@brief implements the discretized field structure
 
        It is a collection of arbitrary length discretized scalar fields.
@@ -792,15 +869,32 @@ namespace gridtools {
         typedef typename super::original_storage original_storage;
 	static const short_t n_width=sizeof...(StorageExtended)+1;
 
-#if defined(CXX11_ENABLED)
 	/**@brief constructor given the space boundaries*/
 	template<typename ... UIntTypes>
         extend_dim(  UIntTypes const& ... args )
             : super(args...)
             {
 	    }
-#endif
+#else
 
+        template <typename First, typename Second, typename Third>
+        struct extend_dim : public dimension_extension_traits3<First, Second, Third >::type/*, clonable_to_gpu<extend_dim<First, StorageExtended ... > >*/
+        {
+            typedef extend_dim<First, Second, Third> type;
+            typedef typename dimension_extension_traits3<First, Second, Third >::type super;
+            typedef dimension_extension_traits3<First, Second, Third > traits;
+            typedef typename super::pointer_type pointer_type;
+            typedef typename  super::basic_type basic_type;
+            typedef typename super::original_storage original_storage;
+            static const short_t n_width=2+1;
+
+            /**@brief constructor given the space boundaries*/
+            extend_dim(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
+                : super(d1, d2, d3)
+            {
+	    }
+
+#endif
 	/**@brief device copy constructor*/
         template <typename T>
         __device__
@@ -947,8 +1041,6 @@ namespace gridtools {
 #endif
     };
 
-#endif //CXX11_ENABLED
-
 /** \addtogroup specializations Specializations
     Partial specializations
     @{
@@ -1021,6 +1113,27 @@ namespace gridtools {
     template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...>*& > : is_temporary_storage< typename First::basic_type*& >
     {};
+#else
+        //Decorator is the field
+        template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
+        struct is_temporary_storage<Decorator<First, B2, B3> > : is_temporary_storage< typename First::basic_type >
+        {};
+
+        //Decorator is the field
+        template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
+        struct is_temporary_storage<Decorator<First, B2, B3>* > : is_temporary_storage< typename First::basic_type* >
+        {};
+
+        //Decorator is the field
+        template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
+        struct is_temporary_storage<Decorator<First, B2, B3>& > : is_temporary_storage< typename First::basic_type& >
+        {};
+
+        //Decorator is the field
+        template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
+        struct is_temporary_storage<Decorator<First, B2, B3>*& > : is_temporary_storage< typename First::basic_type*& >
+        {};
+
 #endif //CXX11_ENABLED
 /**@}*/
     template <enumtype::backend Backend, typename T, typename U, bool B>

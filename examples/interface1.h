@@ -52,7 +52,7 @@ struct lap_function {
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
 
-        dom(out()) = 3*dom(in()) -
+        dom(out()) =  3*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
     }

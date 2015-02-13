@@ -73,11 +73,12 @@ namespace gridtools {
 
         explicit host_tmp_storage(uint_t initial_offset_i,
                                   uint_t initial_offset_j,
-                                  uint_t dim3,
-                                  //int initial_offset_k=0,
-                                  value_type init = value_type(),
-                                  char const* s = "default name" )
-            : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, dim3, init, s)
+                                  uint_t dim3// ,
+                                  // //int initial_offset_k=0,
+                                  // value_type init = value_type(),
+                                  // char const* s = "default name"
+            )
+            : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, dim3/*, init, s*/)
             {
                 m_halo[0]=MinusI;
                 m_halo[1]=MinusJ;
@@ -139,19 +140,18 @@ namespace gridtools {
 	    // no blocking along k
 	    if(Coordinate != 2)
 	    {
-		// std::cout<<"dimension: "<<(int)dimension<<"block: "<<(int)b<<"tile: "<<(int) (Coordinate?TileI:TileJ) << std::endl;
+                std::cout<<"dimension: "<<(int)dimension<<"block: "<<(int)b<<"tile: "<<(int) (Coordinate?TileI:TileJ) << std::endl;
 		uint_t tile=Coordinate==0?TileI:TileJ;
 		uint_t var=dimension - b * tile;
 
-		// std::cout <<"block: "<< b<<" uint_t coor = ((" << var << ")-" << m_initial_offsets[layout::template at_<Coordinate>::value] << "+" << m_halo[layout::template at_<Coordinate>::value] << ")";
-		// uint_t coor=var-layout::template find<Coordinate>(&m_initial_offsets[0]) + layout::template find<Coordinate>(&m_halo[0]);
-		uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template at_<Coordinate>::value];
+		uint_t coor=var-m_initial_offsets[Coordinate] + m_halo[Coordinate];
 
 		// std::cout << " = "<<coor<<std::endl;
 		BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-		*index += coor*basic_type::m_strides[layout::template at_<Coordinate>::value+1];
+		// *index += coor*basic_type::m_strides[layout::template at_<Coordinate>::value+1];
+		*index += coor*basic_type::template strides<Coordinate>(basic_type::m_strides);
 		// *index += coor*layout::template find<Coordinate>(&m_strides[1]);
-		// std::cout << "index = "<<coor<<"*"<<m_strides[layout::template at_<Coordinate>::value+1]<<"="<<*index<<std::endl;
+                //std::cout << "index = "<<coor<<"*"<<basic_type::template strides<Coordinate>(basic_type::m_strides)<< "( or: " <<basic_type::m_strides[layout::template at_<Coordinate>::value+1]<<")= "<<*index<<std::endl;
 		// std::cout << "strides = "<<m_strides[0]<<", "<<m_strides[1]<<", "<<m_strides[2] <<std::endl;
 	    }
 	    else

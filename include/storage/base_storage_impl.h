@@ -109,6 +109,16 @@ namespace gridtools{
                 return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices...)+compute_offset<Id-1, Layout>::apply(strides, indices... );
             }
 #endif
+            /**interface with the coordinates as a tuple
+               \param strides the strides
+               \param indices tuple of coordinates
+            */
+            template<typename Tuple>
+            GT_FUNCTION
+            static int_t apply(uint_t const* strides, Tuple const&  indices){
+                return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
+            }
+
         };
 
 	/**@brief stops the recursion
@@ -130,6 +140,15 @@ namespace gridtools{
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices ...);
             }
 #endif
+            /**interface with the coordinates as a tuple
+               \param strides the strides
+               \param indices tuple of coordinates
+            */
+            template<typename Tuple>
+            GT_FUNCTION
+            static int_t apply(uint_t const* strides, Tuple const&  indices){
+                return Layout::template find_val<space_dimensions-1, int, 0>(indices);
+            }
 	};
 
 	/**@brief metafunction to access a type sequence at a given position, numeration from 0

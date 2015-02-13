@@ -105,7 +105,7 @@ namespace copy_stencil{
         MPI_3D_process_grid_t<gridtools::boollist<3> > comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<vec_storage_type> partitioner_t;
-        partitioner_t part(comm.coordinates(), comm.dimensions(), halo);
+        partitioner_t part(comm.ntasks(), comm.coordinates(), comm.dimensions(), halo);
 	parallel_storage<partitioner_t> in(part, d1, d2, d3);
 
 	pointer_type  init1(d1*d2*d3);

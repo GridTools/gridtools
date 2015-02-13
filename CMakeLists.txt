@@ -223,5 +223,18 @@ if (ENABLE_PYTHON)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
 
+#########################HDF5####################
+set( ENABLE_HDF5 "OFF" CACHE BOOL "Enable HDF5 parallel storage" )
+if( ENABLE_HDF5 )
+  find_package( HDF5 )
+  if(HDF5_FOUND)
+    set ( exe_LIBS "${exe_LIBS}" "${HDF5_LIBRARIES}" "-lhdf5_cpp")
+    message("EXE libs: " "${exe_LIBS}")
+    include_directories( "${HDF5_INCLUDE_DIRS}" )
+  endif(HDF5_FOUND)
+endif(ENABLE_HDF5)
+
+################################################
+
 add_subdirectory( unit_tests )
 add_subdirectory( examples )

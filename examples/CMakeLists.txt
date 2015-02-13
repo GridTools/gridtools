@@ -38,6 +38,15 @@ add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
 
 endif()
 
+if( NOT ENABLE_CXX11 )
+    add_executable(shallow_water_cxx03  shallow_water_cxx03.cpp)
+    target_link_libraries(shallow_water_cxx03 ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03 PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+    add_executable(shallow_water_cxx03_split  shallow_water_cxx03_split.cpp)
+    target_link_libraries(shallow_water_cxx03_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03_split PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+endif()
 #add_executable(basic_laplacian basic_laplacian.cpp)
 #target_link_libraries(basic_laplacian ${exe_LIBS})
 #add_executable(vanilla_laplacian vanilla_laplacian.cpp)

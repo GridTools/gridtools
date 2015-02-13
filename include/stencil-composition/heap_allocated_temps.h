@@ -36,10 +36,10 @@ namespace gridtools {
                 //TODO noone deletes this new
                 e = new ElemType(m_tile_i,
                                  m_tile_j,
-                                 m_tile_k,
+                                 m_tile_k// ,
 //                                 0, // offset in k is zero for now
-                                 typename ElemType::value_type(),
-                                 s);
+                                 /*typename ElemType::value_type(),
+                                   s*/);
             }
     };
 

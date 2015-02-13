@@ -10,51 +10,51 @@
 
 /** \file
  * Pattern for regular cyclic and acyclic halo exchange pattern in 3D
- * The communicating processes are arganized in a 3D grid. Given a process, neighbors processes
+ * The communicating processes are organized in a 3D grid. Given a process, neighbors processes
  * are located using relative coordinates. In the next diagram, the given process is (0,0,0)
  * while the neighbors are indicated with their relative coordinates.
  * \code
- *       ---------------------------------- 
- *       |          |          |          | 
- *       | -1,-1,-1 | -1,0,-1  | -1,1,-1  | 
- *       |          |          |          | 
- *       ---------------------------------- 
- *       |          |          |          | 
- *       |  0,-1,-1 |  0,0,-1  |  0,1,-1  | 
- *       |          |          |          | 
- *       ---------------------------------- 
- *       |          |          |          | 
- *       |  1,-1,-1 |  1,0,-1  |  1,1,-1  | 
- *       |          |          |          | 
- *       ---------------------------------- 
+ *       ----------------------------------
+ *       |          |          |          |
+ *       | -1,-1,-1 | -1,0,-1  | -1,1,-1  |
+ *       |          |          |          |
+ *       ----------------------------------
+ *       |          |          |          |
+ *       |  0,-1,-1 |  0,0,-1  |  0,1,-1  |
+ *       |          |          |          |
+ *       ----------------------------------
+ *       |          |          |          |
+ *       |  1,-1,-1 |  1,0,-1  |  1,1,-1  |
+ *       |          |          |          |
+ *       ----------------------------------
  *
- *       ---------------------------------- 
- *       |          |          |          | 
- *       | -1,-1, 0 | -1,0, 0  | -1,1, 0  | 
- *       |          |          |          | 
- *       ---------------------------------- 
- *       |          |          |          | 
- *       |  0,-1, 0 |  0,0, 0  |  0,1, 0  | 
- *       |          |          |          | 
- *       ---------------------------------- 
- *       |          |          |          | 
- *       |  1,-1, 0 |  1,0, 0  |  1,1, 0  | 
- *       |          |          |          | 
- *       ---------------------------------- 
+ *       ----------------------------------
+ *       |          |          |          |
+ *       | -1,-1, 0 | -1,0, 0  | -1,1, 0  |
+ *       |          |          |          |
+ *       ----------------------------------
+ *       |          |          |          |
+ *       |  0,-1, 0 |  0,0, 0  |  0,1, 0  |
+ *       |          |          |          |
+ *       ----------------------------------
+ *       |          |          |          |
+ *       |  1,-1, 0 |  1,0, 0  |  1,1, 0  |
+ *       |          |          |          |
+ *       ----------------------------------
  *
- *       ---------------------------------- 
- *       |          |          |          | 
- *       | -1,-1, 1 | -1,0, 1  | -1,1, 1  | 
- *       |          |          |          | 
- *       ---------------------------------- 
- *       |          |          |          | 
- *       |  0,-1, 1 |  0,0, 1  |  0,1, 1  | 
- *       |          |          |          | 
- *       ---------------------------------- 
- *       |          |          |          | 
- *       |  1,-1, 1 |  1,0, 1  |  1,1, 1  | 
- *       |          |          |          | 
- *       ---------------------------------- 
+ *       ----------------------------------
+ *       |          |          |          |
+ *       | -1,-1, 1 | -1,0, 1  | -1,1, 1  |
+ *       |          |          |          |
+ *       ----------------------------------
+ *       |          |          |          |
+ *       |  0,-1, 1 |  0,0, 1  |  0,1, 1  |
+ *       |          |          |          |
+ *       ----------------------------------
+ *       |          |          |          |
+ *       |  1,-1, 1 |  1,0, 1  |  1,1, 1  |
+ *       |          |          |          |
+ *       ----------------------------------
  * \endcode
  */
 
@@ -77,7 +77,7 @@ namespace gridtools {
    * executing the Halo_Exchange_3D pattern, the requirement is that
    * \f[r_{ijk}^{mnl} = s_{i+m,j+n,k+l}^{-m,-n,-l}\f].
    * \n
-   * \tparam PROG_GRID Processor Grid type. An object of this type will be passed to constructor.
+   * \tparam PROC_GRID Processor Grid type. An object of this type will be passed to constructor.
    * \tparam ALIGN integer parameter that specify the alignment of the data to used. UNUSED IN CURRENT VERSION
    * \n\n\n
    * Pattern for regular cyclic and acyclic halo exchange pattern in 3D
@@ -85,47 +85,47 @@ namespace gridtools {
    * are located using relative coordinates. In the next diagram, the given process is (0,0,0)
    * while the neighbors are indicated with their relative coordinates.
    * \code
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       | -1,-1,-1 | -1,0,-1  | -1,1,-1  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       |  0,-1,-1 |  0,0,-1  |  0,1,-1  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       |  1,-1,-1 |  1,0,-1  |  1,1,-1  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
+   *       ----------------------------------
+   *       |          |          |          |
+   *       | -1,-1,-1 | -1,0,-1  | -1,1,-1  |
+   *       |          |          |          |
+   *       ----------------------------------
+   *       |          |          |          |
+   *       |  0,-1,-1 |  0,0,-1  |  0,1,-1  |
+   *       |          |          |          |
+   *       ----------------------------------
+   *       |          |          |          |
+   *       |  1,-1,-1 |  1,0,-1  |  1,1,-1  |
+   *       |          |          |          |
+   *       ----------------------------------
    *
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       | -1,-1, 0 | -1,0, 0  | -1,1, 0  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       |  0,-1, 0 |  0,0, 0  |  0,1, 0  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       |  1,-1, 0 |  1,0, 0  |  1,1, 0  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
+   *       ----------------------------------
+   *       |          |          |          |
+   *       | -1,-1, 0 | -1,0, 0  | -1,1, 0  |
+   *       |          |          |          |
+   *       ----------------------------------
+   *       |          |          |          |
+   *       |  0,-1, 0 |  0,0, 0  |  0,1, 0  |
+   *       |          |          |          |
+   *       ----------------------------------
+   *       |          |          |          |
+   *       |  1,-1, 0 |  1,0, 0  |  1,1, 0  |
+   *       |          |          |          |
+   *       ----------------------------------
    *
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       | -1,-1, 1 | -1,0, 1  | -1,1, 1  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       |  0,-1, 1 |  0,0, 1  |  0,1, 1  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
-   *       |          |          |          | 
-   *       |  1,-1, 1 |  1,0, 1  |  1,1, 1  | 
-   *       |          |          |          | 
-   *       ---------------------------------- 
+   *       ----------------------------------
+   *       |          |          |          |
+   *       | -1,-1, 1 | -1,0, 1  | -1,1, 1  |
+   *       |          |          |          |
+   *       ----------------------------------
+   *       |          |          |          |
+   *       |  0,-1, 1 |  0,0, 1  |  0,1, 1  |
+   *       |          |          |          |
+   *       ----------------------------------
+   *       |          |          |          |
+   *       |  1,-1, 1 |  1,0, 1  |  1,1, 1  |
+   *       |          |          |          |
+   *       ----------------------------------
    * \endcode
    * The pattern is cyclic or not bepending on the process grid passed
    * to it. The cyclicity may be on only one dimension.
@@ -133,8 +133,8 @@ namespace gridtools {
    \code
    OUT CODE HERE AS IN 2D CASE
    \endcode
-   
-   A running example can be found in the included example. \ example Halo_Exchange_test_3D.cpp 
+
+   A running example can be found in the included example. \ example Halo_Exchange_test_3D.cpp
   */
   template <typename PROC_GRID, int ALIGN=1 >
   class Halo_Exchange_3D {
@@ -259,7 +259,7 @@ namespace gridtools {
 #ifndef NDEBUG
         std::cout << "@" << gridtools::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
                   << " P " << m_proc_grid.template proc<I,J,K>() << " - "
-                  << " T " << TAG<-I,-J,-K>::value << " - " 
+                  << " T " << TAG<-I,-J,-K>::value << " - "
                   << " R " << translate()(-I,-J,-K) << " - "
                   << " Amount " << m_recv_buffers.size(I,J,K)
                   << "\n";
@@ -307,7 +307,7 @@ namespace gridtools {
 #ifndef NDEBUG
         std::cout << "@" << gridtools::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
                   << " P " << m_proc_grid.template proc<I,J,K>() << " - "
-                  << " T " << TAG<I,J,K>::value << " - " 
+                  << " T " << TAG<I,J,K>::value << " - "
                   << " R " << translate()(I,J,K) << " - "
                   << " Amount " << m_send_buffers.size(I,J,K)
                   << "\n";
@@ -452,13 +452,13 @@ namespace gridtools {
     /** Function to retrieve the grid from the pattern, from which user can query
         location information.
 
-        If used to get process grid information additional information can be 
+        If used to get process grid information additional information can be
         found in \link GRIDS_INTERACTION \endlink
     */
     PROC_GRID const & proc_grid() const {return m_proc_grid;}
 
     /** Function to register send buffers with the communication patter.
- 
+
       Values I and J are coordinates relative to calling process and
       the buffer is the container for the data to be sent to that
       process. The amount of data is specified as number of bytes. It
@@ -477,12 +477,12 @@ namespace gridtools {
       assert(( K>=-1 && K<=1 ));
 
 #ifndef NDEBUG
-//       std::cout << "@" << gridtools::PID 
-//                 << "@ " << __PRETTY_FUNCTION__ 
-//                 << " : " << p << " size " << s 
-//                 << " I:" << I 
-//                 << " J:" << J 
-//                 << " K:" << K 
+//       std::cout << "@" << gridtools::PID
+//                 << "@ " << __PRETTY_FUNCTION__
+//                 << " : " << p << " size " << s
+//                 << " I:" << I
+//                 << " J:" << J
+//                 << " K:" << K
 //                 << " (" << translate()(I,J,K) << ")\n";
 #endif
 
@@ -544,12 +544,12 @@ namespace gridtools {
       assert(( K>=-1 && K<=1 ));
 
 #ifndef NDEBUG
-//       std::cout << "@" << gridtools::PID 
-//                 << "@ " << __PRETTY_FUNCTION__ 
-//                 << " : " << p << " size " << s 
-//                 << " I:" << I 
-//                 << " J:" << J 
-//                 << " K:" << K 
+//       std::cout << "@" << gridtools::PID
+//                 << "@ " << __PRETTY_FUNCTION__
+//                 << " : " << p << " size " << s
+//                 << " I:" << I
+//                 << " J:" << J
+//                 << " K:" << K
 //                 <<  " (" << translate()(I,J,K) << ")\n";
 #endif
 
@@ -684,7 +684,7 @@ namespace gridtools {
         Values I and J are coordinates relative to calling process and
         the buffer is the container for the data to be sent to that
         process. The amount of data is specified as number of bytes.
-        
+
         \tparam I Relative coordinates of the receiving process along the first dimension
         \tparam J Relative coordinates of the receiving process along the second dimension
         \tparam K Relative coordinates of the receiving process along the third dimension
@@ -756,7 +756,7 @@ namespace gridtools {
           if (m_proc_grid.template proc<0,-1,-1>()!=-1) {
               post_receive<0,-1,-1>();
           }
-      
+
           /* Posting receives FOR CORNERS face -1
            */
           if (m_proc_grid.template proc<1,1,-1>()!=-1) {
@@ -798,7 +798,7 @@ namespace gridtools {
           if (m_proc_grid.template proc<0,-1,0>()!=-1) {
               post_receive<0,-1,0>();
           }
-      
+
           /* Posting receives FOR CORNERS face 0
            */
           if (m_proc_grid.template proc<1,1,0>()!=-1) {
@@ -835,7 +835,7 @@ namespace gridtools {
           if (m_proc_grid.template proc<0,-1,1>()!=-1) {
               post_receive<0,-1,1>();
           }
-      
+
           /* Posting receives FOR CORNERS face 1
            */
           if (m_proc_grid.template proc<1,1,1>()!=-1) {
@@ -1017,9 +1017,9 @@ namespace gridtools {
 
     }
 
-  
+
     void wait() {
-  
+
       wait_for_sends();
 
       /* Actual receives face -1
@@ -1062,7 +1062,7 @@ namespace gridtools {
         wait<0,0,-1>();
       }
 
-      
+
 
 
       /* Actual receives face 0
@@ -1102,7 +1102,7 @@ namespace gridtools {
       }
 
 
-      
+
 
 
       /* Actual receives face -1
@@ -1145,7 +1145,7 @@ namespace gridtools {
         wait<0,0,1>();
       }
 
-      
+
 
 
 
