@@ -63,7 +63,7 @@ namespace gridtools {
 
                 //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
                 //setting the initial k level (for backward/parallel iterations it is not 0)
-                if( !iteration_policy::value==enumtype::forward )
+                if( !(iteration_policy::value==enumtype::forward) )
                     it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
                 for_each<typename Arguments::loop_intervals_t>
@@ -185,8 +185,8 @@ namespace gridtools {
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
                 // number of threads
-                uint_t nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1;
-                uint_t ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1;
+                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1);
+                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1);
 
                 // blocks dimension
                 uint_t ntx = 8, nty = 32;

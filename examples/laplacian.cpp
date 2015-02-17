@@ -74,11 +74,19 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. arg_type contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef arg_type<0> out;
-    /**
+#ifdef CXX11_ENABLED
+    typedef arg_type<0, range<-1, 1, -1, 1>, 3 > out;
+#else
+    typedef arg_type<0, range<-1, 1, -1, 1>, 3 >::type out;
+#endif
+/**
        @brief  placeholder for the input field, index 1
     */
-    typedef const arg_type<1, range<-1, 1, -1, 1> > in;
+#ifdef CXX11_ENABLED
+    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 > in;
+#else
+    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 >::type in;
+#endif
     /**
        @brief MPL vector of the out and in types
     */
@@ -127,9 +135,9 @@ int main(int argc, char** argv) {
 
 	- Definition of the domain:
     */
-    u_int d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
-    u_int d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
-    u_int d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
+    uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
+    uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
+    uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
     using namespace gridtools;
     using namespace enumtype;
@@ -161,7 +169,7 @@ int main(int argc, char** argv) {
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
-    storage_type in(d1,d2,d3,-1, "in");
+    storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
     out.print(file_i);
 

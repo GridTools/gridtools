@@ -10,7 +10,6 @@
 #include "heap_allocated_temps.h"
 #include "backend.h"
 
-#include<boost/mpl/print.hpp>
 #include "iteration_policy.h"
 
 /**
@@ -73,12 +72,10 @@ namespace gridtools {
 
 #ifndef NDEBUG
 		    std::cout << "Functor " <<  functor_type() << "\n";
-		    std::cout << "I loop " 
-                      << (int_t)f->m_starti  + range_t::iminus::value << " -> "
-                      << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
-		    std::cout << "J loop " 
-                      << (int_t)f->m_startj + range_t::jminus::value << " -> "
-                      << (int_t)f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+		    std::cout << "I loop " << (int_t)f->m_starti <<"+"<< range_t::iminus::value << " -> "
+			      << f->m_starti <<"+"<< f->m_BI <<"+"<< range_t::iplus::value << "\n";
+		    std::cout << "J loop " << (int_t)f->m_startj <<"+"<< range_t::jminus::value << " -> "
+			      << (int_t)f->m_startj <<"+"<< f->m_BJ <<"+"<< range_t::jplus::value << "\n";
 		    std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
 		    std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 		    std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;

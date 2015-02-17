@@ -35,7 +35,105 @@ namespace gridtools{
 #endif
         };
 
-        /**@brief metafunction to access a type sequence at a given position, numeration from 0
+#ifdef CXX11_ENABLED
+	/**@brief metafunction to recursively compute the next stride
+	   ID goes from space_dimensions-2 to 0
+	   MaxIndex is space_dimensions-1
+	*/
+	template<short_t ID, short_t MaxIndex,  typename Layout>
+	struct next_stride{
+	    template<typename First, typename ... IntTypes>
+            GT_FUNCTION
+            static First constexpr apply ( First first, IntTypes ... args){
+		return (Layout::template at_<MaxIndex-ID+1>::value==vec_max<typename Layout::layout_vector_t>::value)?0:Layout::template find_val<MaxIndex-ID,short_t,1>(first, args...) * next_stride<ID-1, MaxIndex, Layout>::apply(first, args...);
+	    }
+	};
+
+	/**@brief template specialization to stop the recursion*/
+	template< short_t MaxIndex, typename Layout>
+	struct next_stride<0, MaxIndex, Layout>{
+	    template<typename First, typename ... IntTypes>
+            GT_FUNCTION
+            static First constexpr apply(First first, IntTypes ... args){
+		return Layout::template find_val<MaxIndex,short_t,1>(first, args...);
+	    }
+	};
+
+	/**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
+	template<int_t ID, int_t MaxIndex,  typename Layout>
+	struct assign_strides{
+	    template<typename ... UIntType>
+            GT_FUNCTION
+            static void apply(uint_t* strides, UIntType ... args){
+		BOOST_STATIC_ASSERT(MaxIndex>=ID);
+		BOOST_STATIC_ASSERT(ID>=0);
+		strides[MaxIndex-ID] = next_stride<ID, MaxIndex, Layout>::apply(args...);
+		assign_strides<ID-1, MaxIndex, Layout>::apply(strides, args...);
+	    }
+	};
+
+	/**@brief specialization to stop the recursion*/
+	template< int_t MaxIndex,  typename Layout>
+	struct assign_strides<0, MaxIndex, Layout>{
+	    template<typename ... UIntType>
+            GT_FUNCTION
+	    static void apply(uint_t* strides, UIntType ... args){
+		BOOST_STATIC_ASSERT(MaxIndex>=0);
+		strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
+	    }
+	};
+#endif
+
+	/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
+	 */
+	template<ushort_t Id, typename Layout>
+	struct compute_offset{
+	    static const ushort_t space_dimensions = Layout::length;
+
+	    /**interface with an array of coordinates as argument
+               \param strides the strides
+               \param indices the array of coordinates
+            */template<typename IntType>
+            GT_FUNCTION
+	    static int_t apply(uint_t const* strides, IntType* indices){
+		return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
+	    }
+
+#ifdef CXX11_ENABLED
+            /**interface with an the coordinates as variadic arguments
+               \param strides the strides
+               \param indices comma-separated list of coordinates
+            */
+            template<typename ... UInt>
+            GT_FUNCTION
+            static int_t apply(uint_t const* strides, UInt const& ... indices){
+                return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices...)+compute_offset<Id-1, Layout>::apply(strides, indices... );
+            }
+#endif
+        };
+
+	/**@brief stops the recursion
+	 */
+	template<typename Layout>
+	struct compute_offset<1, Layout>{
+	    static const ushort_t space_dimensions = Layout::length;
+
+	    template<typename IntType>
+            GT_FUNCTION
+	    static int_t apply(uint_t const* /*strides*/, IntType* indices){
+		return Layout::template find_val<space_dimensions-1, int, 0>(indices);
+	    }
+
+#ifdef CXX11_ENABLED
+            template<typename ... IntType>
+            GT_FUNCTION
+            static int_t apply(uint_t const* /*strides*/, IntType const& ... indices){
+                return Layout::template find_val<space_dimensions-1, int, 0>(indices ...);
+            }
+#endif
+	};
+
+	/**@brief metafunction to access a type sequence at a given position, numeration from 0
 
 	   The types in the sequence must define a 'super' type. Can be seen as a compile-time equivalent of a linked-list.
 	*/
@@ -52,54 +150,12 @@ namespace gridtools{
 	    typedef Sequence type;
 	};
 
-
-#ifdef CXX11_ENABLED
-	/**@brief metafunction to recursively compute the next stride*/
-	template<short_t ID, short_t SpaceDimensions,  typename Layout>
-	struct next_stride{
-	    template<typename First, typename ... IntTypes>
-	    static First constexpr apply ( First first, IntTypes ... args){
-		return (Layout::template at_<SpaceDimensions-ID+1>::value==vec_max<typename Layout::layout_vector_t>::value)?0:Layout::template find_val<SpaceDimensions-ID,short_t,1>(first, args...) * next_stride<ID-1, SpaceDimensions, Layout>::apply(first, args...);
-	    }
-	};
-
-	/**@brief template specialization to stop the recursion*/
-	template< short_t SpaceDimensions, typename Layout>
-	struct next_stride<0, SpaceDimensions, Layout>{
-	    template<typename First, typename ... IntTypes>
-	    static First constexpr apply(First first, IntTypes ... args){
-		return Layout::template find_val<SpaceDimensions,short_t,1>(first, args...);
-	    }
-	};
-
-	/**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
-	template<int_t ID, int_t SpaceDimensions,  typename Layout>
-	struct assign_strides{
-	    template<typename ... UIntType>
-	    static void apply(uint_t* strides, UIntType ... args){
-		BOOST_STATIC_ASSERT(SpaceDimensions>=ID);
-		BOOST_STATIC_ASSERT(ID>=0);
-		strides[SpaceDimensions-ID] = next_stride<ID, SpaceDimensions, Layout>::apply(args...);
-		assign_strides<SpaceDimensions-(ID+1), SpaceDimensions, Layout>::apply(strides, args...);
-	    }
-	};
-
-	/**@brief specialization to stop the recursion*/
-	template< int_t SpaceDimensions,  typename Layout>
-	struct assign_strides<0, SpaceDimensions, Layout>{
-	    template<typename ... UIntType>
-	    static void apply(uint_t* strides, UIntType ... args){
-		BOOST_STATIC_ASSERT(SpaceDimensions>=0);
-		strides[SpaceDimensions] = next_stride<0, SpaceDimensions, Layout>::apply(args...);
-	    }
-	};
-#endif
-
 	/**@brief recursively advance the ODE finite difference for all the field dimensions*/
 	template<short_t Dimension>
 	struct advance_recursive{
 	    template<typename This>
-	    void apply(This* t){
+            GT_FUNCTION
+            void apply(This* t){
 		t->template advance<Dimension>();
 		advance_recursive<Dimension-1>::apply(t);
 	    }
@@ -109,10 +165,12 @@ namespace gridtools{
 	template<>
 	struct advance_recursive<0>{
 	    template<typename This>
+            GT_FUNCTION
 	    void apply(This* t){
 		t->template advance<0>();
 	    }
 	};
+
 
 	// /**@brief Metafunction for computing the coordinate N from the index (not currently used anywhere)
 	//    N=0 is the coordinate with stride 1*/
@@ -172,14 +230,13 @@ namespace gridtools{
             }
 #endif
 
-
 	    // /**@brief print for debugging purposes*/
 	    // struct print_index{
 	    //     template <typename BaseStorage>
 	    //     GT_FUNCTION
 	    //     void operator()(BaseStorage* b ) const {printf("index -> %d, address %lld, 0x%08x \n", b->index(), &b->index(), &b->index());}
 	    // };
-	};
+        };
 #endif
     }//namespace _debug
 }//namesapace gridtools

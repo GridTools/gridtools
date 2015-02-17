@@ -21,31 +21,25 @@ namespace gridtools {
             GT_FUNCTION
             instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
                 :
-                  m_tile_i(tile_i)
+                m_tile_i(tile_i)
                 , m_tile_j(tile_j)
                 , m_tile_k(tile_k)
             {}
 
             // ElemType: an element in the data field place-holders list
             template <typename ElemType>
-            GT_FUNCTION
             void operator()(ElemType*&  e) const {
-//#ifndef __CUDACC__
-                char const* s = ElemType::info_string.c_str();
-//#endif
+                char const* s = "default tmp storage";//avoids a warning
+                //ElemType::info_string.c_str();
 
-//calls the constructor of the storage
-                //noone deletes this f***n new
+                //calls the constructor of the storage
+                //TODO noone deletes this new
                 e = new ElemType(m_tile_i,
                                  m_tile_j,
                                  m_tile_k,
 //                                 0, // offset in k is zero for now
                                  typename ElemType::value_type(),
-//#ifndef __CUDACC__
                                  s);
-//#else
-//                                 );
-//#endif
             }
     };
 

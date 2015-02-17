@@ -16,6 +16,7 @@
 #endif
 
 /*
+  @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
 
@@ -36,21 +37,21 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 #ifdef CXX11_ENABLED
-        typedef arg_extend<arg_type<0>, 1>::type in;
+        typedef arg_type<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
-        typedef Dimension<3> time;
+        typedef Dimension<4> time;
 #else
-        typedef const arg_type<0> in;
-        typedef arg_type<1> out;
+        typedef const arg_type<0, range<0,0,0,0>, 3>::type in;
+        typedef arg_type<1, range<0,0,0,0>, 3>::type out;
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
-        /* static const auto expression=in(1,0,0)-out(); */
+    /* static const auto expression=in(1,0,0)-out(); */
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            eval(in(1))
+            eval(in(0,0,0,1))
 #else
                 eval(out())
 #endif
@@ -92,17 +93,16 @@ namespace copy_stencil{
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        //typedef storage_type::basic_type integrator_type;
-        /* typedef extend<storage_type::basic_type, 2> integrator_type; */
-#ifdef CXX11_ENABLED                                                    \
+#ifdef CXX11_ENABLED                            \
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-        //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
+//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
         typedef extend_width<base_type1, 0>  extended_type;
-        typedef extend_dim<extended_type, extended_type>  integrator_type;
+        typedef extend_dim<extended_type, extended_type>  vec_field_type;
 #else
-        typedef extend<storage_type::basic_type, 0, 0>::type  integrator_type;
+        //vector field of dimension 2
+        typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
 #endif
 #endif
         //out.print();
@@ -110,7 +110,7 @@ namespace copy_stencil{
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
 #ifdef CXX11_ENABLED
-        typedef arg<0, integrator_type > p_in;
+        typedef arg<0, vec_field_type > p_in;
         typedef boost::mpl::vector<p_in> arg_type_list;
 #else
         typedef arg<0, storage_type> p_in;
@@ -119,18 +119,18 @@ namespace copy_stencil{
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector<p_in, p_out> arg_type_list;
 #endif
-        /* typedef arg<1, integrator_type > p_out; */
+        /* typedef arg<1, vec_field_type > p_out; */
 
         // Definition of the actual data fields that are used for input/output
 #ifdef CXX11_ENABLED
-        integrator_type in(d1,d2,d3);
-        integrator_type::original_storage::pointer_type  init1(d1*d2*d3);
-        integrator_type::original_storage::pointer_type  init2(d1*d2*d3);
+        vec_field_type in(d1,d2,d3);
+        vec_field_type::original_storage::pointer_type  init1(d1*d2*d3);
+        vec_field_type::original_storage::pointer_type  init2(d1*d2*d3);
         in.push_front<0>(init1, 1.5);
         in.push_front<1>(init2, -1.5);
 #else
         storage_type in(d1,d2,d3,-3.5,"in");
-        storage_type out(d1,d2,d3,666.5,"out");
+        storage_type out(d1,d2,d3,1.5,"out");
 #endif
 
         for(uint_t i=0; i<d1; ++i)

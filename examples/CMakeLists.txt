@@ -7,7 +7,7 @@
 
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
-foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal basic_laplacian vanilla_laplacian )
+foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal basic_laplacian vanilla_laplacian extended_4D )
     add_executable(${srcfile}_naive   ${srcfile}.cpp )
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block
@@ -27,6 +27,10 @@ if ( ENABLE_CXX11 )
 add_executable(shallow_water  shallow_water.cpp)
     target_link_libraries(shallow_water ${exe_LIBS})
     set_target_properties(shallow_water PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+#add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
+#    target_link_libraries(shallow_water_enhanced ${exe_LIBS})
+#    set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
 add_executable(shallow_water2 shallow_water.cpp)
     target_link_libraries(shallow_water2 ${exe_LIBS})
