@@ -36,7 +36,7 @@ namespace gridtools {
         }
 
 // copy constructor passes on the ownership
-        __device__ __host__
+	GT_FUNCTION
         hybrid_pointer(hybrid_pointer const& other)
             : wrap_pointer<T>(other)
             , m_gpu_p(other.m_gpu_p)

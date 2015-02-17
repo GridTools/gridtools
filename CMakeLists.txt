@@ -6,7 +6,7 @@ enable_language( CXX )
 
 
 ## enable to use ctest:
-enable_testing()
+## enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 if(GNU_COVERAGE)
@@ -24,7 +24,7 @@ endif()
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "${CMAKE_SOURCE_DIR}/build")
+  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "${CMAKE_BINARY_DIR}/build")
 endif()
 
 include_directories( include/ include/communication/high-level ) ## Library header files

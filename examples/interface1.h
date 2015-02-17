@@ -17,6 +17,7 @@
 #endif
 
 /*
+  @file
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
 
@@ -40,8 +41,13 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> > in;
+    typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1, range<-1, 1, -1, 1>  >::type in;
+#endif
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -55,9 +61,15 @@ struct lap_function {
 };
 
 struct flx_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
+    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
+#endif
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -73,9 +85,15 @@ struct flx_function {
 };
 
 struct fly_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
+    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
+#endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -90,11 +108,19 @@ struct fly_function {
 };
 
 struct out_function {
+#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
+#else
+    typedef arg_type<0>::type out;
+    typedef const arg_type<1>::type in;
+    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
+    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
+    typedef const arg_type<4>::type coeff;
+#endif
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Domain>
@@ -163,9 +189,9 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1, "in");
+    storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
-    storage_type coeff(d1,d2,d3,8, "coeff");
+    storage_type coeff(d1,d2,d3,8., "coeff");
 
 #ifndef SILENT_RUN
     out.print();
@@ -187,7 +213,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#ifdef CXX11_ENABLE
+#ifdef CXX11_ENABLED
     gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
 #else
     gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
