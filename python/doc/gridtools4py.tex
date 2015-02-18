@@ -1,0 +1,50 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{babel}
+\begin{document}
+
+\section{Introduction}
+GridTools was born as an answer to the exigency imposed by the programming models currently dominating the HPC arena.
+Indeed, the performance gain provided by most accelerator architectures comes at the cost of increased complexity.
+But, to program these new architectures is just the first step into this difficult journey.
+To design programs that are portable across the growing landscape of computer architectures is the real challenge.
+
+
+
+\subsection{Related work}
+FeNiCs [ref!] exposes its functionality to Python using the same API available in C++ interface using SWIG.
+In this sense, the exposed interface is exactly the same as in C++, with only certain added functionality from the Python side, e.g., run-time compilation of UFL form language.
+Indeed, there is no source-to-source translation, since the user is directly accessing the C++ backend, not taking advantage of the extra level of abstraction provided by Python.
+We take this concept a step further to provide a source-to-source translation between Python and C++ in order fot the user to take advantage of an easier transition between the domain-specific problem and the implementation of its solution.
+The generated C++ code is seamlessly integrated whitin the Python runtim and its made available to the end user in a human-readable fashion that also inludes various comments pointers and references to the documentation for the advanced user that wishes to dig dipper in the C++ backend.
+
+
+\section{The GridTools ecosystem}
+In an attempt to reach the wider spectrum of public possible, we are currently proving three different ways of dealing with the implementation of stencil computations that are used to seolve ??? problems.
+The first one involves a short and descriptive DSL, which was inspired by the ICON DSL Lite, that allows the user to provide a mathematical description of the problem elements.
+This DSL is then translated to the second layer of abstraction of our approach, i.e., the Python interface.
+By mixing the descriptive and and the imperative approaches, the Python interface provides a hybrid which is simple enough for the non-expert to work with yet powerful.
+It provides an ideal environment for reasearch and prototyping of new stencils by taking advange of the myariad of tools provided by the Python scientific computing.
+The Python environment provides a non-expert and friendly access to the C++ library implementing the actual functionality.
+(...)
+In this sense, GridTools provides a framework for creating high-performance implementations starting from a simple declarative specification. 
+By incorporating domain-specific knowledge at each of the abstraction layers, the framework is able to automatically optimize the generated code to a level that is beyond the capabilities of modern compilers.
+Moreover, Gridtools4Py is an interactive environment that allows experimentation through a wide palette of visualization and debuging tools.
+The user can easily choose among different backends on how the kernel is optimized and parallelized.
+
+\subsection{DSL}
+
+\subsection{Python}
+Over the past few years, Python has proven to be an attractive choice for the rapid development of simulation codes for scientific computing [ref!].
+It combines a high-level scripting language with the strength of object-oriented programming and a rich choice of libraries for numerical computation, out of which NumPy [ref] and SciPy [ref] emerge as the strongest and most widely used examples.
+
+\subsection{C++}
+
+\section{Future work}
+Let the user experiment and/or create custom execution strategies to investigate different hardware mappings for the target hardware.
+
+\section{TODO}
+* What about boundary conditions? How are they implemented/exposed by the C++ API?
+
+\end{document}
