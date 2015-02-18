@@ -372,8 +372,8 @@ namespace gridtools {
             }
 
 
-        /**@brief returns the offset tuple (i.e. this instance)*/
-        arg_decorator<ArgType> const& offset() const {return *this;}
+        // /**@brief returns the offset tuple (i.e. this instance)*/
+        // arg_decorator<ArgType> const& offset() const {return *this;}
 
 
         /**@brief returns the offset at a specific index Idx*/

@@ -372,6 +372,11 @@ namespace gridtools {
 #endif
                 typename storage_type::value_type * real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
+                // printf("strides:[ %d, %d, %d]\n", boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size(), boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->strides(1), boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->strides(2));
+                // printf("offsets:[ %d, %d, %d, %d, %d]\n", arg.template get<0>(), arg.template get<1>(), arg.template get<2>(), arg.template get<3>(), arg.template get<4>());
+                // printf("index: %d + %d \n", m_index[ArgType::index_type::value], (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.offset()));
+
+
                 //the following assert fails when an out of bound access is observed, i.e. either one of
 		//i+offset_i or j+offset_j or k+offset_k is too large.
 		//Most probably this is due to you specifying a positive offset which is larger than expected,
@@ -379,7 +384,8 @@ namespace gridtools {
 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->_index(/*arg.template n<ArgType::n_args>()*/
-                           arg.offset()));
+                           arg)
+                    );
 
 		//the following assert fails when an out of bound access is observed,
 		//i.e. when some offset is negative and either one of
@@ -391,7 +397,8 @@ namespace gridtools {
 		assert( (int_t)(m_index[ArgType::index_type::value])
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                         ->_index(/*arg.template n<ArgType::n_args>()*/
-                            arg.offset()) >= 0);
+                            arg)
+                        >= 0);
 
 #ifdef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
@@ -400,7 +407,8 @@ namespace gridtools {
                          +(m_index[ArgType::index_type::value])
                          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                          ->_index(/*arg.template n<ArgType::n_args>()*/
-                             arg.offset()));
+                             arg)
+                    );
             }
 
 
