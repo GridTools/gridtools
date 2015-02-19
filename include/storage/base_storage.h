@@ -1,5 +1,6 @@
 #pragma once
 #include "base_storage_impl.h"
+#include "../common/layout_map.h"
 
 /**@file
    @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
@@ -64,6 +65,7 @@ namespace gridtools {
 			   >
 	struct base_storage
 	{
+	    BOOST_STATIC_ASSERT((is_layout_map<Layout>::value));
 		typedef Layout layout;
 		typedef ValueType value_type;
 		typedef value_type* iterator_type;
