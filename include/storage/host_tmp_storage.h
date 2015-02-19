@@ -131,42 +131,51 @@ namespace gridtools {
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t dimension, uint_t b, uint_t* index){
-	    // no blocking along k
-	    if(Coordinate != 2)
-	    {
-		// std::cout<<"dimension: "<<(int)dimension<<"block: "<<(int)b<<"tile: "<<(int) (Coordinate?TileI:TileJ) << std::endl;
-		uint_t tile=Coordinate==0?TileI:TileJ;
-		uint_t var=dimension - b * tile;
+        void increment(const uint_t dimension, const uint_t b, uint_t* index){
+            // no blocking along k
+            if(Coordinate != 2)
+            {
+                // std::cout<<"dimension: "<<(int)dimension<<"block: "<<(int)b<<"tile: "<<(int) (Coordinate?TileI:TileJ) << std::endl;
+                uint_t tile=Coordinate==0?TileI:TileJ;
+                uint_t var=dimension - b * tile;
 
-		// std::cout <<"block: "<< b<<" uint_t coor = ((" << var << ")-" << m_initial_offsets[layout::template at_<Coordinate>::value] << "+" << m_halo[layout::template at_<Coordinate>::value] << ")";
-		// uint_t coor=var-layout::template find<Coordinate>(&m_initial_offsets[0]) + layout::template find<Coordinate>(&m_halo[0]);
-		uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template at_<Coordinate>::value];
+                // std::cout <<"block: "<< b<<" uint_t coor = ((" << var << ")-" << m_initial_offsets[layout::template at_<Coordinate>::value] << "+" << m_halo[layout::template at_<Coordinate>::value] << ")";
+                // uint_t coor=var-layout::template find<Coordinate>(&m_initial_offsets[0]) + layout::template find<Coordinate>(&m_halo[0]);
+                uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template at_<Coordinate>::value];
 
-		// std::cout << " = "<<coor<<std::endl;
-		BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-		*index += coor*m_strides[layout::template at_<Coordinate>::value+1];
-		// *index += coor*layout::template find<Coordinate>(&m_strides[1]);
-		// std::cout << "index = "<<coor<<"*"<<m_strides[layout::template at_<Coordinate>::value+1]<<"="<<*index<<std::endl;
-		// std::cout << "strides = "<<m_strides[0]<<", "<<m_strides[1]<<", "<<m_strides[2] <<std::endl;
-	    }
-	    else
-	    {
-		base_type::template increment<Coordinate>( dimension, b, index);
-	    }
-	}
+                // std::cout << " = "<<coor<<std::endl;
+                BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                *index += coor*m_strides[layout::template at_<Coordinate>::value+1];
+                // *index += coor*layout::template find<Coordinate>(&m_strides[1]);
+                // std::cout << "index = "<<coor<<"*"<<m_strides[layout::template at_<Coordinate>::value+1]<<"="<<*index<<std::endl;
+                // std::cout << "strides = "<<m_strides[0]<<", "<<m_strides[1]<<", "<<m_strides[2] <<std::endl;
+            }
+            else
+            {
+                base_type::template increment<Coordinate>( dimension, b, index);
+            }
+        }
 
         /**@brief decrement in the horizontal direction (i or j). Analogous to the increment.
          TODO avoid code repetition*/
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t& dimension, uint_t& b, uint_t* index){
+        void decrement(const uint_t dimension, const uint_t b, uint_t* index){
+            // no blocking along k
+            if(Coordinate != 2)
+            {
 
-            uint_t tile=Coordinate==0?TileI:TileJ;
-            uint_t var=dimension - b * tile;
-	    BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-	    uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template find<Coordinate>::value];
-	    *index -= coor*m_strides[layout::template at_<Coordinate>+1];
+                uint_t tile=Coordinate==0?TileI:TileJ;
+                uint_t var=dimension - b * tile;
+                BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template at_<Coordinate>::value];
+                *index -= coor*m_strides[layout::template at_<Coordinate>::value+1];
+            }
+            else
+            {
+                base_type::template decrement<Coordinate>( dimension, b, index);
+            }
+
         }
     };
 
