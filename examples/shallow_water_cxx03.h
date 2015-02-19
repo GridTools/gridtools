@@ -476,7 +476,7 @@ namespace shallow_water{
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, 3,
-                                                    gridtools::gcl_cpu,
+                                                    gridtools::gcl_gpu,
                                                     gridtools::version_manual> pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
@@ -561,6 +561,8 @@ namespace shallow_water{
 #endif
             shallow_water_stencil->run();
 
+            shallow_water_stencil->finalize();
+
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=sol.fields()[0].get();
             vec[1]=sol.fields()[1].get();
@@ -570,11 +572,9 @@ namespace shallow_water{
             he.exchange();
             he.unpack(vec);
 
-            sol.print();
         }
 
-        shallow_water_stencil->finalize();
-
+        sol.print();
         // hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
         // out.write(sol.get<0,0>());
 

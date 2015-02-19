@@ -29,9 +29,9 @@ namespace gridtools {
     // };
 
 
-    template < typename ... T >
-    struct create_tuple< 0, T ...  >{
-        typedef std::tuple< T... > type;
+    template < typename U, typename ... T >
+    struct create_tuple< 0, U, T ...  >{
+        typedef std::tuple< U, T... > type;
     };
 
 
