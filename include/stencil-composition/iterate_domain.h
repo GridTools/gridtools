@@ -478,11 +478,22 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
             GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
-                // std::cout<<"arg.template get< "<<gridtools::arg_decorator<ArgType>::n_args-1<<" >() ====>"<<arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>()<<std::endl;
-                // std::cout<<"arg.template get< "<<gridtools::arg_decorator<ArgType>::n_args-2<<" >() ====>"<<arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()<<std::endl;
-                // std::cout<<"arg.template get< "<<gridtools::arg_decorator<ArgType>::n_args-3<<" >() ====>"<<arg.template get<gridtools::arg_decorator<ArgType>::n_args-3>()<<std::endl;
-                // std::cout<<"arg.template get< "<<gridtools::arg_decorator<ArgType>::n_args-4<<" >() ====>"<<arg.template get<gridtools::arg_decorator<ArgType>::n_args-4>()<<std::endl;
-                // std::cout<<"arg.template get< "<<gridtools::arg_decorator<ArgType>::n_args-5<<" >() ====>"<<arg.template get<gridtools::arg_decorator<ArgType>::n_args-5>()<<std::endl;
+                // printf("arg.template get< %d >() =====> %d \n", gridtools::arg_decorator<ArgType>::n_args-1, arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>());
+                // printf("arg.template get< %d >() =====> %d \n", gridtools::arg_decorator<ArgType>::n_args-2, arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>());
+                // printf("arg.template get< %d >() =====> %d \n", gridtools::arg_decorator<ArgType>::n_args-3, arg.template get<gridtools::arg_decorator<ArgType>::n_args-3>());
+                // printf("arg.template get< %d >() =====> %d \n", gridtools::arg_decorator<ArgType>::n_args-4, arg.template get<gridtools::arg_decorator<ArgType>::n_args-4>());
+                // printf("arg.template get< %d >() =====> %d \n", gridtools::arg_decorator<ArgType>::n_args-5, arg.template get<gridtools::arg_decorator<ArgType>::n_args-5>());
+                // printf("data pointer: [ %x %x %x ] \n", m_data_pointer[0], m_data_pointer[1], m_data_pointer[2]);
+                // printf("data pointer: [ %f %f %f ] \n", (static_cast<double*>(m_data_pointer[0]))[10], (static_cast<double*>(m_data_pointer[1]))[11], (static_cast<double*>(m_data_pointer[2]))[12]);
+                // printf("get index: %d \n",                                  storage_type::get_index(
+                //                      (
+                //                          gridtools::arg_decorator<ArgType>::n_args <= storage_type::space_dimensions+1 ? // static if
+                //                          arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                //                                          :
+                //                          arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                //                          + arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()
+                //                          *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
+                //                          )));
 
                 return get_value(arg,
                              m_data_pointer[ //static if

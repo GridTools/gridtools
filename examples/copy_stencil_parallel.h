@@ -29,25 +29,15 @@ namespace copy_stencil{
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-#ifdef CXX11_ENABLED
-	typedef arg_type<0, range<0,0,0,0>, 4> in;
-	typedef boost::mpl::vector<in> arg_list;
-	typedef Dimension<4> time;
-#else
 	typedef const arg_type<0>::type in;
 	typedef arg_type<1>::type out;
 	typedef boost::mpl::vector<in,out> arg_list;
-#endif
 	/* static const auto expression=in(1,0,0)-out(); */
 
 	template <typename Evaluation>
 	GT_FUNCTION
 	static void Do(Evaluation const & eval, x_interval) {
-#ifdef CXX11_ENABLED
-	    eval(in(0,0,0,1))
-#else
 		eval(out())
-#endif
 		=eval(in());
 	}
     };
@@ -76,46 +66,26 @@ namespace copy_stencil{
 	typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))))
-        //vector field of dimension 2
-        typedef field<storage_type::basic_type, 2>::type  vec_storage_type;
-#else
-//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-        typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
-        typedef extend_width<base_type1, 0>  extended_type;
-        typedef extend_dim<extended_type, extended_type>  vec_storage_type;
-#endif
 
 	// Definition of placeholders. The order of them reflect the order the user will deal with them
 	// especially the non-temporary ones, in the construction of the domain
-#ifdef CXX11_ENABLED
-	typedef arg<0, vec_storage_type > p_in;
-	typedef boost::mpl::vector<p_in> arg_type_list;
-#else
 	typedef arg<0, storage_type> p_in;
 	typedef arg<1, storage_type> p_out;
 	// An array of placeholders to be passed to the domain
 	// I'm using mpl::vector, but the final API should look slightly simpler
 	typedef boost::mpl::vector<p_in, p_out> arg_type_list;
-#endif
 	/* typedef arg<1, vec_storage_type > p_out; */
-        typedef vec_storage_type::original_storage::pointer_type pointer_type;
+        typedef storage_type::original_storage::pointer_type pointer_type;
 	// Definition of the actual data fields that are used for input/output
-#ifdef CXX11_ENABLED
+//#ifdef CXX11_ENABLED
         MPI_3D_process_grid_t<gridtools::boollist<3> > comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
         ushort_t halo[3]={1,1,1};
-        typedef partitioner_trivial<vec_storage_type> partitioner_t;
+        typedef partitioner_trivial<storage_type> partitioner_t;
         partitioner_t part(comm.ntasks(), comm.coordinates(), comm.dimensions(), halo);
-	parallel_storage<partitioner_t> in(part, d1, d2, d3);
-
-	pointer_type  init1(d1*d2*d3);
-	pointer_type  init2(d1*d2*d3);
-	in.push_front<0>(init1, 1.5);
-	in.push_front<0>(init2, -1.5);
-#else
-	storage_type in(d1,d2,d3,-3.5,"in");
-	storage_type out(d1,d2,d3,1.5,"out");
-#endif
+	parallel_storage<partitioner_t> in(part,d1,d2,d3);
+	parallel_storage<partitioner_t> out(part,d1,d2,d3);
+        //in.initilaize(-1.);
+        //out.initilaize(-2.);
 
 	for(uint_t i=0; i<in.template dims<0>(); ++i)
 	    for(uint_t j=0; j<in.template dims<1>(); ++j)
@@ -139,8 +109,12 @@ namespace copy_stencil{
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, 3,
-                                                    gridtools::gcl_cpu,
-                                                    gridtools::version_manual> pattern_type;
+#ifdef CUDA_EXAMPLE
+            gridtools::gcl_gpu,
+#else
+            gridtools::gcl_cpu,
+#endif
+            gridtools::version_manual> pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
 
@@ -154,13 +128,8 @@ namespace copy_stencil{
 	// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
 	// It must be noted that the only fields to be passed to the constructor are the non-temporary.
 	// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#ifdef CXX11_ENABLED
-	gridtools::domain_type<arg_type_list> domain
-	    (boost::fusion::make_vector(&in));
-#else
 	gridtools::domain_type<arg_type_list> domain
 	    (boost::fusion::make_vector(&in, &out));
-#endif
 
 	/*
 	  Here we do lot of stuff
@@ -184,6 +153,7 @@ namespace copy_stencil{
 		(
 		    execute<forward>(),
 		    gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
+                                                      , p_out()
 			)
 		    ),
 		domain, coords
@@ -195,7 +165,12 @@ namespace copy_stencil{
 
 	copy->run();
 
-	std::vector<pointer_type::pointee_t*> vec={in.fields()[0].get(), in.fields()[1].get()};
+	copy->finalize();
+
+	std::vector<pointer_type::pointee_t*> vec(2);
+        vec[0]=in.fields()[0].get();
+        vec[1]=out.fields()[0].get();
+
 	he.pack(vec);
 
 	he.exchange();
@@ -203,8 +178,6 @@ namespace copy_stencil{
 	he.unpack(vec);
 
         in.print();
-
-	copy->finalize();
 
  	MPI_Barrier(GCL_WORLD);
  	GCL_Finalize();

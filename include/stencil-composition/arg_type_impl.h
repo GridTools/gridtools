@@ -175,7 +175,10 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_type_base ( int const& t, Whatever const& ... x) {
+#ifdef NDEBUG
+        constexpr
+#endif
+arg_type_base ( int const& t, Whatever const& ... x) {
             //this static check fails on GCC<4.9 even when it should not
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected")
 
@@ -210,7 +213,7 @@ namespace gridtools {
 
         template<short_t Idx>
         GT_FUNCTION
-#ifndef NDEBUG
+#ifdef NDEBUG
         constexpr
 #endif
         int_t const& get() const {//stop recursion
@@ -379,7 +382,10 @@ namespace gridtools {
         /**@brief returns the offset at a specific index Idx*/
 	template<short_t Idx>
         GT_FUNCTION
-        constexpr int_t const& get() const {
+#ifdef NDEBUG
+        constexpr
+#endif
+int_t const& get() const {
 	    //the following assert cannot be compile time, since a version with idx=-1 may indeed be compiled (at the end of the template recursion), but should never be executed
 #ifndef __CUDACC__
 #ifndef NDEBUG
