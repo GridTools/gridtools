@@ -9,6 +9,10 @@
 #include <boost/mpl/push_front.hpp>
 
 namespace gridtools {
+template<typename T>
+struct printk { BOOST_MPL_ASSERT_MSG((false), TTTTTTTTTTTTTTTTT, (T));   };
+
+
     /**
      * Class to specify access ranges for stencil functions
      */
@@ -92,4 +96,41 @@ namespace gridtools {
                       boost::mpl::plus<typename Range1::jplus,  typename Range2::jplus>::type::value
                       > type;
     };
+
+    /**
+     * Metafunction computing the union of two ranges
+     */
+    template <typename Range1,
+              typename Range2>
+    struct union_ranges {
+        BOOST_STATIC_ASSERT((is_range<Range1>::value));
+        BOOST_STATIC_ASSERT((is_range<Range2>::value));
+
+        typedef range<
+            (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,
+            (Range1::iplus::value > Range2::iplus::value) ? Range1::iplus::value : Range2::iplus::value,
+            (Range1::jminus::value < Range2::jminus::value) ? Range1::jminus::value : Range2::jminus::value,
+            (Range1::jplus::value < Range2::jplus::value) ? Range1::jplus::value : Range2::jplus::value
+        > type;
+//        printk<type> iu;
+    };
+
+    template <typename TRange1,
+              typename TRange2>
+    struct lazy_union_ranges {
+        typedef typename TRange1::type Range1;
+        typedef typename TRange2::type Range2;
+        BOOST_STATIC_ASSERT((is_range<Range1>::value));
+        BOOST_STATIC_ASSERT((is_range<Range2>::value));
+
+        typedef range<
+            (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,
+            (Range1::iplus::value > Range2::iplus::value) ? Range1::iplus::value : Range2::iplus::value,
+            (Range1::jminus::value < Range2::jminus::value) ? Range1::jminus::value : Range2::jminus::value,
+            (Range1::jplus::value < Range2::jplus::value) ? Range1::jplus::value : Range2::jplus::value
+        > type;
+//        printk<type> iu;
+    };
+
+
 } // namespace gridtools

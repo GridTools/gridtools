@@ -68,7 +68,8 @@ public:
                     // wcon values between -2e-4 and 2e-4 (with zero at k=0)
                     wcon_(i,j,k) = 2e-4*(-1 + 2*(2.+cos(PI*(x+z)) + cos(PI*y))/4. + 0.1*(0.5-double(rand()%100)/50.));
 
-                    utens_stage_(i,j,k) = -1;
+                    utens_stage_(i,j,k) = 7. + 5*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4. + k*0.1;
+                    utens_stage_ref_(i,j,k) = utens_stage_(i,j,k);
                     ipos_(i,j,k) = i;
                     jpos_(i,j,k) = j;
                     kpos_(i,j,k)=k;
@@ -135,7 +136,7 @@ public:
                 // update the d column
                 double correctionTerm = -cs * (u_stage_(i, j, k + 1) - u_stage_(i, j, k));
                 dcol(i, j, k) = dtr_stage * u_pos_(i, j, k) + utens_(i, j, k)
-                        + utens_stage_(i, j, k) + correctionTerm;
+                        + utens_stage_ref_(i, j, k) + correctionTerm;
 
                 double divided = (double) 1.0 / bcol;
                 ccol(i, j, k) = ccol(i, j, k) * divided;
@@ -168,13 +169,13 @@ public:
                     double correctionTerm = -as * (u_stage_(i,j,k-1) - u_stage_(i,j,k)) -
                             cs * (u_stage_(i,j,k+1) - u_stage_(i,j,k));
                     dcol(i, j, k) = dtr_stage * u_pos_(i, j, k) + utens_(i, j, k)
-                            + utens_stage_(i, j, k) + correctionTerm;
+                            + utens_stage_ref_(i, j, k) + correctionTerm;
 
                     double divided = (double)1.0 / (bcol - (ccol(i,j,k-1) * acol));
                     ccol(i,j,k) = ccol(i,j,k) * divided;
                     dcol(i,j,k) = (dcol(i,j,k) - (dcol(i,j,k-1) * acol)) * divided;
                     if(i==3 && j == 3)
-                    std::cout << "AT ref at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << std::endl;
+                    std::cout << "FORDW REF at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << std::endl;
                 }
             }
         }
@@ -194,12 +195,12 @@ public:
                 // update the d column
                 double correctionTerm = -as*(u_stage_(i,j,k-1) - u_stage_(i,j,k));
                 dcol(i, j, k) = dtr_stage * u_pos_(i, j, k) + utens_(i, j, k)
-                                        + utens_stage_(i, j, k) + correctionTerm;
+                                        + utens_stage_ref_(i, j, k) + correctionTerm;
 
                 double divided = (double)1.0 / (bcol - (ccol(i,j,k-1) * acol));
                 dcol(i,j,k) = (dcol(i,j,k) - (dcol(i,j,k-1) * acol)) * divided;
-                if(i==3 && j == 3)
-                std::cout << "AT KMAX ref at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "  " << gav << std::endl;
+                if(i==3 && j ==3)
+                std::cout << "FORDW REF at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "  " << gav << std::endl;
             }
         }
     }
@@ -221,10 +222,12 @@ public:
         {
             for (int j = halo_size_; j < jdim_-halo_size_; ++j)
             {
-                datacol(i,j,0) = dcol(i,j,k);
+                datacol(i,j,k) = dcol(i,j,k);
+                ccol(i,j,k) = datacol(i,j,k);
                 utens_stage_ref_(i,j,k) = dtr_stage*(datacol(i,j,k) - u_pos_(i,j,k));
                 if(i==3 && j == 3)
-                std::cout << "AT RES KMAX ref at  " << k << "  " <<  utens_stage_ref_(i,j,k) << std::endl;
+                std::cout << "BACKW REF at  " << k << "  " <<  utens_stage_ref_(i,j,k) << "  " <<
+                datacol(i,j,k) << " " << u_pos_(i,j,k) << "  " << dcol(i,j,k) << "  " << dtr_stage << std::endl;
             }
         }
         // kbody
@@ -234,10 +237,13 @@ public:
             {
                 for (int j = halo_size_; j < jdim_-halo_size_; ++j)
                 {
-                    datacol(i,j,0) = dcol(i,j,k) - (ccol(i,j,k)*datacol(i,j,k+1));
+                    datacol(i,j,k) = dcol(i,j,k) - (ccol(i,j,k)*datacol(i,j,k+1));
+                    ccol(i,j,k) = datacol(i,j,k);
                     utens_stage_ref_(i,j,k) = dtr_stage*(datacol(i,j,k) - u_pos_(i,j,k));
                     if(i==3 && j == 3)
-                    std::cout << "AT RES KBODY ref at  " << k << "  " <<  utens_stage_ref_(i,j,k) << std::endl;
+                    std::cout << "BACKW REF at  " << k << "  " <<  utens_stage_ref_(i,j,k) << "  " <<
+                    datacol(i,j,k) << " " << u_pos_(i,j,k) << " " <<
+                        dtr_stage  << std::endl;
                 }
             }
         }
