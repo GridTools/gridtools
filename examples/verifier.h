@@ -3,7 +3,7 @@
 class verifier
 {
 public:
-    verifier(double precision) : precision_(precision) {}
+    verifier(const double precision, const int halo_size) : m_precision(precision), m_halo_size(halo_size) {}
     ~verifier(){}
 
     template<typename storage_type>
@@ -17,15 +17,16 @@ public:
         const int jdim = field1.template dims<1>();
         const int kdim = field1.template dims<2>();
 
-        for(int i=0; i < idim; ++i)
+        for(int i=m_halo_size; i < idim-m_halo_size; ++i)
         {
-            for(int j=0; j < jdim; ++j)
+            for(int j=m_halo_size; j < jdim-m_halo_size; ++j)
             {
                 for(int k=0; k < kdim; ++k)
                 {
                     typename storage_type::value_type expected = field1(i,j,k);
                     typename storage_type::value_type actual = field2(i,j,k);
 
+                    std::cout << "AHCHE " << i << " " << j << " " << k << " " << expected << " " << actual << std::endl;
                     if(!compare_below_threashold(expected, actual))
                     {
                         std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
@@ -41,15 +42,16 @@ private:
     template<typename value_type>
     bool compare_below_threashold(value_type expected, value_type actual)
     {
-        if (std::fabs(expected) < 1.0 && std::fabs(actual) < 1.0)
+        if (std::fabs(expected) < 1e-3 && std::fabs(actual) < 1e-3)
         {
-            if(std::fabs(expected-actual) < precision_) return true;
+            if(std::fabs(expected-actual) < m_precision) return true;
         }
         else
         {
-            if(std::fabs((expected-actual)/(precision_*expected)) < 1.0) return true;
+            if(std::fabs((expected-actual)/(m_precision*expected)) < 1.0) return true;
         }
         return false;
     }
-    double precision_;
+    double m_precision;
+    int m_halo_size;
 };

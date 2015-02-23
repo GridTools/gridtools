@@ -77,7 +77,7 @@ struct u_forward_function {
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
         if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "IN T at " << eval(kpos()) << eval(acol()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) << std::endl;
+            std::cout << "FORDW at " << eval(kpos()) << "  " << eval(acol()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) << std::endl;
     }
 
     template<typename Eval>
@@ -96,7 +96,7 @@ struct u_forward_function {
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
         if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "IN T KMAX at " << eval(kpos()) << eval(acol()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) << "  " << gav << std::endl;
+            std::cout << "FORDW KMAX at " << eval(kpos()) << eval(acol()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) << "  " << gav << std::endl;
     }
 
     template<typename Eval>
@@ -115,7 +115,7 @@ struct u_forward_function {
         thomas_forward(eval, interval);
 
         if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "IN T at " << eval(kpos()) << "  " << eval(ipos()) << "  " << eval(jpos()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) <<
+            std::cout << "FORDW at " << eval(kpos()) << "  " << eval(ipos()) << "  " << eval(jpos()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) <<
             "  " << gcv << "  " << eval(wcon(0,0,1)) << "   " << eval(wcon(1,0,1)) << std::endl;
     }
 
@@ -172,7 +172,8 @@ struct u_backward_function {
     {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "RES BODY at " << eval(kpos()) << "  " << eval(utens_stage()) << std::endl;
+            std::cout << "BACKW at " << eval(kpos()) << "  " << eval(utens_stage()) << "  " <<
+            thomas_backward(eval, interval) << " " <<  eval(u_pos()) << std::endl;
     }
 
     template<typename Eval>
@@ -181,7 +182,8 @@ struct u_backward_function {
     {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "RES KMAX at " << eval(kpos()) << "  " << eval(utens_stage()) << std::endl;
+            std::cout << "BACKW at " << eval(kpos()) << "  " << eval(utens_stage()) << "  " <<
+            thomas_backward(eval, interval) << " "<< eval(dcol()) << "  " << eval(u_pos()) << std::endl;
     }
 
 private:
@@ -317,7 +319,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
                         p_ipos(),
                         p_jpos(),
                         p_kpos()
-                ), // esf_descriptor
+                ) // esf_descriptor
+            ),
+            gridtools::make_mss
+            (
+                execute<backward>(),
                 gridtools::make_esf<u_backward_function<double> >(
                         p_utens_stage(),
                         p_u_pos(),
@@ -353,7 +359,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-4);
+    verifier verif(1e-8, halo_size);
     verif.verify(repository.utens_stage(), repository.utens_stage_ref());
 
 #ifndef SILENT_RUN

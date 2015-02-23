@@ -3,6 +3,7 @@
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
+#include <boost/mpl/zip_view.hpp>
 
 #include "backend_traits.h"
 #include "../common/pair.h"
@@ -10,6 +11,9 @@
 #include "arg_type.h"
 #include "domain_type.h"
 #include "execution_types.h"
+#include "mss_metafunctions.h"
+#include "mss.h"
+#include "axis.h"
 
 /**
    @file
@@ -87,19 +91,40 @@ namespace gridtools {
             }
         };
 
-        /**
-           \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
-           \tparam Temporaries is the vector of temporary placeholder types.
-        */
-        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
-        struct get_storage_type {
-            template <typename Index>
-            struct apply {
-                typedef typename boost::mpl::at<Ranges, Index>::type range_type;
+//        /**
+//           \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
+//           \tparam Temporaries is the vector of temporary placeholder types.
+//        */
+//        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
+//        struct get_storage_type {
+//            template <typename Index>
+//            struct apply {
+//                typedef typename boost::mpl::at<Ranges, Index>::type range_type;
+//
+//                typedef pair<
+//                    typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t,
+//                    typename boost::mpl::at<Temporaries, Index>::type::index_type
+//                > type;
+//            };
+//        };
 
-                typedef pair<typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+        /**
+            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
+             \tparam Temporaries is the vector of temporary placeholder types.
+         */
+        template <typename TemporaryRangeMap, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
+        struct get_storage_type {
+            template <typename MapElem>
+            struct apply {
+                typedef typename boost::mpl::second<MapElem>::type range_type;
+                typedef typename boost::mpl::first<MapElem>::type temporary;
+                typedef pair<
+                    typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t,
+                    typename temporary::index_type
+                > type;
             };
         };
+
 
 /** metafunction to check whether the storage_type inside the PlcArgType is temporary */
         template <typename PlcArgType>
@@ -107,6 +132,8 @@ namespace gridtools {
         {};
     }//namespace _impl
 
+    template<typename T1>
+    struct printi { BOOST_MPL_ASSERT_MSG((false), TTTTTTTTTTTTTTTTT, (T1));   };
 
 
 /** this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case. */
@@ -138,20 +165,11 @@ namespace gridtools {
         };
 
 
-/**
-
- */
         template <typename Domain
-                  , typename MssType
-                  , typename RangeSizes
-                  , typename ValueType
-                  , typename LayoutType >
-        struct obtain_storage_types {
-
-            static const uint_t tileI = (strategy_traits_t::BI);
-
-            static const uint_t tileJ = (strategy_traits_t::BJ);
-
+                  , typename MssType>
+        struct obtain_list_ranges_temporaries_mss {
+            typedef typename MssType::range_sizes RangeSizes;
+            //full list of temporaries in list of place holders of domain
             typedef typename boost::mpl::fold<typename Domain::placeholders,
                 boost::mpl::vector<>,
                 boost::mpl::if_<
@@ -160,35 +178,158 @@ namespace gridtools {
                     boost::mpl::_1>
             >::type list_of_temporaries;
 
+            //vector of written temporaries per functor (vector of vectors)
             typedef typename MssType::written_temps_per_functor written_temps_per_functor;
 
             typedef typename boost::mpl::transform<
                 list_of_temporaries,
                 _impl::associate_ranges<written_temps_per_functor, RangeSizes>
-            >::type list_of_ranges;
+            >::type type;
+        };
 
-            typedef boost::mpl::filter_view<typename Domain::placeholders, _impl::is_temporary_arg<boost::mpl::_> > temporaries;
+        template <typename Domain
+                  , typename MssType>
+        struct obtain_map_ranges_temporaries_mss {
+            typedef typename MssType::range_sizes RangeSizes;
+            //full list of temporaries in list of place holders of domain
+            typedef typename boost::mpl::fold<typename Domain::placeholders,
+                boost::mpl::vector<>,
+                boost::mpl::if_<
+                    is_plchldr_to_temp<boost::mpl::_2>,
+                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
+                    boost::mpl::_1>
+            >::type list_of_temporaries;
 
-            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<temporaries>::type::value> iter_range;
+            //vector of written temporaries per functor (vector of vectors)
+            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
 
             typedef typename boost::mpl::fold<
-                iter_range,
+                list_of_temporaries,
+                boost::mpl::map0<>,
+                _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor, RangeSizes>
+            >::type type;
+//            printi<type> ki;
+        };
+
+
+        template<typename RangeArray1, typename RangeArray2>
+        struct lazy_union_ranges_array
+        {
+            BOOST_STATIC_ASSERT((boost::mpl::size<typename RangeArray1::type>::value == boost::mpl::size<typename RangeArray2::type>::value));
+
+            typedef typename boost::mpl::fold<
+                boost::mpl::zip_view<boost::mpl::vector2<typename RangeArray1::type, typename RangeArray2::type> >,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back<
+                    boost::mpl::_1,
+                    union_ranges<
+                        boost::mpl::front<boost::mpl::_2>,
+                        boost::mpl::back<boost::mpl::_2>
+                    >
+                >
+            >::type type;
+        };
+
+        template<typename range_map1, typename range_map2>
+        struct merge_range_temporary_maps
+        {
+            typedef typename boost::mpl::fold<
+                range_map1,
+                range_map2,
+                boost::mpl::if_<
+                    boost::mpl::has_key<range_map2, boost::mpl::first<boost::mpl::_2> >,
+                    boost::mpl::insert<
+                        boost::mpl::_1,
+                        boost::mpl::pair<
+                            boost::mpl::first<boost::mpl::_2>,
+                            union_ranges<
+                                boost::mpl::second<boost::mpl::_2>,
+                                boost::mpl::at<range_map2, boost::mpl::first<boost::mpl::_2> >
+                            >
+                        >
+                    >,
+                    boost::mpl::insert<
+                        boost::mpl::_1,
+                        boost::mpl::_2
+                    >
+                >
+            >::type type;
+        };
+
+        template <typename Domain
+                  , typename MssArray>
+        struct obtain_map_ranges_temporaries_mss_array {
+            BOOST_STATIC_ASSERT((boost::mpl::is_sequence<MssArray>::value));
+            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
+
+            typedef typename boost::mpl::fold<
+                MssArray,
+                boost::mpl::map0<>,
+                merge_range_temporary_maps<
+                    boost::mpl::_1,
+                    obtain_map_ranges_temporaries_mss<Domain, boost::mpl::_2>
+                >
+            >::type type;
+//            printi<type> lo;
+        };
+
+        template <typename Domain
+                  , typename MssArray>
+        struct obtain_list_ranges_temporaries_mss_array {
+            BOOST_STATIC_ASSERT((boost::mpl::is_sequence<MssArray>::value));
+            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
+
+            typedef typename boost::mpl::fold<
+                MssArray,
+                boost::mpl::vector0<>,
+                boost::mpl::if_<
+                    boost::mpl::empty<boost::mpl::_1>,
+                    obtain_list_ranges_temporaries_mss<Domain, boost::mpl::_2>,
+                    lazy_union_ranges_array<boost::mpl::identity<boost::mpl::_1>, obtain_list_ranges_temporaries_mss<Domain, boost::mpl::_2> >
+                >
+            >::type type;
+            typedef typename boost::mpl::front<MssArray>::type PP;
+        };
+/**
+
+ */
+        template <typename Domain
+                  , typename MssArray
+                  , typename ValueType
+                  , typename LayoutType >
+        struct obtain_temporary_storage_types {
+
+            BOOST_STATIC_ASSERT((boost::mpl::is_sequence<MssArray>::value));
+            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
+            BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
+
+            static const uint_t tileI = (strategy_traits_t::BI);
+
+            static const uint_t tileJ = (strategy_traits_t::BJ);
+
+            typedef boost::mpl::filter_view<typename Domain::placeholders, _impl::is_temporary_arg<boost::mpl::_> > temporaries;
+            typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssArray>::type map_of_ranges;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
+                    "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"
+            );
+
+            typedef typename boost::mpl::fold<
+                map_of_ranges,
                 boost::mpl::vector<>,
                 typename boost::mpl::push_back<
                     typename boost::mpl::_1,
                     typename _impl::get_storage_type<
-                        temporaries,
-                        list_of_ranges,
+                        map_of_ranges,
                         ValueType,
                         LayoutType,
                         tileI,
                         tileJ,
                         strategy_traits_t,
                         s_backend_id
-                        >::template apply<boost::mpl::_2>
-                    >
-                >::type type;
-
+                    >::template apply<boost::mpl::_2>
+                >
+            >::type type;
         };
 
 
@@ -204,18 +345,28 @@ namespace gridtools {
          * \tparam Coords Coordinate class with domain sizes and splitter coordinates
          * \tparam LocalDomainList List of local domain to be pbassed to functor at<i>
          */
-        template <typename FunctorList, // List of functors to execute (in order)
-                  typename range_sizes, // computed range sizes to know where to compute functot at<i>
-                  typename LoopIntervals, // List of intervals on which functors are defined
-                  typename FunctorsMap,  // Map between interval and actual arguments to pass to Do methods
-                  typename ExecutionEngine,
-                  //typename Domain, // Domain class (not really useful maybe)
-                  typename Coords, // Coordinate class with domain sizes and splitter coordinates
-                  typename LocalDomainList
-                  > // List of local domain to be pbassed to functor at<i>
+        template <
+            typename MssType,
+            typename Coords,
+            typename LocalDomainList
+        > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
+            BOOST_STATIC_ASSERT((is_mss_descriptor<MssType>::value));
+            BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+//            BOOST_STATIC_ASSERT((is_meta_array<MssMetaArray>::value));
+//            BOOST_STATIC_ASSERT((is_meta_array_of<MssMetaArray, boost::mpl::quote1<is_mss> >::value));
+
+            typedef typename MssType::execution_engine_t ExecutionEngine;
+            typedef typename mss_loop_intervals<MssType, Coords>::type LoopIntervals; // List of intervals on which functors are defined
             //wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
+            // List of functors to execute (in order)
+            typedef typename MssType::functors_list FunctorList;
+            // computed range sizes to know where to compute functot at<i>
+            typedef typename MssType::range_sizes range_sizes;
+            // Map between interval and actual arguments to pass to Do methods
+            typedef typename mss_functor_do_method_lookup_maps<MssType, Coords>::type FunctorsMap;
+
 
 /**
    @brief template arguments container
@@ -233,18 +384,18 @@ namespace gridtools {
             /* }; */
             //Definition of a local struct to be passed as template parameter is a C++11 feature not supported by CUDA for __global__ functions
 
-	    typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
+            typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
 
-        typedef typename backend_traits_t::template execute_traits< args >::backend_t backend_t;
-        strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
+            typedef typename backend_traits_t::template execute_traits< args >::backend_t backend_t;
+            strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
         }
 
 
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
-            {
-                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(/*std::forward<ArgList&>*/(arg_list), /*std::forward<Coords const&>*/(coords));
-            }
+        {
+            _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(/*std::forward<ArgList&>*/(arg_list), /*std::forward<Coords const&>*/(coords));
+        }
     };
 
 
