@@ -542,10 +542,8 @@ namespace gridtools {
 
             BOOST_STATIC_ASSERT((boost::mpl::size<TMssArray>::value == boost::mpl::size<MssLocalDomains>::value));
 
-            Backend::template run<typename boost::mpl::front<TMssArray>::type>( m_coords, boost::fusion::at<boost::mpl::int_<0> >(mss_local_domain_list).local_domain_list );
-
-//            gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<TMssArray>::value > >
-//                (run_backend_functor<Coords, MssLocalDomainsList, TMssArray>(m_coords, mss_local_domain_list));
+            gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<TMssArray>::value > >
+                (run_backend_functor<Coords, MssLocalDomainsList, TMssArray>(m_coords, mss_local_domain_list));
         }
 
     private:
