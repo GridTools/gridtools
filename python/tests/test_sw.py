@@ -146,7 +146,7 @@ class ShallowWater (MultiStageStencil):
         # first half step (stage X direction)
         #
         for p in self.get_interior_points (out_H,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             # height
             self.Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
@@ -170,7 +170,7 @@ class ShallowWater (MultiStageStencil):
         # first half step (stage Y direction)
         #
         for p in self.get_interior_points (out_H,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             # height
             self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2.0
@@ -194,7 +194,7 @@ class ShallowWater (MultiStageStencil):
         # second half step (stage)
         #
         for p in self.get_interior_points (out_H,
-                                           halo=(1,-1,1,-1),
+                                           halo=(1,1,1,1),
                                            k_direction="forward"):
             # height
             out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
@@ -228,7 +228,7 @@ class ShallowWaterTest (unittest.TestCase):
     A test case for the shallow water stencil defined above.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.WARNING)
+        logging.basicConfig (level=logging.DEBUG)
 
         self.domain = (32, 32, 1)
 
@@ -257,7 +257,6 @@ class ShallowWaterTest (unittest.TestCase):
         #
         self.water.create_random_drop (self.H)
 
-        """
         #
         # show its evolution
         #
@@ -271,8 +270,8 @@ class ShallowWaterTest (unittest.TestCase):
             print ("%d - %s - sum(H): %s" % (i,
                                              self.water.backend,
                                              np.sum (self.H)))
-        """
 
+        """
         #
         # initialize 3D plot
         #
@@ -333,6 +332,7 @@ class ShallowWaterTest (unittest.TestCase):
                                         interval=50,
                                         blit=False)
         plt.show ( )
+        """
 
 
     def test_symbol_discovery (self):
