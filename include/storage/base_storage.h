@@ -196,10 +196,6 @@ namespace gridtools {
                 m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
                 m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
                 m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
-
-                for (uint_t i = 0; i < size(); ++i)
-                    (m_fields[0])[i] = 0.;
-
             }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
