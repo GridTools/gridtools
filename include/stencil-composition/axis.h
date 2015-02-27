@@ -30,8 +30,8 @@ namespace gridtools {
 
     using namespace enumtype_axis;
 
-    template <typename Axis>
-    struct coordinates : public clonable_to_gpu<coordinates<Axis> > {
+    template <typename Axis, typename Partitioner>
+    struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
         BOOST_STATIC_ASSERT(is_interval<Axis>::value);
 
 
@@ -50,6 +50,14 @@ namespace gridtools {
             m_direction_j(direction_j)
             {}
 
+
+        GT_FUNCTION
+        explicit coordinates( const Partitioner * part )
+            :
+            m_partitioner(part)
+            , m_direction_i(part->template get_halo_descriptor<0>())//copy
+            , m_direction_j(part->template get_halo_descriptor<1>())//copy
+        {}
 
         GT_FUNCTION
         explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)
@@ -103,8 +111,10 @@ namespace gridtools {
 
         gridtools::halo_descriptor const& direction_j() const { return m_direction_j;}
 
+        const Partitioner & partitioner() const {return *m_partitioner;}
     private:
 
+        Partitioner const* m_partitioner;
         gridtools::halo_descriptor m_direction_i;
         gridtools::halo_descriptor m_direction_j;
 

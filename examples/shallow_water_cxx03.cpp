@@ -6,15 +6,18 @@
 int main(int argc, char** argv)
 {
 
-    if (argc != 4) {
-        std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+    if (argc != 5) {
+        std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz time\n where args are integer sizes of the data fields" << std::endl;
         return 1;
     }
 
-    MPI_Init(&argc, &argv);
+    //MPI_Init(&argc, &argv);
     gridtools::GCL_Init(argc, argv);
+#ifndef NDEBUG
+    printf("GCL initialized");
+#endif
 
-    return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
 }
 #else
 int main(int argc, char** argv){}

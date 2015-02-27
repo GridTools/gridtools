@@ -323,15 +323,12 @@ arg_type_base ( int const& t, Whatever const& ... x) {
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         GT_FUNCTION
         arg_decorator ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
-            std::cout<<"ciao1"<<std::endl;
         }
         GT_FUNCTION
         arg_decorator ( int const& i, int const& j): super( j ), m_offset(i) {
-            std::cout<<"ciao2"<<std::endl;
         }
         GT_FUNCTION
         arg_decorator ( int const& i): m_offset(i) {
-            std::cout<<"ciao3"<<std::endl;
         }
 
         /**@brief constructor taking the Dimension class as argument.

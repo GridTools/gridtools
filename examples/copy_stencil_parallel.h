@@ -82,25 +82,30 @@ namespace copy_stencil{
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<storage_type> partitioner_t;
         partitioner_t part(comm.ntasks(), comm.coordinates(), comm.dimensions(), halo);
-	parallel_storage<partitioner_t> in(part,d1,d2,d3);
-	parallel_storage<partitioner_t> out(part,d1,d2,d3);
+ 	parallel_storage<partitioner_t> in(part,d1,d2,d3);
+ 	parallel_storage<partitioner_t> out(part,d1,d2,d3);
         //in.initilaize(-1.);
         //out.initilaize(-2.);
+	//storage_type in(d1,d2,d3);
+	//storage_type out(d1,d2,d3);
 
 	for(uint_t i=0; i<in.template dims<0>(); ++i)
 	    for(uint_t j=0; j<in.template dims<1>(); ++j)
 		for(uint_t k=0; k<in.template dims<2>(); ++k)
 		{
-		    in(i, j, k)=i+j+k+comm.coordinates()[0]*100+comm.coordinates()[1]*200+comm.coordinates()[2]*300;
+		    in(i, j, k)=i+j+k;//+comm.coordinates()[0]*100+comm.coordinates()[1]*200+comm.coordinates()[2]*300;
 		}
 
         std::cout<< "Halo descriptor 0 : [ " << part.template get_halo_descriptor<0>().minus() << ", "<< part.template get_halo_descriptor<0>().plus() << ", "<<part.template get_halo_descriptor<0>().begin() << ", "<<part.template get_halo_descriptor<0>().end() << ", "<<part.template get_halo_descriptor<0>().total_length()<<"];"<<std::endl;
 
         std::cout<< "Halo descriptor 1 : [ " << part.template get_halo_descriptor<1>().minus() << ", "<< part.template get_halo_descriptor<1>().plus() << ", "<<part.template get_halo_descriptor<1>().begin() << ", "<<part.template get_halo_descriptor<1>().end() << ", "<<part.template get_halo_descriptor<1>().total_length()<<"];"<<std::endl;
-// Definition of the physical dimensions of the problem.
+// // Definition of the physical dimensions of the problem.
 	// The constructor takes the horizontal plane dimensions,
 	// while the vertical ones are set according the the axis property soon after
-        gridtools::coordinates<axis> coords(part.template get_halo_descriptor<0>(), part.template get_halo_descriptor<1>());
+        //gridtools::coordinates<axis> coords(part.template get_halo_descriptor<0>(), part.template get_halo_descriptor<1>());
+        uint_t di[5] = {0, 0, 0, d1-1, d1};
+        uint_t dj[5] = {0, 0, 0, d2-1, d2};
+        gridtools::coordinates<axis> coords(di, dj);
         //k dimension not partitioned
 	coords.value_list[0] = 0;
 	coords.value_list[1] = d3-1;
@@ -117,12 +122,14 @@ namespace copy_stencil{
             gridtools::version_manual> pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
+        printf("halo exchange ok\n");
 
         he.add_halo<0>(part.template get_halo_descriptor<0>());
         he.add_halo<1>(part.template get_halo_descriptor<1>());
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(2);
+        printf("halo set up\n");
 
 
 	// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -158,14 +165,23 @@ namespace copy_stencil{
 		    ),
 		domain, coords
 		);
+        printf("computation instantiated\n");
 
 	copy->ready();
 
+        printf("computation ready\n");
+
 	copy->steady();
+
+        printf("computation steady\n");
 
 	copy->run();
 
+        printf("computation run\n");
+
 	copy->finalize();
+
+        printf("computation finalized\n");
 
 	std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=in.fields()[0].get();
@@ -173,9 +189,15 @@ namespace copy_stencil{
 
 	he.pack(vec);
 
+        printf("copy packed \n");
+
 	he.exchange();
 
+        printf("copy exchanged\n");
+
 	he.unpack(vec);
+
+        printf("copy unpacked\n");
 
         in.print();
 

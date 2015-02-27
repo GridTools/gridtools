@@ -381,18 +381,29 @@ namespace gridtools {
 		//i+offset_i or j+offset_j or k+offset_k is too large.
 		//Most probably this is due to you specifying a positive offset which is larger than expected,
 		//or maybe you did a mistake when specifying the ranges in the placehoders definition
-		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
+// 		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
+//                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+//                        ->_index(/*arg.template n<ArgType::n_args>()*/
+//                            arg)
+//                     );
+                if(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() <=  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->_index(/*arg.template n<ArgType::n_args>()*/
-                           arg)
-                    );
-
+                           arg))
+                    {
+                        printf("\n\n\n\n ERROR: index %d", m_index[ArgType::index_type::value]);
+                        printf(" plus offset %d ", (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->_index(arg)));
+                        printf(" of storage %d ", ArgType::index_type::value);
+                        printf("is larger than storage size (%d)\n\n\n\n", boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size());
+                    }
 		//the following assert fails when an out of bound access is observed,
 		//i.e. when some offset is negative and either one of
 		//i+offset_i or j+offset_j or k+offset_k is too small.
 		//Most probably this is due to you specifying a negative offset which is
 		//smaller than expected, or maybe you did a mistake when specifying the ranges
-		//in the placehoders definition
+		//in the placehoders definition.
+                // If you are running a parallel simulation another common reason for this to happen is
+                // the definition of an halo region which is too small in one direction
                 // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
 		assert( (int_t)(m_index[ArgType::index_type::value])
 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
