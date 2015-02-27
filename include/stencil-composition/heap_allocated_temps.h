@@ -17,19 +17,19 @@ namespace gridtools {
             uint_t m_tile_i;// or offset along i
             uint_t m_tile_j;// or offset along j
             uint_t m_tile_k;// or offset along k
-
             GT_FUNCTION
             instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
                 :
                 m_tile_i(tile_i)
                 , m_tile_j(tile_j)
                 , m_tile_k(tile_k)
-            {}
+            {
+            }
 
             // ElemType: an element in the data field place-holders list
             template <typename ElemType>
             void operator()(ElemType*&  e) const {
-                char const* s = "default tmp storage";//avoids a warning
+                //char const* s = "default tmp storage";//avoids a warning
                 //ElemType::info_string.c_str();
 
                 //calls the constructor of the storage

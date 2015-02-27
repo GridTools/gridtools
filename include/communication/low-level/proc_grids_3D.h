@@ -311,6 +311,7 @@ namespace gridtools {
       period_type cyclic;
       int m_dimensions[ndims];
       int m_coordinates[ndims];
+      int m_boundary;
       int m_nprocs;
   public:
     /**
@@ -355,7 +356,12 @@ namespace gridtools {
         MPI_Dims_create(m_nprocs, ndims, m_dimensions);
         MPI_Cart_create(comm, ndims, m_dimensions, period, false, &m_communicator);
         MPI_Cart_get(m_communicator, ndims, m_dimensions, period/*does not really care*/, m_coordinates);
-      // for(ushort_t i=0; i<ndims; ++i)
+        if(m_coordinates[0]==m_dimensions[0]-1) m_boundary  =  1; else m_boundary = 0;
+        if(m_coordinates[1]==m_dimensions[1]-1) m_boundary +=  2;
+        if(m_coordinates[0]==0)  m_boundary += 4;
+        if(m_coordinates[1]==0)  m_boundary += 8;
+
+        // for(ushort_t i=0; i<ndims; ++i)
       // {
       //     m_dimensions[i]=dims[i];
       //     m_coordinates[i] = coords[i];
@@ -409,6 +415,10 @@ namespace gridtools {
           return m_coordinates[0]+m_coordinates[1]+m_coordinates[2];
       }
 
+      int boundary() const {
+          return m_boundary;
+      };
+
     /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
         \param[in] I Relative coordinate in the first dimension
         \param[in] J Relative coordinate in the second dimension
@@ -460,6 +470,15 @@ namespace gridtools {
 
       int ntasks(){return m_nprocs;}
 
+      bool periodic (int index) const {//ugly
+          if(index==0)
+              return cyclic.value0;
+          if(index==1)
+              return cyclic.value1;
+          if(index==2)
+              return cyclic.value2;
+      exit(-3);
+      }
   };
 
 #endif

@@ -99,6 +99,8 @@ namespace gridtools {
 #endif
         }
 
+        void set(pointee_t const& value, uint_t const& index){cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice); }
+
         __host__ __device__
         void out() const {
             printf("out hp ");

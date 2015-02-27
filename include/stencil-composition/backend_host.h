@@ -81,7 +81,7 @@ namespace gridtools {
 
                     typedef typename sum_range<new_range_t, range_t>::type xrange_t;
 #else
-                    typedef range_t xrange_t;
+                    typedef typename sum_range<functor_type::xrange, range_t>::type xrange_t;
 #endif
 
                     //typedef typename extend_loop_bounds<sfinae<functor_type> >::template apply<range_t>::type xrange_t;

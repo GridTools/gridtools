@@ -54,8 +54,8 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
 
-                it_domain.assign_ij<0>(i+starti,0);
-                it_domain.assign_ij<1>(j+startj,0);
+                it_domain.template assign_ij<0>(i+starti,0);
+                it_domain.template assign_ij<1>(j+startj,0);
 
                 typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
@@ -134,19 +134,44 @@ namespace gridtools {
                 typedef typename Traits::first_hit_t first_hit_t;
                 typedef typename Arguments::execution_type_t execution_type_t;
 
-
+#ifdef CXX11_ENABLED
+                typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+                typedef typename sum_range<new_range_t, range_t>::type xrange_t;
+#else
+                typedef typename sum_range<typename functor_type::xrange, range_t>::type xrange_t;
+                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
+#endif
                 /* struct extra_arguments{ */
                 /*     typedef functor_type functor_t; */
                 /*     typedef interval_map_type interval_map_t; */
                 /*     typedef iterate_domain_t local_domain_t; */
                 /*     typedef coords_type coords_t;}; */
 
+
+                local_domain.clone_to_gpu();
+                f->m_coords.clone_to_gpu();
+
+                local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
+
+                coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
+
+                //generalize with flags?
+                int boundary=f->m_coords.partitioner().communicator().boundary();
+                int jminus=  xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0) ;//j-low
+                int iminus= xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) ;//i-low
+                int jplus=  xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0) ;//j-high
+                int iplus= xrange_subdomain_t::iplus::value + ((boundary%2)>0? xrange_t::iplus::value : 0) ;//i-high
+                // number of threads
+                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + iplus - (f->m_coords.i_low_bound() + iminus)+1);
+                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + jplus - (f->m_coords.j_low_bound() + jminus)+1);
+                std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
 #ifndef NDEBUG
+                std::cout << "Boundary " <<  f->m_coords.partitioner().communicator().boundary() << "\n";
                 std::cout << "Functor " <<  functor_type() << "\n";
-                std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
-                                    << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
-                std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
-                                    << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
+                std::cout << "I loop " << f->m_starti<<"  + "<<iminus << " -> "
+                          << f->m_starti<<" + "<<f->m_BI<<" + "<<iplus << "\n";
+                std::cout << "J loop " << f->m_startj<<" + "<<jminus << " -> "
+                          << f->m_startj<<" + "<<f->m_BJ<<" + "<<jplus << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
@@ -177,18 +202,6 @@ namespace gridtools {
           }
 #endif
 
-
-                local_domain.clone_to_gpu();
-                f->m_coords.clone_to_gpu();
-
-                local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
-
-                coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
-
-                // number of threads
-                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1);
-                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1);
-
                 // blocks dimension
                 uint_t ntx = 8, nty = 32;
 
@@ -199,8 +212,8 @@ namespace gridtools {
                 _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
-                     f->m_coords.i_low_bound() + range_t::iminus::value,
-                     f->m_coords.j_low_bound() + range_t::jminus::value,
+                     f->m_coords.i_low_bound() + iminus,
+                     f->m_coords.j_low_bound() + jminus,
                      (nx),
                      (ny));
                 cudaDeviceSynchronize();

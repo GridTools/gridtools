@@ -273,11 +273,11 @@ namespace gridtools {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }
 
-        /** @brief update the GPU pointer */
-        void h2d_update(){
-            for (uint_t i=0; i<field_dimensions; ++i)
-                m_fields[i].update_gpu();
-        }
+//         /** @brief update the GPU pointer */
+//         void h2d_update(){
+//             for (uint_t i=0; i<field_dimensions; ++i)
+//                 m_fields[i].update_gpu();
+//         }
 
         /** @brief updates the CPU pointer */
         void d2h_update(){
@@ -1014,6 +1014,24 @@ namespace gridtools {
 	    {
 		return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
 	    }
+
+
+	/**@biref sets the given storage as the nth snapshot of a specific field dimension, at the specified coordinates
+
+           If on the device, it calls the API to set the memory on the device
+	   \tparam field_dim the given field dimenisons
+	   \tparam snapshot the snapshot of dimension field_dim to be set
+	   \param value the value to be set
+        */
+#ifdef CXX11_ENABLED
+	template<short_t field_dim=0, short_t snapshot=0>
+#else
+	template<short_t field_dim  , short_t snapshot  >
+#endif
+	void set_value(typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
+                {
+                    super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot].set(value, super::_index(x, y, z));
+                }
 
 
         /**@biref gets a given value as the given field i,j,k coordinates
