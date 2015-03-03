@@ -386,16 +386,22 @@ namespace gridtools {
 //                        ->_index(/*arg.template n<ArgType::n_args>()*/
 //                            arg)
 //                     );
+
+#ifndef NDEBUG
                 if(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() <=  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->_index(/*arg.template n<ArgType::n_args>()*/
                            arg))
                     {
-                        printf("\n\n\n\n ERROR: index %d", m_index[ArgType::index_type::value]);
+                        int pid=0;
+                        MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+                        printf("\n\n\n\n [%d] ERROR: index %d", pid, m_index[ArgType::index_type::value]);
                         printf(" plus offset %d ", (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->_index(arg)));
                         printf(" of storage %d ", ArgType::index_type::value);
                         printf("is larger than storage size (%d)\n\n\n\n", boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size());
                     }
+#endif
+
 		//the following assert fails when an out of bound access is observed,
 		//i.e. when some offset is negative and either one of
 		//i+offset_i or j+offset_j or k+offset_k is too small.

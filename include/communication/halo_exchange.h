@@ -283,7 +283,7 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm /*const&*/ comm)
             : hd(c.template permute<layout2proc_map_abs>(), comm)//, periodicity(c)
         { }
 

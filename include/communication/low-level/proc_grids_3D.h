@@ -136,6 +136,15 @@ namespace gridtools {
       compute_id_coords(pid);
     }
 
+  private:
+      _3D_process_grid_t( _3D_process_grid_t const& oter){
+          assert(false);
+      }
+
+      _3D_process_grid_t& operator =(_3D_process_grid_t const& other){
+          assert(false);
+      }
+
   public:
     /** Constructor that takes the number of processes and the caller ID to produce the grid
         \param[in] c The object of the class used to specify periodicity in each dimension
@@ -321,6 +330,17 @@ namespace gridtools {
           return m_communicator;
       }
 
+//   private:
+      MPI_3D_process_grid_t( MPI_3D_process_grid_t const& other): m_communicator(other.m_communicator), cyclic(other.cyclic), m_boundary(other.m_boundary), m_nprocs(other.m_nprocs) {
+//           assert(false);
+//, m_dimensions(other.m_dimensions), m_coordinates(other.m_coordinates)
+      }
+
+//       MPI_3D_process_grid_t& operator =(MPI_3D_process_grid_t const& other){
+//           assert(false);
+//       }
+//   public:
+
     /** Constructor that takes an MPI CART communicator, already configured, and use it to set up the process grid.
         \param c Object containing information about periodicities as defined in \ref boollist_concept
         \param comm MPI Communicator describing the MPI 3D computing grid
@@ -361,6 +381,11 @@ namespace gridtools {
         if(m_coordinates[0]==0)  m_boundary += 4;
         if(m_coordinates[1]==0)  m_boundary += 8;
 
+// #ifndef NDEBUG
+//         printf("comunicator coordinates: [%d, %d, %d]\n",m_coordinates[0], m_coordinates[1], m_coordinates[2] );
+//         printf("boundary: [%d]\n",m_boundary );
+//         printf("dimensions: [%d, %d, %d]\n",m_dimensions[0], m_dimensions[1], m_dimensions[2] );
+// #endif
         // for(ushort_t i=0; i<ndims; ++i)
       // {
       //     m_dimensions[i]=dims[i];
@@ -412,10 +437,10 @@ namespace gridtools {
     }
 
       int pid() const {
-          return m_coordinates[0]+m_coordinates[1]+m_coordinates[2];
+          return m_coordinates[0]+m_coordinates[1]*m_dimensions[0]+m_coordinates[2]*m_dimensions[0]*m_dimensions[1];
       }
 
-      int boundary() const {
+      int const& boundary() const {
           return m_boundary;
       };
 
@@ -452,13 +477,17 @@ namespace gridtools {
           return -1;
       }
 
+      printf("getting rank. [I,J,K] :[%d, %d, %d]\n", I,J,K);
+      printf("getting rank. m_dimensions:[%d, %d, %d]\n", m_dimensions[0], m_dimensions[1], m_dimensions[2]);
+      printf("getting rank. m_coordinates:[%d, %d, %d]\n", m_coordinates[0], m_coordinates[1], m_coordinates[2]);
+      printf("getting rank. _coords:[%d, %d, %d]\n", _coords[0], _coords[1], _coords[2]);
       int res;
       MPI_Cart_rank(m_communicator, _coords, &res);
       return res;
     }
 
-      int* coordinates(){return m_coordinates;}
-      int* dimensions(){return m_dimensions;}
+      int const* coordinates()const {return m_coordinates;}
+      int const* dimensions()const {return m_dimensions;}
     /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
         \param[in] crds gridtools::aray of coordinates of the processor of which the ID is needed
 

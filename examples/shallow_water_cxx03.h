@@ -95,9 +95,9 @@ namespace shallow_water{
 	GT_FUNCTION
     	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             if(i<3 && j<3)
-                return 3.+2. * std::exp(-5*((((int)i-1)*dx())*((((int)i-1)*dx()))+(((int)j-1)*dy())*(((int)j-1)*dy())));
+                return 1.+2. * std::exp(-5*((((int)i-1)*dx())*((((int)i-1)*dx()))+(((int)j-1)*dy())*(((int)j-1)*dy())));
             else
-                return 3.;
+                return 1.;
        }
 
 	GT_FUNCTION
@@ -261,7 +261,8 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
 
-        typedef range<0,0,0,-2> xrange;
+        typedef range<0,-2,0,-2> xrange;
+//         last one: typedef range<0,0,0,-2> xrange;
 //         typedef range<0,1,0,-1> xrange_subdomain;
         typedef range<0,1,0,0> xrange_subdomain;
 
@@ -331,7 +332,7 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef range<0,0,0,-2> xrange;
+        typedef range<0,-2,0,-2> xrange;
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
@@ -407,7 +408,7 @@ namespace shallow_water{
             x::Index i;
             y::Index j;
 
-           eval(sol()) =
+            eval(sol()) =
                 //h
                 eval(sol())-
                 //(ux(j-1)                -          ux(i-1, j-1) )(dt/dx)
@@ -417,7 +418,7 @@ namespace shallow_water{
                 (eval(tmpy(comp(2),i-1)) - eval(tmpy(comp(2),i-1, j-1)))*(dt()/dy())
                ;
 
-           eval(sol(comp(1))) =//1.7;
+            eval(sol(comp(1))) =
                eval(sol(comp(1))) -
                //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
                ((eval(tmpx(comp(1),j-1))*eval(tmpx(comp(1),j-1)))                / eval(tmpx(comp(0),j-1))      + eval(tmpx(comp(0),j-1))*eval(tmpx(comp(0),j-1))*((g()/2.))                 -
@@ -429,9 +430,12 @@ namespace shallow_water{
                  eval(tmpy(comp(2),i-1, j-1))*eval(tmpy(comp(1),i-1,j-1)) / eval(tmpy(comp(0),i-1, j-1))) *(dt()/dy())
                 ;
 
-           eval(sol(comp(2))) =
-                eval(sol(comp(2), i+1, j+1)) -
+            eval(sol(comp(2))) =
+                // v()
+                eval(sol(comp(2))) -
+                // (ux(j-1)*vx(j-1)                                         /      hx(j-1) )        -
                 (eval(tmpx(comp(1),j-1))    *eval(tmpx(comp(2),j-1))       /eval(tmpx(comp(0),j-1)) -
+                 //      ux(i-1,j-1)*vx(i-1,j-1)                            /      hx(i-1,j-1))           * dt/dx       -
                  (eval(tmpx(comp(1),i-1,j-1))*eval(tmpx(comp(2),i-1, j-1))) /eval(tmpx(comp(0),i-1, j-1)))*((dt()/dx()))-
                 ((eval(tmpy(comp(2),i-1))*eval(tmpy(comp(2),i-1)))                /eval(tmpy(comp(0),i-1))      +(eval(tmpy(comp(0),i-1))*eval(tmpy(comp(0),i-1))     )*((g()/2.)) -
                  ((eval(tmpy(comp(2),i-1, j-1))*eval(tmpy(comp(2),i-1, j-1)))     /eval(tmpy(comp(0),i-1, j-1)) +(eval(tmpy(comp(0),i-1, j-1))*eval(tmpy(comp(0),i-1, j-1)))*((g()/2.))   ))*((dt()/dy()));
@@ -522,12 +526,10 @@ namespace shallow_water{
     he.setup(3);
 
         ptr out1(tmpx.size()), out2(tmpx.size()), out3(tmpx.size());
-    std::cout<< "tmpx size:: " << tmpx.size()<<std::endl;
         tmpx.set<0,0>(out1);
         tmpx.set<1,0>(out2);
         tmpx.set<2,0>(out3);
         ptr out4(tmpy.size()), out5(tmpy.size()), out6(tmpy.size());
-    std::cout<< "tmpy size:: " << tmpy.size()<<std::endl;
         tmpy.set<0,0>(out4);
         tmpy.set<1,0>(out5);
         tmpy.set<2,0>(out6);
@@ -536,12 +538,15 @@ namespace shallow_water{
         if(!comm.pid())
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
-            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
-//             sol.set<0,0>(out7, 1.);//h
+            //sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
+            sol.set<0,0>(out7, 1.);//h
         sol.set<1,0>(out8, 0.);//u
         sol.set<2,0>(out9, 0.);//v
 
 #ifndef NDEBUG
+    std::cout<< "tmpx size:: " << tmpx.size()<<std::endl;
+    std::cout<< "tmpy size:: " << tmpy.size()<<std::endl;
+
         std::ofstream myfile;
         std::stringstream name;
         name<<"example"<<comm.pid()<<".txt";
@@ -627,7 +632,7 @@ namespace shallow_water{
 //             vec[6]=tmpy.fields()[0].get();
 //             vec[7]=tmpy.fields()[1].get();
 //             vec[8]=tmpy.fields()[2].get();
-
+            //printf("right before packing \n");
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
