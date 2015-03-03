@@ -8,19 +8,19 @@ namespace gridtools {
     template <typename HaloExch>
     struct descriptor_base {
         /**
-           Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern. 
+           Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
         */
         typedef HaloExch pattern_type;
         HaloExch haloexch;
         typedef typename pattern_type::grid_type grid_type;
 
-        descriptor_base(typename grid_type::period_type const &c, MPI_Comm comm)
-            : haloexch(grid_type(c,comm)) 
+        descriptor_base(typename grid_type::period_type const &c, MPI_Comm /*const&*/ comm)
+            : haloexch(grid_type(c,comm))
         {}
 
         descriptor_base(grid_type const &g)
-            : haloexch(g) 
+            : haloexch(g)
         {}
 
         /**
@@ -48,7 +48,7 @@ namespace gridtools {
 
         /**
            function to trigger data exchange initiation when using split-phase communication.
-           
+
            Note: when the start_exchange() + wait() combination is used, the exchange() method should not be used, and vice versa.
         */
         void start_exchange() {
@@ -57,7 +57,7 @@ namespace gridtools {
 
         /**
            function to trigger data exchange
-           
+
            Note: when the start_exchange() + wait() combination is used, the exchange() method should not be used, and vice versa.
         */
         void wait() {
@@ -69,8 +69,8 @@ namespace gridtools {
            can be retrieved. The function is available only if the underlying
            communication library is a Level 3 pattern. It would not make much
            sense otherwise.
-       
-           If used to get process grid information additional information can be 
+
+           If used to get process grid information additional information can be
            found in \link GRIDS_INTERACTION \endlink
         */
         pattern_type const & pattern() const {return haloexch;}

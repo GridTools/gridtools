@@ -251,7 +251,7 @@ namespace gridtools {
     request_t request;
     request_t_mark send_request;
 
-    const PROC_GRID m_proc_grid;
+      const PROC_GRID/*&*/ m_proc_grid;
 
     template <int I, int J, int K>
     void post_receive() {
@@ -442,7 +442,7 @@ namespace gridtools {
      * It is not possible to change the process grid once the pattern has beeninstantiated.
      *
      */
-    explicit Halo_Exchange_3D(PROC_GRID _pg):
+      explicit Halo_Exchange_3D(PROC_GRID /*const&*/ _pg):
       m_send_buffers(), m_recv_buffers(), request(), send_request(), m_proc_grid(_pg)
 #ifdef GCL_TRACE
       , pattern_tag(-1)

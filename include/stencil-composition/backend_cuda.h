@@ -164,13 +164,16 @@ namespace gridtools {
                 // number of threads
                 uint_t nx = (uint_t) (f->m_coords.i_high_bound() + iplus - (f->m_coords.i_low_bound() + iminus)+1);
                 uint_t ny = (uint_t) (f->m_coords.j_high_bound() + jplus - (f->m_coords.j_low_bound() + jminus)+1);
-                std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
 #ifndef NDEBUG
+                int pid=0;
+                MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+
+                std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
                 std::cout << "Boundary " <<  f->m_coords.partitioner().communicator().boundary() << "\n";
                 std::cout << "Functor " <<  functor_type() << "\n";
-                std::cout << "I loop " << f->m_starti<<"  + "<<iminus << " -> "
+                std::cout <<"[" << pid<< "] "<< "I loop " << f->m_starti<<"  + "<<iminus << " -> "
                           << f->m_starti<<" + "<<f->m_BI<<" + "<<iplus << "\n";
-                std::cout << "J loop " << f->m_startj<<" + "<<jminus << " -> "
+                std::cout <<"[" << pid<< "] "<< "J loop " << f->m_startj<<" + "<<jminus << " -> "
                           << f->m_startj<<" + "<<f->m_BJ<<" + "<<jplus << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";

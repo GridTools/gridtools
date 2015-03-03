@@ -16,11 +16,11 @@
 
 namespace gridtools {
   /** \class empty_field_no_dt_gpu
-      Class containint the information about a data field (grid). 
-      It doe not contains any reference to actual data of the field, 
+      Class containint the information about a data field (grid).
+      It doe not contains any reference to actual data of the field,
       it only describes the fields though the halo descriptions.
       The number of dimensions as a template argument and the size of the
-      first dimension, the size of the non-halo data field, 
+      first dimension, the size of the non-halo data field,
       the halo width before and after the actual data, then the same for the
       second dimension, the third, etc. This information is encoded in
       halo_descriptor. A dimension of the field is described as:
@@ -40,8 +40,8 @@ namespace gridtools {
 
   public:
 
-    /** 
-        Constructor that receive the pointer to the data. This is explicit and 
+    /**
+        Constructor that receive the pointer to the data. This is explicit and
         must then be called.
     */
     explicit empty_field_no_dt_gpu() {}
@@ -127,7 +127,7 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm) 
+      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm /*const&*/ comm)
         : base_type(c,comm)
         , halo()
     {}
@@ -137,7 +137,7 @@ namespace gridtools {
 
        \param[in] g A processor grid that will execute the pattern
      */
-    explicit hndlr_dynamic_ut(grid_type const &g) 
+    explicit hndlr_dynamic_ut(grid_type const &g)
         : base_type(g)
         , halo()
     {}
@@ -158,27 +158,27 @@ namespace gridtools {
       int err = cudaFree(d_send_buffer);
       if(err != cudaSuccess) {
         printf("Error freeing d_send_buffer\n");
-      } 
+      }
       err = cudaFree(d_recv_buffer);
       if(err != cudaSuccess) {
         printf("Error freeing d_recv_buffer\n");
-      } 
+      }
       err = cudaFree(d_send_size);
       if(err != cudaSuccess) {
         printf("Error freeing d_send_size\n");
-      } 
+      }
       err = cudaFree(d_recv_size);
       if(err != cudaSuccess) {
         printf("Error freeing d_recv_size\n");
-      } 
+      }
       err = cudaFree(halo_d);
       if(err != cudaSuccess) {
         printf("Error freeing halo_d\n");
-      } 
+      }
       err = cudaFree(halo_d_r);
       if(err != cudaSuccess) {
         printf("Error freeing halo_d_r\n");
-      } 
+      }
     }
 
     /**
@@ -209,7 +209,7 @@ namespace gridtools {
       dangeroushalo_r[1] = halo.dangerous_raw_array()[1];
       dangeroushalo_r[2] = halo.dangerous_raw_array()[2];
 
-      // printf("%d danhalo %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID, 
+      // printf("%d danhalo %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
       //        dangeroushalo[0].minus(),
       //        dangeroushalo[0].plus(),
       //        dangeroushalo[0].begin(),
@@ -225,7 +225,7 @@ namespace gridtools {
       //        dangeroushalo[2].begin(),
       //        dangeroushalo[2].end(),
       //        dangeroushalo[2].total_length());
-      // printf("%d danhalo_r %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID, 
+      // printf("%d danhalo_r %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
       //        dangeroushalo_r[0].minus(),
       //        dangeroushalo_r[0].plus(),
       //        dangeroushalo_r[0].begin(),
@@ -254,7 +254,7 @@ namespace gridtools {
           dangeroushalo_r[0].set_plus(0);
         }
       }
-      {   
+      {
         typedef proc_layout map_type;
         int ii=-1;
         int jj=0;
@@ -306,7 +306,7 @@ namespace gridtools {
           dangeroushalo_r[2].set_plus(0);
         }
       }
-      {   
+      {
         typedef proc_layout map_type;
         int ii=0;
         int jj=0;
@@ -338,7 +338,7 @@ namespace gridtools {
       //        dangeroushalo[2].end(),
       //        dangeroushalo[2].total_length());
 
-      // printf("%d danhalo_r %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID, 
+      // printf("%d danhalo_r %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
       //        dangeroushalo_r[0].minus(),
       //        dangeroushalo_r[0].plus(),
       //        dangeroushalo_r[0].begin(),
@@ -365,10 +365,10 @@ namespace gridtools {
               const int kk_P = map_type().template select<2>(ii,jj,kk);
 
               if (base_type::pattern().proc_grid().proc(ii_P,jj_P,kk_P) != -1) {
-                send_size[translate()(ii,jj,kk)] = 
+                send_size[translate()(ii,jj,kk)] =
                   halo.send_buffer_size(make_array(ii,jj,kk));
 
-                send_buffer[translate()(ii,jj,kk)] = 
+                send_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<DataType,arch_type>::alloc(send_size[translate()(ii,jj,kk)]*max_fields_n);
 
                 base_type::haloexch.register_send_to_buffer
@@ -377,10 +377,10 @@ namespace gridtools {
                    ii_P,jj_P,kk_P);
 
 
-                recv_size[translate()(ii,jj,kk)] = 
+                recv_size[translate()(ii,jj,kk)] =
                   halo.recv_buffer_size(make_array(ii,jj,kk));
 
-                recv_buffer[translate()(ii,jj,kk)] = 
+                recv_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<DataType,arch_type>::alloc(recv_size[translate()(ii,jj,kk)]*max_fields_n);
 
                 base_type::haloexch.register_receive_from_buffer
@@ -406,62 +406,62 @@ namespace gridtools {
       err = cudaMalloc((&d_send_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType*));
       if(err != cudaSuccess) {
         printf("Error creating buffer table on device\n");
-      } 
+      }
 
       err = cudaMemcpy(d_send_buffer, &(send_buffer[0]), _impl::static_pow3<DIMS>::value * sizeof(DataType*), cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device\n");
-      } 
+      }
 
       err = cudaMalloc(&d_recv_buffer, _impl::static_pow3<DIMS>::value * sizeof(DataType*));
       if(err != cudaSuccess) {
         printf("Error creating buffer table on device\n");
-      } 
+      }
 
       err = cudaMemcpy(d_recv_buffer, &(recv_buffer[0]), _impl::static_pow3<DIMS>::value * sizeof(DataType*), cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device\n");
-      } 
+      }
 
       err = cudaMalloc(&d_send_size, _impl::static_pow3<DIMS>::value * sizeof(int));
       if(err != cudaSuccess) {
         printf("Error creating buffer table on device\n");
-      } 
+      }
 
       err = cudaMemcpy(d_send_size, &(send_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device\n");
-      } 
+      }
 
       err = cudaMalloc(&d_recv_size, _impl::static_pow3<DIMS>::value * sizeof(int));
       if(err != cudaSuccess) {
         printf("Error creating buffer table on device\n");
-      } 
+      }
 
       err = cudaMemcpy(d_recv_size, &(recv_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device\n");
-      } 
+      }
 
       err = cudaMalloc(&halo_d, DIMS * sizeof(halo_descriptor));
       if(err != cudaSuccess) {
         printf("Error creating buffer table on device\n");
-      } 
+      }
 
       err = cudaMemcpy(halo_d, dangeroushalo/*halo.raw_array()*/, DIMS* sizeof(halo_descriptor), cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device\n");
-      } 
+      }
 
       err = cudaMalloc(&halo_d_r, DIMS * sizeof(halo_descriptor));
       if(err != cudaSuccess) {
         printf("Error creating buffer table on device\n");
-      } 
+      }
 
       err = cudaMemcpy(halo_d_r, dangeroushalo_r/*halo.raw_array()*/, DIMS* sizeof(halo_descriptor), cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device\n");
-      } 
+      }
     }
 
     /**
@@ -472,22 +472,22 @@ namespace gridtools {
     void pack(std::vector<DataType*> const& fields) {
       typedef translate_t<3,default_layout_map<3>::type > translate;
       if (send_size[translate()(0,0,-1)]) {
-        m_packZL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d); 
+        m_packZL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
       }
       if (send_size[translate()(0,0,1)]) {
-        m_packZU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d); 
-      }       
+        m_packZU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
+      }
       if (send_size[translate()(0,-1,0)]) {
-        m_packYL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d); 
+        m_packYL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
       }
       if (send_size[translate()(0,1,0)]) {
-        m_packYU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d); 
-      }       
+        m_packYU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
+      }
       if (send_size[translate()(-1,0,0)]) {
-        m_packXL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d); 
-      }        
+        m_packXL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
+      }
       if (send_size[translate()(1,0,0)]) {
-        m_packXU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d); 
+        m_packXU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
       }
      // perform device syncronization to ensure that packing is finished
      // before MPI is called with the device pointers, otherwise stale
@@ -506,39 +506,39 @@ namespace gridtools {
       //     double *send_buffer_l[27];
       // for(int k=0; k<3; k++)
       //   for(int j=0; j<3; j++)
-      //     for(int i=0; i<3; i++) 
+      //     for(int i=0; i<3; i++)
       //       if (i!=1 || j!=1 || k!=1) {
       //         send_buffer_l[k*9 + i+3*j] = (double*)malloc(send_size[k*9 + i+3*j]*sizeof(double)*3);
       //       }
-      
+
       //     int size, err;
       // for(int k=0; k<3; k++)
       //   //if (k==0)// || k==2)
       //   for(int j=0; j<3; j++)
-      //     for(int i=0; i<3; i++) 
+      //     for(int i=0; i<3; i++)
       //       if (i!=1 || j!=1 || k!=1) {
       //         size = send_size[k*9 + i+3*j] * sizeof(double)*3;
-      //         printf("START transferring bufer i=%d, j=%d, size=%d\n", 
+      //         printf("START transferring bufer i=%d, j=%d, size=%d\n",
       //                  i, j, size);
-      //         err = cudaMemcpy(send_buffer_l[k*9 + i+3*j], send_buffer[k*9 + i+3*j], size,  
+      //         err = cudaMemcpy(send_buffer_l[k*9 + i+3*j], send_buffer[k*9 + i+3*j], size,
       //                        cudaMemcpyDeviceToHost);
       //         if(err != cudaSuccess) {
-      //           printf("Error transferring bufer i=%d, j=%d, size=%d\n", 
+      //           printf("Error transferring bufer i=%d, j=%d, size=%d\n",
       //                  i, j, size);
       //           exit(-1);
-      //         } 
-      //         printf("OK transferring bufer i=%d, j=%d, size=%d\n", 
+      //         }
+      //         printf("OK transferring bufer i=%d, j=%d, size=%d\n",
       //                  i, j, size);
       //       }
-      
+
       // printf("printing buffers\n");
       // // exit(0);
-      
+
       // // display content of all the buffers
       // for(int k=0; k<3; k++)
       //   //    if (k==0)// || k==2)
       //   for(int j=0; j<3; j++)
-      //     for(int i=0; i<3; i++) 
+      //     for(int i=0; i<3; i++)
       //       if (i!=1 || j!=1 || k!=1) {
       //         printf("Buffer = %d\n", j*3 + i);
       //         for(int l=0; l < dangeroushalo[2].s_length(k-1); l++)
@@ -546,8 +546,8 @@ namespace gridtools {
       //             for(int n=0; n < dangeroushalo[0].s_length(i-1); n++){
       //               int ind = l * dangeroushalo[1].s_length(j-1) * dangeroushalo[0].s_length(i-1) + m * dangeroushalo[0].s_length(i-1) + n;
       //               long long int value = static_cast<long long int>(send_buffer_l[9*k + j*3+i][ind]);
-      //               printf("PACKED %d; %d / %d / %d (%d) = %lld %lld %lld \n", 
-      //                      9*k+j*3+i, n, m, l, ind, value%10000, (value/10000)%10000, (value/100000000)%10000); 
+      //               printf("PACKED %d; %d / %d / %d (%d) = %lld %lld %lld \n",
+      //                      9*k+j*3+i, n, m, l, ind, value%10000, (value/10000)%10000, (value/100000000)%10000);
       //             }
       //       }
 
@@ -561,22 +561,22 @@ namespace gridtools {
     void unpack(std::vector<DataType*> const& fields) {
       typedef translate_t<3,default_layout_map<3>::type > translate;
       if (recv_size[translate()(0,0,-1)]) {
-        m_unpackZL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r); 
+        m_unpackZL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
       }
       if (recv_size[translate()(0,0,1)]) {
-        m_unpackZU(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r); 
+        m_unpackZU(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
       }
       if (recv_size[translate()(0,-1,0)]) {
-        m_unpackYL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r); 
+        m_unpackYL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
       }
       if (recv_size[translate()(0,1,0)]) {
-        m_unpackYU(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r); 
+        m_unpackYU(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
       }
       if (recv_size[translate()(-1,0,0)]) {
-        m_unpackXL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r); 
+        m_unpackXL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
       }
       if (recv_size[translate()(1,0,0)]) {
-        m_unpackXU(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r); 
+        m_unpackXU(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
       }
     }
 
