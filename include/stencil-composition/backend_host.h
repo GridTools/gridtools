@@ -77,25 +77,42 @@ namespace gridtools {
                     typedef typename Arguments::execution_type_t execution_type_t;
 
 #ifdef CXX11_ENABLED
-                    typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
-
-                    typedef typename sum_range<new_range_t, range_t>::type xrange_t;
+                typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+                typedef typename sum_range<new_range_t, range_t>::type xrange_t;
 #else
-                    typedef typename sum_range<functor_type::xrange, range_t>::type xrange_t;
+                typedef typename sum_range<typename functor_type::xrange, range_t>::type xrange_t;
+                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
 #endif
 
                     //typedef typename extend_loop_bounds<sfinae<functor_type> >::template apply<range_t>::type xrange_t;
                     //typedef typename xrange_t::fuck fuck;
+                //generalize with flags?
+
+                int_t boundary=f->m_coords.partitioner()/*.communicator()*/.boundary();
+                int_t jminus=(int_t)  xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0) ;//j-low
+                int_t iminus=(int_t) (xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) );//i-low
+                int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0)) ;//j-high
+                int_t iplus=(int_t) xrange_subdomain_t::iplus::value + ((boundary%2)>0? xrange_t::iplus::value : 0) ;//i-high
+
+                // std::cout<<xrange_subdomain_t::jminus::value <<" +( "<< (boundary)<< " > " <<7<<" ? "<< xrange_t::jminus::value<<" : "<< 0<<" ) = "<< xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0)<< " = "<<jminus <<std::endl;
+                // std::cout<<xrange_subdomain_t::jplus::value <<" +( "<< (boundary)<< " > " <<7<<" ? "<< xrange_t::jplus::value<<" : "<< 0<<" ) = "<< xrange_subdomain_t::jplus::value + ((boundary)>7? xrange_t::jplus::value : 0)<< " = "<<jplus <<std::endl;
+                // std::cout<<xrange_subdomain_t::iminus::value <<" +( "<< (boundary)<< " > " <<7<<" ? "<< xrange_t::iminus::value<<" : "<< 0<<" ) = "<< xrange_subdomain_t::iminus::value + ((boundary)>7? xrange_t::iminus::value : 0)<< " = "<<iminus <<std::endl;
+                // std::cout<<xrange_subdomain_t::iplus::value <<" +( "<< (boundary)<< " > " <<7<<" ? "<< xrange_t::iplus::value<<" : "<< 0<<" ) = "<< xrange_subdomain_t::iplus::value + ((boundary)>7? xrange_t::iplus::value : 0)<< " = "<<iplus <<std::endl;
+
+                // int_t jminus= xrange_t::jminus::value ;//j-low
+                // int_t iminus= xrange_t::iminus::value ;//i-low
+                // int_t jplus=  xrange_t::jplus::value  ;//j-high
+                // int_t iplus=  xrange_t::iplus::value  ;//i-high
 
 #ifndef NDEBUG
 		    std::cout << "Functor " <<  functor_type() << "\n";
-		    std::cout << "I loop " << (int_t)f->m_starti <<"+"<< xrange_t::iminus::value << " -> "
-			      << f->m_starti <<"+"<< f->m_BI <<"+"<< xrange_t::iplus::value << "\n";
-		    std::cout << "J loop " << (int_t)f->m_startj <<"+"<< xrange_t::jminus::value << " -> "
-			      << (int_t)f->m_startj <<"+"<< f->m_BJ <<"+"<< xrange_t::jplus::value << "\n";
+		    std::cout << "I loop " << (int_t)f->m_starti <<"+"<< iminus << " -> "
+			      << f->m_starti <<"+"<< f->m_BI <<"+"<< iplus << "\n";
+		    std::cout << "J loop " << (int_t)f->m_startj <<"+"<< jminus << " -> "
+			      << (int_t)f->m_startj <<"+"<< f->m_BJ <<"+"<< jplus << "\n";
 		    std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
 		    std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
-		    std::cout<<"iminus::value: "<<xrange_t::iminus::value<<std::endl;
+		    std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
                      void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
@@ -104,13 +121,13 @@ namespace gridtools {
                      iterate_domain_type it_domain(local_domain);
 		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
 
-                    for (int_t i = (int_t)f->m_starti + xrange_t::iminus::value;
-                         i <= (int_t)f->m_starti + (int_t)f->m_BI + xrange_t::iplus::value;
+                    for (int_t i = (int_t)f->m_starti + iminus;
+                         i <= (int_t)f->m_starti + (int_t)f->m_BI + iplus;
                          ++i)
                     {
 			// for_each<local_domain.local_args>(increment<0>);
-                        for (int_t j = (int_t)f->m_startj + xrange_t::jminus::value;
-                             j <= (int_t)f->m_startj + (int_t)f->m_BJ + xrange_t::jplus::value;
+                        for (int_t j = (int_t)f->m_startj + jminus;
+                             j <= (int_t)f->m_startj + (int_t)f->m_BJ + jplus;
                              ++j)
                         {
                             // for_each<local_domain.local_args>(increment<1>());

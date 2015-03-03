@@ -5,7 +5,11 @@
 #include "../common/is_temporary_storage.h"
 #include "../stencil-composition/backend_traits_host.h"
 #include "../stencil-composition/backend_traits_cuda.h"
+#ifdef __CUDACC__
 #include "hybrid_pointer.h"
+#else
+#include "wrap_pointer.h"
+#endif
 #include <iostream>
 #include "accumulate.h"
 

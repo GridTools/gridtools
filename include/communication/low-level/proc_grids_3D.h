@@ -267,17 +267,17 @@ namespace gridtools {
     */
     int proc(int I, int J, int K) const {
       int rr,cc,ss;
-      if (cyclic.value0)
+      if (cyclic.value(0))
         rr = (R+r+I)%R;
       else
         rr = r+I;
 
-      if (cyclic.value1)
+      if (cyclic.value(1))
         cc = (C+c+J)%C;
       else
         cc = c+J;
 
-      if (cyclic.value2)
+      if (cyclic.value(2))
         ss = (S+s+K)%S;
       else
         ss = s+K;
@@ -351,15 +351,15 @@ namespace gridtools {
 #if  !defined(__clang__) && defined(CXX11_ENABLED)
           ,m_dimensions{0},
           m_coordinates{0}
+#endif
           {
-#else
-          {
+#if defined(__clang__) || !defined(CXX11_ENABLED)
               for (ushort_t i=0; i<ndims; ++i){
                   m_dimensions[i]=0;
                   m_coordinates[i]=0;
               }
 #endif
-          create(comm);}
+              create(comm);}
 
     /** Function to create the grid. This can be called in case the
         grid is default constructed. Its direct use is discouraged
@@ -369,17 +369,22 @@ namespace gridtools {
     void create(MPI_Comm const& comm) {
         //int dims[ndims]={0,0,0}, periods[ndims]={true,true,true}, coords[ndims]={0,0,0};
         int period[ndims];
-        period[0]=cyclic.value0;
-        period[1]=cyclic.value1;
-        period[2]=cyclic.value2;
+        for (ushort_t i=0; i<ndims; ++i)
+            period[i]=cyclic.value(i);
         MPI_Comm_size(comm, &m_nprocs);
         MPI_Dims_create(m_nprocs, ndims, m_dimensions);
         MPI_Cart_create(comm, ndims, m_dimensions, period, false, &m_communicator);
         MPI_Cart_get(m_communicator, ndims, m_dimensions, period/*does not really care*/, m_coordinates);
-        if(m_coordinates[0]==m_dimensions[0]-1) m_boundary  =  1; else m_boundary = 0;
-        if(m_coordinates[1]==m_dimensions[1]-1) m_boundary +=  2;
-        if(m_coordinates[0]==0)  m_boundary += 4;
-        if(m_coordinates[1]==0)  m_boundary += 8;
+        m_boundary=0;
+        for (ushort_t i=0; i<ndims; ++i)
+            if(m_coordinates[i]==m_dimensions[i]-1) m_boundary  += std::pow(2, i);
+        for (ushort_t i=ndims; i<2*ndims; ++i)
+            if(m_coordinates[i]==0) m_boundary  += std::pow(2, i);
+
+        // if(m_coordinates[0]==m_dimensions[0]-1) m_boundary  =  1; else m_boundary = 0;
+        // if(m_coordinates[1]==m_dimensions[1]-1) m_boundary +=  2;
+        // if(m_coordinates[0]==0)  m_boundary += 4;
+        // if(m_coordinates[1]==0)  m_boundary += 8;
 
 // #ifndef NDEBUG
 //         printf("comunicator coordinates: [%d, %d, %d]\n",m_coordinates[0], m_coordinates[1], m_coordinates[2] );
@@ -398,12 +403,18 @@ namespace gridtools {
         \param[out] t_C Number of elements in second dimension
         \param[out] t_S Number of elements in third dimension
     */
-    void dims(int &t_R, int &t_C, int &t_S) const {
-        GRIDTOOLS_STATIC_ASSERT(ndims==3, "this interface supposes ndims=3")
-        t_R=m_dimensions[0];
-        t_C=m_dimensions[1];
-        t_S=m_dimensions[2];
-    }
+      void dims(int &t_R, int &t_C, int &t_S) const {
+          GRIDTOOLS_STATIC_ASSERT(ndims==3, "this interface supposes ndims=3")
+              t_R=m_dimensions[0];
+          t_C=m_dimensions[1];
+          t_S=m_dimensions[2];
+      }
+
+      void dims(int &t_R, int &t_C) const {
+          GRIDTOOLS_STATIC_ASSERT(ndims==2, "this interface supposes ndims=2")
+              t_R=m_dimensions[0];
+          t_C=m_dimensions[1];
+      }
 
       /** Returns the number of processors of the processor grid
 
@@ -425,19 +436,39 @@ namespace gridtools {
         t_S = m_coordinates[2];
     }
 
+      void coords(int &t_R, int &t_C) const {
+          GRIDTOOLS_STATIC_ASSERT(ndims==2, "this interface supposes ndims=2")
+              t_R = m_coordinates[0];
+          t_C = m_coordinates[1];
+    }
+
     /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
         \tparam I Relative coordinate in the first dimension
         \tparam J Relative coordinate in the second dimension
         \tparam K Relative coordinate in the third dimension
         \return The process ID of the required process
     */
-      template <int I, int J, int K>
-    int proc() const {
-      return proc(I,J,K);
+    template <int I, int J, int K>
+        int proc() const {
+        int coords[3]={I,J,K};
+        return proc(coords);
+    }
+
+      int proc(int const& I, int const& J, int const& K) const {
+          int coords[3]={I,J,K};
+          return proc(coords);
+      }
+
+    template <int I, int J>
+        int proc() const {
+        int coords[2]={I,J};
+        return proc(coords);
     }
 
       int pid() const {
-          return m_coordinates[0]+m_coordinates[1]*m_dimensions[0]+m_coordinates[2]*m_dimensions[0]*m_dimensions[1];
+          int rank;
+          MPI_Cart_rank(m_communicator, m_coordinates, &rank);
+          return rank;
       }
 
       int const& boundary() const {
@@ -450,41 +481,27 @@ namespace gridtools {
         \param[in] K Relative coordinate in the third dimension
         \return The process ID of the required process
     */
-      int proc(int I, int J, int K) const {
-      int _coords[3];
+      int proc(int const* coords) const {
+          int _coords[ndims];
+          int res;
 
-      if (cyclic.value0)
-        _coords[0] = (m_coordinates[0]+I)%m_dimensions[0];
-      else {
-        _coords[0] = m_coordinates[0]+I;
-        if (_coords[0]<0 || _coords[0]>=m_dimensions[0])
-          return -1;
+          for (ushort_t i=0; i<ndims; ++i)
+              if (cyclic.value(i)) {
+                  _coords[i] = (m_coordinates[i]+coords[i])%m_dimensions[i];
+              }
+              else {
+                  _coords[i] = m_coordinates[i]+coords[i];
+                  if(_coords[i]>=0 && _coords[i]<m_dimensions[i])
+                      return -1;
+              }
+
+          printf("getting rank. [I,J,K] :[%d, %d, %d]\n", coords[0],coords[1],coords[2]);
+          printf("getting rank. m_dimensions:[%d, %d, %d]\n", m_dimensions[0], m_dimensions[1], m_dimensions[2]);
+          printf("getting rank. m_coordinates:[%d, %d, %d]\n", m_coordinates[0], m_coordinates[1], m_coordinates[2]);
+          printf("getting rank. _coords:[%d, %d, %d]\n", _coords[0], _coords[1], _coords[2]);
+          MPI_Cart_rank(m_communicator, _coords, &res);
+          return res;
       }
-
-      if (cyclic.value1)
-        _coords[1] = (m_coordinates[1]+J)%m_dimensions[1];
-      else {
-        _coords[1] = m_coordinates[1]+J;
-        if (_coords[1]<0 || _coords[1]>=m_dimensions[1])
-          return -1;
-      }
-
-      if (cyclic.value2)
-        _coords[2] = (m_coordinates[2]+K)%m_dimensions[2];
-      else {
-        _coords[2] = m_coordinates[2]+K;
-        if (_coords[2]<0 || _coords[2]>=m_dimensions[2])
-          return -1;
-      }
-
-      printf("getting rank. [I,J,K] :[%d, %d, %d]\n", I,J,K);
-      printf("getting rank. m_dimensions:[%d, %d, %d]\n", m_dimensions[0], m_dimensions[1], m_dimensions[2]);
-      printf("getting rank. m_coordinates:[%d, %d, %d]\n", m_coordinates[0], m_coordinates[1], m_coordinates[2]);
-      printf("getting rank. _coords:[%d, %d, %d]\n", _coords[0], _coords[1], _coords[2]);
-      int res;
-      MPI_Cart_rank(m_communicator, _coords, &res);
-      return res;
-    }
 
       int const* coordinates()const {return m_coordinates;}
       int const* dimensions()const {return m_dimensions;}
@@ -499,14 +516,9 @@ namespace gridtools {
 
       int ntasks(){return m_nprocs;}
 
-      bool periodic (int index) const {//ugly
-          if(index==0)
-              return cyclic.value0;
-          if(index==1)
-              return cyclic.value1;
-          if(index==2)
-              return cyclic.value2;
-      exit(-3);
+      bool periodic (int index) const {
+          assert(index<ndims);
+          return cyclic.value(index);
       }
   };
 

@@ -5,7 +5,7 @@
 #include "loopintervals.h"
 #include "../common/halo_descriptor.h"
 #include "../common/gpu_clone.h"
-
+#include <storage/partitioner.h>
 /**@file
 @brief file containing the size of the horizontal domain
 
@@ -30,7 +30,12 @@ namespace gridtools {
 
     using namespace enumtype_axis;
 
-    template <typename Axis, typename Partitioner>
+    class partitioner_dummy{
+    public:
+        int boundary() const {return 16+8+4+2+1;}
+    };
+
+    template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
         BOOST_STATIC_ASSERT(is_interval<Axis>::value);
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "base_storage_impl.h"
-
 /**@file
    @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
 

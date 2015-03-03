@@ -229,7 +229,6 @@ namespace gridtools {
             /*     typedef ExecutionEngine execution_type_t; */
             /* }; */
             //Definition of a local struct to be passed as template parameter is a C++11 feature not supported by CUDA for __global__ functions
-
 	    typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
 
         typedef typename backend_traits_t::template execute_traits< args >::backend_t backend_t;

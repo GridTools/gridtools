@@ -35,8 +35,15 @@ namespace gridtools{
 
         virtual uint_t coord_length(ushort_t const& ID)
             {
-                div_t value=std::div(m_sizes[ID],m_ntasks[ID]);
-                return ((int)(value.quot/**(pid+1)*/) + (int)((value.rem>m_pid[ID]) ? (/*pid+*/1) : value.rem));
+                uint_t ret;
+                if(ID<communicator_t::ndims)
+                {
+                    div_t value=std::div(m_sizes[ID],m_ntasks[ID]);
+                    ret = ((int)(value.quot/**(pid+1)*/) + (int)((value.rem>m_pid[ID]) ? (/*pid+*/1) : value.rem));
+                }
+                else
+                    ret = m_sizes[ID];
+                return ret;
             }
 
         /**@brief computes the lower and upprt index of the local interval
@@ -49,49 +56,49 @@ namespace gridtools{
             {
                 m_sizes[component]=size;
 
-                if (m_pid[component]==0)
-                    m_low_bound[component] = 0;
-                else
-                {
-                    div_t value=std::div(size,m_ntasks[component]);
-                    m_low_bound[component] = ((int)(value.quot*(m_pid[component])) + (int)((value.rem>=m_pid[component]) ? (m_pid[component]) : value.rem));
+                    if ( component >= communicator_t::ndims || m_pid[component]==0 )
+                        m_low_bound[component] = 0;
+                    else
+                    {
+                        div_t value=std::div(size,m_ntasks[component]);
+                        m_low_bound[component] = ((int)(value.quot*(m_pid[component])) + (int)((value.rem>=m_pid[component]) ? (m_pid[component]) : value.rem));
                     /*error in the partitioner*/
                     //assert(m_low_bound[component]>=0);
 #ifndef NDEBUG
-                    if(m_low_bound[component]<0){
-                        int pid=0;
-                        MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+                        if(m_low_bound[component]<0){
+                            int pid=0;
+                            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
 
-                        printf("\n\n\n ERROR[%d]: low bound for component %d is %d<0\n\n\n", pid,  component, m_low_bound[component] );
-                    }
+                            printf("\n\n\n ERROR[%d]: low bound for component %d is %d<0\n\n\n", pid,  component, m_low_bound[component] );
+                        }
 #endif
-                }
-
-                if (m_pid[component]==m_ntasks[component]-1)
-                    m_up_bound[component] = size;
-                else
-                {
-                    div_t value=std::div(size,m_ntasks[component]);
-                    m_up_bound[component] = ((int)(value.quot*(m_pid[component]+1)) + (int)((value.rem>m_pid[component]) ? (m_pid[component]+1) : value.rem));
-                    /*error in the partitioner*/
-                    //assert(m_up_bound[component]<size);
-                    if(m_up_bound[component]>size){
-                        int pid=0;
-                        MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-                        printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", pid,  component, m_up_bound[component], size );
                     }
 
-                }
+                    if (component >= communicator_t::ndims || m_pid[component]==m_ntasks[component]-1 )
+                        m_up_bound[component] = size;
+                    else
+                    {
+                        div_t value=std::div(size,m_ntasks[component]);
+                        m_up_bound[component] = ((int)(value.quot*(m_pid[component]+1)) + (int)((value.rem>m_pid[component]) ? (m_pid[component]+1) : value.rem));
+                        /*error in the partitioner*/
+                    //assert(m_up_bound[component]<size);
+                        if(m_up_bound[component]>size){
+                            int pid=0;
+                            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+                            printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", pid,  component, m_up_bound[component], size );
+                        }
+
+                    }
 
                 uint_t tile_dimension = coord_length(component);
 
-                //ushort_t fact=component+1;//TODO ugly and errorprone use enums/bitmaps
-                //                                            if component is periodic or if it is not on the border then add the halo
-                m_coordinates[component] = halo_descriptor( compute_halo(component,4),
-                                                            compute_halo(component,1), //(m_comm.periodic(component) || m_comm.boundary()%(2*fact)<fact)?m_halo[component]:0,
-                                                            compute_halo(component,4), //(m_comm.periodic(component) || m_comm.boundary()%(8*fact)<4*fact)?m_halo[component]:0,
-                                                            tile_dimension/* + ( compute_halo(component,4))*/ - 1,
-                                                            tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) ); //(m_comm.periodic(0) || m_comm.boundary()%(2*fact)<fact) ? m_halo[component]+1 : 1)
+                    //ushort_t fact=component+1;//TODO ugly and errorprone use enums/bitmaps
+                    //                                            if component is periodic or if it is not on the border then add the halo
+                    m_coordinates[component] = halo_descriptor( compute_halo(component,4),
+                                                                compute_halo(component,1), //(m_comm.periodic(component) || m_comm.boundary()%(2*fact)<fact)?m_halo[component]:0,
+                                                                compute_halo(component,4), //(m_comm.periodic(component) || m_comm.boundary()%(8*fact)<4*fact)?m_halo[component]:0,
+                                                                tile_dimension/* + ( compute_halo(component,4))*/ - 1,
+                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) ); //(m_comm.periodic(0) || m_comm.boundary()%(2*fact)<fact) ? m_halo[component]+1 : 1)
 
                 m_coordinates_gcl[component] = halo_descriptor( m_halo[component]-1,
                                                                 m_halo[component]-1, //(m_comm.periodic(component) || m_comm.boundary()%(2*fact)<fact)?m_halo[component]:0,
