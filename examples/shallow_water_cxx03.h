@@ -500,9 +500,9 @@ namespace shallow_water{
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
-        typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
+        typedef MPI_3D_process_grid_t<gridtools::boollist<2> > comm_t;
 
-        comm_t comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
+        comm_t comm(gridtools::boollist<2>(true,true), GCL_WORLD);
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, comm_t> partitioner_t;
         typedef sol_type::original_storage::pointer_type pointer_type;
@@ -514,7 +514,11 @@ namespace shallow_water{
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, 3,
+#ifdef __CUDACC__
                                                     gridtools::gcl_gpu,
+#else
+                                                    gridtools::gcl_cpu,
+#endif
                                                     gridtools::version_manual> pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(false, false, false), comm.communicator());
