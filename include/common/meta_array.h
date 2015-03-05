@@ -16,13 +16,14 @@
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/fold.hpp>
 
+namespace gridtools {
+
 /*
  * @struct is_sequence_of
  * metafunction that determines if a mpl sequence is a sequence of types determined by the filter
  * @param TSeq sequence to query
  * @param TPred filter that determines the condition
  */
-template<typename T> struct printj{BOOST_MPL_ASSERT_MSG((false), JJJJJJJJJJJJJJJ, (T));};
 template<typename TSeq, template<typename> class TPred>
 struct is_sequence_of
 {
@@ -50,6 +51,11 @@ struct is_sequence_of
     BOOST_STATIC_CONSTANT(bool, value = (type::value) );
 };
 
+/**
+ * @brief wrapper class around a sequence of types. The goal of the class is to identify that a type is an array of types that
+ * fulfil a predicate
+ * (without having to inspect each element of the sequence)
+ */
 template<typename sequence, typename TPred>
 struct meta_array{
     BOOST_STATIC_ASSERT((boost::mpl::is_sequence<sequence>::value));
@@ -69,6 +75,7 @@ struct meta_array{
     typedef sequence elements;
 };
 
+//type traits for meta_array
 template<typename T> struct is_meta_array : boost::mpl::false_{};
 
 template<typename sequence, typename TPred> struct is_meta_array< meta_array<sequence, TPred> > : boost::mpl::true_{};
@@ -81,3 +88,5 @@ struct is_meta_array_of< meta_array<sequence, pred>, pred_query>
     typedef typename boost::is_same<boost::mpl::quote1<pred_query>, pred >::type type;
     BOOST_STATIC_CONSTANT(bool, value=(type::value));
 };
+
+} //namespace gridtools
