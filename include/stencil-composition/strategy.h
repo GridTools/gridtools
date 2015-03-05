@@ -119,6 +119,8 @@ namespace gridtools{
 
                 uint_t NBI = n/BI;
                 uint_t NBJ = m/BJ;
+
+                #pragma omp for nowait
                 for (uint_t bi = 0; bi <= NBI; ++bi) {
                     for (uint_t bj = 0; bj <= NBJ; ++bj) {
                         backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
@@ -140,6 +142,7 @@ namespace gridtools{
             template<typename LocalDomainList, typename Coords>
             static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
             {
+                BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
