@@ -218,12 +218,4 @@ namespace gridtools {
 
 //    }//namespace _impl
 
-/**@brief given the backend \ref gridtools::_impl_cuda::run_functor_cuda returns the backend ID gridtools::enumtype::Cuda
-   wasted code because of the lack of constexpr*/
-        template <typename Arguments>
-	    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
-        {
-            static const enumtype::backend s_backend=enumtype::Cuda;
-        };
-
 } // namespace gridtools

@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "local_domain.h"
 
 namespace gridtools
 {
@@ -47,4 +48,9 @@ namespace gridtools
         LocalDomainList local_domain_list;
 
     };
+    template<typename T> struct is_mss_local_domain : boost::mpl::false_{};
+
+    template<typename MssType, typename DomainType, typename actual_arg_list_type>
+    struct is_mss_local_domain<mss_local_domain<MssType, DomainType, actual_arg_list_type> > : boost::mpl::true_{};
+
 } //namespace gridtools

@@ -24,16 +24,16 @@ namespace gridtools {
 
 /** @brief Host backend
     Derived class of the CRTP pattern defined in \ref gridtools::_impl::run_functor */
-        template < typename Arguments >
-        struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
+        template<typename Arguments>
+        struct run_functor_host : public _impl::run_functor < run_functor_host<Arguments> >
         {
 
             typedef _impl::run_functor < run_functor_host < Arguments > > super;
-            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+            explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
                 : super(domain_list, coords)
             {}
 
-            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blki, uint_t blkj)
+            explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list, typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blki, uint_t blkj)
                 : super(domain_list, coords, i, j, bi, bj, blki, blkj)
             {}
 
@@ -44,7 +44,7 @@ namespace gridtools {
 
 /** @brief Partial specialization: naive and block implementation for the host backend */
     template <typename Arguments >
-    struct execute_kernel_functor < _impl_host::run_functor_host< Arguments > >
+    struct execute_kernel_functor < _impl_host::run_functor_host<Arguments> >
     {
         typedef _impl_host::run_functor_host< Arguments > backend_t;
 
@@ -53,23 +53,24 @@ namespace gridtools {
             typedef FunctorType functor_t;
             typedef IntervalMapType interval_map_t;
             typedef IterateDomainType local_domain_t;
-            typedef CoordsType coords_t;};
+            typedef CoordsType coords_t;
+        };
 
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
 */
-            template< typename Traits >
-            static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
-                {
-                    typedef typename Arguments::coords_t coords_type;
-                    typedef typename Arguments::loop_intervals_t loop_intervals_t;
-                    typedef typename Traits::range_t range_t;
-                    typedef typename Traits::functor_t functor_type;
-                    typedef typename Traits::local_domain_t  local_domain_t;
-                    typedef typename Traits::interval_map_t interval_map_type;
-                    typedef typename Traits::iterate_domain_t iterate_domain_type;
-                    typedef typename Arguments::execution_type_t execution_type_t;
+        template< typename Traits >
+        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
+        {
+            typedef typename Arguments::coords_t coords_type;
+            typedef typename Arguments::loop_intervals_t loop_intervals_t;
+            typedef typename Traits::range_t range_t;
+            typedef typename Traits::functor_t functor_type;
+            typedef typename Traits::local_domain_t  local_domain_t;
+            typedef typename Traits::interval_map_t interval_map_type;
+            typedef typename Traits::iterate_domain_t iterate_domain_type;
+            typedef typename Arguments::execution_type_t execution_type_t;
 
 #ifndef NDEBUG
 		    std::cout << "Functor " <<  functor_type() << "\n";
@@ -86,15 +87,13 @@ namespace gridtools {
 		    iterate_domain_type it_domain(local_domain);
 		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
 
-                    for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
-                         i < (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;
-                         ++i)
-		      {
+		    for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
+		            i < (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value; ++i)
+		    {
 			// for_each<local_domain.local_args>(increment<0>);
-                        for (int_t j = (int_t)f->m_startj + range_t::jminus::value;
-                             j < (int_t)f->m_startj + (int_t)f->m_BJ + range_t::jplus::value;
-                             ++j)
-                            {
+		        for (int_t j = (int_t)f->m_startj + range_t::jminus::value;
+		                j < (int_t)f->m_startj + (int_t)f->m_BJ + range_t::jplus::value; ++j)
+		        {
 			      // for_each<local_domain.local_args>(increment<1>());
 //#ifndef NDEBUG
 				//std::cout << "Move to : " << i << ", " << j << std::endl;
@@ -132,23 +131,11 @@ namespace gridtools {
 				   >
 				   (it_domain,f->m_coords)
 				      );
-                            }
-		      }
-                }
+		        }
+		    }
+        }
 
-        };
-
-
-/**
-   @brief given the backend \ref gridtools::_impl_host::run_functor_host returns the backend ID gridtools::enumtype::Host
-   wasted code because of the lack of constexpr
-*/
-        template <typename Arguments >
-        struct backend_type< _impl_host::run_functor_host< Arguments > >
-        {
-            static const enumtype::backend s_backend=enumtype::Host;
-        };
-
+    };
     // } //namespace _impl
 
 } // namespace gridtools

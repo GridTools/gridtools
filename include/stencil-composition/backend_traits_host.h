@@ -27,11 +27,11 @@ namespace gridtools{
 
     /**forward declaration*/
     template<enumtype::backend T>
-    struct backend_from_id;
+    struct backend_traits_from_id;
 
 /**Traits struct, containing the types which are specific for the host backend*/
     template<>
-    struct backend_from_id<enumtype::Host>{
+    struct backend_traits_from_id<enumtype::Host>{
         template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1>
         struct storage_traits{
             typedef storage<base_storage<enumtype::Host, ValueType, Layout, Temp, SpaceDim > >   storage_t;
@@ -39,7 +39,7 @@ namespace gridtools{
 
         template <typename Arguments>
         struct execute_traits{
-            typedef _impl_host::run_functor_host< Arguments > backend_t;
+            typedef _impl_host::run_functor_host< Arguments > run_functor_t;
         };
 
         //function alias (pre C++11, std::bind or std::mem_fn,

@@ -70,7 +70,7 @@ namespace gridtools {
 		typedef ValueType value_type;
 		typedef value_type* iterator_type;
 		typedef value_type const* const_iterator_type;
-		typedef backend_from_id <Backend> backend_traits_t;
+		typedef backend_traits_from_id <Backend> backend_traits_t;
 		typedef typename backend_traits_t::template pointer<value_type>::type pointer_type;
 		//typedef in order to stopo the type recursion of the derived classes
 		typedef base_storage<Backend, ValueType, Layout, IsTemporary, FieldDimension> basic_type;
