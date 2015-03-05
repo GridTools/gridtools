@@ -102,12 +102,10 @@ namespace shallow_water{
 
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-            int pid=0;
-            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-            if(i>1 && j>1 && i<5 && j<5)
-                return 5.*pid+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-            else
-                return 5*pid;
+//             if(i>1 && j>1 && i<5 && j<5)
+                return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+//             else
+//                 return 1.;
        }
 
 };
@@ -487,7 +485,7 @@ namespace shallow_water{
 #endif
         //                      dims  z y x
         //                   strides xy x 1
-        typedef layout_map<0,1,2> layout_t;
+        typedef layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
@@ -504,7 +502,7 @@ namespace shallow_water{
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
         typedef sol_type::original_storage::pointer_type pointer_type;
 
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
 #ifdef __CUDACC__
@@ -550,9 +548,6 @@ namespace shallow_water{
         sol.set<2,0>(out9, 0.);//v
 
 #ifndef NDEBUG
-    std::cout<< "tmpx size:: " << tmpx.size()<<std::endl;
-    std::cout<< "tmpy size:: " << tmpy.size()<<std::endl;
-
     int pid=0;
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     std::ofstream myfile;
