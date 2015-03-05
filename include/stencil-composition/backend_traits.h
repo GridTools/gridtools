@@ -124,7 +124,7 @@ namespace gridtools{
     struct mss_functor
     {
         mss_functor(LocalDomainListArray& local_domain_lists, const Coords& coords, const int block_idx, const int block_idy) :
-            m_local_domain_lists(local_domain_lists), m_coords(coords) {}
+            m_local_domain_lists(local_domain_lists), m_coords(coords), m_block_idx(block_idx), m_block_idy(block_idy) {}
 
         /**
          * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
@@ -160,7 +160,7 @@ namespace gridtools{
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
-            strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run_mss(local_domain_list, m_coords);
+            strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run_mss(local_domain_list, m_coords, m_block_idx, m_block_idy);
 //            template<typename RunFunctorArgs, enumtype::backend BackendId>
 //            struct mss_loop
 //            {
@@ -175,6 +175,7 @@ namespace gridtools{
     private:
         LocalDomainListArray m_local_domain_lists;
         Coords m_coords;
+        const uint_t m_block_idx, m_block_idy;
     };
 
 /**
@@ -211,7 +212,7 @@ namespace gridtools{
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomainList, typename Coords>
-            static void run_mss(LocalDomainList& local_domain_list, Coords& coords)
+            static void run_mss(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
@@ -274,11 +275,11 @@ namespace gridtools{
                 uint_t NBJ = m/BJ;
                 {
                     //internal blocks
-                    for (uint_t bi = 0; bi < NBI; ++bi) {
-                        for (uint_t bj = 0; bj < NBJ; ++bj) {
-                            uint_t _starti = bi*BI+coords.i_low_bound();
-                            uint_t _startj = bj*BJ+coords.j_low_bound();
-                            backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, coords,bi,bj));
+                    for (uint_t bi = 0; bi <= NBI; ++bi) {
+                        for (uint_t bj = 0; bj <= NBJ; ++bj) {
+//                            uint_t _starti = bi*BI+coords.i_low_bound();
+//                            uint_t _startj = bj*BJ+coords.j_low_bound();
+                            backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
 
 //                            backend_traits::template for_each<iter_range>( run_functor_backend (local_domain_lists,coords, _starti, _startj, BI, BJ, bi, bj));
                         }
@@ -286,28 +287,73 @@ namespace gridtools{
 //
 //                    //last block row
 //                    for (uint_t bj = 0; bj < NBJ; ++bj) {
-//                        uint_t _starti = NBI*BI+coords.i_low_bound();
-//                        uint_t _startj = bj*BJ+coords.j_low_bound();
+////                        uint_t _starti = NBI*BI+coords.i_low_bound();
+////                        uint_t _startj = bj*BJ+coords.j_low_bound();
 //                        backend_traits::template for_each<iter_range>(run_functor_backend (local_domain_lists,coords,_starti,_startj, n-NBI*BI, BJ, NBI, bj));
 //                    }
 //
 //                    //last block column
 //                    for (uint_t bi = 0; bi < NBI; ++bi) {
-//                        uint_t _starti = bi*BI+coords.i_low_bound();
-//                        uint_t _startj = NBJ*BJ+coords.j_low_bound();
+////                        uint_t _starti = bi*BI+coords.i_low_bound();
+////                        uint_t _startj = NBJ*BJ+coords.j_low_bound();
 //                        backend_traits::template for_each<iter_range>(run_functor_backend (local_domain_lists,coords,_starti,_startj,BI, m-NBJ*BJ, bi, NBJ));
 //                    }
 //
 //                    //last single block entry
 //                    {
-//                        uint_t _starti = NBI*BI+coords.i_low_bound();
-//                        uint_t _startj = NBJ*BJ+coords.j_low_bound();
+////                        uint_t _starti = NBI*BI+coords.i_low_bound();
+////                        uint_t _startj = NBJ*BJ+coords.j_low_bound();
 //                        backend_traits::template for_each<iter_range>( run_functor_backend (local_domain_lists,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ, NBI, NBJ));
 //                    }
                 }
             }
+
         };
 
+        template<typename RunFunctorArgs, enumtype::backend BackendId>
+        struct mss_loop
+        {
+            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
+            template<typename LocalDomainList, typename Coords>
+            static void run_mss(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
+            {
+                typedef backend_traits_from_id< BackendId > backend_traits_t;
+
+                typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
+
+                typedef typename RunFunctorArgs::functor_list_t functor_list_t;
+
+                typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functor_list_t>::type::value> iter_range;
+
+                uint_t n = coords.i_high_bound() - coords.i_low_bound();
+                uint_t m = coords.j_high_bound() - coords.j_low_bound();
+
+                uint_t NBI = n/BI;
+                uint_t NBJ = m/BJ;
+
+                uint_t _starti = bi*BI+coords.i_low_bound();
+                uint_t _startj = bj*BJ+coords.j_low_bound();
+
+                uint_t block_size_i = BI;
+                uint_t block_size_j = BJ;
+
+                if(bi == NBI && bj == NBJ)
+                {
+                    block_size_i = n-NBI*bi;
+                    block_size_j = m-NBJ*bj;
+                }
+                else if(bi == NBI)
+                {
+                    block_size_i = n-NBI*bi;
+                }
+                else if(bj == NBJ)
+                {
+                    block_size_j = m-NBJ*bj;
+                }
+
+                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
+            }
+        };
 
         template <enumtype::backend Backend, typename ValueType, typename LayoutType , uint_t BI, uint_t BJ, uint_t IMinus, uint_t JMinus, uint_t IPlus, uint_t JPlus>
         struct tmp
