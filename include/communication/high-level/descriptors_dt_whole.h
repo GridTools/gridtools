@@ -46,7 +46,7 @@ namespace gridtools {
             typename GT,
             typename proc_layout,
             typename Gcl_Arch,
-            int SubDim
+            int SubDim,
             template < int Ndim, int SubD>
             class GridType
             >
@@ -244,7 +244,7 @@ namespace gridtools {
             typename GT,
             typename proc_layout,
             typename Gcl_Arch,
-            int SubDim
+            int SubDim,
             template <int Ndim, int SubD>
             class GridType
             >

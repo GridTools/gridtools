@@ -50,7 +50,7 @@ namespace gridtools {
 
     const halo_descriptor* raw_array() const {return &(base_type::halos[0]);}
   protected:
-    template <typename DataType, int DM, typename HaloExch, typename proc_layout, typename arch, int V>
+    template <typename DataType, typename GridType, typename HaloExch, typename proc_layout, typename arch, int V>
     friend class hndlr_dynamic_ut;
 
     template <int I>
@@ -81,7 +81,7 @@ namespace gridtools {
 
     static const int DIMS = 3;
 
-    typedef hndlr_dynamic_ut<DataType,DIMS,HaloExch,proc_layout, gcl_gpu, 2> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType<3, SubDim>,HaloExch,proc_layout, gcl_gpu, 2> this_type;
 
   public:
     empty_field_no_dt_gpu<DIMS> halo;
@@ -375,7 +375,7 @@ namespace gridtools {
                 send_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<DataType,arch_type>::alloc(send_size[translate()(ii,jj,kk)]*max_fields_n);
 
-                base_type::haloexch.register_send_to_buffer
+                base_type::m_haloexch.register_send_to_buffer
                   (&(send_buffer[translate()(ii,jj,kk)][0]),
                    send_size[translate()(ii,jj,kk)]*max_fields_n*sizeof(DataType),
                    ii_P,jj_P,kk_P);
@@ -387,7 +387,7 @@ namespace gridtools {
                 recv_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<DataType,arch_type>::alloc(recv_size[translate()(ii,jj,kk)]*max_fields_n);
 
-                base_type::haloexch.register_receive_from_buffer
+                base_type::m_haloexch.register_receive_from_buffer
                   (&(recv_buffer[translate()(ii,jj,kk)][0]),
                    recv_size[translate()(ii,jj,kk)]*max_fields_n*sizeof(DataType),
                    ii_P,jj_P,kk_P);
@@ -395,14 +395,14 @@ namespace gridtools {
                 send_size[translate()(ii,jj,kk)] = 0;
                 send_buffer[translate()(ii,jj,kk)] = NULL;
 
-                base_type::haloexch.register_send_to_buffer(NULL, 0,ii_P,jj_P,kk_P);
+                base_type::m_haloexch.register_send_to_buffer(NULL, 0,ii_P,jj_P,kk_P);
 
 
                 recv_size[translate()(ii,jj,kk)] = 0;
 
                 recv_buffer[translate()(ii,jj,kk)] = NULL;
 
-                base_type::haloexch.register_receive_from_buffer(NULL, 0,ii_P,jj_P,kk_P);
+                base_type::m_haloexch.register_receive_from_buffer(NULL, 0,ii_P,jj_P,kk_P);
               }
             }
 
