@@ -332,7 +332,7 @@ namespace gridtools {
 //            typedef run_functor_arguments<TMssArray, Coords, LocalDomainListArray> args;
 //            typedef typename backend_traits_t::template execute_traits<TMssArray, Coords, LocalDomainListArray>::backend_t backend_t;
 //            strategy_from_id< s_strategy_id >::template loop< backend_t >::run_all_mss_loops(local_domain_lists, coords);
-            strategy_from_id< s_strategy_id >::template loop<TMssArray, Coords, LocalDomainListArray, BackendId>::run_all_mss_loops(local_domain_lists, coords);
+            strategy_from_id< s_strategy_id >::template fused_mss_loop<TMssArray, BackendId>::run(local_domain_lists, coords);
         }
 
 
