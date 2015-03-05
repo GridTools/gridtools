@@ -33,11 +33,11 @@
 namespace gridtools {
 
   /** \class empty_field
-      Class containint the information about a data field (grid). 
-      It doe not contains any reference to actual data of the field, 
+      Class containint the information about a data field (grid).
+      It doe not contains any reference to actual data of the field,
       it only describes the fields though the halo descriptions.
       The number of dimensions as a template argument and the size of the
-      first dimension, the size of the non-halo data field, 
+      first dimension, the size of the non-halo data field,
       the halo width before and after the actual data, then the same for the
       second dimension, the third, etc. This information is encoded in
       halo_descriptor. A dimension of the field is described as:
@@ -50,14 +50,14 @@ namespace gridtools {
 
       \tparam DataType Type of elements contained in data arrays
       \tparam DIMS the number of dimensions of the data field
-      
+
   */
   template <typename DataType, int DIMS>
   class empty_field : public empty_field_base<DataType, DIMS> {
     typedef empty_field_base<DataType, DIMS> base_type;
   public:
-    /** 
-        Constructor that receive the pointer to the data. This is explicit and 
+    /**
+        Constructor that receive the pointer to the data. This is explicit and
         must then be called.
     */
     explicit empty_field() {}
@@ -65,9 +65,9 @@ namespace gridtools {
     const halo_descriptor* raw_array() const {return &(base_type::halos[0]);}
 
     /** void pack(gridtools::array<int, D> const& eta, iterator &it)
-        Pack the elements of a data field passed in input as iterator_in to be sent using the 
-        iterator_out passed in that points to data buffers. At the end 
-        the iterator_out points to the element next to the last inserted. In inout 
+        Pack the elements of a data field passed in input as iterator_in to be sent using the
+        iterator_out passed in that points to data buffers. At the end
+        the iterator_out points to the element next to the last inserted. In inout
         the iterator_out points to the elements to be insered
 
         \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
@@ -91,11 +91,11 @@ namespace gridtools {
     }
 
     /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
-        Unpack the elements into a data field passed in input as 
-        iterator_in that have being received in data obtained by the 
-        iterator_out passed in that points to data buffers. At the end 
-        the iterator points to the element next to the last read element. In inout 
-        the iterator points to the elements to be extracted from buffers and put 
+        Unpack the elements into a data field passed in input as
+        iterator_in that have being received in data obtained by the
+        iterator_out passed in that points to data buffers. At the end
+        the iterator points to the element next to the last read element. In inout
+        the iterator points to the elements to be extracted from buffers and put
         int the halo region.
 
         \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
@@ -123,7 +123,7 @@ namespace gridtools {
        This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
        and a list of data fields and pack all the data corresponding
        to the halo described by the class. The data is packed starting at
-       position pointed by iterator and the iterator will point to the next free 
+       position pointed by iterator and the iterator will point to the next free
        position at the end of the operation.
 
        \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the receiving neighbor
@@ -133,9 +133,9 @@ namespace gridtools {
      */
 #ifdef CXX11_ENABLED
     template <typename iterator, typename FIRST, typename... FIELDS>
-    void pack_all(gridtools::array<int, DIMS> const& eta, 
-                  iterator &it, 
-                  FIRST const & field, 
+    void pack_all(gridtools::array<int, DIMS> const& eta,
+                  iterator &it,
+                  FIRST const & field,
                   const FIELDS&... args) const {
       pack(eta, field, it);
       pack_all(eta, it, args...);
@@ -150,7 +150,7 @@ namespace gridtools {
       pack_all(eta, it BOOST_PP_COMMA_IF(n)  BOOST_PP_ENUM_PARAMS_Z(z, n, arg)); \
       pack(eta, arg ## n, it);                                        \
     }
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -162,7 +162,7 @@ namespace gridtools {
        This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
        and a list of data fields and pack all the data corresponding
        to the halo described by the class. The data is packed starting at
-       position pointed by iterator and the iterator will point to the next free 
+       position pointed by iterator and the iterator will point to the next free
        position at the end of the operation.
 
        \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
@@ -205,10 +205,10 @@ namespace gridtools {
   }
 
   /** \class field_descriptor
-      Class containint the information about a data field (grid). 
+      Class containint the information about a data field (grid).
       It contains a pointer to the first element of the data field,
       the number of dimensions as a template argument and the size of the
-      first dimension, the size of the non-halo data field, 
+      first dimension, the size of the non-halo data field,
       the halo width before and after the actual data, then the same for the
       second dimension, the third, etc. This information is encoded in
       halo_descriptor. A dimension of the field is described as:
@@ -225,19 +225,19 @@ namespace gridtools {
   template <typename DataType, int DIMS>
   class field_descriptor: public empty_field<DataType, DIMS> {
     DataType* fieldptr; // Pointer to the data field
- 
+
     typedef empty_field<DataType, DIMS> base_type;
   public:
-    /** 
-        Constructor that receive the pointer to the data. This is explicit and 
+    /**
+        Constructor that receive the pointer to the data. This is explicit and
         must then be called.
         \param[in] _fp DataType* pointer to the data field
     */
     explicit field_descriptor(DataType *_fp): fieldptr(_fp) {}
 
     /** void pack(gridtools::array<int, D> const& eta, iterator &it)
-        Pack the elements to be sent using the iterator passed in. At the end 
-        the iterator points to the element next to the last inserted. In inout 
+        Pack the elements to be sent using the iterator passed in. At the end
+        the iterator points to the element next to the last inserted. In inout
         the iterator points to the elements to be insered
 
         \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
@@ -249,9 +249,9 @@ namespace gridtools {
     }
 
     /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
-        Unpack the elements received using the iterator passed in.. At the end 
-        the iterator points to the element next to the last read element. In inout 
-        the iterator points to the elements to be extracted from buffers and put 
+        Unpack the elements received using the iterator passed in.. At the end
+        the iterator points to the element next to the last read element. In inout
+        the iterator points to the elements to be extracted from buffers and put
         int the halo region.
 
         \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
@@ -265,7 +265,7 @@ namespace gridtools {
   };
 
 
-  /** 
+  /**
       Class containing the description of one halo and a communication
       pattern.  A communication is triggered when a list of data
       fields are passed to the exchange functions, when the data
@@ -276,18 +276,19 @@ namespace gridtools {
 
       \tparam DataType Type of the elements in data arrays
       \tparam DIMS Number of dimensions of the grids.
-      \tparam HaloExch Communication patter with halo exchange. 
+      \tparam HaloExch Communication patter with halo exchange.
       \tparam proc_layout Map between dimensions in increasing-stride order and processor grid dimensions
       \tparam Gcl_Arch Specification of architecture used to indicate where the data is L3/include/gcl_arch.h file reference
   */
   template <typename DataType,
-            int DIMS, 
-            typename HaloExch, 
-            typename proc_layout=typename default_layout_map<DIMS>::type,
+            typename GridType,
+            typename HaloExch,
+            typename proc_layout=typename default_layout_map<GridType::DIMS>::type,
             typename Gcl_Arch = gridtools::gcl_cpu,
             int VERSION = 0>
   class hndlr_dynamic_ut  : public descriptor_base<HaloExch> {
-    typedef hndlr_dynamic_ut<DataType,DIMS,HaloExch,proc_layout, Gcl_Arch, VERSION> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType,HaloExch,proc_layout, Gcl_Arch, VERSION> this_type;
+      static const int DIMS=GridType::DIMS;
 
   public:
     empty_field<DataType, DIMS> halo;
@@ -328,7 +329,7 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm) 
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
         : base_type(c,comm)
         , halo()
     {}
@@ -382,7 +383,7 @@ namespace gridtools {
        \param[in] _P Number of processors the pattern is running on (numbered from 0 to _P-1
        \param[in] _pid Integer identifier of the process calling the constructor
      */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid) 
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid)
         : base_type(grid_type(c,_P,_pid))
         , halo()
     {}
@@ -392,7 +393,7 @@ namespace gridtools {
 
        \param[in] g A processor grid that will execute the pattern
      */
-    explicit hndlr_dynamic_ut(grid_type const &g) 
+    explicit hndlr_dynamic_ut(grid_type const &g)
       : halo()
       , base_type(g)
     {}
@@ -416,7 +417,7 @@ namespace gridtools {
     */
     void setup(int max_fields_n) {
       halo.setup();
-      _impl::allocation_service<this_type>()(this, max_fields_n);      
+      _impl::allocation_service<this_type>()(this, max_fields_n);
     }
 
     /**
@@ -435,7 +436,7 @@ namespace gridtools {
     void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
       pack_dims<DIMS,0>()(*this, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
     }
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -456,7 +457,7 @@ namespace gridtools {
     void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
       unpack_dims<DIMS,0>()(*this, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
     }
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -484,7 +485,7 @@ namespace gridtools {
 
     // FRIENDING
     friend struct _impl::allocation_service<this_type>;
-    
+
   private:
 
     template <int I, int dummy>
@@ -532,14 +533,14 @@ namespace gridtools {
             }                                                           \
           }                                                             \
         }                                                               \
-      }                                               
+      }
 
       BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #undef PUT_OMP
 #endif
     };
- 
+
     template <int dummy>
     struct pack_dims<3, dummy> {
 #ifdef CXX11_ENABLED
@@ -729,7 +730,7 @@ namespace gridtools {
         }
       }
     };
- 
+
     template <int dummy>
     struct pack_vector_dims<3, dummy> {
       template <typename T>
@@ -849,7 +850,7 @@ namespace gridtools {
     }
 
     /**
-       Destroy the handler created by create_handler which cannot be reused 
+       Destroy the handler created by create_handler which cannot be reused
        after this function returns.
     */
     void destroy_handler(hndlr_descriptor_ut<DataType,DIMS,HaloExch>& h) {
@@ -919,7 +920,7 @@ namespace gridtools {
        \param[in] typesize In case the DataType of the halo_example is not the same as the maximum data type used in the computation, this parameter can be given
      */
     template <typename DataType, typename _layomap, template <typename> class traits>
-    void setup(int max_fields_n, 
+    void setup(int max_fields_n,
                field_on_the_fly<DataType, _layomap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
@@ -928,7 +929,7 @@ namespace gridtools {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
-            if (i!=0 || j!=0 || k!=0) { 
+            if (i!=0 || j!=0 || k!=0) {
               eta[0]=i;
               eta[1]=j;
               eta[2]=k;
@@ -948,7 +949,7 @@ namespace gridtools {
               const int i_P = proc_layout().template select<0>(i,j,k);
               const int j_P = proc_layout().template select<1>(i,j,k);
               const int k_P = proc_layout().template select<2>(i,j,k);
-              
+
               base_type::haloexch.register_send_to_buffer
                 (&(send_buffer[translate()(i,j,k)][0]),
                  S*max_fields_n*typesize,
@@ -974,12 +975,12 @@ namespace gridtools {
        \param[in] buffer_size_list Array (gridtools::array) with the sizes of the buffers associated with the halos.
      */
     template <typename DataType, typename layomap>
-    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list) 
+    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list)
     {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           for (int k=-1; k<=1; ++k) {
-            if (i!=0 || j!=0 || k!=0) { 
+            if (i!=0 || j!=0 || k!=0) {
               send_buffer[translate()(i,j,k)] = _impl::gcl_alloc<char, arch_type>::alloc(buffer_size_list[translate()(i,j,k)]);
               recv_buffer[translate()(i,j,k)] = _impl::gcl_alloc<char, arch_type>::alloc(buffer_size_list[translate()(i,j,k)]);
               send_buffer_size[translate()(i,j,k)] = (buffer_size_list[translate()(i,j,k)]);
@@ -989,7 +990,7 @@ namespace gridtools {
               const int i_P = proc_layout().template select<0>(i,j,k);
               const int j_P = proc_layout().template select<1>(i,j,k);
               const int k_P = proc_layout().template select<2>(i,j,k);
-              
+
               base_type::haloexch.register_send_to_buffer
                 (&(send_buffer[translate()(i,j,k)][0]),
                  buffer_size_list[translate()(i,j,k)],
@@ -1032,7 +1033,7 @@ namespace gridtools {
       }                                                                 \
     }                                                                   \
 
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -1129,7 +1130,7 @@ namespace gridtools {
       }
 #else
       //#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field ## m 
+#define _CALLNEXT_INST(z, m, n) , _field ## m
 #define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m )
 
 #define MACRO_IMPL(z, n, _)                                             \
@@ -1177,7 +1178,7 @@ namespace gridtools {
       }
 #else
       //#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field ## m 
+#define _CALLNEXT_INST(z, m, n) , _field ## m
 #define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m )
 
 #define MACRO_IMPL(z, n, _)                                             \
@@ -1209,7 +1210,7 @@ namespace gridtools {
 
     template <int dummy>
     struct pack_vector_dims<3, dummy> {
- 
+
       template <typename T, typename iterator, typename array_of_fotf>
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, array_of_fotf const& _fields) const {
         typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>::type proc_layout;
@@ -1224,13 +1225,13 @@ namespace gridtools {
       }
 
     };
- 
+
     template <int, int>
     struct unpack_vector_dims {};
 
     template <int dummy>
     struct unpack_vector_dims<3, dummy> {
- 
+
       template <typename T, typename iterator, typename array_of_fotf>
       void operator()(const T& hm, int ii, int jj, int kk, iterator & it, array_of_fotf const& _fields) const {
         typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>::type proc_layout;
@@ -1245,7 +1246,7 @@ namespace gridtools {
       }
 
     };
- 
+
   };
 
   template <typename HaloExch,
@@ -1307,7 +1308,7 @@ namespace gridtools {
        \param[in] typesize In case the DataType of the halo_example is not the same as the maximum data type used in the computation, this parameter can be given
      */
     template <typename DataType, typename _layomap, template <typename> class traits>
-    void setup(int max_fields_n, 
+    void setup(int max_fields_n,
                field_on_the_fly<DataType, _layomap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
@@ -1315,7 +1316,7 @@ namespace gridtools {
       gridtools::array<int, DIMS> eta;
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
-          if (i!=0 || j!=0) { 
+          if (i!=0 || j!=0) {
             eta[0]=i;
             eta[1]=j;
             int S=1;
@@ -1330,7 +1331,7 @@ namespace gridtools {
             typedef typename layout_transform<layomap, proc_layout_abs>::type proc_layout;
             const int i_P = proc_layout().template select<0>(i,j);
             const int j_P = proc_layout().template select<1>(i,j);
-              
+
             base_type::haloexch.register_send_to_buffer
               (&(send_buffer[translate()(i,j)][0]),
                S*max_fields_n*typesize,
@@ -1346,11 +1347,11 @@ namespace gridtools {
     }
 
     template <typename DataType, typename layomap>
-    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list) 
+    void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const & buffer_size_list)
     {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
-          if (i!=0 || j!=0) { 
+          if (i!=0 || j!=0) {
             send_buffer[translate()(i,j)] = _impl::gcl_alloc<char, arch_type>::alloc(buffer_size_list[translate()(i,j)]);
             recv_buffer[translate()(i,j)] = _impl::gcl_alloc<char, arch_type>::alloc(buffer_size_list[translate()(i,j)]);
             send_buffer_size[translate()(i,j)] = (buffer_size_list[translate()(i,j)]);
@@ -1359,7 +1360,7 @@ namespace gridtools {
             typedef typename layout_transform<layomap, proc_layout_abs>::type proc_layout;
             const int i_P = proc_layout().template select<0>(i,j);
             const int j_P = proc_layout().template select<1>(i,j);
-              
+
             base_type::haloexch.register_send_to_buffer
               (&(send_buffer[translate()(i,j)][0]),
                buffer_size_list[translate()(i,j)],
@@ -1397,7 +1398,7 @@ namespace gridtools {
       }                                                                 \
     }                                                                   \
 
-    
+
     BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
 #undef MACRO_IMPL
 #endif
@@ -1485,7 +1486,7 @@ namespace gridtools {
       }
 #else
       //#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field ## m 
+#define _CALLNEXT_INST(z, m, n) , _field ## m
 #define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m )
 
 #define MACRO_IMPL(z, n, _)                                             \
@@ -1531,7 +1532,7 @@ namespace gridtools {
       }
 #else
       //#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field ## m 
+#define _CALLNEXT_INST(z, m, n) , _field ## m
 #define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m )
 
 #define MACRO_IMPL(z, n, _)                                             \
@@ -1561,7 +1562,7 @@ namespace gridtools {
 
     template <int dummy>
     struct pack_vector_dims<2, dummy> {
- 
+
       template <typename T, typename iterator, typename array_of_fotf>
       void operator()(const T& hm, int ii, int jj, iterator & it, array_of_fotf const& _fields) const {
         typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>::type proc_layout;
@@ -1575,13 +1576,13 @@ namespace gridtools {
       }
 
     };
- 
+
     template <int, int>
     struct unpack_vector_dims {};
 
     template <int dummy>
     struct unpack_vector_dims<2, dummy> {
- 
+
       template <typename T, typename iterator, typename array_of_fotf>
       void operator()(const T& hm, int ii, int jj, iterator & it, array_of_fotf const& _fields) const {
         typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>::type proc_layout;
@@ -1595,7 +1596,7 @@ namespace gridtools {
       }
 
     };
- 
+
   };
 
 } // namespace

@@ -94,18 +94,20 @@ namespace shallow_water{
 #define height 2.
 	GT_FUNCTION
     	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i<3 && j<3)
-                return 1.+2. * std::exp(-5*((((int)i-1)*dx())*((((int)i-1)*dx()))+(((int)j-1)*dy())*(((int)j-1)*dy())));
-            else
-                return 1.;
+            //if(i<3 && j<3)
+            return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
+                //else
+                //return 1.;
        }
 
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
+            int pid=0;
+            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
             if(i>1 && j>1 && i<5 && j<5)
-                return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+                return 5.*pid+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
             else
-                return 1.;
+                return 5*pid;
        }
 
 };
@@ -500,20 +502,11 @@ namespace shallow_water{
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
-        typedef MPI_3D_process_grid_t<gridtools::boollist<2> > comm_t;
-
-        comm_t comm(gridtools::boollist<2>(true,true), GCL_WORLD);
-        ushort_t halo[3]={2,2,0};
-        typedef partitioner_trivial<sol_type, comm_t> partitioner_t;
         typedef sol_type::original_storage::pointer_type pointer_type;
-        partitioner_t part(comm, halo);
-        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, 3,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
 #ifdef __CUDACC__
                                                     gridtools::gcl_gpu,
 #else
@@ -521,11 +514,20 @@ namespace shallow_water{
 #endif
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(false, false, false), comm.communicator());
+        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
 
-        he.add_halo<0>(part.get_halo_gcl<0>());
-        he.add_halo<1>(part.get_halo_gcl<1>());
-        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+    // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
+    // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
+        ushort_t halo[3]={2,2,0};
+        typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
+        partitioner_t part(he.comm(), halo);
+        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
+        parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
+        parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
+
+    he.add_halo<0>(part.get_halo_gcl<0>());
+    he.add_halo<1>(part.get_halo_gcl<1>());
+    he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
     he.setup(3);
 
@@ -539,11 +541,11 @@ namespace shallow_water{
         tmpy.set<2,0>(out6);
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
-        if(!comm.pid())
+        if(!he.comm().pid())
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
-            //sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
-            sol.set<0,0>(out7, 1.);//h
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
+    //sol.set<0,0>(out7, 1.);//h
         sol.set<1,0>(out8, 0.);//u
         sol.set<2,0>(out9, 0.);//v
 
@@ -551,10 +553,12 @@ namespace shallow_water{
     std::cout<< "tmpx size:: " << tmpx.size()<<std::endl;
     std::cout<< "tmpy size:: " << tmpy.size()<<std::endl;
 
-        std::ofstream myfile;
-        std::stringstream name;
-        name<<"example"<<comm.pid()<<".txt";
-        myfile.open (name.str().c_str());
+    int pid=0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    std::ofstream myfile;
+    std::stringstream name;
+    name<<"example"<<pid<<".txt";
+    myfile.open (name.str().c_str());
 #endif
 
 //         std::cout<<"INITIALIZED VALUES"<<std::endl;

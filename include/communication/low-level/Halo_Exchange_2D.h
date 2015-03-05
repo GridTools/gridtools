@@ -13,19 +13,19 @@
  * are located using relative coordinates. In the next diagram, the given process is (0,0)
  * while the neighbors are indicated with their relative coordinates.
  * \code
- *       ------------------------- 
- *       |       |       |       | 
- *       | -1,-1 | -1,0  | -1,1  | 
- *       |       |       |       | 
- *       ------------------------- 
- *       |       |       |       | 
- *       |  0,-1 |  0,0  |  0,1  | 
- *       |       |       |       | 
- *       ------------------------- 
- *       |       |       |       | 
- *       |  1,-1 |  1,0  |  1,1  | 
- *       |       |       |       | 
- *       ------------------------- 
+ *       -------------------------
+ *       |       |       |       |
+ *       | -1,-1 | -1,0  | -1,1  |
+ *       |       |       |       |
+ *       -------------------------
+ *       |       |       |       |
+ *       |  0,-1 |  0,0  |  0,1  |
+ *       |       |       |       |
+ *       -------------------------
+ *       |       |       |       |
+ *       |  1,-1 |  1,0  |  1,1  |
+ *       |       |       |       |
+ *       -------------------------
  * \endcode
  */
 
@@ -58,19 +58,19 @@ namespace gridtools {
    * are located using relative coordinates. In the next diagram, the given process is (0,0)
    * while the neighbors are indicated with their relative coordinates.
    * \code
-   *       ------------------------- 
-   *       |       |       |       | 
-   *       | -1,-1 | -1,0  | -1,1  | 
-   *       |       |       |       | 
-   *       ------------------------- 
-   *       |       |       |       | 
-   *       |  0,-1 |  0,0  |  0,1  | 
-   *       |       |       |       | 
-   *       ------------------------- 
-   *       |       |       |       | 
-   *       |  1,-1 |  1,0  |  1,1  | 
-   *       |       |       |       | 
-   *       ------------------------- 
+   *       -------------------------
+   *       |       |       |       |
+   *       | -1,-1 | -1,0  | -1,1  |
+   *       |       |       |       |
+   *       -------------------------
+   *       |       |       |       |
+   *       |  0,-1 |  0,0  |  0,1  |
+   *       |       |       |       |
+   *       -------------------------
+   *       |       |       |       |
+   *       |  1,-1 |  1,0  |  1,1  |
+   *       |       |       |       |
+   *       -------------------------
    * \endcode
    * The pattern is cyclic or not bepending on the process grid passed to it. The cyclicity may be on only one dimension.
    * An example of use of the pattern is given below
@@ -185,8 +185,8 @@ namespace gridtools {
 #ifndef NDEBUG
       std::cout << "@" << gridtools::PID << "@ IRECV from (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
-                << " T " << TAG<-I,-J>::value << " - " 
-                << " R " << translate()(-I,-J) 
+                << " T " << TAG<-I,-J>::value << " - "
+                << " R " << translate()(-I,-J)
                 << " Amount " << m_recv_buffers.size(I,J)
                 << "\n";
 #endif
@@ -205,8 +205,8 @@ namespace gridtools {
 #ifndef NDEBUG
       std::cout << "@" << gridtools::PID << "@ ISEND to   (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
-                << " T " << TAG<I,J>::value << " - " 
-                << " R " << translate()(I,J) 
+                << " T " << TAG<I,J>::value << " - "
+                << " R " << translate()(I,J)
                 << " Amount " << m_send_buffers.size(I,J)
                 << "\n";
 #endif
@@ -250,7 +250,7 @@ namespace gridtools {
 
     /** Returns the processor grid (as const reference) been used in construction
 
-        If used to get process grid information additional information can be 
+        If used to get process grid information additional information can be
         found in \link GRIDS_INTERACTION \endlink
      */
     PROC_GRID const & proc_grid() const {return m_proc_grid;}
@@ -440,7 +440,7 @@ namespace gridtools {
       if (m_proc_grid.template proc<0,-1>()!=-1) {
         post_receive<0,-1>();
       }
-      
+
       /* Posting receives FOR CORNERS
        */
       if (m_proc_grid.template proc<1,1>()!=-1) {
@@ -535,9 +535,8 @@ namespace gridtools {
         wait<1,-1>();
       }
 
-      
-    }
 
+    }
 
   };
 

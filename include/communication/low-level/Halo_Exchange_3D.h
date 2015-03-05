@@ -316,6 +316,7 @@ namespace gridtools {
 #ifdef GCL_TRACE
         double begin_time = MPI_Wtime();
 #endif
+
 #ifdef HOSTWORKAROUND
         // using host workaround on gpu
         // copy data from device to host

@@ -156,7 +156,7 @@ namespace gridtools {
                 coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
                 //generalize with flags?
-                int boundary=f->m_coords.partitioner().communicator().boundary();
+                int boundary=f->m_coords.partitioner().boundary();
                 int jminus=  xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0) ;//j-low
                 int iminus= xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) ;//i-low
                 int jplus=  xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0) ;//j-high
@@ -169,7 +169,7 @@ namespace gridtools {
                 MPI_Comm_rank(MPI_COMM_WORLD, &pid);
 
                 std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
-                std::cout << "Boundary " <<  f->m_coords.partitioner().communicator().boundary() << "\n";
+                std::cout << "Boundary " <<  f->m_coords.partitioner().boundary() << "\n";
                 std::cout << "Functor " <<  functor_type() << "\n";
                 std::cout <<"[" << pid<< "] "<< "I loop " << f->m_starti<<"  + "<<iminus << " -> "
                           << f->m_starti<<" + "<<f->m_BI<<" + "<<iplus << "\n";

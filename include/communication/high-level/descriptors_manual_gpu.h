@@ -72,8 +72,12 @@ namespace gridtools {
   /** specialization for GPU and manual packing */
   template <typename DataType,
             typename HaloExch,
-            typename proc_layout>
-  class hndlr_dynamic_ut<DataType, 3, HaloExch, proc_layout, gcl_gpu, 2> : public descriptor_base<HaloExch> {
+            typename proc_layout,
+            int SubDim,
+            template <int Ndim, int SD>
+            class GridType
+            >
+  class hndlr_dynamic_ut<DataType, GridType<3, SubDim>, HaloExch, proc_layout, gcl_gpu, 2> : public descriptor_base<HaloExch> {
 
     static const int DIMS = 3;
 
@@ -583,4 +587,3 @@ namespace gridtools {
   };
 #endif
 } // namespace
-
