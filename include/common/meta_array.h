@@ -23,12 +23,14 @@
  * @param TPred filter that determines the condition
  */
 template<typename T> struct printj{BOOST_MPL_ASSERT_MSG((false), JJJJJJJJJJJJJJJ, (T));};
-template<typename TSeq, typename TPred>
+template<typename TSeq, template<typename> class TPred>
 struct is_sequence_of
 {
+    typedef boost::mpl::quote1<TPred> pred_t;
+
     typedef typename boost::mpl::lambda<
         boost::mpl::not_<
-            typename TPred::template apply<boost::mpl::_1>
+            typename pred_t::template apply<boost::mpl::_1>
         >
     >::type NegPred;
 
@@ -70,3 +72,12 @@ struct meta_array{
 template<typename T> struct is_meta_array : boost::mpl::false_{};
 
 template<typename sequence, typename TPred> struct is_meta_array< meta_array<sequence, TPred> > : boost::mpl::true_{};
+
+template<typename T, template<typename> class pred> struct is_meta_array_of : boost::mpl::false_{};
+
+template<typename sequence, typename pred, template<typename> class pred_query>
+struct is_meta_array_of< meta_array<sequence, pred>, pred_query>
+{
+    typedef typename boost::is_same<boost::mpl::quote1<pred_query>, pred >::type type;
+    BOOST_STATIC_CONSTANT(bool, value=(type::value));
+};

@@ -5,11 +5,14 @@
 #include <boost/mpl/reverse.hpp>
 #include "level.h"
 
+#include "../common/meta_array.h"
+#include "axis.h"
 #include "backend_traits_cuda.h"
 #include "backend_traits_host.h"
 #include "execution_types.h"
 #include "mss_metafunctions.h"
 #include "mss_local_domain.h"
+#include "mss.h"
 /**
 @file
 
@@ -49,7 +52,6 @@ namespace gridtools{
         enumtype::strategy StrategyId>
     struct run_functor_arguments
     {
-//        BOOST_STATIC_ASSERT((is_meta_array<LocalDomainListArray>::value));
         typedef FunctorList functor_list_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
@@ -106,6 +108,7 @@ namespace gridtools{
     >
     struct run_functor_traits< Back< Arguments > >
     {
+        BOOST_STATIC_ASSERT((is_run_functor_arguments<Arguments>::value));
         typedef Arguments arguments_t;
         typedef typename Arguments::local_domain_list_t local_domain_list_t;
         typedef typename Arguments::coords_t coords_t;
@@ -137,10 +140,24 @@ namespace gridtools{
             };
     };
 
-    template<typename TMssArray, typename Coords, typename LocalDomainListArray, enumtype::backend BackendId, enumtype::strategy StrategyId>
+    template<typename T> struct printz{BOOST_MPL_ASSERT_MSG((false), ZZZZZZZZZZ, (T));};
+
+    /**
+     * @brief functor that executes all the functors contained within the mss
+     * @tparam TMssArray meta array containing all the mss descriptors
+     * @tparam Coords coordinates
+     * @tparam MssLocalDomainArray sequence of mss local domain (each contains the local domain list of a mss)
+     * @tparam BackendId id of backend
+     * @tparam StrategyId id of strategy
+     */
+    template<typename TMssArray, typename Coords, typename MssLocalDomainArray, enumtype::backend BackendId, enumtype::strategy StrategyId>
     struct mss_functor
     {
-        mss_functor(LocalDomainListArray& local_domain_lists, const Coords& coords, const int block_idx, const int block_idy) :
+        BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
+        BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
+        BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+
+        mss_functor(MssLocalDomainArray& local_domain_lists, const Coords& coords, const int block_idx, const int block_idy) :
             m_local_domain_lists(local_domain_lists), m_coords(coords), m_block_idx(block_idx), m_block_idy(block_idy) {}
 
         /**
@@ -149,7 +166,7 @@ namespace gridtools{
         template <typename Index>
         void operator()(Index const& ) const
         {
-            typedef typename boost::fusion::result_of::value_at<LocalDomainListArray, Index>::type mss_local_domain_t;
+            typedef typename boost::fusion::result_of::value_at<MssLocalDomainArray, Index>::type mss_local_domain_t;
             BOOST_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value));
             BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename TMssArray::elements>::value));
             typedef typename boost::mpl::at<typename TMssArray::elements, Index>::type MssType;
@@ -169,6 +186,7 @@ namespace gridtools{
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<MssType, Coords>::type FunctorsMap;
 
+            // compute the struct with all the type arguments for the run functor
             typedef run_functor_arguments<functors_list_t, oriented_loop_intervals_t, FunctorsMap, range_sizes, local_domain_list_t, Coords, ExecutionEngine, StrategyId> run_functor_args_t;
 
             typedef backend_traits_from_id< BackendId > backend_traits_t;
@@ -177,21 +195,12 @@ namespace gridtools{
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
+            //execute all the functors of the mss
             strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run(local_domain_list, m_coords, m_block_idx, m_block_idy);
-//            template<typename RunFunctorArgs, enumtype::backend BackendId>
-//            struct mss_loop
-//            {
-//                BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
-//                template<typename LocalDomainList, typename Coords>
-//                static void run_mss(LocalDomainList& local_domain_list, Coords& coords)
-//                {
-//
-//            backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, m_coords));
-
         }
     private:
-        LocalDomainListArray m_local_domain_lists;
-        Coords m_coords;
+        MssLocalDomainArray& m_local_domain_lists;
+        const Coords& m_coords;
         const uint_t m_block_idx, m_block_idy;
     };
 
@@ -206,15 +215,16 @@ namespace gridtools{
         static const uint_t BJ=0;
         static const uint_t BK=0;
 
-        //TODO deduce LocalDomainListArray & Coords from arguments
+        /**
+         * @brief loops over all blocks and execute sequentially all mss functors for each block
+         * @tparam TMssArray a meta array with all the mss descriptors
+         * @tparam BackendId id of the backend
+         */
         template<typename TMssArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
 
-//            typedef typename run_functor_backend::arguments_t arguments_t;
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
-//                typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename arguments_t::functor_list_t>::type::value> iter_range;
-                //typedef typename arguments_t::local_domain_t local_domain_t;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
@@ -224,13 +234,20 @@ namespace gridtools{
             }
         };
 
+        /**
+         * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
+         * and sequentially executes all the functors in the mss
+         * @tparam RunFunctorArgs run functor arguments
+         * @tparam BackendId id of the backend
+         */
         template<typename RunFunctorArgs, enumtype::backend BackendId>
         struct mss_loop
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomainList, typename Coords>
-            static void run(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
+            static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
             {
+                BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
@@ -252,7 +269,6 @@ namespace gridtools{
 
     };
 
-
 //forward declaration
     template< enumtype::backend A,typename B,typename C,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
     struct host_tmp_storage;
@@ -269,16 +285,20 @@ namespace gridtools{
         static const uint_t BK=0;
 
         /**
-         * @brief
+         * @brief loops over all blocks and execute sequentially all mss functors for each block
+         * @tparam TMssArray a meta array with all the mss descriptors
+         * @tparam BackendId id of the backend
          */
         template<typename TMssArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
+            BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
+                BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
                 typedef backend_traits_from_id<BackendId> backend_traits;
 
                 //TODO consider the largest ij range of all mss to compute number of blocks?
@@ -287,24 +307,27 @@ namespace gridtools{
 
                 uint_t NBI = n/BI;
                 uint_t NBJ = m/BJ;
-                {
-                    //internal blocks
-                    for (uint_t bi = 0; bi <= NBI; ++bi) {
-                        for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
-                        }
+                for (uint_t bi = 0; bi <= NBI; ++bi) {
+                    for (uint_t bj = 0; bj <= NBJ; ++bj) {
+                        backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
                     }
                 }
             }
 
         };
 
+        /**
+         * @brief main execution of a mss for a given IJ block. Defines the IJ loop bounds of this particular block
+         * and sequentially executes all the functors in the mss
+         * @tparam RunFunctorArgs run functor arguments
+         * @tparam BackendId id of the backend
+         */
         template<typename RunFunctorArgs, enumtype::backend BackendId>
         struct mss_loop
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomainList, typename Coords>
-            static void run(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
+            static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
