@@ -177,7 +177,7 @@ namespace gridtools{
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
-            strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run_mss(local_domain_list, m_coords, m_block_idx, m_block_idy);
+            strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run(local_domain_list, m_coords, m_block_idx, m_block_idy);
 //            template<typename RunFunctorArgs, enumtype::backend BackendId>
 //            struct mss_loop
 //            {
@@ -207,8 +207,8 @@ namespace gridtools{
         static const uint_t BK=0;
 
         //TODO deduce LocalDomainListArray & Coords from arguments
-        template<typename TMssArray, typename Coords, typename LocalDomainListArray, enumtype::backend BackendId>
-        struct loop
+        template<typename TMssArray, enumtype::backend BackendId>
+        struct fused_mss_loop
         {
 
 //            typedef typename run_functor_backend::arguments_t arguments_t;
@@ -216,8 +216,8 @@ namespace gridtools{
 //                typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename arguments_t::functor_list_t>::type::value> iter_range;
                 //typedef typename arguments_t::local_domain_t local_domain_t;
 
-            //TODO name this type with something after fusion
-            static void run_all_mss_loops(LocalDomainListArray& local_domain_lists, const Coords& coords)
+            template<typename LocalDomainListArray, typename Coords>
+            static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits;
                 backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, coords,0,0));
@@ -229,7 +229,7 @@ namespace gridtools{
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomainList, typename Coords>
-            static void run_mss(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
+            static void run(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
@@ -268,23 +268,20 @@ namespace gridtools{
         static const uint_t BJ=2;
         static const uint_t BK=0;
 
-
-        template<typename TMssArray, typename Coords, typename LocalDomainListArray, enumtype::backend BackendId>
-        struct loop
+        /**
+         * @brief
+         */
+        template<typename TMssArray, enumtype::backend BackendId>
+        struct fused_mss_loop
         {
-//            typedef typename run_functor_traits<run_functor_backend>::arguments_t arguments_t;
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
-//
-////            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename arguments_t::functor_list_t>::type::value> iter_range;
-//            typedef typename arguments_t::local_domain_array_t local_domain_list_array;
-//            typedef typename arguments_t::coords_t coords_t;
 
-            static void run_all_mss_loops(LocalDomainListArray& local_domain_lists, const Coords& coords)
+            template<typename LocalDomainListArray, typename Coords>
+            static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
-//TODO recover
                 typedef backend_traits_from_id<BackendId> backend_traits;
 
-//                typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
+                //TODO consider the largest ij range of all mss to compute number of blocks?
                 uint_t n = coords.i_high_bound() - coords.i_low_bound();
                 uint_t m = coords.j_high_bound() - coords.j_low_bound();
 
@@ -294,34 +291,9 @@ namespace gridtools{
                     //internal blocks
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-//                            uint_t _starti = bi*BI+coords.i_low_bound();
-//                            uint_t _startj = bj*BJ+coords.j_low_bound();
                             backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
-
-//                            backend_traits::template for_each<iter_range>( run_functor_backend (local_domain_lists,coords, _starti, _startj, BI, BJ, bi, bj));
                         }
                     }
-//
-//                    //last block row
-//                    for (uint_t bj = 0; bj < NBJ; ++bj) {
-////                        uint_t _starti = NBI*BI+coords.i_low_bound();
-////                        uint_t _startj = bj*BJ+coords.j_low_bound();
-//                        backend_traits::template for_each<iter_range>(run_functor_backend (local_domain_lists,coords,_starti,_startj, n-NBI*BI, BJ, NBI, bj));
-//                    }
-//
-//                    //last block column
-//                    for (uint_t bi = 0; bi < NBI; ++bi) {
-////                        uint_t _starti = bi*BI+coords.i_low_bound();
-////                        uint_t _startj = NBJ*BJ+coords.j_low_bound();
-//                        backend_traits::template for_each<iter_range>(run_functor_backend (local_domain_lists,coords,_starti,_startj,BI, m-NBJ*BJ, bi, NBJ));
-//                    }
-//
-//                    //last single block entry
-//                    {
-////                        uint_t _starti = NBI*BI+coords.i_low_bound();
-////                        uint_t _startj = NBJ*BJ+coords.j_low_bound();
-//                        backend_traits::template for_each<iter_range>( run_functor_backend (local_domain_lists,coords,_starti,_startj,n-NBI*BI,m-NBJ*BJ, NBI, NBJ));
-//                    }
                 }
             }
 
@@ -332,7 +304,7 @@ namespace gridtools{
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomainList, typename Coords>
-            static void run_mss(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
+            static void run(LocalDomainList& local_domain_list, Coords& coords, const uint_t bi, const uint_t bj)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
