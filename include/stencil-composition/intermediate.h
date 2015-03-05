@@ -23,6 +23,7 @@
 #include "computation.h"
 #include "heap_allocated_temps.h"
 #include "mss_local_domain.h"
+#include "common/meta_array.h"
 
 /**
  * @file
@@ -311,7 +312,7 @@ namespace gridtools {
     template <typename Backend, typename LayoutType, typename TMssArray, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
-        //TODO fix this
+        BOOST_STATIC_ASSERT((is_meta_array<TMssArray>::value));
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -348,7 +349,7 @@ namespace gridtools {
 
 
         typedef typename boost::mpl::transform<
-            TMssArray,
+            typename TMssArray::elements,
             mss_local_domain<boost::mpl::_, DomainType, actual_arg_list_type>
         >::type MssLocalDomains;
 
@@ -540,10 +541,12 @@ namespace gridtools {
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
 #endif
 
-            BOOST_STATIC_ASSERT((boost::mpl::size<TMssArray>::value == boost::mpl::size<MssLocalDomains>::value));
+            BOOST_STATIC_ASSERT((boost::mpl::size<typename TMssArray::elements>::value == boost::mpl::size<MssLocalDomains>::value));
 
-            gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<TMssArray>::value > >
-                (run_backend_functor<Coords, MssLocalDomainsList, TMssArray>(m_coords, mss_local_domain_list));
+            Backend::template run<TMssArray>( m_coords, mss_local_domain_list );
+
+//            gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<TMssArray>::value > >
+//                (run_backend_functor<Coords, MssLocalDomainsList, TMssArray>(m_coords, mss_local_domain_list));
         }
 
     private:

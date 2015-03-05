@@ -25,11 +25,11 @@ namespace gridtools{
 
     /**forward declaration*/
     template<enumtype::backend T>
-    struct backend_from_id;
+    struct backend_traits_from_id;
 
 /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template<>
-    struct backend_from_id< enumtype::Cuda >
+    struct backend_traits_from_id< enumtype::Cuda >
     {
 
         template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
@@ -41,7 +41,7 @@ namespace gridtools{
         template <typename Arguments>
         struct execute_traits
         {
-            typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
+            typedef _impl_cuda::run_functor_cuda<Arguments> run_functor_t;
         };
 
         //function alias (pre C++11)
