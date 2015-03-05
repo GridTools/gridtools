@@ -163,16 +163,16 @@ namespace gridtools{
 
                 if(bi == NBI && bj == NBJ)
                 {
-                    block_size_i = n-NBI*bi;
-                    block_size_j = m-NBJ*bj;
+                    block_size_i = n-NBI*BI;
+                    block_size_j = m-NBJ*BJ;
                 }
                 else if(bi == NBI)
                 {
-                    block_size_i = n-NBI*bi;
+                    block_size_i = n-NBI*BI;
                 }
                 else if(bj == NBJ)
                 {
-                    block_size_j = m-NBJ*bj;
+                    block_size_j = m-NBJ*BJ;
                 }
 
                 backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
