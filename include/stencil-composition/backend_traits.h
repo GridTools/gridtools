@@ -38,7 +38,15 @@ namespace gridtools{
     struct strategy_from_id{};
 
     /** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
-    template<typename FunctorList, typename LoopIntervals, typename FunctorsMap, typename RangeSizes, typename LocalDomainList, typename Coords, typename ExecutionEngine>
+    template<
+        typename FunctorList,
+        typename LoopIntervals,
+        typename FunctorsMap,
+        typename RangeSizes,
+        typename LocalDomainList,
+        typename Coords,
+        typename ExecutionEngine,
+        enumtype::strategy StrategyId>
     struct run_functor_arguments
     {
 //        BOOST_STATIC_ASSERT((is_meta_array<LocalDomainListArray>::value));
@@ -49,12 +57,21 @@ namespace gridtools{
         typedef LocalDomainList local_domain_list_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
+        static const enumtype::strategy s_strategy_id=StrategyId;
     };
 
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
 
-    template<typename FunctorList, typename LoopIntervals, typename FunctorsMap, typename RangeSizes, typename LocalDomainList, typename Coords, typename ExecutionEngine>
-    struct is_run_functor_arguments<run_functor_arguments<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, LocalDomainList, Coords, ExecutionEngine> > :
+    template<
+        typename FunctorList,
+        typename LoopIntervals,
+        typename FunctorsMap,
+        typename RangeSizes,
+        typename LocalDomainList,
+        typename Coords,
+        typename ExecutionEngine,
+        enumtype::strategy StrategyId>
+    struct is_run_functor_arguments<run_functor_arguments<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, LocalDomainList, Coords, ExecutionEngine, StrategyId> > :
         boost::mpl::true_{};
 
 
@@ -152,7 +169,7 @@ namespace gridtools{
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<MssType, Coords>::type FunctorsMap;
 
-            typedef run_functor_arguments<functors_list_t, oriented_loop_intervals_t, FunctorsMap, range_sizes, local_domain_list_t, Coords, ExecutionEngine> run_functor_args_t;
+            typedef run_functor_arguments<functors_list_t, oriented_loop_intervals_t, FunctorsMap, range_sizes, local_domain_list_t, Coords, ExecutionEngine, StrategyId> run_functor_args_t;
 
             typedef backend_traits_from_id< BackendId > backend_traits_t;
 
@@ -320,13 +337,14 @@ namespace gridtools{
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
-
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
 
                 typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functor_list_t>::type::value> iter_range;
 
-                uint_t n = coords.i_high_bound() - coords.i_low_bound();
-                uint_t m = coords.j_high_bound() - coords.j_low_bound();
+                typedef typename boost::mpl::at<typename RunFunctorArgs::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
+
+                uint_t n = coords.i_high_bound() + range_t::iplus::value - coords.i_low_bound() + range_t::iminus::value;
+                uint_t m = coords.j_high_bound() + range_t::jplus::value - coords.j_low_bound() + range_t::jminus::value;
 
                 uint_t NBI = n/BI;
                 uint_t NBJ = m/BJ;

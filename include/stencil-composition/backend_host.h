@@ -72,6 +72,8 @@ namespace gridtools {
             typedef typename Traits::iterate_domain_t iterate_domain_type;
             typedef typename Arguments::execution_type_t execution_type_t;
 
+            typedef strategy_from_id<Arguments::s_strategy_id> PP;
+
 #ifndef NDEBUG
 		    std::cout << "Functor " <<  functor_type() << "\n";
 		    std::cout << "I loop " << (int_t)f->m_starti  + range_t::iminus::value << " -> "
