@@ -17,6 +17,7 @@ public:
         const int jdim = field1.template dims<1>();
         const int kdim = field1.template dims<2>();
 
+        bool verified = true;
         for(int i=m_halo_size; i < idim-m_halo_size; ++i)
         {
             for(int j=m_halo_size; j < jdim-m_halo_size; ++j)
@@ -26,17 +27,18 @@ public:
                     typename storage_type::value_type expected = field1(i,j,k);
                     typename storage_type::value_type actual = field2(i,j,k);
 
-                    std::cout << "AHCHE " << i << " " << j << " " << k << " " << expected << " " << actual << std::endl;
+                    std::cout << "AHCHE " << i << " " << j << " " << k << " " << expected << " " << actual << "  " << jdim << " " << m_halo_size << std::endl;
                     if(!compare_below_threashold(expected, actual))
                     {
                         std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
                                 " ; actual : " << actual << std::endl;
-                        return false;
+                        verified = false;
                     }
                 }
             }
         }
-        return true;
+
+        return verified;
     }
 private:
     template<typename value_type>
