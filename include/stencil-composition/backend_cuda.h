@@ -84,11 +84,11 @@ namespace gridtools {
 	    struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
             typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
                 : super( domain_list, coords)
                 {}
 
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
+            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
                 : super(domain_list, coords, i, j, bi, bj)
                 {}
 
