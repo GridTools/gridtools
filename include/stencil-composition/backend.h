@@ -156,24 +156,13 @@ namespace gridtools {
             >::type type;
         };
 
-        template<typename RangeArray1, typename RangeArray2>
-        struct lazy_union_ranges_array
-        {
-            BOOST_STATIC_ASSERT((boost::mpl::size<typename RangeArray1::type>::value == boost::mpl::size<typename RangeArray2::type>::value));
+        template<typename T> struct printu{ BOOST_MPL_ASSERT_MSG((false), TTTTTTTT, (T));};
 
-            typedef typename boost::mpl::fold<
-                boost::mpl::zip_view<boost::mpl::vector2<typename RangeArray1::type, typename RangeArray2::type> >,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back<
-                    boost::mpl::_1,
-                    union_ranges<
-                        boost::mpl::front<boost::mpl::_2>,
-                        boost::mpl::back<boost::mpl::_2>
-                    >
-                >
-            >::type type;
-        };
-
+        /**
+         * @brief metafunction that merges to maps of <temporary, ij range>
+         * @tparam range_map1 first map to merge
+         * @tparam range_map2 second map to merge
+          */
         template<typename range_map1, typename range_map2>
         struct merge_range_temporary_maps
         {
@@ -200,9 +189,12 @@ namespace gridtools {
             >::type type;
         };
 
+        /**
+         * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
+         */
         template <typename Domain, typename MssArray>
         struct obtain_map_ranges_temporaries_mss_array {
-            BOOST_STATIC_ASSERT((is_meta_array<MssArray>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
 
             typedef typename boost::mpl::fold<
@@ -215,16 +207,20 @@ namespace gridtools {
             >::type type;
         };
 
-/**
-
- */
+        /**
+         * @brief compute a list with all the temporary storage types used by an array of mss
+         * @tparam Domain domain
+         * @tparam MssArray meta array of mss
+         * @tparam ValueType type of field values stored in the temporary storage
+         * @tparam LayoutType memory layout
+         */
         template <typename Domain
                   , typename MssArray
                   , typename ValueType
                   , typename LayoutType >
         struct obtain_temporary_storage_types {
 
-            BOOST_STATIC_ASSERT((is_meta_array<MssArray>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
             BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
 
@@ -262,24 +258,23 @@ namespace gridtools {
         /**
          * \brief calls the \ref gridtools::run_functor for each functor in the FunctorList.
          * the loop over the functors list is unrolled at compile-time using the for_each construct.
-         * \tparam FunctorList  List of functors to execute (in order)
-         * \tparam range_sizes computed range sizes to know where to compute functot at<i>
-         * \tparam LoopIntervals List of intervals on which functors are defined
-         * \tparam FunctorsMap Map between interval and actual arguments to pass to Do methods
+         * @tparam MssArray  meta array of mss
          * \tparam Domain Domain class (not really useful maybe)
          * \tparam Coords Coordinate class with domain sizes and splitter coordinates
-         * \tparam LocalDomainList List of local domain to be pbassed to functor at<i>
+         * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
         template <
-            typename TMssArray,
+            typename MssArray,
             typename Coords,
-            typename LocalDomainListArray
+            typename MssLocalDomainArray
         > // List of local domain to be pbassed to functor at<i>
-        static void run(/*Domain const& domain, */Coords const& coords, LocalDomainListArray &local_domain_lists) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
+        static void run(/*Domain const& domain, */Coords const& coords, MssLocalDomainArray &mss_local_domain_list) {
+            // TODO: I would swap the arguments coords and local_domain_list here, for consistency
+            BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
             BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
-            BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
 
-            strategy_from_id< s_strategy_id >::template fused_mss_loop<TMssArray, BackendId>::run(local_domain_lists, coords);
+            strategy_from_id< s_strategy_id >::template fused_mss_loop<MssArray, BackendId>::run(mss_local_domain_list, coords);
         }
 
 

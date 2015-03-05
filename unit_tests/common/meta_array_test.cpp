@@ -26,7 +26,7 @@ template<> struct is_int<int> : boost::mpl::true_{};
 
 bool test_is_meta_array_of() {
 
-    typedef meta_array<boost::mpl::vector4<int, int, int, long>, boost::mpl::quote1<boost::is_integral > > metaArray2;
+    typedef gridtools::meta_array<boost::mpl::vector4<int, int, int, long>, boost::mpl::quote1<boost::is_integral > > metaArray2;
 //
 //    typedef meta_array<boost::mpl::vector4<int, int, int, int> > metaArray;
 //    return is_meta_array_of<metaArray, boost::mpl::quote1<is_int > >::value;
