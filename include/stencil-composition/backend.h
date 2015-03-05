@@ -81,27 +81,10 @@ namespace gridtools {
         }
     };
 
-//        /**
-//           \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
-//           \tparam Temporaries is the vector of temporary placeholder types.
-//        */
-//        template <typename Temporaries, typename Ranges, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
-//        struct get_storage_type {
-//            template <typename Index>
-//            struct apply {
-//                typedef typename boost::mpl::at<Ranges, Index>::type range_type;
-//
-//                typedef pair<
-//                    typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t,
-//                    typename boost::mpl::at<Temporaries, Index>::type::index_type
-//                > type;
-//            };
-//        };
-
-        /**
-            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
-             \tparam Temporaries is the vector of temporary placeholder types.
-         */
+    /**
+        \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
+         \tparam Temporaries is the vector of temporary placeholder types.
+     */
     template <typename TemporaryRangeMap, typename ValueType, typename LayoutType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::backend BackendID>
     struct get_storage_type {
         template <typename MapElem>
@@ -139,9 +122,8 @@ namespace gridtools {
 
         template <typename ValueType, typename Layout>
         struct temporary_storage_type
-            {
-                /** temporary storage must have the same iterator type than the regular storage
-                 */
+        {
+            // temporary storage must have the same iterator type than the regular storage
             private:
                 typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
             public:
@@ -152,7 +134,8 @@ namespace gridtools {
 
         template <typename Domain
                   , typename MssType>
-        struct obtain_map_ranges_temporaries_mss {
+        struct obtain_map_ranges_temporaries_mss
+        {
             typedef typename MssType::range_sizes RangeSizes;
             //full list of temporaries in list of place holders of domain
             typedef typename boost::mpl::fold<typename Domain::placeholders,
@@ -172,7 +155,6 @@ namespace gridtools {
                 _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor, RangeSizes>
             >::type type;
         };
-
 
         template<typename RangeArray1, typename RangeArray2>
         struct lazy_union_ranges_array
@@ -218,8 +200,7 @@ namespace gridtools {
             >::type type;
         };
 
-        template <typename Domain
-                  , typename MssArray>
+        template <typename Domain, typename MssArray>
         struct obtain_map_ranges_temporaries_mss_array {
             BOOST_STATIC_ASSERT((is_meta_array<MssArray>::value));
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
@@ -295,43 +276,9 @@ namespace gridtools {
             typename LocalDomainListArray
         > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, LocalDomainListArray &local_domain_lists) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
-//            BOOST_STATIC_ASSERT((is_mss_descriptor<MssType>::value));
             BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
-            BOOST_STATIC_ASSERT((is_meta_array<TMssArray>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
 
-//            typedef typename MssType::execution_engine_t ExecutionEngine;
-//            typedef typename mss_loop_intervals<MssType, Coords>::type LoopIntervals; // List of intervals on which functors are defined
-            //wrapping all the template arguments in a single container
-//            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
-            // List of functors to execute (in order)
-//            typedef typename MssType::functors_list FunctorList;
-            // computed range sizes to know where to compute functot at<i>
-//            typedef typename MssType::range_sizes range_sizes;
-            // Map between interval and actual arguments to pass to Do methods
-//            typedef typename mss_functor_do_method_lookup_maps<MssType, Coords>::type FunctorsMap;
-
-
-/**
-   @brief template arguments container
-   the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
-*/
-            /* struct arguments */
-            /* { */
-            /*     typedef FunctorList functor_list_t; */
-            /*     typedef oriented_loop_intervals_t loop_intervals_t; */
-            /*     typedef FunctorsMap functors_map_t; */
-            /*     typedef range_sizes range_sizes_t; */
-            /*     typedef LocalDomainList domain_list_t; */
-            /*     typedef Coords coords_t; */
-            /*     typedef ExecutionEngine execution_type_t; */
-            /* }; */
-            //Definition of a local struct to be passed as template parameter is a C++11 feature not supported by CUDA for __global__ functions
-
-//            typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
-
-//            typedef run_functor_arguments<TMssArray, Coords, LocalDomainListArray> args;
-//            typedef typename backend_traits_t::template execute_traits<TMssArray, Coords, LocalDomainListArray>::backend_t backend_t;
-//            strategy_from_id< s_strategy_id >::template loop< backend_t >::run_all_mss_loops(local_domain_lists, coords);
             strategy_from_id< s_strategy_id >::template fused_mss_loop<TMssArray, BackendId>::run(local_domain_lists, coords);
         }
 
