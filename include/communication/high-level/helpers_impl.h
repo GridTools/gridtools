@@ -56,7 +56,7 @@ namespace gridtools {
 
     template <typename T>
     struct allocation_service;
-      
+
     template <typename Datatype, typename T2>
     struct allocation_service<hndlr_descriptor_ut<Datatype, 2, T2> > {
       void operator()(hndlr_descriptor_ut<Datatype, 2, T2> *hm) const {
@@ -64,11 +64,11 @@ namespace gridtools {
         for (int ii=-1; ii<=1; ++ii)
           for (int jj=-1; jj<=1; ++jj)
             if (ii!=0 || jj!=0) {
-              hm->send_buffer[translate()(ii,jj)] 
+              hm->send_buffer[translate()(ii,jj)]
                 = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(make_array(ii,jj)));
-              hm->recv_buffer[translate()(ii,jj)] 
+              hm->recv_buffer[translate()(ii,jj)]
                 = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(make_array(ii,jj)));
-              //std::cout << "@" << gridtools::PID << "@ " << hm->send_buffer[translate()(ii,jj)] << " -- " << hm->recv_buffer[translate()(ii,jj)] << "\n"; 
+              //std::cout << "@" << gridtools::PID << "@ " << hm->send_buffer[translate()(ii,jj)] << " -- " << hm->recv_buffer[translate()(ii,jj)] << "\n";
 
               hm->haloexch.register_send_to_buffer
                 (&(hm->send_buffer[translate()(ii,jj)][0]),
@@ -81,18 +81,22 @@ namespace gridtools {
       }
     };
 
-    template <typename Datatype, typename T2, typename procmap, typename arch, int V>
-    struct allocation_service<hndlr_dynamic_ut<Datatype, 2, T2, procmap, arch, V> > {
-      void operator()(hndlr_dynamic_ut<Datatype, 2, T2, procmap, arch, V> *hm, int mf) const {
+      template <typename Datatype, typename T2, typename procmap, typename arch, int V,
+                int SubDim,
+                template <int Ndim, int SD>
+                class GridType
+                >
+      struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<2, SubDim>, T2, procmap, arch, V> > {
+          void operator()(hndlr_dynamic_ut<Datatype, GridType<2, SubDim>, T2, procmap, arch, V> *hm, int mf) const {
         typedef translate_t<2,default_layout_map<2>::type > translate;
         typedef translate_t<2,procmap> translate_P;
 
         for (int ii=-1; ii<=1; ++ii)
           for (int jj=-1; jj<=1; ++jj)
             if (ii!=0 || jj!=0) {
-              hm->send_buffer[translate()(ii,jj)] 
+              hm->send_buffer[translate()(ii,jj)]
                 = _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.send_buffer_size(make_array(ii,jj))*mf);
-              hm->recv_buffer[translate()(ii,jj)] 
+              hm->recv_buffer[translate()(ii,jj)]
                 = _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.recv_buffer_size(make_array(ii,jj))*mf);
 
               typedef typename translate_P::map_type map_type;
@@ -108,9 +112,9 @@ namespace gridtools {
                  hm->halo.recv_buffer_size(make_array(ii,jj))*mf*sizeof(Datatype), ii_P, jj_P);
             }
       }
-    };      
+    };
 
-    template <typename Datatype, typename T2>
+      template <typename Datatype, typename T2>
     struct allocation_service<hndlr_descriptor_ut<Datatype, 3, T2> > {
       void operator()(hndlr_descriptor_ut<Datatype, 3, T2> *hm) const {
         typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
@@ -119,9 +123,9 @@ namespace gridtools {
             for (int kk=-1; kk<=1; ++kk)
               if (ii!=0 || jj!=0 || kk!=0) {
                 //std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " << hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
-                hm->send_buffer[translate()(ii,jj,kk)] = 
+                hm->send_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(make_array(ii,jj,kk)));
-                hm->recv_buffer[translate()(ii,jj,kk)] = 
+                hm->recv_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(make_array(ii,jj,kk)));
 
                 hm->haloexch.register_send_to_buffer
@@ -133,11 +137,14 @@ namespace gridtools {
                    hm->total_unpack_size(make_array(ii,jj,kk))*sizeof(Datatype),ii,jj,kk);
               }
       }
-    };   
+    };
 
-    template <typename Datatype, typename T2, typename procmap, typename arch, int V>
-    struct allocation_service<hndlr_dynamic_ut<Datatype, 3, T2, procmap, arch, V> > {
-      void operator()(hndlr_dynamic_ut<Datatype, 3, T2, procmap, arch, V> *hm, int mf) const {
+      template <typename Datatype, typename T2, typename procmap, typename arch, int V,
+                int SubDim,
+                template <int Ndim, int SD>
+                class GridType>
+      struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<3, SubDim>, T2, procmap, arch, V> > {
+          void operator()(hndlr_dynamic_ut<Datatype, GridType<3, SubDim>, T2, procmap, arch, V> *hm, int mf) const {
         typedef translate_t<3,default_layout_map<3>::type > translate;
         typedef translate_t<3,procmap> translate_P;
 
@@ -146,9 +153,9 @@ namespace gridtools {
             for (int kk=-1; kk<=1; ++kk)
               if (ii!=0 || jj!=0 || kk!=0) {
                 //std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " << hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
-                hm->send_buffer[translate()(ii,jj,kk)] = 
+                hm->send_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.send_buffer_size(make_array(ii,jj,kk))*mf);
-                hm->recv_buffer[translate()(ii,jj,kk)] = 
+                hm->recv_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<Datatype,arch>::alloc(hm->halo.recv_buffer_size(make_array(ii,jj,kk))*mf);
 
                 typedef typename translate_P::map_type map_type;
@@ -156,22 +163,22 @@ namespace gridtools {
                 const int jj_P = map_type().template select<1>(ii,jj,kk);
                 const int kk_P = map_type().template select<2>(ii,jj,kk);
 
-                hm->haloexch.register_send_to_buffer
+                hm->m_haloexch.register_send_to_buffer
                   (&(hm->send_buffer[translate()(ii,jj,kk)][0]),
                    hm->halo.send_buffer_size(make_array(ii,jj,kk))*sizeof(Datatype)*mf,
                    ii_P,jj_P,kk_P);
 
-                hm->haloexch.register_receive_from_buffer
+                hm->m_haloexch.register_receive_from_buffer
                   (&(hm->recv_buffer[translate()(ii,jj,kk)][0]),
                    hm->halo.recv_buffer_size(make_array(ii,jj,kk))*sizeof(Datatype)*mf,
                    ii_P,jj_P,kk_P);
               }
       }
-    };   
+    };
 
     template <typename T>
     struct pack_service;
-      
+
     template <typename Datatype, typename T2>
     struct pack_service<hndlr_descriptor_ut<Datatype, 2, T2> > {
       void operator()(hndlr_descriptor_ut<Datatype, 2, T2> const *hm) const {
@@ -206,7 +213,7 @@ namespace gridtools {
 
     template <typename T>
     struct unpack_service;
-      
+
     template <typename Datatype, typename T2>
     struct unpack_service<hndlr_descriptor_ut<Datatype, 2, T2> > {
       void operator()(hndlr_descriptor_ut<Datatype, 2, T2> const *hm) const {

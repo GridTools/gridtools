@@ -26,7 +26,7 @@ namespace gridtools {
    4 5
    \endcode
    \n
-   \tparam CYCLIC is a boollist class \link boollist_concept \endlink template parameter that specifies which dimensions of the grid are clyclic 
+   \tparam CYCLIC is a boollist class \link boollist_concept \endlink template parameter that specifies which dimensions of the grid are clyclic
    \n
    This is a process grid matching the \ref proc_grid_concept concept
    */
@@ -55,7 +55,7 @@ namespace gridtools {
       , R(0)
       , C(0)
       , r(0)
-      , c(0) 
+      , c(0)
     {
       create(P,pid);
     }
@@ -122,12 +122,12 @@ namespace gridtools {
     */
     int proc(int I, int J) const {
       int rr,cc;
-      if (cyclic.value0)
+      if (cyclic.value(0))
         rr = (R+r+I)%R;
       else
         rr = r+I;
 
-      if (cyclic.value1)
+      if (cyclic.value(1))
         cc = (C+c+J)%C;
       else
         cc = c+J;
@@ -170,36 +170,64 @@ namespace gridtools {
 
     /** number of dimensions
      */
-    static const int ndims = 2;
+      static const int ndims = CYCLIC::size;
 
-    MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
-    period_type cyclic;
-    int R,C;
-    int r,c;
+      MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
+      period_type cyclic;
+      int m_dimensions[ndims];
+      int m_coordinates[ndims];
+      int m_nprocs;
 
-    /** 
+    /**
         Returns communicator
      */
       MPI_Comm communicator() const {
           return m_communicator;
       }
 
+//   private:
+      MPI_2D_process_grid_t( MPI_2D_process_grid_t const& other): m_communicator(other.m_communicator), cyclic(other.cyclic)// , m_boundary(other.m_boundary)
+                                                                , m_nprocs(other.m_nprocs) {
+              for (ushort_t i=0; i<ndims; ++i){
+                  m_dimensions[i]=0;
+                  m_coordinates[i]=0;
+              }
+              create(m_communicator);
+//           assert(false);
+//, m_dimensions(other.m_dimensions), m_coordinates(other.m_coordinates)
+      }
+
     /** Constructor that takes an MPI CART communicator, already configured, and use it to set up the process grid.
         \param c Object containing information about periodicities as defined in \ref boollist_concept
         \param comm MPI Communicator describing the MPI 2D computing grid
      */
-    MPI_2D_process_grid_t(period_type const &c, MPI_Comm comm): m_communicator(comm), cyclic(c) {create(comm);}
+      MPI_2D_process_grid_t(period_type const &c, MPI_Comm const& comm)
+          :
+          cyclic(c)
+#if  !defined(__clang__) && defined(CXX11_ENABLED)
+          ,m_dimensions{0},
+          m_coordinates{0}
+#endif
+          {
+#if defined(__clang__) || !defined(CXX11_ENABLED)
+              for (ushort_t i=0; i<ndims; ++i){
+                  m_dimensions[i]=0;
+                  m_coordinates[i]=0;
+              }
+#endif
+              create(comm);}
 
     /** Function to create the grid. This can be called in case the grid is default constructed. Its direct use is discouraged
         \param comm MPI Communicator describing the MPI 2D computing grid
      */
     void create(MPI_Comm comm) {
-      int dims[2]={0,0}, periods[2]={1,1}, coords[2]={0,0};
-      MPI_Cart_get(m_communicator, 2, dims, periods, coords);
-      R=dims[0];
-      C=dims[1];
-      r = coords[0];
-      c = coords[1];
+        int period[ndims];
+        for (ushort_t i=0; i<ndims; ++i)
+            period[i]=cyclic.value(i);
+        MPI_Comm_size(comm, &m_nprocs);
+        MPI_Dims_create(m_nprocs, ndims, m_dimensions);
+        MPI_Cart_create(comm, ndims, m_dimensions, period, false, &m_communicator);
+        MPI_Cart_get(m_communicator, ndims, m_dimensions, period/*does not really care*/, m_coordinates);
     }
 
     /** Returns in t_R and t_C the lenght of the dimensions of the process grid AS PRESCRIBED BY THE CONCEPT
@@ -207,25 +235,31 @@ namespace gridtools {
         \param[out] t_C Number of elements in second dimension
     */
     void dims(int &t_R, int &t_C) const {
-      t_R=R;
-      t_C=C;
+        GRIDTOOLS_STATIC_ASSERT(ndims==2, "this interface supposes ndims=3")
+            t_R=m_dimensions[0];
+        t_C=m_dimensions[1];
     }
 
     /** Returns the number of processors of the processor grid
 
         \return Number of processors
     */
-    int size() const {
-      return R*C;
+      uint_t size() const {
+        uint_t ret=m_dimensions[0];
+        for (ushort_t i=1; i< ndims; ++i)
+            ret *= m_dimensions[i];
+        return ret;
     }
 
     /** Returns in t_R and t_C the coordinates ot the caller process in the grid AS PRESCRIBED BY THE CONCEPT
         \param[out] t_R Coordinate in first dimension
         \param[out] t_C Coordinate in second dimension
     */
-    void coords(int &t_R, int &t_C) const {
-      t_R = r;
-      t_C = c;
+
+      void coords(int &t_R, int &t_C) const {
+          GRIDTOOLS_STATIC_ASSERT(ndims==2, "this interface supposes ndims=2")
+              t_R = m_coordinates[0];
+          t_C = m_coordinates[1];
     }
 
     /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
@@ -246,19 +280,19 @@ namespace gridtools {
     int proc(int I, int J) const {
       int _coords[2];
 
-      if (cyclic.value0)
-        _coords[0] = (r+I)%R;
+      if (cyclic.value(0))
+        _coords[0] = (m_coordinates[0]+I)%m_dimensions[0];
       else {
-        _coords[0] = r+I;
-        if (_coords[0]<0 || _coords[0]>=R)
+        _coords[0] = m_coordinates[0]+I;
+        if (_coords[0]<0 || _coords[0]>=m_dimensions[0])
           return -1;
       }
 
-      if (cyclic.value1)
-        _coords[1] = (c+J)%C;
+      if (cyclic.value(1))
+        _coords[1] = (m_coordinates[1]+J)%m_dimensions[1];
       else {
-        _coords[1] = c+J;
-        if (_coords[1]<0 || _coords[1]>=C)
+        _coords[1] = m_coordinates[1]+J;
+        if (_coords[1]<0 || _coords[1]>=m_dimensions[1])
           return -1;
       }
 
@@ -274,8 +308,19 @@ namespace gridtools {
         \return The process ID of the required process
     */
     int abs_proc(gridtools::array<int,ndims> const & crds) const {
-      return proc(crds[0]-r, crds[1]-c);
+      return proc(crds[0]-m_coordinates[0], crds[1]-m_coordinates[1]);
     }
+
+      int pid() const {
+          int rank;
+          MPI_Cart_rank(m_communicator, m_coordinates, &rank);
+          return rank;
+      }
+
+      int const* coordinates()const {return m_coordinates;}
+      int const* dimensions()const {return m_dimensions;}
+      int const& coordinates(ushort_t const& i)const {return m_coordinates[i];}
+      int const& dimensions(ushort_t const& i)const {return m_dimensions[i];}
 
   };
 

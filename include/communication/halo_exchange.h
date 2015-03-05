@@ -70,7 +70,7 @@ namespace gridtools {
 
         template <>
         struct get_grid<3> {
-            typedef MPI_3D_process_grid_t<boollist<3> > type;
+            typedef MPI_3D_process_grid_t<3 > type;
         };
 
     }
@@ -208,7 +208,7 @@ namespace gridtools {
     template <typename T_layout_map,
               typename layout2proc_map_abs,
               typename DataType,
-              int DIMS,
+              typename GridType,
               typename Gcl_Arch = gcl_cpu,
               int version=0>
     class halo_exchange_dynamic_ut {
@@ -221,8 +221,9 @@ namespace gridtools {
         /**
            Type of the computin grid associated to the pattern
         */
-        typedef typename _impl::get_grid<DIMS>::type grid_type;
-
+        /*typedef typename _impl::get_grid<DIMS>::type grid_type;*/
+        typedef GridType grid_type;
+        static const uint_t DIMS=GridType::ndims;
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
@@ -231,7 +232,7 @@ namespace gridtools {
 
     private:
         hndlr_dynamic_ut<DataType,
-                         DIMS,
+                         GridType,
                          pattern_type,
                          layout2proc_map,
                          Gcl_Arch,
@@ -283,7 +284,7 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm /*const&*/ comm)
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm)
             : hd(c.template permute<layout2proc_map_abs>(), comm)//, periodicity(c)
         { }
 
@@ -497,6 +498,7 @@ namespace gridtools {
 #endif
         }
 
+        grid_type const& comm () const {return hd.comm();}
     };
 
 

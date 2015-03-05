@@ -32,30 +32,53 @@ namespace gridtools {
       static const ushort_t size=I;
 
     private:
-        const bool m_value[I];
+        // const
+        bool m_value[I];
 
     public:
 
         constexpr bool const& value(ushort_t const& id) const{return m_value[id];}
 
         boollist(bool v0)
-            :m_value{v0}
-            {}
+#ifdef CXX11_ENABLED
+            :m_value{v0}{}
+#else
+            {
+                m_value[0]=v0;
+            }
+#endif
 
         boollist(bool v0, bool v1)
-            :m_value{v0,v1}
-            {}
+#ifdef CXX11_ENABLED
+            :m_value{v0,v1}{}
+#else
+            {
+                m_value[0]=v0;
+                m_value[1]=v1;
+            }
+#endif
 
         boollist(bool v0, bool v1, bool v2)
-            :m_value{v0,v1,v2}
-            {}
+#ifdef CXX11_ENABLED
+            :m_value{v0,v1,v2}{}
+#else
+            {
+                m_value[0]=v0;
+                m_value[1]=v1;
+                m_value[2]=v2;
+            }
+#endif
 
         boollist(boollist const& bl)
+#ifdef CXX11_ENABLED
             :m_value{bl.m_value[0], bl.m_value[1]} //TODO: generalize to arbitrary dimension
+            {}
+#else
             {
-                // for (ushort_t i=0; i<I; ++i)
-                //     m_value[i]=bl.m_value[i];
+                for (ushort_t i=0; i<I; ++i)
+                    m_value[i]=bl.m_value[i];
             }
+#endif
 
       template <typename layoutmap>
       boollist<I> permute() const {

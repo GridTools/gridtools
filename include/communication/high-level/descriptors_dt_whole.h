@@ -27,7 +27,7 @@
 
 namespace gridtools {
 
-  /** 
+  /**
       Class containing the description of one halo and a communication
       pattern.  A communication is triggered when a list of data
       fields are passed to the exchange functions, when the data
@@ -38,15 +38,19 @@ namespace gridtools {
 
       \tparam DataType Type of the elements in data arrays
       \tparam DIMS Number of dimensions of the grids.
-      \tparam HaloExch Communication patter with halo exchange. 
+      \tparam HaloExch Communication patter with halo exchange.
       \tparam proc_layout Map between dimensions in increasing-stride order and processor grid dimensions
       \tparam Gcl_Arch Specification of architecture used to indicate where the data is L3/include/gcl_arch.h file reference
   */
   template <typename DataType,
-            typename GT, 
+            typename GT,
             typename proc_layout,
-            typename Gcl_Arch>
-  class hndlr_dynamic_ut<DataType, 2,Halo_Exchange_2D_DT<GT>, proc_layout, Gcl_Arch, 1> 
+            typename Gcl_Arch,
+            int SubDim
+            template < int Ndim, int SubD>
+            class GridType
+            >
+  class hndlr_dynamic_ut<DataType, GridType<2, SubDim> ,Halo_Exchange_2D_DT<GT>, proc_layout, Gcl_Arch, 1>
       : public descriptor_base<Halo_Exchange_2D_DT<GT> > {
     static const int DIMS = 2;
     static const int MaxFields = 20;
@@ -54,7 +58,7 @@ namespace gridtools {
       typedef descriptor_base<Halo_Exchange_2D_DT<GT> > base_type;
       typedef typename base_type::pattern_type HaloExch;
 
-    typedef hndlr_dynamic_ut<DataType,DIMS,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType<2, SubDim>,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
     typedef array<MPI_Datatype, _impl::static_pow3<DIMS>::value> MPDT_t;
 
     //typedef array<array<MPI_Datatype,MaxFields>, _impl::static_pow3<DIMS>::value> MPDT_array_t;
@@ -69,14 +73,14 @@ namespace gridtools {
 
   public:
     /**
-       Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern. 
+       Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
        In the case the implementation is not using L3, the type is not available.
      */
     typedef HaloExch pattern_type;
     /**
        Type of the computin grid associated to the pattern
      */
-    typedef typename pattern_type::grid_type grid_type;
+      typedef GridType<2, SubDim> grid_type;
 
     /**
        Type of the translation used to map dimensions to buffer addresses
@@ -98,11 +102,11 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm) 
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
         : base_type(c,comm)
         , halo()
     {
-      for(int i=0; i<MaxFields; ++i) 
+      for(int i=0; i<MaxFields; ++i)
         counts[i] = 1;
     }
 
@@ -113,11 +117,11 @@ namespace gridtools {
        \param[in] _P Number of processors the pattern is running on (numbered from 0 to _P-1
        \param[in] _pid Integer identifier of the process calling the constructor
      */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid) 
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid)
         : base_type(c,_P,_pid)
         , halo()
     {
-      for(int i=0; i<MaxFields; ++i) 
+      for(int i=0; i<MaxFields; ++i)
         counts[i] = 1;
     }
 
@@ -126,11 +130,11 @@ namespace gridtools {
 
        \param[in] g A processor grid that will execute the pattern
      */
-    explicit hndlr_dynamic_ut(grid_type const &g) 
+    explicit hndlr_dynamic_ut(grid_type const &g)
         : base_type(g)
         , halo()
     {
-      for(int i=0; i<MaxFields; ++i) 
+      for(int i=0; i<MaxFields; ++i)
         counts[i] = 1;
     }
 
@@ -171,15 +175,15 @@ namespace gridtools {
       for (int i=-1; i<=1; ++i) {
         for (int j=-1; j<=1; ++j) {
           array<int, DIMS> eta = make_array(i,j);
-          MPI_Type_create_hindexed(fields.size(), 
-                                   &(counts[0]), 
-                                   &(offsets[0]), 
-                                   halo.mpdt_inside(eta).first, 
+          MPI_Type_create_hindexed(fields.size(),
+                                   &(counts[0]),
+                                   &(offsets[0]),
+                                   halo.mpdt_inside(eta).first,
                                    &(MPDT_INSIDE[_impl::neigh_idx(eta)]));
-          MPI_Type_create_hindexed(fields.size(), 
-                                   &(counts[0]), 
-                                   &(offsets[0]), 
-                                   halo.mpdt_outside(eta).first, 
+          MPI_Type_create_hindexed(fields.size(),
+                                   &(counts[0]),
+                                   &(offsets[0]),
+                                   halo.mpdt_outside(eta).first,
                                    &(MPDT_OUTSIDE[_impl::neigh_idx(eta)]));
           MPI_Type_commit(&MPDT_INSIDE[_impl::neigh_idx(eta)]);
           MPI_Type_commit(&MPDT_OUTSIDE[_impl::neigh_idx(eta)]);
@@ -221,7 +225,7 @@ namespace gridtools {
 
 
 
-  /** 
+  /**
       Class containing the description of one halo and a communication
       pattern.  A communication is triggered when a list of data
       fields are passed to the exchange functions, when the data
@@ -232,21 +236,25 @@ namespace gridtools {
 
       \tparam DataType Type of the elements in data arrays
       \tparam DIMS Number of dimensions of the grids.
-      \tparam HaloExch Communication patter with halo exchange. 
+      \tparam HaloExch Communication patter with halo exchange.
       \tparam proc_layout Map between dimensions in increasing-stride order and processor grid dimensions
       \tparam Gcl_Arch Specification of architecture used to indicate where the data is L3/include/gcl_arch.h file reference
   */
   template <typename DataType,
-            typename GT, 
+            typename GT,
             typename proc_layout,
-            typename Gcl_Arch>
-  class hndlr_dynamic_ut<DataType, 3,Halo_Exchange_3D_DT<GT>, proc_layout, Gcl_Arch, 1> 
+            typename Gcl_Arch,
+            int SubDim
+            template <int Ndim, int SubD>
+            class GridType
+            >
+  class hndlr_dynamic_ut<DataType, GridType< 3, SubDim>,Halo_Exchange_3D_DT<GT>, proc_layout, Gcl_Arch, 1>
       : public descriptor_base<Halo_Exchange_3D_DT<GT> > {
     static const int DIMS = 3;
     static const int MaxFields = 20;
       typedef descriptor_base<Halo_Exchange_3D_DT<GT> > base_type;
       typedef typename base_type::pattern_type HaloExch;
-    typedef hndlr_dynamic_ut<DataType,DIMS,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType<3, SubDim>,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
     typedef array<MPI_Datatype, _impl::static_pow3<DIMS>::value> MPDT_t;
 
     //typedef array<array<MPI_Datatype,MaxFields>, _impl::static_pow3<DIMS>::value> MPDT_array_t;
@@ -281,11 +289,11 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm) 
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
         : base_type(c,comm)
         , halo()
     {
-      for(int i=0; i<MaxFields; ++i) 
+      for(int i=0; i<MaxFields; ++i)
         counts[i] = 1;
     }
 
@@ -296,11 +304,11 @@ namespace gridtools {
        \param[in] _P Number of processors the pattern is running on (numbered from 0 to _P-1
        \param[in] _pid Integer identifier of the process calling the constructor
      */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid) 
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid)
         : base_type(c,_P,_pid)
         , halo()
     {
-      for(int i=0; i<MaxFields; ++i) 
+      for(int i=0; i<MaxFields; ++i)
         counts[i] = 1;
     }
 
@@ -309,11 +317,11 @@ namespace gridtools {
 
        \param[in] g A processor grid that will execute the pattern
      */
-    explicit hndlr_dynamic_ut(grid_type const &g) 
+    explicit hndlr_dynamic_ut(grid_type const &g)
         : base_type(g)
         , halo()
     {
-      for(int i=0; i<MaxFields; ++i) 
+      for(int i=0; i<MaxFields; ++i)
         counts[i] = 1;
     }
 
@@ -357,18 +365,18 @@ namespace gridtools {
             if (i!=0 || j!=0 || k!=0) {
               array<int, DIMS> eta = make_array(i,j,k);
               if (halo.mpdt_inside(eta).second) {
-                MPI_Type_create_hindexed(fields.size(), 
-                                         &(counts[0]), 
-                                         &(offsets[0]), 
-                                         halo.mpdt_inside(eta).first, 
+                MPI_Type_create_hindexed(fields.size(),
+                                         &(counts[0]),
+                                         &(offsets[0]),
+                                         halo.mpdt_inside(eta).first,
                                          &(MPDT_INSIDE[_impl::neigh_idx(eta)]));
                 MPI_Type_commit(&MPDT_INSIDE[_impl::neigh_idx(eta)]);
               }
               if (halo.mpdt_outside(eta).second) {
-                MPI_Type_create_hindexed(fields.size(), 
-                                         &(counts[0]), 
-                                         &(offsets[0]), 
-                                         halo.mpdt_outside(eta).first, 
+                MPI_Type_create_hindexed(fields.size(),
+                                         &(counts[0]),
+                                         &(offsets[0]),
+                                         halo.mpdt_outside(eta).first,
                                          &(MPDT_OUTSIDE[_impl::neigh_idx(eta)]));
                 MPI_Type_commit(&MPDT_OUTSIDE[_impl::neigh_idx(eta)]);
 
@@ -389,17 +397,17 @@ namespace gridtools {
                 const int i_P = map_type().template select<0>(i,j,k);
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
-              
+
                 base_type::haloexch.register_send_to_buffer
                   (fields[0], MPDT_INSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P, k_P);
- 
+
               } else {
                 typedef translate_t<3,proc_layout> translate_P;
                 typedef typename translate_P::map_type map_type;
                 const int i_P = map_type().template select<0>(i,j,k);
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
-              
+
                 base_type::haloexch.register_send_to_buffer
                   (NULL, MPI_INT, 0, i_P, j_P, k_P);
                }
@@ -410,7 +418,7 @@ namespace gridtools {
                 const int i_P = map_type().template select<0>(i,j,k);
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
-              
+
                 base_type::haloexch.register_receive_from_buffer
                   (fields[0], MPDT_OUTSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P, k_P);
               } else {
@@ -419,7 +427,7 @@ namespace gridtools {
                 const int i_P = map_type().template select<0>(i,j,k);
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
-              
+
                 base_type::haloexch.register_receive_from_buffer
                   (NULL, MPI_INT, 0, i_P, j_P, k_P);
               }

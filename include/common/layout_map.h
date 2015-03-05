@@ -504,7 +504,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
         template <ushort_t I, typename T>
         GT_FUNCTION
-        static T& find(T & a, T & b) {
+        static T const& find(T const& a, T const& b) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -513,6 +513,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
                 }
             }
         }
+
+        template <ushort_t I, typename T>
+        GT_FUNCTION
+        static uint_t find(const T* indices) {
+            BOOST_STATIC_ASSERT(I<length);
+            return find<I, T>(indices[0], indices[1]);
+        }
+
 
         //         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         // GT_FUNCTION
