@@ -9,9 +9,6 @@
 #include <boost/mpl/push_front.hpp>
 
 namespace gridtools {
-template<typename T>
-struct printk { BOOST_MPL_ASSERT_MSG((false), TTTTTTTTTTTTTTTTT, (T));   };
-
 
     /**
      * Class to specify access ranges for stencil functions
