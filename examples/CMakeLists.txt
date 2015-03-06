@@ -8,7 +8,9 @@
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
 #foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal vertical_advection vertical_advection_dycore basic_laplacian vanilla_laplacian )
-foreach(srcfile vertical_advection_dycore)
+#foreach(srcfile interface1 boundary-condition laplacian copy_stencil tridiagonal vertical_advection vertical_advection_dycore vanilla_laplacian )
+foreach(srcfile copy_stencil )
+#foreach(srcfile vertical_advection_dycore)
     add_executable(${srcfile}_naive   ${srcfile}.cpp )
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block

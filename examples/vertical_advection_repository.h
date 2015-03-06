@@ -92,9 +92,7 @@ public:
             {
                 for (int j = 0; j < (has_dim1 ? jdim_ : 1); ++j)
                 {
-                    std::cout << "PPLPLPLPL " << i << " " << j << " " << k << std::endl;
                     field(i,j,k) = value;
-                    std::cout << "OUT " << std::endl;
                 }
             }
         }

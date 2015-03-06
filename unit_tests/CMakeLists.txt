@@ -15,20 +15,20 @@ endif()
 
 if (GTEST_FOUND)
     if ( ENABLE_CXX11 )
-        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+#        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
     else()
-        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+#        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
     endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
   link_directories( ${Boost_LIBRARY_DIRS} )
 
-  set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+#  set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+#    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
   else()
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+#    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
   endif()
 
 
@@ -37,12 +37,12 @@ if (GTEST_FOUND)
   if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
       tests.cu
-      test_domain.cu
-      test_cuda_storage.cu
-      test_hybrid_pointer.cu
-      gpu_clone.cu
-      cloningstuff.cu
-      boundary_conditions_test.cu
+#      test_domain.cu
+#      test_cuda_storage.cu
+#      test_hybrid_pointer.cu
+#      gpu_clone.cu
+#      cloningstuff.cu
+#      boundary_conditions_test.cu
     )
 
     add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
