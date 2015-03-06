@@ -156,8 +156,6 @@ namespace gridtools {
             >::type type;
         };
 
-        template<typename T> struct printu{ BOOST_MPL_ASSERT_MSG((false), TTTTTTTT, (T));};
-
         /**
          * @brief metafunction that merges to maps of <temporary, ij range>
          * @tparam range_map1 first map to merge
