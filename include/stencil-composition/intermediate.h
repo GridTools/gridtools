@@ -59,8 +59,10 @@ namespace gridtools {
 
         /**Elem is a local_domain*/
         template <typename Elem>
-        //GT_FUNCTION
+        GT_FUNCTION
         void operator()(Elem & elem) const {
+            BOOST_STATIC_ASSERT((is_local_domain<Elem>::value));
+
             elem.init(m_dom, m_arg_list, 0,0,0);
             elem.clone_to_gpu();
         }
@@ -82,10 +84,12 @@ namespace gridtools {
 
         /**Elem is a local_domain*/
         template <typename Elem>
-        //GT_FUNCTION
+        GT_FUNCTION
         void operator()(Elem & mss_local_domain_list) const {
+            BOOST_STATIC_ASSERT((is_mss_local_domain<Elem>::value));
+
             boost::fusion::for_each(mss_local_domain_list.local_domain_list,
-                instantiate_local_domain<Dom, ArgList>(m_dom, m_arg_list)
+                _impl::instantiate_local_domain<Dom, ArgList>(m_dom, m_arg_list)
             );
         }
 
