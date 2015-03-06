@@ -27,7 +27,6 @@ public:
                     typename storage_type::value_type expected = field1(i,j,k);
                     typename storage_type::value_type actual = field2(i,j,k);
 
-                    std::cout << "AHCHE " << i << " " << j << " " << k << " " << expected << " " << actual << "  " << jdim << " " << m_halo_size << std::endl;
                     if(!compare_below_threashold(expected, actual))
                     {
                         std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
