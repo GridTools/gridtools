@@ -49,11 +49,8 @@ struct u_forward_function {
     typedef arg_type<7> bcol;
     typedef arg_type<8> ccol;
     typedef arg_type<9> dcol;
-    typedef arg_type<10> ipos;
-    typedef arg_type<11> jpos;
-    typedef arg_type<12> kpos;
 
-    typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol, ipos, jpos, kpos> arg_list;
+    typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
     template<typename Eval>
     GT_FUNCTION
@@ -76,8 +73,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-        if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "FORDW at " << eval(kpos()) << "  " << eval(acol()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) << std::endl;
     }
 
     template<typename Eval>
@@ -95,8 +90,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-        if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "FORDW KMAX at " << eval(kpos()) << eval(acol()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) << "  " << gav << std::endl;
     }
 
     template<typename Eval>
@@ -113,10 +106,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-
-        if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "FORDW at " << eval(kpos()) << "  " << eval(ipos()) << "  " << eval(jpos()) << " " << eval(bcol()) << " " << eval(ccol()) << " " << eval(dcol()) <<
-            "  " << gcv << "  " << eval(wcon(0,0,1)) << "   " << eval(wcon(1,0,1)) << std::endl;
     }
 
 private:
@@ -160,20 +149,14 @@ struct u_backward_function {
     typedef arg_type<3> ccol;
     typedef arg_type<4> dcol;
     typedef arg_type<5> data_col;
-    typedef arg_type<6> ipos;
-    typedef arg_type<7> jpos;
-    typedef arg_type<8> kpos;
 
-    typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col, ipos, jpos, kpos> arg_list;
+    typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
     template<typename Eval>
     GT_FUNCTION
     static void Do(Eval const & eval, kbody_low interval)
     {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
-        if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "BACKW at " << eval(kpos()) << "  " << eval(utens_stage()) << "  " <<
-            thomas_backward(eval, interval) << " " <<  eval(u_pos()) << std::endl;
     }
 
     template<typename Eval>
@@ -181,9 +164,6 @@ struct u_backward_function {
     static void Do(Eval const & eval, kmaximum interval)
     {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
-        if(eval(ipos()) == 3 && eval(jpos()) == 3)
-            std::cout << "BACKW at " << eval(kpos()) << "  " << eval(utens_stage()) << "  " <<
-            thomas_backward(eval, interval) << " "<< eval(dcol()) << "  " << eval(u_pos()) << std::endl;
     }
 
 private:
@@ -251,15 +231,12 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef arg<8, tmp_storage_type> p_ccol;
     typedef arg<9, tmp_storage_type> p_dcol;
     typedef arg<10, tmp_storage_type> p_data_col;
-    typedef arg<11, storage_type> p_ipos;
-    typedef arg<12, storage_type> p_jpos;
-    typedef arg<13, storage_type> p_kpos;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
 //    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
     typedef boost::mpl::vector<p_utens_stage, p_u_stage, p_wcon, p_u_pos, p_utens, p_dtr_stage,
-            p_acol, p_bcol, p_ccol, p_dcol, p_data_col, p_ipos, p_jpos, p_kpos> arg_type_list;
+            p_acol, p_bcol, p_ccol, p_dcol, p_data_col> arg_type_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -271,16 +248,12 @@ bool test(uint_t x, uint_t y, uint_t z) {
             (p_wcon() = repository.wcon()),
             (p_u_pos() = repository.u_pos()),
             (p_utens() = repository.utens()) ,
-            (p_dtr_stage() = repository.dtr_stage()),
-            (p_ipos() = repository.ipos()),
-            (p_jpos() = repository.jpos()),
-            (p_kpos() = repository.kpos())
+            (p_dtr_stage() = repository.dtr_stage())
     );
 #else
     gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(
             &repository.utens_stage(), &repository.u_stage(), &repository.wcon(),
-            &repository.u_pos(), &repository.utens(), &repository.dtr_stage(), &repository.ipos(),
-            &repository.jpos(), &repository.kpos()));
+            &repository.u_pos(), &repository.utens(), &repository.dtr_stage()));
 #endif
 
     // Definition of the physical dimensions of the problem.
@@ -315,10 +288,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
                         p_acol(),
                         p_bcol(),
                         p_ccol(),
-                        p_dcol(),
-                        p_ipos(),
-                        p_jpos(),
-                        p_kpos()
+                        p_dcol()
                 ) // esf_descriptor
             ),
             gridtools::make_mss
@@ -330,10 +300,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
                         p_dtr_stage(),
                         p_ccol(),
                         p_dcol(),
-                        p_data_col(),
-                        p_ipos(),
-                        p_jpos(),
-                        p_kpos()
+                        p_data_col()
                 )
             ),
             domain,
