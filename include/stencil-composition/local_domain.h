@@ -253,4 +253,10 @@ namespace gridtools {
     std::ostream& operator<<(std::ostream& s, local_domain<StoragePointers,Iterators,EsfDescriptor> const&) {
         return s << "local_domain<stuff>";
     }
+
+    template<typename T> struct is_local_domain : boost::mpl::false_{};
+
+    template <typename StoragePointers, typename Iterators, typename EsfDescriptor>
+    struct is_local_domain<local_domain<StoragePointers, Iterators, EsfDescriptor> > : boost::mpl::true_{};
+
 }
