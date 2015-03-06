@@ -220,5 +220,5 @@ endif(${PYTHON_VERSION_MAJOR} GREATER 2)
 endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 
 
-add_subdirectory( unit_tests )
+#add_subdirectory( unit_tests )
 add_subdirectory( examples )
