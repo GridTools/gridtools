@@ -74,6 +74,7 @@ endif()
 
 add_subdirectory( communication )
 add_subdirectory( common )
+add_subdirectory( stencil-composition )
 
 if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 add_custom_target(python_tests)

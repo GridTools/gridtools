@@ -28,7 +28,7 @@ namespace gridtools {
 
 namespace _impl {
     /**
-     * "brief metafunction that extracts a meta array with all the mss descriptors found in the Sequence of types
+     * @brief metafunction that extracts a meta array with all the mss descriptors found in the Sequence of types
      * @tparam Sequence sequence of types that contains some mss descriptors
      */
     template<typename Sequence>
