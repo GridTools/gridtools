@@ -206,8 +206,8 @@ public:
     void update_cpu()
     {
 #ifdef CUDA_EXAMPLE
-        utens_stage_ref_.update_cpu();
-        utens_stage_.update_cpu();
+        utens_stage_ref_.data().update_cpu();
+        utens_stage_.data().update_cpu();
 #endif
     }
 
