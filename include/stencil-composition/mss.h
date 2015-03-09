@@ -263,10 +263,4 @@ namespace gridtools {
     template <typename ExecutionEngine, typename ArrayEsfDescr>
     struct is_mss_descriptor<mss_descriptor<ExecutionEngine, ArrayEsfDescr> > : boost::mpl::true_{};
 
-    template<typename sequence>
-    struct mss_array
-    {
-        typedef meta_array<sequence, boost::mpl::quote1<is_mss_descriptor> > type;
-    };
-
 } // namespace gridtools

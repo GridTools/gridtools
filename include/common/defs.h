@@ -7,6 +7,7 @@
 #define FUSION_MAX_VECTOR_SIZE 20
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
+#define GT_MAX_MSS 10
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))

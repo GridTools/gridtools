@@ -206,19 +206,20 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> copy =
 #endif
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+    gridtools::make_computation<gridtools::BACKEND, layout_t>
+    (
+        gridtools::make_mss // mss_descriptor
         (
-            gridtools::make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
+            execute<forward>(),
+            gridtools::make_esf<copy_functor>(
+                p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                                                  ,p_out()
+                ,p_out()
 #endif
-                    )
-                ),
-            domain, coords
-            );
+            )
+        ),
+        domain, coords
+    );
 
     copy->ready();
 
