@@ -196,7 +196,7 @@ namespace gridtools {
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
 
             typedef typename boost::mpl::fold<
-                typename MssArray::elements,
+                typename MssArray::elements_t,
                 boost::mpl::map0<>,
                 merge_range_temporary_maps<
                     boost::mpl::_1,

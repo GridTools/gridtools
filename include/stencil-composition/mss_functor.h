@@ -38,8 +38,8 @@ namespace gridtools {
         {
             typedef typename boost::fusion::result_of::value_at<MssLocalDomainArray, Index>::type mss_local_domain_t;
             BOOST_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value));
-            BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename TMssArray::elements>::value));
-            typedef typename boost::mpl::at<typename TMssArray::elements, Index>::type MssType;
+            BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename TMssArray::elements_t>::value));
+            typedef typename boost::mpl::at<typename TMssArray::elements_t, Index>::type MssType;
             typedef typename mss_local_domain_t::LocalDomainList local_domain_list_t;
 
             local_domain_list_t& local_domain_list = (local_domain_list_t&)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;

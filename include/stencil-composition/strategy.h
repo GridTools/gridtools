@@ -36,7 +36,7 @@ namespace gridtools{
         template<typename TMssArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
-            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
+            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements_t>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
@@ -105,7 +105,7 @@ namespace gridtools{
         struct fused_mss_loop
         {
             BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
-            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
+            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements_t>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
@@ -120,7 +120,7 @@ namespace gridtools{
                 uint_t NBI = n/BI;
                 uint_t NBJ = m/BJ;
 
-//                #pragma omp parallel
+                #pragma omp parallel
                 {
                 #pragma omp for nowait
                 for (uint_t bi = 0; bi <= NBI; ++bi) {

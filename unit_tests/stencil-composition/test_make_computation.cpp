@@ -72,7 +72,7 @@ TEST(test_make_computation, get_mss_array) {
 
     typedef _impl::get_mss_array<ListTypes>::type MssArray;
 
-    BOOST_STATIC_ASSERT(( boost::mpl::equal<MssArray::elements, boost::mpl::vector2<mss2_t, mss1_t> >::value));
+    BOOST_STATIC_ASSERT(( boost::mpl::equal<MssArray::elements_t, boost::mpl::vector2<mss2_t, mss1_t> >::value));
     EXPECT_TRUE(true);
 }
 

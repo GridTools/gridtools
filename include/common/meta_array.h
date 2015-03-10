@@ -24,23 +24,23 @@ namespace gridtools {
  * @param TSeq sequence to query
  * @param TPred filter that determines the condition
  */
-template<typename TSeq, template<typename> class TPred>
+template<typename Seq, template<typename> class Pred>
 struct is_sequence_of
 {
-    typedef boost::mpl::quote1<TPred> pred_t;
+    typedef boost::mpl::quote1<Pred> pred_t;
 
     typedef typename boost::mpl::lambda<
         boost::mpl::not_<
             typename pred_t::template apply<boost::mpl::_1>
         >
-    >::type NegPred;
+    >::type neg_pred_t;
 
     typedef typename boost::mpl::eval_if<
-        boost::mpl::is_sequence<TSeq>,
+        boost::mpl::is_sequence<Seq>,
         boost::mpl::eval_if<
             boost::is_same<
-                typename boost::mpl::find_if<TSeq, NegPred >::type,
-                typename boost::mpl::end<TSeq>::type
+                typename boost::mpl::find_if<Seq, neg_pred_t >::type,
+                typename boost::mpl::end<Seq>::type
             >,
             boost::mpl::true_,
             boost::mpl::false_
@@ -56,23 +56,23 @@ struct is_sequence_of
  * fulfil a predicate
  * (without having to inspect each element of the sequence)
  */
-template<typename sequence, typename TPred>
+template<typename Sequence, typename Pred>
 struct meta_array{
-    BOOST_STATIC_ASSERT((boost::mpl::is_sequence<sequence>::value));
+    BOOST_STATIC_ASSERT((boost::mpl::is_sequence<Sequence>::value));
 
     //check that predicate returns true for all elements
     typedef typename boost::mpl::fold<
-        sequence,
+        Sequence,
         boost::mpl::true_,
         boost::mpl::and_<
             boost::mpl::_1,
-            typename TPred::template apply<boost::mpl::_2>
+            typename Pred::template apply<boost::mpl::_2>
         >
-    >::type is_array_of_pred;
+    >::type is_array_of_pred_t;
 
-    BOOST_STATIC_ASSERT((is_array_of_pred::value));
+    BOOST_STATIC_ASSERT((is_array_of_pred_t::value));
 
-    typedef sequence elements;
+    typedef Sequence elements_t;
 };
 
 //type traits for meta_array

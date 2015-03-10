@@ -353,7 +353,7 @@ namespace gridtools {
 
 
         typedef typename boost::mpl::transform<
-            typename TMssArray::elements,
+            typename TMssArray::elements_t,
             mss_local_domain<boost::mpl::_, DomainType, actual_arg_list_type>
         >::type MssLocalDomains;
 
@@ -545,7 +545,7 @@ namespace gridtools {
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
 #endif
 
-            BOOST_STATIC_ASSERT((boost::mpl::size<typename TMssArray::elements>::value == boost::mpl::size<MssLocalDomains>::value));
+            BOOST_STATIC_ASSERT((boost::mpl::size<typename TMssArray::elements_t>::value == boost::mpl::size<MssLocalDomains>::value));
 
             Backend::template run<TMssArray>( m_coords, mss_local_domain_list );
 
