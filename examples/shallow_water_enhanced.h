@@ -8,7 +8,10 @@
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
+
+#ifdef HDF5_ENABLED
 #include <storage/io.h>
+#endif
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -22,7 +25,7 @@
 #include <boundary-conditions/apply.h>
 #endif
 
-#define BACKEND_BLOCK 1
+//#define BACKEND_BLOCK 1
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
@@ -117,7 +120,8 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
-        //using xrange=range<0,0,0,-1>;
+        using xrange=range<0,-2,0,-2>;
+        using xrange_subdomain=range<0,1,0,0>;
         typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
         typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpx, sol> ;
@@ -149,7 +153,9 @@ namespace shallow_water{
 
     struct second_step_y        : public functor_traits {
 
-        //using xrange=range<0,-1,0,0>;
+        using xrange=range<0,-2,0,-2>;
+        using xrange_subdomain=range<0,0,0,1>;
+
         typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy;
         typedef arg_type<1,range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpy, sol> ;
@@ -181,7 +187,9 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
-        //using xrange=range<1,0,0,0>;
+        using xrange=range<0,-3,0,-3>;
+        using xrange_subdomain=range<1,1,1,1>;
+
         typedef arg_type<0, range<-1,0,-1,1>, 5> tmpx;
         typedef arg_type<1, range<-1,1,-1,0>, 5> tmpy;
         typedef arg_type<2,range<0, 0, 0, 0>, 5> sol;
@@ -263,7 +271,7 @@ namespace shallow_water{
     extern char const s1[]="hello ";
     extern char const s2[]="world ";
 
-    bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
 #ifndef __CUDACC__
         //testing the static printing
         typedef string_c<print, s1, s2, s1, s1 > s;
@@ -300,36 +308,55 @@ namespace shallow_water{
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
-
-        MPI_3D_process_grid_t<gridtools::boollist<3> > comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
-        ushort_t halo[3]={1,1,1};
-        typedef partitioner_trivial<sol_type> partitioner_t;
         typedef sol_type::original_storage::pointer_type pointer_type;
-        partitioner_t part(comm.ntasks(), comm.coordinates(), comm.dimensions(), halo);
-        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
 
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, 3,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
+#ifdef __CUDACC__
+                                                    gridtools::gcl_gpu,
+#else
                                                     gridtools::gcl_cpu,
+#endif
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
+        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
 
-        he.add_halo<0>(part.template get_halo_descriptor<0>());
-        he.add_halo<1>(part.template get_halo_descriptor<1>());
+    // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
+    // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
+        ushort_t halo[3]={2,2,0};
+        typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
+        partitioner_t part(he.comm(), halo);
+        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
+//         parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
+//         parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
+
+        he.add_halo<0>(part.get_halo_gcl<0>());
+        he.add_halo<1>(part.get_halo_gcl<1>());
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(3);
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
+        if(!he.comm().pid())
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+        else
+            sol.set<0,0>(out7, 1.);//h
         sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
         sol.set<1>(out8, 0.);//u
         sol.set<2>(out9, 0.);//v
 
-        std::cout<<"INITIALIZED VALUES"<<std::endl;
-        sol.print();
-        std::cout<<"#####################################################"<<std::endl;
+//         std::cout<<"INITIALIZED VALUES"<<std::endl;
+//         sol.print();
+//         std::cout<<"#####################################################"<<std::endl;
+#ifndef NDEBUG
+    int pid=0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    std::ofstream myfile;
+    std::stringstream name;
+    name<<"example"<<pid<<".txt";
+    myfile.open (name.str().c_str());
+#endif
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -341,9 +368,12 @@ namespace shallow_water{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di2[5] = {1, 0, 1, d1-3, d1};
-        uint_t dj2[5] = {1, 0, 1, d2-3, d2};
-        coordinates<axis> coords(di2, dj2);
+        //uint_t di2[5] =  {1, 0, 1, 9, 11};
+
+        //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
+        coordinates<axis, partitioner_t> coords(&part);
+
+        //coordinates<axis, partitioner_t> coords(di2, dj2);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 
@@ -365,26 +395,26 @@ namespace shallow_water{
 
         shallow_water_stencil->steady();
 
-        array<halo_descriptor, 3> halos;
-        halos[0] = halo_descriptor(1,0,1,d1-1,d1);
-        halos[1] = halo_descriptor(1,0,1,d2-1,d2);
-        halos[2] = halo_descriptor(0,0,1,d3-1,d3);
+//         array<halo_descriptor, 3> halos;
+//         halos[0] = halo_descriptor(1,0,1,d1-1,d1);
+//         halos[1] = halo_descriptor(1,0,1,d2-1,d2);
+//         halos[2] = halo_descriptor(0,0,1,d3-1,d3);
 
         //the following might be runtime value
-        uint_t total_time=1;
+        uint_t total_time=t;
 
         for (;final_step::current_time < total_time; ++final_step::current_time)
         {
 #ifdef CUDA_EXAMPLE
-            // TODO: use placeholders here instead of the storage
-            /*                                 component,snapshot */
-            boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-            boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+            /*                        component,snapshot */
+//             boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
+//             boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
+//             boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #else
-            // TODO: use placeholders here instead of the storage
-            /*                             component,snapshot */
-            boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-            boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+            /*                    component,snapshot */
+//             boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
+//             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
+//             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
             shallow_water_stencil->run();
 
@@ -393,13 +423,20 @@ namespace shallow_water{
             he.exchange();
             he.unpack(vec);
 
-            sol.print();
+#ifndef NDEBUG
+            shallow_water_stencil->finalize();
+            sol.print(myfile);
+#endif
         }
 
+#ifdef NDEBUG
         shallow_water_stencil->finalize();
+#else
+        myfile.close();
+#endif
 
-        hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
-        out.write(sol.get<0,0>());
+        //hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
+        //out.write(sol.get<0,0>());
 
         he.wait();
 

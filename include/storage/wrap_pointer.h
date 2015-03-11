@@ -90,11 +90,11 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void allocate_it(uint_t size){
-/* #if (CUDA_VERSION > 5050) */
+#if (CUDA_VERSION > 5050)
         m_cpu_p = new T[size];
-/* #else */
-/* 	m_cpu_p = workaround_::new_op<T>()(size); */
-/* #endif */
+#else
+	m_cpu_p = workaround_::new_op<T>()(size);
+#endif
     }
 
     GT_FUNCTION

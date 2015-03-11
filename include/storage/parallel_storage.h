@@ -45,7 +45,7 @@ namespace gridtools {
         typename super::value_type& get_value( UInt const& ... i )
 		{
                     if(m_partitioner->mine(i...))
-                        return super::template get<field_dim, snapshot>()[super::_index(i...)];
+                        return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i...)];
                     else
 #ifndef DNDEBUG
                         printf("(%d, %d, %d) not available in processor %d \n\n", i ... , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());

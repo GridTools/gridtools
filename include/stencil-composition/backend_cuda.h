@@ -34,22 +34,27 @@ namespace gridtools {
                   typename ExtraArguments>
         __global__
         void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
-            /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
-            /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
+            int i = blockIdx.x * blockDim.x + threadIdx.x;
+            int j = blockIdx.y * blockDim.y + threadIdx.y;
             uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-            uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
-            uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
+//             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+//             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
 
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
             __shared__
-                void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+                void* data_pointer[iterate_domain_t::N_DATA_POINTERS];
+
+            __shared__
+                storage_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
 
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
             it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+
+            it_domain.template assign_stride_pointers <enumtype::Cuda>(&strides);
             __syncthreads();
 
             if ((i < nx) && (j < ny)) {
@@ -137,6 +142,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
                 typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
                 typedef typename sum_range<new_range_t, range_t>::type xrange_t;
+                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
 #else
                 typedef typename sum_range<typename functor_type::xrange, range_t>::type xrange_t;
                 typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
@@ -164,6 +170,15 @@ namespace gridtools {
                 // number of threads
                 uint_t nx = (uint_t) (f->m_coords.i_high_bound() + iplus - (f->m_coords.i_low_bound() + iminus)+1);
                 uint_t ny = (uint_t) (f->m_coords.j_high_bound() + jplus - (f->m_coords.j_low_bound() + jminus)+1);
+
+                int ntx = 8, nty = 32, ntz = 1;
+                dim3 threads(ntx, nty, ntz);
+
+                int nbx = (nx + ntx - 1) / ntx;
+                int nby = (ny + nty - 1) / nty;
+                int nbz = 1;
+                dim3 blocks(nbx, nby, nbz);
+
 #ifndef NDEBUG
                 int pid=0;
                 MPI_Comm_rank(MPI_COMM_WORLD, &pid);
@@ -205,14 +220,14 @@ namespace gridtools {
           }
 #endif
 
-                // blocks dimension
-                uint_t ntx = 8, nty = 32;
+//                 // blocks dimension
+//                 uint_t ntx = 8, nty = 32;
 
-                //number of blocks
-                ushort_t nbx = (nx + ntx - 1) / ntx;
-                ushort_t nby = (ny + nty - 1) / nty;
+//                 //number of blocks
+//                 ushort_t nbx = (nx + ntx - 1) / ntx;
+//                 ushort_t nby = (ny + nty - 1) / nty;
 
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
+                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + iminus,

@@ -58,7 +58,7 @@ namespace gridtools{
 
     template< class Storage, uint_t ... Number >
     struct field{
-	typedef storaeg< extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+	typedef storage< extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
     // template< class TmpStorage, uint_t ... Number >
@@ -107,6 +107,14 @@ namespace gridtools{
     struct field{
 	typedef storage< extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number1-1>, extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number2-1>, extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number3-1> > > type;
     };
+
+
+    template< class Storage, uint_t Number1>
+    struct field1{
+	typedef storage< extend_dim1< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, Number1>, Number1-1> > > type;
+    };
+
+
 
     // template< class TmpStorage, uint_t ... Number >
     // struct tmp_field;

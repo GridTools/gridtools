@@ -523,11 +523,11 @@ namespace shallow_water{
         parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
         parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
 
-    he.add_halo<0>(part.get_halo_gcl<0>());
-    he.add_halo<1>(part.get_halo_gcl<1>());
-    he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+        he.add_halo<0>(part.get_halo_gcl<0>());
+        he.add_halo<1>(part.get_halo_gcl<1>());
+        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
-    he.setup(3);
+        he.setup(3);
 
         ptr out1(tmpx.size()), out2(tmpx.size()), out3(tmpx.size());
         tmpx.set<0,0>(out1);

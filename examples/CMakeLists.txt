@@ -43,6 +43,10 @@ if( NOT ENABLE_CXX11 )
     target_link_libraries(shallow_water_cxx03 ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
     set_target_properties(shallow_water_cxx03 PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
+    add_executable(shallow_water_cxx03_single_storage  shallow_water_cxx03_single_storage.cpp)
+    target_link_libraries(shallow_water_cxx03_single_storage ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03_single_storage PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
     add_executable(shallow_water_cxx03_split  shallow_water_cxx03_split.cpp)
     target_link_libraries(shallow_water_cxx03_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
     set_target_properties(shallow_water_cxx03_split PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
@@ -68,9 +72,23 @@ if( NOT ENABLE_CXX11 )
     target_link_libraries(shallow_water_cxx03_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
     set_target_properties(shallow_water_cxx03_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
+    cuda_add_executable(shallow_water_cxx03_single_storage_cuda  shallow_water_cxx03_single_storage.cu)
+    target_link_libraries(shallow_water_cxx03_single_storage_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03_single_storage_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
     cuda_add_executable(shallow_water_cxx03_cuda_split  shallow_water_cxx03_split.cu)
     target_link_libraries(shallow_water_cxx03_cuda_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
     set_target_properties(shallow_water_cxx03_cuda_split PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+    cuda_add_executable(shallow_water_cxx03_cuda_monolithic  shallow_water_cxx03_monolithic.cu)
+    target_link_libraries(shallow_water_cxx03_cuda_monolithic ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_cxx03_cuda_monolithic PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+else()
+
+    add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu)
+    target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    set_target_properties(shallow_water_enhanced_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
 endif()
 
 endif()

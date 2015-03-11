@@ -8,7 +8,10 @@
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
-//#include <storage/io.h>
+
+#ifdef HDF5_ENABLED
+#include <storage/io.h>
+#endif
 
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda.h>
@@ -91,18 +94,18 @@ namespace shallow_water{
 #define height 2.
 	GT_FUNCTION
     	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i<3 && j<3)
-                return 1.+2. * std::exp(-5*((((int)i-1)*dx())*((((int)i-1)*dx()))+(((int)j-1)*dy())*(((int)j-1)*dy())));
-            else
-                return 1.;
+            //if(i<3 && j<3)
+            return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
+                //else
+                //return 1.;
        }
 
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i>1 && j>1 && i<5 && j<5)
+//             if(i>1 && j>1 && i<5 && j<5)
                 return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-            else
-                return 1.;
+//             else
+//                 return 1.;
        }
 
 };
@@ -258,7 +261,8 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
 
-        typedef range<0,0,0,-2> xrange;
+        typedef range<0,-2,0,-2> xrange;
+//         last one: typedef range<0,0,0,-2> xrange;
 //         typedef range<0,1,0,-1> xrange_subdomain;
         typedef range<0,1,0,0> xrange_subdomain;
 
@@ -279,14 +283,9 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 3>::type hx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3>::type ux;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3>::type vx;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3>::type h;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3>::type u;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3>::type v;
-
-        typedef boost::mpl::vector<hx,ux,vx,h,u,v> arg_list;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5>::type sol;
+        typedef boost::mpl::vector<tmpx, sol> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -294,21 +293,21 @@ namespace shallow_water{
 
             x::Index i;
             y::Index j;
-            // eval(ux( x(-1), y(-2)))=eval(sol(comp(+5), x(+6), y(+7)))+3;
-            eval(hx())= (eval(h(i+1,j+1)) +eval(h(j+1)))/2. -
-                (eval(u(i+1,j+1)) - eval(u(j+1)))*(dt()/(2*dx()));
+            // eval(tmpx(comp(1), x(-1), y(-2)))=eval(sol(comp(+5), x(+6), y(+7)))+3;
+            eval(tmpx())= (eval(sol(comp(0),i+1,j+1)) +eval(sol(comp(0),j+1)))/2. -
+                (eval(sol(comp(1),i+1,j+1)) - eval(sol(comp(1),j+1)))*(dt()/(2*dx()));
 
-            eval(ux())=eval(u(i+1, j+1)) +
-                eval(u(j+1))/2.-
-                (((eval(u(i+1,j+1))*eval(u(i+1,j+1)))/eval(h(i+1,j+1))+(eval(h(i+1,j+1))*eval(h(i+1,j+1)))*g()/2.)  -
-                 ((eval(u(j+1))*eval(u(j+1)))/eval(h(j+1)) +
-                  (eval(h(j+1))*eval(h(j+1)))*(g()/2.)
+            eval(tmpx(comp(1)))=eval(sol(comp(1),i+1, j+1)) +
+                eval(sol(comp(1),j+1))/2.-
+                (((eval(sol(comp(1),i+1,j+1))*eval(sol(comp(1),i+1,j+1)))/eval(sol(comp(0),i+1,j+1))+(eval(sol(comp(0),i+1,j+1))*eval(sol(comp(0),i+1,j+1)))*g()/2.)  -
+                 ((eval(sol(comp(1),j+1))*eval(sol(comp(1),j+1)))/eval(sol(comp(0),j+1)) +
+                  (eval(sol(comp(0),j+1))*eval(sol(comp(0),j+1)))*(g()/2.)
                      ))*(dt()/(2.*dx()));
 
-            eval(vx())= (eval(v(i+1,j+1)) +
-                                  eval(v(j+1)))/2. -
-                (eval(u(i+1,j+1))*eval(v(i+1,j+1))/eval(h(i+1,j+1)) -
-                 eval(u(j+1))*eval(v(j+1))/eval(h(j+1)))*(dt()/(2*dx())) ;
+            eval(tmpx(comp(2)))= (eval(sol(comp(2),i+1,j+1)) +
+                                  eval(sol(comp(2),j+1)))/2. -
+                (eval(sol(comp(1),i+1,j+1))*eval(sol(comp(2),i+1,j+1))/eval(sol(comp(0),i+1,j+1)) -
+                 eval(sol(comp(1),j+1))*eval(sol(comp(2),j+1))/eval(sol(comp(0),j+1)))*(dt()/(2*dx())) ;
         }
     };
     // const x::Index first_step_x::i;
@@ -333,17 +332,13 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef range<0,0,0,-2> xrange;
+        typedef range<0,-2,0,-2> xrange;
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 3>::type hy;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3>::type uy;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3>::type vy;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3>::type h;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3>::type u;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3>::type v;
-        typedef boost::mpl::vector<hy,uy,vy,h,u,v> arg_list;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpy;
+        typedef arg_type<1,range<0, 0, 0, 0>, 5>::type sol;
+        typedef boost::mpl::vector<tmpy, sol> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -352,32 +347,33 @@ namespace shallow_water{
             x::Index i;
             y::Index j;
 
-        eval(hy())= (eval(h(i+1,j+1)) + eval(h(i+1)))/2. -
-            (eval(v(i+1,j+1)) - eval(v(i+1)))*(dt()/(2*dy()));
+        eval(tmpy(comp(0)))= (eval(sol(comp(0),i+1,j+1)) + eval(sol(comp(0),i+1)))/2. -
+            (eval(sol(comp(2),i+1,j+1)) - eval(sol(comp(2),i+1)))*(dt()/(2*dy()));
 
-        eval(uy())=(eval(u(i+1,j+1)) +
-                    eval(u(i+1)))/2. -
-            (eval(v(i+1,j+1))*eval(u(i+1,j+1))/eval(h(i+1,j+1)) -
-             eval(v(i+1))*eval(u(i+1))/eval(h(i+1)))*(dt()/(2*dy()));
+        eval(tmpy(comp(1)))=(eval(sol(comp(1),i+1,j+1)) +
+                    eval(sol(comp(1),i+1)))/2. -
+            (eval(sol(comp(2),i+1,j+1))*eval(sol(comp(1),i+1,j+1))/eval(sol(comp(0),i+1,j+1)) -
+             eval(sol(comp(2),i+1))*eval(sol(comp(1),i+1))/eval(sol(comp(0),i+1)))*(dt()/(2*dy()));
 
-        eval(vy())=eval(v(i+1, j+1)) +
-            eval(v(i+1))/2.-
-            (((eval(v(i+1,j+1))*eval(v(i+1,j+1)))/eval(h(i+1,j+1))+(eval(h(i+1,j+1))*eval(h(i+1,j+1)))*g()/2.)  -
-             (eval(v(i+1))*eval(v(i+1))/eval(h(i+1)) +
-              (eval(h(i+1))*eval(h(i+1)))*(g()/2.)
+        eval(tmpy(comp(2)))=eval(sol(comp(2),i+1, j+1)) +
+            eval(sol(comp(2),i+1))/2.-
+            (((eval(sol(comp(2),i+1,j+1))*eval(sol(comp(2),i+1,j+1)))/eval(sol(comp(0),i+1,j+1))+(eval(sol(comp(0),i+1,j+1))*eval(sol(comp(0),i+1,j+1)))*g()/2.)  -
+             (eval(sol(comp(2),i+1))*eval(sol(comp(2),i+1))/eval(sol(comp(0),i+1)) +
+              (eval(sol(comp(0),i+1))*eval(sol(comp(0),i+1)))*(g()/2.)
                  ))*(dt()/(2.*dy()));
         }
     };
+
     // const x::Index second_step_y::i;
     // const y::Index second_step_y::j;
-
-    struct final_step {
+    struct third_step {
 
 //         typedef range<0,-3,0,-2> xrange;
-        typedef range<0,-3,0,-3> xrange;
-        typedef range<1,1,1,1> xrange_subdomain;
+        typedef range<0,-2,0,-2> xrange;
+        typedef range<0,0,0,0> xrange_subdomain;
 
         typedef Dimension<5> comp;
+        typedef Dimension<4> step;
 	/**@brief space discretization step in direction i */
 	GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -395,16 +391,10 @@ namespace shallow_water{
         static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 3>::type hx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3>::type ux;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3>::type vx;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3>::type hy;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3>::type uy;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3>::type vy;
-        typedef arg_type<6, range<0, 0, 0, 0>, 3>::type h;
-        typedef arg_type<7, range<0, 0, 0, 0>, 3>::type u;
-        typedef arg_type<8, range<0, 0, 0, 0>, 3>::type v;
-        typedef boost::mpl::vector<hx,ux,vx,hy,uy,vy,h,u,v> arg_list;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpx;
+        typedef arg_type<1,range<0, 0, 0, 0>, 5>::type tmpy;
+        typedef arg_type<2,range</*-1, 1, -1, 1*/0,0,0,0>, 5>::type tmp3;
+        typedef boost::mpl::vector<tmpx, tmpy, tmp3>  arg_list;
         static uint_t current_time;
 
         //########## FINAL STEP #############
@@ -419,37 +409,91 @@ namespace shallow_water{
             x::Index i;
             y::Index j;
 
-            eval(h()) =
+            eval(tmp3()) =
+                eval(tmpx(comp(1),j-1))*eval(tmpx(comp(1))) / eval(tmpx(comp(0))) + eval(tmpx(comp(0)))*eval(tmpx(comp(0)))*((g()/2.));
+
+            eval(tmp3(step(1)))=
+                eval(tmpy(comp(2)))*eval(tmpy(comp(1))) / eval(tmpy(comp(0)))*(dt()/dy());
+
+            eval(tmp3(step(2))) =
+                eval(tmpx(comp(1))) * eval(tmpx(comp(2))) / eval(tmpx(comp(0))) - eval(tmpx(comp(0),i-1, j-1))*((dt()/dx()));
+
+            eval(tmp3(step(3)))=
+                (eval(tmpy(comp(2))) * eval(tmpy(comp(2)))) / eval(tmpy(comp(0))) +(eval(tmpy(comp(0)))*eval(tmpy(comp(0))))*((g()/2.)) ;
+
+        }
+
+    };
+
+    struct final_step {
+
+//         typedef range<0,-3,0,-2> xrange;
+        typedef range<0,-3,0,-3> xrange;
+        typedef range<1,1,1,1> xrange_subdomain;
+
+        typedef Dimension<5> comp;
+        typedef Dimension<4> step;
+	/**@brief space discretization step in direction i */
+	GT_FUNCTION
+        static float_type dx(){return 1.;}
+	/**@brief space discretization step in direction j */
+	GT_FUNCTION
+        static float_type dy(){return 1.;}
+	/**@brief time discretization step */
+	GT_FUNCTION
+        static float_type dt(){return .02;}
+	/**@brief gravity acceleration */
+	GT_FUNCTION
+        static float_type g(){return 9.81;}
+
+        static const x::Index i;
+        static const y::Index j;
+
+        //using xrange=range<0,-1,0,0>;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpx;
+        typedef arg_type<1,range<0, 0, 0, 0>, 5>::type tmpy;
+        typedef arg_type<2,range<0, 0, 0, 0>, 5>::type tmp3;
+        typedef arg_type<3,range</*-1, 1, -1, 1*/0,0,0,0>, 5>::type sol;
+        typedef boost::mpl::vector<tmpx, tmpy, tmp3, sol>  arg_list;
+        static uint_t current_time;
+
+        //########## FINAL STEP #############
+        //data dependencies with the previous parts
+        //notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
+        //Using a strategy to define some arguments beforehand
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+
+            x::Index i;
+            y::Index j;
+
+            eval(sol()) =
                 //h
-                eval(h())-
+                eval(sol())-
                 //(ux(j-1)                -          ux(i-1, j-1) )(dt/dx)
-                (eval(ux(j-1)) - eval(ux(i-1, j-1)))*(dt()/dx())
+                (eval(tmpx(comp(1),j-1)) - eval(tmpx(comp(1),i-1, j-1)))*(dt()/dx())
                 -
                 //(vy(i-1)               -           vy(i-1, j-1) )(dt/dy)
-                (eval(vy(i-1)) - eval(vy(i-1, j-1)))*(dt()/dy())
+                (eval(tmpy(comp(2),i-1)) - eval(tmpy(comp(2),i-1, j-1)))*(dt()/dy())
                ;
 
-            eval(u()) =
-                eval(u()) -
-               //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
-               ((eval(ux(j-1))*eval(ux(j-1)))                / eval(hx(j-1))      + eval(hx(j-1))*eval(hx(j-1))*((g()/2.))                 -
-                //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
-                ((eval(ux(i-1,j-1))*eval(ux(i-1,j-1)))            / eval(hx(i-1, j-1)) +(eval(hx(i-1,j-1))*eval(hx(i-1,j-1)) )*((g()/2.))))*((dt()/dx()));// -
-                //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
-                (eval(vy(i-1))*eval(uy(i-1))          / eval(hy(i-1))                                                   -
-                 //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
-                 eval(vy(i-1, j-1))*eval(uy(i-1,j-1)) / eval(hy(i-1, j-1))) *(dt()/dy())
+            eval(sol(comp(1))) =
+               eval(sol(comp(1))) -
+                (eval(tmp3(j-1))-
+                 eval(tmp3(i-1,j-1)))*((dt()/dx())) -
+                (eval(tmp3(step(1),i-1)) -
+                eval(tmp3(step(1), i-1, j-1))) *(dt()/dy())
                 ;
 
-                eval(v()) =
+            eval(sol(comp(2))) =
                 // v()
-                eval(v()) -
-                // (ux(j-1)*vx(j-1)                                         /      hx(j-1) )        -
-                (eval(ux(j-1))    *eval(vx(j-1))       /eval(hx(j-1)) -
-                 //      ux(i-1,j-1)*vx(i-1,j-1)                            /      hx(i-1,j-1))           * dt/dx       -
-                 (eval(ux(i-1,j-1))*eval(vx(i-1, j-1))) /eval(hx(i-1, j-1)))*((dt()/dx()))-
-                ((eval(vy(i-1))*eval(vy(i-1)))                /eval(hy(i-1))      +(eval(hy(i-1))*eval(hy(i-1))     )*((g()/2.)) -
-                 ((eval(vy(i-1, j-1))*eval(vy(i-1, j-1)))     /eval(hy(i-1, j-1)) +(eval(hy(i-1, j-1))*eval(hy(i-1, j-1)))*((g()/2.))   ))*((dt()/dy()));
+                eval(sol(comp(2))) -
+                (eval(tmp3(step(2), j-1)) -
+                 eval(tmp3(step(2), i-1, j-1)))*((dt()/dx()))-
+                (eval(tmp3(step(3), i-1))*((g()/2.)) -
+                 eval(tmp3(step(3), i-1, j-1)))*((dt()/dy()));
 
         }
 
@@ -496,27 +540,24 @@ namespace shallow_water{
 #endif
         //                      dims  z y x
         //                   strides xy x 1
-        typedef layout_map<0,1,2> layout_t;
+        typedef layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-//         typedef field<storage_type, 1, 1, 1>::type sol_type;
-//         typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
-        typedef storage_type::pointer_type pointer_type;
+        typedef field<storage_type, 1, 1, 1>::type sol_type;
+        typedef field1<storage_type, 4>::type tmp3_type;
+        typedef field</*tmp_*/storage_type, 1, 1, 1>::type tmp_type;
+        typedef sol_type::original_storage::pointer_type ptr;
 
         // Definition of placeholders. The order of them reflects the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg<0, storage_type > p_hx;
-        typedef arg<1, storage_type > p_ux;
-        typedef arg<2, storage_type > p_vx;
-        typedef arg<3, storage_type > p_hy;
-        typedef arg<4, storage_type > p_uy;
-        typedef arg<5, storage_type > p_vy;
-        typedef arg<6, storage_type > p_h;
-        typedef arg<7, storage_type > p_u;
-        typedef arg<8, storage_type > p_v;
-        typedef boost::mpl::vector<p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v> arg_type_list;
+        typedef arg<0, tmp_type > p_tmpx;
+        typedef arg<1, tmp_type > p_tmpy;
+        typedef arg<2, tmp_type > p_tmp3;
+        typedef arg<3, sol_type > p_sol;
+        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_tmp3, p_sol> arg_type_list;
+        typedef sol_type::original_storage::pointer_type pointer_type;
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
@@ -530,10 +571,15 @@ namespace shallow_water{
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
 
+    // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
+    // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         ushort_t halo[3]={2,2,0};
-        typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
+        typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-
+        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
+        parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
+        parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
+        parallel_storage<partitioner_t> tmp3(part, d1, d2, d3);
 
         he.add_halo<0>(part.get_halo_gcl<0>());
         he.add_halo<1>(part.get_halo_gcl<1>());
@@ -541,31 +587,48 @@ namespace shallow_water{
 
         he.setup(3);
 
-        parallel_storage<partitioner_t> hx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> ux(part, d1, d2, d3);
-        parallel_storage<partitioner_t> vx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> hy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> uy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> vy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> h (part, d1, d2, d3);
-        parallel_storage<partitioner_t> u (part, d1, d2, d3);
-        parallel_storage<partitioner_t> v (part, d1, d2, d3);
+        ptr out1(tmpx.size()), out2(tmpx.size()), out3(tmpx.size());
+        tmpx.set<0,0>(out1);
+        tmpx.set<1,0>(out2);
+        tmpx.set<2,0>(out3);
+        ptr out4(tmpy.size()), out5(tmpy.size()), out6(tmpy.size());
+        tmpy.set<0,0>(out4);
+        tmpy.set<1,0>(out5);
+        tmpy.set<2,0>(out6);
 
+        ptr out10(tmpy.size()), out11(tmpy.size()), out12(tmpy.size()), out13(tmpy.size());;
+        tmp3.set<0,0>(out10);
+        tmp3.set<0,1>(out11);
+        tmp3.set<0,2>(out12);
+        tmp3.set<0,2>(out13);
+
+        ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(!he.comm().pid())
-            h.initialize(&bc_periodic<0,0>::droplet);
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
-            h.initialize(&bc_periodic<0,0>::droplet2);
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
+    //sol.set<0,0>(out7, 1.);//h
+        sol.set<1,0>(out8, 0.);//u
+        sol.set<2,0>(out9, 0.);//v
 
 #ifndef NDEBUG
-        std::cout<<"INITIALIZED VALUES"<<std::endl;
-        h.print();
-        std::cout<<"#####################################################"<<std::endl;
+    int pid=0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    std::ofstream myfile;
+    std::stringstream name;
+    name<<"example"<<pid<<".txt";
+    myfile.open (name.str().c_str());
 #endif
+
+//         std::cout<<"INITIALIZED VALUES"<<std::endl;
+//         sol.print(myfile);
+//         std::cout<<"#####################################################"<<std::endl;
+
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
         domain_type<arg_type_list> domain
-            (boost::fusion::make_vector(&hx, &ux, &vx, &hy, &uy, &vy, &h, &u, &v));
+            (boost::fusion::make_vector(&tmpx, &tmpy, &tmp3, &sol));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -592,9 +655,10 @@ namespace shallow_water{
                 (
                     execute<forward>(),
                     make_independent(
-                        make_esf<first_step_x> (p_hx(), p_ux(), p_vx(), p_h(), p_u(), p_v() ),
-                        make_esf<second_step_y>(p_hy(), p_uy(), p_vy(), p_h(), p_u(), p_v() )),
-                    make_esf<final_step>(p_hx(), p_ux(), p_vx(), p_hy(), p_uy(), p_vy(),p_h(), p_u(), p_v())
+                        make_esf<first_step_x> (p_tmpx(), p_sol() ),
+                        make_esf<second_step_y>(p_tmpy(), p_sol() )),
+                    make_esf<third_step>(p_tmpx(), p_tmpy(), p_tmp3() ),
+                    make_esf<final_step>(p_tmpx(), p_tmpy(), p_tmp3(), p_sol() )
                     ),
                 domain, coords
                 );
@@ -610,15 +674,6 @@ namespace shallow_water{
 
         //the following might be runtime value
         uint_t total_time=t;
-
-#ifndef NDEBUG
-    int pid=0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    std::ofstream myfile;
-    std::stringstream name;
-    name<<"example"<<pid<<".txt";
-    myfile.open (name.str().c_str());
-#endif
 
         for (;final_step::current_time < total_time; ++final_step::current_time)
         {
@@ -636,19 +691,31 @@ namespace shallow_water{
             shallow_water_stencil->run();
 
             std::vector<pointer_type::pointee_t*> vec(3);
-            vec[0]=h.data().get();
-            vec[1]=u.data().get();
-            vec[2]=v.data().get();
-
+            vec[0]=sol.fields()[0].get();
+            vec[1]=sol.fields()[1].get();
+            vec[2]=sol.fields()[2].get();
+//             vec[3]=tmpx.fields()[0].get();
+//             vec[4]=tmpx.fields()[1].get();
+//             vec[5]=tmpx.fields()[2].get();
+//             vec[6]=tmpy.fields()[0].get();
+//             vec[7]=tmpy.fields()[1].get();
+//             vec[8]=tmpy.fields()[2].get();
+            //printf("right before packing \n");
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
 
+//             if(!comm.pid())
+//             {
+//                 float_type f(2.);
+//                 sol.set_value<0,0>(f,0,0,0);
+//             }
+
 #ifndef NDEBUG
             shallow_water_stencil->finalize();
-            h.print();
-            u.print();
-            v.print();
+            sol.print(myfile);
+            //tmpx.print(myfile);
+            //tmpy.print(myfile);
 #endif
         }
 
