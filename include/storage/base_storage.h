@@ -425,9 +425,9 @@ namespace gridtools {
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment( uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            //if(layout::template at_<Coordinate>::value>=0)
+
             if(layout::template at_< Coordinate >::value >=0)
             {
                 *index += strides<Coordinate>(m_strides);
@@ -437,10 +437,9 @@ namespace gridtools {
         /** @brief method to decrement the memory address index by moving backward one step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void decrement( uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            //if(layout::template at_<layout::template pos_<Coordinate>::value >::value>=0)
-            // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
+
             if(layout::template at_<Coordinate>::value >=0)
             {
                 *index-=strides<Coordinate>(m_strides);
@@ -449,28 +448,28 @@ namespace gridtools {
 
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction
             \tparam Coordinate: the dimension which is being incremented (0=i, 1=j, 2=k, ...)
-            \param dimension: the number of steps of the increment
+            \param steps: the number of steps of the increment
             \param index: the output index being set
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t const& dimension, uint_t const& /*block*/, uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment(uint_t const& steps, uint_t const& /*block*/, uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
+
             if( layout::template at_< Coordinate >::value >= 0 )
             {
-                *index += strides<Coordinate>(m_strides)*dimension;
+                *index += strides<Coordinate>(m_strides)*steps;
             }
         }
 
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t dimension, uint_t const& /*block*/, uint_t* index){
+        void decrement(uint_t steps, uint_t const& /*block*/, uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )
             {
-                *index-=strides<Coordinate>(m_strides)*dimension;
+                *index-=strides<Coordinate>(m_strides)*steps;
             }
         }
 

@@ -69,17 +69,17 @@ namespace gridtools {
                 typename derived_traits_t::template traits<Index>::local_domain_t& local_domain = boost::fusion::at<Index>(m_domain_list);
                 typedef execute_kernel_functor<  derived_t > exec_functor_t;
 
-		//check that the number of placeholders passed to the elementary stencil function
-		//(constructed during the computation) is the same as the number of arguments referenced
-		//in the functor definition (in the high level interface). This means that we cannot
-		// (although in theory we could) pass placeholders to the computation which are not
-		//also referenced in the functor.
-		GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
-					boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value, "GRIDTOOLS ERROR:\n\
+                //check that the number of placeholders passed to the elementary stencil function
+                //(constructed during the computation) is the same as the number of arguments referenced
+                //in the functor definition (in the high level interface). This means that we cannot
+                // (although in theory we could) pass placeholders to the computation which are not
+                //also referenced in the functor.
+                GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
+                                        boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value, "GRIDTOOLS ERROR:\n\
 		check that the number of placeholders passed to the elementary stencil function\n \
-		(constructed during the computation) is the same as the number of arguments referenced\n\
-		in the functor definition (in the high level interface). This means that we cannot\n\
-		 (although in theory we could) pass placeholders to the computation which are not\n\
+		(constructed during the computation) is the same as the number of arguments referenced\n \
+		in the functor definition (in the high level interface). This means that we cannot\n \
+		 (although in theory we could) pass placeholders to the computation which are not\n \
 		also referenced in the functor.");
 
                 exec_functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
@@ -97,7 +97,17 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::at<Ranges, Index>::type range_type;
 
-                typedef pair<typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t, typename boost::mpl::at<Temporaries, Index>::type::index_type> type;
+                typedef pair<
+                    typename StrategyTraits::template get_tmp_storage<BackendID, 
+                                                                      ValueType, 
+                                                                      LayoutType, 
+                                                                      BI, BJ, 
+                                                                      -range_type::iminus::value, 
+                                                                      -range_type::jminus::value, 
+                                                                      range_type::iplus::value, 
+                                                                      range_type::jplus::value>::type, 
+                    typename boost::mpl::at<Temporaries, Index>::type::index_type
+                    > type;
             };
         };
 
@@ -109,9 +119,9 @@ namespace gridtools {
 
 
 
-/** this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case. */
+    /** this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case. */
     template< enumtype::backend BackendType, enumtype::strategy StrategyType >
-    struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >
+    struct backend
     {
         typedef backend_from_id <BackendType> backend_traits_t;
         typedef strategy_from_id <StrategyType> strategy_traits_t;
@@ -126,21 +136,21 @@ namespace gridtools {
 
         template <typename ValueType, typename Layout>
         struct temporary_storage_type
-            {
-                /** temporary storage must have the same iterator type than the regular storage
-                 */
-            private:
-                typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
-            public:
-                typedef typename boost::mpl::if_<typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
-                                       temp_storage_t,
-                                       no_storage_type_yet< temp_storage_t > >::type type;
+        {
+            /** temporary storage must have the same iterator type than the regular storage
+             */
+        private:
+            typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
+        public:
+            typedef typename boost::mpl::if_<typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
+                                             temp_storage_t,
+                                             no_storage_type_yet< temp_storage_t > >::type type;
         };
 
 
-/**
-
- */
+        /**
+           
+         */
         template <typename Domain
                   , typename MssType
                   , typename RangeSizes
@@ -217,35 +227,24 @@ namespace gridtools {
             //wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
 
-/**
-   @brief template arguments container
-   the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
-*/
-            /* struct arguments */
-            /* { */
-            /*     typedef FunctorList functor_list_t; */
-            /*     typedef oriented_loop_intervals_t loop_intervals_t; */
-            /*     typedef FunctorsMap functors_map_t; */
-            /*     typedef range_sizes range_sizes_t; */
-            /*     typedef LocalDomainList domain_list_t; */
-            /*     typedef Coords coords_t; */
-            /*     typedef ExecutionEngine execution_type_t; */
-            /* }; */
-            //Definition of a local struct to be passed as template parameter is a C++11 feature not supported by CUDA for __global__ functions
+            /**
+               @brief template arguments container
+               the only purpose of this struct is to collect template arguments in one single types container, in order to lighten the notation
+            */
+            typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
 
-	    typedef arguments<FunctorList, oriented_loop_intervals_t, FunctorsMap, range_sizes, LocalDomainList, Coords, ExecutionEngine> args;
-
-        typedef typename backend_traits_t::template execute_traits< args >::backend_t backend_t;
-        strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
+            typedef typename backend_traits_t::template execute_traits< args >::backend_t backend_t;
+            strategy_from_id< s_strategy_id >::template loop< backend_t >::run_loop(local_domain_list, coords);
         }
 
 
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
-            {
-                _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::prepare_temporaries(/*std::forward<ArgList&>*/(arg_list), /*std::forward<Coords const&>*/(coords));
-            }
-    };
+        {
+            _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::
+                prepare_temporaries((arg_list), (coords));
+        }
+    }; // struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >...{
 
 
 } // namespace gridtools
