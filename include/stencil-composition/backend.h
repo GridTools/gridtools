@@ -89,11 +89,11 @@ namespace gridtools {
     struct get_storage_type {
         template <typename MapElem>
         struct apply {
-            typedef typename boost::mpl::second<MapElem>::type range_type;
-            typedef typename boost::mpl::first<MapElem>::type temporary;
+            typedef typename boost::mpl::second<MapElem>::type range_type_t;
+            typedef typename boost::mpl::first<MapElem>::type temporary_t;
             typedef pair<
-                    typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type::iminus::value, -range_type::jminus::value, range_type::iplus::value, range_type::jplus::value>::host_storage_t,
-                    typename temporary::index_type
+                    typename StrategyTraits::template tmp<BackendID, ValueType, LayoutType, BI, BJ, -range_type_t::iminus::value, -range_type_t::jminus::value, range_type_t::iplus::value, range_type_t::jplus::value>::host_storage_t,
+                    typename temporary_t::index_type
             > type;
         };
     };
@@ -132,6 +132,13 @@ namespace gridtools {
                                        no_storage_type_yet< temp_storage_t > >::type type;
         };
 
+        template<typename T> struct printk{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYY, (T));};
+
+        /**
+         * @brief it generates a map of temporaries and their associate range
+         * @tparam Domain domain that contains the placeholders
+         * @tparam MssType mss descriptor type
+         */
         template <typename Domain
                   , typename MssType>
         struct obtain_map_ranges_temporaries_mss
@@ -156,29 +163,39 @@ namespace gridtools {
             >::type type;
         };
 
+
         /**
          * @brief metafunction that merges to maps of <temporary, ij range>
-         * @tparam range_map1 first map to merge
-         * @tparam range_map2 second map to merge
+         * @tparam RangeMap1 first map to merge
+         * @tparam RangeMap2 second map to merge
           */
-        template<typename range_map1, typename range_map2>
+        template<typename RangeMap1, typename RangeMap2>
         struct merge_range_temporary_maps
         {
+            template<typename Map, typename Pair>
+            struct compute_union_and_insert
+            {
+                typedef typename boost::mpl::first<Pair>::type key_t;
+                BOOST_STATIC_ASSERT((boost::mpl::has_key<Map, key_t>::value));
+                typedef typename boost::mpl::at<Map, key_t>::type OrigPair;
+                typedef typename boost::mpl::insert<
+                    typename boost::mpl::erase_key<Map, key_t>::type,
+                    boost::mpl::pair<
+                        key_t,
+                        typename union_ranges<
+                            typename boost::mpl::second<Pair>::type,
+                            OrigPair
+                        >::type
+                    >
+                >::type type;
+            };
+
             typedef typename boost::mpl::fold<
-                range_map1,
-                range_map2,
+                RangeMap1,
+                RangeMap2,
                 boost::mpl::if_<
-                    boost::mpl::has_key<range_map2, boost::mpl::first<boost::mpl::_2> >,
-                    boost::mpl::insert<
-                        boost::mpl::_1,
-                        boost::mpl::pair<
-                            boost::mpl::first<boost::mpl::_2>,
-                            union_ranges<
-                                boost::mpl::second<boost::mpl::_2>,
-                                boost::mpl::at<range_map2, boost::mpl::first<boost::mpl::_2> >
-                            >
-                        >
-                    >,
+                    boost::mpl::has_key<RangeMap2, boost::mpl::first<boost::mpl::_2> >,
+                    compute_union_and_insert<boost::mpl::_1, boost::mpl::_2>,
                     boost::mpl::insert<
                         boost::mpl::_1,
                         boost::mpl::_2

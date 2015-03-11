@@ -107,7 +107,7 @@ namespace gridtools {
             (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,
             (Range1::iplus::value > Range2::iplus::value) ? Range1::iplus::value : Range2::iplus::value,
             (Range1::jminus::value < Range2::jminus::value) ? Range1::jminus::value : Range2::jminus::value,
-            (Range1::jplus::value < Range2::jplus::value) ? Range1::jplus::value : Range2::jplus::value
+            (Range1::jplus::value > Range2::jplus::value) ? Range1::jplus::value : Range2::jplus::value
         > type;
     };
 
