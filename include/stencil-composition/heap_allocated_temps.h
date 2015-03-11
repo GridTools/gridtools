@@ -37,14 +37,39 @@ namespace gridtools {
                 e = new ElemType(m_tile_i,
                                  m_tile_j,
                                  m_tile_k,
-//                                 0, // offset in k is zero for now
                                  typename ElemType::value_type(),
                                  s);
             }
-    };
+
+    template < enumtype::backend Backend
+               , typename ValueType
+               , typename Layout
+               , uint_t TileI
+               , uint_t TileJ
+               , uint_t MinusI
+               , uint_t MinusJ
+               , uint_t PlusI
+               , uint_t PlusJ
+               >
+    void operator()(host_tmp_storage<Backend, ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>*&  e) const {
+        char const* s = "default tmp storage";//avoids a warning
+        typedef host_tmp_storage<Backend, ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> ElemType;
+        //ElemType::info_string.c_str();
+        
+        //calls the constructor of the storage
+        //TODO noone deletes this new
+        e = new ElemType(m_tile_i,
+                         m_tile_j,
+                         m_tile_k,
+                         1,1,
+                         typename ElemType::value_type(),
+                         s);
+    }
+        };
 
 
         // noone calls this!!!
+        // I know! we should try to put this back, I had issues with double frees at some point
         struct delete_tmps {
             template <typename Elem>
             GT_FUNCTION

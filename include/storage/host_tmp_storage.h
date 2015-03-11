@@ -6,8 +6,25 @@
 /**
    @file
    @brief This file contains the implementation of a storage used for the 'block' strategy
-   Blocking is a technique allowing to tune the execution in order to efficently exploit cashes. The goal is to reduce the computational and memory consumption due to the presence of temporary intermediate fields, which are computed only as an intermediate result to be used in the nect computation. The idea is the following: instead of looping over the whole domain, proceed blockwise, decomposing the domain in tiles. For each tiles we perform all the stages of the stencil. This allows us to store the intermediate temporary fields in a storage which only has the dimension of the tile, and not of the whole domain. Furthermore the tiles can be defined small enough to fit into caches. It is thus required the definition of an extra storage, which contains a subset of the original storage fields.
-   The memory layout and access pattern is thus redefined in this class, where a 'local' numeration is defined. The data dependency between tiles produces the urge of an 'halo' region, i.e. an overlap between the tiles. The storage access is performed via an index. The usual 1-to-1 relation to pass from the index \f$ID\f$ to the coordinates \f$c1, c2, c3\f$, involving the strides \f$s1 > s2 > 1\f$, is as follows:
+
+   Blocking is a technique allowing to tune the execution in order to efficently 
+   exploit caches. The goal is to reduce the computational and memory consumption 
+   due to the presence of temporary intermediate fields, which are computed only 
+   as an intermediate result to be used in the nect computation. The idea is the 
+   following: instead of looping over the whole domain, proceed blockwise, decomposing 
+   the domain in tiles. For each tiles we perform all the stages of the stencil. 
+
+   This allows us to store the intermediate temporary fields in a storage which only 
+   has the dimension of the tile, and not of the whole domain. Furthermore the tiles 
+   can be defined small enough to fit into caches. It is thus required the definition 
+   of an extra storage, which contains a subset of the original storage fields.
+
+   The memory layout and access pattern is thus redefined in this class, where a 
+   'local' numeration is defined. The data dependency between tiles produces the 
+   urge of an 'halo' region, i.e. an overlap between the tiles. The storage access 
+   is performed via an index. The usual 1-to-1 relation to pass from the index 
+   \f$ID\f$ to the coordinates \f$c1, c2, c3\f$, involving the strides 
+   \f$s1 > s2 > 1\f$, is as follows:
 
    \f[ID= c1*s1+c2*s2+c3\f]
 
@@ -19,8 +36,10 @@
 
    \f[c1=\frac{ID-c2-c3}{s1}\f]
 
-   where the \f$\%\f$ operator defines the integer remain of the division.
-   This can be extended to higher dimensions and can be rewritten as a recurrency formula (implemented via recursion).
+   where the \f$\%\f$ operator defines the integer remainder of the division.
+
+   This can be extended to higher dimensions and can be rewritten as a
+   recurrency formula (implemented via recursion).
 */
 
 namespace gridtools {
@@ -78,13 +97,25 @@ namespace gridtools {
         uint_t m_halo[3];
         uint_t m_initial_offsets[3];
 
+        /**
+           constructor of the temporary storage.
+
+           \param initial_offset_i
+           \param initial_offset_j
+           \param dim3
+           \param \optional n_i_threads (Default 1)
+           \param \optional n_j_threasd (Default 1)
+           \param \optional init (Default value_type())
+           \param \optional s (Default "default_name")
+         */
         explicit host_tmp_storage(uint_t initial_offset_i,
                                   uint_t initial_offset_j,
                                   uint_t dim3,
-                                  //int initial_offset_k=0,
+                                  uint_t n_i_threads=1,
+                                  uint_t n_j_threads=1,
                                   value_type init = value_type(),
                                   char const* s = "default name" )
-            : base_type(TileI+MinusI+PlusI,TileJ+MinusJ+PlusJ, dim3, init, s)
+            : base_type((TileI+MinusI+PlusI)*n_i_threads,(TileJ+MinusJ+PlusJ)*n_j_threads, dim3, init, s)
         {
             m_halo[0]=MinusI;
             m_halo[1]=MinusJ;
@@ -123,7 +154,7 @@ namespace gridtools {
 
         /** @brief increment in the horizontal direction (i or j). 
             This method updates the storage index, so that an increment 
-            of 'dimension' is obtained in the 'Coordinate' direction.
+            of 'steps' is obtained in the 'Coordinate' direction.
 
             The formula for incrementing the indices is the following:
 
@@ -143,12 +174,12 @@ namespace gridtools {
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t dimension, uint_t b, uint_t* index){
+        void increment(uint_t steps, uint_t b, uint_t* index){
             // no blocking along k
             if(Coordinate != 2)
                 {
                     uint_t tile=Coordinate==0?TileI:TileJ;
-                    uint_t var=dimension - b * tile;
+                    uint_t var=steps - b * tile;
 
                     uint_t coor=var-
                         m_initial_offsets[layout::template at_<Coordinate>::value] 
@@ -159,7 +190,7 @@ namespace gridtools {
                 }
             else
                 {
-                    base_type::template increment<Coordinate>( dimension, b, index);
+                    base_type::template increment<Coordinate>( steps, b, index);
                 }
         }
 
@@ -167,10 +198,10 @@ namespace gridtools {
            TODO avoid code repetition*/
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t& dimension, uint_t& b, uint_t* index){
+        void decrement(uint_t& steps, uint_t& b, uint_t* index){
 
             uint_t tile=Coordinate==0?TileI:TileJ;
-            uint_t var=dimension - b * tile;
+            uint_t var=steps - b * tile;
             BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
             uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template find<Coordinate>::value];
             *index -= coor*m_strides[layout::template at_<Coordinate>+1];
