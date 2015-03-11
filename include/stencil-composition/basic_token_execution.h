@@ -58,7 +58,7 @@ namespace gridtools {
 		if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
 		  typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
 
-		uint_t from=m_coords.template value_at<from_t>();
+                  uint_t from=m_coords.template value_at<from_t>();
 		  //m_coords.template value_at<typename iteration_policy::from>();
                     uint_t to=m_coords.template value_at<to_t>();
                     /* uint_t to=m_coords.template value_at<typename iteration_policy::to>(); */

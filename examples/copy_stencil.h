@@ -38,6 +38,9 @@ namespace copy_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
+        typedef range<0,0,0,0> xrange;
+        typedef range<0,0,0,0> xrange_subdomain;
+
 #ifdef CXX11_ENABLED
         typedef arg_type<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
@@ -99,11 +102,13 @@ namespace copy_stencil{
         //vector field of dimension 2
         typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
 #else
+#ifdef CXX11_ENABLED
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
         typedef extend_width<base_type1, 0>  extended_type;
         typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
+#endif
 #endif
         //out.print();
 
@@ -263,7 +268,7 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
-
+        printf("dimensions are: %d, %d, %d\n", d1, d2, d3);
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)

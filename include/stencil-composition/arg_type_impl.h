@@ -61,6 +61,7 @@ namespace gridtools {
 
     template<ushort_t ID>
     struct initialize_all{
+        GT_FUNCTION
         template <typename ... X>
         static void apply(int_t* offset, X ... x)
             {
@@ -71,6 +72,7 @@ namespace gridtools {
 
     template<>
     struct initialize_all<0>{
+        GT_FUNCTION
         template <typename ... X>
         static void apply(int_t* offset, X ... x)
             {
@@ -102,6 +104,19 @@ namespace gridtools {
     constexpr int_t initialize(X x, Y y, Z z)
     {
         return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
+    }
+
+    /**@brief method for initializing the offsets in the placeholder
+       Version valid for three dimension
+       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
+       \param y is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (y.value) and the dimension index (Y::direction)
+       \param z is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (z.value) and the dimension index (Z::direction)
+    */
+    template <ushort_t N, typename X, typename Y, typename Z, typename T>
+    GT_FUNCTION
+    constexpr int_t initialize(X x, Y y, Z z, T t)
+    {
+        return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : T::direction==N? t.value : 0;
     }
 #endif
 
@@ -153,6 +168,12 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the arg_decorator constructor exceeds the number of space dimensions of the storage")
             }
 #else
+        template <typename X, typename Y, typename Z,  typename T>
+        GT_FUNCTION
+        constexpr arg_type_base ( X x, Y y, Z z, T t )
+            {
+            }
+
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
         constexpr arg_type_base ( X x, Y y, Z z )
@@ -330,6 +351,17 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         GT_FUNCTION
         arg_decorator ( int const& i): m_offset(i) {
         }
+
+        /**@brief constructor taking the Dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+           language keyword used at the interface level.
+        */
+        template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
+        GT_FUNCTION
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<n_args>(t, u, v, h))
+            {
+                //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
+            }
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a

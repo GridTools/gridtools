@@ -98,8 +98,8 @@ namespace gridtools{
                \param indices the array of coordinates
             */template<typename IntType>
             GT_FUNCTION
-	    static int_t apply(uint_t const* strides, IntType* indices){
-		return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
+	    static int_t apply(uint_t const* strides_, IntType* indices_){
+		return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
 	    }
 
 #ifdef CXX11_ENABLED
@@ -109,8 +109,8 @@ namespace gridtools{
             */
             template<typename ... UInt>
             GT_FUNCTION
-            static int_t apply(uint_t const* strides, UInt const& ... indices){
-                return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices...)+compute_offset<Id-1, Layout>::apply(strides, indices... );
+            static int_t apply(uint_t const* strides_, UInt const& ... indices_){
+                return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)+compute_offset<Id-1, Layout>::apply(strides_, indices_... );
             }
 #endif
             /**interface with the coordinates as a tuple
@@ -119,8 +119,8 @@ namespace gridtools{
             */
             template<typename Tuple>
             GT_FUNCTION
-            static int_t apply(uint_t const* strides, Tuple const&  indices){
-                return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
+            static int_t apply(uint_t const* strides_, Tuple const&  indices_){
+                return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 
         };
@@ -133,15 +133,15 @@ namespace gridtools{
 
 	    template<typename IntType>
             GT_FUNCTION
-	    static int_t apply(uint_t const* /*strides*/, IntType* indices){
-		return Layout::template find_val<space_dimensions-1, int, 0>(indices);
+	    static int_t apply(uint_t const* /*strides*/, IntType* indices_){
+		return Layout::template find_val<space_dimensions-1, int, 0>(indices_);
 	    }
 
 #ifdef CXX11_ENABLED
             template<typename ... IntType>
             GT_FUNCTION
-            static int_t apply(uint_t const* /*strides*/, IntType const& ... indices){
-                return Layout::template find_val<space_dimensions-1, int, 0>(indices ...);
+            static int_t apply(uint_t const* /*strides*/, IntType const& ... indices_){
+                return Layout::template find_val<space_dimensions-1, int, 0>(indices_ ...);
             }
 #endif
             /**interface with the coordinates as a tuple
@@ -150,8 +150,8 @@ namespace gridtools{
             */
             template<typename Tuple>
             GT_FUNCTION
-            static int_t apply(uint_t const* strides, Tuple const&  indices){
-                return Layout::template find_val<space_dimensions-1, int, 0>(indices);
+            static int_t apply(uint_t const* /*strides*/, Tuple const&  indices_){
+                return Layout::template find_val<space_dimensions-1, int, 0>(indices_);
             }
 	};
 
