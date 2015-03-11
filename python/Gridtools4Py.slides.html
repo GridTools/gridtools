@@ -1772,6 +1772,18 @@ Populating the interactive namespace from numpy and matplotlib
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="about-gridtools-...">About Gridtools ...</h3>
+</div>
+</div>
+</div></section>
+    </section><section>
+    <section>
+    
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <h3 id="a-copy-stencil-implemented-in-python">A copy stencil implemented in Python</h3>
 </div>
 </div>
@@ -1779,7 +1791,7 @@ Populating the interactive namespace from numpy and matplotlib
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[4]:
+In&nbsp;[1]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -1791,18 +1803,15 @@ In&nbsp;[4]:
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Definition of a simple copy stencil.-</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span> <span class="p">(</span> <span class="p">)</span><span class="o">.</span><span class="n">__init__</span> <span class="p">(</span> <span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">kernel</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_data</span><span class="p">,</span> <span class="n">in_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The entry stage of this stencil.-</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#</span>
-        <span class="c"># iterate over the points, excluding halo ones</span>
+        <span class="c"># iterate over the interior data points</span>
         <span class="c">#</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interior_points</span> <span class="p">(</span><span class="n">out_data</span><span class="p">,</span>
-                                           <span class="n">k_direction</span><span class="o">=</span><span class="s">&quot;forward&quot;</span><span class="p">):</span>
+                                            <span class="n">k_direction</span><span class="o">=</span><span class="s">&quot;forward&quot;</span><span class="p">):</span>
             <span class="n">out_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">in_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
 </pre></div>
 
@@ -1858,14 +1867,14 @@ In&nbsp;[5]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[7]:
+In&nbsp;[6]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="n">copy</span> <span class="o">=</span> <span class="n">Copy</span> <span class="p">(</span> <span class="p">)</span>              <span class="c"># instance of the stencil defined above</span>
 <span class="n">copy</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s">&quot;python&quot;</span>      <span class="c"># will run in Python only mode</span>
 
-<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">copy</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span> <span class="c"># execute it</span>
+<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">n1</span> <span class="o">-</span><span class="n">p3</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">copy</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span> <span class="c"># execute it</span>
 </pre></div>
 
 </div>
@@ -1879,7 +1888,7 @@ In&nbsp;[7]:
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-10 loops, best of 10: 175 ms per loop
+1 loops, best of 10: 178 ms per loop
 
 </pre>
 </div>
@@ -1901,13 +1910,13 @@ In&nbsp;[7]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[8]:
+In&nbsp;[7]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="n">copy</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s">&quot;c++&quot;</span>        <span class="c"># will run using Gridtools in C++</span>
 
-<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">copy</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span> <span class="c"># execute it</span>
+<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">n1</span> <span class="o">-</span><span class="n">p3</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">copy</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span> <span class="c"># execute it</span>
 </pre></div>
 
 </div>
@@ -1921,7 +1930,7 @@ In&nbsp;[8]:
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-1 loops, best of 10: 196 µs per loop
+1 loops, best of 10: 191 µs per loop
 
 </pre>
 </div>
@@ -2212,28 +2221,25 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *out_data_buff,void *in_data_buf
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="another-example-the-laplace-operator">Another example: the Laplace operator</h3>
+<h3 id="example-the-laplace-operator">Example: the Laplace operator</h3>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[9]:
+In&nbsp;[2]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="kn">from</span> <span class="nn">tests.test_stencils</span> <span class="kn">import</span> <span class="n">Laplace</span>
-<span class="kn">from</span> <span class="nn">gridtools</span> <span class="kn">import</span> <span class="n">MultiStageStencil</span><span class="p">,</span> <span class="n">StencilInspector</span>
+<span class="kn">from</span> <span class="nn">gridtools</span> <span class="kn">import</span> <span class="n">MultiStageStencil</span>
 
 
 <span class="k">class</span> <span class="nc">LaplaceStencil</span> <span class="p">(</span><span class="n">MultiStageStencil</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A Laplacian operator, as the one used in COSMO.-</span>
+<span class="sd">    A Laplace operator.-</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span> <span class="p">(</span> <span class="p">)</span><span class="o">.</span><span class="n">__init__</span> <span class="p">(</span> <span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">kernel</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_data</span><span class="p">,</span> <span class="n">in_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Stencil&#39;s entry point.-</span>
@@ -2242,7 +2248,7 @@ In&nbsp;[9]:
         <span class="c"># iterate over the field&#39;s interior points</span>
         <span class="c">#</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interior_points</span> <span class="p">(</span><span class="n">out_data</span><span class="p">,</span>
-                                           <span class="n">halo</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                                           <span class="n">halo</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
                                            <span class="n">k_direction</span><span class="o">=</span><span class="s">&quot;forward&quot;</span><span class="p">):</span>
             <span class="n">out_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">in_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span>
                     <span class="n">in_data</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> <span class="n">in_data</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
@@ -2269,14 +2275,14 @@ In&nbsp;[9]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[10]:
+In&nbsp;[9]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="n">lap</span> <span class="o">=</span> <span class="n">Laplace</span> <span class="p">(</span> <span class="p">)</span>
 <span class="n">lap</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s">&quot;python&quot;</span>
 
-<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">lap</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1</span> <span class="o">-</span><span class="n">p</span> <span class="mi">3</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">lap</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -2290,7 +2296,7 @@ In&nbsp;[10]:
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-1 loops, best of 10: 1.85 s per loop
+1 loops, best of 10: 1.88 s per loop
 
 </pre>
 </div>
@@ -2312,13 +2318,13 @@ In&nbsp;[10]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[11]:
+In&nbsp;[10]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="n">lap</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s">&quot;c++&quot;</span>
 
-<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">lap</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+<span class="o">%</span><span class="k">timeit</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1</span> <span class="o">-</span><span class="n">p</span> <span class="mi">3</span> <span class="o">-</span><span class="n">r</span> <span class="mi">10</span> <span class="n">lap</span><span class="o">.</span><span class="n">run</span> <span class="p">(</span><span class="n">in_data</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">out_data</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -2332,7 +2338,7 @@ In&nbsp;[11]:
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-1 loops, best of 10: 367 µs per loop
+1 loops, best of 10: 337 µs per loop
 
 </pre>
 </div>
@@ -2341,6 +2347,94 @@ In&nbsp;[11]:
 </div>
 </div>
 
+</div></section>
+    </section><section>
+    <section>
+    
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="another-example-a-laplace-of-laplace">Another example: a Laplace of Laplace</h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[2]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">gridtools</span> <span class="kn">import</span> <span class="n">MultiStageStencil</span>
+
+
+<span class="k">class</span> <span class="nc">LaplaceOfLaplace</span> <span class="p">(</span><span class="n">MultiStageStencil</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A stencil that applies the Laplace operator twice, </span>
+<span class="sd">    as the one used in COSMO.-</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">):</span>
+        <span class="nb">super</span> <span class="p">(</span> <span class="p">)</span><span class="o">.</span><span class="n">__init__</span> <span class="p">(</span> <span class="p">)</span>
+        <span class="c">#</span>
+        <span class="c"># a temporary data field</span>
+        <span class="c">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span> <span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">kernel</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_data</span><span class="p">,</span> <span class="n">in_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stencil&#39;s entry point.-</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#</span>
+        <span class="c"># the first stage uses a 2D halo of size 2</span>
+        <span class="c">#</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interior_points</span> <span class="p">(</span><span class="n">out_data</span><span class="p">,</span>
+                                           <span class="n">halo</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+                                           <span class="n">k_direction</span><span class="o">=</span><span class="s">&quot;forward&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">in_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span>
+                                <span class="n">in_data</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
+                                <span class="n">in_data</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
+                                <span class="n">in_data</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
+                                <span class="n">in_data</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="p">)</span>
+        <span class="c">#</span>
+        <span class="c"># the second stage uses a 2D halo of size 1</span>
+        <span class="c">#</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interior_points</span> <span class="p">(</span><span class="n">out_data</span><span class="p">,</span>
+                                           <span class="n">halo</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+                                           <span class="n">k_direction</span><span class="o">=</span><span class="s">&quot;forward&quot;</span><span class="p">):</span>
+            <span class="n">out_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
+                          <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
+                          <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> 
+                          <span class="bp">self</span><span class="o">.</span><span class="n">tmp_field</span><span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div></section>
+    </section><section>
+    <section>
+    
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="roadmap">Roadmap</h3>
+<ul>
+<li>change the offset-indexing syntax</li>
+<li>integrate the CMake and the C++ build infrastructure</li>
+<li>integrate the testing infrastructure on different CSCS systems</li>
+<li>deploy IPython Notebooks with cluster support</li>
+<li>integrate OpenMP and CUDA capabilities</li>
+<li>increase the range of constructs understood by the translator</li>
+<li>provide an mechanism to alter the scheduling of a parallel execution, e.g., Halide</li>
+</ul>
+</div>
+</div>
 </div><div style=display:none>
     
 <div class="cell border-box-sizing text_cell rendered">
