@@ -127,9 +127,11 @@ namespace gridtools {
             private:
                 typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
             public:
-                typedef typename boost::mpl::if_<typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
-                                       temp_storage_t,
-                                       no_storage_type_yet< temp_storage_t > >::type type;
+                typedef typename boost::mpl::if_<
+                    typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
+                    temp_storage_t,
+                    no_storage_type_yet< temp_storage_t >
+                >::type type;
         };
 
         template<typename T> struct printk{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYY, (T));};
@@ -148,13 +150,6 @@ namespace gridtools {
             typedef typename boost::mpl::filter_view<
                 typename Domain::placeholders, boost::mpl::quote1<is_plchldr_to_temp>
             >::type list_of_temporaries;
-//            typedef typename boost::mpl::fold<typename Domain::placeholders,
-//                boost::mpl::vector<>,
-//                boost::mpl::if_<
-//                    is_plchldr_to_temp<boost::mpl::_2>,
-//                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-//                    boost::mpl::_1>
-//            >::type list_of_temporaries;
 
             //vector of written temporaries per functor (vector of vectors)
             typedef typename MssType::written_temps_per_functor written_temps_per_functor;
