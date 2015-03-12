@@ -2,6 +2,7 @@
 
 #include "../storage/host_tmp_storage.h"
 #include "backend_traits.h"
+#include "backend_fwd.h"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
 #include "common/gridtools_runtime.h"
@@ -12,16 +13,15 @@ namespace gridtools {
 
         /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments
             to the constructor depending on the specific strategy */
-        template <typename ArgList, typename Coords,
-                  enumtype::backend BackendType, enumtype::strategy StrategyType>
+        template <typename ArgList, typename Coords, typename BackendType>
         struct prepare_temporaries_functor;
 
         /**
            Specialization for Naive policy
          */
         template <typename ArgList, typename Coords,
-                  enumtype::backend BackendType>
-        struct prepare_temporaries_functor<ArgList, Coords, BackendType, enumtype::strategy::Naive>
+                  enumtype::backend BackendId>
+        struct prepare_temporaries_functor<ArgList, Coords, backend<BackendId, enumtype::strategy::Naive> >
         {
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
@@ -90,9 +90,11 @@ namespace gridtools {
            Specialization for Block policy
          */
         template <typename ArgList, typename Coords,
-                  enumtype::backend BackendType>
-        struct prepare_temporaries_functor<ArgList, Coords, BackendType, enumtype::strategy::Block>
+                  enumtype::backend BackendId>
+        struct prepare_temporaries_functor<ArgList, Coords, backend<BackendId, enumtype::strategy::Block> >
         {
+
+            typedef backend<BackendId, enumtype::strategy::Block> backend_type;
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
             */
@@ -120,7 +122,8 @@ namespace gridtools {
                     e = new ElemType(m_tile_i,
                                      m_tile_j,
                                      m_tile_k,
-                                     n_threads(),1,
+                                     backend_type::n_i_threads(),
+                                     backend_type::n_j_threads(),
                                      typename ElemType::value_type(),
                                      s);
                 }
