@@ -9,7 +9,6 @@
 
 #include <gridtools.h>
 #include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 
 #include "gtest/gtest.h"
 
