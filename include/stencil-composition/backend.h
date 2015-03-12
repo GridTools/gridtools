@@ -125,6 +125,7 @@ namespace gridtools {
     {
         typedef backend_from_id <BackendType> backend_traits_t;
         typedef strategy_from_id <StrategyType> strategy_traits_t;
+        typedef backend<BackendType, StrategyType> this_type;
         static const enumtype::strategy s_strategy_id=StrategyType;
         static const enumtype::backend s_backend_id =BackendType;
 
@@ -225,7 +226,10 @@ namespace gridtools {
                   > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, LocalDomainList &local_domain_list) {// TODO: I would swap the arguments coords and local_domain_list here, for consistency
             //wrapping all the template arguments in a single container
-            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
+            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, 
+                LoopIntervals, 
+                typename boost::mpl::reverse<LoopIntervals>::type >::type 
+            oriented_loop_intervals_t;
 
             /**
                @brief template arguments container
@@ -241,9 +245,35 @@ namespace gridtools {
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
         {
-            _impl::template prepare_temporaries_functor<ArgList, Coords, s_backend_id, s_strategy_id>::
+            _impl::template prepare_temporaries_functor<ArgList, Coords, this_type>::
                 prepare_temporaries((arg_list), (coords));
         }
+
+        /** Initial interface
+
+            Threads are oganized in a 2D grid. These two functions 
+            n_i_threads() and n_j_threasd() retrieve the
+            information about the sizes of this grid.
+
+            n_i_threads() number of threads on the first dimension of the thread grid
+        */
+        static uint_t n_i_threads() {
+            return 1;
+        }
+
+        /** Initial interface
+
+            Threads are oganized in a 2D grid. These two functions 
+            n_i_threads() and n_j_threasd() retrieve the
+            information about the sizes of this grid.
+
+            n_j_threads() number of threads on the second dimension of the thread grid
+        */
+        static uint_t n_j_threads() {
+            return 1;
+        }
+
+
     }; // struct backend {
 
 
