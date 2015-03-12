@@ -19,7 +19,6 @@
 
 using namespace gridtools;
 
-template<typename T> struct printz{BOOST_MPL_ASSERT_MSG((false), ZZZZZZZZZZZZZZZ, (T));};
 TEST(test_backend, merge_range_temporary_maps) {
 
     using namespace gridtools;
