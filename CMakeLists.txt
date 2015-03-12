@@ -6,7 +6,7 @@ enable_language( CXX )
 
 
 ## enable to use ctest:
-enable_testing()
+## enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 if(GNU_COVERAGE)
@@ -78,7 +78,7 @@ if( USE_GPU )
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
-  set(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
+  #set(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
   set(exe_LIBS "${CUDA_CUDART_LIBRARY}" "${exe_LIBS}" )
 ## #   message("exelibs ${exe_LIBS}")
 ## # message("${CUDA_INCLUDE_DIRS}")
