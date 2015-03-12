@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../storage/host_tmp_storage.h"
-#include "backend_traits.h"
+//#include "backend_traits_fwd.h"
 #include "backend_fwd.h"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>

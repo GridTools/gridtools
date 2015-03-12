@@ -4,7 +4,13 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
 
-#include "backend_traits.h"
+#include "backend_traits_fwd.h"
+#ifdef __CUDACC__
+#include <stencil-composition/backend_cuda/backend_cuda.h>
+#else
+#include <stencil-composition/backend_host/backend_host.h>
+#endif
+
 #include "../common/pair.h"
 #include "heap_allocated_temps.h"
 #include "arg_type.h"
@@ -18,74 +24,7 @@
 */
 
 namespace gridtools {
-
     namespace _impl {
-
-/**
-   \brief "base" struct for all the backend
-   This class implements static polimorphism by means of the CRTP pattern. It contains all what is common for all the backends.
-*/
-        template < typename Derived >
-	    struct run_functor {
-
-            typedef Derived derived_t;
-            typedef run_functor_traits<Derived> derived_traits_t;
-
-            typename derived_traits_t::domain_list_t & m_domain_list;
-            typename derived_traits_t::coords_t const & m_coords;
-            const uint_t m_starti, m_startj, m_BI, m_BJ, blk_idx_i, blk_idx_j;
-
-            // Block strategy
-            explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blk_idx_i, uint_t blk_idx_j)
-                : m_domain_list(dom_list)
-                , m_coords(coords)
-                , m_starti(i)
-                , m_startj(j)
-                , m_BI(bi)
-                , m_BJ(bj)
-                , blk_idx_i(blk_idx_i)
-                , blk_idx_j(blk_idx_j)
-            {}
-
-            // Naive strategy
-            explicit run_functor(typename derived_traits_t::domain_list_t& dom_list, typename derived_traits_t::coords_t const& coords)
-                :
-                m_domain_list(dom_list)
-                , m_coords(coords)
-                , m_starti(coords.i_low_bound())
-                , m_startj(coords.j_low_bound())
-                , m_BI(coords.i_high_bound()-coords.i_low_bound())
-                , m_BJ(coords.j_high_bound()-coords.j_low_bound())
-                , blk_idx_i(0)
-                , blk_idx_j(0)
-            {}
-
-            /**
-             * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
-             */
-            template <typename Index>
-            void operator()(Index const& ) const {
-
-                typename derived_traits_t::template traits<Index>::local_domain_t& local_domain = boost::fusion::at<Index>(m_domain_list);
-                typedef execute_kernel_functor<  derived_t > exec_functor_t;
-
-                //check that the number of placeholders passed to the elementary stencil function
-                //(constructed during the computation) is the same as the number of arguments referenced
-                //in the functor definition (in the high level interface). This means that we cannot
-                // (although in theory we could) pass placeholders to the computation which are not
-                //also referenced in the functor.
-                GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
-                                        boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value, "GRIDTOOLS ERROR:\n\
-		check that the number of placeholders passed to the elementary stencil function\n \
-		(constructed during the computation) is the same as the number of arguments referenced\n \
-		in the functor definition (in the high level interface). This means that we cannot\n \
-		 (although in theory we could) pass placeholders to the computation which are not\n \
-		also referenced in the functor.");
-
-                exec_functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
-
-            }
-        };
 
         /**
            \brief defines a method which associates an host_tmp_storage, whose range depends on an index, to the element in the Temporaries vector at that index position.
@@ -117,6 +56,68 @@ namespace gridtools {
         {};
     }//namespace _impl
 
+
+	/** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
+	template<typename FunctorList, typename LoopIntervals, typename FunctorsMap, typename RangeSizes, typename LocalDomainList, typename Coords, typename ExecutionEngine>
+    struct arguments
+    {
+        typedef FunctorList functor_list_t;
+        typedef LoopIntervals loop_intervals_t;
+        typedef FunctorsMap functors_map_t;
+        typedef RangeSizes range_sizes_t;
+        typedef LocalDomainList domain_list_t;
+        typedef Coords coords_t;
+        typedef ExecutionEngine execution_type_t;
+    };
+
+    /**
+       @brief traits struct for the run_functor
+       Specialization for all backend classes.
+
+       This struct defines a type for all the template arguments in
+       the run_functor subclasses. It is required because in the
+       run_functor class definition the 'Derived' template argument is
+       an incomplete type (ans thus we can not access its template
+       arguments).  This struct also contains all the type definitions
+       common to all backends.
+    */
+    template <
+        typename Arguments,
+        template < typename Argument > class Back
+        >
+    struct run_functor_traits< Back< Arguments > >
+    {
+        typedef Arguments arguments_t;
+        typedef typename Arguments::functor_list_t functor_list_t;
+        typedef typename Arguments::loop_intervals_t loop_intervals_t;
+        typedef typename Arguments::functors_map_t functors_map_t;
+        typedef typename Arguments::range_sizes_t range_sizes_t;
+        typedef typename Arguments::domain_list_t domain_list_t;
+        typedef typename Arguments::coords_t coords_t;
+        typedef Back<Arguments> backend_t;
+
+        /**
+           @brief traits class to be used inside the functor 
+           \ref gridtools::_impl::execute_kernel_functor, which dependson an Index type.
+        */
+        template <typename Index>
+        struct traits{
+            typedef typename boost::mpl::at<range_sizes_t, Index>::type range_t;
+            typedef typename boost::mpl::at<functor_list_t, Index>::type functor_t;
+            typedef typename boost::fusion::result_of::value_at<domain_list_t, Index>::type local_domain_t;
+            typedef typename boost::mpl::at<functors_map_t, Index>::type interval_map_t;
+            typedef typename index_to_level<
+                typename boost::mpl::deref<
+                    typename boost::mpl::find_if<
+                        loop_intervals_t,
+                        boost::mpl::has_key<interval_map_t, boost::mpl::_1>
+                        >::type
+                    >::type::first
+                >::type first_hit_t;
+
+            typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
+        };
+    };
 
 
     /** this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case. */

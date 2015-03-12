@@ -5,12 +5,13 @@
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/find_if.hpp>
 
-#include "../storage/storage.h"
-#include "execution_policy.h"
-#include "heap_allocated_temps.h"
-#include "backend.h"
+#include "../../storage/storage.h"
+#include "../execution_policy.h"
+#include "../heap_allocated_temps.h"
+#include "../run_kernel.h"
+#include "backend_traits.h"
 
-#include "iteration_policy.h"
+#include "../iteration_policy.h"
 
 /**
    @file
@@ -83,7 +84,7 @@ namespace gridtools {
 
 		    typename iterate_domain_type::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 		    iterate_domain_type it_domain(local_domain);
-		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
+		    it_domain.template assign_storage_pointers<backend_from_id<enumtype::Host> >(data_pointer);
 
                     for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
                          i <= (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;

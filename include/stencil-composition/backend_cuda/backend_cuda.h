@@ -14,11 +14,13 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/value_at.hpp>
 
-#include "execution_policy.h"
-#include "heap_allocated_temps.h"
-#include "../storage/hybrid_pointer.h"
+#include "../execution_policy.h"
+#include "../heap_allocated_temps.h"
+#include "../../storage/hybrid_pointer.h"
+#include "../run_kernel.h"
+#include "backend_traits.h"
+#include "backend_traits_cuda.h"
 
-#include "backend.h"
 /**
  * @file
  * \brief implements the stencil operations for a GPU backend
@@ -26,7 +28,7 @@
 
 namespace gridtools {
 
-/** Kernel function called from the GPU */
+    /** Kernel function called from the GPU */
     namespace _impl_cuda {
 
         template <typename Arguments,
@@ -48,7 +50,7 @@ namespace gridtools {
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
+            it_domain.template assign_storage_pointers<backend_from_id<enumtype::Cuda> >(data_pointer);
             __syncthreads();
 
             if ((i < nx) && (j < ny)) {

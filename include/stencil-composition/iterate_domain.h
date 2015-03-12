@@ -100,28 +100,28 @@ namespace gridtools {
        It enhances the performances, but principle it could be avoided.
        The 'raw' datas are the one or more data fields contained in each storage class
     */
-    template<uint_t Number, uint_t Offset, enumtype::backend Backend>
+    template<uint_t Number, uint_t Offset, typename BackendType>
     struct assign_raw_data{
         static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const* r){
             //l[Number]=r[Number].get();
-            once_per_block<Backend, Id>::assign(l[Number],r[Number].get());
-            assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
+            BackendType::template once_per_block<Id>::assign(l[Number],r[Number].get());
+            assign_raw_data<Number-1, Offset, BackendType>::assign(l, r);
         }
 
     };
 
     /**@brief stopping the recursion*/
-    template<uint_t Offset, enumtype::backend Backend>
-    struct assign_raw_data<0, Offset, Backend>{
+    template<uint_t Offset, typename BackendType>
+    struct assign_raw_data<0, Offset, BackendType>{
         static const uint_t Id=(Offset)%BLOCK_SIZE;
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const* r){
             //l[0]=r[0].get();
-            once_per_block<Backend, Id>::assign(l[0],r[0].get());
+            BackendType:: template once_per_block<Id>::assign(l[0],r[0].get());
         }
     };
 
@@ -209,7 +209,7 @@ namespace gridtools {
 
 
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID, typename LocalArgTypes, enumtype::backend Backend>
+        template<uint_t ID, typename LocalArgTypes, typename BackendType>
             struct assign_storage{
             template<typename Left, typename Right>
             GT_FUNCTION
@@ -227,15 +227,15 @@ namespace gridtools {
                 //if the following fails, the ID is larger than the number of storage types
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value, "the ID is larger than the number of storage types")
                 // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
+                assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, BackendType>::
                     assign(&l[total_storages<LocalArgTypes, ID-1>::count], boost::fusion::at_c<ID>(r)->fields());
-                assign_storage<ID-1, LocalArgTypes, Backend>::assign(l,r); //tail recursion
+                assign_storage<ID-1, LocalArgTypes, BackendType>::assign(l,r); //tail recursion
             }
         };
 
         /**usual specialization to stop the recursion*/
-        template<typename LocalArgTypes, enumtype::backend Backend>
-            struct assign_storage<0, LocalArgTypes, Backend>{
+        template<typename LocalArgTypes, typename BackendType>
+            struct assign_storage<0, LocalArgTypes, BackendType>{
             template<typename Left, typename Right>
             GT_FUNCTION
             static void assign(Left & l, Right & r){
@@ -245,7 +245,7 @@ namespace gridtools {
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
                 // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1, 0, Backend>::
+                assign_raw_data<storage_type::field_dimensions-1, 0, BackendType>::
                     assign(&l[0], boost::fusion::at_c<0>(r)->fields());
             }
         };
@@ -279,11 +279,11 @@ namespace gridtools {
 #endif
         }
 
-        template<enumtype::backend Backend>
+        template<typename BackendType>
         GT_FUNCTION
         void assign_storage_pointers( float_t** data_pointer ){
             m_data_pointer=data_pointer;
-            assign_storage< N_STORAGES-1, local_args_type, Backend >::assign(m_data_pointer, local_domain.local_args);
+            assign_storage< N_STORAGES-1, local_args_type, BackendType >::assign(m_data_pointer, local_domain.local_args);
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
