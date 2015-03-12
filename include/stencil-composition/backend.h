@@ -241,10 +241,10 @@ namespace gridtools {
         template <typename ArgList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
         {
-            _impl::template prepare_temporaries_functor<ArgList, Coords, s_strategy_id>::
+            _impl::template prepare_temporaries_functor<ArgList, Coords, s_backend_id, s_strategy_id>::
                 prepare_temporaries((arg_list), (coords));
         }
-    }; // struct backend: public heap_allocated_temps<backend<BackendType, StrategyType > >...{
+    }; // struct backend {
 
 
 } // namespace gridtools
