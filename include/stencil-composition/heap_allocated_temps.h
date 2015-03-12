@@ -4,6 +4,7 @@
 #include "backend_traits.h"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
+#include "common/gridtools_runtime.h"
 
 namespace gridtools {
     namespace _impl {
@@ -77,9 +78,9 @@ namespace gridtools {
                 view_type fview(arg_list);
 
                 boost::fusion::for_each(fview,
-                                        instantiate_tmps(coords.value_at_top()-coords.value_at_bottom()+1,
-                                                         coords.direction_i().total_length(),
-                                                         coords.direction_j().total_length()));
+                                        instantiate_tmps(coords.direction_i().total_length(),
+                                                         coords.direction_j().total_length(),
+                                                         coords.value_at_top()-coords.value_at_bottom()+1));
 
             }
 
@@ -103,8 +104,7 @@ namespace gridtools {
 
                 GT_FUNCTION
                 instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
-                    :
-                    m_tile_i(tile_i)
+                    : m_tile_i(tile_i)
                     , m_tile_j(tile_j)
                     , m_tile_k(tile_k)
                 {}
@@ -120,7 +120,7 @@ namespace gridtools {
                     e = new ElemType(m_tile_i,
                                      m_tile_j,
                                      m_tile_k,
-                                     1,1,
+                                     n_threads(),1,
                                      typename ElemType::value_type(),
                                      s);
                 }
@@ -151,9 +151,9 @@ namespace gridtools {
                 view_type fview(arg_list);
 
                 boost::fusion::for_each(fview, 
-                                        instantiate_tmps( coords.value_at_top()-coords.value_at_bottom()+1,
-                                                          coords.i_low_bound(),
-                                                          coords.j_low_bound()));
+                                        instantiate_tmps( coords.i_low_bound(),
+                                                          coords.j_low_bound(),
+                                                          coords.value_at_top()-coords.value_at_bottom()+1));
             }
 
         };
