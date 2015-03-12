@@ -56,8 +56,7 @@ namespace gridtools {
        \targ PlusI is the halo dimension in the x direction at the right side
        \targ PlusJ is the halo dimension in the y direction at the top side
     */
-    template < enumtype::backend Backend
-               , typename ValueType
+    template <   typename PointerType
                , typename Layout
                , uint_t TileI
                , uint_t TileJ
@@ -66,20 +65,19 @@ namespace gridtools {
                , uint_t PlusI
                , uint_t PlusJ
                >
-    struct host_tmp_storage : public base_storage<Backend
-                                                  , ValueType
+    struct host_tmp_storage : public base_storage<PointerType
                                                   , Layout
                                                   , true
                                                   >
     {
 
-        typedef base_storage<Backend
-                             , ValueType
+        typedef base_storage<  PointerType
                              , Layout
                              , true> base_type;
 
 
         typedef typename base_type::layout layout;
+        typedef typename base_type::pointer_type pointer_type;
         typedef typename base_type::value_type value_type;
         typedef typename base_type::iterator_type  iterator_type;
         typedef typename base_type::const_iterator_type const_iterator_type;
@@ -209,9 +207,9 @@ namespace gridtools {
     };
 
 
-    template < enumtype::backend Backend, typename ValueType, typename Layout, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ
+    template < typename PointerType, typename Layout, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ
                >
-    const std::string host_tmp_storage<Backend, ValueType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>
+    const std::string host_tmp_storage<PointerType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>
     ::info_string=boost::lexical_cast<std::string>(minusi::value)+
                                                  boost::lexical_cast<std::string>(minusj::value)+
                                                  boost::lexical_cast<std::string>(plusi::value)+
@@ -219,8 +217,7 @@ namespace gridtools {
 
     //################# below there are template specializations #########################
 
-    template <enumtype::backend Backend,
-              typename ValueType
+    template < typename PointerType
               , typename Layout
               , uint_t TileI
               , uint_t TileJ
@@ -231,8 +228,7 @@ namespace gridtools {
               >
     std::ostream& operator<<(std::ostream& s,
                              host_tmp_storage<
-                             Backend
-                             , ValueType
+                               PointerType
                              , Layout
                              , TileI
                              , TileJ
@@ -251,8 +247,7 @@ namespace gridtools {
     }
 
 
-    template <enumtype::backend Backend
-              , typename ValueType
+    template <  typename PointerType
               , typename Layout
               , uint_t TileI
               , uint_t TileJ
@@ -262,8 +257,7 @@ namespace gridtools {
               , uint_t PlusJ
               >
     struct is_storage<host_tmp_storage<
-                          Backend
-                          , ValueType
+                            PointerType
                           , Layout
                           , TileI
                           , TileJ
@@ -276,8 +270,7 @@ namespace gridtools {
     {};
 
 
-    template <enumtype::backend Backend
-              , typename ValueType
+    template <  typename PointerType
               , typename Layout
               , uint_t TileI
               , uint_t TileJ
@@ -287,8 +280,7 @@ namespace gridtools {
               , uint_t PlusJ
               >
     struct is_temporary_storage<host_tmp_storage<
-                                    Backend
-                                    , ValueType
+                                      PointerType
                                     , Layout
                                     , TileI
                                     , TileJ
@@ -300,19 +292,17 @@ namespace gridtools {
     : boost::true_type
     {};
 
-template <enumtype::backend Backend
-          , typename ValueType
-          , typename Layout
-          , uint_t TileI
-          , uint_t TileJ
-          , uint_t MinusI
-          , uint_t MinusJ
-          , uint_t PlusI
-          , uint_t PlusJ
-          >
+    template <  typename PointerType
+              , typename Layout
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
+              >
 struct is_temporary_storage<host_tmp_storage<
-                                Backend,
-                                ValueType
+                                  PointerType
                                 , Layout
                                 , TileI
                                 , TileJ
@@ -324,8 +314,7 @@ struct is_temporary_storage<host_tmp_storage<
 : boost::true_type
 {};
 
-template <enumtype::backend Backend
-          , typename ValueType
+template <  typename PointerType
           , typename Layout
           , uint_t TileI
           , uint_t TileJ
@@ -335,8 +324,7 @@ template <enumtype::backend Backend
           , uint_t PlusJ
           >
 struct is_temporary_storage<host_tmp_storage<
-                                Backend
-                                , ValueType
+                                  PointerType
                                 , Layout
                                 , TileI
                                 , TileJ
@@ -348,8 +336,7 @@ struct is_temporary_storage<host_tmp_storage<
 : boost::true_type
 {};
 
-template <enumtype::backend Backend
-          , typename ValueType
+template <  typename PointerType
           , typename Layout
           , uint_t TileI
           , uint_t TileJ
@@ -359,8 +346,7 @@ template <enumtype::backend Backend
           , uint_t PlusJ
           >
 struct is_temporary_storage<host_tmp_storage<
-                                Backend
-                                , ValueType
+                                  PointerType
                                 , Layout
                                 , TileI
                                 , TileJ

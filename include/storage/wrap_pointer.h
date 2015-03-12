@@ -31,7 +31,8 @@ namespace gridtools {
 
 template <typename T>
 struct wrap_pointer{
-        typedef T pointee_t;
+    // TODO: turn into value_type?
+    typedef T pointee_t;
 
     //default constructor
     GT_FUNCTION
