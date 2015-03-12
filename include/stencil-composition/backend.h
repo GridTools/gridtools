@@ -145,13 +145,16 @@ namespace gridtools {
         {
             typedef typename MssType::range_sizes RangeSizes;
             //full list of temporaries in list of place holders of domain
-            typedef typename boost::mpl::fold<typename Domain::placeholders,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    is_plchldr_to_temp<boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-                    boost::mpl::_1>
+            typedef typename boost::mpl::filter_view<
+                typename Domain::placeholders, boost::mpl::quote1<is_plchldr_to_temp>
             >::type list_of_temporaries;
+//            typedef typename boost::mpl::fold<typename Domain::placeholders,
+//                boost::mpl::vector<>,
+//                boost::mpl::if_<
+//                    is_plchldr_to_temp<boost::mpl::_2>,
+//                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
+//                    boost::mpl::_1>
+//            >::type list_of_temporaries;
 
             //vector of written temporaries per functor (vector of vectors)
             typedef typename MssType::written_temps_per_functor written_temps_per_functor;
