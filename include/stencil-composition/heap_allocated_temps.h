@@ -9,41 +9,6 @@ namespace gridtools {
     namespace _impl {
 
 
-        namespace{
-            using namespace enumtype;
-            template< strategy Str >
-                struct policy;
-        }
-
-        namespace{
-            /**Policy for the \ref gridtools::domain_type constructor arguments. When the Block strategy
-               is chosen the arguments value_i and value_j represent an offset index in the i and j dimensions. */
-            template<>
-                struct policy<Block>
-            {
-                template <typename Coords>
-                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom()+1;}
-                template <typename Coords>
-                static uint_t value_i(Coords& coords){ return coords.i_low_bound();}
-                template <typename Coords>
-                static uint_t value_j(Coords& coords){ return coords.j_low_bound();}
-            };
-
-            /**Policy for the \ref gridtools::domain_type constructor arguments. When the Naive strategy
-               is chosen the arguments value_i and value_j represent the total number of indices in the i and j directions. */
-            template<>
-                struct policy<Naive>
-            {
-                template <typename Coords>
-                static uint_t value_k(Coords& coords){ return coords.value_at_top()-coords.value_at_bottom()+1;}
-                template <typename Coords>
-                static uint_t value_i(Coords& coords){ return coords.direction_i().total_length();}
-                template <typename Coords>
-                static uint_t value_j(Coords& coords){ return coords.direction_j().total_length();}
-            };
-
-        }
-
         /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments
             to the constructor depending on the specific strategy */
         template <typename ArgList, typename Coords,
@@ -55,7 +20,7 @@ namespace gridtools {
          */
         template <typename ArgList, typename Coords,
                   enumtype::backend BackendType>
-        struct prepare_temporaries_functor<ArgList, Coords, BackendType, Naive>
+        struct prepare_temporaries_functor<ArgList, Coords, BackendType, enumtype::strategy::Naive>
         {
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
@@ -125,7 +90,7 @@ namespace gridtools {
          */
         template <typename ArgList, typename Coords,
                   enumtype::backend BackendType>
-        struct prepare_temporaries_functor<ArgList, Coords, BackendType, Block>
+        struct prepare_temporaries_functor<ArgList, Coords, BackendType, enumtype::strategy::Block>
         {
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
