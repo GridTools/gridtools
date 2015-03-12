@@ -10,6 +10,7 @@
 
 #include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include "verifier.h"
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
@@ -76,6 +77,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
   int collector_execute = pw_new_collector("Execute");
 #endif
 
+    const int halo_size = 2;
     uint_t d1 = x;
     uint_t d2 = y;
     uint_t d3 = z;
@@ -160,8 +162,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    uint_t di[5] = {0, 0, 0, d1, d1};
-    uint_t dj[5] = {0, 0, 0, d2, d2};
+    uint_t di[5] = {halo_size, halo_size, halo_size, d1, d1};
+    uint_t dj[5] = {halo_size, halo_size, halo_size, d2, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
@@ -279,6 +281,17 @@ PAPI_stop(event_set, values);
     out.print_value(NX,NY,NZ);
     return  out(0,0,0)==0. && out(NX,NY,0)==NX+NY && out(NX,0,NZ)==NX+NZ && out(0,NY,NZ)==NY+NZ && out(NX,NY,NZ)==NX+NY+NZ;
 #endif
+
+#ifdef CXX11_ENABLED
+    in.get<0,0>(0,0,0);
+    verifier verif(1e-8, halo_size, in.dims<0>(), in.dims<1>(), in.dims<2>());
+    verif.template verify<0,0,1,0>(in, in);
+#else
+    verifier verif(1e-8, halo_size, in.template dims<0>(), in.template dims<1>(), in.template dims<2>());
+
+    verif.verify(in, out);
+#endif
+
 
 }
 

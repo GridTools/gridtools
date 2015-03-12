@@ -710,7 +710,10 @@ namespace gridtools {
 		/**@brief pushes a given data field at the front of the buffer for a specific dimension
 		   \param field the pointer to the input data field
            \tparam dimension specifies which field dimension we want to access
+
         */
+        template<typename T> struct printj {BOOST_MPL_ASSERT_MSG((false), TTTTTTTTTTTTTT, (T));};
+
 		template<uint_t dimension=1>
 		GT_FUNCTION
 		void push_front( pointer_type& field ){//copy constructor
@@ -728,7 +731,9 @@ namespace gridtools {
 		template<uint_t dimension=1>
 		GT_FUNCTION
 		void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
-            for (uint_t i=0; i<super::size(); ++i)
+            //printj<pointer_type> ol;
+
+		    for (uint_t i=0; i<super::size(); ++i)
                 field[i]=value;
             push_front<dimension>(field);
         }
@@ -777,6 +782,13 @@ namespace gridtools {
                         (field)[super::_index(i,j,k)]=lambda(i, j, k);
             set<field_dim, snapshot>(field);
 		}
+
+
+        template<short_t field_dim=0, short_t snapshot=0>
+        pointer_type& get(const int i, const int j, const int k)
+        {
+            get<field_dim, snapshot>()[super::_index(i,j,k)];
+        }
 
 
         /**@biref gets the given storage as the nth snapshot of a specific field dimension
