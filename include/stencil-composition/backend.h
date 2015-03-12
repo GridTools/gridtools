@@ -178,7 +178,7 @@ namespace gridtools {
                 typedef typename boost::mpl::first<Pair>::type key_t;
                 BOOST_STATIC_ASSERT((boost::mpl::has_key<Map, key_t>::value));
                 typedef typename boost::mpl::at<Map, key_t>::type OrigPair;
-                typedef typename boost::mpl::insert<
+                typedef boost::mpl::insert<
                     typename boost::mpl::erase_key<Map, key_t>::type,
                     boost::mpl::pair<
                         key_t,
@@ -187,19 +187,23 @@ namespace gridtools {
                             OrigPair
                         >::type
                     >
-                >::type type;
+                > type;
+            };
+
+            template<typename Map, typename Pair>
+            struct lazy_insert_in_map
+            {
+                BOOST_STATIC_ASSERT((!boost::mpl::has_key<Map, typename boost::mpl::first<Pair>::type>::value));
+                typedef boost::mpl::insert<Map, Pair> type;
             };
 
             typedef typename boost::mpl::fold<
                 RangeMap1,
                 RangeMap2,
-                boost::mpl::if_<
+                boost::mpl::eval_if<
                     boost::mpl::has_key<RangeMap2, boost::mpl::first<boost::mpl::_2> >,
                     compute_union_and_insert<boost::mpl::_1, boost::mpl::_2>,
-                    boost::mpl::insert<
-                        boost::mpl::_1,
-                        boost::mpl::_2
-                    >
+                    lazy_insert_in_map<boost::mpl::_1, boost::mpl::_2>
                 >
             >::type type;
         };
