@@ -20,3 +20,7 @@
 #include "stencil-composition/computation.h"
 #include "stencil-composition/intermediate.h"
 #include "stencil-composition/make_computation.h"
+
+namespace gridtools {
+    int n_threads();
+};

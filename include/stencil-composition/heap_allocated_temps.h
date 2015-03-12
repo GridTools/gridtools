@@ -112,9 +112,9 @@ namespace gridtools {
                 view_type fview(arg_list);
 
                 boost::fusion::for_each(fview,
-                                        instantiate_tmps( policy<Naive>::value_i(coords),
-                                                          policy<Naive>::value_j(coords),
-                                                          policy<Naive>::value_k(coords)));
+                                        instantiate_tmps(coords.value_at_top()-coords.value_at_bottom()+1,
+                                                         coords.direction_i().total_length(),
+                                                         coords.direction_j().total_length()));
 
             }
 
@@ -186,10 +186,9 @@ namespace gridtools {
                 view_type fview(arg_list);
 
                 boost::fusion::for_each(fview, 
-                                        instantiate_tmps( policy<Block>::value_i(coords),
-                                                          policy<Block>::value_j(coords),
-                                                          policy<Block>::value_k(coords)));
-
+                                        instantiate_tmps( coords.value_at_top()-coords.value_at_bottom()+1,
+                                                          coords.i_low_bound(),
+                                                          coords.j_low_bound()));
             }
 
         };

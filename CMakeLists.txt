@@ -108,6 +108,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
+set ( exe_LIBS ${exe_LIBS} gridtools )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
@@ -181,7 +182,8 @@ if( USE_MPI )
 endif()
 
 
-ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h)
+ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h )
+ADD_LIBRARY( gridtools src/gridtools.cpp )
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
