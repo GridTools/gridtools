@@ -97,7 +97,7 @@ namespace gridtools{
                         for (uint_t bj = 0; bj < NBJ; ++bj) {
                             uint_t _starti = bi*BI+coords.i_low_bound();
                             uint_t _startj = bj*BJ+coords.j_low_bound();
-                            backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI, BJ, bi, bj));
+                            backend_traits::template for_each<iter_range>( Backend (local_domain_list,coords, _starti, _startj, BI-1, BJ-1, bi, bj));
                         }
                     }
 
@@ -105,14 +105,14 @@ namespace gridtools{
                     for (uint_t bj = 0; bj < NBJ; ++bj) {
                         uint_t _starti = NBI*BI+coords.i_low_bound();
                         uint_t _startj = bj*BJ+coords.j_low_bound();
-                        backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ, NBI, bj));
+                        backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj, n-NBI*BI, BJ-1, NBI, bj));
                     }
 
                     //last block column
                     for (uint_t bi = 0; bi < NBI; ++bi) {
                         uint_t _starti = bi*BI+coords.i_low_bound();
                         uint_t _startj = NBJ*BJ+coords.j_low_bound();
-                        backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI, m-NBJ*BJ, bi, NBJ));
+                        backend_traits::template for_each<iter_range>(Backend (local_domain_list,coords,_starti,_startj,BI-1, m-NBJ*BJ, bi, NBJ));
                     }
 
                     //last single block entry

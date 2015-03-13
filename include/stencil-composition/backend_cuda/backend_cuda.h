@@ -1,22 +1,7 @@
 #pragma once
 
-#include <stdio.h>
-#include <boost/mpl/has_key.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/find_if.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/deref.hpp>
-#include <boost/mpl/find_if.hpp>
-#include <boost/mpl/has_key.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/fusion/include/at.hpp>
-#include <boost/fusion/include/value_at.hpp>
-
 #include "../execution_policy.h"
 #include "../heap_allocated_temps.h"
-#include "../../storage/hybrid_pointer.h"
 #include "../run_kernel.h"
 #include "backend_traits.h"
 #include "backend_traits_cuda.h"
