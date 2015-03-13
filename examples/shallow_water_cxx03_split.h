@@ -91,18 +91,18 @@ namespace shallow_water{
 #define height 2.
 	GT_FUNCTION
     	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i<3 && j<3)
-                return 1.+2. * std::exp(-5*((((int)i-1)*dx())*((((int)i-1)*dx()))+(((int)j-1)*dy())*(((int)j-1)*dy())));
-            else
-                return 1.;
+            //if(i<3 && j<3)
+            return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
+                //else
+                //return 1.;
        }
 
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i>1 && j>1 && i<5 && j<5)
+//             if(i>1 && j>1 && i<5 && j<5)
                 return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-            else
-                return 1.;
+//             else
+//                 return 1.;
        }
 
 };
@@ -258,7 +258,8 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
 
-        typedef range<0,0,0,-2> xrange;
+        typedef range<0,-2,0,-2> xrange;
+//         last one: typedef range<0,0,0,-2> xrange;
 //         typedef range<0,1,0,-1> xrange_subdomain;
         typedef range<0,1,0,0> xrange_subdomain;
 
@@ -333,7 +334,7 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef range<0,0,0,-2> xrange;
+        typedef range<0,-2,0,-2> xrange;
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
@@ -496,7 +497,7 @@ namespace shallow_water{
 #endif
         //                      dims  z y x
         //                   strides xy x 1
-        typedef layout_map<0,1,2> layout_t;
+        typedef layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
@@ -518,6 +519,7 @@ namespace shallow_water{
         typedef arg<8, storage_type > p_v;
         typedef boost::mpl::vector<p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v> arg_type_list;
 
+        {// block for RAII
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
@@ -633,7 +635,11 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
+//             if(!he.comm().pid())
+//                 cudaProfilerStart();
             shallow_water_stencil->run();
+//             if(!he.comm().pid())
+//                 cudaProfilerStop();
 
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=h.data().get();
@@ -651,19 +657,18 @@ namespace shallow_water{
             v.print();
 #endif
         }
+        he.wait();
 
 #ifdef NDEBUG
         shallow_water_stencil->finalize();
 #else
         myfile.close();
 #endif
+    }
 
+        // cudaDeviceReset();
         // hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
         // out.write(sol.get<0,0>());
-
-        he.wait();
-
-        GCL_Finalize();
 
         return true;
 

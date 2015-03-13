@@ -665,8 +665,6 @@ namespace shallow_water{
 
         he.wait();
 
-        GCL_Finalize();
-
         return true;
 
     }
