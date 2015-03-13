@@ -4,6 +4,8 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
 
+#include <gridtools.h>
+
 #include "backend_traits_fwd.h"
 #ifdef __CUDACC__
 #include <stencil-composition/backend_cuda/backend_cuda.h>

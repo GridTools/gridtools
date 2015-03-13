@@ -14,50 +14,6 @@
 
 namespace gridtools{
 
-//     /**
-//        @brief traits struct for the run_functor
-//        Specialization for all backend classes.
-//        This struct defines a type for all the template arguments in the run_functor subclasses. It is required because in the run_functor class definition the 'Derived'
-//        template argument is an incomplete type (ans thus we can not access its template arguments).
-//        This struct also contains all the type definitions common to all backends.
-//     */
-//     template <
-//         typename Arguments,
-//         template < typename Argument > class Back
-//         >
-//     struct run_functor_traits< Back< Arguments > >
-//     {
-//         typedef Arguments arguments_t;
-//         typedef typename Arguments::functor_list_t functor_list_t;
-//         typedef typename Arguments::loop_intervals_t loop_intervals_t;
-//         typedef typename Arguments::functors_map_t functors_map_t;
-//         typedef typename Arguments::range_sizes_t range_sizes_t;
-//         typedef typename Arguments::domain_list_t domain_list_t;
-//         typedef typename Arguments::coords_t coords_t;
-//         typedef Back<Arguments> backend_t;
-
-//         /**
-//            @brief traits class to be used inside the functor \ref gridtools::_impl::execute_kernel_functor, which dependson an Index type.
-//         */
-//         template <typename Index>
-//         struct traits{
-//             typedef typename boost::mpl::at<range_sizes_t, Index>::type range_t;
-//             typedef typename boost::mpl::at<functor_list_t, Index>::type functor_t;
-//             typedef typename boost::fusion::result_of::value_at<domain_list_t, Index>::type local_domain_t;
-//             typedef typename boost::mpl::at<functors_map_t, Index>::type interval_map_t;
-//             typedef typename index_to_level<
-//                 typename boost::mpl::deref<
-//                     typename boost::mpl::find_if<
-//                         loop_intervals_t,
-//                         boost::mpl::has_key<interval_map_t, boost::mpl::_1>
-//                         >::type
-//                     >::type::first
-//                     >::type first_hit_t;
-
-// typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
-// };
-//     };
-
 
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
