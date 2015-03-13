@@ -66,9 +66,9 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             GT_FUNCTION
             void do_loop(uint_t from, uint_t to) const {
 
-                for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
-	      	traits::functor_t::Do(this->m_domain, IntervalType());
-                }
+                //for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
+                traits::functor_t::Do(this->m_domain, IntervalType());
+                //}
 
             }
         };

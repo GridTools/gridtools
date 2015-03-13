@@ -625,7 +625,11 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
+//             if(!he.comm().pid())
+//                 cudaProfilerStart();
             shallow_water_stencil->run();
+//             if(!he.comm().pid())
+//                 cudaProfilerStop();
 
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=sol.get<0,0>().get();
@@ -648,13 +652,11 @@ namespace shallow_water{
 #else
         myfile.close();
 #endif
-
+        cudaDeviceReset();
         // hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
         // out.write(sol.get<0,0>());
 
         he.wait();
-
-        GCL_Finalize();
 
         return true;
 

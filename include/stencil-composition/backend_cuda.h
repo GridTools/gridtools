@@ -33,14 +33,17 @@ namespace gridtools {
                   typename Traits,
                   typename ExtraArguments>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
+        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
+//             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+//             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-//             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
-//             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
-
+#ifndef NDEBUG
+            printf("index: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
+            printf("i and j : %d and %d\n", i, j);
+#endif
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
             __shared__
@@ -58,6 +61,11 @@ namespace gridtools {
             __syncthreads();
 
             if ((i < nx) && (j < ny)) {
+
+#ifndef NDEBUG
+                printf("index_inside: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
+                printf("i  %d and j: %d inside\n", i, j);
+#endif
 
                 it_domain.template assign_ij<0>(i+starti,0);
                 it_domain.template assign_ij<1>(j+startj,0);
@@ -167,17 +175,6 @@ namespace gridtools {
                 int iminus= xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) ;//i-low
                 int jplus=  xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0) ;//j-high
                 int iplus= xrange_subdomain_t::iplus::value + ((boundary%2)>0? xrange_t::iplus::value : 0) ;//i-high
-                // number of threads
-                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + iplus - (f->m_coords.i_low_bound() + iminus)+1);
-                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + jplus - (f->m_coords.j_low_bound() + jminus)+1);
-
-                int ntx = 8, nty = 32, ntz = 1;
-                dim3 threads(ntx, nty, ntz);
-
-                int nbx = (nx + ntx - 1) / ntx;
-                int nby = (ny + nty - 1) / nty;
-                int nbz = 1;
-                dim3 blocks(nbx, nby, nbz);
 
 #ifndef NDEBUG
                 int pid=0;
@@ -220,12 +217,28 @@ namespace gridtools {
           }
 #endif
 
-//                 // blocks dimension
-//                 uint_t ntx = 8, nty = 32;
+//         int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
+//         int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
+        // number of threads
+        uint_t nx = (uint_t) (f->m_coords.i_high_bound() + iplus - (f->m_coords.i_low_bound() + iminus)+1);
+        uint_t ny = (uint_t) (f->m_coords.j_high_bound() + jplus - (f->m_coords.j_low_bound() + jminus)+1);
 
-//                 //number of blocks
-//                 ushort_t nbx = (nx + ntx - 1) / ntx;
-//                 ushort_t nby = (ny + nty - 1) / nty;
+//         uint_t nx_ = (uint_t) (f->m_coords.i_high_bound() + std::abs(xrange_t::iplus) + std::abs(xrange_subdomain_t::iplus) - (f->m_coords.i_low_bound() -std::abs(xrange_t::iminus) - std::abs(xrange_subdomain_t::iminus))/*+1*/);
+//         uint_t ny_ = (uint_t) (f->m_coords.j_high_bound() + std::abs(xrange_t::jplus) + std::abs(xrange_subdomain_t::jplus) - (f->m_coords.j_low_bound() -std::abs(xrange_t::jminus) - std::abs(xrange_subdomain_t::jminus))/*+1*/);
+
+                int ntx = 32, nty = 8, ntz = 1;
+                dim3 threads(ntx, nty, ntz);
+
+                int nbx = (nx + ntx - 1) / ntx;
+                int nby = (ny + nty - 1) / nty;
+                int nbz = 1;
+                dim3 blocks(nbx, nby, nbz);
+
+#ifndef NDEBUG
+                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+                printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
+                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+#endif
 
                 _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,

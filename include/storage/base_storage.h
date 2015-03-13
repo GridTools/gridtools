@@ -57,8 +57,8 @@ namespace gridtools {
         typedef typename RegularStorageType::original_storage original_storage;
         typedef typename RegularStorageType::pointer_type pointer_type;
         static const enumtype::backend backend=basic_type::backend;
-        static const uint_t n_width=basic_type::n_width;
-        static const uint_t filed_dimensions=basic_type::field_dimensions;
+        static const ushort_t n_width=basic_type::n_width;
+        static const ushort_t filed_dimensions=basic_type::field_dimensions;
         typedef void storage_type;
         typedef typename RegularStorageType::iterator_type iterator_type;
         typedef typename RegularStorageType::value_type value_type;
@@ -142,7 +142,7 @@ namespace gridtools {
                     for (uint_t i=0; i<this->m_dims[0]; ++i)
                         for (uint_t j=0; j<this->m_dims[1]; ++j)
                             for (uint_t k=0; k<this->m_dims[2]; ++k)
-                                (m_fields[f])[_index(m_strides,i,j,k)]=lambda(i, j, k);
+                                (m_fields[f])[_index(strides(),i,j,k)]=lambda(i, j, k);
                 }
             }
 
@@ -406,7 +406,7 @@ namespace gridtools {
            Coordinates 0,1,2 correspond to i,j,k respectively*/
         template<uint_t Coordinate>
         GT_FUNCTION
-        uint_t strides(uint_t const* str){
+        static constexpr uint_t strides(uint_t const* str){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((str[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
         }
 
@@ -463,6 +463,8 @@ namespace gridtools {
 		    strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
 		    layout::template find_val<2,uint_t,0>(i,j,k);
 	    }
+
+	    //if(index>=size()){ printf("bad index: %d = %d * %d + %d * %d+ %d \n", index, strides_[0], layout::template find_val<0,uint_t,0>(i,j,k), strides_[1], layout::template find_val<1,uint_t,0>(i,j,k), layout::template find_val<2,uint_t,0>(i,j,k)); }
 	    assert(index<size());
             return index;
         }
@@ -482,7 +484,7 @@ namespace gridtools {
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
             GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type")
 #endif
-            return _impl::compute_offset<space_dimensions, layout>::apply(strides, dims ...);
+            return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
 #endif
 
@@ -556,12 +558,10 @@ namespace gridtools {
 /*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
 	    BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
 	    // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
-// 	    if( layout::template at_< Coordinate >::value >= 0 )//static if
-// 	    {
-            (*index) += strides<Coordinate>(
-                strides_
-                )*dimension;
-// 	    }
+ 	    if( layout::template at_< Coordinate >::value >= 0 )//static if
+ 	    {
+            (*index) += strides<Coordinate>(strides_)*dimension;
+ 	    }
         }
 
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
@@ -616,8 +616,6 @@ namespace gridtools {
          */
         GT_FUNCTION
         uint_t const* strides() const {
-            //"you might thing that with m_srides[0] you are accessing a stride,\n
-            // but you are indeed accessing the whole storage dimension."
             return &m_strides[1];
         }
 
@@ -690,7 +688,7 @@ namespace gridtools {
         extend_width(T const& other)
             : super(other)
             {
-                assert(n_width==other.n_width);
+                //GRIDTOOLS_STATIC_ASSERT(n_width==T::n_width, "Dimension analysis error: copying two vectors with different dimensions");
             }
 
         /**@brief copy all the data fields to the GPU*/

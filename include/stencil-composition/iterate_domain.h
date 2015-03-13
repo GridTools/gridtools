@@ -104,10 +104,10 @@ namespace gridtools {
                 // k direction does does not have bolcks
                 boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, (uint_t)0, &index[ID]
                                                                            , strides.template get<ID>()
-);
+                    );
                 increment_k<ID-1>::apply(local_args,  factor, index
                                          , strides
-);
+                    );
             }
         };
 
@@ -464,9 +464,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment_ij(uint_t index, uint_t block)
         {
-            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, 1, block, &m_index[0]
-                                                            , *m_strides
-);
+            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, 1, block, &m_index[0], *m_strides);
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
@@ -474,9 +472,7 @@ namespace gridtools {
         GT_FUNCTION
         void assign_ij(uint_t index, uint_t block)
         {
-            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0]
-                                                            , *m_strides
-);
+            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0], *m_strides);
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
@@ -495,9 +491,7 @@ namespace gridtools {
         GT_FUNCTION
         void set_k_start(uint_t from)
         {
-            iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, from, &m_index[0]
-                                                                 , *m_strides
-                );
+            iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, from, &m_index[0], *m_strides);
         }
 
         template <typename T>
@@ -541,17 +535,17 @@ namespace gridtools {
 //                     );
 
 #ifndef NDEBUG
-                if(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() <=  m_index[ArgType::index_type::value]
-                       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                   ->_index(m_strides->get<ArgType::index_type::value>(), arg))
-                    {
-                        int pid=0;
-                        MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-                        printf("\n\n\n\n [%d] ERROR: index %d", pid, m_index[ArgType::index_type::value]);
-                        printf(" plus offset %d ", (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->_index(m_strides->get<ArgType::index_type::value>(), arg)));
-                        printf(" of storage %d ", ArgType::index_type::value);
-                        printf("is larger than storage size (%d)\n\n\n\n", boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size());
-                    }
+//                 if(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() <=  m_index[ArgType::index_type::value]
+//                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+//                    ->_index(m_strides->get<ArgType::index_type::value>(), arg))
+//                     {
+//                         int pid=0;
+//                         MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+//                         printf("\n\n\n\n [%d] ERROR: index %d", pid, m_index[ArgType::index_type::value]);
+//                         printf(" plus offset %d ", (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->_index(m_strides->get<ArgType::index_type::value>(), arg)));
+//                         printf(" of storage %d ", ArgType::index_type::value);
+//                         printf("is larger than storage size (%d)\n\n\n\n", boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size());
+//                     }
 
 		//the following assert fails when an out of bound access is observed,
 		//i.e. when some offset is negative and either one of
@@ -562,10 +556,10 @@ namespace gridtools {
                 // If you are running a parallel simulation another common reason for this to happen is
                 // the definition of an halo region which is too small in one direction
                 // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
-		assert( (int_t)(m_index[ArgType::index_type::value])
-		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                        ->_index(m_strides->get<ArgType::index_type::value>(), arg)
-                        >= 0);
+// 		assert( (int_t)(m_index[ArgType::index_type::value])
+// 		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+//                         ->_index(m_strides->get<ArgType::index_type::value>(), arg)
+//                         >= 0);
 #endif
 
 #ifdef CXX11_ENABLED
@@ -575,9 +569,7 @@ namespace gridtools {
                          +(m_index[ArgType::index_type::value])
                          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                          //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                         ->_index(
-                             m_strides->get<ArgType::index_type::value>(),
-arg)
+                         ->_index(m_strides->get<ArgType::index_type::value>(), arg)
                     );
             }
 
@@ -606,9 +598,7 @@ arg)
                                                              >::type
         operator()(arg_decorator<ArgType> const& arg) const {
 
-            return get_value(arg,
-                             (m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value])
-                );
+            return get_value(arg, (m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]) );
         }
 
 #ifdef CXX11_ENABLED
@@ -665,6 +655,8 @@ arg)
                 //                          *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
                 //                          )));
 
+                //printf("strides0=[ %d, %d ]\n", (m_strides->get<ArgType::index_type::value>())[0], (m_strides->get<ArgType::index_type::value>())[1]);
+
                 return get_value(arg,
                              m_data_pointer[ //static if
                                  //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
@@ -693,15 +685,15 @@ arg)
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
  	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->get<ArgType::index_type::value>(), arg.first_operand.offset()));
+ 		   ->_index(m_strides->get<ArgType::index_type::value>(), arg));
 
  	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->get<ArgType::index_type::value>(), arg.first_operand.offset()) >= 0);
+ 		   ->_index(m_strides->get<ArgType::index_type::value>(), arg) >= 0);
             GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 	    return *(storage_pointer
 		     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		     ->_index(m_strides->get<ArgType::index_type::value>(), arg.first_operand.offset())
+ 		     ->_index(m_strides->get<ArgType::index_type::value>(), arg)
 );
         }
 
@@ -837,8 +829,7 @@ private:
     LocalDomain const& local_domain;
         uint_t m_index[N_STORAGES];
 
-        void**
-        m_data_pointer;
+        void** m_data_pointer;
 
         storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* m_strides;//[N_DATA_POINTERS];//the storages could have different types(?)
     };
