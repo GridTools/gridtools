@@ -122,7 +122,49 @@ namespace gridtools {
     };
 
 
-    /** this struct contains the 'run' method for all backends, with a policy determining the specific type. Each backend contains a traits class for the specific case. */
+    /** 
+        this struct contains the 'run' method for all backends, with a
+        policy determining the specific type. Each backend contains a
+        traits class for the specific case.
+
+        backend<type, strategy>
+        there are traits: one for type and one for strategy.
+        - type refers to the architecture specific, like the
+          differences between cuda and the host.
+
+        The backend has a member function "run" that is called by the
+        "intermediate".
+        The "run" method calls strategy_from_id<strategy>::loop
+
+        - the strategy_from_id is in the specific backend_? folder, such as
+        - in backend_?/backend_traits.h
+
+        - strategy_from_id contains the tile size information and the
+        - "struct loop" which has the "run_loop" member function.
+
+        Before calling the loop::run_loop method, the backend queries
+        "execute_traits" that are contained in the
+        "backend_traits_t". the latter is obtained by
+
+        backend_from_id<type>
+
+        The execute_traits::backend_t (bad name) is responsible for
+        the "inner loop nests". The
+        loop<execute_traits::backend_t>::run_loop will use that to do
+        whatever he has to do, for instance, the host_backend will
+        iterate over the functors of the MSS using the for_each
+        available there.
+
+        - Similarly, the definition (specialization) is contained in the
+        - specific subfoled (right now in backend_?/backend_traits_?.h ).
+
+        - This contains:
+        - - (INTERFACE) pointer<>::type that returns the first argument to instantiate the storage class
+        - - (INTERFACE) storage_traits::storage_t to get the storage type to be used with the backend
+        - - (INTERFACE) execute_traits ?????? this was needed when backend_traits was forcely shared between host and cuda backends. Now they are separated and this may be simplified.
+        - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
+        - - (INTERNAL) once_per_block
+    */
     template< enumtype::backend BackendType, enumtype::strategy StrategyType >
     struct backend
     {
