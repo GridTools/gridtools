@@ -17,11 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 
 #include <stdlib.h>
 #include <stdio.h>
