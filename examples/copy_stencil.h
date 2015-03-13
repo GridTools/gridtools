@@ -287,7 +287,7 @@ PAPI_stop(event_set, values);
     verifier verif(1e-8, halo_size, in.dims<0>(), in.dims<1>(), in.dims<2>());
     verif.template verify<0,0,1,0>(in, in);
 #else
-    verifier verif(1e-8, halo_size, in.template dims<0>(), in.template dims<1>(), in.template dims<2>());
+    verifier verif(1e-8, halo_size, in.dims<0>(), in.dims<1>(), in.dims<2>());
 
     verif.verify(in, out);
 #endif

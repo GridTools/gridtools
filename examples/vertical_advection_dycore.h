@@ -187,10 +187,10 @@ private:
 /*
  * The following operators and structs are for debugging only
  */
-std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
+std::ostream& operator<<(std::ostream& s, u_forward_function<gridtools::float_type> const) {
     return s << "u_forward_function";
 }
-std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
+std::ostream& operator<<(std::ostream& s, u_backward_function<gridtools::float_type> const) {
     return s << "u_backward_function";
 }
 
@@ -278,7 +278,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<u_forward_function<double> >(
+                gridtools::make_esf<u_forward_function<gridtools::float_type> >(
                         p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -294,7 +294,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
             gridtools::make_mss
             (
                 execute<backward>(),
-                gridtools::make_esf<u_backward_function<double> >(
+                gridtools::make_esf<u_backward_function<gridtools::float_type> >(
                         p_utens_stage(),
                         p_u_pos(),
                         p_dtr_stage(),
@@ -326,7 +326,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-8, halo_size,
+    verifier verif(1e-5, halo_size,
             repository.utens_stage().dims<0>(), repository.utens_stage().dims<1>(), repository.utens_stage().dims<2>());
     verif.verify(repository.utens_stage(), repository.utens_stage_ref());
 
