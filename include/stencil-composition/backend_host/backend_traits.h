@@ -34,7 +34,6 @@ namespace gridtools{
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename arguments_t::functor_list_t>::type::value> iter_range;
             typedef typename arguments_t::domain_list_t domain_list_t;
             typedef typename arguments_t::coords_t coords_t;
-            //typedef typename arguments_t::local_domain_t local_domain_t;
 
             static void run_loop( domain_list_t& local_domain_list, const coords_t& coords)
             {
