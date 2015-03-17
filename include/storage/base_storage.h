@@ -843,6 +843,12 @@ namespace gridtools {
 	// typedef First type;
 	typedef dimension_extension_traits<StorageExtended ... > super;
     };
+
+    struct compute_storage_offset<typename Storage, uint_t Id>{
+        GRIDTOOLS_STATIC_ASSERT(Id>=0, "Library internal error")
+        static const uint_t value= (Id==0 ? Storage::super::n_fields : compute_storage_offset<Id-1, Storage::super>::value);
+    };
+
 #endif
 
     /**@brief fallback in case the snapshot we try to access exceeds the width diemnsion assigned to a discrete scalar field*/

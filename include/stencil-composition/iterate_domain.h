@@ -656,6 +656,16 @@ namespace gridtools {
                 //                          )));
 
                 //printf("strides0=[ %d, %d ]\n", (m_strides->get<ArgType::index_type::value>())[0], (m_strides->get<ArgType::index_type::value>())[1]);
+//             printf("accessing to storage at index %d = %d+%d*%d\n", arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>()
+//                    + arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()
+//                    * storage_type::traits::n_width,
+//                    arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>(),
+//                    arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>(),
+//                    storage_type::traits::n_width);
+
+#ifndef CXX11_ENABLED
+                                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+#endif
 
                 return get_value(arg,
                              m_data_pointer[ //static if
@@ -666,8 +676,15 @@ namespace gridtools {
                                          arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
                                                          :
                                          arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
-                                         + arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()
-                                         *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
+#ifdef CXX11_ENABLED
+                                         //hypotheses (we can weaken it using constexpr static functions):
+                                         //storage offsets are known at compile-time
+                                         + storage_type::compute_storage_offset< storage_type::traits, arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>() >::value //stride of the current dimension inside the vector of storages
+#else
+                                         //limitation to "rectangular" vector fields for non-C++11 storages
+                                         +  arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()
+                                         * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+#endif
                                          ))//+ the offset of the other extra dimension
                                  + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value
                                  ]);

@@ -104,10 +104,10 @@ namespace shallow_water{
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
 //             if(i>1 && j>1 && i<5 && j<5)
-            int pid=0;
-            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+//             int pid=0;
+//             MPI_Comm_rank(MPI_COMM_WORLD, &pid);
 
-                return 10.*pid+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+                return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
 //             else
 //                 return 1.;
        }
@@ -300,21 +300,24 @@ namespace shallow_water{
             y::Index j;
             // eval(tmpx(comp(1), x(-1), y(-2)))=eval(sol(comp(+5), x(+6), y(+7)))+3;
             eval(sol())=
-                (eval(sol(/*step(2),*/comp(0),i+1,j+1))
+                (eval(sol(step(2),comp(0),i+1,j+1))
                  +eval(sol(step(2),comp(0),j+1)))/2. -
                 (eval(sol(step(2),comp(1),i+1,j+1)) - eval(sol(step(2),comp(1),j+1)))*(dt()/(2*dx()));
 
-            eval(sol(step(0),comp(1)))=eval(sol(step(2),comp(1),i+1, j+1)) +
+            eval(sol(step(0),comp(1)))=
+eval(sol(step(2),comp(1),i+1, j+1)) +
                 eval(sol(step(2),comp(1),j+1))/2.-
                 (((eval(sol(step(2),comp(1),i+1,j+1))*eval(sol(step(2),comp(1),i+1,j+1)))/eval(sol(step(2),comp(0),i+1,j+1))+(eval(sol(step(2),comp(0),i+1,j+1))*eval(sol(step(2),comp(0),i+1,j+1)))*g()/2.)  -
                  ((eval(sol(step(2),comp(1),j+1))*eval(sol(step(2),comp(1),j+1)))/eval(sol(step(2),comp(0),j+1)) +
                   (eval(sol(step(2),comp(0),j+1))*eval(sol(step(2),comp(0),j+1)))*(g()/2.)
                      ))*(dt()/(2.*dx()));
 
-            eval(sol(step(0),comp(2)))= (eval(sol(step(2),comp(2),i+1,j+1)) +
+            eval(sol(step(0),comp(2)))=
+(eval(sol(step(2),comp(2),i+1,j+1)) +
                                   eval(sol(step(2),comp(2),j+1)))/2. -
                 (eval(sol(step(2),comp(1),i+1,j+1))*eval(sol(step(2),comp(2),i+1,j+1))/eval(sol(step(2),comp(0),i+1,j+1)) -
                  eval(sol(step(2),comp(1),j+1))*eval(sol(step(2),comp(2),j+1))/eval(sol(step(2),comp(0),j+1)))*(dt()/(2*dx())) ;
+
         }
     };
     // const x::Index first_step_x::i;
@@ -354,20 +357,24 @@ namespace shallow_water{
             x::Index i;
             y::Index j;
 
-        eval(sol(step(1),comp(0)))= (eval(sol(step(2),comp(0),i+1,j+1)) + eval(sol(step(2),comp(0),i+1)))/2. -
+            eval(sol(step(1),comp(0)))=
+(eval(sol(step(2),comp(0),i+1,j+1)) + eval(sol(step(2),comp(0),i+1)))/2. -
             (eval(sol(step(2),comp(2),i+1,j+1)) - eval(sol(step(2),comp(2),i+1)))*(dt()/(2*dy()));
 
-        eval(sol(step(1),comp(1)))=(eval(sol(step(2),comp(1),i+1,j+1)) +
+            eval(sol(step(1),comp(1)))=
+(eval(sol(step(2),comp(1),i+1,j+1)) +
                     eval(sol(step(2),comp(1),i+1)))/2. -
             (eval(sol(step(2),comp(2),i+1,j+1))*eval(sol(step(2),comp(1),i+1,j+1))/eval(sol(step(2),comp(0),i+1,j+1)) -
              eval(sol(step(2),comp(2),i+1))*eval(sol(step(2),comp(1),i+1))/eval(sol(step(2),comp(0),i+1)))*(dt()/(2*dy()));
 
-        eval(sol(step(1),comp(2)))=eval(sol(step(2),comp(2),i+1, j+1)) +
+            eval(sol(step(1),comp(2)))=
+eval(sol(step(2),comp(2),i+1, j+1)) +
             eval(sol(step(2),comp(2),i+1))/2.-
             (((eval(sol(step(2),comp(2),i+1,j+1))*eval(sol(step(2),comp(2),i+1,j+1)))/eval(sol(step(2),comp(0),i+1,j+1))+(eval(sol(step(2),comp(0),i+1,j+1))*eval(sol(step(2),comp(0),i+1,j+1)))*g()/2.)  -
              (eval(sol(step(2),comp(2),i+1))*eval(sol(step(2),comp(2),i+1))/eval(sol(step(2),comp(0),i+1)) +
               (eval(sol(step(2),comp(0),i+1))*eval(sol(step(2),comp(0),i+1)))*(g()/2.)
                  ))*(dt()/(2.*dy()));
+
         }
     };
     // const x::Index second_step_y::i;
@@ -424,7 +431,7 @@ namespace shallow_water{
                ;
 
             eval(sol(step(2),comp(1))) =
-               eval(sol(step(2),comp(1))) -
+                eval(sol(step(2),comp(1))) -
                //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
                ((eval(sol(step(0),comp(1),j-1))*eval(sol(step(0),comp(1),j-1)))                / eval(sol(step(0),comp(0),j-1))      + eval(sol(step(0),comp(0),j-1))*eval(sol(step(0),comp(0),j-1))*((g()/2.))                 -
                 //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
@@ -432,8 +439,7 @@ namespace shallow_water{
                 //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
                 (eval(sol(step(1),comp(2),i-1))*eval(sol(step(1),comp(1),i-1))          / eval(sol(step(1),comp(0),i-1))                                                   -
                  //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
-                 eval(sol(step(1),comp(2),i-1, j-1))*eval(sol(step(1),comp(1),i-1,j-1)) / eval(sol(step(1),comp(0),i-1, j-1))) *(dt()/dy())
-                ;
+                 eval(sol(step(1),comp(2),i-1, j-1))*eval(sol(step(1),comp(1),i-1,j-1)) / eval(sol(step(1),comp(0),i-1, j-1))) *(dt()/dy());
 
             eval(sol(step(2),comp(2))) =
                 // v()
@@ -520,38 +526,38 @@ namespace shallow_water{
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
 
-    // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
-    // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
+        // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
+        // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
         parallel_storage<partitioner_t> sol(part, d1, d2, d3);
-    //parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
-    //parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
+        //parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
+        //parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
 
-    he.add_halo<0>(part.get_halo_gcl<0>());
-    he.add_halo<1>(part.get_halo_gcl<1>());
-    he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+        he.add_halo<0>(part.get_halo_gcl<0>());
+        he.add_halo<1>(part.get_halo_gcl<1>());
+        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
-    he.setup(3);
+        he.setup(3);
 
         ptr out1(sol.size()), out2(sol.size()), out3(sol.size());
-        sol.set<0,2>(out1);
-        sol.set<1,2>(out2);
-        sol.set<2,2>(out3);
+        sol.set<0,0>(out1);
+        sol.set<0,1>(out2);
+        sol.set<0,2>(out3);
         ptr out4(sol.size()), out5(sol.size()), out6(sol.size());
-        sol.set<0,1>(out4);
+        sol.set<1,0>(out4);
         sol.set<1,1>(out5);
-        sol.set<2,1>(out6);
+        sol.set<1,2>(out6);
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(!he.comm().pid())
-            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+            sol.set<2,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
-            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
+            sol.set<2,0>(out7, &bc_periodic<0,0>::droplet2);//h
     //sol.set<0,0>(out7, 1.);//h
-        sol.set<1,0>(out8, 0.);//u
-        sol.set<2,0>(out9, 0.);//v
+        sol.set<2,1>(out8, 0.);//u
+        sol.set<2,2>(out9, 0.);//v
 
 #ifndef NDEBUG
     int pid=0;
@@ -562,9 +568,9 @@ namespace shallow_water{
     myfile.open (name.str().c_str());
 #endif
 
-//         std::cout<<"INITIALIZED VALUES"<<std::endl;
-//         sol.print(myfile);
-//         std::cout<<"#####################################################"<<std::endl;
+    std::cout<<"INITIALIZED VALUES"<<std::endl;
+    sol.print(myfile);
+    std::cout<<"#####################################################"<<std::endl;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -636,9 +642,9 @@ namespace shallow_water{
                 cudaProfilerStop();
 
             std::vector<pointer_type::pointee_t*> vec(3);
-            vec[0]=sol.get<0,0>().get();
-            vec[1]=sol.get<0,1>().get();
-            vec[2]=sol.get<0,2>().get();
+            vec[0]=sol.get<2,0>().get();
+            vec[1]=sol.get<2,1>().get();
+            vec[2]=sol.get<2,2>().get();
 
             he.pack(vec);
             he.exchange();
