@@ -107,10 +107,9 @@ namespace gridtools {
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
-                           typename boost::enable_if_c<is_temporary_storage<Right>::value>::type* = 0)
+                           typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[Number]=r[Number].get();
-            r.ciao();;
             BackendType::template once_per_block<Id>::assign(l[Number],r->field_offset(Number,EU_id_i, EU_id_j));
             assign_raw_data<Number-1, Offset, BackendType>::assign(l, r, EU_id_i, EU_id_j);
         }
@@ -118,10 +117,9 @@ namespace gridtools {
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
-                           typename boost::disable_if_c<is_temporary_storage<Right>::value>::type* = 0)
+                           typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[Number]=r[Number].get();
-            r.ciao();;
             BackendType::template once_per_block<Id>::assign(l[Number],r->fields()[Number].get());
             assign_raw_data<Number-1, Offset, BackendType>::assign(l, r, EU_id_i, EU_id_j);
         }
@@ -136,7 +134,7 @@ namespace gridtools {
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
-                           typename boost::enable_if_c<is_temporary_storage<Right>::value>::type* = 0)
+                           typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[0]=r[0].get();
             BackendType:: template once_per_block<Id>::assign(l[0],r->fields_offset(0,EU_id_i, EU_id_j));
@@ -145,7 +143,7 @@ namespace gridtools {
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
-                           typename boost::disable_if_c<is_temporary_storage<Right>::value>::type* = 0)
+                           typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[0]=r[0].get();
             BackendType:: template once_per_block<Id>::assign(l[0],r->fields()[0].get());
@@ -350,8 +348,6 @@ public:
         template<typename BackendType>
         GT_FUNCTION
         void assign_storage_pointers( void** data_pointer, uint_t EU_id_i=0, uint_t EU_id_j=0 ){
-            std::cout << "UAHUAHUAH " << EU_id_i << ", " << EU_id_j << std::endl;
-                 
             m_data_pointer=data_pointer;
             assign_storage< N_STORAGES-1, BackendType >
                 ::assign(m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);
@@ -555,7 +551,15 @@ public:
 
             GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
 
-            return *(storage_pointer
+#ifdef CXX11_ENABLED
+            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+#else
+            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+#endif
+
+            typename storage_type::value_type * real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+
+            return *(real_storage_pointer
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                      ->_index(arg.first_operand.offset()));
         }
