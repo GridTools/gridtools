@@ -125,8 +125,6 @@ namespace gridtools {
             m_initial_offsets[0] = initial_offset_i;
             m_initial_offsets[1] = initial_offset_j;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
-            std::cout << "you should be looking at this " << std::endl;
-            info();
         }
 
 
@@ -156,7 +154,6 @@ namespace gridtools {
         */
         typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
             uint_t offset = n_j_threads*EU_id_i + EU_id_j;
-            std::cout << "you should be lookingalso at this " << offset << std::endl;
             return base_type::fields()[index].get()+offset;
         }
 
@@ -323,62 +320,155 @@ namespace gridtools {
               , uint_t MinusJ
               , uint_t PlusI
               , uint_t PlusJ
+                >
+    struct is_temporary_storage<host_tmp_storage<
+                                    PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    >* >
+        : boost::true_type
+    {};
+
+    template <  typename PointerType
+                , typename Layout
+                , uint_t TileI
+                , uint_t TileJ
+                , uint_t MinusI
+                , uint_t MinusJ
+                , uint_t PlusI
+                , uint_t PlusJ
+                >
+    struct is_temporary_storage<host_tmp_storage<
+                                    PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    > &>
+        : boost::true_type
+    {};
+
+    template <  typename PointerType
+                , typename Layout
+                , uint_t TileI
+                , uint_t TileJ
+                , uint_t MinusI
+                , uint_t MinusJ
+                , uint_t PlusI
+                , uint_t PlusJ
+                >
+    struct is_temporary_storage<host_tmp_storage<
+                                    PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    > const& >
+        : boost::true_type
+    {};
+
+    //// specializations for hot_tmp_storage to be used in iterate_domain.h
+    template <typename T>
+    struct is_host_tmp_storage : boost::false_type {};
+
+    template <  typename PointerType
+              , typename Layout
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
               >
-struct is_temporary_storage<host_tmp_storage<
-                                  PointerType
-                                , Layout
-                                , TileI
-                                , TileJ
-                                , MinusI
-                                , MinusJ
-                                , PlusI
-                                , PlusJ
-                                >* >
-: boost::true_type
-{};
+    struct is_host_tmp_storage<host_tmp_storage<
+                                      PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    >*& >
+    : boost::true_type
+    {};
 
-template <  typename PointerType
-          , typename Layout
-          , uint_t TileI
-          , uint_t TileJ
-          , uint_t MinusI
-          , uint_t MinusJ
-          , uint_t PlusI
-          , uint_t PlusJ
-          >
-struct is_temporary_storage<host_tmp_storage<
-                                  PointerType
-                                , Layout
-                                , TileI
-                                , TileJ
-                                , MinusI
-                                , MinusJ
-                                , PlusI
-                                , PlusJ
-                                > &>
-: boost::true_type
-{};
+    template <  typename PointerType
+              , typename Layout
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
+                >
+    struct is_host_tmp_storage<host_tmp_storage<
+                                    PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    >* >
+        : boost::true_type
+    {};
 
-template <  typename PointerType
-          , typename Layout
-          , uint_t TileI
-          , uint_t TileJ
-          , uint_t MinusI
-          , uint_t MinusJ
-          , uint_t PlusI
-          , uint_t PlusJ
-          >
-struct is_temporary_storage<host_tmp_storage<
-                                  PointerType
-                                , Layout
-                                , TileI
-                                , TileJ
-                                , MinusI
-                                , MinusJ
-                                , PlusI
-                                , PlusJ
-                                > const& >
-: boost::true_type
-{};
+    template <  typename PointerType
+                , typename Layout
+                , uint_t TileI
+                , uint_t TileJ
+                , uint_t MinusI
+                , uint_t MinusJ
+                , uint_t PlusI
+                , uint_t PlusJ
+                >
+    struct is_host_tmp_storage<host_tmp_storage<
+                                    PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    > &>
+        : boost::true_type
+    {};
+
+    template <  typename PointerType
+                , typename Layout
+                , uint_t TileI
+                , uint_t TileJ
+                , uint_t MinusI
+                , uint_t MinusJ
+                , uint_t PlusI
+                , uint_t PlusJ
+                >
+    struct is_host_tmp_storage<host_tmp_storage<
+                                    PointerType
+                                    , Layout
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
+                                    > const& >
+        : boost::true_type
+    {};
+
 
 } // namespace gridtools
