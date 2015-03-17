@@ -93,6 +93,7 @@ namespace gridtools{
                 uint_t NBJ = m/BJ;
                 {
                     //internal blocks
+#pragma omp parallel for
                     for (uint_t bi = 0; bi < NBI; ++bi) {
                         for (uint_t bj = 0; bj < NBJ; ++bj) {
                             uint_t _starti = bi*BI+coords.i_low_bound();
@@ -101,6 +102,7 @@ namespace gridtools{
                         }
                     }
 
+                    
                     //last block row
                     for (uint_t bj = 0; bj < NBJ; ++bj) {
                         uint_t _starti = NBI*BI+coords.i_low_bound();

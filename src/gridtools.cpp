@@ -11,4 +11,12 @@ namespace gridtools {
 #endif
     }
 
+    int thread_id() {
+#ifdef _OPENMP
+        return omp_get_thread_num();
+#else
+        return 0;
+#endif
+    }
+
 };

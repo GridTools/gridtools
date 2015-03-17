@@ -6,7 +6,7 @@
 #include "backend_traits.h"
 
 #include "../iteration_policy.h"
-
+#include "../../common/gridtools_runtime.h"
 /**
    @file
    @brief Implements the stencil operations for the host backend
@@ -78,7 +78,8 @@ namespace gridtools {
 
             void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
             iterate_domain_type it_domain(local_domain);
-            it_domain.template assign_storage_pointers<backend_from_id<enumtype::Host> >(data_pointer);
+
+            it_domain.template assign_storage_pointers<backend_from_id<enumtype::Host> >(data_pointer, thread_id());
 
             for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
                  i <= (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;

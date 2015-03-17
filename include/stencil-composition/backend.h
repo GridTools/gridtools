@@ -14,6 +14,7 @@
 #endif
 
 #include "../common/pair.h"
+#include "../common/gridtools_runtime.h"
 #include "heap_allocated_temps.h"
 #include "arg_type.h"
 #include "domain_type.h"
@@ -310,7 +311,7 @@ namespace gridtools {
             n_i_threads() number of threads on the first dimension of the thread grid
         */
         static uint_t n_i_threads() {
-            return 1;
+            return n_threads();
         }
 
         /** Initial interface
