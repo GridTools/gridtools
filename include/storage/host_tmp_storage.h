@@ -92,21 +92,76 @@ namespace gridtools {
 
         static const std::string info_string;
 
+        uint_t n_i_threads;
+        uint_t n_j_threads;
         uint_t m_halo[3];
         uint_t m_initial_offsets[3];
 
-        struct thread_private_storage_t : public base_type {
-            this_type * the_real_storage;
+        /**
+           constructor of the temporary storage.
 
-            thread_private_storage_t() 
-                : the_real_storage(NULL)
-            {}
+           \param initial_offset_i
+           \param initial_offset_j
+           \param dim3
+           \param \optional n_i_threads (Default 1)
+           \param \optional n_j_threasd (Default 1)
+           \param \optional init (Default value_type())
+           \param \optional s (Default "default_name")
+         */
+        explicit host_tmp_storage(uint_t initial_offset_i,
+                                  uint_t initial_offset_j,
+                                  uint_t dim3,
+                                  uint_t n_i_threads=1,
+                                  uint_t n_j_threads=1,
+                                  value_type init = value_type(),
+                                  char const* s = "default name" )
+            : base_type((TileI+MinusI+PlusI)*n_i_threads,(TileJ+MinusJ+PlusJ)*n_j_threads, dim3, init, s)
+            , n_i_threads(n_i_threads)
+            , n_j_threads(n_j_threads)
+        {
+            m_halo[0]=MinusI;
+            m_halo[1]=MinusJ;
+            m_halo[2]=0;
+            m_initial_offsets[0] = initial_offset_i;
+            m_initial_offsets[1] = initial_offset_j;
+            m_initial_offsets[2] = 0 /* initial_offset_k*/;
+        }
+
+
+        host_tmp_storage() {}
+
+        virtual ~host_tmp_storage() {}
+
+        virtual void info() const {
+            std::cout << "Temporary storage "
+                      << m_halo[0] << "x"
+                      << m_halo[1] << "x"
+                      << m_halo[2] << ", "
+                      << "Initial offset "
+                      << m_initial_offsets[0] << "x"
+                      << m_initial_offsets[1] << "x"
+                      << m_initial_offsets[2] << ", "
+                      << this->m_name
+                      << std::endl;
+        }
+
+        /**
+           index is the index in the array of field pointers, as defined in the base_storage
+
+           The EU stands for ExecutionUnit (thich may be a thread or a group of
+           threasd. There are potentially two ids, one over i and one over j, since
+           our execution model is parallel on (i,j). Defaulted to 1.
+        */
+        typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
+            uint_t offset = n_j_threads*EU_id_i + EU_id_j;
             
-            thread_private_storage_t(this_type& x)
-                : the_real_storage(&x)
-            {}
+        }
 
-            /**@brief increment of 1 step along the specified direction. This method is used to increment in the vertical direction, where at present no blocking is performed.*/
+            /**@brief increment of 1 step along the specified
+               direction. This method is used to increment in the
+               vertical direction, where at present no blocking is
+               performed.
+            */
             template <uint_t Coordinate>
             GT_FUNCTION
             void increment(uint_t b, uint_t* index){
@@ -140,15 +195,15 @@ namespace gridtools {
                 // no blocking along k
                 if(Coordinate != 2)
                     {
-                        uint_t tile=Coordinate==0?this_type::TileI:this_type::TileJ;
+                        uint_t tile=Coordinate==0?TileI:TileJ;
                         uint_t var=steps - b * tile;
 
                         uint_t coor=var-
-                           this_type:: m_initial_offsets[this_type::layout::template at_<Coordinate>::value] 
-                            + this_type::m_halo[this_type::layout::template at_<Coordinate>::value];
+                           m_initial_offsets[layout::template at_<Coordinate>::value] 
+                            + m_halo[layout::template at_<Coordinate>::value];
 
-                        BOOST_STATIC_ASSERT(this_type::layout::template at_<Coordinate>::value>=0);
-                        *index += coor*this_type::m_strides[this_type::layout::template at_<Coordinate>::value+1];
+                        BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                        *index += coor*m_strides[layout::template at_<Coordinate>::value+1];
                     }
                 else
                     {
@@ -162,65 +217,14 @@ namespace gridtools {
             GT_FUNCTION
             void decrement(uint_t& steps, uint_t& b, uint_t* index){
 
-                uint_t tile=Coordinate==0?this_type::TileI:this_type::TileJ;
+                uint_t tile=Coordinate==0?TileI:TileJ;
                 uint_t var=steps - b * tile;
-                BOOST_STATIC_ASSERT(this_type::layout::template at_<Coordinate>::value>=0);
-                uint_t coor=var-this_type::m_initial_offsets[this_type::layout::template at_<Coordinate>::value]
-                    + this_type::m_halo[this_type::layout::template find<Coordinate>::value];
-                *index -= coor*this_type::m_strides[this_type::layout::template at_<Coordinate>+1];
+                BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
+                    + m_halo[layout::template find<Coordinate>::value];
+                *index -= coor*m_strides[layout::template at_<Coordinate>+1];
             }
-        };
-
-        /**
-           constructor of the temporary storage.
-
-           \param initial_offset_i
-           \param initial_offset_j
-           \param dim3
-           \param \optional n_i_threads (Default 1)
-           \param \optional n_j_threasd (Default 1)
-           \param \optional init (Default value_type())
-           \param \optional s (Default "default_name")
-         */
-        explicit host_tmp_storage(uint_t initial_offset_i,
-                                  uint_t initial_offset_j,
-                                  uint_t dim3,
-                                  uint_t n_i_threads=1,
-                                  uint_t n_j_threads=1,
-                                  value_type init = value_type(),
-                                  char const* s = "default name" )
-            : base_type((TileI+MinusI+PlusI)*n_i_threads,(TileJ+MinusJ+PlusJ)*n_j_threads, dim3, init, s)
-        {
-            m_halo[0]=MinusI;
-            m_halo[1]=MinusJ;
-            m_halo[2]=0;
-            m_initial_offsets[0] = initial_offset_i;
-            m_initial_offsets[1] = initial_offset_j;
-            m_initial_offsets[2] = 0 /* initial_offset_k*/;
-        }
-
-
-        host_tmp_storage() {}
-
-        virtual ~host_tmp_storage() {}
-
-        virtual void info() const {
-            std::cout << "Temporary storage "
-                      << m_halo[0] << "x"
-                      << m_halo[1] << "x"
-                      << m_halo[2] << ", "
-                      << "Initial offset "
-                      << m_initial_offsets[0] << "x"
-                      << m_initial_offsets[1] << "x"
-                      << m_initial_offsets[2] << ", "
-                      << this->m_name
-                      << std::endl;
-        }
-
-        thread_private_storage_t thread_private_storage(int i, int j=1) const {
-            return thread_private_storage_t(*this);
-        }
-    };
+};
 
 
     template < typename PointerType, typename Layout, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ
