@@ -104,7 +104,10 @@ namespace shallow_water{
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
 //             if(i>1 && j>1 && i<5 && j<5)
-                return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+            int pid=0;
+            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+
+                return 10.*pid+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
 //             else
 //                 return 1.;
        }
@@ -470,7 +473,7 @@ namespace shallow_water{
         return s << "final step";
     }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t, uint_t target_process) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -504,6 +507,7 @@ namespace shallow_water{
         typedef boost::mpl::vector< p_sol> arg_type_list;
         typedef sol_type::original_storage::pointer_type pointer_type;
 
+        {//scope for RAII
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
@@ -532,8 +536,8 @@ namespace shallow_water{
     he.setup(3);
 
         ptr out1(sol.size()), out2(sol.size()), out3(sol.size());
-    sol.set<0,2>(out1);
-    sol.set<1,2>(out2);
+        sol.set<0,2>(out1);
+        sol.set<1,2>(out2);
         sol.set<2,2>(out3);
         ptr out4(sol.size()), out5(sol.size()), out6(sol.size());
         sol.set<0,1>(out4);
@@ -625,11 +629,11 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
-//             if(!he.comm().pid())
-//                 cudaProfilerStart();
+            if(!he.comm().pid()==target_process)
+                cudaProfilerStart();
             shallow_water_stencil->run();
-//             if(!he.comm().pid())
-//                 cudaProfilerStop();
+            if(!he.comm().pid())
+                cudaProfilerStop();
 
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=sol.get<0,0>().get();
@@ -647,16 +651,18 @@ namespace shallow_water{
 #endif
         }
 
+        he.wait();
+        he.free();
+
 #ifdef NDEBUG
         shallow_water_stencil->finalize();
 #else
         myfile.close();
 #endif
-        cudaDeviceReset();
+        }
+
         // hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
         // out.write(sol.get<0,0>());
-
-        he.wait();
 
         return true;
 

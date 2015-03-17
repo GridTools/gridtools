@@ -80,11 +80,11 @@ namespace gridtools {
             }
 #endif
 
-      template <typename layoutmap>
-      boollist<I> permute() const {
-          BOOST_STATIC_ASSERT( layoutmap::length == I );
-        return boollist<I>(layoutmap::template find<0>(m_value));
-      }
+//       template <typename layoutmap>
+//       boollist<I> permute() const {
+//           BOOST_STATIC_ASSERT( layoutmap::length == I );
+//         return boollist<I>(layoutmap::template find<0>(m_value));
+//       }
 
       void copy_out(bool *arr) const {
                 for (ushort_t i=0; i<I; ++i)
@@ -92,17 +92,17 @@ namespace gridtools {
       }
 
         template <typename LayoutMap>
-        boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==1>::type a=0) const {
+        boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==1>::type* a=0) const {
             return boollist<LayoutMap::length>(LayoutMap::template find<0>(m_value));
       }
 
         template <typename LayoutMap>
-        boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==2>::type a=0 ) const {
+        boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==2>::type* a=0 ) const {
             return boollist<LayoutMap::length>(LayoutMap::template find<0>(m_value), LayoutMap::template find<1>(m_value));
       }
 
         template <typename LayoutMap>
-        boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==3>::type a=0 ) const {
+        boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==3>::type* a=0 ) const {
             return boollist<LayoutMap::length>(LayoutMap::template find<0>(m_value), LayoutMap::template find<1>(m_value), LayoutMap::template find<2>(m_value));
       }
     };

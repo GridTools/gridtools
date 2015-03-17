@@ -131,7 +131,7 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm /*const&*/ comm)
+      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm)
         : base_type(c,comm)
         , halo()
     {}
@@ -146,7 +146,8 @@ namespace gridtools {
         , halo()
     {}
 
-    ~hndlr_dynamic_ut() {
+
+      void free(){
 #ifdef _GCL_CHECK_DESTRUCTOR
       std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
@@ -161,28 +162,68 @@ namespace gridtools {
           }
       int err = cudaFree(d_send_buffer);
       if(err != cudaSuccess) {
-        printf("Error freeing d_send_buffer\n");
+          printf("Error freeing d_send_buffer: %s \n", cudaGetErrorString(cudaGetLastError()) );
       }
       err = cudaFree(d_recv_buffer);
       if(err != cudaSuccess) {
-        printf("Error freeing d_recv_buffer\n");
+          printf("Error freeing d_recv_buffer: %d\n", err);
       }
       err = cudaFree(d_send_size);
       if(err != cudaSuccess) {
-        printf("Error freeing d_send_size\n");
+          printf("Error freeing d_send_size: %d\n", err);
       }
       err = cudaFree(d_recv_size);
       if(err != cudaSuccess) {
-        printf("Error freeing d_recv_size\n");
+          printf("Error freeing d_recv_size: %d\n", err);
       }
       err = cudaFree(halo_d);
       if(err != cudaSuccess) {
-        printf("Error freeing halo_d\n");
+          printf("Error freeing halo_d: %d\n", err);
       }
       err = cudaFree(halo_d_r);
       if(err != cudaSuccess) {
-        printf("Error freeing halo_d_r\n");
+          printf("Error freeing halo_d_r: %d\n", err);
       }
+    }
+
+
+    ~hndlr_dynamic_ut() {
+// #ifdef _GCL_CHECK_DESTRUCTOR
+//       std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
+// #endif
+
+//       for (int i = -1; i <= 1; ++i)
+//         for (int j = -1; j <= 1; ++j)
+//           for (int k = -1; k <= 1; ++k) {
+//             if (!send_buffer[translate()(i,j,k)])
+//               _impl::gcl_alloc<DataType,arch_type>::free(send_buffer[translate()(i,j,k)]);
+//             if (!recv_buffer[translate()(i,j,k)])
+//               _impl::gcl_alloc<DataType,arch_type>::free(recv_buffer[translate()(i,j,k)]);
+//           }
+//       int err = cudaFree(d_send_buffer);
+//       if(err != cudaSuccess) {
+//           printf("Error freeing d_send_buffer: %s \n", cudaGetErrorString(cudaGetLastError()) );
+//       }
+//       err = cudaFree(d_recv_buffer);
+//       if(err != cudaSuccess) {
+//           printf("Error freeing d_recv_buffer: %d\n", err);
+//       }
+//       err = cudaFree(d_send_size);
+//       if(err != cudaSuccess) {
+//           printf("Error freeing d_send_size: %d\n", err);
+//       }
+//       err = cudaFree(d_recv_size);
+//       if(err != cudaSuccess) {
+//           printf("Error freeing d_recv_size: %d\n", err);
+//       }
+//       err = cudaFree(halo_d);
+//       if(err != cudaSuccess) {
+//           printf("Error freeing halo_d: %d\n", err);
+//       }
+//       err = cudaFree(halo_d_r);
+//       if(err != cudaSuccess) {
+//           printf("Error freeing halo_d_r: %d\n", err);
+//       }
     }
 
     /**
@@ -298,7 +339,7 @@ namespace gridtools {
         }
       }
       {
-        typedef proc_layout map_type;
+          typedef proc_layout map_type;
         int ii=0;
         int jj=0;
         int kk=1;
@@ -358,6 +399,10 @@ namespace gridtools {
       //        dangeroushalo_r[2].begin(),
       //        dangeroushalo_r[2].end(),
       //        dangeroushalo_r[2].total_length());
+
+//       printf("halo 1 is: %d, %d, %d, %d, %d \n", (halo.halos[0]).minus(), (halo.halos[0]).plus(), (halo.halos[0]).begin(), (halo.halos[0]).end(), (halo.halos[0]).total_length());
+//       printf("halo 2 is: %d, %d, %d, %d, %d \n", (halo.halos[1]).minus(), (halo.halos[1]).plus(), (halo.halos[1]).begin(), (halo.halos[1]).end(), (halo.halos[1]).total_length());
+//       printf("halo 3 is: %d, %d, %d, %d, %d \n", (halo.halos[2]).minus(), (halo.halos[2]).plus(), (halo.halos[2]).begin(), (halo.halos[2]).end(), (halo.halos[2]).total_length());
 
       for (int ii=-1; ii<=1; ++ii)
         for (int jj=-1; jj<=1; ++jj)

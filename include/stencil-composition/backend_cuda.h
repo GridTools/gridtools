@@ -33,7 +33,7 @@ namespace gridtools {
                   typename Traits,
                   typename ExtraArguments>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
+        void do_it_on_gpu(typename Traits::local_domain_t const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
 //             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
 //             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
             int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -41,8 +41,8 @@ namespace gridtools {
             uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
 #ifndef NDEBUG
-            printf("index: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
-            printf("i and j : %d and %d\n", i, j);
+//             printf("index: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
+//             printf("i and j : %d and %d\n", i, j);
 #endif
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
@@ -63,8 +63,8 @@ namespace gridtools {
             if ((i < nx) && (j < ny)) {
 
 #ifndef NDEBUG
-                printf("index_inside: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
-                printf("i  %d and j: %d inside\n", i, j);
+//                printf("index_inside: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
+//                printf("i  %d and j: %d inside\n", i, j);
 #endif
 
                 it_domain.template assign_ij<0>(i+starti,0);

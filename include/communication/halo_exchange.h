@@ -341,6 +341,9 @@ namespace gridtools {
             hd.halo.add_halo(layout_map::template at<DI>(), minus, plus, begin, end, t_len);
         }
 
+        void free()
+            {hd.free();}
+
         template <int DI>
         void add_halo(halo_descriptor const& halo) {
 
