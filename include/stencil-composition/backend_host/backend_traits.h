@@ -69,8 +69,8 @@ namespace gridtools{
     template<>
     struct strategy_from_id <enumtype::Block>
     {
-        static const uint_t BI=2;
-        static const uint_t BJ=2;
+        static const uint_t BI=8;
+        static const uint_t BJ=8;
         static const uint_t BK=0;
 
         template< typename Backend >
