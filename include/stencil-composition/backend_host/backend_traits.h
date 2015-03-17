@@ -140,7 +140,6 @@ namespace gridtools{
     };
 
     template <enumtype::backend, uint_t Id>
-    struct once_per_block{
-    };
+    struct once_per_block;
     //    }//namespace _impl
 }//namespace gridtools

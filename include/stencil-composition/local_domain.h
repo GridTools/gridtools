@@ -68,6 +68,9 @@ namespace gridtools {
             are the storage types containing the actual storage types used by the
             individual threads. This requires a difference w.r.t. extract_types
             for how to deal with temporaries.
+
+            Since certain modifications happend this metafunction is actually
+            identical, in behavior, with extract_types. 
         */
         template <typename StorageList>
         struct extract_actual_types {
@@ -77,7 +80,7 @@ namespace gridtools {
 
             template <typename Storage>
             struct check_if_temporary<Storage, typename boost::enable_if_c<is_temporary_storage<Storage>::value>::type> {
-                typedef typename boost::remove_pointer<Storage>::type::thread_private_storage_t* type;
+                typedef Storage type;
             };
 
             template <typename Storage>
