@@ -104,10 +104,10 @@ namespace shallow_water{
 	GT_FUNCTION
     	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
 //             if(i>1 && j>1 && i<5 && j<5)
-//             int pid=0;
-//             MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+             int pid=0;
+             MPI_Comm_rank(MPI_COMM_WORLD, &pid);
 
-                return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+             return pid+1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
 //             else
 //                 return 1.;
        }
