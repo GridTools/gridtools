@@ -267,8 +267,8 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
             
                 // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1,
-                    total_storages<Right, ID-1>::count,
+		assign_raw_data<storage_type::field_dimensions-1,
+		    total_storages<Right, ID-1>::count,
                     BackendType>::
                     assign(&l[total_storages<Right, ID-1>::count], boost::fusion::at_c<ID>(r),
                            EU_id_i, EU_id_j);
@@ -349,7 +349,9 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( void** data_pointer, uint_t EU_id_i=1, uint_t EU_id_j=1 ){
+        void assign_storage_pointers( void** data_pointer, uint_t EU_id_i=0, uint_t EU_id_j=0 ){
+            std::cout << "UAHUAHUAH " << EU_id_i << ", " << EU_id_j << std::endl;
+                 
             m_data_pointer=data_pointer;
             assign_storage< N_STORAGES-1, BackendType >
                 ::assign(m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);

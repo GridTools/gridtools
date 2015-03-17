@@ -125,6 +125,8 @@ namespace gridtools {
             m_initial_offsets[0] = initial_offset_i;
             m_initial_offsets[1] = initial_offset_j;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
+            std::cout << "you should be looking at this " << std::endl;
+            info();
         }
 
 
@@ -133,7 +135,7 @@ namespace gridtools {
         virtual ~host_tmp_storage() {}
 
         virtual void info() const {
-            std::cout << "Temporary storage "
+	    std::cout << "Temporary storage "
                       << m_halo[0] << "x"
                       << m_halo[1] << "x"
                       << m_halo[2] << ", "
@@ -154,7 +156,8 @@ namespace gridtools {
         */
         typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
             uint_t offset = n_j_threads*EU_id_i + EU_id_j;
-            
+            std::cout << "you should be lookingalso at this " << offset << std::endl;
+            return base_type::fields()[index].get()+offset;
         }
 
             /**@brief increment of 1 step along the specified
