@@ -239,7 +239,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 #endif
         int_t const& get() const {//stop recursion
 #ifndef NDEBUG
-            printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n ", Idx+1);
+            printf("The dimension you are trying (%d) to access exceeds the number of dimensions by %d.\n ", Idx+1, Idx+1-n_args);
 #endif
             return int_t(-1);
         }
