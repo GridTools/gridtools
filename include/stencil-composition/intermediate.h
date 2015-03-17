@@ -41,12 +41,12 @@ namespace gridtools {
          * */
         template <typename T>
         struct is_wrap_type
-          : boost::false_type
+            : boost::false_type
         {};
 
         template <typename T>
         struct is_wrap_type<wrap_type<T> >
-          : boost::true_type
+            : boost::true_type
         {};
 
 
@@ -63,11 +63,12 @@ namespace gridtools {
         };
 
 
-        template <typename StoragePointers, typename Iterators, template <class A, class B, class C> class LocalDomain>
+        template <typename StoragePointers,
+                  template <class A, class C> class LocalDomain>
         struct get_local_domain {
             template <typename T>
             struct apply {
-                typedef LocalDomain<StoragePointers,Iterators,T> type;
+                typedef LocalDomain<StoragePointers,T> type;
             };
         };
 
@@ -125,7 +126,7 @@ namespace gridtools {
             typedef boost::false_type type;
         };
 
-	/**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing ranges, one per functor*/
+        /**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing ranges, one per functor*/
         template <typename T>
         struct from_independents<independent_esf<T> > {
             typedef typename boost::mpl::fold<
@@ -134,55 +135,55 @@ namespace gridtools {
                 boost::mpl::push_back<boost::mpl::_1, extract_ranges<boost::mpl::_2> >
                 >::type raw_type;
 
-        typedef wrap_type<raw_type> type;
-	};
+            typedef wrap_type<raw_type> type;
+        };
 
-	/** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing ranges (in case of "independent" esf), or the single range enclosing all the ranges. */
-	template <typename State, typename Elem>
-	  struct traverse_ranges {
-	    typedef typename boost::mpl::push_back<
-            State,
-	      typename boost::mpl::if_<
-	      is_independent<Elem>,
-	      typename from_independents<Elem>::type,
-	      typename extract_ranges<Elem>::type
-	      >::type
-	      >::type type;
-	  };
+        /** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing ranges (in case of "independent" esf), or the single range enclosing all the ranges. */
+        template <typename State, typename Elem>
+        struct traverse_ranges {
+            typedef typename boost::mpl::push_back<
+                State,
+                typename boost::mpl::if_<
+                    is_independent<Elem>,
+                    typename from_independents<Elem>::type,
+                    typename extract_ranges<Elem>::type
+                    >::type
+                >::type type;
+        };
 
 
-	/**@brief prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.*/
+        /**@brief prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.*/
         template <typename ListOfRanges>
-	  struct prefix_on_ranges {
+        struct prefix_on_ranges {
 
             template <typename List, typename Range/*, typename NextRange*/>
             struct state {
-	      typedef List list;
-	      typedef Range range;
-	      // typedef NextRange next_range;
+                typedef List list;
+                typedef Range range;
+                // typedef NextRange next_range;
             };
 
             template <typename PreviousState, typename CurrentElement>
-	      struct update_state {
+            struct update_state {
                 typedef typename sum_range<typename PreviousState::range,
                                            CurrentElement>::type new_range;
                 typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
                 typedef state<new_list, new_range> type;
-	      };
+            };
 
             template <typename PreviousState, typename IndVector>
             struct update_state<PreviousState, wrap_type<IndVector> > {
-	      typedef typename boost::mpl::fold<
-		IndVector,
-		boost::mpl::vector<>,
-		boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
+                typedef typename boost::mpl::fold<
+                    IndVector,
+                    boost::mpl::vector<>,
+                    boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
                     >::type raw_ranges;
 
                 typedef typename boost::mpl::fold<
-                        IndVector,
-                        range<0,0,0,0>,
-                        enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
-                >::type final_range;
+                    IndVector,
+                    range<0,0,0,0>,
+                    enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
+                    >::type final_range;
 
                 typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
 
@@ -215,7 +216,7 @@ namespace gridtools {
                                                   keep_scanning<boost::mpl::_1, boost::mpl::_2>,
                                                   boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
                                                   >
-            >::type type;
+                                              >::type type;
         };
 
 
@@ -230,10 +231,10 @@ namespace gridtools {
             };
         };
 
-	/**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
-	   default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
+        /**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
+           default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
         template <typename Placeholders,
-	  typename TmpPairs=boost::mpl::na>
+                  typename TmpPairs=boost::mpl::na>
         struct select_storage {
             template <typename T, typename Dummy = void>
             struct is_temp : public boost::false_type
@@ -269,9 +270,9 @@ namespace gridtools {
             };
         };
 
-/**
- * @}
- * */
+        /**
+         * @}
+         * */
 
     } //namespace _impl
 
@@ -363,68 +364,68 @@ namespace gridtools {
 
 
 
-//\todo move inside the traits classes
-        template<enumtype::backend>
-        struct finalize_computation;
+    //\todo move inside the traits classes
+    template<enumtype::backend>
+    struct finalize_computation;
 
-        template<>
-        struct finalize_computation<enumtype::Cuda>{
-            template <typename DomainType>
-            static void apply(DomainType& dom)
-                {dom.finalize_computation();}
-        };
-
-
-        template<>
-        struct finalize_computation<enumtype::Host>{
-            template <typename DomainType>
-            static void apply(DomainType& dom)
-                {}
-        };
+    template<>
+    struct finalize_computation<enumtype::Cuda>{
+        template <typename DomainType>
+        static void apply(DomainType& dom)
+        {dom.finalize_computation();}
+    };
 
 
+    template<>
+    struct finalize_computation<enumtype::Host>{
+        template <typename DomainType>
+        static void apply(DomainType& dom)
+        {}
+    };
 
-//\todo move inside the traits classes?
 
-        /**
-           This functor calls h2d_update on all storages, in order to
-           get the data prepared in the case of GPU execution.
 
-           Returns 0 (GT_NO_ERRORS) on success
-        */
-        template<enumtype::backend>
-        struct setup_computation;
+    //\todo move inside the traits classes?
 
-        template<>
-        struct setup_computation<enumtype::Cuda>{
-            template<typename ArgListType, typename DomainType>
+    /**
+       This functor calls h2d_update on all storages, in order to
+       get the data prepared in the case of GPU execution.
 
-	      static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
-	      boost::fusion::copy(storage_pointers, domain.original_pointers);
+       Returns 0 (GT_NO_ERRORS) on success
+    */
+    template<enumtype::backend>
+    struct setup_computation;
 
-	      boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+    template<>
+    struct setup_computation<enumtype::Cuda>{
+        template<typename ArgListType, typename DomainType>
+
+        static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
+            boost::fusion::copy(storage_pointers, domain.original_pointers);
+
+            boost::fusion::for_each(storage_pointers, _impl::update_pointer());
 #ifndef NDEBUG
-                printf("POINTERS\n");
-                boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-                printf("ORIGINAL\n");
-                boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
+            printf("POINTERS\n");
+            boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+            printf("ORIGINAL\n");
+            boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
 #endif
-                return GT_NO_ERRORS;
+            return GT_NO_ERRORS;
         }
-        };
+    };
 
-        template<>
-        struct setup_computation<enumtype::Host>{
-            template<typename ArgListType, typename DomainType>
-            static int_t apply(ArgListType const& storage_pointers, DomainType &  domain){
-                return GT_NO_ERRORS;
+    template<>
+    struct setup_computation<enumtype::Host>{
+        template<typename ArgListType, typename DomainType>
+        static int_t apply(ArgListType const& storage_pointers, DomainType &  domain){
+            return GT_NO_ERRORS;
         }
-        };
+    };
 
-/**
- * @class
-*  @brief structure collecting helper metafunctions
- * */
+    /**
+     * @class
+     *  @brief structure collecting helper metafunctions
+     * */
     template <typename Backend, typename LayoutType,  typename MssType, typename DomainType, typename Coords>
     struct intermediate : public computation {
 
@@ -457,9 +458,9 @@ namespace gridtools {
          *
          */
         typedef typename boost::mpl::transform<
-                functor_do_methods,
-                compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals_t>
-                >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
+            functor_do_methods,
+            compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals_t>
+            >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
 
 
         /**
@@ -486,7 +487,13 @@ namespace gridtools {
          * backend with the interface that takes the range sizes. This
          * must be done before getting the local_domain
          */
-        typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes, float_type, /*layout_map<0,1,2>*/LayoutType >::type mpl_actual_tmp_pairs;
+        typedef typename Backend::template obtain_storage_types<
+            DomainType,
+            MssType,
+            range_sizes,
+            float_type,
+            LayoutType
+            >::type mpl_actual_tmp_pairs;
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
@@ -514,7 +521,10 @@ namespace gridtools {
          */
         typedef typename boost::mpl::transform<
             typename MssType::linear_esf,
-            _impl::get_local_domain<actual_arg_list_type, typename DomainType::iterator_list, local_domain> >::type mpl_local_domain_list;
+            _impl::get_local_domain<
+                actual_arg_list_type,
+                local_domain>
+            >::type mpl_local_domain_list;
 
         /**
          *
@@ -573,13 +583,13 @@ namespace gridtools {
             std::cout << "end2" <<std::endl;
 #endif
 
-	    //filter the non temporary storages among the storage pointers in the domain
+            //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
-                is_storage<boost::mpl::_1> > t_domain_view;
+                                               is_storage<boost::mpl::_1> > t_domain_view;
 
-	    //filter the non temporary storages among the placeholders passed to the intermediate
+            //filter the non temporary storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<actual_arg_list_type,
-                is_storage<boost::mpl::_1> > t_args_view;
+                                               is_storage<boost::mpl::_1> > t_args_view;
 
             t_domain_view domain_view(domain.storage_pointers);
             t_args_view args_view(actual_arg_list);
@@ -598,7 +608,7 @@ namespace gridtools {
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).
            It allocates the memory for the list of ranges defined in the temporary placeholders.
-         */
+        */
         virtual void ready () {
             // boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries( actual_arg_list, m_coords);
@@ -612,22 +622,22 @@ namespace gridtools {
            (\ref gridtools::intermediate::instantiate_local_domain, which only initializes the dom public pointer variable)
            @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer
            is passed to the instantiate_local_domain struct
-         */
+        */
         virtual void steady () {
-	  if(is_storage_ready)
-            {
-                setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
+            if(is_storage_ready)
+                {
+                    setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
 #ifndef NDEBUG
-                printf("Setup computation\n");
+                    printf("Setup computation\n");
 #endif
-            }
+                }
             else
-            {
+                {
 #ifndef NDEBUG
-                printf("Setup computation FAILED\n");
+                    printf("Setup computation FAILED\n");
 #endif
-                exit( GT_ERROR_NO_TEMPS );
-            }
+                    exit( GT_ERROR_NO_TEMPS );
+                }
 
             boost::fusion::for_each(local_domain_list,
                                     _impl::instantiate_local_domain<DomainType, actual_arg_list_type>
