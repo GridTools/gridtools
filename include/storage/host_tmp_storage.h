@@ -75,7 +75,7 @@ namespace gridtools {
                              , Layout
                              , true> base_type;
 
-
+        typedef host_tmp_storage<PointerType, Layout, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> this_type;
         typedef typename base_type::layout layout;
         typedef typename base_type::pointer_type pointer_type;
         typedef typename base_type::value_type value_type;
@@ -94,6 +94,82 @@ namespace gridtools {
 
         uint_t m_halo[3];
         uint_t m_initial_offsets[3];
+
+        struct thread_private_storage_t : public base_type {
+            this_type * the_real_storage;
+
+            thread_private_storage_t() 
+                : the_real_storage(NULL)
+            {}
+            
+            thread_private_storage_t(this_type& x)
+                : the_real_storage(&x)
+            {}
+
+            /**@brief increment of 1 step along the specified direction. This method is used to increment in the vertical direction, where at present no blocking is performed.*/
+            template <uint_t Coordinate>
+            GT_FUNCTION
+            void increment(uint_t b, uint_t* index){
+                base_type::template increment<Coordinate>(b, index);
+            }
+
+
+            /** @brief increment in the horizontal direction (i or j). 
+                This method updates the storage index, so that an increment 
+                of 'steps' is obtained in the 'Coordinate' direction.
+
+                The formula for incrementing the indices is the following:
+
+                given the coordinate direction \f$C\in\{0,1,2\}\f$, the index i 
+                defining the increment in the direction C, and the global 
+                storage index ID, which identifies univocally the current 
+                storage entry and has to be updated with the increment, :
+
+                \f$ID=ID+i-(b*tile)-offset+halo\f$
+
+                where tile is the tile dimension in the C direction, b 
+                is the current block index being accessed, offset an halo 
+                are respectively the constant offset at the domain boundary 
+                for the coordinate C and the dimension of the overlap along 
+                C between tiles (identified by the data dependency 
+                requirements between tiles).
+            */
+            template <uint_t Coordinate>
+            GT_FUNCTION
+            void increment(uint_t steps, uint_t b, uint_t* index){
+                // no blocking along k
+                if(Coordinate != 2)
+                    {
+                        uint_t tile=Coordinate==0?this_type::TileI:this_type::TileJ;
+                        uint_t var=steps - b * tile;
+
+                        uint_t coor=var-
+                           this_type:: m_initial_offsets[this_type::layout::template at_<Coordinate>::value] 
+                            + this_type::m_halo[this_type::layout::template at_<Coordinate>::value];
+
+                        BOOST_STATIC_ASSERT(this_type::layout::template at_<Coordinate>::value>=0);
+                        *index += coor*this_type::m_strides[this_type::layout::template at_<Coordinate>::value+1];
+                    }
+                else
+                    {
+                        base_type::template increment<Coordinate>( steps, b, index);
+                    }
+            }
+
+            /**@brief decrement in the horizontal direction (i or j). Analogous to the increment.
+               TODO avoid code repetition*/
+            template <uint_t Coordinate>
+            GT_FUNCTION
+            void decrement(uint_t& steps, uint_t& b, uint_t* index){
+
+                uint_t tile=Coordinate==0?this_type::TileI:this_type::TileJ;
+                uint_t var=steps - b * tile;
+                BOOST_STATIC_ASSERT(this_type::layout::template at_<Coordinate>::value>=0);
+                uint_t coor=var-this_type::m_initial_offsets[this_type::layout::template at_<Coordinate>::value]
+                    + this_type::m_halo[this_type::layout::template find<Coordinate>::value];
+                *index -= coor*this_type::m_strides[this_type::layout::template at_<Coordinate>+1];
+            }
+        };
 
         /**
            constructor of the temporary storage.
@@ -128,7 +204,6 @@ namespace gridtools {
 
         virtual ~host_tmp_storage() {}
 
-
         virtual void info() const {
             std::cout << "Temporary storage "
                       << m_halo[0] << "x"
@@ -142,67 +217,8 @@ namespace gridtools {
                       << std::endl;
         }
 
-        /**@brief increment of 1 step along the specified direction. This method is used to increment in the vertical direction, where at present no blocking is performed.*/
-        template <uint_t Coordinate>
-        GT_FUNCTION
-        void increment(uint_t b, uint_t* index){
-            base_type::template increment<Coordinate>(b, index);
-        }
-
-
-        /** @brief increment in the horizontal direction (i or j). 
-            This method updates the storage index, so that an increment 
-            of 'steps' is obtained in the 'Coordinate' direction.
-
-            The formula for incrementing the indices is the following:
-
-            given the coordinate direction \f$C\in\{0,1,2\}\f$, the index i 
-            defining the increment in the direction C, and the global 
-            storage index ID, which identifies univocally the current 
-            storage entry and has to be updated with the increment, :
-
-            \f$ID=ID+i-(b*tile)-offset+halo\f$
-
-            where tile is the tile dimension in the C direction, b 
-            is the current block index being accessed, offset an halo 
-            are respectively the constant offset at the domain boundary 
-            for the coordinate C and the dimension of the overlap along 
-            C between tiles (identified by the data dependency 
-            requirements between tiles).
-        */
-        template <uint_t Coordinate>
-        GT_FUNCTION
-        void increment(uint_t steps, uint_t b, uint_t* index){
-            // no blocking along k
-            if(Coordinate != 2)
-                {
-                    uint_t tile=Coordinate==0?TileI:TileJ;
-                    uint_t var=steps - b * tile;
-
-                    uint_t coor=var-
-                        m_initial_offsets[layout::template at_<Coordinate>::value] 
-                        + m_halo[layout::template at_<Coordinate>::value];
-
-                    BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                    *index += coor*m_strides[layout::template at_<Coordinate>::value+1];
-                }
-            else
-                {
-                    base_type::template increment<Coordinate>( steps, b, index);
-                }
-        }
-
-        /**@brief decrement in the horizontal direction (i or j). Analogous to the increment.
-           TODO avoid code repetition*/
-        template <uint_t Coordinate>
-        GT_FUNCTION
-        void decrement(uint_t& steps, uint_t& b, uint_t* index){
-
-            uint_t tile=Coordinate==0?TileI:TileJ;
-            uint_t var=steps - b * tile;
-            BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-            uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value] + m_halo[layout::template find<Coordinate>::value];
-            *index -= coor*m_strides[layout::template at_<Coordinate>+1];
+        thread_private_storage_t thread_private_storage(int i, int j=1) const {
+            return thread_private_storage_t(*this);
         }
     };
 
