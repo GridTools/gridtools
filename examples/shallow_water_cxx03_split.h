@@ -480,7 +480,7 @@ namespace shallow_water{
         return s << "final step";
     }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t, uint_t target_process) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -536,13 +536,6 @@ namespace shallow_water{
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
 
-
-        he.add_halo<0>(part.get_halo_gcl<0>());
-        he.add_halo<1>(part.get_halo_gcl<1>());
-        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
-
-        he.setup(3);
-
         parallel_storage<partitioner_t> hx(part, d1, d2, d3);
         parallel_storage<partitioner_t> ux(part, d1, d2, d3);
         parallel_storage<partitioner_t> vx(part, d1, d2, d3);
@@ -552,6 +545,12 @@ namespace shallow_water{
         parallel_storage<partitioner_t> h (part, d1, d2, d3);
         parallel_storage<partitioner_t> u (part, d1, d2, d3);
         parallel_storage<partitioner_t> v (part, d1, d2, d3);
+
+        he.add_halo<0>(part.get_halo_gcl<0>());//the parallel storage, not the partitioner, must hold this information
+        he.add_halo<1>(part.get_halo_gcl<1>());
+        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+
+        he.setup(3);
 
         if(!he.comm().pid())
             h.initialize(&bc_periodic<0,0>::droplet);
@@ -635,11 +634,11 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
-//             if(!he.comm().pid())
-//                 cudaProfilerStart();
+            if(!he.comm().pid()==target_process)
+                cudaProfilerStart();
             shallow_water_stencil->run();
-//             if(!he.comm().pid())
-//                 cudaProfilerStop();
+            if(!he.comm().pid())
+                cudaProfilerStop();
 
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=h.data().get();
@@ -652,12 +651,13 @@ namespace shallow_water{
 
 #ifndef NDEBUG
             shallow_water_stencil->finalize();
-            h.print();
-            u.print();
-            v.print();
+            h.print(myfile);
+            u.print(myfile);
+            v.print(myfile);
 #endif
         }
         he.wait();
+        he.free();
 
 #ifdef NDEBUG
         shallow_water_stencil->finalize();

@@ -531,15 +531,16 @@ namespace gridtools {
 
       int pid=0;
       MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-#ifndef NDEBUG
-      std::cout<<"communication from: "<<pid<<"along["<<I<<", "<<J<<", "<<K<<"]" <<std::endl;
-      std::cout<<" cyclic: "<<cyclic.value(0)<<" "<<cyclic.value(1)<<" "<<cyclic.value(2)<<std::endl;
-      std::cout<<"m_coordinates:[ "<<m_coordinates[0]<<" "<<m_coordinates[1]<<" "<<m_coordinates[2]<<std::endl;
-      std::cout<<"m_dimensions:[ "<<m_dimensions[0]<<" "<<m_dimensions[1]<<" "<<m_dimensions[2]<<std::endl;
-      std::cout<<"_coords:[ "<<_coords[0]<<" "<<_coords[1]<<" "<<_coords[2]<<std::endl;
-#endif
       int res;
       MPI_Cart_rank(m_communicator, _coords, &res);
+#ifndef NDEBUG
+      std::cout<<"communication from: "<<pid<<"along["<<I<<", "<<J<<", "<<K<<"]" <<std::endl;
+      std::cout<<" cyclic: "<<cyclic.value(0)<<" "<<cyclic.value(1)<<" "<<cyclic.value(2)<<"]"<<std::endl;
+      std::cout<<"m_coordinates:[ "<<m_coordinates[0]<<" "<<m_coordinates[1]<<" "<<m_coordinates[2]<<"]"<<std::endl;
+      std::cout<<"m_dimensions:[ "<<m_dimensions[0]<<" "<<m_dimensions[1]<<" "<<m_dimensions[2]<<"]"<<std::endl;
+      std::cout<<"_coords:[ "<<_coords[0]<<" "<<_coords[1]<<" "<<_coords[2]<<"]"<<std::endl;
+      std::cout<<"result: "<<res<<std::endl;
+#endif
       return res;
     }
 

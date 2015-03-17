@@ -29,32 +29,27 @@ namespace gridtools{
             const communicator_t& comm, const ushort_t* halo ): m_pid(comm.coordinates()), m_ntasks(comm.dimensions()), m_halo(halo), m_comm(comm){
 
             m_boundary=0;//bitmap
-            if(comm.coordinates(0)==comm.dimensions(0)-1) m_boundary  =  1; else m_boundary = 0;
-            if(comm.coordinates(1)==comm.dimensions(1)-1) m_boundary +=  2;
-            if(comm.coordinates(0)==0)  m_boundary += 4;
-            if(comm.coordinates(1)==0)  m_boundary += 8;
-//             for (ushort_t i=0; i</*communicator_t::ndims*/2; ++i)
-//                 if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
-//             for (ushort_t i=/*communicator_t::ndims*/2; i<2*/*communicator_t::ndims*/2; ++i)
-//                 if(comm.coordinates(i-/*communicator_t::ndims*/2)==0) m_boundary  += std::pow(2, i);
-
+//             if(comm.coordinates(0)==comm.dimensions(0)-1) m_boundary  =  1; else m_boundary = 0;
+//             if(comm.coordinates(1)==comm.dimensions(1)-1) m_boundary +=  2;
+//             if(comm.coordinates(0)==0)  m_boundary += 4;
+//             if(comm.coordinates(1)==0)  m_boundary += 8;
+            for (ushort_t i=0; i<communicator_t::ndims; ++i)
+                if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
+            for (ushort_t i=communicator_t::ndims; i<2*communicator_t::ndims; ++i)
+                if(comm.coordinates(i-communicator_t::ndims)==0) m_boundary  += std::pow(2, i);
         }
 
-        /**returns the sizes of a specific dimension in the current partition*/
-        virtual uint_t* sizes() {
-            return m_sizes;
-        }
 
-        virtual uint_t coord_length(ushort_t const& ID)
+        virtual uint_t coord_length(ushort_t const& ID, uint_t const& size)
             {
                 uint_t ret;
                 if(ID<communicator_t::ndims)
                 {
-                    div_t value=std::div(m_sizes[ID],m_ntasks[ID]);
+                    div_t value=std::div(size, m_ntasks[ID]);
                     ret = ((int)(value.quot/**(pid+1)*/) + (int)((value.rem>m_pid[ID]) ? (/*pid+*/1) : value.rem));
                 }
                 else
-                    ret = m_sizes[ID];
+                    ret = size;
                 return ret;
             }
 
@@ -64,9 +59,9 @@ namespace gridtools{
 
            The bounds must be inclusive of the halo region
         */
-        virtual uint_t compute_bounds(ushort_t const& component, uint_t const&size)
+        virtual uint_t compute_bounds(ushort_t const& component, uint_t const& size)
             {
-                m_sizes[component]=size;
+                //m_sizes[component]=size;
 
                     if ( component >= communicator_t::ndims || m_pid[component]==0 )
                         m_low_bound[component] = 0;
@@ -102,7 +97,7 @@ namespace gridtools{
 
                     }
 
-                uint_t tile_dimension = coord_length(component);
+                    uint_t tile_dimension = coord_length(component, size);
 
                     //ushort_t fact=component+1;//TODO ugly and errorprone use enums/bitmaps
                     //                                            if component is periodic or if it is not on the border then add the halo
@@ -174,9 +169,9 @@ namespace gridtools{
         const ushort_t* m_halo;
         communicator_t const& m_comm;
         /**this are the offsets which allow to compute the global coordinates given the local ones*/
-        int_t m_low_bound[Storage::space_dimensions];
-        int_t m_up_bound[Storage::space_dimensions];
-        uint_t m_sizes[Storage::space_dimensions];
+        int_t m_low_bound[storage_t::space_dimensions];
+        int_t m_up_bound[storage_t::space_dimensions];
+        //uint_t m_sizes[storage_t::space_dimensions];
         halo_descriptor m_coordinates[Storage::space_dimensions];
         halo_descriptor m_coordinates_gcl[Storage::space_dimensions];
         int m_boundary;
