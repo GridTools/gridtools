@@ -33,10 +33,12 @@ namespace gridtools{
 //             if(comm.coordinates(1)==comm.dimensions(1)-1) m_boundary +=  2;
 //             if(comm.coordinates(0)==0)  m_boundary += 4;
 //             if(comm.coordinates(1)==0)  m_boundary += 8;
-            for (ushort_t i=0; i<communicator_t::ndims; ++i)
+
+            //TODO think general
+            for (ushort_t i=0; i<communicator_t::ndims-1; ++i)
                 if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
-            for (ushort_t i=communicator_t::ndims; i<2*communicator_t::ndims; ++i)
-                if(comm.coordinates(i-communicator_t::ndims)==0) m_boundary  += std::pow(2, i);
+            for (ushort_t i=communicator_t::ndims-1; i<2*(communicator_t::ndims-1); ++i)
+                if(comm.coordinates(i-(communicator_t::ndims-1))==0) m_boundary  += std::pow(2, i);
         }
 
 
