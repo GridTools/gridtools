@@ -1,5 +1,6 @@
 #pragma once
 #include "base_storage_impl.h"
+#include "../common/layout_map.h"
 
 /**@file
    @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
@@ -63,13 +64,12 @@ namespace gridtools {
         typedef typename pointer_type::pointee_t value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
-        //        typedef backend_from_id <Backend> backend_traits_t;
-        //typedef in order to stopo the type recursion of the derived classes
 
         // TODO: Keep only one of these
         typedef base_storage<PointerType, Layout, IsTemporary, FieldDimension> basic_type;
         typedef base_storage<PointerType, Layout, IsTemporary, FieldDimension> original_storage;
         //static const enumtype::backend backend=Backend;
+
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;

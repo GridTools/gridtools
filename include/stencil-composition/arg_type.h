@@ -30,8 +30,6 @@ namespace gridtools {
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct arg_type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
-        // typedef Range range_type;
-        // static const ushort_t index_type=ID;
     };
 #endif
     /**

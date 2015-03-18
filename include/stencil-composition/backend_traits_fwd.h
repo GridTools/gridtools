@@ -15,11 +15,9 @@ namespace gridtools {
     template <typename U>
     struct storage;
 
-    /**
-       @brief traits struct, specialized for the specific backends.
-    */
-    template<enumtype::backend Id>
-    struct backend_from_id;
+    /**forward declaration*/
+    template<enumtype::backend T>
+    struct backend_traits_from_id;
 
 
     /**

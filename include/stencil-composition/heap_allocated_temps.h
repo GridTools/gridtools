@@ -21,7 +21,7 @@ namespace gridtools {
          */
         template <typename ArgList, typename Coords,
                   enumtype::backend BackendId>
-        struct prepare_temporaries_functor<ArgList, Coords, backend<BackendId, enumtype::strategy::Naive> >
+        struct prepare_temporaries_functor<ArgList, Coords, backend<BackendId, enumtype::/*strategy::*/Naive> >
         {
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
@@ -91,10 +91,10 @@ namespace gridtools {
          */
         template <typename ArgList, typename Coords,
                   enumtype::backend BackendId>
-        struct prepare_temporaries_functor<ArgList, Coords, backend<BackendId, enumtype::strategy::Block> >
+        struct prepare_temporaries_functor<ArgList, Coords, backend<BackendId, enumtype::/*strategy::*/Block> >
         {
 
-            typedef backend<BackendId, enumtype::strategy::Block> backend_type;
+            typedef backend<BackendId, enumtype/*::strategy*/::Block> backend_type;
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
             */

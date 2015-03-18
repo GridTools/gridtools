@@ -75,7 +75,7 @@ namespace gridtools {
     struct layout_map{
         static constexpr ushort_t length=sizeof...(Args);
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
-	typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
+        typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
         /* static const int s=t::fuck(); */
         /* BOOST_STATIC_ASSERT(s); */
 
@@ -293,6 +293,10 @@ namespace gridtools {
 
     };
 
+
+    template <typename layout> struct is_layout_map : boost::mpl::false_{};
+    template <short_t ... Args> struct is_layout_map<layout_map<Args...> > : boost::mpl::true_{};
+
 #else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
     namespace _impl {
@@ -379,6 +383,9 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 */
     template <short_t, short_t=-2, short_t=-2, short_t=-2>
         struct layout_map;
+
+    template <typename layout> struct is_layout_map : boost::mpl::false_{};
+    template <short_t t1, short_t t2, short_t t3, short_t t4> struct is_layout_map<layout_map<t1, t2, t3, t4> > : boost::mpl::true_{};
 
     template <short_t I1>
     struct layout_map<I1, -2, -2, -2> {

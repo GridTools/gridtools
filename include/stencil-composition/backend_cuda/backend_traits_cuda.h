@@ -16,9 +16,16 @@ namespace gridtools{
     template<typename T>
     struct hybrid_pointer;
 
+<<<<<<< HEAD:include/stencil-composition/backend_cuda/backend_traits_cuda.h
+=======
+    /**forward declaration*/
+    template<enumtype::backend T>
+    struct backend_traits_from_id;
+
+>>>>>>> dycore_benchmarks:include/stencil-composition/backend_traits_cuda.h
 /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template<>
-    struct backend_from_id< enumtype::Cuda >
+    struct backend_traits_from_id< enumtype::Cuda >
     {
 
         template <typename T>
@@ -36,7 +43,7 @@ namespace gridtools{
         template <typename Arguments>
         struct execute_traits
         {
-            typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
+            typedef _impl_cuda::run_functor_cuda<Arguments> run_functor_t;
         };
 
         //function alias (pre C++11)

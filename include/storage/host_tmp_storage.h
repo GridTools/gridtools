@@ -191,7 +191,7 @@ namespace gridtools {
             */
             template <uint_t Coordinate>
             GT_FUNCTION
-            void increment(uint_t steps, uint_t b, uint_t* index){
+            void increment(const uint_t steps, const uint_t b, uint_t* index){
                 // no blocking along k
                 if(Coordinate != 2)
                     {
@@ -215,16 +215,23 @@ namespace gridtools {
                TODO avoid code repetition*/
             template <uint_t Coordinate>
             GT_FUNCTION
-            void decrement(uint_t& steps, uint_t& b, uint_t* index){
+            void decrement(const uint_t steps, const uint_t b, uint_t* index){
 
                 uint_t tile=Coordinate==0?TileI:TileJ;
                 uint_t var=steps - b * tile;
+                // \todo CHECK IF THIS IS RIGHT PREVIOUS VERSION HAD TWO BUGS
+                // THIS FUNCTION WAS PROBABLY NEVER TESTED BEFORE VERTICAL ADVECTION
+                // BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                // uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
+                //     + m_halo[layout::template  find<Coordinate>::value];  <<<<<<< HERE
+                // *index -= coor*m_strides[layout::template at_<Coordinate>::value+1]; <<<< HERE
+                
                 BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
                 uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
-                    + m_halo[layout::template find<Coordinate>::value];
-                *index -= coor*m_strides[layout::template at_<Coordinate>+1];
+                    + m_halo[layout::template  at_<Coordinate>::value];
+                *index -= coor*m_strides[layout::template at_<Coordinate>::value+1];
             }
-};
+    };
 
 
     template < typename PointerType, typename Layout, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ

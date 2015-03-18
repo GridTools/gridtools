@@ -35,7 +35,7 @@ namespace gridtools {
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<backend_from_id<enumtype::Cuda> >(data_pointer);
+            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(data_pointer);
             __syncthreads();
 
             if ((i < nx) && (j < ny)) {
@@ -71,11 +71,11 @@ namespace gridtools {
         struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
             typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
                 : super( domain_list, coords)
                 {}
 
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
+            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
                 : super(domain_list, coords, i, j, bi, bj)
                 {}
 
@@ -109,80 +109,78 @@ namespace gridtools {
 */
         template < typename Traits >
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
-            {
-                typedef typename Arguments::coords_t coords_type;
-                // typedef typename Arguments::loop_intervals_t loop_intervals_t;
-                typedef typename Traits::range_t range_t;
-                typedef typename Traits::functor_t functor_type;
-                typedef typename Traits::local_domain_t  local_domain_t;
-                typedef typename Traits::interval_map_t interval_map_type;
-                typedef typename Traits::iterate_domain_t iterate_domain_t;
-                typedef typename Traits::first_hit_t first_hit_t;
-                typedef typename Arguments::execution_type_t execution_type_t;
+        {
+            typedef typename Arguments::coords_t coords_type;
+            // typedef typename Arguments::loop_intervals_t loop_intervals_t;
+            typedef typename Traits::range_t range_t;
+            typedef typename Traits::functor_t functor_type;
+            typedef typename Traits::local_domain_t  local_domain_t;
+            typedef typename Traits::interval_map_t interval_map_type;
+            typedef typename Traits::iterate_domain_t iterate_domain_t;
+            typedef typename Traits::first_hit_t first_hit_t;
+            typedef typename Arguments::execution_type_t execution_type_t;
 
 
-                /* struct extra_arguments{ */
-                /*     typedef functor_type functor_t; */
-                /*     typedef interval_map_type interval_map_t; */
-                /*     typedef iterate_domain_t local_domain_t; */
-                /*     typedef coords_type coords_t;}; */
+            /* struct extra_arguments{ */
+            /*     typedef functor_type functor_t; */
+            /*     typedef interval_map_type interval_map_t; */
+            /*     typedef iterate_domain_t local_domain_t; */
+            /*     typedef coords_type coords_t;}; */
 
 #ifndef NDEBUG
-                std::cout << "Functor " <<  functor_type() << "\n";
-                std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
+            std::cout << "Functor " <<  functor_type() << "\n";
+            std::cout << "I loop " << f->m_starti  + range_t::iminus::value << " -> "
                                     << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
-                std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
+            std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
                                     << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
-                std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-                std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+            std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+            std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
-        short_t count;
-        cudaGetDeviceCount ( &count  );
+            short_t count;
+            cudaGetDeviceCount ( &count  );
 
-        if(count)
-          {
-            cudaDeviceProp prop;
-            cudaGetDeviceProperties(&prop, 0);
-            std::cout << "total global memory "<<       prop.totalGlobalMem<<std::endl;
-            std::cout << "shared memory per block "<<   prop.sharedMemPerBlock<<std::endl;
-            std::cout << "registers per block "<<       prop.regsPerBlock<<std::endl;
-            std::cout << "maximum threads per block "<< prop.maxThreadsPerBlock <<std::endl;
-            std::cout << "maximum threads dimension "<< prop.maxThreadsDim <<std::endl;
-            std::cout << "clock rate "<<                prop.clockRate <<std::endl;
-            std::cout << "total const memory "<<        prop.totalConstMem <<std::endl;
-            std::cout << "compute capability "<<        prop.major<<"."<<prop.minor <<std::endl;
-            std::cout << "multiprocessors count "<< prop.multiProcessorCount <<std::endl;
-            std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "<< prop.computeMode <<std::endl;
-            std::cout << "concurrent kernels "<< prop.concurrentKernels <<std::endl;
-            std::cout << "Number of asynchronous engines  "<< prop.asyncEngineCount <<std::endl;
-            std::cout << "unified addressing "<< prop.unifiedAddressing <<std::endl;
-            std::cout << "memoryClockRate "<< prop.memoryClockRate <<std::endl;
-            std::cout << "memoryBusWidth "<< prop.memoryBusWidth <<std::endl;
-            std::cout << "l2CacheSize "<< prop.l2CacheSize <<std::endl;
-            std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
-          }
+            if(count)
+            {
+                cudaDeviceProp prop;
+                cudaGetDeviceProperties(&prop, 0);
+                std::cout << "total global memory "<<       prop.totalGlobalMem<<std::endl;
+                std::cout << "shared memory per block "<<   prop.sharedMemPerBlock<<std::endl;
+                std::cout << "registers per block "<<       prop.regsPerBlock<<std::endl;
+                std::cout << "maximum threads per block "<< prop.maxThreadsPerBlock <<std::endl;
+                std::cout << "maximum threads dimension "<< prop.maxThreadsDim <<std::endl;
+                std::cout << "clock rate "<<                prop.clockRate <<std::endl;
+                std::cout << "total const memory "<<        prop.totalConstMem <<std::endl;
+                std::cout << "compute capability "<<        prop.major<<"."<<prop.minor <<std::endl;
+                std::cout << "multiprocessors count "<< prop.multiProcessorCount <<std::endl;
+                std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "<< prop.computeMode <<std::endl;
+                std::cout << "concurrent kernels "<< prop.concurrentKernels <<std::endl;
+                std::cout << "Number of asynchronous engines  "<< prop.asyncEngineCount <<std::endl;
+                std::cout << "unified addressing "<< prop.unifiedAddressing <<std::endl;
+                std::cout << "memoryClockRate "<< prop.memoryClockRate <<std::endl;
+                std::cout << "memoryBusWidth "<< prop.memoryBusWidth <<std::endl;
+                std::cout << "l2CacheSize "<< prop.l2CacheSize <<std::endl;
+                std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
+            }
 #endif
+            local_domain.clone_to_gpu();
+            f->m_coords.clone_to_gpu();
 
+            local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
 
-                local_domain.clone_to_gpu();
-                f->m_coords.clone_to_gpu();
+            coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
-                local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
+            // number of threads
+            uint_t nx = (uint_t) (f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1);
+            uint_t ny = (uint_t) (f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1);
 
-                coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
+            // blocks dimension
+            uint_t ntx = 8, nty = 32;
 
-                // number of threads
-                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1);
-                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1);
+            //number of blocks
+            ushort_t nbx = (nx + ntx - 1) / ntx;
+            ushort_t nby = (ny + nty - 1) / nty;
 
-                // blocks dimension
-                uint_t ntx = 8, nty = 32;
-
-                //number of blocks
-                ushort_t nbx = (nx + ntx - 1) / ntx;
-                ushort_t nby = (ny + nty - 1) / nty;
-
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
+            _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
@@ -191,17 +189,22 @@ namespace gridtools {
                      (ny));
                 cudaDeviceSynchronize();
 
-            }
+        }
     };
 
-//    }//namespace _impl
+    //    }//namespace _impl
 
-/**@brief given the backend \ref gridtools::_impl_cuda::run_functor_cuda returns the backend ID gridtools::enumtype::Cuda
-   wasted code because of the lack of constexpr*/
-        template <typename Arguments>
-        struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
-        {
-            static const enumtype::backend s_backend=enumtype::Cuda;
-        };
+
+    /**@brief given the backend \ref
+       gridtools::_impl_cuda::run_functor_cuda returns the backend ID
+       gridtools::enumtype::Cuda wasted code because of the lack of
+       constexpr
+    */
+    template <typename Arguments>
+    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
+    {
+        static const enumtype::backend s_backend=enumtype::Cuda;
+    };
+
 
 } // namespace gridtools
