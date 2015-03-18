@@ -152,7 +152,31 @@ namespace gridtools {
             m_name=string;
         }
 
+	/**@brief the parallel storage calls the empty constructor to do lazy initialization*/
+	base_storage():
+	    is_set( false ),
+	    m_name("default_storage")
+            {}
+
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
+
+        template<typename ... UInt>
+        void setup(UInt const& ... dims)
+            {
+                is_set=true;
+                for(ushort_t i=0; i<field_dimensions; ++i)
+                    m_fields[i]=pointer_type(dim1*dim2*dim3);
+		// m_fields[0]=pointer_type(dim1*dim2*dim3);
+		BOOST_STATIC_ASSERT(sizeof...(UIntTypes)==space_dimensions);
+		BOOST_STATIC_ASSERT(field_dimensions>0);
+		m_strides[0] = accumulate( multiplies(), args...) ;
+		_impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], args...);
+		m_fields[0]=pointer_type(m_strides[0]);
+
+		//the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
+		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
+		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
+            }
 
 	/**
 	   @brief 3D storage constructor
@@ -202,6 +226,21 @@ namespace gridtools {
 		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
 	    }
 #else //CXX11_ENABLED
+
+        void setup(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3)
+            {
+                is_set=true;
+                for(ushort_t i=0; i<field_dimensions; ++i)
+                    m_fields[i]=pointer_type(dim1*dim2*dim3);
+		// m_fields[0]=pointer_type(dim1*dim2*dim3);
+		m_dims[0]=dim1;
+		m_dims[1]=dim2;
+		m_dims[2]=dim3;
+
+		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
+		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+            }
 
         /**@brief default constructor
            sets all the data members given the storage dimensions
@@ -636,14 +675,9 @@ namespace gridtools {
 	pointer_type m_fields[field_dimensions];
         uint_t m_dims[space_dimensions];
         uint_t m_strides[space_dimensions];
-#ifdef NDEBUG
-    private:
-	/**@brief noone calls the empty constructor*/
-	base_storage();
-#else
-	/**only for stdcout purposes*/
-	base_storage(){}
-#endif
+
+// 	/**only for stdcout purposes*/
+// 	base_storage(){}
     };
 
     /** @brief storage class containing a buffer of data snapshots
@@ -663,6 +697,9 @@ namespace gridtools {
         typedef typename super::original_storage original_storage;
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
+
+        //default constructor
+        extend_width(): super(){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
@@ -698,6 +735,8 @@ namespace gridtools {
             for (uint_t i=0; i< super::field_dimensions; ++i)
                 super::m_fields[i].update_gpu();
         }
+
+        using super::setup;
 
         /** @brief returns the address to the first element of the current data field (pointed by (m_fields[0]))*/
         GT_FUNCTION
@@ -779,9 +818,6 @@ namespace gridtools {
 
         static const ushort_t n_width = ExtraWidth+1;
 
-        //for stdcout purposes
-        explicit extend_width(){}
-
     };
 
     /**@brief specialization: if the width extension is 0 we fall back on the base storage*/
@@ -789,7 +825,11 @@ namespace gridtools {
     struct extend_width<Storage, 0> : public Storage
     {
         typedef typename Storage::basic_type basic_type;
+        typedef Storage super;
         typedef typename Storage::original_storage original_storage;
+
+        //default constructor
+        extend_width(): super(){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
@@ -806,6 +846,8 @@ namespace gridtools {
         virtual ~extend_width(){
 	}
 
+        using super::setup;
+
 	/**dimension number of snaphsots for the current field dimension*/
         static const ushort_t n_width = Storage::n_width;
 
@@ -815,14 +857,6 @@ namespace gridtools {
         extend_width(T const& other)
             : Storage(other)
             {}
-
-#ifdef NDEBUG//opt
-    private:
-        //for stdcout purposes
-	extend_width();
-#else
-        extend_width(){}
-#endif
     };
 
 #ifdef CXX11_ENABLED
@@ -954,6 +988,10 @@ namespace gridtools {
 	    }
 
 #endif
+
+	/**@brief default constructor*/
+        extend_dim(): super(){}
+
 	/**@brief device copy constructor*/
         template <typename T>
         __device__
@@ -964,6 +1002,8 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~extend_dim(){
 	}
+
+        using super::setup;
 
         /**@brief pushes a given data field at the front of the buffer for a specific dimension
            \param field the pointer to the input data field
@@ -1141,13 +1181,6 @@ namespace gridtools {
 	    _impl::advance_recursive<n_width>::apply(const_cast<extend_dim*>(this));
         }
 
-#ifdef NDEBUG
-    private:
-        //for stdcout purposes
-	extend_dim();
-#else
-        extend_dim(){}
-#endif
     };
 
 #ifndef CXX11_ENABLED
