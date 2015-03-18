@@ -47,7 +47,7 @@ namespace gridtools {
                           typename Axis::FromLevel::Splitter>,
         static_int<1> >::type size_type;
 
-        gridtools::array<uint_t, size_type::value > value_list;
+        array<uint_t, size_type::value > value_list;
 
         GT_FUNCTION
         explicit coordinates( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
@@ -56,12 +56,13 @@ namespace gridtools {
             {}
 
 
+        template<typename ParallelStorage>
         GT_FUNCTION
-        explicit coordinates( const Partitioner * part )
+        explicit coordinates( const Partitioner * part_, ParallelStorage const & storage_ )
             :
-            m_partitioner(part)
-            , m_direction_i(part->template get_halo_descriptor<0>())//copy
-            , m_direction_j(part->template get_halo_descriptor<1>())//copy
+            m_partitioner(part_)
+            , m_direction_i(storage_.template get_halo_descriptor<0>())//copy
+            , m_direction_j(storage_.template get_halo_descriptor<1>())//copy
         {}
 
         GT_FUNCTION
@@ -112,16 +113,16 @@ namespace gridtools {
             // return m_k_low_bound;
         }
 
-        gridtools::halo_descriptor const& direction_i() const { return m_direction_i;}
+        halo_descriptor const& direction_i() const { return m_direction_i;}
 
-        gridtools::halo_descriptor const& direction_j() const { return m_direction_j;}
+        halo_descriptor const& direction_j() const { return m_direction_j;}
 
         const Partitioner & partitioner() const {return *m_partitioner;}
     private:
 
         Partitioner const* m_partitioner;
-        gridtools::halo_descriptor m_direction_i;
-        gridtools::halo_descriptor m_direction_j;
+        halo_descriptor m_direction_i;
+        halo_descriptor m_direction_j;
 
     };
 } // namespace gridtools

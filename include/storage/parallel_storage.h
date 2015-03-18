@@ -28,19 +28,34 @@ namespace gridtools {
             :  super(other)
             {}
 
+        explicit parallel_storage(partitioner_t const& part)
+            : super()
+            , m_partitioner(&part)
+            {
+            }
+
         /**
            @brief 3D constructor
 
            Given the partitioner and the three space dimensions it constructs a storage and allocate the data
            relative to the current process
          */
-        explicit parallel_storage(partitioner_t& part, uint_t const& d1, uint_t const& d2, uint_t const& d3)
-            : super(part.compute_bounds(0, d1), part.compute_bounds(1, d2), part.compute_bounds(2, d3))
+        void setup(uint_t const& d1, uint_t const& d2, uint_t const& d3)
+            {
+                uint_t dims[3];
+                m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
+                super::setup(dims[0], dims[1], dims[2]);
+            }
+
+#ifdef CXX11_ENABLED
+
+        template <typename ... UInt >
+        explicit parallel_storage(partitioner_t& part, UInt const& ... di)
+            : super(part.compute_bounds(0, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, di ... ) )
             , m_partitioner(&part)
             {
             }
 
-#ifdef CXX11_ENABLED
         template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
         typename super::value_type& get_value( UInt const& ... i )
 		{
@@ -62,7 +77,20 @@ namespace gridtools {
         template<uint_t Component>
         uint_t const& local_to_global(uint_t const& value){return m_partitioner->template global_offset<Component>()+value;}
 
+        template<ushort_t dimension>
+        halo_descriptor const& get_halo_descriptor() const {return m_coordinates[dimension];}
+
+        template<ushort_t dimension>
+        halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
+
     private:
-        partitioner_t* m_partitioner;
+
+        partitioner_t const* m_partitioner;
+        //these are set by the partitioner
+        halo_descriptor m_coordinates[super::space_dimensions];
+        halo_descriptor m_coordinates_gcl[super::space_dimensions];
+        //these remember where am I on the storage (also set by the partitioner)
+        int_t m_low_bound[super::space_dimensions];
+        int_t m_up_bound[super::space_dimensions];
     };
 }//namespace gridtools
