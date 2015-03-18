@@ -7,6 +7,7 @@
 
 #include "../iteration_policy.h"
 #include "../../common/gridtools_runtime.h"
+
 /**
    @file
    @brief Implements the stencil operations for the host backend
@@ -22,13 +23,13 @@ namespace gridtools {
         struct run_functor_host : public _impl::run_functor < run_functor_host< Arguments > >
         {
 
-            typedef _impl::run_functor < run_functor_host < Arguments > > super;
-            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
-                : super(domain_list, coords)
+            typedef _impl::run_functor < run_functor_host < Arguments > > base_type;
+            explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+                : base_type(domain_list, coords)
             {}
 
-            explicit run_functor_host(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blki, uint_t blkj)
-                : super(domain_list, coords, i, j, bi, bj, blki, blkj)
+            explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blki, uint_t blkj)
+                : base_type(domain_list, coords, i, j, bi, bj, blki, blkj)
             {}
 
         };
@@ -47,7 +48,8 @@ namespace gridtools {
             typedef FunctorType functor_t;
             typedef IntervalMapType interval_map_t;
             typedef IterateDomainType local_domain_t;
-            typedef CoordsType coords_t;};
+            typedef CoordsType coords_t;
+        };
 
         /**
            @brief core of the kernel execution
@@ -79,7 +81,7 @@ namespace gridtools {
             void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
             iterate_domain_type it_domain(local_domain);
 
-            it_domain.template assign_storage_pointers<backend_from_id<enumtype::Host> >(data_pointer, thread_id());
+            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Host> >(data_pointer, thread_id());
 
             for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
                  i <= (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;
@@ -138,6 +140,8 @@ namespace gridtools {
        @brief given the backend \ref gridtools::_impl_host::run_functor_host returns the backend ID gridtools::enumtype::Host
        wasted code because of the lack of constexpr
     */
+
+    //// Check if this is needed
     template <typename Arguments >
     struct backend_type< _impl_host::run_functor_host< Arguments > >
     {

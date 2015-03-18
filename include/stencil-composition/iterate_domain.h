@@ -100,6 +100,7 @@ namespace gridtools {
        It enhances the performances, but principle it could be avoided.
        The 'raw' datas are the one or more data fields contained in each storage class
     */
+
     template<uint_t Number, uint_t Offset, typename BackendType>
     struct assign_raw_data{
         static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
@@ -192,7 +193,7 @@ namespace gridtools {
 
         /**usual specialization to stop the recursion*/
         template<uint_t Coordinate>
-        struct assign_index<0, Coordinate>{
+            struct assign_index<0, Coordinate>{
             template<typename Storage>
             GT_FUNCTION
             static void assign( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
@@ -201,12 +202,9 @@ namespace gridtools {
             }
         };
 
-
-
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
         template<uint_t ID>
         struct set_index_recur{
-
             template<typename Storage>
             /**@brief does the actual assignment
                This method is responsible of computing the index for the memory access at
@@ -225,17 +223,16 @@ namespace gridtools {
 
         /**usual specialization to stop the recursion*/
         template<>
-            struct set_index_recur<0>{
+        struct set_index_recur<0>{
             template<typename Storage>
             GT_FUNCTION
             static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
-
                 boost::fusion::at_c<0>(r)->set_index(id, &index[0]);
             }
         };
 
-
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
+
         template<uint_t ID, typename BackendType>
         struct assign_storage{
 
@@ -263,18 +260,18 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
-            
-                // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
-		assign_raw_data<storage_type::field_dimensions-1,
-		    total_storages<Right, ID-1>::count,
+
+                    // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
+                    assign_raw_data<storage_type::field_dimensions-1,
+                                    total_storages<Right, ID-1>::count,
                     BackendType>::
                     assign(&l[total_storages<Right, ID-1>::count], boost::fusion::at_c<ID>(r),
                            EU_id_i, EU_id_j);
-            
+
                 assign_storage<ID-1, BackendType>::assign(l, r, EU_id_i, EU_id_j); //tail recursion
             }
         };
-    
+
         /**usual specialization to stop the recursion*/
         template<typename BackendType>
         struct assign_storage<0, BackendType>{
@@ -292,7 +289,7 @@ namespace gridtools {
                     assign(&l[0], boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
             }
         };
-    }
+    } //namespace
 
 
     /**@brief class handling the computation of the */
@@ -313,7 +310,11 @@ namespace gridtools {
             boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
 
 private:
-        // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
+        // iterate_domain remembers the state. This is necessary when
+        // we do finite differences and don't want to recompute all
+        // the iterators (but simply use the ones available for the
+        // current iteration storage for all the other storages)
+
         LocalDomain const& local_domain;
         uint_t m_index[N_STORAGES];
 
@@ -322,8 +323,12 @@ private:
 
 public:
         /**@brief constructor of the iterate_domain struct
-           It assigns the storage pointers to the first elements of the data fields (for all the data_fields present in the current evaluation), and the
-           indexes to access the data fields (one index per storage instance, so that one index might be shared among several data fileds)
+
+           It assigns the storage pointers to the first elements of
+           the data fields (for all the data_fields present in the
+           current evaluation), and the indexes to access the data
+           fields (one index per storage instance, so that one index
+           might be shared among several data fileds)
         */
         GT_FUNCTION
         iterate_domain(LocalDomain const& local_domain)
@@ -347,7 +352,12 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( void** data_pointer, uint_t EU_id_i=0, uint_t EU_id_j=0 ){
+        void assign_storage_pointers( void** data_pointer, uint_t EU_id_i, uint_t EU_id_j=0 ){
+            // std::cout << "the stuff "
+            //           << "EU_id_i " << EU_id_i
+            //           << " EU_id_j " << EU_id_j
+            //           << std::endl;
+                
             m_data_pointer=data_pointer;
             assign_storage< N_STORAGES-1, BackendType >
                 ::assign(m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);
@@ -378,13 +388,15 @@ public:
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         GT_FUNCTION
-        void increment() {
+        void increment()
+        {
             iterate_domain_aux::increment_k<N_STORAGES-1>::apply( local_domain.local_args, 1, &m_index[0]);
         }
 
         /**@brief method for decrementing the index when moving backward along the k direction*/
         GT_FUNCTION
-        void decrement() {
+        void decrement()
+        {
             iterate_domain_aux::decrement_k<N_STORAGES-1>::apply( local_domain.local_args, 1, &m_index[0]);
         }
 
@@ -397,7 +409,8 @@ public:
 
         template <typename T>
         GT_FUNCTION
-        void info(T const &x) const {
+        void info(T const &x) const
+        {
             local_domain.info(x);
         }
 
@@ -569,6 +582,7 @@ public:
            They evalueate the operator passed as argument, by recursively evaluating its arguments
            @{
         */
+
         /** plus evaluation*/
         template <typename ArgType1, typename ArgType2>
         GT_FUNCTION
@@ -623,6 +637,7 @@ public:
         template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
         auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return products<2>::apply(arg.first_operand);}
+
 #endif //ifndef __CUDACC__
 
         /**

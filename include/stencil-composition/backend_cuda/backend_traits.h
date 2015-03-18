@@ -37,7 +37,7 @@ namespace gridtools{
 
             static void run_loop( domain_list_t& local_domain_list, const coords_t& coords)
             {
-                typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
+                typedef backend_traits_from_id< backend_type< Backend >::s_backend > backend_traits;
 
                 backend_traits::template for_each< iter_range >(Backend (local_domain_list, coords));
             }
@@ -52,7 +52,7 @@ namespace gridtools{
                   uint_t IPlus, uint_t JPlus>
         struct get_tmp_storage
         {
-            typedef storage<base_storage<typename backend_from_id<Backend>::template pointer<ValueType>::type, LayoutType, true> > type;
+            typedef storage<base_storage<typename backend_traits_from_id<Backend>::template pointer<ValueType>::type, LayoutType, true> > type;
         };
 
     };
@@ -83,7 +83,7 @@ namespace gridtools{
 
             static void run_loop(domain_list_t& local_domain_list, coords_t const& coords)
             {
-                typedef backend_from_id< backend_type< Backend >::s_backend > backend_traits;
+                typedef backend_traits_from_id< backend_type< Backend >::s_backend > backend_traits;
 
                 typedef typename boost::mpl::at<typename arguments_t::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
                 uint_t n = coords.i_high_bound() + range_t::iplus::value - (coords.i_low_bound() + range_t::iminus::value);
@@ -134,7 +134,7 @@ namespace gridtools{
                   uint_t IPlus, uint_t JPlus>
         struct get_tmp_storage
         {
-            typedef host_tmp_storage <typename backend_from_id<Backend>::template pointer<ValueType>::type, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> type;
+            typedef host_tmp_storage <typename backend_traits_from_id<Backend>::template pointer<ValueType>::type, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> type;
         };
 
     };
