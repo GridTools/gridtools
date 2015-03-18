@@ -878,7 +878,8 @@ namespace gridtools {
 	typedef dimension_extension_traits<StorageExtended ... > super;
     };
 
-    struct compute_storage_offset<typename Storage, uint_t Id>{
+    template<typename Storage, uint_t Id>
+    struct compute_storage_offset{
         GRIDTOOLS_STATIC_ASSERT(Id>=0, "Library internal error")
         static const uint_t value= (Id==0 ? Storage::super::n_fields : compute_storage_offset<Id-1, Storage::super>::value);
     };

@@ -543,13 +543,13 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
         he.setup(3);
 
         ptr out1(sol.size()), out2(sol.size()), out3(sol.size());
-        sol.set<0,0>(out1);
-        sol.set<0,1>(out2);
-        sol.set<0,2>(out3);
+        sol.set<0,0>(out1, 0.);
+        sol.set<0,1>(out2, 0.);
+        sol.set<0,2>(out3, 0.);
         ptr out4(sol.size()), out5(sol.size()), out6(sol.size());
-        sol.set<1,0>(out4);
-        sol.set<1,1>(out5);
-        sol.set<1,2>(out6);
+        sol.set<1,0>(out4, 0.);
+        sol.set<1,1>(out5, 0.);
+        sol.set<1,2>(out6, 0.);
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(!he.comm().pid())
