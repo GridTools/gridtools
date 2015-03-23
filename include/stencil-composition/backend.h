@@ -180,6 +180,12 @@ namespace gridtools {
         static const enumtype::strategy s_strategy_id=StrategyType;
         static const enumtype::backend s_backend_id =BackendId;
 
+        /** types of the functions used to compute the thread grid information
+            for allocating the temporary storages and such
+        */
+        typedef uint_t (*query_i_threads_f)(int);
+        typedef uint_t (*query_j_threads_f)(int);
+        
         template <typename ValueType, typename Layout>
         struct storage_type {
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
@@ -360,24 +366,30 @@ namespace gridtools {
 
             Threads are oganized in a 2D grid. These two functions 
             n_i_threads() and n_j_threasd() retrieve the
-            information about the sizes of this grid.
+            information about how to compute those sizes.
 
-            n_i_threads() number of threads on the first dimension of the thread grid
+            The information needed by those functions are the sizes of the
+            domains (especially if the GPU is used)
+
+            n_i_threads()(size): number of threads on the first dimension of the thread grid
         */
-        static uint_t n_i_threads() {
-            return n_threads();
+        static query_i_threads_f n_i_threads() {
+            return &backend_traits_t::n_i_threads;
         }
 
         /** Initial interface
 
             Threads are oganized in a 2D grid. These two functions 
             n_i_threads() and n_j_threasd() retrieve the
-            information about the sizes of this grid.
+            information about how to compute those sizes.
 
-            n_j_threads() number of threads on the second dimension of the thread grid
+            The information needed by those functions are the sizes of the
+            domains (especially if the GPU is used)
+
+            n_j_threads()(size): number of threads on the second dimension of the thread grid
         */
-        static uint_t n_j_threads() {
-            return 1;
+        static query_j_threads_f n_j_threads() {
+            return &backend_traits_t::n_j_threads;
         }
 
 
