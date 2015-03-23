@@ -17,10 +17,6 @@ namespace gridtools{
     template<typename T>
     struct wrap_pointer;
 
-    /**forward declaration*/
-    template<enumtype::backend T>
-    struct backend_traits_from_id;
-
     /**Traits struct, containing the types which are specific for the host backend*/
     template<>
     struct backend_traits_from_id<enumtype::Host>{
