@@ -172,7 +172,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t d1 = x;
     uint_t d2 = y;
     uint_t d3 = z;
-    uint_t halo_size = 3;
+    uint_t halo_size = 2;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
