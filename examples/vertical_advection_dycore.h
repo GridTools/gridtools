@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <gridtools.h>
@@ -40,7 +39,7 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 template<typename T>
 struct u_forward_function {
     typedef const arg_type<0> POSTFIX utens_stage;
-    typedef const arg_type<1> POSTFIX wcon;
+    typedef const arg_type<1, range<0,1, 0, 0> > POSTFIX wcon;
     typedef const arg_type<2> POSTFIX u_stage;
     typedef const arg_type<3> POSTFIX u_pos;
     typedef const arg_type<4> POSTFIX utens;
@@ -143,11 +142,11 @@ private:
 
 template<typename T>
 struct u_backward_function {
-    typedef const arg_type<0> POSTFIX utens_stage;
+    typedef arg_type<0> POSTFIX utens_stage;
     typedef const arg_type<1> POSTFIX u_pos;
     typedef const arg_type<2> POSTFIX dtr_stage;
-    typedef arg_type<3> POSTFIX ccol;
-    typedef arg_type<4> POSTFIX dcol;
+    typedef const arg_type<3> POSTFIX ccol;
+    typedef const arg_type<4> POSTFIX dcol;
     typedef arg_type<5> POSTFIX data_col;
 
     typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
@@ -264,8 +263,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    coords.value_list[0] = 2;
+    coords.value_list[1] = d3-2;
 
 //todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
