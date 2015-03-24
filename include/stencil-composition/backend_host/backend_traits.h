@@ -125,12 +125,14 @@ namespace gridtools{
                 uint_t NBI = n/BI;
                 uint_t NBJ = m/BJ;
                 
-                // \todo fix the following pragma maybe...
-#pragma omp parallel for
+                #pragma omp parallel
+                {
+                #pragma omp for nowait
                 for (uint_t bi = 0; bi <= NBI; ++bi) {
                     for (uint_t bj = 0; bj <= NBJ; ++bj) {
                         backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
                     }
+                }
                 }
             }
         };
