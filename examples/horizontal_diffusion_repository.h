@@ -101,9 +101,9 @@ public:
         //kbody
         for(int k=0; k < kdim_; ++k)
         {
-            for (int i = halo_size_-2; i < idim_-halo_size_+2; ++i)
+            for (int i = halo_size_-1; i < idim_-halo_size_+1; ++i)
             {
-                for (int j = halo_size_-2; j < jdim_-halo_size_+2; ++j)
+                for (int j = halo_size_-1; j < jdim_-halo_size_+1; ++j)
                 {
                     lap(i,j,0) = (gridtools::float_type)4*in_(i,j,k) - (in_(i+1,j,k) + in_(i,j+1,k) + in_(i-1, j, k) + in_(i,j-1,k));
                     std::cout << " REFLAP " << i << " " << j << " " << k << " " << in_(i,j,k) << " " <<
@@ -113,18 +113,18 @@ public:
                 }
 
             }
-            for (int i = halo_size_-1; i < idim_-halo_size_+1; ++i)
+            for (int i = halo_size_-1; i < idim_-halo_size_; ++i)
             {
-                for (int j = halo_size_-1; j < jdim_-halo_size_+1; ++j)
+                for (int j = halo_size_; j < jdim_-halo_size_; ++j)
                 {
                     flx(i,j,0) = lap(i+1,j,0) - lap(i,j,0);
                     if (flx(i,j,0)*(in_(i+1,j,k)-in_(i,j,k)) > 0)
                         flx(i,j,0) = 0.;
                 }
             }
-            for (int i = halo_size_-1; i < idim_-halo_size_+1; ++i)
+            for (int i = halo_size_; i < idim_-halo_size_; ++i)
             {
-                for (int j = halo_size_-1; j < jdim_-halo_size_+1; ++j)
+                for (int j = halo_size_-1; j < jdim_-halo_size_; ++j)
                 {
                     fly(i,j,0) = lap(i,j+1,0) - lap(i,j,0);
                     if (fly(i,j,0)*(in_(i,j+1,k)-in_(i,j,k)) > 0)
