@@ -52,7 +52,6 @@ struct lap_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
-
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
@@ -127,7 +126,6 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-
 #ifdef CXX11_ENABLED
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx() - flx( -1,0,0) +
@@ -346,7 +344,7 @@ PAPI_stop(event_set, values);
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-12, halo_size);
+    verifier verif(1e-9, halo_size);
     verif.verify(repository.out(), repository.out_ref());
 
 #ifndef SILENT_RUN
