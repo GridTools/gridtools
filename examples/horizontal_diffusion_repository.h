@@ -106,9 +106,9 @@ public:
                 for (int j = halo_size_-1; j < jdim_-halo_size_+1; ++j)
                 {
                     lap(i,j,0) = (gridtools::float_type)4*in_(i,j,k) - (in_(i+1,j,k) + in_(i,j+1,k) + in_(i-1, j, k) + in_(i,j-1,k));
-                    std::cout << " REFLAP " << i << " " << j << " " << k << " " << in_(i,j,k) << " " <<
-                            in_(i+1,j,k) << " " << in_(i-1,j,k) << " " << in_(i,j+1,k) << " " << in_(i,j-1,k) << " " <<
-                            lap(i,j,0) << std::endl;
+                    // std::cout << " REFLAP " << i << " " << j << " " << k << " " << in_(i,j,k) << " " <<
+                    //         in_(i+1,j,k) << " " << in_(i-1,j,k) << " " << in_(i,j+1,k) << " " << in_(i,j-1,k) << " " <<
+                    //         lap(i,j,0) << std::endl;
 
                 }
 

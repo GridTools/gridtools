@@ -125,6 +125,12 @@ namespace gridtools {
             m_initial_offsets[0] = initial_offset_i;
             m_initial_offsets[1] = initial_offset_j;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
+            std::cout << "size: "
+                      << (TileI+MinusI+PlusI)*n_i_threads << ", "
+                      << (TileJ+MinusJ+PlusJ)*n_j_threads << ", "
+                      << dim3
+                      << std::endl;
+            info();
         }
 
 
@@ -264,13 +270,24 @@ namespace gridtools {
                              , PlusI
                              , PlusJ
                              > const & x) {
-        return s << "host_tmp_storage<...,"
-                 << TileI << ", "
-                 << TileJ << ", "
-                 << MinusI << ", "
-                 << MinusJ << ", "
-                 << PlusI << ", "
-                 << PlusJ << "> ";
+        s << "host_tmp_storage<...,"
+          << TileI << ", "
+          << TileJ << ", "
+          << MinusI << ", "
+          << MinusJ << ", "
+          << PlusI << ", "
+          << PlusJ << "> ";
+        s << static_cast<typename host_tmp_storage<
+            PointerType
+            , Layout
+            , TileI
+            , TileJ
+            , MinusI
+            , MinusJ
+            , PlusI
+            , PlusJ
+            >::base_type const& >(x);
+        return s;
     }
 
 

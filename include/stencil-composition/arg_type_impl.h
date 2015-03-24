@@ -153,6 +153,8 @@ namespace gridtools {
     template <uint_t I, typename Range, ushort_t Dim >
     struct arg_type_base  {
 
+        template <uint_t II, typename R, ushort_t D>
+        friend std::ostream& operator<<(std::ostream& s, arg_type_base<II,R,D> const& x);
         typedef arg_type_base<I,Range,Dim> base_t;
         static const ushort_t n_args=0;
         static const ushort_t n_dim=Dim;
@@ -447,12 +449,19 @@ namespace gridtools {
      */
     template <uint_t I, typename R, ushort_t D>
     std::ostream& operator<<(std::ostream& s, arg_type_base<I,R,D> const& x) {
-        return s << "[ arg_decorator< " << I
+        s << "[ arg_decorator< " << I
                  << ", " << R()
-                 << " (" << x.i()
-                 << ", " << x.j()
-                 << ", " << x.k()
-                 <<" ) > ]";
+                 << ", " << D
+                 // << " (" << x.i()
+                 // << ", " << x.j()
+                 // << ", " << x.k()
+                 <<" ) > m_offset: {";
+              
+        for (int i=0; i<x.n_dim-1; ++i) {
+            s << x.m_offset[i] << ", ";
+        }
+        s << x.m_offset[x.n_dim-1] << "} ]";
+        return s;
     }
 
     /**
