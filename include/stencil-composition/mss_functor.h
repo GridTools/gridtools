@@ -14,6 +14,7 @@ namespace gridtools {
     //forward declaration
     template<enumtype::strategy Strategy>
     struct strategy_from_id;
+
     /**
      * @brief functor that executes all the functors contained within the mss
      * @tparam TMssArray meta array containing all the mss descriptors
@@ -70,6 +71,7 @@ namespace gridtools {
             //execute all the functors of the mss
             strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run(local_domain_list, m_coords, m_block_idx, m_block_idy);
         }
+
     private:
         MssLocalDomainArray& m_local_domain_lists;
         const Coords& m_coords;
