@@ -19,6 +19,9 @@
 
 namespace gridtools {
 
+    template<uint_t ID, typename storage_list>
+    struct storage_cached;
+
     namespace _impl {
 
 /**

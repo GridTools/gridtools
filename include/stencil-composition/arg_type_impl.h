@@ -61,8 +61,9 @@ namespace gridtools {
 
     template<ushort_t ID>
     struct initialize_all{
-        GT_FUNCTION
+
         template <typename ... X>
+        GT_FUNCTION
         static void apply(int_t* offset, X ... x)
             {
                 offset[ID]=initialize<ID>(x...);
@@ -72,8 +73,9 @@ namespace gridtools {
 
     template<>
     struct initialize_all<0>{
-        GT_FUNCTION
+
         template <typename ... X>
+        GT_FUNCTION
         static void apply(int_t* offset, X ... x)
             {
                 offset[0]=initialize<0>(x...);
@@ -234,14 +236,14 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
         template<short_t Idx>
         GT_FUNCTION
-#ifdef NDEBUG
+// #ifdef NDEBUG
         constexpr
-#endif
+// #endif
         int_t const& get() const {//stop recursion
-#ifndef NDEBUG
-            printf("The dimension you are trying (%d) to access exceeds the number of dimensions by %d.\n ", Idx+1, Idx+1-n_args);
-#endif
-            return int_t(-1);
+// #ifndef NDEBUG
+//             printf("The dimension you are trying (%d) to access exceeds the number of dimensions by %d.\n ", Idx+1, Idx+1-n_args);
+// #endif
+            return (int_t)-9999;//TODO change this
         }
 
 
@@ -411,16 +413,16 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         /**@brief returns the offset at a specific index Idx*/
 	template<short_t Idx>
         GT_FUNCTION
-#ifdef NDEBUG
+// #ifdef NDEBUG
         constexpr
-#endif
+// #endif
 int_t const& get() const {
 	    //the following assert cannot be compile time, since a version with idx=-1 may indeed be compiled (at the end of the template recursion), but should never be executed
-#ifndef __CUDACC__
-#ifndef NDEBUG
-	    assert(Idx>=0);
-#endif
-#endif
+// #ifndef __CUDACC__
+// #ifndef NDEBUG
+// 	    assert(Idx>=0);
+// #endif
+// #endif
             //static_int<Idx>::fuck();
 	    //GRIDTOOLS_STATIC_ASSERT( Idx<=n_args, "the index passed as template argument is too large" );
             //return base_t::m_offset;

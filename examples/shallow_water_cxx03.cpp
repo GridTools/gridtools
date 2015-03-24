@@ -18,13 +18,13 @@ int main(int argc, char** argv)
 #ifndef NDEBUG
     printf("GCL initialized");
 #endif
-    int pid=0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    if(pid==0)
-        cudaProfilerStart();
+    // int pid=0;
+    // MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    // if(pid==0)
+    //     cudaProfilerStart();
     int ret_val = !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
-    if(pid==0)
-        cudaProfilerStop();
+    // if(pid==0)
+    //     cudaProfilerStop();
     GCL_Finalize();
     }
 

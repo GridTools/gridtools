@@ -30,8 +30,6 @@ namespace gridtools {
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct arg_type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
-        // typedef Range range_type;
-        // static const ushort_t index_type=ID;
     };
 #endif
     /**
@@ -110,13 +108,71 @@ namespace gridtools {
     }
 
 #ifdef CXX11_ENABLED
+
+    /**TODO Document me*/
+    template <typename ArgType, typename ... Pair>
+    struct arg_mixed{
+
+        static const ushort_t n_args = ArgType::n_args;
+        static const ushort_t n_dim = ArgType::n_dim;
+        typedef typename ArgType::base_t base_t;
+        typedef typename ArgType::index_type index_type;
+    private:
+        static constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type s_args_constexpr{ enumtype::Dimension<Pair::first>{Pair::second} ... };
+
+        typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type m_args_runtime;
+    public:
+
+        template<typename ... ArgsRuntime>
+        GT_FUNCTION
+        constexpr
+        arg_mixed( ArgsRuntime const& ... args ): m_args_runtime(args...) {
+        }
+
+        /**@brief returns the offset at a specific index Idx*/
+        template<short_t Idx>
+        GT_FUNCTION
+        static constexpr
+        uint_t const&
+        get_constexpr(){
+            GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
+            GRIDTOOLS_STATIC_ASSERT(Idx>0, "the idx must be larger than 0")
+            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "the result must be larger or equal than 0")
+            //     static_int<s_args_constexpr.template get<Idx>()>::fuck();
+            // static_int<Idx>::fuck();
+            return s_args_constexpr.template get<Idx>();
+        }
+
+        /**@brief returns the offset at a specific index Idx*/
+        template<short_t Idx>
+        GT_FUNCTION
+        constexpr
+        int_t const& get() const {
+            return s_args_constexpr.get<Idx>()!=(-999) ? s_args_constexpr.get<Idx>() : m_args_runtime.get<Idx>();
+        }
+    };
+
+    template <typename ArgType, typename ... Pair>
+    constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type arg_mixed<ArgType, Pair...>::s_args_constexpr;
+
+
 /**this struct allows the specification of SOME of the arguments before instantiating the arg_decorator.
    It is a language keyword.
 */
     template <typename Callable, typename ... Known>
     struct alias{
 
-    /**@brief constructor
+        template <int Arg1, int Arg2> struct pair_
+        {
+            static const int first=Arg1;
+            static const int second=Arg2;
+        };
+
+        //compile-time aliases, the offsets specified in this way are assured to be compile-time
+        template<int ... Args>
+        using set=arg_mixed< Callable, pair_<Known::direction,Args> ... >;
+
+        /**@brief constructor
        \param args are the offsets which are already known*/
         template<typename ... Args>
         GT_FUNCTION

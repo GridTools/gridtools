@@ -163,19 +163,17 @@ namespace gridtools {
         template<typename ... UInt>
         void setup(UInt const& ... dims)
             {
+                assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
                 is_set=true;
-                for(ushort_t i=0; i<field_dimensions; ++i)
-                    m_fields[i]=pointer_type(dim1*dim2*dim3);
-		// m_fields[0]=pointer_type(dim1*dim2*dim3);
-		BOOST_STATIC_ASSERT(sizeof...(UIntTypes)==space_dimensions);
+		BOOST_STATIC_ASSERT(sizeof...(UInt)==space_dimensions);
 		BOOST_STATIC_ASSERT(field_dimensions>0);
-		m_strides[0] = accumulate( multiplies(), args...) ;
-		_impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], args...);
+		m_strides[0] = accumulate( multiplies(), dims...) ;
+		_impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
 		m_fields[0]=pointer_type(m_strides[0]);
 
 		//the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
 		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
-		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
+		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ) );
             }
 
 	/**
@@ -308,9 +306,6 @@ namespace gridtools {
 		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
 		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
 
-		for (uint_t i = 0; i < size(); ++i)
-                    (m_fields[0])[i] = 0.;
-
             }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
@@ -389,9 +384,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
-            assert(_index(dims...) < size());
+            assert(_index(strides(),dims...) < size());
 #endif
-            return (m_fields[0])[_index(dims...)];
+            return (m_fields[0])[_index(strides(),dims...)];
         }
 
 
@@ -400,7 +395,7 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
 #ifndef __CUDACC__
-            assert(_index(dims...) < size());
+            assert(_index(strides(),dims...) < size());
 #endif
             return (m_fields[0])[_index(dims...)];
         }
@@ -409,7 +404,7 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(uint_t const& i, uint_t const& j, uint_t const& k) {
 #ifndef __CUDACC__
-            assert(_index(i,j,k) < size());
+            assert(_index(strides(),i,j,k) < size());
 #endif
             return (m_fields[0])[_index(strides(),i,j,k)];
         }
@@ -419,9 +414,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()(uint_t const& i, uint_t const& j, uint_t const& k) const {
 #ifndef __CUDACC__
-            assert(_index(i,j,k) < size());
+            assert(_index(strides(),i,j,k) < size());
 #endif
-            return (m_fields[0])[_index(i,j,k)];
+            return (m_fields[0])[_index(strides(),i,j,k)];
         }
 #endif
         /**@brief returns the size of the data field*/
@@ -880,8 +875,20 @@ namespace gridtools {
 
     template<typename Storage, uint_t Id>
     struct compute_storage_offset{
+
+        template<typename T>
+        struct get_fields{
+            using type = static_int<T::n_fields>;
+        };
+
+        template<typename T>
+        struct get_value{
+            using type = static_int<T::value>;
+        };
+
         GRIDTOOLS_STATIC_ASSERT(Id>=0, "Library internal error")
-        static const uint_t value= (Id==0 ? Storage::super::n_fields : compute_storage_offset<Id-1, Storage::super>::value);
+        typedef typename boost::mpl::eval_if_c<Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id-1> > >::type type;
+        static const uint_t value=type::value;
     };
 
 #endif

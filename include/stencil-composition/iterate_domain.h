@@ -58,11 +58,11 @@ namespace gridtools {
         GT_FUNCTION
         //constexpr
         uint_t* get() {
-            return ((Idx==ID-1)? &(m_strides[0]) : (super::template get<Idx>()));
+            return ((Idx==ID-1)? &(m_data[0]) : (super::template get<Idx>()));
         }
 
         //private:
-        uint_t m_strides[storage_type::space_dimensions-1];
+        uint_t m_data[storage_type::space_dimensions-1];
     };
 
     template<typename storage_list>
@@ -77,10 +77,10 @@ namespace gridtools {
         //constexpr
         uint_t* get() {//stop recursion
             //GRIDTOOLS_STATIC_ASSERT(Idx==0, "Internal library error: Index exceeding the storage_list dimension.")
-                return &(m_strides[0]);
+                return &(m_data[0]);
         }
 
-        uint_t m_strides[storage_type::space_dimensions-1];
+        uint_t m_data[storage_type::space_dimensions-1];
     };
 
 
@@ -118,12 +118,10 @@ namespace gridtools {
                      , typename Strides
                      >
             GT_FUNCTION
-            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index
-                              , Strides & strides
+            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* index_
+                              , Strides & strides_
                 ) {
-                boost::fusion::at_c<0>(local_args)->template increment<2>(factor, (uint_t)0, index
-                                                                          , strides.get<0>()
-);
+                boost::fusion::at_c<0>(local_args_)->template increment<2>(factor_, (uint_t)0, index_, strides_.template get<0>());
             }
         };
 
@@ -132,9 +130,9 @@ namespace gridtools {
         struct decrement_k {
             template<typename LocalArgs, typename Strides>
             GT_FUNCTION
-            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index, Strides & strides) {
-                boost::fusion::at_c<ID>(local_args)->template decrement<2>(factor, (uint_t)0, &index[ID], strides.get<ID>());
-                decrement_k<ID-1>::apply(local_args, factor, index, strides);
+            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* index_, Strides & strides_) {
+                boost::fusion::at_c<ID>(local_args_)->template decrement<2>(factor_, (uint_t)0, &index_[ID], strides_.template get<ID>());
+                decrement_k<ID-1>::apply(local_args_, factor_, index_, strides_);
             }
         };
 
@@ -143,8 +141,8 @@ namespace gridtools {
         struct decrement_k<0> {
             template<typename LocalArgs, typename Strides>
             GT_FUNCTION
-            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index, Strides & strides) {
-                boost::fusion::at_c<0>(local_args)->template decrement<2>(factor, (uint_t)0, index, strides.get<0>());
+            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* index_, Strides & strides_) {
+                boost::fusion::at_c<0>(local_args_)->template decrement<2>(factor_, (uint_t)0, index_, strides_.template get<0>());
             }
         };
     } // namespace iterate_domain_aux
@@ -160,13 +158,7 @@ namespace gridtools {
         GT_FUNCTION
         static void assign(Left* l, Right const* r){
             //l[Number]=r[Number].get();
-            once_per_block<Backend, Id>::assign(
-// #ifdef CXX11_ENABLED
-//                 std::get<Offset+Number>(*l)
-// #else
-                l[Offset+Number]
-// #endif
-                ,r[Number].get());
+            once_per_block<Backend, Id>::assign(l[Offset+Number], r[Number].get());
             assign_raw_data<Number-1, Offset, Backend>::assign(l, r);
         }
 
@@ -179,15 +171,7 @@ namespace gridtools {
         template<typename Left , typename Right >
         GT_FUNCTION
         static void assign(Left* l, Right const* r){
-            //l[0]=r[0].get();
-            //Left::fuck();
-            once_per_block<Backend, Id>::assign(
-// #ifdef CXX11_ENABLED
-//                 std::get<Offset>(*l)
-// #else
-                l[Offset]
-// #endif
-                ,r[0].get());
+            once_per_block<Backend, Id>::assign(l[Offset],r[0].get());
         }
     };
 
@@ -223,19 +207,17 @@ namespace gridtools {
                      , typename Strides
                      >
             GT_FUNCTION
-            static void assign(Storage const& r, uint_t id, uint_t block, uint_t* index
-                               , Strides & strides
+            static void assign(Storage const& r_, uint_t id_, uint_t block_, uint_t* index_
+                               , Strides & strides_
 
                 ){
                 //if the following fails, the ID is larger than the number of storage types,
                 //or the index was not properly initialized to 0,
                 //or you know what you are doing (then comment out the assert)
-                boost::fusion::at_c<ID>(r)->template increment<Coordinate>(id, block, &index[ID]
-                                                                           , strides.get<ID>()
+                boost::fusion::at_c<ID>(r_)->template increment<Coordinate>(id_, block_, &index_[ID]
+                                                                           , strides_.template get<ID>()
                     );
-                assign_index<ID-1, Coordinate>::assign(r,id,block,index
-                                                       ,strides
-                    );
+                assign_index<ID-1, Coordinate>::assign(r_,id_,block_,index_,strides_);
             }
         };
 
@@ -247,11 +229,11 @@ namespace gridtools {
                      , typename Strides
                      >
             GT_FUNCTION
-            static void assign( Storage const & r, uint_t id, uint_t block, uint_t* index
-                                , Strides & strides
+            static void assign( Storage const & r_, uint_t id_, uint_t block_, uint_t* index_
+                                , Strides & strides_
 /* , ushort_t* lru */){
-                boost::fusion::at_c<0>(r)->template increment<Coordinate>(id, block, &index[0]
-                                                                          , (strides.template get<0>() )
+                boost::fusion::at_c<0>(r_)->template increment<Coordinate>(id_, block_, &index_[0]
+                                                                          , (strides_.template get<0>() )
                     );
             }
         };
@@ -299,7 +281,7 @@ namespace gridtools {
                the location (i,j,k). Such index is shared among all the fields contained in the
                same storage class instance, and it is not shared among different storage instances.
             */
-            static void assign(Left& l, Right & r){
+            static void assign(Left& l, Right const & r){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
@@ -307,7 +289,7 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value, "the ID is larger than the number of storage types")
-                // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
+                    std::cout<<"left["<<ID-1<<"]=right["<< ID-1 <<"], n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
                     assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
                     assign(l, boost::fusion::at_c<ID>(r)->fields());
                 assign_storage<ID-1, LocalArgTypes, Backend>::assign(l,r); //tail recursion
@@ -319,13 +301,13 @@ namespace gridtools {
             struct assign_storage<0, LocalArgTypes, Backend>{
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void assign(Left & l, Right & r){
+            static void assign(Left & l, Right const & r){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #else
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
-                // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
+                std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
                 assign_raw_data<storage_type::field_dimensions-1, 0, Backend>::
                     assign(l, boost::fusion::at_c<0>(r)->fields());
             }
@@ -342,9 +324,7 @@ namespace gridtools {
             template<typename Left , typename Right >
             GT_FUNCTION
             static void assign(Left* l, Right const* r){
-                once_per_block<Backend, Id>::assign(
-                    l[Number]
-                    ,r[Number]);
+                once_per_block<Backend, Id>::assign(l[Number],r[Number]);
             assign_strides_rec<Number-1, Backend>::assign(l, r);
         }
 
@@ -371,7 +351,7 @@ namespace gridtools {
                the location (i,j,k). Such index is shared among all the fields contained in the
                same storage class instance, and it is not shared among different storage instances.
             */
-            static void assign(Left& l, Right & r){
+            static void assign(Left& l, Right const& r){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
@@ -390,13 +370,13 @@ namespace gridtools {
             struct assign_strides<0, Backend>{
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void assign(Left & l, Right & r){
+            static void assign(Left & l_, Right const & r_){
 #ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
+                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
 #else
-                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
+                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
 #endif
-                assign_strides_rec<storage_type::space_dimensions-1, Backend>::assign(l.get<0>(), &boost::fusion::at_c<0>(r)->strides(1));
+                assign_strides_rec<storage_type::space_dimensions-2, Backend>::assign(l_.template get<0>(), &boost::fusion::at_c<0>(r_)->strides(1));
             }
         };
     }
@@ -428,6 +408,8 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             , m_index{0}/* , m_lru{0} */
 #endif
+            ,m_data_pointer(0)
+            ,m_strides(0)
         {
 #ifndef CXX11_ENABLED
             for(uint_t it=0; it<N_STORAGES; ++it)
@@ -437,9 +419,7 @@ namespace gridtools {
 
         template<enumtype::backend Backend>
         GT_FUNCTION
-        void assign_storage_pointers(
-            void**
-            data_pointer){
+        void assign_storage_pointers( void** data_pointer ){
             m_data_pointer=data_pointer;
             assign_storage< N_STORAGES-1, local_args_type, Backend >::assign(m_data_pointer, local_domain.local_args);
         }
@@ -569,7 +549,7 @@ namespace gridtools {
                          +(m_index[ArgType::index_type::value])
                          +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                          //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                         ->_index(m_strides->get<ArgType::index_type::value>(), arg)
+                         ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
                     );
             }
 
@@ -664,7 +644,7 @@ namespace gridtools {
 //                    storage_type::traits::n_width);
 
 #ifndef CXX11_ENABLED
-                                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+                GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 #endif
 
                 return get_value(arg,
@@ -676,22 +656,89 @@ namespace gridtools {
                                          arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
                                                          :
                                          arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
-#ifdef CXX11_ENABLED
-                                         //hypotheses (we can weaken it using constexpr static functions):
-                                         //storage offsets are known at compile-time
-                                         + storage_type::compute_storage_offset< storage_type::traits, arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>() >::value //stride of the current dimension inside the vector of storages
-#else
                                          //limitation to "rectangular" vector fields for non-C++11 storages
                                          +  arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()
                                          * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
-#endif
                                          ))//+ the offset of the other extra dimension
                                  + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value
                                  ]);
         }
 
 #ifdef CXX11_ENABLED
+
+
+
+
+
+
+
+
+
+
+
+
         /** @brief method called in the Do methods of the functors.
+            Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+        template < typename ArgType, typename ... Pairs>
+        GT_FUNCTION
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        operator()(arg_mixed<arg_decorator<ArgType>, Pairs ... > const& arg) const {
+
+            typedef arg_mixed<arg_decorator<ArgType>, Pairs ... > arg_mixed_t;
+#ifdef CXX11_ENABLED
+            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+#else
+            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+#endif
+            //if the following assertion fails you have specified a dimension for the extended storage
+            //which does not correspond to the size of the extended placeholder for that storage
+            /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_args); */
+
+            //for the moment the extra dimensionality of the storage is limited to max 2
+            //(3 space dim + 2 extra= 5, which gives n_args==4)
+            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
+            GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+
+
+#ifndef CXX11_ENABLED
+                                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+#endif
+
+
+
+                return get_value(arg,
+                                 m_data_pointer[ //static if
+                                     //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
+                                 storage_type::get_index(
+                                         (
+                                             gridtools::arg_decorator<ArgType>::n_args <= storage_type::space_dimensions+1 ? // static if
+                                             arg_mixed_t::template get_constexpr<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                                             :
+                                             arg_mixed_t::template get_constexpr<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+#ifdef CXX11_ENABLED
+                                             //hypotheses (we can weaken it using constexpr static functions):
+                                             //storage offsets are known at compile-time
+                                             + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<gridtools::arg_decorator<ArgType>::n_args-2>() >::value //stride of the current dimension inside the vector of storages
+#else
+                                             //limitation to "rectangular" vector fields for non-C++11 storages
+                                             +  arg_mixed_t::get_constexpr<gridtools::arg_decorator<ArgType>::n_args-2>()
+                                             * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+#endif
+                                             ))//+ the offset of the other extra dimension
+                                     + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value
+                                     ]);
+
+        }
+
+
+
+
+
+
+
+
+
+/** @brief method called in the Do methods of the functors.
 
             specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
             Allows direct access to the storage by only using the offsets
@@ -702,15 +749,15 @@ namespace gridtools {
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
  	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->get<ArgType::index_type::value>(), arg));
+ 		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg));
 
  	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->get<ArgType::index_type::value>(), arg) >= 0);
+ 		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg) >= 0);
             GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 	    return *(storage_pointer
 		     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		     ->_index(m_strides->get<ArgType::index_type::value>(), arg)
+ 		     ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
 );
         }
 
@@ -841,6 +888,14 @@ namespace gridtools {
 
 #endif //CXX11_ENABLED
 
+        void check_pointers()
+            {
+                if(boost::fusion::at_c<0>(local_domain.local_args)->fields()[0].get()!=m_data_pointer[0])
+                    std::cout<<"error: "<<boost::fusion::at_c<0>(local_domain.local_args)->fields()[0].get()<<"!="<<m_data_pointer[0]<<std::endl;
+                if(boost::fusion::at_c<1>(local_domain.local_args)->fields()[0].get()!=m_data_pointer[1])
+                    std::cout<<"error: "<<boost::fusion::at_c<1>(local_domain.local_args)->fields()[0].get()<<"!="<<m_data_pointer[1]<<std::endl;
+            }
+
 private:
     // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
     LocalDomain const& local_domain;
@@ -848,6 +903,6 @@ private:
 
         void** m_data_pointer;
 
-        storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* m_strides;//[N_DATA_POINTERS];//the storages could have different types(?)
+        storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* m_strides;
     };
 } // namespace gridtools

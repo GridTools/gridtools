@@ -8,6 +8,7 @@
 #include "execution_policy.h"
 #include "heap_allocated_temps.h"
 #include "backend.h"
+#include "backend_traits_host.h"
 
 #include "iteration_policy.h"
 #include <common/basic_utils.h>
@@ -76,14 +77,14 @@ namespace gridtools {
                     typedef typename Traits::iterate_domain_t iterate_domain_type;
                     typedef typename Arguments::execution_type_t execution_type_t;
 
-#ifdef CXX11_ENABLED
-                typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
-                typedef typename sum_range<new_range_t, range_t>::type xrange_t;
-                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
-#else
-                typedef typename sum_range<typename functor_type::xrange, range_t>::type xrange_t;
-                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
-#endif
+// #ifdef CXX11_ENABLED
+                    typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+                    typedef typename sum_range<new_range_t, range_t>::type xrange_t;
+                    typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+// #else
+//                     typedef typename sum_range<typename functor_type::xrange, range_t>::type xrange_t;
+//                     typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
+// #endif
 
                     //typedef typename extend_loop_bounds<sfinae<functor_type> >::template apply<range_t>::type xrange_t;
                     //typedef typename xrange_t::fuck fuck;
@@ -116,11 +117,16 @@ namespace gridtools {
 		    std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
-                     void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
-                     /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
+                    void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+                    storage_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
+                    /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
 
-                     iterate_domain_type it_domain(local_domain);
-		    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
+                    iterate_domain_type it_domain(local_domain);
+                    it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
+                    it_domain.check_pointers();
+
+                    it_domain.template assign_stride_pointers <enumtype::Host>(&strides);
+                    it_domain.check_pointers();
 
                     for (int_t i = (int_t)f->m_starti + iminus;
                          i <= (int_t)f->m_starti + (int_t)f->m_BI + iplus;

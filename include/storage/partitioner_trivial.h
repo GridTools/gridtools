@@ -68,7 +68,7 @@ namespace gridtools{
 #endif
         void compute_bounds(uint_t* dims, halo_descriptor * coordinates, halo_descriptor * coordinates_gcl, int_t* low_bound, int_t* up_bound,
 #ifdef CXX11_ENABLED
-                            UInt const& ... sizes
+                            UInt const& ... original_sizes
 #else
                             uint_t const& d1, uint_t const& d2, uint_t const& d3
 #endif
@@ -76,7 +76,7 @@ namespace gridtools{
             {
                 //m_sizes[component]=size;
 #ifdef CXX11_ENABLED
-                uint_t sizes[sizeof...(UInt)]={sizes};
+                uint_t sizes[sizeof...(UInt)]={original_sizes...};
 #else
                 uint_t sizes[3]={d1, d2, d3};
 #endif
