@@ -17,10 +17,6 @@ namespace gridtools{
     template<typename T>
     struct wrap_pointer;
 
-    /**forward declaration*/
-    template<enumtype::backend T>
-    struct backend_traits_from_id;
-
     /**Traits struct, containing the types which are specific for the host backend*/
     template<>
     struct backend_traits_from_id<enumtype::Host>{
@@ -40,6 +36,24 @@ namespace gridtools{
         struct execute_traits{
             typedef _impl_host::run_functor_host< Arguments > run_functor_t;
         };
+
+        /** This is the function used by the specific backend to inform the
+            generic backend and the temporary storage allocator how to
+            compute the number of threads in the i-direction, in a 2D
+            grid of threads.
+        */
+        static uint_t n_i_threads(int = 0) {
+            return n_threads();
+        }
+
+        /** This is the function used by the specific backend to inform the
+            generic backend and the temporary storage allocator how to
+            compute the number of threads in the j-direction, in a 2D
+            grid of threads.
+        */
+        static uint_t n_j_threads(int = 0) {
+            return 1;
+        }
 
         //function alias (pre C++11, std::bind or std::mem_fn,
         //using function pointers looks very ugly)

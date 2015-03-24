@@ -16,14 +16,7 @@ namespace gridtools{
     template<typename T>
     struct hybrid_pointer;
 
-<<<<<<< HEAD:include/stencil-composition/backend_cuda/backend_traits_cuda.h
-=======
-    /**forward declaration*/
-    template<enumtype::backend T>
-    struct backend_traits_from_id;
-
->>>>>>> dycore_benchmarks:include/stencil-composition/backend_traits_cuda.h
-/** @brief traits struct defining the types which are specific to the CUDA backend*/
+    /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template<>
     struct backend_traits_from_id< enumtype::Cuda >
     {

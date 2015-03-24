@@ -30,12 +30,12 @@ namespace gridtools {
 
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
             __shared__
-                typename iterate_domain_t::float_t* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+                typename iterate_domain_t::value_type* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
 
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(data_pointer);
+            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(data_pointer, blockIdx.x);
             __syncthreads();
 
             if ((i < nx) && (j < ny)) {
