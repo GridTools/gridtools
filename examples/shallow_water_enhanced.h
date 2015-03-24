@@ -117,6 +117,19 @@ namespace shallow_water{
 
 };
 
+
+    namespace{
+
+        using comp=Dimension<5>;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpy;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
+        using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
+        using ux=alias<tmpx, comp>::set<1>; using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
+        using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
+
+    }
+
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
@@ -129,9 +142,9 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-        auto hx=alias<tmpx, comp>(0); auto h=alias<sol, comp>(0);
-        auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
-        auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
+        // auto hx=alias<tmpx, comp>(0); auto h=alias<sol, comp>(0);
+        // auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
+        // auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
 
         eval(hx())= eval((h(i+1,j+1) +h(j+1))/2. -
                          (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
@@ -164,9 +177,9 @@ namespace shallow_water{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-        auto hy=alias<tmpy, comp>(0); auto h=alias<sol, comp>(0);
-        auto uy=alias<tmpy, comp>(1); auto u=alias<sol, comp>(1);
-        auto vy=alias<tmpy, comp>(2); auto v=alias<sol, comp>(2);
+        // auto hy=alias<tmpy, comp>(0); auto h=alias<sol, comp>(0);
+        // auto uy=alias<tmpy, comp>(1); auto u=alias<sol, comp>(1);
+        // auto vy=alias<tmpy, comp>(2); auto v=alias<sol, comp>(2);
 
         eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
                          (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
@@ -190,8 +203,8 @@ namespace shallow_water{
         using xrange=range<0,-3,0,-3>;
         using xrange_subdomain=range<1,1,1,1>;
 
-        typedef arg_type<0, range<-1,0,-1,1>, 5> tmpx;
-        typedef arg_type<1, range<-1,1,-1,0>, 5> tmpy;
+        typedef arg_type<0, range<0,0,0,0>, 5> tmpx;
+        typedef arg_type<1, range<0,0,0,0>, 5> tmpy;
         typedef arg_type<2,range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 	static uint_t current_time;
@@ -213,9 +226,9 @@ namespace shallow_water{
         static void Do(Evaluation const & eval, x_interval) {
 
 
-	    auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
-            auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
-            auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
+	    // auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
+            // auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
+            // auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
 
             eval(sol()) = eval(sol()-
                                (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
@@ -327,12 +340,13 @@ namespace shallow_water{
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
+        parallel_storage<partitioner_t> sol(part);
+        sol.setup(d1, d2, d3);
 //         parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
 //         parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
 
-        he.add_halo<0>(part.get_halo_gcl<0>());
-        he.add_halo<1>(part.get_halo_gcl<1>());
+        he.add_halo<0>(sol.get_halo_gcl<0>());
+        he.add_halo<1>(sol.get_halo_gcl<1>());
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(3);
@@ -371,7 +385,7 @@ namespace shallow_water{
         //uint_t di2[5] =  {1, 0, 1, 9, 11};
 
         //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
-        coordinates<axis, partitioner_t> coords(&part);
+        coordinates<axis, partitioner_t> coords(&part, sol);
 
         //coordinates<axis, partitioner_t> coords(di2, dj2);
         coords.value_list[0] = 0;

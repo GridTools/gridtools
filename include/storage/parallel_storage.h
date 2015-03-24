@@ -49,12 +49,12 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
-        template <typename ... UInt >
-        explicit parallel_storage(partitioner_t& part, UInt const& ... di)
-            : super(part.compute_bounds(0, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, di ... ) )
-            , m_partitioner(&part)
-            {
-            }
+        // template <typename ... UInt >
+        // explicit parallel_storage(partitioner_t& part, UInt const& ... di)
+        //     : super(part.compute_bounds(0, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, di ... ) )
+        //     , m_partitioner(&part)
+        //     {
+        //     }
 
         template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
         typename super::value_type& get_value( UInt const& ... i )

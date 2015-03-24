@@ -148,6 +148,7 @@ endif()
 ##################################################################
 
 ######################### set the type of floats #################
+set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.h for configuration)" )
 if(SINGLE_PRECISION)
   add_definitions(-DFLOAT_PRECISION=4)
   message("-- computations in single precision")

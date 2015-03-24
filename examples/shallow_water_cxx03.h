@@ -519,12 +519,15 @@ namespace shallow_water{
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
+        parallel_storage<partitioner_t> sol(part);
+        sol.setup(d1, d2, d3);
+        parallel_storage<partitioner_t> tmpx(part);
+        tmpx.setup(d1, d2, d3);
+        parallel_storage<partitioner_t> tmpy(part);
+        tmpy.setup(d1, d2, d3);
 
-        he.add_halo<0>(part.get_halo_gcl<0>());
-        he.add_halo<1>(part.get_halo_gcl<1>());
+        he.add_halo<0>(sol.get_halo_gcl<0>());
+        he.add_halo<1>(sol.get_halo_gcl<1>());
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(3);
@@ -573,7 +576,7 @@ namespace shallow_water{
         //uint_t di2[5] =  {1, 0, 1, 9, 11};
 
         //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
-        coordinates<axis, partitioner_t> coords(&part);
+        coordinates<axis, partitioner_t> coords(&part, sol);
 
         //coordinates<axis, partitioner_t> coords(di2, dj2);
         coords.value_list[0] = 0;

@@ -121,7 +121,6 @@ namespace gridtools{
             };
         };
 
-#ifdef CXX11_ENABLED
     /**
        @brief Sobstitution Failure is Not An Error
 
@@ -134,6 +133,71 @@ namespace gridtools{
     template <>
     struct SFINAE<int>{};
 
+#ifdef CXX11_ENABLED
+#define HAS_TYPE_SFINAE( name, has_name, get_name )                     \
+    template<typename TFunctor>                                         \
+    struct has_name                                                     \
+    {                                                                   \
+        struct MixIn                                                    \
+        {                                                               \
+            using name = int ;                                          \
+        };                                                              \
+        struct derived : public TFunctor, public MixIn {};              \
+                                                                        \
+                                                                        \
+        template<typename TDerived>                                     \
+            static boost::mpl::false_ test( SFINAE<typename TDerived::name>* x ); \
+        template<typename TDerived>                                     \
+            static boost::mpl::true_ test(...);                         \
+                                                                        \
+            typedef decltype(test<derived>(0)) type;                    \
+            typedef TFunctor functor_t;                                 \
+    };                                                                  \
+                                                                        \
+    template<typename Functor>                                          \
+    struct get_name{                                                    \
+        typedef typename Functor::name type;                            \
+    };
+#else
+#define HAS_TYPE_SFINAE( name, has_name, get_name )                     \
+    template<typename TFunctor>                                         \
+    struct has_name                                                     \
+    {                                                                   \
+        struct MixIn                                                    \
+        {                                                               \
+            typedef int name ;                                          \
+        };                                                              \
+        struct derived : public TFunctor, public MixIn {};              \
+                                                                        \
+                                                                        \
+        template<typename TDerived>                                     \
+            static boost::mpl::false_ test( SFINAE<typename TDerived::name>* x ); \
+        template<typename TDerived>                                     \
+            static boost::mpl::true_ test(...);                         \
+                                                                        \
+        typedef BOOST_TYPEOF(test<derived>(0)) type;                    \
+        typedef TFunctor functor_t;                                     \
+    };                                                                  \
+                                                                        \
+    template<typename Functor>                                          \
+    struct get_name{                                                    \
+        typedef typename Functor::name type;                            \
+    };
+#endif
+
+
+    /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
+#define HAS_STATIC_METHOD_SFINAE( name )                               \
+    template<int> struct sfinae_true : std::true_type{};        \
+    template<class T>                                           \
+    sfinae_true<(T::name(), 0)> test(int);                        \
+    template<class>                                             \
+    std::false_type test(...);                                  \
+                                                                \
+    template<class T>                                           \
+    struct has_constexpr_name : decltype(detail::check<T>(0)){};
+
+
     /**@brief Implementation of introspection
 
      returning true when the template functor has a type alias called 'xrange'.
@@ -141,46 +205,32 @@ namespace gridtools{
      for the current functor at compile-time.
      NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
      to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
- */
-    template<typename TFunctor>
-    struct has_xrange
-    {
-        // define a MixIn class providing a Do member
-        struct MixIn
-        {
-            using xrange = int ;
-        };
-        // multiple inheritance form TFunctor and MixIn
-        // (if both define a Do it will be ambiguous in the Derived struct)
-        struct derived : public TFunctor, public MixIn {};
-
-
-        // SFINAE test methods which try to match the MixIn Do method signature
-        // (note that multiple inheritance hides all symbols which are defined in more than one base class,
-        // i.e. if TFunctor and MixIn both define a Do symbol then it will be ambiguous in the Derived class
-        // and we will fall back to the ellipsis test method)
-        template<typename TDerived>
-        static boost::mpl::false_ test( SFINAE<typename TDerived::xrange>* x );
-        template<typename TDerived>
-        static boost::mpl::true_ test(...);
-
-        typedef decltype(test<derived>(0)) type;
-        typedef TFunctor functor_t;
-    };
-
-    /** @brief Unary metafunction used to delay computation
-
-        when using e.g. booat::mpl::eval_if, the untaken branches get not compiled since they are unary metafunctions.
-        This makes the SFINAE work properly (otherwise the compiler would complain that a member is missing)
     */
-    template<typename Functor>
-    struct get_xrange{
-        struct apply{
-            typedef typename Functor::xrange type;
-        };
-        typedef typename Functor::xrange type;
-    };
-#endif
+    HAS_TYPE_SFINAE(xrange, has_xrange, get_xrange)
+
+    /**@brief Implementation of introspection
+
+     returning true when the template functor has a type alias called 'xrange'.
+     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
+     for the current functor at compile-time.
+     NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
+     to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
+    */
+    HAS_TYPE_SFINAE(xrange_subdomain, has_xrange_subdomain, get_xrange_subdomain)
+
+
+// /** @brief Unary metafunction used to delay computation
+
+//         when using e.g. boost::mpl::eval_if, the untaken branches get not compiled since they are unary metafunctions.
+//         This makes the SFINAE work properly (otherwise the compiler would complain that a member is missing)
+//     */
+//     template<typename Functor>
+//     struct get_xrange_subdomain{
+//         struct apply{
+//             typedef typename Functor::xrange_subdomain type;
+//         };
+//         typedef typename Functor::xrange_subdomain type;
+//     };
 
 /**
    @brief specialization for the \ref gridtools::_impl::Naive strategy

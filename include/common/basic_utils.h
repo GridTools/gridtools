@@ -3,8 +3,9 @@
 #include "host_device.h"
 
 namespace gridtools {
+    template<typename Int>
     GT_FUNCTION
-    int_t modulus(int_t __i, int_t __j) {
+    Int modulus(Int __i, Int __j) {
         return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
     }
 

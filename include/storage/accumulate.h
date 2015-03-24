@@ -76,5 +76,32 @@ template <typename T1, typename T2  >
     template<typename Operator, typename First>
     GT_FUNCTION
     static constexpr First accumulate(Operator op, First first){return first;}
+
+    template<uint_t Id>
+    struct assign{
+        GT_FUNCTION
+        constexpr assign(){}
+
+        template <typename T1, typename T2  >
+        GT_FUNCTION
+        static void apply(T1& t1, T2 const& t2)
+            {
+                t1[Id]=std::get<Id>(t2);
+                assign<Id-1>::apply(t1, t2);
+            }
+    };
+
+    template<>
+    struct assign<0>{
+        GT_FUNCTION
+        constexpr assign(){}
+        template <typename T1, typename T2  >
+        GT_FUNCTION
+        static void apply(T1& t1, T2 const& t2)
+            {
+                t1[0]=std::get<0>(t2);
+            }
+    };
 #endif
+
 }//namespace gridtools
