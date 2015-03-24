@@ -169,25 +169,23 @@ namespace gridtools{
                 uint_t _starti = bi*BI+coords.i_low_bound();
                 uint_t _startj = bj*BJ+coords.j_low_bound();
 
-                uint_t block_size_i = BI;
-                uint_t block_size_j = BJ;
+                uint_t _lasti = BI-1;
+                uint_t _lastj = BJ-1;
 
                 if(bi == NBI && bj == NBJ)
                 {
-                    block_size_i = n-NBI*BI;
-                    block_size_j = m-NBJ*BJ;
+                    _lasti = n-NBI*BI;
+                    _lastj = m-NBJ*BJ;
                 }
                 else if(bi == NBI)
                 {
-                    block_size_i = n-NBI*BI;
+                    _lasti = n-NBI*BI;
                 }
                 else if(bj == NBJ)
                 {
-                    block_size_j = m-NBJ*BJ;
+                    _lastj = m-NBJ*BJ;
                 }
-
-                std::cout << "threads " << n_threads() << ", id " << thread_id() << std::endl;
-                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
+                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, _lasti, _lastj, bi, bj));
             }
         };
 
