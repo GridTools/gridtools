@@ -103,12 +103,20 @@ namespace gridtools {
                 uint_t m_tile_i;// or offset along i
                 uint_t m_tile_j;// or offset along j
                 uint_t m_tile_k;// or offset along k
-
+                uint_t m_n_i_threads;
+                uint_t m_n_j_threads;
+                
                 GT_FUNCTION
-                instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
+                instantiate_tmps(uint_t tile_i,
+                                 uint_t tile_j,
+                                 uint_t tile_k,
+                                 uint_t m_n_i_threads,
+                                 uint_t m_n_j_threads)
                     : m_tile_i(tile_i)
                     , m_tile_j(tile_j)
                     , m_tile_k(tile_k)
+                    , m_n_i_threads(m_n_i_threads)
+                    , m_n_j_threads(m_n_j_threads)
                 {}
 
                 // ElemType: an element in the data field place-holders list
@@ -122,8 +130,8 @@ namespace gridtools {
                     e = new ElemType(m_tile_i,
                                      m_tile_j,
                                      m_tile_k,
-                                     backend_type::n_i_threads(),
-                                     backend_type::n_j_threads(),
+                                     m_n_i_threads,
+                                     m_n_j_threads,
                                      typename ElemType::value_type(),
                                      s);
                 }
@@ -152,11 +160,16 @@ namespace gridtools {
                     is_temporary_storage<boost::mpl::_1> > view_type;
 
                 view_type fview(arg_list);
-
+                
                 boost::fusion::for_each(fview, 
-                                        instantiate_tmps( coords.i_low_bound(),
-                                                          coords.j_low_bound(),
-                                                          coords.value_at_top()-coords.value_at_bottom()+1));
+                                        instantiate_tmps
+                                        ( coords.i_low_bound(),
+                                          coords.j_low_bound(),
+                                          coords.value_at_top()-coords.value_at_bottom()+1,
+                                          backend_type::n_i_threads()(666), 
+                                          backend_type::n_j_threads()(666)
+                                         )
+                                        );
             }
 
         };
