@@ -78,6 +78,9 @@ namespace gridtools {
 
     public:
 
+        template <typename T, typename U, bool B>
+        friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B> const & );
+        
         /** @brief initializes with a constant value */
         GT_FUNCTION
         void initialize(value_type const& init)
@@ -991,13 +994,17 @@ namespace gridtools {
 #endif //CXX11_ENABLED
 /**@}*/
     template <typename T, typename U, bool B>
-    std::ostream& operator<<(std::ostream &s, base_storage<T,U, B> ) {
-        return s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
+    std::ostream& operator<<(std::ostream &s, base_storage<T,U, B> const & x ) {
+        s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
+        s << x.m_dims[0] << ", "
+          << x.m_dims[1] << ", "
+          << x.m_dims[2] << ". ";
+        return s;
     }
 
 #ifdef CXX11_ENABLED
     template <typename ... T>
-    std::ostream& operator<<(std::ostream &s, extend_dim< T... > ) {
+    std::ostream& operator<<(std::ostream &s, extend_dim< T... > const &) {
         return s << "field storage" ;
     }
 #endif

@@ -345,12 +345,13 @@ PAPI_stop(event_set, values);
 #endif
 
     verifier verif(1e-9, halo_size);
-    verif.verify(repository.out(), repository.out_ref());
+    bool result = verif.verify(repository.out(), repository.out_ref());
 
 #ifndef SILENT_RUN
     //    in.print();
     //    out.print();
     //    lap.print();
+    std::cout << "SUCCESS? " << std::boolalpha << result << std::endl;
 
 #ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
@@ -361,11 +362,10 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return // lapse_time.wall<5000000 &&
+    return result; /// lapse_time.wall<5000000 &&
 // #ifdef USE_PAPI
 //                     values[0]>1000 && //random value
 // #endif
-                                true;
 }
 
 }//namespace horizontal_diffusion
