@@ -538,9 +538,7 @@ namespace gridtools {
 //             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
 //             GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type")
 // #endif
-            return _impl::compute_offset<space_dimensions, layout>::apply(
-                strides_,
-                tuple);
+            return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 
 
@@ -594,7 +592,7 @@ namespace gridtools {
 	    // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
  	    if( layout::template at_< Coordinate >::value >= 0 )//static if
  	    {
-            (*index) += strides<Coordinate>(strides_)*dimension;
+                *index += strides<Coordinate>(strides_)*dimension;
  	    }
         }
 
