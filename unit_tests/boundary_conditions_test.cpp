@@ -1,7 +1,7 @@
 #include <gridtools.h>
 #include <common/halo_descriptor.h>
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #include <boundary-conditions/apply_gpu.h>
 #else
 #include <boundary-conditions/apply.h>
@@ -27,7 +27,7 @@ using gridtools::plus_;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend<Cuda, Naive>
 #else
 #ifdef BACKEND_BLOCK
@@ -167,11 +167,11 @@ bool basic() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     in.clone_to_gpu();
-    out.clone_to_gpu();
+//    out.clone_to_gpu();
     in.h2d_update();
-    out.h2d_update();
+//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic>(halos, bc_basic()).apply(in);
 
@@ -307,11 +307,11 @@ bool predicate() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     in.clone_to_gpu();
-    out.clone_to_gpu();
+//    out.clone_to_gpu();
     in.h2d_update();
-    out.h2d_update();
+//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
 
@@ -467,11 +467,11 @@ bool twosurfaces() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     in.clone_to_gpu();
-    out.clone_to_gpu();
+//    out.clone_to_gpu();
     in.h2d_update();
-    out.h2d_update();
+//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in);
 
@@ -626,11 +626,11 @@ bool usingzero_1() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     in.clone_to_gpu();
-    out.clone_to_gpu();
+//    out.clone_to_gpu();
     in.h2d_update();
-    out.h2d_update();
+//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
 
@@ -769,7 +769,7 @@ bool usingzero_2() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     in.clone_to_gpu();
     out.clone_to_gpu();
     in.h2d_update();
@@ -934,7 +934,7 @@ bool usingvalue_2() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     in.clone_to_gpu();
     out.clone_to_gpu();
     in.h2d_update();
@@ -1123,15 +1123,15 @@ bool usingcopy_3() {
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
-#ifdef CUDA_EXAMPLE
-    in.clone_to_gpu();
-    out.clone_to_gpu();
-    in.h2d_update();
-    out.h2d_update();
+#ifdef __CUDACC__
+//    in.clone_to_gpu();
+//    out.clone_to_gpu();
+//    in.h2d_update();
+//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
 
-    in.d2h_update();
+//    in.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(one, two, src);
 #endif
