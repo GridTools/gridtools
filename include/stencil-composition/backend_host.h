@@ -123,10 +123,8 @@ namespace gridtools {
 
                     iterate_domain_type it_domain(local_domain);
                     it_domain.template assign_storage_pointers<enumtype::Host>(data_pointer);
-                    it_domain.check_pointers();
 
                     it_domain.template assign_stride_pointers <enumtype::Host>(&strides);
-                    it_domain.check_pointers();
 
                     for (int_t i = (int_t)f->m_starti + iminus;
                          i <= (int_t)f->m_starti + (int_t)f->m_BI + iplus;

@@ -289,7 +289,6 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<LocalArgTypes>::value, "the ID is larger than the number of storage types")
-                    std::cout<<"left["<<ID-1<<"]=right["<< ID-1 <<"], n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
                     assign_raw_data<storage_type::field_dimensions-1, total_storages<LocalArgTypes, ID-1>::count, Backend>::
                     assign(l, boost::fusion::at_c<ID>(r)->fields());
                 assign_storage<ID-1, LocalArgTypes, Backend>::assign(l,r); //tail recursion
@@ -307,7 +306,7 @@ namespace gridtools {
 #else
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
-                std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
+
                 assign_raw_data<storage_type::field_dimensions-1, 0, Backend>::
                     assign(l, boost::fusion::at_c<0>(r)->fields());
             }
@@ -359,7 +358,6 @@ namespace gridtools {
 #endif
                 //if the following fails, the ID is larger than the number of storage types
                 GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
-                // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
                     assign_strides_rec<storage_type::space_dimensions-2, Backend>::assign(l.template get<ID>(), &boost::fusion::at_c<ID>(r)->strides(1));
                 assign_strides<ID-1,Backend>::assign(l,r); //tail recursion
             }
@@ -887,14 +885,6 @@ namespace gridtools {
         }
 
 #endif //CXX11_ENABLED
-
-        void check_pointers()
-            {
-                if(boost::fusion::at_c<0>(local_domain.local_args)->fields()[0].get()!=m_data_pointer[0])
-                    std::cout<<"error: "<<boost::fusion::at_c<0>(local_domain.local_args)->fields()[0].get()<<"!="<<m_data_pointer[0]<<std::endl;
-                if(boost::fusion::at_c<1>(local_domain.local_args)->fields()[0].get()!=m_data_pointer[1])
-                    std::cout<<"error: "<<boost::fusion::at_c<1>(local_domain.local_args)->fields()[0].get()<<"!="<<m_data_pointer[1]<<std::endl;
-            }
 
 private:
     // iterate_domain remembers the state. This is necessary when we do finite differences and don't want to recompute all the iterators (but simply use the ones available for the current iteration storage for all the other storages)
