@@ -345,11 +345,11 @@ namespace gridtools {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }
 
-//         /** @brief update the GPU pointer */
-//         void h2d_update(){
-//             for (uint_t i=0; i<field_dimensions; ++i)
-//                 m_fields[i].update_gpu();
-//         }
+        /** @brief update the GPU pointer */
+        void h2d_update(){
+            for (uint_t i=0; i<field_dimensions; ++i)
+                m_fields[i].update_gpu();
+        }
 
         /** @brief updates the CPU pointer */
         void d2h_update(){

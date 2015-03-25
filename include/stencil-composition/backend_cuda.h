@@ -147,14 +147,9 @@ namespace gridtools {
                 typedef typename Traits::first_hit_t first_hit_t;
                 typedef typename Arguments::execution_type_t execution_type_t;
 
-#ifdef CXX11_ENABLED
                 typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
                 typedef typename sum_range<new_range_t, range_t>::type xrange_t;
-                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
-#else
-                typedef typename sum_range<typename functor_type::xrange, range_t>::type xrange_t;
-                typedef typename functor_type::xrange_subdomain xrange_subdomain_t;
-#endif
+                typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
                 /* struct extra_arguments{ */
                 /*     typedef functor_type functor_t; */
                 /*     typedef interval_map_type interval_map_t; */
