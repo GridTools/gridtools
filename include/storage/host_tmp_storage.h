@@ -119,11 +119,8 @@ namespace gridtools {
             , n_i_threads(n_i_threads)
             , n_j_threads(n_j_threads)
         {
-            m_halo[0]=MinusI;
-            m_halo[1]=MinusJ;
-            m_halo[2]=0;
-            m_initial_offsets[0] = initial_offset_i;
-            m_initial_offsets[1] = initial_offset_j;
+            m_initial_offsets[0] = initial_offset_i + MinusI;
+            m_initial_offsets[1] = initial_offset_j + MinusJ;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
             std::cout << "size: "
                       << (TileI+MinusI+PlusI)*n_i_threads << ", "
@@ -140,9 +137,6 @@ namespace gridtools {
 
         virtual void info() const {
 	    std::cout << "Temporary storage "
-                      << m_halo[0] << "x"
-                      << m_halo[1] << "x"
-                      << m_halo[2] << ", "
                       << "Initial offset "
                       << m_initial_offsets[0] << "x"
                       << m_initial_offsets[1] << "x"
@@ -198,6 +192,7 @@ namespace gridtools {
             template <uint_t Coordinate>
             GT_FUNCTION
             void increment(const uint_t steps, const uint_t b, uint_t* index){
+                
                 // no blocking along k
                 if(Coordinate != 2)
                     {
@@ -205,11 +200,10 @@ namespace gridtools {
                         uint_t var=steps - b * tile;
 
                         uint_t coor=var-
-                           m_initial_offsets[layout::template at_<Coordinate>::value] 
-                            + m_halo[layout::template at_<Coordinate>::value];
+                            m_initial_offsets[Coordinate];
 
                         BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                        *index += coor*m_strides[layout::template at_<Coordinate>::value+1];
+                        *index += coor*m_strides[Coordinate+1];
                     }
                 else
                     {
@@ -223,19 +217,26 @@ namespace gridtools {
             GT_FUNCTION
             void decrement(const uint_t steps, const uint_t b, uint_t* index){
 
-                uint_t tile=Coordinate==0?TileI:TileJ;
-                uint_t var=steps - b * tile;
-                // \todo CHECK IF THIS IS RIGHT PREVIOUS VERSION HAD TWO BUGS
-                // THIS FUNCTION WAS PROBABLY NEVER TESTED BEFORE VERTICAL ADVECTION
-                // BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                // uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
-                //     + m_halo[layout::template  find<Coordinate>::value];  <<<<<<< HERE
-                // *index -= coor*m_strides[layout::template at_<Coordinate>::value+1]; <<<< HERE
+                if(Coordinate != 2)
+                    {
+                        uint_t tile=Coordinate==0?TileI:TileJ;
+                        uint_t var=steps - b * tile;
+                        // \todo CHECK IF THIS IS RIGHT PREVIOUS VERSION HAD TWO BUGS
+                        // THIS FUNCTION WAS PROBABLY NEVER TESTED BEFORE VERTICAL ADVECTION
+                        // BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                        // uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
+                        //     + m_halo[layout::template  find<Coordinate>::value];  <<<<<<< HERE
+                        // *index -= coor*m_strides[layout::template at_<Coordinate>::value+1]; <<<< HERE
                 
-                BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
-                    + m_halo[layout::template  at_<Coordinate>::value];
-                *index -= coor*m_strides[layout::template at_<Coordinate>::value+1];
+                        BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                        uint_t coor=var-m_initial_offsets[Coordinate];
+
+                        *index -= coor*m_strides[Coordinate+1];
+                    }
+                else
+                    {
+                        base_type::template decrement<Coordinate>( steps, b, index);
+                    }
             }
     };
 
