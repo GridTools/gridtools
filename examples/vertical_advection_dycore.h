@@ -263,8 +263,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 2;
-    coords.value_list[1] = d3-2;
+    coords.value_list[0] = 0;
+    coords.value_list[1] = d3-1;
 
 //todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
