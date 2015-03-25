@@ -334,25 +334,6 @@ namespace gridtools {
 
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list_type;
 
-// <<<<<<< HEAD
-//         /**
-//          * Create a fusion::vector of domains for each functor
-//          *
-//          */
-//         typedef typename boost::mpl::transform<
-//             typename MssType::linear_esf,
-//             _impl::get_local_domain<
-//                 actual_arg_list_type,
-//                 local_domain>
-//             >::type mpl_local_domain_list;
-
-//         /**
-//          *
-//          */
-//         typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type LocalDomainList;
-// =======
-// >>>>>>> dycore_benchmarks
-
         typedef typename boost::mpl::transform<
             typename TMssArray::elements,
             mss_local_domain<boost::mpl::_, DomainType, actual_arg_list_type>
