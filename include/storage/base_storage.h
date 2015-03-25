@@ -48,10 +48,13 @@
 
 namespace gridtools {
 
-/**
-   @brief main class for the basic storage
-   The base_storage class contains one snapshot. It univocally defines the access pattern with three integers: the total storage sizes and the two strides different from one.
-*/
+    /**
+       @brief main class for the basic storage
+
+       The base_storage class contains one snapshot. It univocally defines
+       the access pattern with three integers: the total storage sizes and
+       the two strides different from one.
+    */
     template < typename PointerType,
                typename Layout,
                bool IsTemporary = false,
@@ -1003,8 +1006,8 @@ namespace gridtools {
     }
 
 #ifdef CXX11_ENABLED
-    template <typename ... T>
-    std::ostream& operator<<(std::ostream &s, extend_dim< T... > const &) {
+    template <typename F, typename ... T>
+    std::ostream& operator<<(std::ostream &s, extend_dim< F, T... > const &) {
         return s << "field storage" ;
     }
 #endif
