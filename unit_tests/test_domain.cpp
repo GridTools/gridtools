@@ -19,7 +19,7 @@
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/intermediate.h>
-
+#include <stencil-composition/backend.h>
 
 #include <boost/current_function.hpp>
 #include <boost/fusion/include/nview.hpp>
@@ -108,7 +108,12 @@ bool the_same(One const& storage1, Two const& storage2) {
  */
 bool test_domain() {
 
-  typedef gridtools::storage<gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > > storage_type;
+#ifdef __CUDACC__
+    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
+#else
+    typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > backend_t;
+#endif
+    typedef backend_t::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
