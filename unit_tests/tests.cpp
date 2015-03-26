@@ -60,9 +60,9 @@ TEST(stencil, horizontaldiffusion_block) {
 }
 #undef BACKEND_BLOCK
 
-#define __Size0 512
-#define __Size1 512
-#define __Size2 60
+#define __Size0 5
+#define __Size1 8
+#define __Size2 6
 
 TEST(stencil, copies3D) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,2> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);

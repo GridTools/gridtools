@@ -238,14 +238,17 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
         template<short_t Idx>
         GT_FUNCTION
-// #ifdef NDEBUG
+#ifdef NDEBUG
         constexpr
-// #endif
+#endif
         int_t const& get() const {//stop recursion
-// #ifndef NDEBUG
-//             printf("The dimension you are trying (%d) to access exceeds the number of dimensions by %d.\n ", Idx+1, Idx+1-n_args);
-// #endif
-            return (int_t)-9999;//TODO change this
+
+#ifndef NDEBUG
+            printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n \
+check your expressions and the field/space dimensions \n", -Idx);
+            //assert(false);
+#endif
+            return (int_t)0./*-9999*/;//TODO change this
         }
 
 
