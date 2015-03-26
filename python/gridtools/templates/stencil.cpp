@@ -8,8 +8,8 @@ extern "C"
             {## 
              ## Pointers to NumPy arrays passed from Python 
              ##}
-            {%- for arg in functor_params -%}
-                void *{{ arg.name }}_buff
+            {%- for p in params -%}
+                void *{{ p.name }}_buff
                 {%- if not loop.last -%}
                     ,
                 {%- endif -%}
@@ -19,8 +19,8 @@ extern "C"
                                                 {## 
                                                  ## Pointers to NumPy arrays passed from Python 
                                                  ##}
-                                                {%- for arg in functor_params -%}
-                                                    {{ arg.name }}_buff
+                                                {%- for p in params -%}
+                                                    {{ p.name }}_buff
                                                     {%- if not loop.last -%}
                                                         ,
                                                     {%- endif -%}

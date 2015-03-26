@@ -144,6 +144,8 @@ namespace gridtools {
     template <uint_t I, typename Range, ushort_t Dim >
     struct arg_type_base  {
 
+        template <uint_t II, typename R, ushort_t D>
+        friend std::ostream& operator<<(std::ostream& s, arg_type_base<II,R,D> const& x);
         typedef arg_type_base<I,Range,Dim> base_t;
         static const ushort_t n_args=0;
         static const ushort_t n_dim=Dim;
@@ -325,7 +327,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_decorator ( Whatever const& ... x. int const& t): super( x... ), m_offset(t) {
+        constexpr arg_decorator ( Whatever const& ... x, int const& t): super( x... ), m_offset(t) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -478,15 +480,15 @@ int_t const& get() const {
     /**
      * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding true
      */
-    template <uint_t I, enumtype::backend X, typename T, typename U, short_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage<X, T, U,  true, Dim> > > : boost::true_type
+    template <uint_t I, typename T, typename U, short_t Dim>
+    struct is_plchldr_to_temp<arg<I, base_storage< T, U,  true, Dim> > > : boost::true_type
     {};
 
     /**
      * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding false
      */
-    template <uint_t I, enumtype::backend X, typename T, typename U, short_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage< X, T, U,false, Dim> > > : boost::false_type
+    template <uint_t I, typename T, typename U, short_t Dim>
+    struct is_plchldr_to_temp<arg<I, base_storage<  T, U,false, Dim> > > : boost::false_type
     {};
 
     /**
@@ -523,12 +525,19 @@ int_t const& get() const {
      */
     template <uint_t I, typename R, ushort_t D>
     std::ostream& operator<<(std::ostream& s, arg_type_base<I,R,D> const& x) {
-        return s << "[ arg_decorator< " << I
+        s << "[ arg_decorator< " << I
                  << ", " << R()
-                 << " (" << x.i()
-                 << ", " << x.j()
-                 << ", " << x.k()
-                 <<" ) > ]";
+                 << ", " << D
+                 // << " (" << x.i()
+                 // << ", " << x.j()
+                 // << ", " << x.k()
+                 <<" ) > m_offset: {";
+
+        for (int i=0; i<x.n_dim-1; ++i) {
+            s << x.m_offset[i] << ", ";
+        }
+        s << x.m_offset[x.n_dim-1] << "} ]";
+        return s;
     }
 
     /**
@@ -564,12 +573,12 @@ int_t const& get() const {
     struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-    template <enumtype::backend X, typename T, typename U, short_t Dim>
-    struct is_storage<base_storage<X,T,U,true, Dim>  *  > : public boost::false_type
+    template <typename T, typename U, short_t Dim>
+    struct is_storage<base_storage<T,U,true, Dim>  *  > : public boost::false_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
-    template <enumtype::backend X, typename T, typename U, short_t Dim>
-    struct is_storage<base_storage<X,T,U,false, Dim>  *  > : public boost::true_type
+    template <typename T, typename U, short_t Dim>
+    struct is_storage<base_storage<T,U,false, Dim>  *  > : public boost::true_type
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
 
     template <typename U>

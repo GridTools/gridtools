@@ -31,23 +31,22 @@ namespace gridtools {
 
 template <typename T>
 struct wrap_pointer{
-        typedef T pointee_t;
+    // TODO: turn into value_type?
+    typedef T pointee_t;
 
     //default constructor
     GT_FUNCTION
     wrap_pointer(bool managed=false)
         : m_cpu_p(NULL),
 	  m_managed(managed)
-        {
-	}
+    {}
 
 
     GT_FUNCTION
     wrap_pointer(wrap_pointer const& other)
         : m_cpu_p(other.m_cpu_p),
 	  m_managed(false)
-        {
-	}
+    {}
 
     GT_FUNCTION
     wrap_pointer(T* p, bool managed=true)
@@ -56,11 +55,11 @@ struct wrap_pointer{
     {}
 
     wrap_pointer<T>& operator = (T& p)
-        {
-            m_cpu_p=p;
-	    m_managed=true;
-            return *this;
-        }
+    {
+        m_cpu_p=p;
+        m_managed=true;
+        return *this;
+    }
 
     pointee_t* get() const {return m_cpu_p;}
 

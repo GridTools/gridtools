@@ -265,11 +265,11 @@ namespace shallow_water{
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type1;
+	    typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type1;
 	    typedef extend_width<base_type1, 1>  extended_type;
 	    typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
 
-	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type2;
+	    typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type2;
 	    typedef extend_width<base_type2, 0>  extended_type2;
 	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
 #else

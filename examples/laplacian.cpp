@@ -3,11 +3,7 @@
 #include <fstream>
 
 #include <gridtools.h>
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 

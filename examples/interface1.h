@@ -1,13 +1,11 @@
 #pragma once
 
 #include <gridtools.h>
+#include <stencil-composition/backend.h>
 #include "stencil-composition/make_computation.h"
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
 #include <stencil-composition/interval.h>
+#include "horizontal_diffusion_repository.h"
+#include "verifier.h"
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
@@ -45,18 +43,17 @@ struct lap_function {
 
 #ifdef CXX11_ENABLED
     typedef arg_type<0> out;
-    typedef const arg_type<1 > in;
+    typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
 #else
     typedef arg_type<0>::type out;
-    typedef const arg_type<1>::type in;
+    typedef const arg_type<1, range<-1, 1, -1, 1>  >::type in;
 #endif
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
-
-        dom(out()) =  3*dom(in()) -
+        dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
     }
@@ -71,6 +68,7 @@ struct flx_function {
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+
 #else
     typedef arg_type<0>::type out;
     typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
@@ -84,7 +82,7 @@ struct flx_function {
     static void Do(Domain const & dom, x_flx) {
 
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
+        if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
         }
     }
@@ -111,7 +109,7 @@ struct fly_function {
     static void Do(Domain const & dom, x_flx) {
 
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0)))) {
+        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
         }
     }
@@ -128,6 +126,7 @@ struct out_function {
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
+
 #else
     typedef arg_type<0>::type out;
     typedef const arg_type<1>::type in;
@@ -140,14 +139,13 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-
 #ifdef CXX11_ENABLED
         dom(out()) = dom(in()) - dom(coeff()) *
             (dom(flx() - flx( -1,0,0) +
              fly() - fly( 0,-1,0))
              );
 #else
-        dom(out()) = dom(in()) - dom(coeff()) *
+        dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
@@ -185,6 +183,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t d1 = x;
     uint_t d2 = y;
     uint_t d3 = z;
+    uint_t halo_size = 2;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -196,16 +195,21 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #endif
 #endif
 
-    typedef gridtools::layout_map<0,1,2> layout_t;
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
+    typedef horizontal_diffusion::repository::layout_ijk layout_t;
 
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef horizontal_diffusion::repository::storage_type storage_type;
+    typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
+
+    horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
+    repository.init_fields();
+
+    repository.generate_reference();
+
 
      // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3,-1., "in");
-    storage_type out(d1,d2,d3,-7.3, "out");
-    storage_type coeff(d1,d2,d3,8., "coeff");
+    storage_type& in = repository.in();
+    storage_type& out = repository.out();
+    storage_type& coeff = repository.coeff();
 
 #ifndef SILENT_RUN
     out.print();
@@ -228,7 +232,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
-    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
     gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
@@ -236,8 +240,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    uint_t di[5] = {2, 2, 2, d1-3, d1};
-    uint_t dj[5] = {2, 2, 2, d2-3, d2};
+    uint_t di[5] = {halo_size, halo_size, halo_size, d1-3, d1};
+    uint_t dj[5] = {halo_size, halo_size, halo_size, d2-3, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
@@ -350,13 +354,17 @@ PAPI_stop(event_set, values);
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
-    out.data().update_cpu();
+    repository.update_cpu();
 #endif
+
+    verifier verif(1e-9, halo_size);
+    bool result = verif.verify(repository.out(), repository.out_ref());
 
 #ifndef SILENT_RUN
     //    in.print();
-    out.print();
+    //    out.print();
     //    lap.print();
+    std::cout << "SUCCESS? " << std::boolalpha << result << std::endl;
 
 #ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
@@ -367,11 +375,10 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return // lapse_time.wall<5000000 &&
+    return result; /// lapse_time.wall<5000000 &&
 // #ifdef USE_PAPI
 //                     values[0]>1000 && //random value
 // #endif
-                                true;
 }
 
 }//namespace horizontal_diffusion

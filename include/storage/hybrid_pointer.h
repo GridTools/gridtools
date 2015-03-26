@@ -99,7 +99,9 @@ namespace gridtools {
 #endif
         }
 
+#ifdef __CUDACC__
         void set(pointee_t const& value, uint_t const& index){cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice); }
+#endif
 
         __host__ __device__
         void out() const {
