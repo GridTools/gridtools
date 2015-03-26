@@ -30,8 +30,8 @@ public:
 
     repository(const int idim, const int jdim, const int kdim, const int halo_size) :
         in_(idim, jdim, kdim, -1, "in"),
-        out_ref_(idim, jdim, kdim, -1, "in_ref"),
         out_(idim, jdim, kdim, -1, "out"),
+        out_ref_(idim, jdim, kdim, -1, "in_ref"),
         coeff_(idim, jdim, kdim, -1, "coeff"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
@@ -156,7 +156,6 @@ public:
 
 private:
     storage_type in_, out_, out_ref_, coeff_;
-    scalar_storage_type dtr_stage_;
     const int halo_size_;
     const int idim_, jdim_, kdim_;
 };

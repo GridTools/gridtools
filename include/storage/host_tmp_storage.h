@@ -116,9 +116,6 @@ namespace gridtools {
             , n_i_threads(n_i_threads)
             , n_j_threads(n_j_threads)
         {
-            // m_halo[0]=MinusI;
-            // m_halo[1]=MinusJ;
-            // m_halo[2]=0;
             m_initial_offsets[0] = initial_offset_i - MinusI;
             m_initial_offsets[1] = initial_offset_j - MinusJ;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
@@ -149,9 +146,6 @@ namespace gridtools {
 
         virtual void info() const {
 	    std::cout << "Temporary storage "
-                      // << m_halo[0] << "x"
-                      // << m_halo[1] << "x"
-                      // << m_halo[2] << ", "
                       << "Initial offset "
                       << m_initial_offsets[0] << "x"
                       << m_initial_offsets[1] << "x"
@@ -168,7 +162,7 @@ namespace gridtools {
            our execution model is parallel on (i,j). Defaulted to 1.
         */
         typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
-            uint_t offset = n_j_threads*EU_id_i + EU_id_j;
+            uint_t offset =( base_type::template strides<0>(base_type::strides())) * (TileI+MinusI+PlusI) * EU_id_i + (TileJ+MinusJ+PlusJ) * EU_id_j;
             return base_type::fields()[index].get()+offset;
         }
 
@@ -231,18 +225,27 @@ namespace gridtools {
             GT_FUNCTION
             void decrement(const uint_t steps, const uint_t b, uint_t* index, uint_t const* strides_){
 
-                uint_t tile=Coordinate==0?TileI:TileJ;
-                uint_t var=steps - b * tile;
-                // \todo CHECK IF THIS IS RIGHT PREVIOUS VERSION HAD TWO BUGS
-                // THIS FUNCTION WAS PROBABLY NEVER TESTED BEFORE VERTICAL ADVECTION
-                // BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                // uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
-                //     + m_halo[layout::template  find<Coordinate>::value];  <<<<<<< HERE
-                // *index -= coor*m_strides[layout::template at_<Coordinate>::value+1]; <<<< HERE
 
-                BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-		uint_t coor=var-m_initial_offsets[Coordinate];
-		*index -= coor*basic_type::template strides<Coordinate>(strides_);
+                if(Coordinate != 2)
+                    {
+                        uint_t tile=Coordinate==0?TileI:TileJ;
+                        uint_t var=steps - b * tile;
+                        // \todo CHECK IF THIS IS RIGHT PREVIOUS VERSION HAD TWO BUGS
+                        // THIS FUNCTION WAS PROBABLY NEVER TESTED BEFORE VERTICAL ADVECTION
+                        // BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                        // uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
+                        //     + m_halo[layout::template  find<Coordinate>::value];  <<<<<<< HERE
+                        // *index -= coor*m_strides[layout::template at_<Coordinate>::value+1]; <<<< HERE
+
+                        BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                        uint_t coor=var-m_initial_offsets[Coordinate];
+
+                        *index -= coor*basic_type::template strides<Coordinate>(strides_);
+                    }
+                else
+                    {
+                        base_type::template decrement<Coordinate>( steps, b, index, strides_);
+                    }
             }
     };
 

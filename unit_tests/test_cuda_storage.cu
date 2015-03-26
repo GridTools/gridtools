@@ -15,6 +15,7 @@
 #include <stencil-composition/backend.h>
 #include <common/layout_map.h>
 #include <common/defs.h>
+#include <stencil-composition/backend.h>
 
 #ifdef __CUDACC__
 template <typename T>
@@ -34,13 +35,14 @@ using namespace gridtools;
 using namespace enumtype;
 bool test_cuda_storage() {
 
+    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
     typedef gridtools::backend<Cuda, Naive>::storage_type<float_type, gridtools::layout_map<0,1,2> > ::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type data(d1,d2,d3,-1, ("data"));
+    storage_type_t data(d1,d2,d3,-1., "data");
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {

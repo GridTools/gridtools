@@ -17,7 +17,6 @@
 
 namespace gridtools{
 
-
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
        A single loop spans all three directions, i, j and k
@@ -132,11 +131,11 @@ namespace gridtools{
                 #pragma omp parallel
                 {
                 #pragma omp for nowait
-                for (uint_t bi = 0; bi <= NBI; ++bi) {
-                    for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                        backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
+                    for (uint_t bi = 0; bi <= NBI; ++bi) {
+                        for (uint_t bj = 0; bj <= NBJ; ++bj) {
+                            backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
+                        }
                     }
-                }
                 }
             }
         };
@@ -173,23 +172,24 @@ namespace gridtools{
                 uint_t _starti = bi*BI+coords.i_low_bound();
                 uint_t _startj = bj*BJ+coords.j_low_bound();
 
-                uint_t _lasti = BI-1;
-                uint_t _lastj = BJ-1;
+                uint_t block_size_i = BI-1;
+                uint_t block_size_j = BJ-1;
+
 
                 if(bi == NBI && bj == NBJ)
                 {
-                    _lasti = n-NBI*BI;
-                    _lastj = m-NBJ*BJ;
+                    block_size_i = n-NBI*BI;
+                    block_size_j = m-NBJ*BJ;
                 }
                 else if(bi == NBI)
                 {
-                    _lasti = n-NBI*BI;
+                    block_size_i = n-NBI*BI;
                 }
                 else if(bj == NBJ)
                 {
-                    _lastj = m-NBJ*BJ;
+                    block_size_j = m-NBJ*BJ;
                 }
-                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, _lasti, _lastj, bi, bj));
+                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
             }
         };
 
