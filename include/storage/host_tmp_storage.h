@@ -119,8 +119,8 @@ namespace gridtools {
             , n_i_threads(n_i_threads)
             , n_j_threads(n_j_threads)
         {
-            m_initial_offsets[0] = initial_offset_i + MinusI;
-            m_initial_offsets[1] = initial_offset_j + MinusJ;
+            m_initial_offsets[0] = initial_offset_i - MinusI;
+            m_initial_offsets[1] = initial_offset_j - MinusJ;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
             std::cout << "size: "
                       << (TileI+MinusI+PlusI)*n_i_threads << ", "
@@ -153,7 +153,7 @@ namespace gridtools {
            our execution model is parallel on (i,j). Defaulted to 1.
         */
         typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
-            uint_t offset = n_j_threads*EU_id_i + EU_id_j;
+            uint_t offset =( base_type::template strides<0>(m_strides)) * (TileI+MinusI+PlusI) * EU_id_i + (TileJ+MinusJ+PlusJ) * EU_id_j;
             return base_type::fields()[index].get()+offset;
         }
 
