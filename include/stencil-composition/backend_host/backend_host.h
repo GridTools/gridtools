@@ -94,7 +94,7 @@ namespace gridtools {
                     /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
 
                     iterate_domain_type it_domain(local_domain);
-                    it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Host> >(data_pointer, thread_id());
+                    it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Host> >(&data_pointer, thread_id());
 
                     it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
 

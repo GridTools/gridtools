@@ -151,49 +151,51 @@ namespace gridtools {
        The 'raw' datas are the one or more data fields contained in each storage class
     */
 
-    template<uint_t Number, uint_t Offset, typename BackendType>
+    template<uint_t Number, uint_t Offset, typename BackendType, typename StorageType>
     struct assign_raw_data{
+        typedef StorageType storage_type;
         static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[Number]=r[Number].get();
-            BackendType::template once_per_block<Id>::assign(l[Number],r->field_offset(Number,EU_id_i, EU_id_j));
-            assign_raw_data<Number-1, Offset, BackendType>::assign(l, r, EU_id_i, EU_id_j);
+            BackendType::template once_per_block<Id>::assign(static_cast<typename storage_type::value_type*>(l[Offset+Number]),r->field_offset(Number,EU_id_i, EU_id_j));
+            assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
         }
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
                            typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[Number]=r[Number].get();
-            BackendType::template once_per_block<Id>::assign(l[Offset+Number], r->fields()[Number].get());
-            assign_raw_data<Number-1, Offset, BackendType>::assign(l, r, EU_id_i, EU_id_j);
+            BackendType::template once_per_block<Id>::assign(static_cast<typename storage_type::value_type*>(l[Offset+Number]), r->fields()[Number].get());
+            assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
         }
 
     };
 
     /**@brief stopping the recursion*/
-    template<uint_t Offset, typename BackendType>
-    struct assign_raw_data<0, Offset, BackendType>{
+    template<uint_t Offset, typename BackendType, typename StorageType>
+    struct assign_raw_data<0, Offset, BackendType, StorageType>{
+        typedef StorageType storage_type;
         static const uint_t Id=(Offset)%BLOCK_SIZE;
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[0]=r[0].get();
-            BackendType:: template once_per_block<Id>::assign(l[0],r->fields_offset(0,EU_id_i, EU_id_j));
+            BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields_offset(0,EU_id_i, EU_id_j));
         }
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
                            typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields()[0].get());
@@ -315,7 +317,8 @@ namespace gridtools {
 
                     assign_raw_data<storage_type::field_dimensions-1,
                                     total_storages<Right, ID-1>::count,
-                    BackendType>::
+                                    BackendType,
+                                    storage_type>::
                     assign(l, boost::fusion::at_c<ID>(r),
                            EU_id_i, EU_id_j);
 
@@ -336,7 +339,7 @@ namespace gridtools {
                 typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
                 // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1, 0, BackendType>::
+                assign_raw_data<storage_type::field_dimensions-1, 0, BackendType, storage_type>::
                     assign(l, boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
             }
         };
@@ -472,7 +475,7 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( array<void*, N_DATA_POINTERS> * data_pointer, const uint_t EU_id_i, const uint_t EU_id_j=0 ){
+        void assign_storage_pointers( array<void*, N_DATA_POINTERS>* data_pointer, const uint_t EU_id_i, const uint_t EU_id_j=0 ){
             // std::cout << "the stuff "
             //           << "EU_id_i " << EU_id_i
             //           << " EU_id_j " << EU_id_j
@@ -480,12 +483,12 @@ public:
 
             m_data_pointer=data_pointer;
             assign_storage< N_STORAGES-1, BackendType >
-                ::assign(m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);
+                ::assign(*m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);
         }
 
         template<typename BackendType, typename Strides>
         GT_FUNCTION
-        void assign_stride_pointers( Strides* strides){
+        void assign_stride_pointers( Strides * strides){
             m_strides=strides;
             assign_strides< N_STORAGES-1, BackendType >::assign(*m_strides, local_domain.local_args);
         }
@@ -559,6 +562,12 @@ public:
                 typename storage_type::value_type * real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
 
+                std::cout<<"(m_index[ArgType::index_type::value]) + (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) ->_index(m_strides->template get<ArgType::index_type::value>(), arg) = "
+                         <<(m_index[ArgType::index_type::value])
+                         <<"+"<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                    ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+                         <<std::endl;
+
                 //the following assert fails when an out of bound access is observed, i.e. either one of
 		//i+offset_i or j+offset_j or k+offset_k is too large.
 		//Most probably this is due to you specifying a positive offset which is larger than expected,
@@ -618,7 +627,7 @@ public:
                                                              >::type
         operator()(arg_decorator<ArgType> const& arg) const {
 
-            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
+            return get_value(arg, (*m_data_pointer)[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
         }
 
 #ifdef CXX11_ENABLED
@@ -629,7 +638,7 @@ public:
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
         operator()(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
-            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
+            return get_value(arg, (*m_data_pointer)[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
         }
 #endif
         /** @brief method called in the Do methods of the functors.
@@ -661,7 +670,7 @@ public:
 #endif
 
                 return get_value(arg,
-                                 m_data_pointer[ //static if
+                                 (*m_data_pointer)[ //static if
                                      //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
                                      storage_type::get_index
                                      (
@@ -721,7 +730,7 @@ public:
 
 
                 return get_value(arg,
-                                 m_data_pointer[ //static if
+                                 (*m_data_pointer)[ //static if
                                      //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
                                  storage_type::get_index(
                                          (
