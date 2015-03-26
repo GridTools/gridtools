@@ -433,9 +433,9 @@ private:
         // current iteration storage for all the other storages)
 
         LocalDomain const& local_domain;
-        uint_t m_index[N_STORAGES];
+        array<uint_t,N_STORAGES> m_index;
 
-        void** m_data_pointer;
+        array<void*, N_DATA_POINTERS>* m_data_pointer;
 
         storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* m_strides;
 
@@ -472,7 +472,7 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( void** data_pointer, int EU_id_i, int EU_id_j=0 ){
+        void assign_storage_pointers( array<void*, N_DATA_POINTERS> * data_pointer, const uint_t EU_id_i, const uint_t EU_id_j=0 ){
             // std::cout << "the stuff "
             //           << "EU_id_i " << EU_id_i
             //           << " EU_id_j " << EU_id_j
