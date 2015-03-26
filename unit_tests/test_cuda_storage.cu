@@ -15,6 +15,7 @@
 #include <storage/storage.h>
 #include <common/layout_map.h>
 #include <common/defs.h>
+#include <stencil-composition/backend.h>
 
 #ifdef __CUDACC__
 template <typename T>
@@ -32,13 +33,14 @@ void add_on_gpu(T * ptr, uint_t d1, uint_t d2, uint_t d3) {
 
 bool test_cuda_storage() {
 
-    typedef gridtools::storage<gridtools::base_storage<gridtools::enumtype::Cuda, double, gridtools::layout_map<0,1,2> > > storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
+    typedef backend_t::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type_t;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type data(d1,d2,d3,-1, ("data"));
+    storage_type_t data(d1,d2,d3,-1., "data");
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {

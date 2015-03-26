@@ -352,7 +352,7 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( void** data_pointer, uint_t EU_id_i, uint_t EU_id_j=0 ){
+        void assign_storage_pointers( void** data_pointer, const uint_t EU_id_i, const uint_t EU_id_j=0 ){
             // std::cout << "the stuff "
             //           << "EU_id_i " << EU_id_i
             //           << " EU_id_j " << EU_id_j
