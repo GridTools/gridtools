@@ -6,7 +6,7 @@ enable_language( CXX )
 
 
 ## enable to use ctest:
-enable_testing()
+## enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 if(GNU_COVERAGE)
@@ -79,7 +79,7 @@ if( USE_GPU )
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
-  set(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
+  #set(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
   set(exe_LIBS "${CUDA_CUDART_LIBRARY}" "${exe_LIBS}" )
 ## #   message("exelibs ${exe_LIBS}")
 ## # message("${CUDA_INCLUDE_DIRS}")
@@ -109,6 +109,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
+set ( exe_LIBS ${exe_LIBS} gridtools )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
@@ -183,7 +184,8 @@ if( USE_MPI )
 endif()
 
 
-ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h)
+ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h )
+ADD_LIBRARY( gridtools src/gridtools.cpp )
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)

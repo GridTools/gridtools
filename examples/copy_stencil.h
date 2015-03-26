@@ -1,15 +1,9 @@
 #pragma once
 
 #include <gridtools.h>
-
+#include <stencil-composition/backend.h>
 #include "stencil-composition/make_computation.h"
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
 #include <stencil-composition/interval.h>
-
 
 
 #ifdef USE_PAPI_WRAP
@@ -105,7 +99,7 @@ namespace copy_stencil{
 #ifdef CXX11_ENABLED
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-        typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
+        typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
         typedef extend_width<base_type1, 0>  extended_type;
         typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
 #endif
@@ -210,19 +204,20 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-            gridtools::make_computation<gridtools::BACKEND, layout_t>
-            (
-             gridtools::make_mss // mss_descriptor
-             (
-              execute<forward>(),
-              gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
+    gridtools::make_computation<gridtools::BACKEND, layout_t>
+    (
+        gridtools::make_mss // mss_descriptor
+        (
+            execute<forward>(),
+            gridtools::make_esf<copy_functor>(
+                p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                                                ,p_out()
+                ,p_out()
 #endif
-                                                )
-              ),
-             domain, coords
-             );
+            )
+        ),
+        domain, coords
+    );
 
         copy->ready();
 

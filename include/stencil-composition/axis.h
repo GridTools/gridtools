@@ -38,14 +38,12 @@ namespace gridtools {
     template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
         BOOST_STATIC_ASSERT(is_interval<Axis>::value);
-
-
         typedef Axis axis_type;
 
-    typedef typename boost::mpl::plus<
-        boost::mpl::minus<typename Axis::ToLevel::Splitter,
-                          typename Axis::FromLevel::Splitter>,
-        static_int<1> >::type size_type;
+        typedef typename boost::mpl::plus<
+                boost::mpl::minus<typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter>,
+                static_int<1>
+        >::type size_type;
 
         array<uint_t, size_type::value > value_list;
 
@@ -125,4 +123,11 @@ namespace gridtools {
         halo_descriptor m_direction_j;
 
     };
+
+    template<typename Coord>
+    struct is_coordinates : boost::mpl::false_{};
+
+    template<typename Axis>
+    struct is_coordinates<coordinates<Axis> > : boost::mpl::true_{};
+
 } // namespace gridtools

@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/mpl/has_key.hpp>
 #include "iteration_policy.h"
 #include "level.h"
 

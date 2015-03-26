@@ -1,24 +1,11 @@
 #pragma once
 
-#include <stdio.h>
-#include <boost/mpl/has_key.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/find_if.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/deref.hpp>
-#include <boost/mpl/find_if.hpp>
-#include <boost/mpl/has_key.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/fusion/include/at.hpp>
-#include <boost/fusion/include/value_at.hpp>
+#include "../execution_policy.h"
+#include "../heap_allocated_temps.h"
+#include "../run_kernel.h"
+#include "backend_traits.h"
+#include "backend_traits_cuda.h"
 
-#include "execution_policy.h"
-#include "heap_allocated_temps.h"
-#include "../storage/hybrid_pointer.h"
-
-#include "backend.h"
 /**
  * @file
  * \brief implements the stencil operations for a GPU backend
@@ -26,7 +13,7 @@
 
 namespace gridtools {
 
-/** Kernel function called from the GPU */
+    /** Kernel function called from the GPU */
     namespace _impl_cuda {
 
         template <typename Arguments,
@@ -40,10 +27,6 @@ namespace gridtools {
             int j = blockIdx.y * blockDim.y + threadIdx.y;
             uint_t z = coords->template value_at<typename Traits::first_hit_t>();
 
-#ifndef NDEBUG
-//             printf("index: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
-//             printf("i and j : %d and %d\n", i, j);
-#endif
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
             __shared__
@@ -55,17 +38,11 @@ namespace gridtools {
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<enumtype::Cuda>(data_pointer);
-
-            it_domain.template assign_stride_pointers <enumtype::Cuda>(&strides);
+            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(data_pointer, blockIdx.x);
+            it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
             __syncthreads();
 
             if ((i < nx) && (j < ny)) {
-
-#ifndef NDEBUG
-//                printf("index_inside: %d\n", blockIdx.x * blockDim.x + threadIdx.x);
-//                printf("i  %d and j: %d inside\n", i, j);
-#endif
 
                 it_domain.template assign_ij<0>(i+starti,0);
                 it_domain.template assign_ij<1>(j+startj,0);
@@ -98,11 +75,11 @@ namespace gridtools {
         struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
         {
             typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
                 : super( domain_list, coords)
                 {}
 
-            explicit run_functor_cuda(typename Arguments::domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
+            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
                 : super(domain_list, coords, i, j, bi, bj)
                 {}
 
@@ -136,28 +113,29 @@ namespace gridtools {
 */
         template < typename Traits >
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
-            {
-                typedef typename Arguments::coords_t coords_type;
-                // typedef typename Arguments::loop_intervals_t loop_intervals_t;
-                typedef typename Traits::range_t range_t;
-                typedef typename Traits::functor_t functor_type;
-                typedef typename Traits::local_domain_t  local_domain_t;
-                typedef typename Traits::interval_map_t interval_map_type;
-                typedef typename Traits::iterate_domain_t iterate_domain_t;
-                typedef typename Traits::first_hit_t first_hit_t;
-                typedef typename Arguments::execution_type_t execution_type_t;
+        {
+            typedef typename Arguments::coords_t coords_type;
+            // typedef typename Arguments::loop_intervals_t loop_intervals_t;
+            typedef typename Traits::range_t range_t;
+            typedef typename Traits::functor_t functor_type;
+            typedef typename Traits::local_domain_t  local_domain_t;
+            typedef typename Traits::interval_map_t interval_map_type;
+            typedef typename Traits::iterate_domain_t iterate_domain_t;
+            typedef typename Traits::first_hit_t first_hit_t;
+            typedef typename Arguments::execution_type_t execution_type_t;
 
-                typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
-                typedef typename sum_range<new_range_t, range_t>::type xrange_t;
-                typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
-                /* struct extra_arguments{ */
-                /*     typedef functor_type functor_t; */
-                /*     typedef interval_map_type interval_map_t; */
-                /*     typedef iterate_domain_t local_domain_t; */
-                /*     typedef coords_type coords_t;}; */
+            typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+            typedef typename sum_range<new_range_t, range_t>::type xrange_t;
+            typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
 
 
-                local_domain.clone_to_gpu();
+            /* struct extra_arguments{ */
+            /*     typedef functor_type functor_t; */
+            /*     typedef interval_map_type interval_map_t; */
+            /*     typedef iterate_domain_t local_domain_t; */
+            /*     typedef coords_type coords_t;}; */
+
+                            local_domain.clone_to_gpu();
                 f->m_coords.clone_to_gpu();
 
                 local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
@@ -244,17 +222,22 @@ namespace gridtools {
                      (ny));
                 cudaDeviceSynchronize();
 
-            }
+        }
     };
 
-//    }//namespace _impl
+    //    }//namespace _impl
 
-/**@brief given the backend \ref gridtools::_impl_cuda::run_functor_cuda returns the backend ID gridtools::enumtype::Cuda
-   wasted code because of the lack of constexpr*/
-        template <typename Arguments>
-        struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
-        {
-            static const enumtype::backend s_backend=enumtype::Cuda;
-        };
+
+    /**@brief given the backend \ref
+       gridtools::_impl_cuda::run_functor_cuda returns the backend ID
+       gridtools::enumtype::Cuda wasted code because of the lack of
+       constexpr
+    */
+    template <typename Arguments>
+    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
+    {
+        static const enumtype::backend s_backend=enumtype::Cuda;
+    };
+
 
 } // namespace gridtools

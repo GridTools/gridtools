@@ -7,7 +7,7 @@
 
 #include <gridtools.h>
 #include <common/defs.h>
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 
 #include <boost/fusion/include/make_vector.hpp>
 

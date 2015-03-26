@@ -5,11 +5,7 @@
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/construct.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.h>
@@ -354,11 +350,11 @@ namespace shallow_water{
             typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;
 #else
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type1;
+	    typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type1;
 	    typedef extend_width<base_type1, 1>  extended_type;
 	    typedef storage<extend_dim<extended_type, extended_type, extended_type> >  tmp_type;
 
-	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type2;
+	    typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type2;
 	    typedef extend_width<base_type2, 0>  extended_type2;
 	    typedef storage<extend_dim<extended_type2, extended_type2, extended_type2> >  sol_type;
 #endif

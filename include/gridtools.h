@@ -26,6 +26,7 @@
 #include "common/host_device.h"
 #include "common/array.h"
 #include "common/layout_map.h"
+#include "common/gridtools_runtime.h"
 
 
 // #include "stencil-composition/axis.h"

@@ -7,6 +7,7 @@
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/fusion/view/zip_view.hpp>
+#include <boost/utility.hpp>
 
 #include "iterate_domain.h"
 
@@ -25,21 +26,6 @@ namespace gridtools {
             template <typename U>
             struct apply {
                 typedef typename U::storage_type* type;
-            };
-        };
-
-	/* // iterator decorator */
-	/* template <typename U> */
-	/*   struct strided_iterator  { */
-	/*     typename U::iterator_type value; //double* */
-	/*     /\* uint_t stride; *\/ */
-	/*   }; */
-
-        struct get_iterator {
-            template <typename U>
-            struct apply {
-	      typedef typename  U::iterator_type type;
-
             };
         };
 
@@ -63,12 +49,53 @@ namespace gridtools {
             }
         };
 
-        /**extract the real type (removing pointers and/or references) for all the element of a sequence (StorageList)*/
+
+        /** Just extract the storage types. In case of temporaries, these types
+            are the storage types containing the storage classes that contains
+            the "repositories" of all the perthread containers.
+        */
         template <typename StorageList>
         struct extract_types {
             template <typename ElemType>
             struct apply {
-                typedef typename boost::remove_reference<typename boost::fusion::result_of::at<StorageList, typename ElemType::index_type>::type>::type type;
+                typedef typename boost::remove_reference<
+                    typename boost::fusion::result_of::at<StorageList, typename ElemType::index_type>::type
+                    >::type type;
+            };
+        };
+
+        /** Just extract the storage types. In case of temporaries, these types
+            are the storage types containing the actual storage types used by the
+            individual threads. This requires a difference w.r.t. extract_types
+            for how to deal with temporaries.
+
+            Since certain modifications happend this metafunction is actually
+            identical, in behavior, with extract_types.
+        */
+        template <typename StorageList>
+        struct extract_actual_types {
+
+            template <typename Storage, typename Enable=void>
+            struct check_if_temporary;
+
+            template <typename Storage>
+            struct check_if_temporary<Storage, typename boost::enable_if_c<is_temporary_storage<Storage>::value>::type> {
+                typedef Storage type;
+            };
+
+            template <typename Storage>
+            struct check_if_temporary<Storage, typename boost::disable_if_c<is_temporary_storage<Storage>::value>::type> {
+                typedef Storage type;
+            };
+
+
+            template <typename ElemType>
+            struct apply {
+                typedef typename check_if_temporary<
+                    typename boost::remove_reference<
+                        typename boost::fusion::result_of::at<StorageList, typename ElemType::index_type>::type
+                        >::type
+                    >::type type;
             };
         };
 
@@ -83,16 +110,17 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename Derived, typename StoragePointers, typename Iterators, typename EsfDescriptor>
+    template <typename Derived, typename StoragePointers/*, typename Iterators*/, typename EsfDescriptor>
     struct local_domain_base: public clonable_to_gpu<Derived> {
 
-        typedef local_domain_base<Derived, StoragePointers, Iterators, EsfDescriptor> this_type;
+        typedef local_domain_base<Derived, StoragePointers/*, Iterators*/, EsfDescriptor> this_type;
 
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
 
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<esf_args>::type::value > the_range;
+
         typedef typename boost::mpl::fold<the_range,
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
@@ -111,13 +139,19 @@ namespace gridtools {
                                               >
                                           >::type mpl_storages;
 
-        //typedef typename  mpl_storages::fuck fuck;
-        typedef typename boost::mpl::transform<domain_indices,
-                                               local_domain_aux::get_iterator
-                                               >::type mpl_iterators;
+        /** creates a vector of storage types from the StoragePointers sequence */
+        typedef typename boost::mpl::fold<domain_indices,
+                                          boost::mpl::vector<>,
+                                          boost::mpl::push_back<
+                                              boost::mpl::_1,
+                                              typename local_domain_aux::extract_actual_types<
+                                                  StoragePointers>::template apply<boost::mpl::_2>
+                                              >
+                                          >::type mpl_actual_storages;
 
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
-        typedef typename boost::fusion::result_of::as_vector<mpl_iterators>::type local_iterators_type;
+        typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
+
 
         typedef iterate_domain<this_type> iterate_domain_t;
 
@@ -212,12 +246,12 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename StoragePointers, typename Iterators, typename EsfDescriptor>
-    struct local_domain : public local_domain_base< local_domain<StoragePointers,Iterators,EsfDescriptor>, StoragePointers, Iterators, EsfDescriptor > {
-        typedef local_domain_base<local_domain<StoragePointers,Iterators,EsfDescriptor>, StoragePointers, Iterators, EsfDescriptor > base_type;
+    template <typename StoragePointers/*, typename Iterators*/, typename EsfDescriptor>
+    struct local_domain : public local_domain_base< local_domain<StoragePointers/*,Iterators*/,EsfDescriptor>, StoragePointers/*, Iterators*/, EsfDescriptor > {
+        typedef local_domain_base<local_domain<StoragePointers/*,Iterators*/,EsfDescriptor>, StoragePointers/*, Iterators*/, EsfDescriptor > base_type;
         typedef EsfDescriptor esf_descriptor;
         typedef StoragePointers storage_pointers;
-        typedef Iterators iterators;
+        //typedef Iterators iterators;
         typedef typename EsfDescriptor::args esf_args;
         typedef typename EsfDescriptor::esf_function esf_function;
 
@@ -250,8 +284,14 @@ namespace gridtools {
         uint_t k() const {return 1e9; }
     };
 
-    template <typename StoragePointers, typename Iterators, typename EsfDescriptor>
-    std::ostream& operator<<(std::ostream& s, local_domain<StoragePointers,Iterators,EsfDescriptor> const&) {
+    template <typename StoragePointers, typename EsfDescriptor>
+    std::ostream& operator<<(std::ostream& s, local_domain<StoragePointers, EsfDescriptor> const&) {
         return s << "local_domain<stuff>";
     }
+
+    template<typename T> struct is_local_domain : boost::mpl::false_{};
+
+    template <typename StoragePointers, typename EsfDescriptor>
+    struct is_local_domain<local_domain<StoragePointers, EsfDescriptor> > : boost::mpl::true_{};
+
 }

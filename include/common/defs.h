@@ -4,8 +4,10 @@
    @brief global definitions
 */
 
-#define GT_MAX_ARGS 10
+#define FUSION_MAX_VECTOR_SIZE 20
+#define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
+#define GT_MAX_MSS 10
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -64,6 +66,14 @@ namespace gridtools{  namespace enumtype{
 
 }
 
+#define GT_WHERE_AM_I                           \
+    std::cout << __PRETTY_FUNCTION__ << " "     \
+    << __FILE__ << ":"                          \
+    << __LINE__                                 \
+    << std::endl;
+
+
+
 #ifdef CXX11_ENABLED
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message"\n\n");
 #else
@@ -76,8 +86,8 @@ namespace gridtools{  namespace enumtype{
 #ifdef CXX11_ENABLED
 using int_t          = int;
 using short_t        = int;
-using uint_t         = unsigned int;
-using ushort_t       = unsigned int;
+using uint_t         = int;
+using ushort_t       = int;
 template<int_t N>
 using  static_int=boost::mpl::integral_c<int_t,N>;
 template<uint_t N>
@@ -89,8 +99,8 @@ using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
 #else
 typedef int                     int_t;
 typedef int                     short_t;
-typedef unsigned int            uint_t;
-typedef unsigned int            ushort_t;
+typedef int            uint_t;
+typedef int            ushort_t;
 template<int_t N>
 struct static_int : boost::mpl::integral_c<int_t,N>{
     typedef boost::mpl::integral_c<int_t,N> type;
