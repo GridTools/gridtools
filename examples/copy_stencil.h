@@ -234,6 +234,7 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
+    boost::timer::cpu_timer time;
         copy->run();
 
 #ifdef USE_PAPI
@@ -251,6 +252,8 @@ namespace copy_stencil{
 
         copy->finalize();
 
+        boost::timer::cpu_times lapse_time = time.elapsed();
+        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif
