@@ -47,26 +47,26 @@ namespace gridtools {
                 typedef typename index_to_level<typename Interval::first>::type from_t;
                 typedef typename index_to_level<typename Interval::second>::type to_t;
 
-		//check that the axis specified by the user are containing the k interval
-		GRIDTOOLS_STATIC_ASSERT(
-		    level_to_index<typename traits::coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
-		    level_to_index<typename traits::coords_t::axis_type::ToLevel>::value >= Interval::second::value , "the k interval exceeds the axis you specified for the coordinates instance");
+                //check that the axis specified by the user are containing the k interval
+                GRIDTOOLS_STATIC_ASSERT(
+                                        level_to_index<typename traits::coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
+                                        level_to_index<typename traits::coords_t::axis_type::ToLevel>::value >= Interval::second::value , "the k interval exceeds the axis you specified for the coordinates instance");
 
-		typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
+                typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
 
-		if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
-		  typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
+                if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
+                    typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
 
-		uint_t from=m_coords.template value_at<from_t>();
-		  //m_coords.template value_at<typename iteration_policy::from>();
+                    uint_t from=m_coords.template value_at<from_t>();
+                    //m_coords.template value_at<typename iteration_policy::from>();
                     uint_t to=m_coords.template value_at<to_t>();
                     /* uint_t to=m_coords.template value_at<typename iteration_policy::to>(); */
                     // std::cout<<"from==> "<<from<<std::endl;
                     // std::cout<<"to==> "<<to<<std::endl;
                     static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template loop<iteration_policy, interval_type>(from, to);
                 }
-
             }
+
         protected:
             typename traits::coords_t const &m_coords;
             typename traits::local_domain_t &m_domain;
