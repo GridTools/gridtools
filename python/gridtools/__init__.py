@@ -307,7 +307,7 @@ class StencilInspector (ast.NodeVisitor):
                             #
                             # a random name for this functor
                             #
-                            funct_name = 'functor_%s' % ''.join ([choice (digits) for n in range (4)])
+                            funct_name = 'functor_%03d' % len (self.symbols.functor_scopes)
                             
                             #
                             # create a new scope for the symbols of this functor
