@@ -29,7 +29,8 @@ public:
         ipos_(idim, jdim, kdim, -1, "ipos"),
         jpos_(idim, jdim, kdim, -1, "jpos"),
         kpos_(idim, jdim, kdim, -1, "kpos"),
-        dtr_stage_(0,0,0, -1, "dtr_stage"),
+        //dtr_stage_(0,0,0, -1, "dtr_stage"),
+        dtr_stage_(idim,jdim,kdim, -1, "dtr_stage"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
     {}
@@ -60,6 +61,8 @@ public:
                 for( int k=k_begin; k<k_end; k++ )
                 {
                     double z = dz*(double)(k-k_begin);
+                    dtr_stage_(i,j,k) = (double)1.0 / dtadv;
+
                     // u values between 5 and 9
                     u_stage_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
                     u_pos_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
@@ -222,8 +225,6 @@ public:
                 datacol(i,j,k) = dcol(i,j,k);
                 ccol(i,j,k) = datacol(i,j,k);
                 utens_stage_ref_(i,j,k) = dtr_stage*(datacol(i,j,k) - u_pos_(i,j,k));
-                if(i==3 && j == 3)
-                std::cout << "BACKW REF at  " << k << "  " <<  utens_stage_ref_(i,j,k) << "  " <<
                 datacol(i,j,k) << " " << u_pos_(i,j,k) << "  " << dcol(i,j,k) << "  " << dtr_stage << std::endl;
             }
         }
@@ -237,8 +238,6 @@ public:
                     datacol(i,j,k) = dcol(i,j,k) - (ccol(i,j,k)*datacol(i,j,k+1));
                     ccol(i,j,k) = datacol(i,j,k);
                     utens_stage_ref_(i,j,k) = dtr_stage*(datacol(i,j,k) - u_pos_(i,j,k));
-                    if(i==3 && j == 3)
-                    std::cout << "BACKW REF at  " << k << "  " <<  utens_stage_ref_(i,j,k) << "  " <<
                     datacol(i,j,k) << " " << u_pos_(i,j,k) << " " <<
                         dtr_stage  << std::endl;
                 }
@@ -253,7 +252,9 @@ public:
     storage_type& ipos() {return ipos_;}
     storage_type& jpos() {return jpos_;}
     storage_type& kpos() {return kpos_;}
-    scalar_storage_type& dtr_stage() {return dtr_stage_;}
+    //TODO fix this, with a scalar storage the GPU version does not work
+    //scalar_storage_type& dtr_stage() 
+    storage_type& dtr_stage() {return dtr_stage_;}
 
     //output fields
     storage_type& u_stage() {return u_stage_;}
@@ -261,7 +262,8 @@ public:
 private:
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
-    scalar_storage_type dtr_stage_;
+    //scalar_storage_type dtr_stage_;
+    storage_type dtr_stage_;
     const int halo_size_;
     const int idim_, jdim_, kdim_;
 };
