@@ -556,12 +556,13 @@ public:
 #endif
                 typename storage_type::value_type * real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
+                // std::cout<<"(m_index[ArgType::index_type::value]) + (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) ->_index(m_strides->template get<ArgType::index_type::value>(), arg) = "
+                //          <<(m_index[ArgType::index_type::value])
+                //          <<"+"<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                //     ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+                //          <<std::endl;
 
-                std::cout<<"(m_index[ArgType::index_type::value]) + (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) ->_index(m_strides->template get<ArgType::index_type::value>(), arg) = "
-                         <<(m_index[ArgType::index_type::value])
-                         <<"+"<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                    ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                         <<std::endl;
+                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<std::endl;
 
                 //the following assert fails when an out of bound access is observed, i.e. either one of
 		//i+offset_i or j+offset_j or k+offset_k is too large.
@@ -664,6 +665,8 @@ public:
                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 #endif
 
+                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
+
                 return get_value(arg,
                                  (*m_data_pointer)[ //static if
                                      //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
@@ -671,11 +674,11 @@ public:
                                      (
                                          (
                                              gridtools::arg_decorator<ArgType>::n_args <= storage_type::space_dimensions+1 ? // static if
-                                             arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                                             arg.template get<0>() //offset for the current dimension
                                              :
-                                             arg.template get<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                                             arg.template get<0>() //offset for the current dimension
                                              //limitation to "rectangular" vector fields for non-C++11 storages
-                                             +  arg.template get<gridtools::arg_decorator<ArgType>::n_args-2>()
+                                             +  arg.template get<1>()
                                              * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
                                              ))//+ the offset of the other extra dimension
                                      + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value
@@ -730,16 +733,16 @@ public:
                                  storage_type::get_index(
                                          (
                                              gridtools::arg_decorator<ArgType>::n_args <= storage_type::space_dimensions+1 ? // static if
-                                             arg_mixed_t::template get_constexpr<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                                             arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
                                              :
-                                             arg_mixed_t::template get_constexpr<gridtools::arg_decorator<ArgType>::n_args-1>() //offset for the current dimension
+                                             arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
 #ifdef CXX11_ENABLED
                                              //hypotheses (we can weaken it using constexpr static functions):
                                              //storage offsets are known at compile-time
-                                             + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<gridtools::arg_decorator<ArgType>::n_args-2>() >::value //stride of the current dimension inside the vector of storages
+                                             + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>() >::value //stride of the current dimension inside the vector of storages
 #else
                                              //limitation to "rectangular" vector fields for non-C++11 storages
-                                             +  arg_mixed_t::get_constexpr<gridtools::arg_decorator<ArgType>::n_args-2>()
+                                             +  arg_mixed_t::get_constexpr<1>()
                                              * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
 #endif
                                              ))//+ the offset of the other extra dimension
@@ -756,7 +759,7 @@ public:
 
 
 
-/** @brief method called in the Do methods of the functors.
+        /** @brief method called in the Do methods of the functors.
 
             specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
             Allows direct access to the storage by only using the offsets

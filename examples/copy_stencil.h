@@ -291,9 +291,10 @@ namespace copy_stencil{
                     }
         std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
         auto nanoseconds = boost::chrono::nanoseconds(lapse_time.user + lapse_time.system);
-        auto seconds = boost::chrono::duration_cast<boost::chrono::seconds>(nanoseconds);
+        auto milliseconds = boost::chrono::duration_cast<boost::chrono::milliseconds>(nanoseconds);
         //std::cout << seconds.count() << std::endl;
-        std::cout<< " time: "<<seconds.count()<<std::endl;
+        std::cout<< " time: "<<milliseconds.count()<<" milliseconds"<<std::endl;
+        std::cout<< " time: "<<nanoseconds.count()<<" nanoseconds"<<std::endl;
         return success;
     }
 }//namespace copy_stencil

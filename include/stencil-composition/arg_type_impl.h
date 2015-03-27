@@ -333,16 +333,6 @@ check your expressions and the field/space dimensions \n", -Idx);
         constexpr arg_decorator ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
         }
 
-        template <typename... Whatever>
-        GT_FUNCTION
-        constexpr arg_decorator ( int const& i,int const& j, Whatever const& ... x): super( i, x... ), m_offset(j) {
-        }
-
-        template <typename... Whatever>
-        GT_FUNCTION
-        constexpr arg_decorator ( int const& i,int const& j,int const& k, Whatever const& ... x): super(i, j, x... ), m_offset(k) {
-        }
-
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
            language keyword used at the interface level.
@@ -350,7 +340,7 @@ check your expressions and the field/space dimensions \n", -Idx);
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
         constexpr arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
-            super( t, x... ), m_offset(initialize<n_args>(t, x...))
+            super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
             {
                 //this constructor should be a constexpr one (waiting for future standards (C++14) for that)
                 //m_offset[n_args-1] = initialize<n_args>(t, x...);
@@ -375,7 +365,7 @@ check your expressions and the field/space dimensions \n", -Idx);
         */
         template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<n_args>(t, u, v, h))
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
             }
@@ -386,7 +376,7 @@ check your expressions and the field/space dimensions \n", -Idx);
         */
         template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<n_args>(t, u, v))
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
             }
@@ -396,7 +386,7 @@ check your expressions and the field/space dimensions \n", -Idx);
         */
         template <ushort_t Idx1, ushort_t Idx2 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u ): super(t,u), m_offset(initialize<n_args>(t, u))
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u ): super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t, u);
             }
@@ -406,7 +396,7 @@ check your expressions and the field/space dimensions \n", -Idx);
         */
         template <ushort_t Idx >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx> const& t ) : super(t), m_offset(initialize<n_args>(t))
+        arg_decorator ( enumtype::Dimension<Idx> const& t ) : super(t), m_offset(initialize<super::n_dim-n_args+1>(t))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t);
             }
