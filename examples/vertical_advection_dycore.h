@@ -55,7 +55,6 @@ struct u_forward_function {
     GT_FUNCTION
     static void Do(Eval const & eval, kbody interval)
     {
-
         //TODO use Average function here
         T gav = (T)-0.25 * (eval(wcon( 1, 0, 0)) + eval(wcon(0,0,0)));
         T gcv = (T)0.25 * (eval(wcon( 1, 0, 1)) + eval(wcon(0,0,1)));
@@ -89,6 +88,7 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
+
     }
 
     template<typename Eval>
@@ -105,6 +105,7 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
+
     }
 
 private:
@@ -224,7 +225,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef arg<2, storage_type> p_wcon;
     typedef arg<3, storage_type> p_u_pos;
     typedef arg<4, storage_type> p_utens;
-    typedef arg<5, scalar_storage_type> p_dtr_stage;
+    typedef arg<5, storage_type> p_dtr_stage;
     typedef arg<6, tmp_storage_type> p_acol;
     typedef arg<7, tmp_storage_type> p_bcol;
     typedef arg<8, tmp_storage_type> p_ccol;
@@ -322,11 +323,12 @@ bool test(uint_t x, uint_t y, uint_t z) {
     vertical_advection->finalize();
 
 #ifdef CUDA_EXAMPLE
+std::cout << "update" << std::endl;
     repository.update_cpu();
 #endif
 
     verifier verif(1e-10, halo_size);
-    verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
 
 #ifndef SILENT_RUN
     //    in.print();
@@ -338,7 +340,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #endif
 #endif
 
-    return true;
+    return result;
 }
 
 }//namespace vertical_advection
