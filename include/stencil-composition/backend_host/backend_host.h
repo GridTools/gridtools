@@ -110,8 +110,7 @@ namespace gridtools {
 
                             //printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() );
                             //setting the initial k level (for backward/parallel iterations it is not 0)
-                            if( !(iteration_policy::value==enumtype::forward) )
-                                it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
+                            it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
 
                             //local structs can be passed as template arguments in C++11 (would improve readability)
                             // struct extra_arguments{
