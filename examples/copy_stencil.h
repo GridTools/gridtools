@@ -228,7 +228,7 @@ namespace copy_stencil{
         pw_stop_collector(collector_init);
 #endif
 
-        /* boost::timer::cpu_timer time; */
+        boost::timer::cpu_timer time;
 #ifdef USE_PAPI
         if( PAPI_start(event_set) != PAPI_OK)
             handle_error(1);
@@ -249,7 +249,7 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_execute);
 #endif
-        /* boost::timer::cpu_times lapse_time = time.elapsed(); */
+        boost::timer::cpu_times lapse_time = time.elapsed();
 
         copy->finalize();
 
@@ -272,26 +272,28 @@ namespace copy_stencil{
 #ifdef CXX11_ENABLED
                         if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
 #else
-                        if (in(i, j, k)!=out(i,j,k)) {
+                            if (in(i, j, k)!=out(i,j,k)) {
 #endif
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
+                                std::cout << "error in "
+                                          << i << ", "
+                                          << j << ", "
+                                          << k << ": "
 #ifdef CXX11_ENABLED
-                                      << "in = " << (in.get_value<0,0>(i, j, k))
-                                      << ", out = " << (in.get_value<0,1>(i, j, k))
+                                          << "in = " << (in.get_value<0,0>(i, j, k))
+                                          << ", out = " << (in.get_value<0,1>(i, j, k))
 #else
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
+                                          << "in = " << in(i, j, k)
+                                          << ", out = " << out(i, j, k)
 #endif
-                                      << std::endl;
-                            success = false;
+                                          << std::endl;
+                                success = false;
                         }
                     }
-                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        auto nanoseconds = boost::chrono::nanoseconds(lapse_time.user + lapse_time.system);
+        auto seconds = boost::chrono::duration_cast<boost::chrono::seconds>(nanoseconds);
+        //std::cout << seconds.count() << std::endl;
+        std::cout<< " time: "<<seconds.count()<<std::endl;
         return success;
-
     }
-
 }//namespace copy_stencil
