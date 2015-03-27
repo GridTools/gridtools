@@ -345,7 +345,7 @@ PAPI_stop(event_set, values);
 #endif
 
     verifier verif(1e-9, halo_size);
-    bool result = verif.verify(repository.out(), repository.out_ref());
+    bool result = verif.verify(repository.out_ref(), repository.out());
 
 #ifndef SILENT_RUN
     //    in.print();
