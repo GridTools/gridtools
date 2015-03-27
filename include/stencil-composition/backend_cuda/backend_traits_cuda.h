@@ -39,6 +39,40 @@ namespace gridtools{
             typedef _impl_cuda::run_functor_cuda<Arguments> run_functor_t;
         };
 
+        /** This is the function used by the specific backend to inform the
+            generic backend and the temporary storage allocator how to
+            compute the number of threads in the i-direction, in a 2D
+            grid of threads.
+        */
+        static uint_t n_i_pes(int = 0) {
+            return gridDim.x;
+       }
+
+        /** This is the function used by the specific backend to inform the
+            generic backend and the temporary storage allocator how to
+            compute the number of threads in the j-direction, in a 2D
+            grid of threads.
+        */
+        static uint_t n_j_pes(int = 0) {
+            return gridDim.y;
+        }
+
+        /** This is the function used by the specific backend
+         *  that determines the i coordinate of a processing element.
+         *  In the case of CUDA, a processing element is equivalent to a CUDA block
+         */
+        static uint_t processing_element_i() {
+            return blockIdx.x;
+        }
+
+        /** This is the function used by the specific backend
+         *  that determines the j coordinate of a processing element.
+         *  In the case of CUDA, a processing element is equivalent to a CUDA block
+         */
+        static uint_t processing_element_j() {
+            return blockIdx.y;
+        }
+
         //function alias (pre C++11)
         template<
             typename Sequence

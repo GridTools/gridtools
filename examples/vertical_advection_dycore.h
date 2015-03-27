@@ -325,8 +325,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-8, halo_size);
-    verif.verify(repository.utens_stage(), repository.utens_stage_ref());
+    verifier verif(1e-10, halo_size);
+    verif.verify(repository.utens_stage_ref(), repository.utens_stage());
 
 #ifndef SILENT_RUN
     //    in.print();
