@@ -330,7 +330,17 @@ check your expressions and the field/space dimensions \n", -Idx);
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_decorator ( Whatever const& ... x, int const& t): super( x... ), m_offset(t) {
+        constexpr arg_decorator ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
+        }
+
+        template <typename... Whatever>
+        GT_FUNCTION
+        constexpr arg_decorator ( int const& i,int const& j, Whatever const& ... x): super( i, x... ), m_offset(j) {
+        }
+
+        template <typename... Whatever>
+        GT_FUNCTION
+        constexpr arg_decorator ( int const& i,int const& j,int const& k, Whatever const& ... x): super(i, j, x... ), m_offset(k) {
         }
 
         /**@brief constructor taking the Dimension class as argument.

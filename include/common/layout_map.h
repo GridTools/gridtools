@@ -163,7 +163,7 @@ namespace gridtools {
         GT_FUNCTION
         static /* constexpr */ typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
-            static_assert(sizeof...(Indices)<=length, "Too many arguments");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)<=length, "Too many arguments");
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 

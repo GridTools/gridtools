@@ -454,16 +454,11 @@ public:
         GT_FUNCTION
         iterate_domain(LocalDomain const& local_domain)
             : local_domain(local_domain)
-#ifdef CXX11_ENABLED
-            , m_index{0}/* , m_lru{0} */
-#endif
             ,m_data_pointer(0)
             ,m_strides(0)
         {
-#ifndef CXX11_ENABLED
             for(uint_t it=0; it<N_STORAGES; ++it)
                 m_index[it]=0;//necessary because the index gets INCREMENTED, not SET
-#endif
         }
 
         /** This functon set the addresses of the data values  before the computation
