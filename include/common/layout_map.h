@@ -237,11 +237,12 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static T find_val(Tuple const& indices) {
-            if (pos_<I>::value >= Tuple::n_args ) {
+            if (pos_<I>::value >= length ) {
                 return DefaultVal;
             } else {
                 //this calls arg_decorator::get
-                return indices.template get<pos_<I>::value>();
+                //std::cout<<"pos_< "<< I <<">::value: "<<pos_<I>::value<<"==> "<<indices.template get<Tuple::n_args-pos_<I>::value-1>()<<std::endl;
+                return indices.template get<Tuple::n_args-pos_<I>::value-1>();
             }
         }
 
@@ -820,11 +821,11 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static T find_val(Tuple const& indices) {
-            if (pos_<I>::value >= Tuple::n_args ) {
+            if (pos_<I>::value >= length ) {
                 return DefaultVal;
             } else {
                 //this calls arg_decorator::get
-                return indices.template get<pos_<I>::value>();
+                return indices.template get<Tuple::n_args-pos_<I>::value-1>();
             }
         }
 
