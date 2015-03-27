@@ -64,7 +64,7 @@ namespace gridtools{
     // template< class TmpStorage, uint_t ... Number >
     // struct tmp_field;
 
-    template < PointerType
+    template < typename PointerType
                , typename Layout
                , short_t FieldDimension
                , uint_t TileI
@@ -74,11 +74,11 @@ namespace gridtools{
                , uint_t PlusI
                , uint_t PlusJ
                , uint_t ... Number >
-    struct field<host_tmp_storage<base_storage<PointerType, Layout, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
+    struct field<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
 	typedef storage<host_tmp_storage<extend_dim< extend_width<base_storage<PointerType, Layout, true, accumulate(add(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
-    template<  PointerType
+    template<  typename PointerType
                ,typename Layout
 	       ,short_t FieldDimension
                ,uint_t ... Number >
@@ -87,7 +87,7 @@ namespace gridtools{
     };
 
 
-    template<  PointerType
+    template<  typename PointerType
                ,typename Layout
 	       ,short_t FieldDimension
                ,uint_t ... Number >

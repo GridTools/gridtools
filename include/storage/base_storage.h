@@ -220,7 +220,7 @@ namespace gridtools {
 	    is_set( true ),
 	    m_name("default_storage"),
 	    m_dims{args...},
-	    m_strides{0}
+            m_strides()
             {
 		BOOST_STATIC_ASSERT(sizeof...(UIntTypes)==space_dimensions);
 		BOOST_STATIC_ASSERT(field_dimensions>0);
@@ -406,7 +406,7 @@ namespace gridtools {
 #ifndef __CUDACC__
             assert(_index(strides(),dims...) < size());
 #endif
-            return (m_fields[0])[_index(dims...)];
+            return (m_fields[0])[_index(strides(),dims...)];
         }
 #else
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
