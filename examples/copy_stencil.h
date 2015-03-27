@@ -45,18 +45,26 @@ namespace copy_stencil{
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
     /* static const auto expression=in(1,0,0)-out(); */
+        using  lhs=alias<in, z, Dimension<4> >::set< 0,1>;
+        using  rhs=alias<in, z, Dimension<4> >::set< 0,0>;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-#ifdef CXX11_ENABLED
-            eval(in(0,0,0,1))
-#else
-                eval(out())
-#endif
-                =eval(in());
+// #ifdef CXX11_ENABLED
+            eval(lhs(0,0))
+// #else
+//                 eval(out())
+// #endif
+                =eval(rhs(0,0));
         }
+        // static auto constexpr lhs=in{0,0,0,1};
+        // static auto constexpr rhs=in{0,0,0,0};
+        // typedef decltype(lhs) lhs_t;
+        // typedef decltype(rhs) rhs_t;
     };
+    // constexpr copy_functor::lhs_t copy_functor::lhs;
+    // constexpr copy_functor::rhs_t copy_functor::rhs;
 
     /*
      * The following operators and structs are for debugging only
@@ -92,11 +100,12 @@ namespace copy_stencil{
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-#if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))))
+
+#if !defined(__CUDACC__) && defined(CXX11_ENABLED)
         //vector field of dimension 2
         typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
 #else
-#ifdef CXX11_ENABLED
+#if defined(__CUDACC__) && defined(CXX11_ENABLED)
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
@@ -290,8 +299,8 @@ namespace copy_stencil{
                         }
                     }
         std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
-        auto nanoseconds = boost::chrono::nanoseconds(lapse_time.user + lapse_time.system);
-        auto milliseconds = boost::chrono::duration_cast<boost::chrono::milliseconds>(nanoseconds);
+        boost::chrono::nanoseconds nanoseconds = boost::chrono::nanoseconds(lapse_time.user + lapse_time.system);
+        boost::chrono::milliseconds milliseconds = boost::chrono::duration_cast<boost::chrono::milliseconds>(nanoseconds);
         //std::cout << seconds.count() << std::endl;
         std::cout<< " time: "<<milliseconds.count()<<" milliseconds"<<std::endl;
         std::cout<< " time: "<<nanoseconds.count()<<" nanoseconds"<<std::endl;

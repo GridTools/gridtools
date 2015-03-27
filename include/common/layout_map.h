@@ -115,7 +115,7 @@ namespace gridtools {
         */
         template <ushort_t I, typename ... T>
         GT_FUNCTION
-        static auto select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
+        static constexpr auto select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
             auto thetuple = std::make_tuple(args ...);
             int x = std::template get<layout_vector[I]>(thetuple );
             return x;
@@ -129,7 +129,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        short_t operator[](ushort_t i) {
+        short_t constexpr operator[](ushort_t i) {
             assert( i<length );
             return _impl::__get<0, Args...>(i);
         }
@@ -161,7 +161,7 @@ namespace gridtools {
         */
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static /* constexpr */ typename _impl::first_type<Indices...>::type
+        static constexpr typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)<=length, "Too many arguments");
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
@@ -187,14 +187,12 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename... Indices>
         GT_FUNCTION
-        static T find_val(Indices const& ... indices) {
+        static constexpr T find_val(Indices const& ... indices) {
             static_assert(sizeof...(Indices)<=length, "Too many arguments");
-            typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
-            if (pos_<I>::value >= sizeof...(Indices) ) {
-                return DefaultVal;
-            } else {
-                return vec[pos_<I>::value];
-            }
+            return (pos_<I>::value >= sizeof...(Indices) ) ?
+                DefaultVal
+                :
+                std::get<pos_<I>::value>(std::tie(indices...));
         }
 
 	/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
@@ -206,13 +204,12 @@ namespace gridtools {
 	*/
 	template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
-        static Indices
+        static constexpr Indices
         find_val(Indices const * indices) {
-            if (pos_<I>::value >= length ) {
-                return DefaultVal;
-            } else {
-                return indices[pos_<I>::value];
-            }
+            return (pos_<I>::value >= length ) ?
+                DefaultVal
+                :
+                indices[pos_<I>::value];
         }
 
 
@@ -236,16 +233,13 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
-        static T find_val(Tuple const& indices) {
-            if (pos_<I>::value >= length ) {
-                return DefaultVal;
-            } else {
+        static constexpr T find_val(Tuple const& indices) {
+            return(pos_<I>::value >= length ) ?
+                DefaultVal
+                :
+                indices.template get<Tuple::n_args-pos_<I>::value-1>();
                 //this calls arg_decorator::get
-                //std::cout<<"pos_< "<< I <<">::value: "<<pos_<I>::value<<"==> "<<indices.template get<Tuple::n_args-pos_<I>::value-1>()<<std::endl;
-                return indices.template get<Tuple::n_args-pos_<I>::value-1>();
             }
-        }
-
 
         template <ushort_t I, typename MplVector>
         GT_FUNCTION
