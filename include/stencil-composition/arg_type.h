@@ -136,7 +136,7 @@ namespace gridtools {
         uint_t const&
         get_constexpr(){
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
-            GRIDTOOLS_STATIC_ASSERT(Idx>0, "the idx must be larger than 0")
+            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0")
             GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "the result must be larger or equal than 0")
             //     static_int<s_args_constexpr.template get<Idx>()>::fuck();
             // static_int<Idx>::fuck();
@@ -147,8 +147,8 @@ namespace gridtools {
         template<short_t Idx>
         GT_FUNCTION
         constexpr
-        int_t const& get() const {
-            return s_args_constexpr.get<Idx>()!=(-999) ? s_args_constexpr.get<Idx>() : m_args_runtime.get<Idx>();
+        const int_t & get() const {
+            return s_args_constexpr.template end<Idx>() ? s_args_constexpr.get<Idx>() : m_args_runtime.get<Idx>();
         }
     };
 

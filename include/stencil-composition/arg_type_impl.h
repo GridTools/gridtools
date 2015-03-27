@@ -237,17 +237,20 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 // #endif
 
         template<short_t Idx>
+        constexpr bool end(){return true;}
+
+        template<short_t Idx>
         GT_FUNCTION
-#ifdef NDEBUG
+        //#ifdef NDEBUG
         constexpr
-#endif
+        //#endif
         int_t const& get() const {//stop recursion
 
-#ifndef NDEBUG
-            printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n \
-check your expressions and the field/space dimensions \n", -Idx);
-            //assert(false);
-#endif
+// #ifndef NDEBUG
+//             printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n \
+// check your expressions and the field/space dimensions \n", -Idx);
+//             //assert(false);
+// #endif
             return (int_t)0./*-9999*/;//TODO change this
         }
 
@@ -414,6 +417,8 @@ check your expressions and the field/space dimensions \n", -Idx);
         // /**@brief returns the offset tuple (i.e. this instance)*/
         // arg_decorator<ArgType> const& offset() const {return *this;}
 
+        template<short_t Idx>
+        constexpr bool end(){return Idx==n_args-1? false : super::template end<Idx>();}
 
         /**@brief returns the offset at a specific index Idx*/
 	template<short_t Idx>
@@ -421,6 +426,7 @@ check your expressions and the field/space dimensions \n", -Idx);
 // #ifdef NDEBUG
         constexpr
 // #endif
+
 int_t const& get() const {
 	    //the following assert cannot be compile time, since a version with idx=-1 may indeed be compiled (at the end of the template recursion), but should never be executed
 // #ifndef __CUDACC__

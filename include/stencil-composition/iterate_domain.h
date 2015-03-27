@@ -665,11 +665,10 @@ public:
                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 #endif
 
-                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
+                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<arg.template get<3>()<<" , "<<arg.template get<4>()<<std::endl;
 
                 return get_value(arg,
-                                 (*m_data_pointer)[ //static if
-                                     //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
+                                 (*m_data_pointer)[
                                      storage_type::get_index
                                      (
                                          (
@@ -685,20 +684,12 @@ public:
                                      ]);
         }
 
+
+
 #ifdef CXX11_ENABLED
 
-
-
-
-
-
-
-
-
-
-
-
         /** @brief method called in the Do methods of the functors.
+
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
         template < typename ArgType, typename ... Pairs>
         GT_FUNCTION
@@ -706,11 +697,8 @@ public:
         operator()(arg_mixed<arg_decorator<ArgType>, Pairs ... > const& arg) const {
 
             typedef arg_mixed<arg_decorator<ArgType>, Pairs ... > arg_mixed_t;
-#ifdef CXX11_ENABLED
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
-#else
-            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
+
             //if the following assertion fails you have specified a dimension for the extended storage
             //which does not correspond to the size of the extended placeholder for that storage
             /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_args); */
@@ -721,9 +709,7 @@ public:
             GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 
-#ifndef CXX11_ENABLED
-                                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
-#endif
+                GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 
 
 
@@ -751,14 +737,6 @@ public:
 
         }
 
-
-
-
-
-
-
-
-
         /** @brief method called in the Do methods of the functors.
 
             specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
@@ -777,7 +755,7 @@ public:
             GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 #ifdef CXX11_ENABLED
-            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+                using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
 #else
             typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
