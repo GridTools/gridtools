@@ -3,6 +3,8 @@ import logging
 
 import numpy as np
 
+from nose.plugins.attrib import attr
+
 from gridtools import MultiStageStencil, StencilInspector
 
 
@@ -164,12 +166,20 @@ class CopyTest (unittest.TestCase):
         self.assertTrue (np.array_equal (self.in_data[beg_i:end_i, beg_j:end_j],
                                          self.out_data[beg_i:end_i, beg_j:end_j]))
 
+    @attr(speed='fast')
+    def test_native_execution_performance (self):
+        import time
 
-    def test_native_execution (self):
         self.stencil.backend = 'c++'
         self._run ( )
-        self.assertNotEqual (self.stencil.lib_obj, None)
-        self.assertTrue     ('_FuncPtr' in dir (self.stencil.lib_obj))
+        self.assertTrue ('_FuncPtr' in dir (self.stencil.lib_obj))
+
+        avg_time = 0.0
+        for i in range (30):
+            start = time.time ( )
+            self._run ( )
+            avg_time += time.time ( ) - start
+        print ("AVG execution time %.3f s" % avg_time)
 
 
 
