@@ -14,7 +14,9 @@
 #elif defined(_MSC_VER)
 #define DEPRECATED(func) __declspec(deprecated) func
 #else
+#ifndef SUPPRESS_MESSAGES
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#endif
 #define DEPRECATED(func) func
 #endif
 
@@ -29,10 +31,10 @@
 #endif
 
 namespace gridtools{  namespace enumtype{
-/** enum specifying the type of backend we use */
+        /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
 
-/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
         template<backend T>
         struct backend_type
         {
@@ -41,12 +43,17 @@ namespace gridtools{  namespace enumtype{
 
         enum strategy  {Naive, Block};
 
-/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
         template<strategy T>
         struct strategy_type
         {
             enum {value=T};
         };
+
+
+        /** 
+            enum used to distinguish between 
+        */
     }//namespace enumtype
 #ifndef CXX11_ENABLED
 #define constexpr
