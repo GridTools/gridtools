@@ -230,10 +230,10 @@ namespace copy_stencils_3D_2D_1D_0D {
                 for(int k=0; k<d3; ++k)
                     {
                         if (in(i, j, k)!=out(i,j,k)) {
-                            // std::cout << "i = " << i
-                            //           << "j = " << j
-                            //           << "k = " << k
-                            //           << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
+                             std::cout << "i = " << i
+                                       << "j = " << j
+                                       << "k = " << k
+                                       << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
                             ok=false;
                         }
                     }

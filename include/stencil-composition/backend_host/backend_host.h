@@ -66,7 +66,7 @@ namespace gridtools {
             typedef typename Traits::interval_map_t interval_map_type;
             typedef typename Traits::iterate_domain_t iterate_domain_type;
             typedef typename Arguments::execution_type_t execution_type_t;
-
+            typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG
             std::cout << "Functor " <<  functor_type() << "\n";
             std::cout << "I loop " << (int_t)f->m_starti <<"+"<< range_t::iminus::value << " -> "
@@ -81,7 +81,7 @@ namespace gridtools {
             void* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
             iterate_domain_type it_domain(local_domain);
 
-            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Host> >(data_pointer, thread_id());
+            it_domain.template assign_storage_pointers<backend_traits_t >(data_pointer);
 
             for (int_t i = (int_t)f->m_starti + range_t::iminus::value;
                  i <= (int_t)f->m_starti + (int_t)f->m_BI + range_t::iplus::value;

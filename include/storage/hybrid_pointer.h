@@ -62,13 +62,13 @@ namespace gridtools {
 
         void allocate_it(uint_t size) {
 #ifdef __CUDACC__
-            int err = cudaMalloc(&m_gpu_p, size*sizeof(T));
+            cudaError_t err = cudaMalloc(&m_gpu_p, size*sizeof(T));
             if (err != cudaSuccess) {
                 std::cout << "Error allocating storage in "
                           << BOOST_CURRENT_FUNCTION
                           << " : size = "
                           << size*sizeof(T)
-                          << " bytes "
+                          << " bytes   " <<  cudaGetErrorString(err)
                           << std::endl;
             }
 #endif
