@@ -365,31 +365,31 @@ namespace gridtools {
         /** Initial interface
 
             Threads are oganized in a 2D grid. These two functions 
-            n_i_threads() and n_j_threasd() retrieve the
+            n_i_pes() and n_j_pes() retrieve the
             information about how to compute those sizes.
 
             The information needed by those functions are the sizes of the
             domains (especially if the GPU is used)
 
-            n_i_threads()(size): number of threads on the first dimension of the thread grid
+            n_i_pes()(size): number of threads on the first dimension of the thread grid
         */
-        static query_i_threads_f n_i_threads() {
-            return &backend_traits_t::n_i_threads;
+        static query_i_threads_f n_i_pes() {
+            return &backend_traits_t::n_i_pes;
         }
 
         /** Initial interface
 
             Threads are oganized in a 2D grid. These two functions 
-            n_i_threads() and n_j_threasd() retrieve the
+            n_i_pes() and n_j_pes() retrieve the
             information about how to compute those sizes.
 
             The information needed by those functions are the sizes of the
             domains (especially if the GPU is used)
 
-            n_j_threads()(size): number of threads on the second dimension of the thread grid
+            n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
-        static query_j_threads_f n_j_threads() {
-            return &backend_traits_t::n_j_threads;
+        static query_j_threads_f n_j_pes() {
+            return &backend_traits_t::n_j_pes;
         }
 
 

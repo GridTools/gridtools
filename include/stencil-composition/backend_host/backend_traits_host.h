@@ -42,7 +42,7 @@ namespace gridtools{
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_i_threads(int = 0) {
+        static uint_t n_i_pes(int = 0) {
             return n_threads();
         }
 
@@ -51,8 +51,24 @@ namespace gridtools{
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_j_threads(int = 0) {
+        static uint_t n_j_pes(int = 0) {
             return 1;
+        }
+
+        /** This is the function used by the specific backend
+         *  that determines the i coordinate of a processing element.
+         *  In the case of the host, a processing element is equivalent to an OpenMP core
+         */
+        static uint_t processing_element_i() {
+            return thread_id();
+        }
+
+        /** This is the function used by the specific backend
+         *  that determines the j coordinate of a processing element.
+         *  In the case of the host, a processing element is equivalent to an OpenMP core
+         */
+        static uint_t processing_element_j() {
+            return 0;
         }
 
         //function alias (pre C++11, std::bind or std::mem_fn,

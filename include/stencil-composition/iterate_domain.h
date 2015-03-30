@@ -352,12 +352,14 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( void** data_pointer, const uint_t EU_id_i, const uint_t EU_id_j=0 ){
+        void assign_storage_pointers( void** data_pointer) {
+            //, const uint_t EU_id_i, const uint_t EU_id_j=0 ){
             // std::cout << "the stuff "
             //           << "EU_id_i " << EU_id_i
             //           << " EU_id_j " << EU_id_j
             //           << std::endl;
-                
+            const uint_t EU_id_i = BackendType::processing_element_i();
+            const uint_t EU_id_j = BackendType::processing_element_j();
             m_data_pointer=data_pointer;
             assign_storage< N_STORAGES-1, BackendType >
                 ::assign(m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);
