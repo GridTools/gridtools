@@ -15,6 +15,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/timer/timer.hpp>
 #include <boost/mpl/contains.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #ifdef _GCL_MPI_
 #include <mpi.h>

@@ -107,23 +107,20 @@ namespace gridtools {
                              j <= (int_t)f->m_startj + (int_t)f->m_BJ + jplus;
                              ++j)
                         {
-                            // for_each<local_domain.local_args>(increment<1>());
-                            //#ifndef NDEBUG
-                            //std::cout << "Move to : " << i << ", " << j << std::endl;
-                            //#endif
                             //reset the index
                             it_domain.set_index(0);
                             it_domain.template assign_ij<0>(i, f->blk_idx_i);
                             it_domain.template assign_ij<1>(j, f->blk_idx_j);
+
+                            assert(i>=0);
+                            assert(j>=0);
+
+
                             /** setting an iterator to the address of the current i,j entry to be accessed */
                             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                             typedef typename index_to_level<typename interval::first>::type from;
                             typedef typename index_to_level<typename interval::second>::type to;
                             typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
-                            assert(i>=0);
-                            assert(j>=0);
-
-                            //printf("setting the start to: %d \n",f->m_coords.template value_at< typename iteration_policy::from >() );
                             //setting the initial k level (for backward/parallel iterations it is not 0)
                             if( !(iteration_policy::value==enumtype::forward) )
                                 it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
@@ -150,19 +147,5 @@ namespace gridtools {
 
     };
 
-
-    /**
-       @brief given the backend \ref gridtools::_impl_host::run_functor_host returns the backend ID gridtools::enumtype::Host
-       wasted code because of the lack of constexpr
-    */
-
-    //// Check if this is needed
-    template <typename Arguments >
-    struct backend_type< _impl_host::run_functor_host< Arguments > >
-    {
-        static const enumtype::backend s_backend=enumtype::Host;
-    };
-
-    // } //namespace _impl
 
 } // namespace gridtools

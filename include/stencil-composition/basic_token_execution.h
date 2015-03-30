@@ -60,12 +60,8 @@ namespace gridtools {
 		  typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
 
                   uint_t from=m_coords.template value_at<from_t>();
-		  //m_coords.template value_at<typename iteration_policy::from>();
-                    uint_t to=m_coords.template value_at<to_t>();
-                    /* uint_t to=m_coords.template value_at<typename iteration_policy::to>(); */
-                    // std::cout<<"from==> "<<from<<std::endl;
-                    // std::cout<<"to==> "<<to<<std::endl;
-                    static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template do_loop<iteration_policy, interval_type>(from, to);
+                  uint_t to=m_coords.template value_at<to_t>();
+                  static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template do_loop<iteration_policy, interval_type>(from, to);
                 }
 
             }

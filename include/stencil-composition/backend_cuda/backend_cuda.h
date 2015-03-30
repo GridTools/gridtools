@@ -30,7 +30,7 @@ namespace gridtools {
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
             __shared__
-                void* data_pointer[iterate_domain_t::N_DATA_POINTERS];
+                array<void*,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
 
             __shared__
                 storage_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
@@ -38,7 +38,7 @@ namespace gridtools {
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(data_pointer, blockIdx.x);
+            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer, blockIdx.x);
             it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
             __syncthreads();
 
@@ -223,20 +223,6 @@ namespace gridtools {
                 cudaDeviceSynchronize();
 
         }
-    };
-
-    //    }//namespace _impl
-
-
-    /**@brief given the backend \ref
-       gridtools::_impl_cuda::run_functor_cuda returns the backend ID
-       gridtools::enumtype::Cuda wasted code because of the lack of
-       constexpr
-    */
-    template <typename Arguments>
-    struct backend_type< _impl_cuda::run_functor_cuda<Arguments> >
-    {
-        static const enumtype::backend s_backend=enumtype::Cuda;
     };
 
 

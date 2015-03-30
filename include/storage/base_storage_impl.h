@@ -42,7 +42,7 @@ namespace gridtools{
 	    template<typename First, typename ... IntTypes>
             GT_FUNCTION
             static First constexpr apply ( First first, IntTypes ... args){
-		return (Layout::template at_<MaxIndex-ID+1>::value==vec_max<typename Layout::layout_vector_t>::value)?0:Layout::template find_val<MaxIndex-ID,short_t,1>(first, args...) * next_stride<ID-1, MaxIndex, Layout>::apply(first, args...);
+		return Layout::template find_val<MaxIndex-ID,short_t,1>(first, args...) * next_stride<ID-1, MaxIndex, Layout>::apply(first, args...);
 	    }
 	};
 

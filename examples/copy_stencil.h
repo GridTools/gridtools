@@ -39,24 +39,24 @@ namespace copy_stencil{
         typedef arg_type<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
         typedef Dimension<4> time;
+
+    /* static const auto expression=in(1,0,0)-out(); */
+        using  lhs=alias<in, z, Dimension<4> >::set< 0,1>;
+        using  rhs=alias<in, z, Dimension<4> >::set< 0,0>;
 #else
         typedef const arg_type<0, range<0,0,0,0>, 3>::type in;
         typedef arg_type<1, range<0,0,0,0>, 3>::type out;
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
-    /* static const auto expression=in(1,0,0)-out(); */
-        using  lhs=alias<in, z, Dimension<4> >::set< 0,1>;
-        using  rhs=alias<in, z, Dimension<4> >::set< 0,0>;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-// #ifdef CXX11_ENABLED
-            eval(lhs(0,0))
-// #else
-//                 eval(out())
-// #endif
-                =eval(rhs(0,0));
+#ifdef CXX11_ENABLED
+            eval(lhs(0,0)) = eval(rhs(0,0));
+#else
+            eval(out()) = eval(in());
+#endif
         }
         // static auto constexpr lhs=in{0,0,0,1};
         // static auto constexpr rhs=in{0,0,0,0};

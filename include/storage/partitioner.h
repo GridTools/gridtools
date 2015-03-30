@@ -1,6 +1,8 @@
 #pragma once
 #include<common/defs.h>
+#ifdef HAS_GCL
 #include<communication/halo_exchange.h>
+#endif
 /**
 @file
 @brief Simple Partitioner Class

@@ -120,47 +120,6 @@ namespace gridtools {
         template <typename T, typename U, bool B>
         friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B> const & );
 
-        /** @brief initializes with a constant value */
-        GT_FUNCTION
-        void initialize(value_type const& init)
-            {
-#ifdef _GT_RANDOM_INPUT
-                srand(12345);
-#endif
-                for(ushort_t f=0; f<field_dimensions; ++f)
-                {
-                    for (uint_t i = 0; i < size(); ++i)
-                    {
-#ifdef _GT_RANDOM_INPUT
-                        (m_fields[f])[i] = init * rand();
-#else
-                        (m_fields[f])[i] = init;
-#endif
-                    }
-                }
-            }
-
-
-
-        /** @brief initializes with a lambda function */
-        GT_FUNCTION
-        void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
-            {
-                for(ushort_t f=0; f<field_dimensions; ++f)
-                {
-                    for (uint_t i=0; i<this->m_dims[0]; ++i)
-                        for (uint_t j=0; j<this->m_dims[1]; ++j)
-                            for (uint_t k=0; k<this->m_dims[2]; ++k)
-                                (m_fields[f])[_index(strides(),i,j,k)]=lambda(i, j, k);
-                }
-            }
-
-        /**@brief sets the name of the current field*/
-        GT_FUNCTION
-        void set_name(char* const& string){
-            m_name=string;
-        }
-
 	/**@brief the parallel storage calls the empty constructor to do lazy initialization*/
 	base_storage():
 	    is_set( false ),
@@ -168,22 +127,6 @@ namespace gridtools {
             {}
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
-
-        template<typename ... UInt>
-        void setup(UInt const& ... dims)
-            {
-                assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
-                is_set=true;
-		BOOST_STATIC_ASSERT(sizeof...(UInt)==space_dimensions);
-		BOOST_STATIC_ASSERT(field_dimensions>0);
-		m_strides[0] = accumulate( multiplies(), dims...) ;
-		_impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
-		m_fields[0]=pointer_type(m_strides[0]);
-
-		//the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
-		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
-		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ) );
-            }
 
 	/**
 	   @brief 3D storage constructor
@@ -193,19 +136,18 @@ namespace gridtools {
 	base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType const& init=float_type(), char const* s="default storage"):
 	    is_set( true ),
 	    m_name(s),
-	    m_dims{dim1, dim2, dim3},
-	    m_strides{( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) ) ,
-		    ( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) ),
-		    ( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(dim1,dim2,dim3) )}
+	    m_dims(),
+	    m_strides()
 	    {
 		GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
-
-                for(ushort_t i=0; i<field_dimensions; ++i)
-                    m_fields[i]=pointer_type(dim1*dim2*dim3);
-                initialize(init);
+                    setup(dim1, dim2, dim3);
+                    // std::cout<< "striDES::::  "<<m_strides[0]<<" "<<m_strides[1]<<" "<<m_strides[2]<<std::endl;
+                    // std::cout<< "dims::::  "<<m_dims[0]<<" "<<m_dims[1]<<" "<<m_dims[2]<<std::endl;
+                allocate(1);
+                initialize(init, 1);
             }
 
-        /**@brief generic multidimensional constructor
+        /**@BRIEF generic multidimensional constructor
 
            There are two possible types of storage dimension. One (space dimension) defines the number of indexes
            used to access a contiguous chunk of data. The other (field dimension) defines the number of pointers
@@ -217,37 +159,29 @@ namespace gridtools {
         */
 	template <class ... UIntTypes>
 	base_storage(  UIntTypes const& ... args/*, value_type init = value_type(), char const* s/*="default storage"*/ ):
-	    is_set( true ),
+	    is_set( false ),
 	    m_name("default_storage"),
-	    m_dims{args...},
+	    m_dims(),
             m_strides()
             {
-		BOOST_STATIC_ASSERT(sizeof...(UIntTypes)==space_dimensions);
+                setup(args ...);
+	    }
+
+        template<typename ... UInt>
+        void setup(UInt const& ... dims)
+            {
+                assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
+		BOOST_STATIC_ASSERT(sizeof...(UInt)==space_dimensions);
 		BOOST_STATIC_ASSERT(field_dimensions>0);
-		m_strides[0] = accumulate( multiplies(), args...) ;
-		_impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], args...);
-		m_fields[0]=pointer_type(m_strides[0]);
+		m_strides[0] = accumulate( multiplies(), dims...) ;
+		_impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
 
 		//the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
 		//You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
-		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
-	    }
-#else //CXX11_ENABLED
-
-        void setup(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3)
-            {
-                is_set=true;
-                for(ushort_t i=0; i<field_dimensions; ++i)
-                    m_fields[i]=pointer_type(dim1*dim2*dim3);
-		// m_fields[0]=pointer_type(dim1*dim2*dim3);
-		m_dims[0]=dim1;
-		m_dims[1]=dim2;
-		m_dims[2]=dim3;
-
-		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+		BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ) );
             }
+
+#else //CXX11_ENABLED
 
         /**@brief default constructor
            sets all the data members given the storage dimensions
@@ -257,18 +191,10 @@ namespace gridtools {
 	    is_set( true )
 	    , m_name(s)
             {
-                for(ushort_t i=0; i<field_dimensions; ++i)
-                    m_fields[i]=pointer_type(dim1*dim2*dim3);
-		// m_fields[0]=pointer_type(dim1*dim2*dim3);
-		m_dims[0]=dim1;
-		m_dims[1]=dim2;
-		m_dims[2]=dim3;
-
-		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
-
-                initialize(init);
+                setup(dim1, dim2, dim3);
+                allocate(1);
+                initialize(init, 1);
+                set_name(s);
             }
 
 
@@ -280,18 +206,21 @@ namespace gridtools {
 	    is_set( true )
 	    , m_name(s)
             {
-                for(ushort_t i=0; i<field_dimensions; ++i)
-                    m_fields[i]=pointer_type(dim1*dim2*dim3);
-		// m_fields[0]=pointer_type(dim1*dim2*dim3);
-		m_dims[0]=dim1;
+                setup(dim1, dim2, dim3);
+                allocate(1);
+                initialize(lambda, 1);
+                set_name(s);
+            }
+
+        void setup(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3)
+            {
+                m_dims[0]=dim1;
 		m_dims[1]=dim2;
 		m_dims[2]=dim3;
 
 		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
 		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
 		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
-
-                initialize(lambda);
             }
 
 #endif //CXX11_ENABLED
@@ -307,14 +236,8 @@ namespace gridtools {
             m_name(s)
             {
 		m_fields[0]=pointer_type(ptr, true);
-		m_dims[0]=dim1;
-		m_dims[1]=dim2;
-		m_dims[2]=dim3;
-
-		m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-		m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-		m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
-
+                setup(dim1, dim2, dim3);
+                set_name(s);
             }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
@@ -342,6 +265,52 @@ namespace gridtools {
                 m_strides[1] = other.strides(1);
                 m_strides[2] = other.strides(2);
             }
+
+        void allocate(ushort_t const& dims=FieldDimension){
+            is_set=true;
+            for(ushort_t i=0; i<dims; ++i)
+                m_fields[i]=pointer_type(size());
+        }
+
+        /** @brief initializes with a constant value */
+        GT_FUNCTION
+        void initialize(value_type const& init, ushort_t const& dims=field_dimensions)
+            {
+#ifdef _GT_RANDOM_INPUT
+                srand(12345);
+#endif
+                for(ushort_t f=0; f<dims; ++f)
+                {
+                    for (uint_t i = 0; i < size(); ++i)
+                    {
+#ifdef _GT_RANDOM_INPUT
+                        (m_fields[f])[i] = init * rand();
+#else
+                        (m_fields[f])[i] = init;
+#endif
+                    }
+                }
+            }
+
+
+        /** @brief initializes with a lambda function */
+        GT_FUNCTION
+        void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), ushort_t const& dims=field_dimensions)
+            {
+                for(ushort_t f=0; f<dims; ++f)
+                {
+                    for (uint_t i=0; i<this->m_dims[0]; ++i)
+                        for (uint_t j=0; j<this->m_dims[1]; ++j)
+                            for (uint_t k=0; k<this->m_dims[2]; ++k)
+                                (m_fields[f])[_index(strides(),i,j,k)]=lambda(i, j, k);
+                }
+            }
+
+        /**@brief sets the name of the current field*/
+        GT_FUNCTION
+        void set_name(char const* const& string){
+            m_name=string;
+        }
 
         /** @brief copies the data field to the GPU */
         GT_FUNCTION_WARNING

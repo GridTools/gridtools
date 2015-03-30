@@ -423,20 +423,8 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         /**@brief returns the offset at a specific index Idx*/
 	template<short_t Idx>
         GT_FUNCTION
-// #ifdef NDEBUG
         constexpr
-// #endif
-
-int_t const& get() const {
-	    //the following assert cannot be compile time, since a version with idx=-1 may indeed be compiled (at the end of the template recursion), but should never be executed
-// #ifndef __CUDACC__
-// #ifndef NDEBUG
-// 	    assert(Idx>=0);
-// #endif
-// #endif
-            //static_int<Idx>::fuck();
-	    //GRIDTOOLS_STATIC_ASSERT( Idx<=n_args, "the index passed as template argument is too large" );
-            //return base_t::m_offset;
+        int_t const& get() const {
             //NOTE: this should be a constexpr whenever m_offset is a static const
 	    //this might not be compile-time efficient for large indexes,
 	    //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
