@@ -323,7 +323,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     vertical_advection->finalize();
 
 #ifdef CUDA_EXAMPLE
-std::cout << "update" << std::endl;
     repository.update_cpu();
 #endif
 
@@ -334,7 +333,7 @@ std::cout << "update" << std::endl;
     //    in.print();
 //    out.print();
     //    lap.print();
-
+    std::cout << "RESULT = " << result << std::endl;
 #ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
