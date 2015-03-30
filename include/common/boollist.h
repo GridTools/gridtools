@@ -3,7 +3,6 @@
 
 #include <boost/static_assert.hpp>
 #include "defs.h"
-#include <boost/utility/enable_if.hpp>
 /*@file
 @bief  The following class describes a boolean list of length N.
 

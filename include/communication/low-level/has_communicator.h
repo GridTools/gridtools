@@ -12,7 +12,7 @@ namespace gridtools {
     };
 
 #ifndef _GCL_MPI_
-#define MPI_Commr int
+#define MPI_Comm int
 #endif
 
     template <typename _grid_>

@@ -84,7 +84,7 @@ namespace gridtools{
         struct get_tmp_storage
         {
 //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-            typedef storage< StorageType > host_storage_t;
+            typedef storage< StorageType > type;
         };
 
     };
@@ -203,7 +203,7 @@ namespace gridtools{
                   uint_t JPlus>
         struct get_tmp_storage
         {
-            typedef host_tmp_storage < StorageBase, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> host_storage_t;
+            typedef host_tmp_storage < StorageBase, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
         };
 
     };

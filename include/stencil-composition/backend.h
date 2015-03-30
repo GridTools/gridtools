@@ -23,6 +23,7 @@
 #include "domain_type.h"
 #include "execution_types.h"
 #include "mss_metafunctions.h"
+#include "mss_local_domain.h"
 #include "mss.h"
 #include "axis.h"
 #include "../common/meta_array.h"

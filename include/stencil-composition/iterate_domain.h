@@ -665,7 +665,7 @@ public:
                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 #endif
 
-                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<arg.template get<3>()<<" , "<<arg.template get<4>()<<std::endl;
+                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
                 return get_value(arg,
                                  (*m_data_pointer)[

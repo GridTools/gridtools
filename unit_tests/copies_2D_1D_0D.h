@@ -1,5 +1,6 @@
 
 #pragma once
+#include <stencil-composition/make_computation.h>
 
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE

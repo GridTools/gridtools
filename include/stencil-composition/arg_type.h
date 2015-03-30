@@ -83,11 +83,27 @@ namespace gridtools {
                     GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the arg_type must be positive integerts")
                 }
 
+            /**@brief Constructor*/
 	    GT_FUNCTION
 	    constexpr Dimension(Dimension const& other):value(other.value){}
 
             static const ushort_t direction=Coordinate;
             int_t value;
+
+            /**@brief syntactic sugar for user interface
+
+               overloaded operators return Index types which provide the proper Dimension object.
+               Clarifying example:
+               defining
+               \code{.cpp}
+               typedef Dimension<5>::Index t;
+               \endcode
+               we can use thefollowing alias
+               \code{.cpp}
+               t+2 <--> Dimension<5>(2)
+               \endcode
+
+             */
 	    struct Index{
 		GT_FUNCTION
 		Index(){}
@@ -138,8 +154,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
             GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0")
             GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "the result must be larger or equal than 0")
-            //     static_int<s_args_constexpr.template get<Idx>()>::fuck();
-            // static_int<Idx>::fuck();
             return s_args_constexpr.template get<Idx>();
         }
 
@@ -168,7 +182,12 @@ namespace gridtools {
             static const int second=Arg2;
         };
 
-        //compile-time aliases, the offsets specified in this way are assured to be compile-time
+        /**
+           @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
+
+           This type alias allows to embed some of the offsets directly inside the type of the arg_type placeholder.
+           For a usage example check the exaples folder
+        */
         template<int ... Args>
         using set=arg_mixed< Callable, pair_<Known::direction,Args> ... >;
 

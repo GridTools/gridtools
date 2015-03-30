@@ -12,7 +12,6 @@
 #include "host_device.h"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
-#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 

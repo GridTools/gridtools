@@ -49,9 +49,8 @@ namespace gridtools {
                     //TODO noone deletes this new
                     e = new ElemType(m_tile_i,
                                      m_tile_j,
-                                     m_tile_k//,
-                                     /*typename ElemType::value_type(),
-                                       s*/);
+                                     m_tile_k);
+                    e->allocate();
                 }
             };
             // noone calls this!!!
@@ -131,9 +130,8 @@ namespace gridtools {
                                      m_tile_j,
                                      m_tile_k,
                                      m_n_i_threads,
-                                     m_n_j_threads/*,
-                                     typename ElemType::value_type(),
-                                       s*/);
+                                     m_n_j_threads);
+                    e->allocate();
                 }
             };
 

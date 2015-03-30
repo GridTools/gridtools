@@ -1,6 +1,7 @@
 #ifndef _LAYOUT_MAP_H_
 #define _LAYOUT_MAP_H_
 
+#include <gridtools.h>
 #include <boost/static_assert.hpp>
 #include <boost/mpl/vector_c.hpp>
 #include <boost/mpl/int.hpp>
@@ -115,10 +116,8 @@ namespace gridtools {
         */
         template <ushort_t I, typename ... T>
         GT_FUNCTION
-        static constexpr auto select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
-            auto thetuple = std::make_tuple(args ...);
-            int x = std::template get<layout_vector[I]>(thetuple );
-            return x;
+        static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
+            return  std::template get<layout_vector[I]>( std::tie(args...) );
         }
 
         //returns the dimension corresponding to the given strides (get<0> for stride 1)
@@ -130,7 +129,7 @@ namespace gridtools {
 
         GT_FUNCTION
         short_t constexpr operator[](ushort_t i) {
-            assert( i<length );
+            //assert( i<length );
             return _impl::__get<0, Args...>(i);
         }
 
@@ -167,6 +166,39 @@ namespace gridtools {
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 
+
+        /* forward declaration*/
+        template <ushort_t I>
+        struct pos_;
+
+        /**@brief traits class allowing the lazy static analysis
+
+           hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
+           The following class defines a subclass with a templated method which returns a given element in a tuple.
+         */
+        template<ushort_t I, typename Int>
+        struct tied_type
+            {
+                struct type{
+                    template<typename ... Indeces>
+                    static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::tie(indices...));}
+                };
+            };
+
+        /**@brief traits class allowing the lazy static analysis
+
+           hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
+           The following struct implements a fallback case, when the index we are looking for in the layout_map is not present. It simply returns the default parameter passed in as template argument.
+         */
+        template<typename Int, Int Default>
+        struct identity
+            {
+                struct type{
+                    template<typename ... Indeces>
+                    static constexpr Int value(Indeces ... /*indices*/){return Default;}
+                };
+            };
+
         /** Given a tuple of values and a static index I, the function
             returns the value of the element whose position
             corresponds to the position of 'I' in the map. If the
@@ -185,15 +217,32 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename... Indices>
+        template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
         GT_FUNCTION
-        static constexpr T find_val(Indices const& ... indices) {
-            static_assert(sizeof...(Indices)<=length, "Too many arguments");
-            return (pos_<I>::value >= sizeof...(Indices) ) ?
-                DefaultVal
-                :
-                std::get<pos_<I>::value>(std::tie(indices...));
+        static constexpr T find_val(First first, Indices ... indices) {
+            static_assert(sizeof...(Indices)<length, "Too many arguments");
+            // GRIDTOOLS_STATIC_ASSERT( pos_<I>::value != ~ushort_t(), "index not present in the layout vector" );
+            typedef typename boost::mpl::eval_if_c< (pos_<I>::value > sizeof...(Indices)),
+                identity<T, DefaultVal>
+                ,
+                tied_type<I, T> >::type type;
+
+            return type::value(first, indices...);
         }
+
+        // template <ushort_t I, typename T, T DefaultVal, typename ... Indices>
+        // GT_FUNCTION
+        // static T find_val(Indices ... indices) {
+        //     static_assert(sizeof...(Indices)<=length, "Too many arguments");
+
+        //     typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
+        //     if (pos_<I>::value >= sizeof...(Indices) ) {
+        //         return DefaultVal;
+        //     } else {
+        //         return vec[pos_<I>::value];
+        //     }
+        // }
+
 
 	/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
 	 \tparam I dimension (0->i, 1->j, 2->k, ...)
