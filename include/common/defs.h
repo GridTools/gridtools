@@ -28,6 +28,13 @@
 #define CXX11_DISABLED
 #endif
 
+#ifndef GT_DEFAULT_TILE
+#ifndef SUPPRESS_MESSAGES
+#pragma message("INFO: Using default tile size = 8")
+#endif
+#define GT_DEFAULT_TILE 8
+#endif
+
 namespace gridtools{  namespace enumtype{
 /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
