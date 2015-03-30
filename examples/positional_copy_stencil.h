@@ -31,7 +31,7 @@ using namespace enumtype;
 #define POSTFIX ::type
 #endif
 
-namespace stateful_copy_stencil{
+namespace positional_copy_stencil{
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -77,6 +77,14 @@ namespace stateful_copy_stencil{
      */
     std::ostream& operator<<(std::ostream& s, copy_functor const) {
         return s << "copy_functor";
+    }
+
+    /*
+     * The following operators and structs are for debugging only
+     */
+    template <int I>
+    std::ostream& operator<<(std::ostream& s, init_functor<I> const) {
+        return s << "(positional) init_functor";
     }
 
     void handle_error(int_t)
@@ -155,7 +163,7 @@ namespace stateful_copy_stencil{
         coords.value_list[1] = d3-1;
         
         boost::shared_ptr<gridtools::computation> init =
-            gridtools::make_stateful_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
             (
              gridtools::make_mss // mss_descriptor
              (

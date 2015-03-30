@@ -1,4 +1,4 @@
-#include "stateful_copy_stencil.h"
+#include "positional_copy_stencil.h"
 
 int main(int argc, char** argv)
 {
@@ -8,5 +8,5 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return !stateful_copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return !positional_copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 }

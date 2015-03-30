@@ -106,7 +106,7 @@ namespace gridtools {
 
         /**@brief sets the name of the current field*/
         GT_FUNCTION
-        void set_name(char* const& string){
+        void set_name(char* const string){
             m_name=string;
         }
 

@@ -1,13 +1,21 @@
+#ifndef __Size0
+#define __Size0 12
+#endif
+
+#ifndef __Size1
+#define __Size1 33
+#endif
+
+#ifndef __Size2
+#define __Size2 61
+#endif
+
 TEST(TESTCLASS, horizontaldiffusion_block) {
-    EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
+    EXPECT_EQ(horizontal_diffusion::test(__Size0, __Size1, __Size2), true);
 }
 
-#define __Size0 12
-#define __Size1 33
-#define __Size2 61
-
 TEST(TESTCLASS, statefulcopies3D) {
-    EXPECT_EQ((stateful_copy_stencil::test(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((positional_copy_stencil::test(__Size0, __Size1, __Size2)), true);
 }
 
 TEST(TESTCLASS, copies3D) {
