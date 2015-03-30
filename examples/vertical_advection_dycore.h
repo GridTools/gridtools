@@ -333,7 +333,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     //    in.print();
 //    out.print();
     //    lap.print();
-    std::cout << "RESULT = " << result << std::endl;
+    std::cout << "RESULT = " << std::boolalpha << result << std::endl;
 #ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
