@@ -30,7 +30,6 @@ TEST(testgpuclone, testgpuclone) {
     EXPECT_EQ(gpu_clone_test::test_gpu_clone(), true);
 }
 
-/** REMOVE TESTS TEMPORARILY
 TEST(boundaryconditions, basic) {
     EXPECT_EQ(basic(), true);
 }
@@ -58,7 +57,6 @@ TEST(boundaryconditions, usingvalue2) {
 TEST(boundaryconditions, usingcopy3) {
     EXPECT_EQ(usingcopy_3(), true);
 }
- REMOVE TESTS TEMPORARILY */
 
 TEST(testgpuclone, testcloningstuff) {
     EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true);
