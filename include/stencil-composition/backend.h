@@ -310,7 +310,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
                     "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"
-            );
+            )
 
             typedef typename boost::mpl::fold<
                 map_of_ranges,
