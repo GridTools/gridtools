@@ -736,7 +736,6 @@ public:
             if (Coordinate==1) {
                 j = index;
             }
-            assert(Coordinate<2);
 
             base_type::template assign_ij<Coordinate>(index, block);
         }

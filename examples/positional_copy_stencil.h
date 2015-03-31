@@ -101,7 +101,7 @@ namespace positional_copy_stencil{
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend<Cuda, Naive >
 #else
 #ifdef BACKEND_BLOCK
@@ -162,8 +162,12 @@ namespace positional_copy_stencil{
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
         
+#ifdef __CUDACC__
+        gridtools::computation* init =
+#else
         boost::shared_ptr<gridtools::computation> init =
-            gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
+#endif
+        gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
             (
              gridtools::make_mss // mss_descriptor
              (
@@ -220,7 +224,7 @@ namespace positional_copy_stencil{
 #ifdef __CUDACC__
         gridtools::computation* copy =
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+        boost::shared_ptr<gridtools::computation> copy =
 #endif
             gridtools::make_computation<gridtools::BACKEND, layout_t>
             (
