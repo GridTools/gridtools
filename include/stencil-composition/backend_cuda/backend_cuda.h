@@ -20,13 +20,12 @@ namespace gridtools {
                   typename Traits,
                   typename ExtraArguments>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t * l_domain, typename Arguments::coords_t const* coords, uint_t starti, uint_t startj, uint_t nx, uint_t ny) {
-            /* int i = blockIdx.x * blockDim.x + threadIdx.x; */
-            /* int j = blockIdx.y * blockDim.y + threadIdx.y; */
+        void do_it_on_gpu(typename Traits::local_domain_t const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
+//             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+//             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
+            int i = blockIdx.x * blockDim.x + threadIdx.x;
+            int j = blockIdx.y * blockDim.y + threadIdx.y;
             uint_t z = coords->template value_at<typename Traits::first_hit_t>();
-
-            uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
-            uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
 
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
             __shared__
@@ -175,14 +174,21 @@ namespace gridtools {
             uint_t nx = (uint_t) (f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value)+1);
             uint_t ny = (uint_t) (f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value)+1);
 
-            // blocks dimension
-            uint_t ntx = 8, nty = 32;
+            int ntx = 32, nty = 8, ntz = 1;
+            dim3 threads(ntx, nty, ntz);
 
-            //number of blocks
-            ushort_t nbx = (nx + ntx - 1) / ntx;
-            ushort_t nby = (ny + nty - 1) / nty;
+            int nbx = (nx + ntx - 1) / ntx;
+            int nby = (ny + nty - 1) / nty;
+            int nbz = 1;
+            dim3 blocks(nbx, nby, nbz);
 
-            _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<nbx*nby, ntx*nty>>>
+#ifndef NDEBUG
+                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+                printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
+                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+#endif
+
+                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,
