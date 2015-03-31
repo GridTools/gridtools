@@ -353,10 +353,10 @@ arg_type_base ( int const& t, Whatever const& ... x) {
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         GT_FUNCTION
-        arg_decorator ( int const& i, int const& j, int const& k): super( i, j ), m_offset(k) {
+        arg_decorator ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
         }
         GT_FUNCTION
-        arg_decorator ( int const& i, int const& j): super( i ), m_offset(j) {
+        arg_decorator ( int const& i, int const& j): super( j ), m_offset(i) {
         }
         GT_FUNCTION
         arg_decorator ( int const& i): m_offset(i) {
@@ -551,7 +551,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
     /**
      * Printing type information for debug purposes
-     * @param s The ostream
+<     * @param s The ostream
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
