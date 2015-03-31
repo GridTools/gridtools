@@ -14,9 +14,9 @@
 #endif
 
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 #endif
 
 #ifdef CUDA_EXAMPLE
@@ -24,6 +24,8 @@
 #else
 #include <boundary-conditions/apply.h>
 #endif
+
+#include <communication/halo_exchange.h>
 
 //#define BACKEND_BLOCK 1
 /*
@@ -567,12 +569,12 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
     std::stringstream name;
     name<<"example"<<pid<<".txt";
     myfile.open (name.str().c_str());
-#endif
 
     std::cout<<"INITIALIZED VALUES"<<std::endl;
     sol.print(myfile);
     std::cout<<"#####################################################"<<std::endl;
 
+#endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
@@ -636,11 +638,15 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
+#ifdef __CUDACC__
             if(!he.comm().pid()==target_process)
                 cudaProfilerStart();
+#endif
             shallow_water_stencil->run();
+#ifdef __CUDACC__
             if(!he.comm().pid())
                 cudaProfilerStop();
+#endif
 
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=sol.get<2,0>().get();
@@ -659,7 +665,6 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
         }
 
         he.wait();
-        he.free();
 
 #ifdef NDEBUG
         shallow_water_stencil->finalize();

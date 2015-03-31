@@ -46,7 +46,7 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-#if (defined(CXX11_ENABLED)  && !defined(__CUDACC__ ))
+#if (defined(CXX11_ENABLED))
     namespace ex{
         typedef arg_type<0> out;
         typedef arg_type<1> inf; //a
@@ -82,7 +82,7 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
-#if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
+#if (defined(CXX11_ENABLED))
 	dom(sup()) =  dom(ex::expr_sup);
 	dom(rhs()) =  dom(ex::expr_rhs);
 #else
@@ -132,7 +132,7 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
+#if (defined(CXX11_ENABLED))
         dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));

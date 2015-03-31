@@ -130,4 +130,7 @@ namespace gridtools {
     template<typename Axis>
     struct is_coordinates<coordinates<Axis> > : boost::mpl::true_{};
 
+    template<typename Axis, typename Partitioner>
+    struct is_coordinates<coordinates<Axis, Partitioner> > : boost::mpl::true_{};
+
 } // namespace gridtools
