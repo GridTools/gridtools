@@ -184,7 +184,7 @@ namespace gridtools{
                     block_size_j = m-NBJ*BJ;
                 }
 
-                std::cout << "threads " << n_threads() << ", id " << thread_id() << std::endl;
+                //std::cout << "threads " << n_threads() << ", id " << thread_id() << std::endl;
                 backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
             }
         };
