@@ -429,9 +429,9 @@ class MultiStageStencil ( ):
         try:
             self.lib_obj = cdll.LoadLibrary ("%s" % path.join (tmp_dir, 
                                                                self.lib_file))
-        except OSError:
+        except OSError as e:
             self.lib_obj = None
-            raise RuntimeError ("Cannot load dynamically-compiled library")
+            raise e
 
 
     def get_interior_points (self, data_field):
@@ -565,8 +565,8 @@ class MultiStageStencil ( ):
                     #
                     try:
                         self.compile ( )
-                    except RuntimeError:
-                        logging.error ("Compilation failed")
+                    except Exception as e:
+                        logging.error ("%s\nCompilation failed" % str(e))
                         return
             #
             # prepare the list of parameters to call the library function
