@@ -9,7 +9,7 @@ extern "C"
              ## Pointers to NumPy arrays passed from Python 
              ##}
             {%- for p in params -%}
-                void *{{ p.name }}_buff
+                float_type *{{ p.name }}_buff
                 {%- if not loop.last -%}
                     ,
                 {%- endif -%}
