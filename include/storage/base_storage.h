@@ -1,5 +1,6 @@
 #pragma once
 #include "base_storage_impl.h"
+#include "../common/layout_map.h"
 
 /**@file
    @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
@@ -47,12 +48,14 @@
 
 namespace gridtools {
 
-/**
-   @brief main class for the basic storage
-   The base_storage class contains one snapshot. It univocally defines the access pattern with three integers: the total storage sizes and the two strides different from one.
-*/
-    template < enumtype::backend Backend,
-               typename ValueType,
+    /**
+       @brief main class for the basic storage
+
+       The base_storage class contains one snapshot. It univocally defines
+       the access pattern with three integers: the total storage sizes and
+       the two strides different from one.
+    */
+    template < typename PointerType,
                typename Layout,
                bool IsTemporary = false,
                short_t FieldDimension=1
@@ -60,15 +63,16 @@ namespace gridtools {
     struct base_storage
     {
         typedef Layout layout;
-        typedef ValueType value_type;
+        typedef PointerType pointer_type;
+        typedef typename pointer_type::pointee_t value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
-        typedef backend_from_id <Backend> backend_traits_t;
-        typedef typename backend_traits_t::template pointer<value_type>::type pointer_type;
-        //typedef in order to stopo the type recursion of the derived classes
-        typedef base_storage<Backend, ValueType, Layout, IsTemporary, FieldDimension> basic_type;
-        typedef base_storage<Backend, ValueType, Layout, IsTemporary, FieldDimension> original_storage;
-        static const enumtype::backend backend=Backend;
+
+        // TODO: Keep only one of these
+        typedef base_storage<PointerType, Layout, IsTemporary, FieldDimension> basic_type;
+        typedef base_storage<PointerType, Layout, IsTemporary, FieldDimension> original_storage;
+        //static const enumtype::backend backend=Backend;
+
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
@@ -77,6 +81,9 @@ namespace gridtools {
 
     public:
 
+        template <typename T, typename U, bool B>
+        friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B> const & );
+        
         /** @brief initializes with a constant value */
         GT_FUNCTION
         void initialize(value_type const& init)
@@ -99,7 +106,7 @@ namespace gridtools {
 
         /**@brief sets the name of the current field*/
         GT_FUNCTION
-        void set_name(char* const& string){
+        void set_name(char* const string){
             m_name=string;
         }
 
@@ -425,9 +432,9 @@ namespace gridtools {
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment( uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            //if(layout::template at_<Coordinate>::value>=0)
+
             if(layout::template at_< Coordinate >::value >=0)
             {
                 *index += strides<Coordinate>(m_strides);
@@ -437,10 +444,9 @@ namespace gridtools {
         /** @brief method to decrement the memory address index by moving backward one step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement( uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void decrement( uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            //if(layout::template at_<layout::template pos_<Coordinate>::value >::value>=0)
-            // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
+
             if(layout::template at_<Coordinate>::value >=0)
             {
                 *index-=strides<Coordinate>(m_strides);
@@ -449,28 +455,28 @@ namespace gridtools {
 
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction
             \tparam Coordinate: the dimension which is being incremented (0=i, 1=j, 2=k, ...)
-            \param dimension: the number of steps of the increment
+            \param steps: the number of steps of the increment
             \param index: the output index being set
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t const& dimension, uint_t const& /*block*/, uint_t* index/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment(uint_t const& steps, uint_t const& /*block*/, uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            // if(layout::template find_val<Coordinate, int_t, -1>(m_strides)>=0)
+
             if( layout::template at_< Coordinate >::value >= 0 )
             {
-                *index += strides<Coordinate>(m_strides)*dimension;
+                *index += strides<Coordinate>(m_strides)*steps;
             }
         }
 
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t dimension, uint_t const& /*block*/, uint_t* index){
+        void decrement(uint_t steps, uint_t const& /*block*/, uint_t* index){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )
             {
-                *index-=strides<Coordinate>(m_strides)*dimension;
+                *index-=strides<Coordinate>(m_strides)*steps;
             }
         }
 
@@ -910,7 +916,7 @@ namespace gridtools {
 #if !defined(__CUDACC__)
     template< class Storage, uint_t ... Number >
     struct field{
-        typedef extend_dim< extend_width<base_storage<Storage::backend, typename Storage::value_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;
+        typedef extend_dim< extend_width<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, accumulate(add(), ((uint_t)Number) ... )>, Number-1> ... > type;
     };
 #endif
 
@@ -920,38 +926,38 @@ namespace gridtools {
     Partial specializations
     @{
 */
-    template < enumtype::backend B, typename ValueType, typename Layout, bool IsTemporary, short_t Dim
+    template <typename PointerType, typename Layout, bool IsTemporary, short_t Dim
                >
-    const std::string base_storage<B , ValueType, Layout, IsTemporary, Dim
+    const std::string base_storage<PointerType, Layout, IsTemporary, Dim
                                    >::info_string=boost::lexical_cast<std::string>("-1");
 
-    template <enumtype::backend B, typename ValueType, typename Y, short_t Dim>
-    struct is_temporary_storage<base_storage<B,ValueType,Y,false, Dim>*& >
+    template <typename PointerType, typename Y, short_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,Y,false, Dim>*& >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim>*& >
+    template <typename PointerType, typename Y, short_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,Y,true, Dim>*& >
         : boost::true_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,false, Dim>* >
+    template <typename PointerType, typename Y, short_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,Y,false, Dim>* >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim>* >
+    template <typename PointerType, typename Y, short_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,Y,true, Dim>* >
         : boost::true_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,false, Dim> >
+    template <typename PointerType, typename Y, short_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,Y,false, Dim> >
         : boost::false_type
     {};
 
-    template <enumtype::backend X, typename ValueType, typename Y, short_t Dim>
-    struct is_temporary_storage<base_storage<X,ValueType,Y,true, Dim> >
+    template <typename PointerType, typename Y, short_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,Y,true, Dim> >
         : boost::true_type
     {};
 
@@ -990,14 +996,18 @@ namespace gridtools {
     {};
 #endif //CXX11_ENABLED
 /**@}*/
-    template <enumtype::backend Backend, typename T, typename U, bool B>
-    std::ostream& operator<<(std::ostream &s, base_storage<Backend,T,U, B> ) {
-        return s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
+    template <typename T, typename U, bool B>
+    std::ostream& operator<<(std::ostream &s, base_storage<T,U, B> const & x ) {
+        s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
+        s << x.m_dims[0] << ", "
+          << x.m_dims[1] << ", "
+          << x.m_dims[2] << ". ";
+        return s;
     }
 
 #ifdef CXX11_ENABLED
-    template <typename ... T>
-    std::ostream& operator<<(std::ostream &s, extend_dim< T... > ) {
+    template <typename F, typename ... T>
+    std::ostream& operator<<(std::ostream &s, extend_dim< F, T... > const &) {
         return s << "field storage" ;
     }
 #endif

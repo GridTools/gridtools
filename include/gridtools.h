@@ -20,3 +20,4 @@
 #include "stencil-composition/computation.h"
 #include "stencil-composition/intermediate.h"
 #include "stencil-composition/make_computation.h"
+#include "common/gridtools_runtime.h"

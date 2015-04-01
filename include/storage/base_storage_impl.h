@@ -4,8 +4,6 @@
 #include "../common/gpu_clone.h"
 #include "../common/gt_assert.h"
 #include "../common/is_temporary_storage.h"
-#include "../stencil-composition/backend_traits_host.h"
-#include "../stencil-composition/backend_traits_cuda.h"
 #include "hybrid_pointer.h"
 #include <iostream>
 #include "accumulate.h"
@@ -220,15 +218,14 @@ namespace gridtools{
                 printf("CIAOOO TATATA %x\n",  s);
             }
 
-#ifdef __CUDACC__
-            template < typename T, typename U, bool B, ushort_t FieldsDimensions
-                       >
-            GT_FUNCTION_WARNING
-            void operator()(base_storage<enumtype::Cuda,T,U,B, FieldsDimensions
-                            > *& s) const {
-                printf("CIAO POINTER %X\n", s);
-            }
-#endif
+// #ifdef __CUDACC__
+//             template < typename T, typename U, bool B, ushort_t FieldsDimensions
+//                        >
+//             GT_FUNCTION_WARNING
+//             void operator()(base_storage<T,U,B, FieldsDimensions> *& s) const {
+//                 printf("CIAO POINTER %X\n", s);
+//             }
+// #endif
 
 	    // /**@brief print for debugging purposes*/
 	    // struct print_index{

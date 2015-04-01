@@ -66,8 +66,8 @@ TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion::test(16, 16, 5), true);
 }
 
-#define __Size0 512
-#define __Size1 512
+#define __Size0 52
+#define __Size1 52
 #define __Size2 60
 
 TEST(stencil, copies3D) {

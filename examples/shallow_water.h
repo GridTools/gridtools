@@ -6,11 +6,7 @@
 #include <boost/lambda/construct.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.h>

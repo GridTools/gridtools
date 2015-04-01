@@ -1,11 +1,8 @@
 #pragma once
 
 #include <gridtools.h>
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
+
+#include <stencil-composition/backend.h>
 
 #include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
@@ -96,9 +93,9 @@ namespace copy_stencil{
 #ifdef CXX11_ENABLED                            \
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-        typedef base_storage<Cuda, float_type, layout_t, false ,2> base_type1;
-        typedef extend_width<base_type1, 0>  extended_type;
+        //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
+        typedef backend_traits_from_id<Cuda>::storage_traits< float_type, layout_t, false, 2>::storage_t::basic_type basic_type_t;
+        typedef extend_width<basic_type_t, 0>  extended_type;
         typedef extend_dim<extended_type, extended_type>  vec_field_type;
 #else
         //vector field of dimension 2
@@ -205,19 +202,20 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-            gridtools::make_computation<gridtools::BACKEND, layout_t>
-            (
-             gridtools::make_mss // mss_descriptor
-             (
-              execute<forward>(),
-              gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
+    gridtools::make_computation<gridtools::BACKEND, layout_t>
+    (
+        gridtools::make_mss // mss_descriptor
+        (
+            execute<forward>(),
+            gridtools::make_esf<copy_functor>(
+                p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                                                ,p_out()
+                ,p_out()
 #endif
-                                                )
-              ),
-             domain, coords
-             );
+            )
+        ),
+        domain, coords
+    );
 
         copy->ready();
 
@@ -236,6 +234,7 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
+    boost::timer::cpu_timer time;
         copy->run();
 
 #ifdef USE_PAPI
@@ -253,6 +252,8 @@ namespace copy_stencil{
 
         copy->finalize();
 
+        boost::timer::cpu_times lapse_time = time.elapsed();
+        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif

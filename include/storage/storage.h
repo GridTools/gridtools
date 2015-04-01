@@ -47,5 +47,11 @@ namespace gridtools {
 	explicit storage():super(){}
     };
 
+    template <typename T>
+    std::ostream& operator<<(std::ostream &s, storage<T> const & x ) {
+        s << "storage< "
+          << static_cast<T const&>(x) << " > ";
+        return s;
+    }
 
 }//namespace gridtools
