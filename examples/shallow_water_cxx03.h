@@ -283,8 +283,8 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 5>::type sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<tmpx, sol> arg_list;
 
         template <typename Evaluation>
@@ -336,8 +336,8 @@ namespace shallow_water{
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
-        typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpy;
-        typedef arg_type<1,range<0, 0, 0, 0>, 5>::type sol;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy;
+        typedef arg_type<1,range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<tmpy, sol> arg_list;
 
         template <typename Evaluation>
@@ -390,9 +390,9 @@ namespace shallow_water{
         static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
-        typedef arg_type<0,range<0, 0, 0, 0>, 5>::type tmpx;
-        typedef arg_type<1,range<0, 0, 0, 0>, 5>::type tmpy;
-        typedef arg_type<2,range</*-1, 1, -1, 1*/0,0,0,0>, 5>::type sol;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpx;
+        typedef arg_type<1,range<0, 0, 0, 0>, 5> tmpy;
+        typedef arg_type<2,range</*-1, 1, -1, 1*/0,0,0,0>, 5> sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol>  arg_list;
         static uint_t current_time;
 

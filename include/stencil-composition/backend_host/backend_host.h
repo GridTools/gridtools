@@ -67,7 +67,6 @@ namespace gridtools {
             typedef typename Traits::iterate_domain_t iterate_domain_type;
             typedef typename Arguments::execution_type_t execution_type_t;
 
-
             typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
             typedef typename sum_range<new_range_t, range_t>::type xrange_t;
             typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
@@ -78,6 +77,7 @@ namespace gridtools {
             int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0)) ;//j-high
             int_t iplus=(int_t) xrange_subdomain_t::iplus::value + ((boundary%2)>0? xrange_t::iplus::value : 0) ;//i-high
 
+            typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG
 		    std::cout << "Functor " <<  functor_type() << "\n";
 		    std::cout << "I loop " << (int_t)f->m_starti <<"+"<< iminus << " -> "
@@ -94,7 +94,7 @@ namespace gridtools {
                     /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
 
                     iterate_domain_type it_domain(local_domain);
-                    it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Host> >(&data_pointer, thread_id());
+                    it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
 
                     it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
 

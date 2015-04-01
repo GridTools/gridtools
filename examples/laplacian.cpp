@@ -69,11 +69,7 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. arg_type contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-#ifdef CXX11_ENABLED
     typedef arg_type<0, range<-1, 1, -1, 1>, 3 > out;
-#else
-    typedef arg_type<0, range<-1, 1, -1, 1>, 3 >::type out;
-#endif
 /**
        @brief  placeholder for the input field, index 1
     */

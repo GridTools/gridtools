@@ -41,13 +41,8 @@ struct lap_function {
     typedef range<0,0,0,0> xrange;
     typedef range<0,0,0,0> xrange_subdomain;
 
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<-1, 1, -1, 1>  >::type in;
-#endif
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -64,16 +59,9 @@ struct flx_function {
     typedef range<0,0,0,0> xrange;
     typedef range<0,0,0,0> xrange_subdomain;
 
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
-
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
-    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
-#endif
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -93,15 +81,9 @@ struct fly_function {
     typedef range<0,0,0,0> xrange;
     typedef range<0,0,0,0> xrange_subdomain;
 
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
-    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
-#endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -120,20 +102,12 @@ struct out_function {
     typedef range<0,0,0,0> xrange;
     typedef range<0,0,0,0> xrange_subdomain;
 
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
 
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1>::type in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
-    typedef const arg_type<4>::type coeff;
-#endif
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Domain>
@@ -358,7 +332,7 @@ PAPI_stop(event_set, values);
 #endif
 
     verifier verif(1e-9, halo_size);
-    bool result = verif.verify(repository.out(), repository.out_ref());
+    bool result = verif.verify(repository.out_ref(), repository.out());
 
 #ifndef SILENT_RUN
     //    in.print();
