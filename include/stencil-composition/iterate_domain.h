@@ -749,7 +749,7 @@ public:
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
  	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg));
+ 		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
 
  	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
  		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
@@ -765,7 +765,7 @@ public:
 
             return *(real_storage_pointer
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                     ->_index(arg.first_operand.offset()));
+                     ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
         }
 
         /**\section binding_expressions (Expressions Bindings)

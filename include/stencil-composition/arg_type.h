@@ -154,7 +154,7 @@ namespace gridtools {
         template<short_t Idx>
         GT_FUNCTION
         static constexpr
-        uint_t const&
+        uint_t const
         get_constexpr(){
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
             GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0")
