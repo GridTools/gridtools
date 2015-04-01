@@ -147,9 +147,7 @@ class ShallowWater (MultiStageStencil):
         #
         # first half step (stage X direction)
         #
-        for p in self.get_interior_points (out_H,
-                                           halo=(1, 1, 1, 1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (out_H):
             # height
             self.Hx[p]  = ( out_H[p + (1,1,0)] + out_H[p + (0,1,0)] ) / 2.0
             self.Hx[p] -= ( out_U[p + (1,1,0)] - out_U[p + (0,1,0)] ) * ( self.dt / (2*self.dx) )
@@ -171,9 +169,7 @@ class ShallowWater (MultiStageStencil):
         #
         # first half step (stage Y direction)
         #
-        for p in self.get_interior_points (out_H,
-                                           halo=(1, 1, 1, 1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (out_H):
             # height
             self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2.0
             self.Hy[p] -= self.dt / (2*self.dy) * ( out_V[p + (1,1,0)] - out_V[p+ (1,0,0)] )
@@ -195,9 +191,7 @@ class ShallowWater (MultiStageStencil):
         #
         # second half step (stage)
         #
-        for p in self.get_interior_points (out_H,
-                                           halo=(1, 1, 1, 1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (out_H):
             # height
             out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
             out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
@@ -242,6 +236,8 @@ class ShallowWaterTest (unittest.TestCase):
         self.out_V = np.zeros (self.domain)
 
         self.stencil = ShallowWater (self.domain)
+        self.stencil.set_halo        ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
     def test_interactive_plot (self):
