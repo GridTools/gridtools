@@ -5,6 +5,7 @@
 #include "test_smallstorage_indices.h"
 #include "boundary_conditions_test.h"
 #include "../examples/interface1.h"
+#include "../examples/positional_copy_stencil.h"
 #include "copies_2D_1D_0D.h"
 #include "../examples/tridiagonal.h"
 #ifdef CXX11_ENABLED
@@ -49,95 +50,13 @@ TEST(boundaryconditions, usingcopy3) {
     EXPECT_EQ(usingcopy_3(), true);
 }
 
-TEST(stencil, horizontaldiffusion) {
-    EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
-}
-
 #define BACKEND_BLOCK
-TEST(stencil, horizontaldiffusion_block) {
-    EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
-}
+#define TESTCLASS stencil_block
+#include "stencil_tests.h"
 #undef BACKEND_BLOCK
-
-#define __Size0 512
-#define __Size1 512
-#define __Size2 60
-
-TEST(stencil, copies3D) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,2> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies3Dtranspose) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2,1,0> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2Dij) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2Dik) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,-1,1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2Djk) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,0,1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2Di) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,-1,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2Dj) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,0,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2Dk) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,0> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DScalar) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies3DDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,2> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies3DtransposeDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2,1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DijDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<1,0,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DikDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<1,-1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DjkDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DiDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,-1,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DjDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,0,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DkDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, copies2DScalarDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
-}
-
-TEST(stencil, tridiagonal) {
-    EXPECT_EQ(tridiagonal::solver(1, 1, 6), true);
-}
+#undef TESTCLASS
+#define TESTCLASS stencil
+#include "stencil_tests.h"
 
 #ifdef CXX11_ENABLED
 TEST(testdomain, assignplchdrs) {

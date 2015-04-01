@@ -41,11 +41,13 @@ namespace gridtools {
 
         GT_FUNCTION
         T const & operator[](size_t i) const {
+            assert((i < _size));
             return _array[i];
         }
 
         GT_FUNCTION
         T & operator[](size_t i) {
+            assert((i < _size));
             return _array[i];
         }
 
@@ -87,11 +89,13 @@ namespace gridtools {
 
         GT_FUNCTION
         T const & operator[](size_t i) const {
+            assert((i < _size));
             return *(reinterpret_cast<const T*>(&(_array[i])));
         }
 
         GT_FUNCTION
         T & operator[](size_t i) {
+            assert((i < _size));
             return *(reinterpret_cast<T*>(&(_array[i])));
         }
 

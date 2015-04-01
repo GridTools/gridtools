@@ -54,12 +54,12 @@ namespace gridtools {
 
     public:
 
-	typedef _impl::compute_index_set<original_placeholders> check_holes;
-	typedef typename check_holes::raw_index_list raw_index_list;
-	typedef typename check_holes::index_set index_set;
+        typedef _impl::compute_index_set<original_placeholders> check_holes;
+        typedef typename check_holes::raw_index_list raw_index_list;
+        typedef typename check_holes::index_set index_set;
 
-	//actual check if the user specified placeholder arguments with the same index
-	GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.")
+        //actual check if the user specified placeholder arguments with the same index
+        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.")
 
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
@@ -68,9 +68,9 @@ namespace gridtools {
         typedef boost::mpl::range_c<uint_t ,0,len> range_t;
 
     private:
-	typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
-	//check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
-	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
+        typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
+        //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
 The numeration of the placeholders is not contiguous. You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".")
 
         /**\brief reordering vector
@@ -78,52 +78,51 @@ The numeration of the placeholders is not contiguous. You have to define each ar
          e.g.[1,3,2,4,0]
          */
         typedef typename boost::mpl::fold<range_t,
-                                          boost::mpl::vector<>,
-                                          boost::mpl::push_back<
-                                              boost::mpl::_1,
-                                              boost::mpl::find<raw_index_list, boost::mpl::_2>
-                                              >
-                                          >::type iter_list;
+            boost::mpl::vector<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                boost::mpl::find<raw_index_list, boost::mpl::_2>
+            >
+        >::type iter_list;
 
     public:
 
         /**\brief reordered index_list
          * Defines a mpl::vector of index::pos for the indexes in iter_list
          */
-        typedef typename boost::mpl::transform<iter_list,
-                                               _impl::l_get_it_pos
-                                               >::type index_list;
+        typedef typename boost::mpl::transform<iter_list, _impl::l_get_it_pos>::type index_list;
 
         /**
          * \brief reordering of raw_storage_list
          creates an mpl::vector of all the storages in raw_storage_list corresponding to the indices in index_list
          */
         typedef typename boost::mpl::fold<index_list,
-                                          boost::mpl::vector<>,
-                                          boost::mpl::push_back<
-                                              boost::mpl::_1,
-                                              boost::mpl::at<raw_storage_list, boost::mpl::_2>
-                                              >
-                                          >::type arg_list_mpl;
+            boost::mpl::vector<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                boost::mpl::at<raw_storage_list, boost::mpl::_2>
+            >
+        >::type arg_list_mpl;
 
         /**
          * \brief defines a reordered mpl::vector of placeholders
          */
         typedef typename boost::mpl::fold<index_list,
-                                          boost::mpl::vector<>,
-                                          boost::mpl::push_back<
-                                              boost::mpl::_1,
-                                              boost::mpl::at<original_placeholders, boost::mpl::_2>
-                                              >
-                                          >::type placeholders;
+            boost::mpl::vector<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                boost::mpl::at<original_placeholders, boost::mpl::_2>
+            >
+        >::type placeholders;
 
     private:
         typedef typename boost::mpl::fold<index_list,
-                                          boost::mpl::vector<>,
-                                          boost::mpl::push_back<
-                                              boost::mpl::_1,
-                                              boost::mpl::at<raw_iterators_list, boost::mpl::_2> >
-                                          >::type iterator_list_mpl;
+            boost::mpl::vector<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                boost::mpl::at<raw_iterators_list, boost::mpl::_2>
+            >
+        >::type iterator_list_mpl;
 
     public:
         /**
@@ -287,5 +286,11 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         }
 
     };
+
+    template<typename domain>
+    struct is_domain_type : boost::mpl::false_ {};
+
+    template <typename Placeholders>
+    struct is_domain_type<domain_type<Placeholders> > : boost::mpl::true_{};
 
 } // namespace gridtools

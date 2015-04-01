@@ -3,9 +3,9 @@
 
 #include <gridtools.h>
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 #endif
 
 #include <boost/timer/timer.hpp>
@@ -230,10 +230,10 @@ namespace copy_stencils_3D_2D_1D_0D {
                 for(int k=0; k<d3; ++k)
                     {
                         if (in(i, j, k)!=out(i,j,k)) {
-                            // std::cout << "i = " << i
-                            //           << "j = " << j
-                            //           << "k = " << k
-                            //           << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
+                             // std::cout << "i = " << i
+                             //           << "j = " << j
+                             //           << "k = " << k
+                             //           << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
                             ok=false;
                         }
                     }

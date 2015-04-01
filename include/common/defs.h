@@ -4,15 +4,24 @@
    @brief global definitions
 */
 
-#define GT_MAX_ARGS 10
+#ifdef FUSION_MAX_VECTOR_SIZE
+#undef FUSION_MAX_VECTOR_SIZE
+#endif
+
+#define FUSION_MAX_VECTOR_SIZE 20
+
+#define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
+#define GT_MAX_MSS 10
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #elif defined(_MSC_VER)
 #define DEPRECATED(func) __declspec(deprecated) func
 #else
+#ifndef SUPPRESS_MESSAGES
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#endif
 #define DEPRECATED(func) func
 #endif
 
@@ -26,11 +35,18 @@
 #define CXX11_DISABLED
 #endif
 
+#ifndef GT_DEFAULT_TILE
+#ifndef SUPPRESS_MESSAGES
+#pragma message("INFO: Using default tile size = 8")
+#endif
+#define GT_DEFAULT_TILE 8
+#endif
+
 namespace gridtools{  namespace enumtype{
-/** enum specifying the type of backend we use */
+        /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
 
-/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
         template<backend T>
         struct backend_type
         {
@@ -39,12 +55,17 @@ namespace gridtools{  namespace enumtype{
 
         enum strategy  {Naive, Block};
 
-/** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
         template<strategy T>
         struct strategy_type
         {
             enum {value=T};
         };
+
+
+        /** 
+            enum used to distinguish between 
+        */
     }//namespace enumtype
 #ifndef CXX11_ENABLED
 #define constexpr
@@ -63,6 +84,14 @@ namespace gridtools{  namespace enumtype{
 #endif
 
 }
+
+#define GT_WHERE_AM_I                           \
+    std::cout << __PRETTY_FUNCTION__ << " "     \
+    << __FILE__ << ":"                          \
+    << __LINE__                                 \
+    << std::endl;
+    
+
 
 #ifdef CXX11_ENABLED
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message"\n\n");
