@@ -357,9 +357,14 @@ class MultiStageStencil ( ):
         self.inspector = StencilInspector (self)
 
         #
-        # a halo descriptor - see 'set_halo' bellow
+        # a halo descriptor - see 'set_halo' below
         #
-        self.halo = (0, 0, 0, 0)
+        self.set_halo ( (0, 0, 0, 0) )
+
+        #
+        # define the execution order in 'k' dimension - see 'set_k_direction' below
+        #
+        self.set_k_direction ('forward')
 
         #
         # these files are automatically generated compile time
@@ -429,49 +434,49 @@ class MultiStageStencil ( ):
             raise RuntimeError ("Cannot load dynamically-compiled library")
 
 
-    def get_interior_points (self, data_field, k_direction='forward', halo=(0,0,0,0)):
+    def get_interior_points (self, data_field):
         """
         Returns an iterator over the 'data_field' without including the halo:
 
             data_field      a NumPy array;
-            k_direction     defines the execution direction in 'k' dimension,
-                            which might be any of 'forward', 'backward' or
-                            'parallel';
-            halo            a tuple defining a 2D halo over the given 
-                            'data_field'. See 'set_halo'.-
         """
         try:
             if len (data_field.shape) != 3:
                 raise ValueError ("Only 3D arrays are supported.")
-            #
-            # define the direction in 'k'
-            #
-            i_dim, j_dim, k_dim = data_field.shape
-            if k_direction == 'forward' or k_direction == 'parallel':
-                k_dim_start = 0
-                k_dim_end   = k_dim
-                k_dim_inc   = 1
-            elif k_direction == 'backward':
-                k_dim_start = k_dim - 1
-                k_dim_end   = -1
-                k_dim_inc   = -1
-            else:
-                logging.warning ("Unknown direction '%s'" % k_direction)
+
         except AttributeError:
             raise TypeError ("Calling 'get_interior_points' without a NumPy array")
         else:
-            self.set_halo (halo)
+            #
+            # calculate 'i','j' iteration boundaries based on 'halo'
+            #
+            i_dim, j_dim, k_dim = data_field.shape
 
             start_i = 0 + self.halo[1]
             end_i   = i_dim - self.halo[0]
             start_j = 0 + self.halo[3]
             end_j   = j_dim - self.halo[2]
+
+            #
+            # calculate 'k' iteration boundaries based 'k_direction'
+            #
+            if self.k_direction == 'forward':
+                start_k = 0
+                end_k   = k_dim
+                inc_k   = 1
+            elif self.k_direction == 'backward':
+                start_k = k_dim - 1
+                end_k   = -1
+                inc_k   = -1
+            else:
+                logging.warning ("Ignoring unknown direction '%s'" % self.k_direction)
+
             #
             # return the coordinate tuples in the correct order
             #
             for i in range (start_i, end_i):
                 for j in range (start_j, end_j):
-                    for k in range (k_dim_start, k_dim_end, k_dim_inc):
+                    for k in range (start_k, end_k, inc_k):
                         yield InteriorPoint ((i, j, k))
 
 
@@ -483,9 +488,21 @@ class MultiStageStencil ( ):
         raise NotImplementedError ( )
 
 
-    def run (self, *args, **kwargs):
+    def recompile (self):
         """
-        Starts the execution of the stencil.-
+        Marks the currently compiled library as dirty, needing recompilation.-
+        """
+        self.lib_obj = None
+
+
+    def run (self, *args, halo=None, k_direction=None, **kwargs):
+        """
+        Starts the execution of the stencil:
+
+            halo            a tuple defining a 2D halo over the given 
+                            'data_field'. See 'set_halo';
+            k_direction     defines the execution direction in 'k' dimension,
+                            which might be any of 'forward' or 'backward'.-
         """
         import ctypes
 
@@ -494,6 +511,12 @@ class MultiStageStencil ( ):
         #
         if len (args) > 0:
             raise KeyError ("Only keyword arguments are accepted.-")
+
+        #
+        # set halo and execution order in 'k' direction
+        #
+        self.set_halo        (halo)
+        self.set_k_direction (k_direction)
 
         #
         # run the selected backend version
@@ -580,16 +603,40 @@ class MultiStageStencil ( ):
              halo in negative direction over _j_,
              halo in positive direction over _j_).-
         """
+        if halo is None:
+            return
         if len (halo) == 4:
             if halo[0] >= 0 and halo[2] >= 0:
                 if halo[1] >= 0 and halo[3] >= 0:
                     self.halo = halo
+                    self.recompile ( )
+                    logging.debug ("Setting halo to %s" % str (self.halo))
                 else:
-                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer")
+                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
             else:
-                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer")
+                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer" % str (halo))
         else:
-            raise ValueError ("Invalid halo %s: it should contain four values")
+            raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
+
+
+    def set_k_direction (self, direction="forward"):
+        """
+        Applies the execution order in `k` dimension:
+
+            direction   defines the execution order, which may be any of: 
+                        forward or backward.-
+        """
+        accepted_directions = ["forward", "backward"]
+
+        if direction is None:
+            return
+
+        if direction in accepted_directions:
+            self.k_direction = direction
+            self.recompile ( )
+            logging.debug ("Setting k_direction to '%s'" % self.k_direction)
+        else:
+            logging.warning ("Ignoring unknown direction '%s'" % direction)
 
 
     def translate (self):

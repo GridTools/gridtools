@@ -24,9 +24,7 @@ class Copy (MultiStageStencil):
         #
         # iterate over the points, excluding halo ones
         #
-        for p in self.get_interior_points (out_data,
-                                           halo=(1,1,1,1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (out_data):
               out_data[p] = in_data[p]
 
 
@@ -43,7 +41,7 @@ class CopyTest (unittest.TestCase):
 
 
     def setUp (self):
-        logging.basicConfig (level=logging.DEBUG)
+        logging.basicConfig (level=logging.INFO)
 
         self.domain = (128, 128, 64)
         self.params = ('out_data', 'in_data')
@@ -53,6 +51,8 @@ class CopyTest (unittest.TestCase):
         self.in_data  = np.random.rand (*self.domain)
 
         self.stencil = Copy ( )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
     def test_automatic_range_detection (self):
@@ -182,6 +182,13 @@ class CopyTest (unittest.TestCase):
         print ("AVG execution time %.3f s" % avg_time)
 
 
+    def test_k_directions (self):
+        self.stencil.backend = 'c++'
+
+        for dir in ('forward', 'backward'):
+            self.stencil.set_k_direction (dir)
+            self._run ( )
+
 
 class Laplace (MultiStageStencil):
     """
@@ -198,9 +205,7 @@ class Laplace (MultiStageStencil):
         #
         # iterate over the interior points
         #
-        for p in self.get_interior_points (out_data,
-                                           halo=(1,1,1,1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (out_data):
             out_data[p] = 4 * in_data[p] - (
                           in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
@@ -212,7 +217,7 @@ class LaplaceTest (CopyTest):
     Testing the Laplace operator.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.DEBUG)
+        logging.basicConfig (level=logging.INFO)
 
         self.domain = (64, 64, 32)
         self.params = ('out_data', 'in_data')
@@ -223,6 +228,8 @@ class LaplaceTest (CopyTest):
         self.in_data  /= 7.0
 
         self.stencil = Laplace ( ) 
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
     def test_automatic_range_detection (self):
@@ -361,9 +368,7 @@ class Moving (MultiStageStencil):
         #
         # first half step (stage X direction)
         #
-        for p in self.get_interior_points (self.Hx,
-                                           halo=(1,1,1,1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (self.Hx):
             # height
             self.Hx[p]  = out_H[p + (-1,-1,0)]
 
@@ -376,9 +381,7 @@ class Moving (MultiStageStencil):
         #
         # frst half step (stage Y direction)
         #
-        for p in self.get_interior_points (self.Hy,
-                                           halo=(1,1,1,1),
-                                           k_direction="forward"):
+        for p in self.get_interior_points (self.Hy):
             # height
             self.Hy[p]  = out_H[p + (1,1,0)]
 
@@ -391,8 +394,7 @@ class Moving (MultiStageStencil):
         #
         # second half step (stage)
         #
-        for p in self.get_interior_points (self.Hx,
-                                           k_direction="forward"):
+        for p in self.get_interior_points (self.Hx):
             # height
             out_H[p] = self.Hx[p]
 
@@ -409,7 +411,7 @@ class MovingTest (CopyTest):
     A test case for the Moving stencil defined above.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.DEBUG)
+        logging.basicConfig (level=logging.INFO)
 
         self.domain = (64, 64, 1)
         self.params = ('out_H', 
@@ -427,6 +429,8 @@ class MovingTest (CopyTest):
         self.out_V = np.zeros (self.domain)
 
         self.stencil = Moving (self.domain)
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
     def test_compare_python_and_native_executions (self):
@@ -552,4 +556,12 @@ class MovingTest (CopyTest):
             # don't run this test if matplotlib is not available
             #
             pass
+
+
+    def test_k_directions (self):
+        self.stencil.backend = 'c++'
+
+        for dir in ('forward'):
+            self.stencil.set_k_direction (dir)
+            self._run ( )
 

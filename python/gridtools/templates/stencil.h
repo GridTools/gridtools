@@ -161,7 +161,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
         (
             gridtools::make_mss
             (
-                execute<forward>(),
+                execute<{{ stencil.k_direction }}>(),
                 {% for f in functors -%}
                 gridtools::make_esf<{{ f.name }}>(
                    {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
