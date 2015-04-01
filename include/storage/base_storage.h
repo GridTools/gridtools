@@ -158,7 +158,7 @@ namespace gridtools {
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
 	template <class ... UIntTypes>
-	base_storage(  UIntTypes const& ... args/*, value_type init = value_type(), char const* s/*="default storage"*/ ):
+	base_storage(  UIntTypes const& ... args, typename boost::enable_if_c<accumulate<logical_and(),  boost::is_integral<UIntTypes>::type::value ... >, bool >::type* dummy=0  ):
 	    is_set( false ),
 	    m_name("default_storage"),
 	    m_dims(),

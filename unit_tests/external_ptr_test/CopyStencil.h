@@ -53,13 +53,8 @@ struct functor_4647
     //
     // the input data fields of this functor are marked as 'const'
     //
-#ifdef CXX11_ENABLED
     typedef const arg_type<0> in_data;
     typedef arg_type<1> out_data;
-#else
-    typedef const arg_type<0>::type in_data;
-    typedef arg_type<1>::type out_data;
-#endif
     //
     // the ordered list of arguments of this functor
     //

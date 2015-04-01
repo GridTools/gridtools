@@ -23,15 +23,20 @@ namespace gridtools {
                "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
                field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
      */
-#ifdef CXX11_ENABLED
+
+
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
-    using arg_type = typename arg_extend< ID, Range, Number, Number>::type;
-#else
-    template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
-    struct arg_type {
+    struct arg_type : public arg_extend<ID, Range, Number, Number>::type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
+        using type::arg_decorator;
     };
-#endif
+
+    template < int ID, int Number>
+    struct arg_type0 : public arg_extend<ID, range<0,0,0,0>, Number, Number>::type {
+        typedef typename arg_extend<ID, range<0,0,0,0>, Number, Number>::type type;
+        using type::arg_decorator;
+    };
+
     /**
      * Type to create placeholders for data fields.
      *
@@ -106,9 +111,9 @@ namespace gridtools {
              */
 	    struct Index{
 		GT_FUNCTION
-		Index(){}
+		constexpr Index(){}
 		GT_FUNCTION
-		Index(Index const&){}
+		constexpr Index(Index const&){}
 		typedef Dimension<Coordinate> super;
 	    };
 
@@ -134,9 +139,9 @@ namespace gridtools {
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
     private:
-        static constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type s_args_constexpr{ enumtype::Dimension<Pair::first>{Pair::second} ... };
-
+        static constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type,  ArgType::n_dim, ArgType::n_dim>::type s_args_constexpr{ enumtype::Dimension<Pair::first>{Pair::second} ... };
         typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type m_args_runtime;
+        typedef boost::mpl::vector<static_int<Pair::first-1> ... > coordinates;
     public:
 
         template<typename ... ArgsRuntime>
@@ -161,8 +166,12 @@ namespace gridtools {
         template<short_t Idx>
         GT_FUNCTION
         constexpr
-        const int_t & get() const {
-            return s_args_constexpr.template end<Idx>() ? s_args_constexpr.get<Idx>() : m_args_runtime.get<Idx>();
+        const int_t get() const {
+            // boost::mpl::find<coordinates, static_int<Idx> >::type::fuck();
+            // boost::mpl::end<coordinates>::type::you();
+            // boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::fuckyou();
+            // static_int<Idx>::bitch();
+            return boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::value ? m_args_runtime.get<Idx>() : s_args_constexpr.get<Idx>() ;
         }
     };
 

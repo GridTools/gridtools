@@ -164,8 +164,8 @@ namespace gridtools {
                                         ( coords.i_low_bound(),
                                           coords.j_low_bound(),
                                           coords.value_at_top()-coords.value_at_bottom()+1,
-                                          backend_type::n_i_threads()(666),
-                                          backend_type::n_j_threads()(666)
+                                          backend_type::n_i_pes()(666),
+                                          backend_type::n_j_pes()(666)
                                          )
                                         );
             }

@@ -44,8 +44,8 @@ namespace copy_stencil{
         using  lhs=alias<in, z, Dimension<4> >::set< 0,1>;
         using  rhs=alias<in, z, Dimension<4> >::set< 0,0>;
 #else
-        typedef const arg_type<0, range<0,0,0,0>, 3>::type in;
-        typedef arg_type<1, range<0,0,0,0>, 3>::type out;
+        typedef const arg_type<0, range<0,0,0,0>, 3> in;
+        typedef arg_type<1, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
 
@@ -237,7 +237,6 @@ namespace copy_stencil{
         pw_stop_collector(collector_init);
 #endif
 
-        boost::timer::cpu_timer time;
 #ifdef USE_PAPI
         if( PAPI_start(event_set) != PAPI_OK)
             handle_error(1);
@@ -245,6 +244,7 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
+        boost::timer::cpu_timer time;
         copy->run();
 
 #ifdef USE_PAPI
@@ -262,6 +262,7 @@ namespace copy_stencil{
 
         copy->finalize();
 
+        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif

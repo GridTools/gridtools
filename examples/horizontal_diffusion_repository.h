@@ -62,7 +62,7 @@ public:
                 {
                     double z = dz*(double)(k-k_begin);
                     // in values between 5 and 9
-                    in_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
+                    in_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)+rand()%100) + sin(2*PI*(x+y) + rand()%100))/4.;
                     // coefficient values
                     coeff_(i,j,k) = 3e-6*(-1 + 2*(2.+cos(PI*(x+y)) + cos(PI*y*z))/4.+ 0.05*(0.5-double(rand()%100)/50.));
                 }
@@ -144,7 +144,6 @@ public:
     void update_cpu()
     {
 #ifdef CUDA_EXAMPLE
-        out_ref_.data().update_cpu();
         out_.data().update_cpu();
 #endif
     }

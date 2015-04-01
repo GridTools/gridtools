@@ -16,9 +16,9 @@ endif()
 
 if (GTEST_FOUND)
     if ( ENABLE_CXX11 )
-        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp)
     else()
-        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp)
     endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )

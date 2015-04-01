@@ -280,12 +280,12 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 3>::type hx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3>::type ux;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3>::type vx;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3>::type h;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3>::type u;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3>::type v;
+        typedef arg_type<0, range<0, 0, 0, 0>, 3> hx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 3> ux;
+        typedef arg_type<2, range<0, 0, 0, 0>, 3> vx;
+        typedef arg_type<3, range<0, 0, 0, 0>, 3> h;
+        typedef arg_type<4, range<0, 0, 0, 0>, 3> u;
+        typedef arg_type<5, range<0, 0, 0, 0>, 3> v;
 
         typedef boost::mpl::vector<hx,ux,vx,h,u,v> arg_list;
 
@@ -338,12 +338,12 @@ namespace shallow_water{
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 3>::type hy;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3>::type uy;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3>::type vy;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3>::type h;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3>::type u;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3>::type v;
+        typedef arg_type<0, range<0, 0, 0, 0>, 3> hy;
+        typedef arg_type<1, range<0, 0, 0, 0>, 3> uy;
+        typedef arg_type<2, range<0, 0, 0, 0>, 3> vy;
+        typedef arg_type<3, range<0, 0, 0, 0>, 3> h;
+        typedef arg_type<4, range<0, 0, 0, 0>, 3> u;
+        typedef arg_type<5, range<0, 0, 0, 0>, 3> v;
         typedef boost::mpl::vector<hy,uy,vy,h,u,v> arg_list;
 
         template <typename Evaluation>
@@ -396,15 +396,15 @@ namespace shallow_water{
         static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 3>::type hx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3>::type ux;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3>::type vx;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3>::type hy;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3>::type uy;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3>::type vy;
-        typedef arg_type<6, range<0, 0, 0, 0>, 3>::type h;
-        typedef arg_type<7, range<0, 0, 0, 0>, 3>::type u;
-        typedef arg_type<8, range<0, 0, 0, 0>, 3>::type v;
+        typedef arg_type<0, range<0, 0, 0, 0>, 3> hx;
+        typedef arg_type<1, range<0, 0, 0, 0>, 3> ux;
+        typedef arg_type<2, range<0, 0, 0, 0>, 3> vx;
+        typedef arg_type<3, range<0, 0, 0, 0>, 3> hy;
+        typedef arg_type<4, range<0, 0, 0, 0>, 3> uy;
+        typedef arg_type<5, range<0, 0, 0, 0>, 3> vy;
+        typedef arg_type<6, range<0, 0, 0, 0>, 3> h;
+        typedef arg_type<7, range<0, 0, 0, 0>, 3> u;
+        typedef arg_type<8, range<0, 0, 0, 0>, 3> v;
         typedef boost::mpl::vector<hx,ux,vx,hy,uy,vy,h,u,v> arg_list;
         static uint_t current_time;
 

@@ -291,7 +291,7 @@ namespace shallow_water{
         // static const y::Index j;
 
         //typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5>::type sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<sol> arg_list;
 
         template <typename Evaluation>
@@ -349,7 +349,7 @@ eval(sol(step(2),comp(1),i+1, j+1)) +
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
-        typedef arg_type<0,range<0, 0, 0, 0>, 5>::type sol;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<sol> arg_list;
 
         template <typename Evaluation>
@@ -406,7 +406,7 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
         static const x::Index i;
         static const y::Index j;
 
-        typedef arg_type<0,range<0,0,0,0>, 5>::type sol;
+        typedef arg_type<0,range<0,0,0,0>, 5> sol;
         typedef boost::mpl::vector<sol>  arg_list;
         static uint_t current_time;
 

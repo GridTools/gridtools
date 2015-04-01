@@ -38,7 +38,7 @@ namespace gridtools {
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
             typename Traits::iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer, blockIdx.x);
+            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
             it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
             __syncthreads();
 
@@ -199,28 +199,28 @@ namespace gridtools {
 //         uint_t nx_ = (uint_t) (f->m_coords.i_high_bound() + std::abs(xrange_t::iplus) + std::abs(xrange_subdomain_t::iplus) - (f->m_coords.i_low_bound() -std::abs(xrange_t::iminus) - std::abs(xrange_subdomain_t::iminus))/*+1*/);
 //         uint_t ny_ = (uint_t) (f->m_coords.j_high_bound() + std::abs(xrange_t::jplus) + std::abs(xrange_subdomain_t::jplus) - (f->m_coords.j_low_bound() -std::abs(xrange_t::jminus) - std::abs(xrange_subdomain_t::jminus))/*+1*/);
 
-                int ntx = 32, nty = 8, ntz = 1;
-                dim3 threads(ntx, nty, ntz);
+        int ntx = 32, nty = 8, ntz = 1;
+        dim3 threads(ntx, nty, ntz);
 
-                int nbx = (nx + ntx - 1) / ntx;
-                int nby = (ny + nty - 1) / nty;
-                int nbz = 1;
-                dim3 blocks(nbx, nby, nbz);
+        int nbx = (nx + ntx - 1) / ntx;
+        int nby = (ny + nty - 1) / nty;
+        int nbz = 1;
+        dim3 blocks(nbx, nby, nbz);
 
 #ifndef NDEBUG
-                printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
-                printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
-                printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
+        printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
+        printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
+        printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
-                    (local_domain_gp,
-                     coords_gp,
-                     f->m_coords.i_low_bound() + iminus,
-                     f->m_coords.j_low_bound() + jminus,
-                     (nx),
-                     (ny));
-                cudaDeviceSynchronize();
+        _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>
+            (local_domain_gp,
+             coords_gp,
+             f->m_coords.i_low_bound() + iminus,
+             f->m_coords.j_low_bound() + jminus,
+             (nx),
+             (ny));
+        cudaDeviceSynchronize();
 
         }
     };

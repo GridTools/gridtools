@@ -3,7 +3,7 @@
 #define SILENT_RUN
 #include "test_domain_indices.h"
 #include "test_smallstorage_indices.h"
-#include "boundary_conditions_test.h"
+//#include "boundary_conditions_test.h"
 #include "../examples/interface1.h"
 #include "copies_2D_1D_0D.h"
 #include "../examples/tridiagonal.h"
@@ -11,6 +11,7 @@
 #ifdef CXX11_ENABLED
 #include "test-assign-placeholders.h"
 #endif
+ #include "arg_type_tests.h"
 
 #include "communication/layout_map.cpp"
 
@@ -22,33 +23,53 @@ TEST(testsmallstorage, testindices) {
     EXPECT_EQ(test_smallstorage_indices(), true);
 }
 
-TEST(boundaryconditions, basic) {
-    EXPECT_EQ(basic(), true);
+// TEST(boundaryconditions, basic) {
+//     EXPECT_EQ(basic(), true);
+// }
+
+// TEST(boundaryconditions, predicate) {
+//     EXPECT_EQ(predicate(), true);
+// }
+
+// TEST(boundaryconditions, twosurfaces) {
+//     EXPECT_EQ(twosurfaces(), true);
+// }
+
+// TEST(boundaryconditions, usingzero1) {
+//     EXPECT_EQ(usingzero_1(), true);
+// }
+
+// TEST(boundaryconditions, usingzero2) {
+//     EXPECT_EQ(usingzero_2(), true);
+// }
+
+// TEST(boundaryconditions, usingvalue2) {
+//     EXPECT_EQ(usingvalue_2(), true);
+// }
+
+// TEST(boundaryconditions, usingcopy3) {
+//     EXPECT_EQ(usingcopy_3(), true);
+// }
+
+TEST(interface, arg_type1) {
+    EXPECT_EQ(interface::test_trivial(), true);
+}
+TEST(interface, arg_type2) {
+    EXPECT_EQ(interface::test_alternative1(), true);
 }
 
-TEST(boundaryconditions, predicate) {
-    EXPECT_EQ(predicate(), true);
-}
+#ifdef CXX11_ENABLED
 
-TEST(boundaryconditions, twosurfaces) {
-    EXPECT_EQ(twosurfaces(), true);
+TEST(interface, arg_type3) {
+    EXPECT_EQ(interface::test_alternative2(), true);
 }
-
-TEST(boundaryconditions, usingzero1) {
-    EXPECT_EQ(usingzero_1(), true);
+TEST(interface, arg_type4) {
+    EXPECT_EQ(interface::test_static_alias(), true);
 }
-
-TEST(boundaryconditions, usingzero2) {
-    EXPECT_EQ(usingzero_2(), true);
+TEST(interface, arg_type5) {
+    EXPECT_EQ(interface::test_dynamic_alias(), true);
 }
-
-TEST(boundaryconditions, usingvalue2) {
-    EXPECT_EQ(usingvalue_2(), true);
-}
-
-TEST(boundaryconditions, usingcopy3) {
-    EXPECT_EQ(usingcopy_3(), true);
-}
+#endif
 
 TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
@@ -58,6 +79,7 @@ TEST(stencil, horizontaldiffusion) {
 TEST(stencil, horizontaldiffusion_block) {
     EXPECT_EQ(horizontal_diffusion::test(7, 13, 5), true);
 }
+
 #undef BACKEND_BLOCK
 
 #define __Size0 5

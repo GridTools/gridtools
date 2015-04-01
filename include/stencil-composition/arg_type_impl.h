@@ -244,7 +244,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         //#ifdef NDEBUG
         constexpr
         //#endif
-        int_t const& get() const {//stop recursion
+        int_t const get() const {//stop recursion
 
 // #ifndef NDEBUG
 //             printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n \
@@ -424,7 +424,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 	template<short_t Idx>
         GT_FUNCTION
         constexpr
-        int_t const& get() const {
+        int_t const get() const {
             //NOTE: this should be a constexpr whenever m_offset is a static const
 	    //this might not be compile-time efficient for large indexes,
 	    //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
