@@ -74,7 +74,8 @@ namespace assembly{
 				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(i+1, j+1) +
 				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(i+1, k+1) +
 				     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(j+1,k+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(i+1,j+1,k+1))
+				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(i+1,j+1,k+1)
+                                    )
 				/8;
 
 	}
@@ -84,7 +85,7 @@ namespace assembly{
 	return s << "integration";
     }
 
-	int test(uint_t d1, uint_t d2, uint_t d3){
+    bool test(uint_t d1, uint_t d2, uint_t d3){
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Naive >
@@ -122,6 +123,11 @@ namespace assembly{
 	    //Or alternatively computing the values on the quadrature points on the GPU
 	    integration_type jac(d1,d2,d3,nbQuadPt);
 
+            //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
+            jac.allocate();
+            psi.allocate();
+            phi.allocate();
+
             for(uint_t i=0; i<d1; ++i)
                 for(uint_t j=0; j<d2; ++j)
                     for(uint_t k=0; k<d3; ++k)
@@ -138,6 +144,7 @@ namespace assembly{
                             psi(i,j,k,q)=11.;
                         }
 	    storage_type f(d1, d2, d3, (float_type)1.3, "f");
+
 	    storage_type result(d1, d2, d3, (float_type)0., "result");
 
 	    gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
@@ -146,8 +153,8 @@ namespace assembly{
 	       The coordinates constructor takes the horizontal plane dimensions,
 	       while the vertical ones are set according the the axis property soon after
 	    */
-	    uint_t di[5] = {2, 2, 2, d1-2, d1};
-	    uint_t dj[5] = {2, 2, 2, d2-2, d2};
+	    uint_t di[5] = {1, 1, 1, d1-3, d1};
+	    uint_t dj[5] = {1, 1, 1, d2-3, d2};
 	    gridtools::coordinates<axis> coords(di,dj);
 	    coords.value_list[0] = 0;
 	    coords.value_list[1] = d3-2;
@@ -174,6 +181,29 @@ namespace assembly{
             fe_comp->finalize();
 
             result.print();
+
+            bool success(true);
+            for(uint_t i=0; i<d1; ++i)
+                for(uint_t j=0; j<d2; ++j)
+                    for(uint_t k=0; k<d3; ++k)
+                    {
+                        if (result(i, j, k)!=((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/((i==2&&j==2)?1:2)/ ((k==0||k==5)?2:1) /(((i==1||i==3)&&(j==1||j==3))?2:1)*((i==0||i==4||j==0||j==4)?0:1)) {
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+                                      << "result = " << result(i, j, k)
+                                      << " instead of " << ((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/(((i==1||i==3)&&(j==1||j==3))?2:1)/(((i==1||i==3)&&(j==1||j==3)&&(k==0||k==5))?2:1)*((i==0||i==4||j==0||j==4)?0:1)
+                                      << std::endl;
+                            success = false;
+                        }
+                    }
+
+
+            //jac.print();
+            //phi.print();
+            //psi.print();
+            return success;
 	}
 
 }; //namespace assembly

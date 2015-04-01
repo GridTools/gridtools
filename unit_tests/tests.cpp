@@ -7,11 +7,12 @@
 #include "../examples/interface1.h"
 #include "copies_2D_1D_0D.h"
 #include "../examples/tridiagonal.h"
+#include "../examples/extended_4D.h"
 #include "external_ptr_test/CopyStencil.h"
 #ifdef CXX11_ENABLED
 #include "test-assign-placeholders.h"
 #endif
- #include "arg_type_tests.h"
+#include "arg_type_tests.h"
 
 #include "communication/layout_map.cpp"
 
@@ -160,6 +161,10 @@ TEST(stencil, copies2DScalarDst) {
 
 TEST(stencil, tridiagonal) {
     EXPECT_EQ(tridiagonal::solver(1, 1, 6), true);
+}
+
+TEST(stencil, extended_4D) {
+    EXPECT_EQ(assembly::test(5, 5, 6), true);
 }
 
 #ifdef CXX11_ENABLED
