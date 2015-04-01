@@ -32,7 +32,7 @@ namespace gridtools {
 
 	explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
 
-#if defined(CXX11_ENABLED) && !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
+#if defined(CXX11_ENABLED) && ( !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) ) )
 	//arbitrary dimensional field
 	template <class ... UIntTypes>
 	explicit storage(  UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(args ...)

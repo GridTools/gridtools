@@ -6,8 +6,7 @@
 #pragma once
 
 #include <gridtools.h>
-#include <common/defs.h>
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend.h>
 
 #include <boost/fusion/include/make_vector.hpp>
 
@@ -50,7 +49,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 bool test (uint_t d1, uint_t d2, uint_t d3,
            {%- for arg in params -%}
-           void *{{ arg.name }}_buff
+           float_type *{{ arg.name }}_buff
                {%- if not loop.last -%}
                ,
                {%- endif -%}
@@ -83,9 +82,9 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // parameter data fields use the memory buffers received from NumPy arrays
     // 
     {% for p in params -%}
-    storage_type {{ p.name }} ({{ p.value.shape|join_with_prefix('(uint_t) ')|join(',') }},
-                                 (float_type *) {{ p.name }}_buff,
-								 "{{ p.name }}");
+    storage_type {{ p.name }} (d1, d2, d3,
+                               (float_type *) {{ p.name }}_buff,
+                               "{{ p.name }}");
     {% endfor %}
     {% endif -%}
 
@@ -161,7 +160,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
         (
             gridtools::make_mss
             (
-                execute<forward>(),
+                execute<{{ stencil.k_direction }}>(),
                 {% for f in functors -%}
                 gridtools::make_esf<{{ f.name }}>(
                    {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
