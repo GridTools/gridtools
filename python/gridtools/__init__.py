@@ -323,13 +323,6 @@ class StencilInspector (ast.NodeVisitor):
                                              self.stencil_scope)
                             self.functors.append (funct)
                             logging.debug ("Functor '%s' created" % funct.name)
-
-                            # 
-                            # update halo information if present
-                            #
-                            for k in call.keywords:
-                                if k.arg == 'halo':
-                                    self.stencil.halo = tuple ([e.n for e in k.value.elts])
             else:
                 raise ValueError ("The 'kernel' function should return 'None'")
 
