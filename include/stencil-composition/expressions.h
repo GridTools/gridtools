@@ -9,26 +9,26 @@ namespace gridtools{
 
 #ifdef __CUDACC__
     /**@brief Class in substitution of std::pow, not available in CUDA*/
-	template <uint_t Number>
-	struct products{
-	    template<typename Value>
-	    GT_FUNCTION
-	    static Value constexpr apply(Value& v)
-		{
-		    return v*products<Number-1>::apply(v);
-		}
-	};
+    template <uint_t Number>
+    struct products{
+        template<typename Value>
+        GT_FUNCTION
+        static Value constexpr apply(Value& v)
+            {
+                return v*products<Number-1>::apply(v);
+            }
+    };
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
-	template <>
-	struct products<0>{
-	    template<typename Value>
-	    GT_FUNCTION
-	    static Value constexpr apply(Value& v)
-		{
-		    return 1.;
-		}
-	};
+    template <>
+    struct products<0>{
+        template<typename Value>
+        GT_FUNCTION
+        static Value constexpr apply(Value& v)
+            {
+                return 1.;
+            }
+    };
 #endif
 
 
@@ -50,14 +50,14 @@ namespace gridtools{
             second_operand{second_operand}
             {}
 
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr expr(expr const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
 
         ArgType1 const first_operand;
         ArgType2 const second_operand;
     private:
         /**@brief default empty constructor*/
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr expr(){}
     };
 
@@ -71,15 +71,15 @@ namespace gridtools{
             first_operand{first_operand}
             {}
 
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr unary_expr( unary_expr const& other): first_operand(other.first_operand){}
 
         ArgType1 const first_operand;
 
     private:
         /**@brief default empty constructor*/
-	GT_FUNCTION
-	constexpr unary_expr(){}
+        GT_FUNCTION
+        constexpr unary_expr(){}
     };
 
     /**@brief Expression summing two arguments*/
@@ -89,17 +89,17 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr expr_plus(expr_plus const& other):super(other){};
 
     private:
         constexpr expr_plus(){};
 #ifndef __CUDACC__
-	static char constexpr op[]="+";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="+";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
 
@@ -117,11 +117,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(){}
 #ifndef __CUDACC__
-	static char constexpr op[]="-";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="-";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
 
@@ -138,10 +138,10 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_times(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="*";
+        static char constexpr op[]="*";
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
 };
 
@@ -159,11 +159,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="/";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="/";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
 };
 
@@ -183,11 +183,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(){}
 #ifndef __CUDACC__
-	static char constexpr op[]="^";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="^";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
 
@@ -203,7 +203,7 @@ namespace gridtools{
         typedef unary_expr<ArgType1> super;
         GT_FUNCTION
         constexpr expr_pow(ArgType1 const& first_operand):super(first_operand){}
-	static const int exponent=Exponent;
+        static const int exponent=Exponent;
 
         GT_FUNCTION
         constexpr expr_pow(expr_pow const& other):super(other) {}
@@ -212,11 +212,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_pow(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="^2";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="^2";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<  ArgType1, operation >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<  ArgType1, operation >;
 #endif
 };
 
@@ -239,11 +239,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="!x";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="!x";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<  ArgType1, operation >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<  ArgType1, operation >;
 #endif
 };
 
@@ -285,31 +285,31 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp<ArgType1, int >    pow (ArgType1 arg1, int arg2){return expr_exp<ArgType1, int >(arg1, arg2);}
 
-	/** direct access expression*/
+        /** direct access expression*/
         template<typename ArgType1>
         GT_FUNCTION
         constexpr expr_direct_access<ArgType1>    operator ! (ArgType1 arg1){return expr_direct_access<ArgType1>(arg1);}
 
-	template <int Exponent, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0>
+        template <int Exponent, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0>
         GT_FUNCTION
         constexpr FloatType  pow (FloatType arg1)
 #ifdef __CUDACC__
-	{return products<Exponent>::apply(arg1);}
+        {return products<Exponent>::apply(arg1);}
 #else
         {return std::pow(arg1, Exponent);}
 #endif
     }
 #endif
     namespace expressions{
-	/**Expressions defining the interface for specifiyng a given offset for a specified dimension
-	   \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
-	template<typename Left>
-	GT_FUNCTION
-	constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
+        /**Expressions defining the interface for specifiyng a given offset for a specified dimension
+           \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
+        template<typename Left>
+        GT_FUNCTION
+        constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
 
-	template<typename Left>
-	GT_FUNCTION
-	constexpr typename Left::super operator -(Left d1, int const&  offset) {return typename Left::super(-offset);}
+        template<typename Left>
+        GT_FUNCTION
+        constexpr typename Left::super operator -(Left d1, int const&  offset) {return typename Left::super(-offset);}
 
 /**@}*/
     }//namespace expressions

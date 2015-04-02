@@ -58,11 +58,11 @@ namespace shallow_water{
     struct bc_periodic {
 
         typedef Dimension<5> comp;
-	/**@brief space discretization step in direction i */
-	GT_FUNCTION
+        /**@brief space discretization step in direction i */
+        GT_FUNCTION
         static float_type dx(){return 1.;}
-	/**@brief space discretization step in direction j */
-	GT_FUNCTION
+        /**@brief space discretization step in direction j */
+        GT_FUNCTION
         static float_type dy(){return 1.;}
 
         // periodic boundary conditions in I
@@ -71,7 +71,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -80,10 +80,10 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
-	// default: do nothing
+        // default: do nothing
         template <sign I, sign J, sign K, typename P, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, J, K, P>,
@@ -92,16 +92,16 @@ namespace shallow_water{
         }
 
 #define height 2.
-	GT_FUNCTION
-    	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
+        GT_FUNCTION
+        static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             //if(i<3 && j<3)
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
                 //else
                 //return 1.;
        }
 
-	GT_FUNCTION
-    	static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
+        GT_FUNCTION
+        static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
 //             if(i>1 && j>1 && i<5 && j<5)
                 return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
 //             else
@@ -122,7 +122,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i,j+1,k)];
+            data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i,j+1,k)];
         }
 
         // periodic boundary conditions in I
@@ -131,7 +131,7 @@ namespace shallow_water{
         void operator()(direction<I, plus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i,j-1,k)];
+            data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i,j-1,k)];
         }
 
         // periodic boundary conditions in J (I=0) for H
@@ -140,7 +140,7 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K, typename boost::enable_if_c<J!=plus_&&J!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i+1,j,k)];
+            data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i+1,j,k)];
         }
 
                 // periodic boundary conditions in J (I=0) for H
@@ -149,10 +149,10 @@ namespace shallow_water{
         void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i-1,j,k)];
+            data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i-1,j,k)];
         }
 
-	// default: do nothing
+        // default: do nothing
         template <sign I, sign J, sign K, typename P, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, J, K, P>,
@@ -171,7 +171,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<1, Snapshot>()[data_field0._index(i,j+1,k)];
+            data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<1, Snapshot>()[data_field0._index(i,j+1,k)];
         }
 
         // periodic boundary conditions in I (J=N)
@@ -180,7 +180,7 @@ namespace shallow_water{
         void operator()(direction<I, plus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<1, Snapshot>()[data_field0._index(i,j-1,k)];
+            data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<1, Snapshot>()[data_field0._index(i,j-1,k)];
         }
 
         // periodic boundary conditions in J (I=0) for H
@@ -189,7 +189,7 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<1, Snapshot>()[data_field0._index(i+1,j,k)];
+            data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<1, Snapshot>()[data_field0._index(i+1,j,k)];
         }
 
         // periodic boundary conditions in J (I=0) for H
@@ -198,10 +198,10 @@ namespace shallow_water{
         void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<1, Snapshot>()[data_field0._index(i-1,j,k)];
+            data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<1, Snapshot>()[data_field0._index(i-1,j,k)];
         }
 
-	// default: do nothing
+        // default: do nothing
         template <sign I, sign J, sign K, typename P, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, J, K, P>,
@@ -219,7 +219,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<2, Snapshot>()[data_field0._index(i,j+1,k)];
+            data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<2, Snapshot>()[data_field0._index(i,j+1,k)];
         }
 
         // periodic boundary conditions in I
@@ -228,7 +228,7 @@ namespace shallow_water{
         void operator()(direction<I, plus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<2, Snapshot>()[data_field0._index(i,j-1,k)];
+            data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<2, Snapshot>()[data_field0._index(i,j-1,k)];
         }
 
         // periodic boundary conditions in J (I=0) for H
@@ -237,7 +237,7 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<2, Snapshot>()[data_field0._index(i+1,j,k)];
+            data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<2, Snapshot>()[data_field0._index(i+1,j,k)];
         }
 
         // periodic boundary conditions in J (I=0) for H
@@ -246,10 +246,10 @@ namespace shallow_water{
         void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<2, Snapshot>()[data_field0._index(i-1,j,k)];
+            data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<2, Snapshot>()[data_field0._index(i-1,j,k)];
         }
 
-	// default: do nothing
+        // default: do nothing
         template <sign I, sign J, sign K, typename P, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, J, K, P>,
@@ -267,17 +267,17 @@ namespace shallow_water{
         typedef range<0,1,0,0> xrange_subdomain;
 
         typedef Dimension<5> comp;
-	/**@brief space discretization step in direction i */
-	GT_FUNCTION
+        **@brief space discretization step in direction i */
+        GT_FUNCTION
         static float_type dx(){return 1.;}
-	/**@brief space discretization step in direction j */
-	GT_FUNCTION
+        /**@brief space discretization step in direction j */
+        GT_FUNCTION
         static float_type dy(){return 1.;}
-	/**@brief time discretization step */
-	GT_FUNCTION
+        /**@brief time discretization step */
+        GT_FUNCTION
         static float_type dt(){return .02;}
-	/**@brief gravity acceleration */
-	GT_FUNCTION
+        /**@brief gravity acceleration */
+        GT_FUNCTION
         static float_type g(){return 9.81;}
 
         // static const x::Index i;
@@ -373,17 +373,17 @@ namespace shallow_water{
         typedef range<1,1,1,1> xrange_subdomain;
 
         typedef Dimension<5> comp;
-	/**@brief space discretization step in direction i */
-	GT_FUNCTION
+        /**@brief space discretization step in direction i */
+        GT_FUNCTION
         static float_type dx(){return 1.;}
-	/**@brief space discretization step in direction j */
-	GT_FUNCTION
+        /**@brief space discretization step in direction j */
+        GT_FUNCTION
         static float_type dy(){return 1.;}
-	/**@brief time discretization step */
-	GT_FUNCTION
+        /**@brief time discretization step */
+        GT_FUNCTION
         static float_type dt(){return .02;}
-	/**@brief gravity acceleration */
-	GT_FUNCTION
+        /**@brief gravity acceleration */
+        GT_FUNCTION
         static float_type g(){return 9.81;}
 
         static const x::Index i;
@@ -454,7 +454,7 @@ namespace shallow_water{
  */
     std::ostream& operator<<(std::ostream& s, first_step_x const) {
         return s << "initial step 1: ";
-	// initiali_step.to_string();
+        // initiali_step.to_string();
     }
 
     std::ostream& operator<<(std::ostream& s, second_step_y const) {

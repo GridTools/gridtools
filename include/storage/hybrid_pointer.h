@@ -20,11 +20,11 @@ namespace gridtools {
         typedef wrap_pointer<T> super;
         typedef typename super::pointee_t pointee_t;
 
-	GT_FUNCTION
-	explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
+        GT_FUNCTION
+        explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
 
-	GT_FUNCTION
-	explicit  hybrid_pointer(T* p) : wrap_pointer<T>(p), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
+        GT_FUNCTION
+        explicit  hybrid_pointer(T* p) : wrap_pointer<T>(p), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
 
         explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
@@ -36,7 +36,7 @@ namespace gridtools {
         }
 
 // copy constructor passes on the ownership
-	GT_FUNCTION
+        GT_FUNCTION
         hybrid_pointer(hybrid_pointer const& other)
             : wrap_pointer<T>(other)
             , m_gpu_p(other.m_gpu_p)
@@ -57,7 +57,7 @@ namespace gridtools {
 #endif
         }
 
-	GT_FUNCTION
+        GT_FUNCTION
         virtual ~hybrid_pointer(){  };
 
         void allocate_it(uint_t size) {
@@ -170,7 +170,7 @@ namespace gridtools {
         T* get_pointer_to_use(){return m_pointer_to_use;}
 
         GT_FUNCTION
-	pointee_t* get() const {return m_gpu_p;}
+        pointee_t* get() const {return m_gpu_p;}
 
         GT_FUNCTION
         int get_size(){return m_size;}

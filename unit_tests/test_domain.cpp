@@ -195,7 +195,10 @@ bool test_domain() {
     printf("\n\nFROM GPU\n\n");
 #endif
     print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
+
+#ifdef __CUDACC__
     cudaDeviceSynchronize();
+#endif
 #ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
 #endif
@@ -232,7 +235,9 @@ bool test_domain() {
     printf("\n\nFROM GPU\n\n");
 #endif
     print_values<<<1,1>>>(arg_list_device_ptr);
+#ifdef __CUDACC__
     cudaDeviceSynchronize();
+#endif
 #ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
 #endif

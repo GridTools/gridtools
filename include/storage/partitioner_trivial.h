@@ -18,7 +18,7 @@ The partitioner class is storage-agnostic, does not know anything about the stor
 namespace gridtools{
 
     //use of static polimorphism (partitioner methods may be accessed from whithin loops)
-    template <typename Storage, typename Communicator>
+    template <typename Communicator>
     class partitioner_trivial : public partitioner<partitioner_trivial<Storage, Communicator> > {
     public:
         typedef Storage storage_t;

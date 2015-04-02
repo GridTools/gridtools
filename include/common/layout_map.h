@@ -244,14 +244,14 @@ namespace gridtools {
         // }
 
 
-	/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
-	 \tparam I dimension (0->i, 1->j, 2->k, ...)
-	 \tparam T type of the return value
-	 \tparam DefaultVal default value return when the dimension I does not exist
-	 \tparam Indices type of the indices passed as argument
-	 \param indices argument vector of indices
-	*/
-	template <ushort_t I, typename T, T DefaultVal, typename Indices>
+/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
+    \tparam I dimension (0->i, 1->j, 2->k, ...)
+    \tparam T type of the return value
+    \tparam DefaultVal default value return when the dimension I does not exist
+    \tparam Indices type of the indices passed as argument
+    \param indices argument vector of indices
+*/
+        template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
         static constexpr Indices
         find_val(Indices const * indices) {

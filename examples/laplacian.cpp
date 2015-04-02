@@ -122,9 +122,9 @@ int main(int argc, char** argv) {
     }
 
     /**
-	The following steps are performed:
+       The following steps are performed:
 
-	- Definition of the domain:
+       - Definition of the domain:
     */
     uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
@@ -145,12 +145,12 @@ int main(int argc, char** argv) {
 
     typedef gridtools::layout_map<0,1,2> layout_t;
     /**
-	- definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
+       - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     /**
     - definition of the temporary storage type, also depends on the backend
-	\todo unused here?
+    \todo unused here?
     */
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 

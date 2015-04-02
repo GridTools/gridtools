@@ -266,12 +266,12 @@ type;
             static const uint_t len=boost::mpl::size<raw_index_list>::value;
 
             /**
-	           @brief filter out duplicates
-	           check if the indexes are repeated (a common error is to define 2 types with the same index)
+               @brief filter out duplicates
+               check if the indexes are repeated (a common error is to define 2 types with the same index)
              */
             typedef typename boost::mpl::fold<raw_index_list,
-                boost::mpl::set<>,
-			    boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+                                              boost::mpl::set<>,
+                                              boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
             >::type index_set;
         };
     } // namespace _impl

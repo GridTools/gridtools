@@ -14,9 +14,9 @@
 #endif
 
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 #endif
 
 #ifdef CUDA_EXAMPLE
@@ -24,6 +24,8 @@
 #else
 #include <boundary-conditions/apply.h>
 #endif
+
+#include <communication/halo_exchange.h>
 
 //#define BACKEND_BLOCK 1
 /*
@@ -56,17 +58,17 @@ namespace shallow_water{
     struct functor_traits{
         using comp=Dimension<5>;
 
-	/**@brief space discretization step in direction i */
-	GT_FUNCTION
+        /**@brief space discretization step in direction i */
+        GT_FUNCTION
         static float_type dx(){return 1.;}
-	/**@brief space discretization step in direction j */
-	GT_FUNCTION
+        /**@brief space discretization step in direction j */
+        GT_FUNCTION
         static float_type dy(){return 1.;}
-	/**@brief time discretization step */
-	GT_FUNCTION
+        /**@brief time discretization step */
+        GT_FUNCTION
         static float_type dt(){return .02;}
-	/**@brief gravity acceleration */
-	GT_FUNCTION
+        /**@brief gravity acceleration */
+        GT_FUNCTION
         static float_type g(){return 9.81;}
 
         static x::Index i;
@@ -86,7 +88,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -95,10 +97,10 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
-	// default: do nothing
+        // default: do nothing
         template <sign I, sign J, sign K, typename P, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, J, K, P>,
@@ -106,9 +108,9 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-	static constexpr float_type height=2.;
-	GT_FUNCTION
-    	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
+        static constexpr float_type height=2.;
+        GT_FUNCTION
+        static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             if(i>0 && j>0 && i<4 && j<4)
                 return 1.+height * std::exp(-5*(((i-1)*dx())*(((i-1)*dx()))+((j-1)*dy())*((j-1)*dy())));
             else
@@ -146,20 +148,24 @@ namespace shallow_water{
         // auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
         // auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
 
-        eval(hx())= eval((h(i+1,j+1) +h(j+1))/2. -
-                         (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
+            eval(hx())=
+                eval((h(i+1,j+1) +h(j+1))/2. -
+                     (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
 
-        eval(ux())=eval(u(i+1, j+1) +
-                        u(j+1)/2.-
-                        ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
-                         (pow<2>(u(j+1))/h(j+1) +
-                         pow<2>(h(j+1))*(g()/2.)
-                             ))*(dt()/(2.*dx())));
+            eval(ux())=
+                eval(u(i+1, j+1) +
+                     u(j+1)/2.-
+                     ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
+                      (pow<2>(u(j+1))/h(j+1) +
+                       pow<2>(h(j+1))*(g()/2.)
+                          ))*(dt()/(2.*dx())));
 
-        eval(vx())=eval( (v(i+1,j+1) +
-                          v(j+1))/2. -
-                         (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
-                          u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
+            eval(vx())=
+                eval( (v(i+1,j+1) +
+                       v(j+1))/2. -
+                      (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
+                       u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
+
         }
     };
 
@@ -195,6 +201,7 @@ namespace shallow_water{
                          (pow<2>(v(i+1))/h(i+1) +
                           pow<2>(h(i+1))*(g()/2.)
                              ))*(dt()/(2.*dy())));
+
         }
     };
 
@@ -207,7 +214,7 @@ namespace shallow_water{
         typedef arg_type<1, range<0,0,0,0>, 5> tmpy;
         typedef arg_type<2,range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
-	static uint_t current_time;
+        static uint_t current_time;
 
         //########## FINAL STEP #############
         //data dependencies with the previous parts
@@ -226,27 +233,31 @@ namespace shallow_water{
         static void Do(Evaluation const & eval, x_interval) {
 
 
-	    // auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
+            // auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
             // auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
             // auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
 
-            eval(sol()) = eval(sol()-
-                               (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
-                               -
-                               (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
-                );
+            eval(sol()) =
+                eval(sol()-
+                     (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
+                     -
+                     (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
+                    );
 
-            eval(sol(comp(1))) =  eval(sol(comp(1)) -
-                                       (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
-	    			       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-                                              (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-                                               vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
+            eval(sol(comp(1))) =
+                eval(sol(comp(1)) -
+                     (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
+                      (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+                     (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
+                      vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
 
-            eval(sol(comp(2))) = eval(sol(comp(2)) -
-                                       (ux(j-1)    *vx(j-1)       /hx(j-1) -
-                                        (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
-                                      (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
-                                       (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
+            eval(sol(comp(2))) =
+                eval(sol(comp(2)) -
+                     (ux(j-1)    *vx(j-1)       /hx(j-1) -
+                      (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
+                     (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
+                      (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
+
         }
 
     };
@@ -267,7 +278,7 @@ namespace shallow_water{
  */
     std::ostream& operator<<(std::ostream& s, first_step_x const) {
         return s << "initial step 1: ";
-	// initiali_step.to_string();
+        // initiali_step.to_string();
     }
 
     std::ostream& operator<<(std::ostream& s, second_step_y const) {
@@ -356,9 +367,9 @@ namespace shallow_water{
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
             sol.set<0,0>(out7, 1.);//h
-        sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
-        sol.set<1>(out8, 0.);//u
-        sol.set<2>(out9, 0.);//v
+        sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+        sol.set<0,1>(out8, 0.);//u
+        sol.set<0,2>(out9, 0.);//v
 
 //         std::cout<<"INITIALIZED VALUES"<<std::endl;
 //         sol.print();
@@ -370,8 +381,12 @@ namespace shallow_water{
     std::stringstream name;
     name<<"example"<<pid<<".txt";
     myfile.open (name.str().c_str());
-#endif
 
+//     std::cout<<"INITIALIZED VALUES"<<std::endl;
+//     sol.print(myfile);
+//     std::cout<<"#####################################################"<<std::endl;
+
+#endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)

@@ -49,17 +49,17 @@ namespace shallow_water{
         using comp=Dimension<5>;
 //#endif
 
-	/**@brief space discretization step in direction i */
-	GT_FUNCTION
+        /**@brief space discretization step in direction i */
+        GT_FUNCTION
         static float_type dx(){return 1.;}
-	/**@brief space discretization step in direction j */
-	GT_FUNCTION
+        /**@brief space discretization step in direction j */
+        GT_FUNCTION
         static float_type dy(){return 1.;}
-	/**@brief time discretization step */
-	GT_FUNCTION
+        /**@brief time discretization step */
+        GT_FUNCTION
         static float_type dt(){return .02;}
-	/**@brief gravity acceleration */
-	GT_FUNCTION
+        /**@brief gravity acceleration */
+        GT_FUNCTION
         static float_type g(){return 9.81;}
 
     };
@@ -72,8 +72,8 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    // TODO use placeholders here instead of the storage
-	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            // TODO use placeholders here instead of the storage
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -82,11 +82,11 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-	    // TODO use placeholders here instead of the storage
-	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            // TODO use placeholders here instead of the storage
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
-	// default: do nothing
+        // default: do nothing
         template <sign I, sign J, sign K, typename P, typename DataField0>
         GT_FUNCTION
         void operator()(direction<I, J, K, P>,
@@ -94,9 +94,9 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-	static constexpr float_type height=2.;
-	GT_FUNCTION
-    	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
+        static constexpr float_type height=2.;
+        GT_FUNCTION
+        static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             if(i>0 && j>0 && i<4 && j<4)
                 return 1.+height * std::exp(-5*(((i-1)*dx())*(((i-1)*dx()))+((j-1)*dy())*((j-1)*dy())));
             else
@@ -109,19 +109,19 @@ namespace shallow_water{
     //     // periodic boundary conditions in K
     //     typedef arg_type<0> bc1;
     //     typedef arg_type<0> bc2;
-    // 	static const float_type height=3.;
+    //  static const float_type height=3.;
 
-    // 	GT_FUNCTION
-    // 	static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-    // 	    return height * std::exp(-5*((i*dx())*((i*dx())+(j*dy())*(j*dy())));
-    // 	}
+    //  GT_FUNCTION
+    //  static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
+    //      return height * std::exp(-5*((i*dx())*((i*dx())+(j*dy())*(j*dy())));
+    //  }
 
     //     template < typename Evaluation>
     //     GT_FUNCTION
-    // 	static void Do(Evaluation const & eval, x_interval) {
-    // 	    {
-    // 		bc1() = bc2;
-    // 	    }
+    //  static void Do(Evaluation const & eval, x_interval) {
+    //      {
+    //   bc1() = bc2;
+    //      }
     // };
 
     // struct bc_vertical{
@@ -176,11 +176,11 @@ namespace shallow_water{
                          (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
                           u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
 
-    // 	void to_string(){
-    // 	    (sol(V,d1,d2) +
-    // 	     sol(V,d1)/2. -
-    // 	     (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
-    // 	      sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
+        //  void to_string(){
+        //      (sol(V,d1,d2) +
+        //       sol(V,d1)/2. -
+        //       (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
+        //        sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
         }
     };
 
@@ -232,7 +232,7 @@ namespace shallow_water{
         //typedef Dimension<3> step;
         typedef Dimension<5> comp;
 #endif
-	static uint_t current_time;
+        static uint_t current_time;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -251,23 +251,23 @@ namespace shallow_water{
 
             eval(sol()) = eval(sol()-
                                (tmpx(c+1, i-1) - tmpx(c+1, i-1, j-1))*(dt()/dx())-
-	    		       (tmpy(c+2, i/**/-1) - tmpy(c+2, i-1, j-1))*(dt()/dy())/**/);
+                               (tmpy(c+2, i/**/-1) - tmpy(c+2, i-1, j-1))*(dt()/dy())/**/);
 
             eval(sol(comp(1))) = eval(sol(c+1)   -
-				      (pow<2>(tmpx(c+1, j-1))                / tmpx(j-1)     + tmpx(j-1)*tmpx(j-1)*((g()/2.))                 -
-				       (pow<2>(tmpx(c+1,i-1,j-1))            / tmpx(i-1, j-1) +pow<2>(tmpx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-				      (tmpy(c+2,i-1)*tmpy(c+1,i-1)          / tmpy(i-1)                                                   -
-				       tmpy(c+2,i-1, j-1)*tmpy(c+1,i-1,j-1) / tmpy(i-1, j-1))*((dt()/dy())));/**/
+                                      (pow<2>(tmpx(c+1, j-1))                / tmpx(j-1)     + tmpx(j-1)*tmpx(j-1)*((g()/2.))                 -
+                                       (pow<2>(tmpx(c+1,i-1,j-1))            / tmpx(i-1, j-1) +pow<2>(tmpx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+                                      (tmpy(c+2,i-1)*tmpy(c+1,i-1)          / tmpy(i-1)                                                   -
+                                       tmpy(c+2,i-1, j-1)*tmpy(c+1,i-1,j-1) / tmpy(i-1, j-1))*((dt()/dy())));/**/
 // + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
             eval(sol(comp(2))) = eval(sol(comp(2)) -
-	    			      (tmpx(c+1,j-1)    *tmpx(c+2,j-1)       /tmpy(j-1) -
+                                      (tmpx(c+1,j-1)    *tmpx(c+2,j-1)       /tmpy(j-1) -
                                        (tmpx(c+1,i-1,j-1)*tmpx(c+2,i-1, j-1)) /tmpx(i-1, j-1))*((dt()/dx()))-
                                       (pow<2>(tmpy(c+2,i-1))                /tmpy(i-1)      +pow<2>(tmpy(i-1)     )*((g()/2.)) -
                                        pow<2>(tmpy(c+2,i-1,j-1))           /tmpy(i-1,j-1) +pow<2>(tmpy(i-1, j-1))*((g()/2.))   )*((dt()/dy())));
 #else
 
-	    auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
+            auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
             auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
             auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
 
@@ -279,7 +279,7 @@ namespace shallow_water{
 
             eval(sol(comp(1))) = eval(sol(comp(1)) -
                                        (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
-	    			       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+                                        (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
                                               (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
                                                vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
 
@@ -290,7 +290,7 @@ namespace shallow_water{
                                        (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
 #endif
 
-    	}
+        }
 
     };
 
@@ -301,7 +301,7 @@ namespace shallow_water{
  */
     std::ostream& operator<<(std::ostream& s, first_step_x const) {
         return s << "initial step 1: ";
-	// initiali_step.to_string();
+        // initiali_step.to_string();
     }
 
     std::ostream& operator<<(std::ostream& s, second_step_y const) {
@@ -321,9 +321,9 @@ namespace shallow_water{
     bool test(uint_t x, uint_t y, uint_t z) {
         {
 #ifndef __CUDACC__
-	    //testing the static printing
-	    typedef string_c<print, s1, s2, s1, s1 > s;
-	    s::apply();
+            //testing the static printing
+            typedef string_c<print, s1, s2, s1, s1 > s;
+            s::apply();
 #endif
 
             uint_t d1 = x;
@@ -346,19 +346,19 @@ namespace shallow_water{
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))))
-	    //typedef field<storage_type::basic_type, 1, 1, 1>::type tmp_type;
+            //typedef field<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;
 #else
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-	    typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type1;
-	    typedef extend_width<base_type1, 1>  extended_type;
-	    typedef storage<extend_dim<extended_type, extended_type, extended_type> >  tmp_type;
+            typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type1;
+            typedef extend_width<base_type1, 1>  extended_type;
+            typedef storage<extend_dim<extended_type, extended_type, extended_type> >  tmp_type;
 
-	    typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type2;
-	    typedef extend_width<base_type2, 0>  extended_type2;
-	    typedef storage<extend_dim<extended_type2, extended_type2, extended_type2> >  sol_type;
+            typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type2;
+            typedef extend_width<base_type2, 0>  extended_type2;
+            typedef storage<extend_dim<extended_type2, extended_type2, extended_type2> >  sol_type;
 #endif
-	    typedef sol_type::original_storage::pointer_type ptr;
+            typedef sol_type::original_storage::pointer_type ptr;
 
             // Definition of placeholders. The order of them reflects the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain
@@ -377,13 +377,13 @@ namespace shallow_water{
             sol_type sol(d1,d2,d3);
             ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
 
-	    tmpx.set<0>(out1, 0.);
-	    tmpx.set<1>(out2, 0.);
-	    tmpx.set<2>(out3, 0.);
+            tmpx.set<0>(out1, 0.);
+            tmpx.set<1>(out2, 0.);
+            tmpx.set<2>(out3, 0.);
 
-	    tmpy.set<0>(out4, 0.);
-	    tmpy.set<1>(out5, 0.);
-	    tmpy.set<2>(out6, 0.);
+            tmpy.set<0>(out4, 0.);
+            tmpy.set<1>(out5, 0.);
+            tmpy.set<2>(out6, 0.);
 
             sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
             sol.set<1>(out8, 0.);//u
@@ -467,28 +467,28 @@ namespace shallow_water{
             halos[1] = halo_descriptor(1,0,1,d2-1,d2);
             halos[2] = halo_descriptor(0,0,1,d3-1,d3);
 
-	    //the following might be runtime value
-	    uint_t total_time=1;
+            //the following might be runtime value
+            uint_t total_time=1;
 
-	    for (;final_step::current_time < total_time; ++final_step::current_time)
-	    {
+            for (;final_step::current_time < total_time; ++final_step::current_time)
+            {
 #ifdef CUDA_EXAMPLE
-		// TODO: use placeholders here instead of the storage
-		/*                                 component,snapshot */
-		boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-		boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+                // TODO: use placeholders here instead of the storage
+                /*                                 component,snapshot */
+                boundary_apply_gpu< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+                boundary_apply_gpu< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
 #else
-		// TODO: use placeholders here instead of the storage
-		/*                             component,snapshot */
-		boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-		boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+                // TODO: use placeholders here instead of the storage
+                /*                             component,snapshot */
+                boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
+                bo ndary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
 #endif
-		shallow_water_stencil1->run();
-		shallow_water_stencil2->run();
-		shallow_water_stencil->run();
+                shallow_water_stencil1->run();
+                shallow_water_stencil2->run();
+                shallow_water_stencil->run();
 
                 sol.print();
-	    }
+            }
 
             shallow_water_stencil1->finalize();
             shallow_water_stencil2->finalize();

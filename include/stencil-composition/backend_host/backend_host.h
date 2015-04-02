@@ -79,14 +79,14 @@ namespace gridtools {
 
             typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG
-		    std::cout << "Functor " <<  functor_type() << "\n";
-		    std::cout << "I loop " << (int_t)f->m_starti <<"+"<< iminus << " -> "
-			      << f->m_starti <<"+"<< f->m_BI <<"+"<< iplus << "\n";
-		    std::cout << "J loop " << (int_t)f->m_startj <<"+"<< jminus << " -> "
-			      << (int_t)f->m_startj <<"+"<< f->m_BJ <<"+"<< jplus << "\n";
-		    std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-		    std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
-		    std::cout<<"iminus::value: "<<iminus<<std::endl;
+            std::cout << "Functor " <<  functor_type() << "\n";
+            std::cout << "I loop " << (int_t)f->m_starti <<"+"<< iminus << " -> "
+                      << f->m_starti <<"+"<< f->m_BI <<"+"<< iplus << "\n";
+            std::cout << "J loop " << (int_t)f->m_startj <<"+"<< jminus << " -> "
+                      << (int_t)f->m_startj <<"+"<< f->m_BJ <<"+"<< jplus << "\n";
+            std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+            std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+            std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
                     array<void*,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
@@ -102,7 +102,7 @@ namespace gridtools {
                          i <= (int_t)f->m_starti + (int_t)f->m_BI + iplus;
                          ++i)
                     {
-			// for_each<local_domain.local_args>(increment<0>);
+                        // for_each<local_domain.local_args>(increment<0>);
                         for (int_t j = (int_t)f->m_startj + jminus;
                              j <= (int_t)f->m_startj + (int_t)f->m_BJ + jplus;
                              ++j)

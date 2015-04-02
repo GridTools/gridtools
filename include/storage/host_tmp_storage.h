@@ -145,7 +145,7 @@ namespace gridtools {
 
 
         virtual void info() const {
-	    std::cout << "Temporary storage "
+            std::cout << "Temporary storage "
                       << "Initial offset "
                       << m_initial_offsets[0] << "x"
                       << m_initial_offsets[1] << "x"

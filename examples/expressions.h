@@ -102,7 +102,7 @@ bool test_interface(int x, int y, int z) {
 
 // \todo simplify the following using the auto keyword from C++11
         boost::shared_ptr<gridtools::computation> forward_step =
-	  gridtools::make_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (

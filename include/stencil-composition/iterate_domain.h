@@ -563,25 +563,25 @@ public:
                 // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<std::endl;
 
                 //the following assert fails when an out of bound access is observed, i.e. either one of
-		//i+offset_i or j+offset_j or k+offset_k is too large.
-		//Most probably this is due to you specifying a positive offset which is larger than expected,
-		//or maybe you did a mistake when specifying the ranges in the placehoders definition
-		assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
+                //i+offset_i or j+offset_j or k+offset_k is too large.
+                //Most probably this is due to you specifying a positive offset which is larger than expected,
+                //or maybe you did a mistake when specifying the ranges in the placehoders definition
+                assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                        ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
                     );
 
-		//the following assert fails when an out of bound access is observed,
-		//i.e. when some offset is negative and either one of
-		//i+offset_i or j+offset_j or k+offset_k is too small.
-		//Most probably this is due to you specifying a negative offset which is
-		//smaller than expected, or maybe you did a mistake when specifying the ranges
-		//in the placehoders definition.
+                //the following assert fails when an out of bound access is observed,
+                //i.e. when some offset is negative and either one of
+                //i+offset_i or j+offset_j or k+offset_k is too small.
+                //Most probably this is due to you specifying a negative offset which is
+                //smaller than expected, or maybe you did a mistake when specifying the ranges
+                //in the placehoders definition.
                 // If you are running a parallel simulation another common reason for this to happen is
                 // the definition of an halo region which is too small in one direction
                 // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
-		assert( (int_t)(m_index[ArgType::index_type::value])
-		       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+        assert( (int_t)(m_index[ArgType::index_type::value])
+               +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                         ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
                         >= 0);
 
@@ -687,7 +687,7 @@ public:
 
 
 
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
         /** @brief method called in the Do methods of the functors.
 
@@ -748,11 +748,11 @@ public:
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
- 	    assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
+            assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
 
- 	    assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
- 		   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
+         assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
             GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 #ifdef CXX11_ENABLED
