@@ -4,6 +4,7 @@ venv2
 styles
 samples
 astviewer
+.coverage
 .ipynb_checkpoints
 *.egg-info
 *.bak

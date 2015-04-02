@@ -1,9 +1,0 @@
-#!/bin/bash
-PYTHON_SITE_PACKAGES=$1
-CMAKE_SOURCE_DIR=$2
-PYTHON_EXECUTABLE=$3
-PYTHON_INSTALL_PREFIX=$4
-echo "running python tests";
-export PYTHONPATH="${PYTHON_SITE_PACKAGES}";
-export GRIDTOOLS_ROOT=${CMAKE_SOURCE_DIR};
-cd ${CMAKE_SOURCE_DIR}/python; ${PYTHON_EXECUTABLE} -m unittest tests/test_stencils.py;
