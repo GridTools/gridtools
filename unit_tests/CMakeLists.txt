@@ -38,7 +38,7 @@ if (GTEST_FOUND)
   if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
       tests.cu
-      test_domain.cu
+      #test_domain.cu
       test_cuda_storage.cu
       test_hybrid_pointer.cu
       gpu_clone.cu
@@ -48,7 +48,7 @@ if (GTEST_FOUND)
 
     add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
-    target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+    target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})

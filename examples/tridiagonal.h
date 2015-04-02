@@ -75,8 +75,8 @@ struct forward_thomas{
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
 #if (defined(CXX11_ENABLED))
-	dom(sup()) =  dom(ex::expr_sup);
-	dom(rhs()) =  dom(ex::expr_rhs);
+        dom(sup()) =  dom(ex::expr_sup);
+        dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -257,9 +257,9 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-	gridtools::computation* backward_step =
+    gridtools::computation* backward_step =
 #else
-	       boost::shared_ptr<gridtools::computation> backward_step =
+        boost::shared_ptr<gridtools::computation> backward_step =
 #endif
       gridtools::make_computation<gridtools::BACKEND, layout_t>
       (
@@ -269,7 +269,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
                 gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ),
             domain, coords
-	  ) ;
+          ) ;
 
     forward_step->ready();
     forward_step->steady();

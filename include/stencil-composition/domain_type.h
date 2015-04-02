@@ -202,7 +202,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         {
 
 // #ifndef NDEBUG
-	    //the following creates an empty storage (problems with its destruction)
+            //the following creates an empty storage (problems with its destruction)
 //             std::cout << "These are the original placeholders and their storages" << std::endl;
 //             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
 // #endif
@@ -212,10 +212,10 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             view_type fview(storage_pointers);
 
-	    GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructin the domain_type is not the same as the number of placeholders to non-temporary storages.")
+            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructin the domain_type is not the same as the number of placeholders to non-temporary storages.")
 
 // #ifndef NDEBUG
-	    //the following creates an empty storage (problems with its destruction)
+                //the following creates an empty storage (problems with its destruction)
 //             // std::cout << "These are the actual placeholders and their storages" << std::endl;
 //             // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
 //             std::cout << "These are the real storages" << std::endl;

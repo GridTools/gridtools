@@ -282,8 +282,8 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
 // #ifdef CXX11_ENABLED
 // #ifndef __CUDACC__
-// 	static const constexpr char a[]={"arg "};
-// 	typedef string<print, static_string<a>, static_int<I> > to_string;
+// static const constexpr char a[]={"arg "};
+// typedef string<print, static_string<a>, static_int<I> > to_string;
 // #endif
 // #endif
     };
@@ -421,13 +421,13 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         constexpr bool end(){return Idx==n_args-1? false : super::template end<Idx>();}
 
         /**@brief returns the offset at a specific index Idx*/
-	template<short_t Idx>
+        template<short_t Idx>
         GT_FUNCTION
         constexpr
         int_t const get() const {
             //NOTE: this should be a constexpr whenever m_offset is a static const
-	    //this might not be compile-time efficient for large indexes,
-	    //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
+            //this might not be compile-time efficient for large indexes,
+            //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
             return Idx==n_args-1? m_offset : super::template get<Idx>();
 
         }

@@ -95,10 +95,10 @@ namespace gridtools {
       if (I==1)
         return m_end+1;
       if (I==-1)
-	{
-	    assert((int_t)(m_begin-m_minus)>=0);
-	    return (m_begin-m_minus);
-	}
+      {
+          assert((int_t)(m_begin-m_minus)>=0);
+            return (m_begin-m_minus);
+        }
 
       assert(false);
       return 1;
@@ -114,10 +114,10 @@ namespace gridtools {
       if (I==1)
         return m_end+m_plus;
       if (I==-1)
-	{
-        //	  assert(m_begin-1>=0);
-	  return m_begin-1;
-	}
+      {
+          //  assert(m_begin-1>=0);
+          return m_begin-1;
+      }
 
       assert(false);
       return 1;
@@ -149,10 +149,10 @@ namespace gridtools {
       if (I==1)
         return m_end;
       if (I==-1)
-	{
-        //	  assert(m_begin+m_plus-1>=0);
-	  return m_begin+m_plus-1;
-	}
+      {
+          //  assert(m_begin+m_plus-1>=0);
+          return m_begin+m_plus-1;
+      }
 
       assert(false);
       return 1;

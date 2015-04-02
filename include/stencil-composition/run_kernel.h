@@ -8,7 +8,7 @@ namespace gridtools {
            This class implements static polimorphism by means of the CRTP pattern. It contains all what is common for all the backends.
         */
         template < typename Derived >
-	    struct run_functor {
+        struct run_functor {
 
             typedef Derived derived_t;
             typedef run_functor_traits<Derived> derived_traits_t;
@@ -67,12 +67,12 @@ namespace gridtools {
                 //also referenced in the functor.
                 GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
                     boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value,
-		            "GRIDTOOLS ERROR:\n\
-		            check that the number of placeholders passed to the elementary stencil function\n \
-		            (constructed during the computation) is the same as the number of arguments referenced\n\
-		            in the functor definition (in the high level interface). This means that we cannot\n\
-		            (although in theory we could) pass placeholders to the computation which are not\n\
-		            also referenced in the functor.");
+                                        "GRIDTOOLS ERROR:\n\
+            check that the number of placeholders passed to the elementary stencil function\n \
+            (constructed during the computation) is the same as the number of arguments referenced\n \
+            in the functor definition (in the high level interface). This means that we cannot\n \
+            (although in theory we could) pass placeholders to the computation which are not\n \
+            also referenced in the functor.");
 
                 exec_functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
             }

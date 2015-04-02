@@ -14,6 +14,7 @@
 #include "gtest/gtest.h"
 
 #include <stencil-composition/backend.h>
+#include <stencil-composition/make_stencils.h>
 
 #ifdef CXX11_ENABLED
 

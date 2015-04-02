@@ -15,7 +15,7 @@ namespace gridtools {
 
 #define NEW_OP(x) template <>                   \
         struct new_op<x> {                      \
-	  GT_FUNCTION                           \
+            GT_FUNCTION                             \
             x* operator()(/*u*/int_t size) const {  \
                 return new x[size];             \
             }                                   \
@@ -38,14 +38,14 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(bool managed=false)
         : m_cpu_p(NULL),
-	  m_managed(managed)
+          m_managed(managed)
     {}
 
 
     GT_FUNCTION
     wrap_pointer(wrap_pointer const& other)
         : m_cpu_p(other.m_cpu_p),
-	  m_managed(false)
+          m_managed(false)
     {}
 
     GT_FUNCTION
@@ -92,22 +92,22 @@ struct wrap_pointer{
 /* #if (CUDA_VERSION > 5050) */
         m_cpu_p = new T[size];
 /* #else */
-/* 	m_cpu_p = workaround_::new_op<T>()(size); */
+/* m_cpu_p = workaround_::new_op<T>()(size); */
 /* #endif */
     }
 
     GT_FUNCTION
     void free_it() {
-	if(m_cpu_p)
-	{
+        if(m_cpu_p)
+        {
 #ifndef NDEBUG
 #ifndef __CUDACC__
-	    std::cout<<"deleting data pointer "<<m_cpu_p<<std::endl;
+            std::cout<<"deleting data pointer "<<m_cpu_p<<std::endl;
 #endif
 #endif
-	    delete [] m_cpu_p  ;
-	    m_cpu_p=NULL;
-	}
+            delete [] m_cpu_p  ;
+            m_cpu_p=NULL;
+        }
     }
 
 
@@ -123,12 +123,12 @@ struct wrap_pointer{
 
     __host__ __device__
     T& operator[](uint_t i) {
-	return m_cpu_p[i];
+        return m_cpu_p[i];
     }
 
     __host__ __device__
     T const& operator[](uint_t i) const {
-	return m_cpu_p[i];
+        return m_cpu_p[i];
         }
 
     __host__ __device__
@@ -143,12 +143,12 @@ struct wrap_pointer{
 
     __host__ __device__
     T* operator+(uint_t i) {
-	return &m_cpu_p[i];
+        return &m_cpu_p[i];
     }
 
     __host__ __device__
     T* const& operator+(uint_t i) const {
-	return &m_cpu_p[i];
+        return &m_cpu_p[i];
     }
 
     GT_FUNCTION

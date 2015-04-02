@@ -62,9 +62,9 @@ namespace gridtools{
     };
 
     /**@brief operation to be used inside the accumulator*/
-    struct add {
+    struct add_functor {
         GT_FUNCTION
-        constexpr add(){}
+        constexpr add_functor(){}
         template <class T>
         GT_FUNCTION
         constexpr T operator() (const T& x, const T& y) const {return x+y;}

@@ -99,32 +99,32 @@ namespace shallow_water2{
             y::Index j;
 
             eval(hx()       )=  eval(h(i+1,j+1)  +h(j+1)/2. -
-		(u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
+                                     (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
 
             eval(ux())=(eval((u(i+1, j+1) +
-			      u(j+1)/2. -
-			      (pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2. -
-			       pow<2>(u(j+1))/h(j+1) +
-			       pow<2>(h(j+1))*(g()/2.))*(dt()/(2.*dx())))) );
+                              u(j+1)/2. -
+                              (pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2. -
+                               pow<2>(u(j+1))/h(j+1) +
+                               pow<2>(h(j+1))*(g()/2.))*(dt()/(2.*dx())))) );
 
             eval(vx())=(eval( v(i+1,j+1) +
-				       v(i+1)/2. -
-			              (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
-				       u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) ));
+                              v(i+1)/2. -
+                              (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
+                               u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) ));
 
             eval(hy()       )=  (eval(h(j+1,i+1) +h(j+1)/2. -
                                       (v(j+1,i+1) - v(i+1))*(dt()/(2*dy()))));
 
             eval(uy())=(eval( u(j+1,i+1) +
-				       u(j+1)/2. -
-			              (v(j+1,i+1)*v(j+1,i+1)/h(j+1,i+1) -
-				       v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy()))));
+                              u(j+1)/2. -
+                              (v(j+1,i+1)*v(j+1,i+1)/h(j+1,i+1) -
+                               v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy()))));
 
             eval(vy())=(eval((v(j+1, i+1) +
-			      v(i+1)/2. -
-			      (pow<2>(v(j+1,i+1))/h(j+1,i+1)+pow<2>(h(j+1,i+1))*g()/2. -
-			       pow<2>(v(i+1))/h(i+1) +
-			       pow<2>(h(i+1))*pow<2>(g()/2.))*(dt()/(2.*dy()))) ));
+                              v(i+1)/2. -
+                              (pow<2>(v(j+1,i+1))/h(j+1,i+1)+pow<2>(h(j+1,i+1))*g()/2. -
+                               pow<2>(v(i+1))/h(i+1) +
+                               pow<2>(h(i+1))*pow<2>(g()/2.))*(dt()/(2.*dy()))) ));
 
         }
     };
@@ -132,20 +132,20 @@ namespace shallow_water2{
 struct final_step {
 
     typedef arg_type<0, range<-1, 1, -1, 1> > hx;
-	    typedef arg_type<1, range<-1, 1, -1, 1> > ux;
-	    typedef arg_type<2, range<-1, 1, -1, 1> > vx;
-	    typedef arg_type<3, range<-1, 1, -1, 1> > hy;
-	    typedef arg_type<4, range<-1, 1, -1, 1> > uy;
-	    typedef arg_type<5, range<-1, 1, -1, 1> > vy;
-	    typedef arg_type<6, range<-1, 1, -1, 1> > h;
-	    typedef arg_type<7, range<-1, 1, -1, 1> > u;
-	    typedef arg_type<8, range<-1, 1, -1, 1> > v;
-	    typedef boost::mpl::vector<hx, ux, vx, hy, uy, vy, h, u, v> arg_list;
+    typedef arg_type<1, range<-1, 1, -1, 1> > ux;
+    typedef arg_type<2, range<-1, 1, -1, 1> > vx;
+    typedef arg_type<3, range<-1, 1, -1, 1> > hy;
+    typedef arg_type<4, range<-1, 1, -1, 1> > uy;
+    typedef arg_type<5, range<-1, 1, -1, 1> > vy;
+    typedef arg_type<6, range<-1, 1, -1, 1> > h;
+    typedef arg_type<7, range<-1, 1, -1, 1> > u;
+    typedef arg_type<8, range<-1, 1, -1, 1> > v;
+    typedef boost::mpl::vector<hx, ux, vx, hy, uy, vy, h, u, v> arg_list;
 
-	    static float_type dx(){return 1e-2;}
-	    static float_type dy(){return 1e-2;}
-	    static float_type dt(){return 1e-3;}
-	    static float_type g(){return 9.81;}
+    static float_type dx(){return 1e-2;}
+    static float_type dy(){return 1e-2;}
+    static float_type dt(){return 1e-3;}
+    static float_type g(){return 9.81;}
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -164,17 +164,17 @@ struct final_step {
 
             eval(u()) =  eval(u() -
                                        (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
-	    			       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+                                        (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
                                               (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
                                                vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1))    *(dt()/dy()));
 
             eval(v()) = eval(v() -
-			     (ux(j-1)    *vx(j-1)       /hy(j-1) -
-			      (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
-			     (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
-			      pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   )*((dt()/dy())));
+                             (ux(j-1)    *vx(j-1)       /hy(j-1) -
+                              (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
+                             (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
+                              pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   )*((dt()/dy())));
 
-    	}
+        }
 
     };
 
@@ -221,7 +221,7 @@ struct final_step {
             // Definition of placeholders. The order of them reflect the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain
 
-	    storage_type hx(d1,d2,d3, 1.5),ux(d1,d2,d3, 1.5),vx(d1,d2,d3, 1.5),hy(d1,d2,d3, 1.5),uy(d1,d2,d3, 1.5),vy(d1,d2,d3, 1.5),h(d1,d2,d3, 1.),u(d1,d2,d3, 1.),v(d1,d2,d3, 1.);
+            storage_type hx(d1,d2,d3, 1.5),ux(d1,d2,d3, 1.5),vx(d1,d2,d3, 1.5),hy(d1,d2,d3, 1.5),uy(d1,d2,d3, 1.5),vy(d1,d2,d3, 1.5),h(d1,d2,d3, 1.),u(d1,d2,d3, 1.),v(d1,d2,d3, 1.);
             typedef arg<0, storage_type > p_hx;
             typedef arg<1, storage_type > p_ux;
             typedef arg<2, storage_type > p_vx;
@@ -282,12 +282,12 @@ struct final_step {
             // ux.print();
             // uy.print();
 
-	    // vx.print();
-	    // vy.print();
+            // vx.print();
+            // vy.print();
 
             // h.print();
             // u.print();
-	    // v.print();
+            / v.print();
         }
         return true;
 

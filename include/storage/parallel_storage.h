@@ -15,16 +15,16 @@ namespace gridtools {
 
     public:
         typedef Partitioner partitioner_t;
-	typedef typename partitioner_t::storage_t super;
-	typedef typename partitioner_t::storage_t::basic_type basic_type;
-	typedef parallel_storage<partitioner_t> original_storage;
-	typedef clonable_to_gpu<parallel_storage<partitioner_t> > gpu_clone;
-	typedef typename partitioner_t::storage_t::iterator_type iterator_type;
-	typedef typename partitioner_t::storage_t::value_type value_type;
-	static const ushort_t n_args = basic_type::n_width;
+        typedef typename partitioner_t::storage_t super;
+        typedef typename partitioner_t::storage_t::basic_type basic_type;
+        typedef parallel_storage<partitioner_t> original_storage;
+        typedef clonable_to_gpu<parallel_storage<partitioner_t> > gpu_clone;
+        typedef typename partitioner_t::storage_t::iterator_type iterator_type;
+        typedef typename partitioner_t::storage_t::value_type value_type;
+        tatic const ushort_t n_args = basic_type::n_width;
 
         __device__
-	parallel_storage(parallel_storage const& other)
+        parallel_storage(parallel_storage const& other)
             :  super(other)
             {}
 
@@ -58,7 +58,7 @@ namespace gridtools {
 
         template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
         typename super::value_type& get_value( UInt const& ... i )
-		{
+            {
                     if(m_partitioner->mine(i...))
                         return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i...)];
                     else
@@ -66,7 +66,7 @@ namespace gridtools {
                         printf("(%d, %d, %d) not available in processor %d \n\n", i ... , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
 #endif
                     return -1.;
-		}
+            }
 #endif
 
         /**

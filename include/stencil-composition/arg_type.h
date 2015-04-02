@@ -28,13 +28,98 @@ namespace gridtools {
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct arg_type : public arg_extend<ID, Range, Number, Number>::type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
+#ifndef __CUDACC__
         using type::arg_decorator;
+#else
+
+        GT_FUNCTION
+        constexpr explicit arg_type(): type()
+            {}
+
+        /**@brief constructor taking the Dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+           language keyword used at the interface level.
+        */
+#ifdef CXX11_ENABLED
+        template <typename... Whatever>
+        GT_FUNCTION
+        constexpr arg_type ( Whatever... x): type (x)
+            {
+            }
+#else
+        template <typename X, typename Y, typename Z,  typename T>
+        GT_FUNCTION
+        constexpr arg_type ( X x, Y y, Z z, T t ): type(x, y, z, t)
+            {
+            }
+
+        template <typename X, typename Y, typename Z>
+        GT_FUNCTION
+        constexpr arg_type ( X x, Y y, Z z ): type(x, y, z)
+            {
+            }
+        template <typename X>
+        GT_FUNCTION
+        constexpr arg_type ( X x ): type(x)
+            {
+            }
+        template <typename X, typename Y>
+        GT_FUNCTION
+        constexpr arg_type ( X x, Y y ): type(x, y)
+            {
+            }
+#endif
+
+#endif
     };
 
     template < int ID, int Number>
     struct arg_type0 : public arg_extend<ID, range<0,0,0,0>, Number, Number>::type {
         typedef typename arg_extend<ID, range<0,0,0,0>, Number, Number>::type type;
+#ifndef __CUDACC__
         using type::arg_decorator;
+#else
+
+        GT_FUNCTION
+        constexpr arg_type0(): type()
+            {}
+
+        /**@brief constructor taking the Dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+           language keyword used at the interface level.
+        */
+
+#ifdef CXX11_ENABLED
+        template <typename... Whatever>
+        GT_FUNCTION
+        constexpr arg_type0 ( Whatever... x): type (x)
+            {
+            }
+#else
+        template <typename X, typename Y, typename Z,  typename T>
+        GT_FUNCTION
+        constexpr arg_type0 ( X x, Y y, Z z, T t ): type(x, y, z, t)
+            {
+            }
+
+        template <typename X, typename Y, typename Z>
+        GT_FUNCTION
+        constexpr arg_type0 ( X x, Y y, Z z ): type(x, y, z)
+            {
+            }
+        template <typename X>
+        GT_FUNCTION
+        constexpr arg_type0 ( X x ): type(x)
+            {
+            }
+        template <typename X, typename Y>
+        GT_FUNCTION
+        constexpr arg_type0 ( X x, Y y ): type(x, y)
+            {
+            }
+#endif
+
+#endif
     };
 
     /**
@@ -75,7 +160,7 @@ namespace gridtools {
         */
         template <ushort_t Coordinate>
         struct Dimension{
-	    template <typename IntType>
+            template <typename IntType>
             GT_FUNCTION
             constexpr Dimension(IntType val) : value
 #if( (!defined(CXX11_ENABLED)) )
@@ -89,8 +174,8 @@ namespace gridtools {
                 }
 
             /**@brief Constructor*/
-	    GT_FUNCTION
-	    constexpr Dimension(Dimension const& other):value(other.value){}
+            GT_FUNCTION
+            constexpr Dimension(Dimension const& other):value(other.value){}
 
             static const ushort_t direction=Coordinate;
             int_t value;
@@ -109,16 +194,16 @@ namespace gridtools {
                \endcode
 
              */
-	    struct Index{
-		GT_FUNCTION
-		constexpr Index(){}
-		GT_FUNCTION
-		constexpr Index(Index const&){}
-		typedef Dimension<Coordinate> super;
-	    };
+            struct Index{
+               GT_FUNCTION
+               constexpr Index(){}
+                GT_FUNCTION
+                constexpr Index(Index const&){}
+                typedef Dimension<Coordinate> super;
+            };
 
-	private:
-	    Dimension();
+        private:
+            Dimension();
         };
 
         /**Aliases for the first three dimensions (x,y,z)*/
@@ -128,7 +213,7 @@ namespace gridtools {
 
     }
 
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
     /**TODO Document me*/
     template <typename ArgType, typename ... Pair>
@@ -191,6 +276,7 @@ namespace gridtools {
             static const int second=Arg2;
         };
 
+#ifndef __CUDACC__
         /**
            @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
 
@@ -199,6 +285,7 @@ namespace gridtools {
         */
         template<int ... Args>
         using set=arg_mixed< Callable, pair_<Known::direction,Args> ... >;
+#endif
 
         /**@brief constructor
        \param args are the offsets which are already known*/
