@@ -231,12 +231,14 @@ namespace gridtools {
         typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
 
     private:
-        hndlr_dynamic_ut<DataType,
-                         GridType,
-                         pattern_type,
-                         layout2proc_map,
-                         Gcl_Arch,
-                         version> hd;
+        typedef hndlr_dynamic_ut<DataType,
+                                 GridType,
+                                 pattern_type,
+                                 layout2proc_map,
+                                 Gcl_Arch,
+                                 version> hd_t;
+
+        hd_t hd;
 
         halo_exchange_dynamic_ut(halo_exchange_dynamic_ut const &) {}
 
@@ -284,8 +286,8 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm)
-            : hd(c.template permute<layout2proc_map_abs>(), comm)//, periodicity(c)
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm, gridtools::array<int, grid_type::ndims> const* dimensions=NULL)
+            : hd(c.template permute<layout2proc_map_abs>(), comm, dimensions)//, periodicity(c)
         { }
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.

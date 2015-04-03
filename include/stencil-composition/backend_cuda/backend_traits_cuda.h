@@ -44,6 +44,7 @@ namespace gridtools{
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
+        GT_FUNCTION
         static uint_t n_i_pes(int = 0) {
             return gridDim.x;
        }
@@ -53,6 +54,7 @@ namespace gridtools{
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
+        GT_FUNCTION
         static uint_t n_j_pes(int = 0) {
             return gridDim.y;
         }
@@ -61,6 +63,7 @@ namespace gridtools{
          *  that determines the i coordinate of a processing element.
          *  In the case of CUDA, a processing element is equivalent to a CUDA block
          */
+        GT_FUNCTION
         static uint_t processing_element_i() {
             return blockIdx.x;
         }
@@ -69,6 +72,7 @@ namespace gridtools{
          *  that determines the j coordinate of a processing element.
          *  In the case of CUDA, a processing element is equivalent to a CUDA block
          */
+        GT_FUNCTION
         static uint_t processing_element_j() {
             return blockIdx.y;
         }
@@ -78,7 +82,8 @@ namespace gridtools{
             typename Sequence
             , typename F
             >
-        inline static void for_each(F f)
+        GT_FUNCTION
+        static void for_each(F f)
             {
                 boost::mpl::for_each<Sequence>(f);
             }

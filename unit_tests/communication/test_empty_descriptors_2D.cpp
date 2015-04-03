@@ -15,14 +15,14 @@ struct pair_t {
   pair_t(): x(0), y(0) {}
 };
 
-std::ostream& operator<<(std::ostream &s, pair_t const & t) { 
-  return s << " (" 
+std::ostream& operator<<(std::ostream &s, pair_t const & t) {
+  return s << " ("
            << t.x << ", "
            << t.y << ") ";
 }
 
 bool operator==(pair_t const & a, pair_t const & b) {
-  return (a.x == b.x && 
+  return (a.x == b.x &&
           a.y == b.y);
 }
 
@@ -56,9 +56,9 @@ int main(int argc, char** argv) {
   for (int ii=0; ii<=DIM; ++ii)
     for (int jj=0; jj<=DIM; ++jj) {
       a[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);
-      b[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);                                      
+      b[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);
       c[gridtools::access(jj,ii,DIM,DIM)] = pair_t(0,0);
-    }      
+    }
 
   int pid;
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
@@ -83,13 +83,13 @@ int main(int argc, char** argv) {
   int period[2] = {0, 0};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims, period, false, &CartComm);
 
   typedef gridtools::_2D_process_grid_t<gridtools::boollist<2> > grid_type;
 
-  gridtools::hndlr_dynamic_ut<pair_t,2, 
-    gridtools::Halo_Exchange_2D<grid_type>
+  gridtools::hndlr_dynamic_ut<pair_t, grid_type,
+        gridtools::Halo_Exchange_2D<grid_type>
     > hd(gridtools::boollist<2>(false,false), nprocs, pid);
 
   hd.halo.add_halo(1, 2, 1, 3, 6, DIM);
@@ -111,17 +111,17 @@ int main(int argc, char** argv) {
       //   a[gridtools::access(jj,ii,DIM,DIM)] = pair_t(-(ii-3+4*pj),-(jj-3+4*pi));
       // else
         a[gridtools::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
-    }      
+    }
 
   for (int ii=3; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj) {
         b[gridtools::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
-    }      
+    }
 
   for (int ii=3; ii<=6; ++ii)
     for (int jj=3; jj<=6; ++jj) {
         c[gridtools::access(jj,ii,DIM,DIM)] = pair_t(ii-3+4*pj,jj-3+4*pi);
-    }      
+    }
 
   printbuff(file,a);
   printbuff(file,b);
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     for (int jj=3-((pi>0)?2:0); jj<=6+((pi<PI-1)?1:0); ++jj) {
         if (a[gridtools::access(jj,ii,DIM,DIM)] != pair_t(ii-3+4*pj,jj-3+4*pi)) {
           err=true;
-          file << " A " 
+          file << " A "
                     << ii << ", "
                     << jj << ", "
                     << a[gridtools::access(jj,ii,DIM,DIM)] << " != "

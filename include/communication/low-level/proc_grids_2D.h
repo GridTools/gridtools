@@ -201,7 +201,7 @@ namespace gridtools {
         \param c Object containing information about periodicities as defined in \ref boollist_concept
         \param comm MPI Communicator describing the MPI 2D computing grid
      */
-      MPI_2D_process_grid_t(period_type const &c, MPI_Comm const& comm)
+      MPI_2D_process_grid_t(period_type const &c, MPI_Comm const& comm, gridtools::array<int, 2> const* dimensions=NULL)
           :
           cyclic(c)
 #if  !defined(__clang__) && defined(CXX11_ENABLED)

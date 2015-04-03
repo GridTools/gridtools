@@ -73,15 +73,14 @@ namespace gridtools {
   template <typename DataType,
             typename HaloExch,
             typename proc_layout,
-            int SubDim,
-            template <int Ndim, int SD>
+            template <int Ndim>
             class GridType
             >
-  class hndlr_dynamic_ut<DataType, GridType<3, SubDim>, HaloExch, proc_layout, gcl_gpu, 2> : public descriptor_base<HaloExch> {
+  class hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu, 2> : public descriptor_base<HaloExch> {
 
     static const int DIMS = 3;
 
-      typedef hndlr_dynamic_ut<DataType,GridType<3, SubDim>,HaloExch,proc_layout, gcl_gpu, 2> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType<3>,HaloExch,proc_layout, gcl_gpu, 2> this_type;
 
   public:
     empty_field_no_dt_gpu<DIMS> halo;
@@ -122,7 +121,7 @@ namespace gridtools {
 
 #ifdef GCL_TRACE
     void set_pattern_tag(int tag) {
-        base_type::haloexch.set_pattern_tag(tag);
+        base_type::m_haloexch.set_pattern_tag(tag);
     };
 #endif
     /**
@@ -131,8 +130,9 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm)
-        : base_type(c,comm)
+      template <typename Array>
+      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm, Array const* dimensions)
+          : base_type(c,comm, dimensions)
         , halo()
     {}
 

@@ -73,11 +73,7 @@ struct lap_function {
 /**
        @brief  placeholder for the input field, index 1
     */
-#ifdef CXX11_ENABLED
     typedef const arg_type<1, range<-1, 1, -1, 1>, 3 > in;
-#else
-    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 >::type in;
-#endif
     /**
        @brief MPL vector of the out and in types
     */
@@ -92,7 +88,7 @@ struct lap_function {
 
         dom(out()) = 4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));//! use of the arg_type<I> constructor in the Do function \todo why isn't the sum done at compile-time, e.g. expression templates?
+             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
 
     }
 };

@@ -14,9 +14,9 @@
 #endif
 
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_cuda/backend_host.h>
 #endif
 
 #ifdef CUDA_EXAMPLE
@@ -561,7 +561,7 @@ namespace shallow_water{
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3 >,
 #ifdef __CUDACC__
                                                     gridtools::gcl_gpu,
 #else

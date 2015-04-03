@@ -9,6 +9,7 @@
 
 #include "vertical_advection_repository.h"
 #include "verifier.h"
+#include "stencil-composition/make_computation.h"
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -25,7 +26,7 @@ using namespace enumtype;
 using namespace expressions;
 #define POSTFIX
 #else
-#define POSTFIX ::type
+#define POSTFIX
 #endif
 namespace vertical_advection_dycore{
 // This is the definition of the special regions in the "vertical" direction

@@ -19,14 +19,17 @@ namespace gridtools {
     public:
         pattern_type m_haloexch;//TODO private
 
-        descriptor_base(typename grid_type::period_type const &c, MPI_Comm const& comm)
+        template <typename Array>
+        descriptor_base(typename grid_type::period_type const &c, MPI_Comm const& comm, Array const* dimensions)
             :
-            m_grid(grid_type(c,comm)),
+            m_grid(grid_type(c,comm, dimensions)),
             m_haloexch(m_grid)
         {}
 
         descriptor_base(grid_type const &g)
-            : m_haloexch(g)
+            :
+            m_grid(g),
+            m_haloexch(g)
         {}
 
         /**

@@ -44,9 +44,9 @@ int main(int argc, char** argv) {
 
   uint_t I;
 
-  int_t pid;
+  int pid;
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-  int_t nprocs;
+  int nprocs;
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
   std::cout << pid << " " << nprocs << "\n";
@@ -62,15 +62,15 @@ int main(int argc, char** argv) {
   file << pid << "  " << nprocs << "\n";
 
   MPI_Comm CartComm;
-  int_t dims[3] = {0,0,0};
+  int dims[3] = {0,0,0};
   MPI_Dims_create(nprocs, 3, dims);
-  int_t period[3] = {0, 0, 0};
+  int period[3] = {0, 0, 0};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
 
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-  typedef gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > grid_type;
+  typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
   gridtools::hndlr_descriptor_ut<triple_t,3,
     gridtools::Halo_Exchange_3D<grid_type> > hd(gridtools::boollist<3>(false,false,false),CartComm);
@@ -89,9 +89,9 @@ int main(int argc, char** argv) {
   hd.register_halo(I, 0, 0, 0, 0, 9, DIM);
 
 
-  int_t pi, pj, pk;
+  int pi, pj, pk;
   hd.pattern().proc_grid().coords(pk, pj, pi);
-  int_t PI, PJ, PK;
+  int PI, PJ, PK;
   hd.pattern().proc_grid().dims(PK, PJ, PI);
 
   file << "COORDINATES " << pi << ", " << pj << ", " << pk << std::endl;

@@ -40,7 +40,7 @@ struct array {
     : ptr(_p)
     , n(lmap::template find<2>(_n,_m,_l))
     , m(lmap::template find<1>(_n,_m,_l))
-    , l(lmap::template find<0>(_n,_m,_l))  
+    , l(lmap::template find<0>(_n,_m,_l))
   {}
 
   T &operator()(int i, int j, int k) {
@@ -87,7 +87,7 @@ struct triple_t {
 
   __host__ __device__ triple_t floor() {
     int m = MIN(_x, MIN(_y,_z));
-    
+
     return (m==-1)?triple_t(m,m,m):*this;
   }
 
@@ -96,15 +96,15 @@ struct triple_t {
   __host__ __device__ int z() const {return _z;}
 };
 
-std::ostream& operator<<(std::ostream &s, triple_t const & t) { 
-  return s << " (" 
+std::ostream& operator<<(std::ostream &s, triple_t const & t) {
+  return s << " ("
            << t._x << ", "
            << t._y << ", "
            << t._z << ") ";
 }
 
 bool operator==(triple_t const & a, triple_t const & b) {
-  return (a._x == b._x && 
+  return (a._x == b._x &&
           a._y == b._y &&
           a._z == b._z);
 }
@@ -157,15 +157,15 @@ triple_t operator+(int a, triple_t const& b) {
   return triple_t(a+b.x(), a+b.y(), a+b.z());
 }
 
-std::ostream& operator<<(std::ostream &s, triple_t const & t) { 
-  return s << " (" 
+std::ostream& operator<<(std::ostream &s, triple_t const & t) {
+  return s << " ("
            << t.x() << ", "
            << t.y() << ", "
            << t.z() << ") ";
 }
 
 bool operator==(triple_t const & a, triple_t const & b) {
-  return (a.x() == b.x() && 
+  return (a.x() == b.x() &&
           a.y() == b.y() &&
           a.z() == b.z());
 }
@@ -200,7 +200,7 @@ template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int H2p, int H3m, int H3p, triple_t *_a, triple_t *_b, triple_t *_c) {
 
   typedef gridtools::layout_map<I1,I2,I3> layoutmap;
-  
+
   array<triple_t, layoutmap > a(_a, (DIM1+H1m+H1p),(DIM2+H2m+H2p),(DIM3+H3m+H3p));
   array<triple_t, layoutmap > b(_b, (DIM1+H1m+H1p),(DIM2+H2m+H2p),(DIM3+H3m+H3p));
   array<triple_t, layoutmap > c(_c, (DIM1+H1m+H1p),(DIM2+H2m+H2p),(DIM3+H3m+H3p));
@@ -210,7 +210,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
     for (int jj=0; jj<DIM2+H2m+H2p; ++jj) {
       for (int kk=0; kk<DIM3+H3m+H3p; ++kk) {
         a(ii,jj,kk) = triple_t();
-        b(ii,jj,kk) = triple_t();                                      
+        b(ii,jj,kk) = triple_t();
         c(ii,jj,kk) = triple_t();
       }
     }
@@ -235,11 +235,11 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
    */
   static const int version = gridtools::version_manual; // 0 is the usual version, 1 is the one that build the whole datatype (Only vector interface supported)
 #ifdef USE_DOUBLE
-  typedef gridtools::halo_exchange_dynamic_ut<layoutmap, 
-    gridtools::layout_map<0,1,2>, double, 3, arch_type, version > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
+    gridtools::layout_map<0,1,2>, double , gridtools::MPI_3D_process_grid_t<3>, arch_type, version > pattern_type;
 #else
-  typedef gridtools::halo_exchange_dynamic_ut<layoutmap, 
-    gridtools::layout_map<0,1,2>, triple_t, 3, arch_type, version > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
+    gridtools::layout_map<0,1,2>, triple_t , gridtools::MPI_3D_process_grid_t<3>, arch_type, version > pattern_type;
 #endif
 
   /* The pattern is now instantiated with the periodicities and the
@@ -273,17 +273,17 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   /* Data is initialized in the inner region of size DIM1xDIM2
    */
   for (int ii=H1m; ii<DIM1+H1m; ++ii)
-    for (int jj=H2m; jj<DIM2+H2m; ++jj) 
+    for (int jj=H2m; jj<DIM2+H2m; ++jj)
       for (int kk=H3m; kk<DIM3+H3m; ++kk) {
-        a(ii,jj,kk) = 
+        a(ii,jj,kk) =
           triple_t(ii-H1m+(DIM1)*coords[0],
                    jj-H2m+(DIM2)*coords[1],
                    kk-H3m+(DIM3)*coords[2]);
-        b(ii,jj,kk) = 
+        b(ii,jj,kk) =
           triple_t(ii-H1m+(DIM1)*coords[0]+B_ADD,
                    jj-H2m+(DIM2)*coords[1]+B_ADD,
                    kk-H3m+(DIM3)*coords[2]+B_ADD);
-        c(ii,jj,kk) = 
+        c(ii,jj,kk) =
           triple_t(ii-H1m+(DIM1)*coords[0]+C_ADD,
                    jj-H2m+(DIM2)*coords[1]+C_ADD,
                    kk-H3m+(DIM3)*coords[2]+C_ADD);
@@ -306,17 +306,17 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_a, a.ptr,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t),
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_b, b.ptr,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t),
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_c, c.ptr,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t),
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
@@ -341,17 +341,17 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   he.unpack(vect);
 
   status = cudaMemcpy( a.ptr, gpu_a,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t),
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( b.ptr, gpu_b,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t),
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( c.ptr, gpu_c,
-                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t), 
+                       (DIM1+H1m+H1p)*(DIM2+H2m+H2p)*(DIM3+H3m+H3p)*sizeof(triple_t),
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
@@ -371,7 +371,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
   vect[1] = b.ptr;
   vect[2] = c.ptr;
   MPI_Barrier(gridtools::GCL_WORLD);
-  
+
   gettimeofday(&start_tv, NULL);
 
   he.pack(vect);
@@ -434,7 +434,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
         tcz = modulus(kk-H3m+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H1m)) || 
+          if ( ((coords[0]==0) && (ii<H1m)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H1m)) ) {
             tax=triple_t().x();
             tbx=triple_t().x();
@@ -443,7 +443,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H2m)) || 
+          if ( ((coords[1]==0) && (jj<H2m)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H2m)) ) {
             tay=triple_t().y();
             tby=triple_t().y();
@@ -452,7 +452,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H3m)) || 
+          if ( ((coords[2]==0) && (kk<H3m)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H3m)) ) {
             taz=triple_t().z();
             tbz=triple_t().z();
@@ -466,21 +466,21 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
 
         if (a(ii,jj,kk) != ta) {
           passed = false;
-          file << "a " << a(ii,jj,kk) << " != " 
+          file << "a " << a(ii,jj,kk) << " != "
                << ta
                << "\n";
         }
 
         if (b(ii,jj,kk) != tb) {
           passed = false;
-          file << "b " << b(ii,jj,kk) << " != " 
+          file << "b " << b(ii,jj,kk) << " != "
                << tb
                << "\n";
         }
 
         if (c(ii,jj,kk) != tc) {
           passed = false;
-          file << "c " << c(ii,jj,kk) << " != " 
+          file << "c " << c(ii,jj,kk) << " != "
                << tc
                << "\n";
         }
@@ -572,7 +572,7 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   MPI_Cart_get(CartComm, 3, dims, period, coords);

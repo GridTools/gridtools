@@ -1,15 +1,18 @@
 #pragma once
 
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 #endif
 #include <storage/partitioner_trivial.h>
 #include <storage/parallel_storage.h>
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 #include <communication/low-level/proc_grids_3D.h>
+
+#include <communication/halo_exchange.h>
+
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the backend*/
 
@@ -64,6 +67,22 @@ namespace copy_stencil{
         //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef storage_type::original_storage::pointer_type pointer_type;
+
+
+        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+                                                    gridtools::layout_map<0, 1, 2>,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3> ,
+#ifdef CUDA_EXAMPLE
+            gridtools::gcl_gpu,
+#else
+            gridtools::gcl_cpu,
+#endif
+            gridtools::version_manual> pattern_type;
+
+        pattern_type he(pattern_type::grid_type::period_type(true, true, true), GCL_WORLD);
+        printf("halo exchange ok\n");
+
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 
@@ -72,33 +91,33 @@ namespace copy_stencil{
         typedef arg<0, storage_type> p_in;
         typedef arg<1, storage_type> p_out;
         // An array of placeholders to be passed to the domain
-        / I'm using mpl::vector, but the final API should look slightly simpler
+        // I'm using mpl::vector, but the final API should look slightly simpler
  typedef boost::mpl::vector<p_in, p_out> arg_type_list;
  /* typedef arg<1, vec_storage_type > p_out; */
-        typedef storage_type::original_storage::pointer_type pointer_type;
  // Definition of the actual data fields that are used for input/output
 //#ifdef CXX11_ENABLED
-        MPI_3D_process_grid_t<gridtools::boollist<3> > comm(gridtools::boollist<3>(true,true,true), GCL_WORLD);
         ushort_t halo[3]={1,1,1};
-        typedef partitioner_trivial<storage_type> partitioner_t;
-        partitioner_t part(comm.ntasks(), comm.coordinates(), comm.dimensions(), halo);
-  parallel_storage<partitioner_t> in(part,d1,d2,d3);
-  parallel_storage<partitioner_t> out(part,d1,d2,d3);
-        //in.initilaize(-1.);
-        //out.initilaize(-2.);
- //storage_type in(d1,d2,d3);
- //storage_type out(d1,d2,d3);
+        typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
+        partitioner_t part(he.comm(), halo);
+        parallel_storage<partitioner_t> in(part);
+        parallel_storage<partitioner_t> out(part);
+        in.setup(d1, d2, d3);
+        out.setup(d1, d2, d3);
 
- for(uint_t i=0; i<in.template dims<0>(); ++i)
-     for(uint_t j=0; j<in.template dims<1>(); ++j)
-  for(uint_t k=0; k<in.template dims<2>(); ++k)
-  {
-      in(i, j, k)=i+j+k;//+comm.coordinates()[0]*100+comm.coordinates()[1]*200+comm.coordinates()[2]*300;
-  }
+        he.add_halo<0>(out.template get_halo_gcl<0>());
+        he.add_halo<1>(out.template get_halo_gcl<1>());
+        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
-        std::cout<< "Halo descriptor 0 : [ " << part.template get_halo_descriptor<0>().minus() << ", "<< part.template get_halo_descriptor<0>().plus() << ", "<<part.template get_halo_descriptor<0>().begin() << ", "<<part.template get_halo_descriptor<0>().end() << ", "<<part.template get_halo_descriptor<0>().total_length()<<"];"<<std::endl;
+        he.setup(2);
+        printf("halo set up\n");
 
-        std::cout<< "Halo descriptor 1 : [ " << part.template get_halo_descriptor<1>().minus() << ", "<< part.template get_halo_descriptor<1>().plus() << ", "<<part.template get_halo_descriptor<1>().begin() << ", "<<part.template get_halo_descriptor<1>().end() << ", "<<part.template get_halo_descriptor<1>().total_length()<<"];"<<std::endl;
+        for(uint_t i=0; i<in.template dims<0>(); ++i)
+            for(uint_t j=0; j<in.template dims<1>(); ++j)
+                for(uint_t k=0; k<in.template dims<2>(); ++k)
+                {
+                    in(i, j, k)=i+j+k;//+comm.coordinates()[0]*100+comm.coordinates()[1]*200+comm.coordinates()[2]*300;
+                }
+
 // // Definition of the physical dimensions of the problem.
  // The constructor takes the horizontal plane dimensions,
  // while the vertical ones are set according the the axis property soon after
@@ -109,27 +128,6 @@ namespace copy_stencil{
         //k dimension not partitioned
  coords.value_list[0] = 0;
  coords.value_list[1] = d3-1;
-
-
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
-                                                    gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, 3,
-#ifdef CUDA_EXAMPLE
-            gridtools::gcl_gpu,
-#else
-            gridtools::gcl_cpu,
-#endif
-            gridtools::version_manual> pattern_type;
-
-        pattern_type he(pattern_type::grid_type::period_type(true, true, true), comm.communicator());
-        printf("halo exchange ok\n");
-
-        he.add_halo<0>(part.template get_halo_descriptor<0>());
-        he.add_halo<1>(part.template get_halo_descriptor<1>());
-        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
-
-        he.setup(2);
-        printf("halo set up\n");
 
 
  // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not

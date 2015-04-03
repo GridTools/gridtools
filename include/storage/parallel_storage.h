@@ -21,7 +21,7 @@ namespace gridtools {
         typedef clonable_to_gpu<parallel_storage<partitioner_t> > gpu_clone;
         typedef typename partitioner_t::storage_t::iterator_type iterator_type;
         typedef typename partitioner_t::storage_t::value_type value_type;
-        tatic const ushort_t n_args = basic_type::n_width;
+        static const ushort_t n_args = basic_type::n_width;
 
         __device__
         parallel_storage(parallel_storage const& other)

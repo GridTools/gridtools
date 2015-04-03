@@ -283,12 +283,12 @@ namespace gridtools {
   template <typename DataType,
             typename GridType,
             typename HaloExch,
-            typename proc_layout=typename default_layout_map<GridType::DIMS>::type,
+            typename proc_layout=typename default_layout_map<GridType::ndims>::type,
             typename Gcl_Arch = gridtools::gcl_cpu,
             int VERSION = 0>
   class hndlr_dynamic_ut  : public descriptor_base<HaloExch> {
       typedef hndlr_dynamic_ut<DataType,GridType,HaloExch,proc_layout, Gcl_Arch, VERSION> this_type;
-      static const int DIMS=GridType::DIMS;
+      static const int DIMS=GridType::ndims;
 
   public:
     empty_field<DataType, DIMS> halo;
@@ -319,7 +319,7 @@ namespace gridtools {
 
 #ifdef   GCL_TRACE
     void set_pattern_tag(int tag) {
-        base_type::haloexch.set_pattern_tag(tag);
+        base_type::m_haloexch.set_pattern_tag(tag);
     };
 #endif
 
@@ -329,8 +329,9 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
-        : base_type(c,comm)
+    template <typename Array>
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const* dimensions)
+        : base_type(c,comm, dimensions)
         , halo()
     {}
 
@@ -950,12 +951,12 @@ namespace gridtools {
               const int j_P = proc_layout().template select<1>(i,j,k);
               const int k_P = proc_layout().template select<2>(i,j,k);
 
-              base_type::haloexch.register_send_to_buffer
+              base_type::m_haloexch.register_send_to_buffer
                 (&(send_buffer[translate()(i,j,k)][0]),
                  S*max_fields_n*typesize,
                  i_P,j_P,k_P);
 
-              base_type::haloexch.register_receive_from_buffer
+              base_type::m_haloexch.register_receive_from_buffer
                 (&(recv_buffer[translate()(i,j,k)][0]),
                  R*max_fields_n*typesize,
                  i_P,j_P,k_P);
@@ -991,12 +992,12 @@ namespace gridtools {
               const int j_P = proc_layout().template select<1>(i,j,k);
               const int k_P = proc_layout().template select<2>(i,j,k);
 
-              base_type::haloexch.register_send_to_buffer
+              base_type::m_haloexch.register_send_to_buffer
                 (&(send_buffer[translate()(i,j,k)][0]),
                  buffer_size_list[translate()(i,j,k)],
                  i_P,j_P,k_P);
 
-              base_type::haloexch.register_receive_from_buffer
+              base_type::m_haloexch.register_receive_from_buffer
                 (&(recv_buffer[translate()(i,j,k)][0]),
                  buffer_size_list[translate()(i,j,k)],
                  i_P,j_P,k_P);
@@ -1332,12 +1333,12 @@ namespace gridtools {
             const int i_P = proc_layout().template select<0>(i,j);
             const int j_P = proc_layout().template select<1>(i,j);
 
-            base_type::haloexch.register_send_to_buffer
+            base_type::m_haloexch.register_send_to_buffer
               (&(send_buffer[translate()(i,j)][0]),
                S*max_fields_n*typesize,
                i_P,j_P);
 
-            base_type::haloexch.register_receive_from_buffer
+            base_type::m_haloexch.register_receive_from_buffer
               (&(recv_buffer[translate()(i,j)][0]),
                R*max_fields_n*typesize,
                i_P,j_P);
@@ -1361,12 +1362,12 @@ namespace gridtools {
             const int i_P = proc_layout().template select<0>(i,j);
             const int j_P = proc_layout().template select<1>(i,j);
 
-            base_type::haloexch.register_send_to_buffer
+            base_type::m_haloexch.register_send_to_buffer
               (&(send_buffer[translate()(i,j)][0]),
                buffer_size_list[translate()(i,j)],
                i_P,j_P);
 
-            base_type::haloexch.register_receive_from_buffer
+            base_type::m_haloexch.register_receive_from_buffer
               (&(recv_buffer[translate()(i,j)][0]),
                buffer_size_list[translate()(i,j)],
                i_P,j_P);

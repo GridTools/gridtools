@@ -524,7 +524,7 @@ namespace gridtools {
        If used to get process grid information additional information can be
        found in \link GRIDS_INTERACTION \endlink
     */
-    pattern_type const & pattern() const {return base_type::haloexch;}
+    pattern_type const & pattern() const {return base_type::m_haloexch;}
 
     // FRIENDING
     friend class _impl::allocation_service<this_type>;
@@ -584,8 +584,9 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm)
-          : base_type(c, comm)
+      template <typename ArrayType>
+      explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm, ArrayType const* dimensions)
+          : base_type(c, comm, dimensions)
         , halo()
     {}
 
@@ -606,7 +607,7 @@ namespace gridtools {
      */
     explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid)
       : halo()
-      , base_type::haloexch(grid_type(c,_P,_pid))//procgrid)
+      , base_type::m_haloexch(grid_type(c,_P,_pid))//procgrid)
     {}
 
     /**
@@ -616,7 +617,7 @@ namespace gridtools {
      */
     explicit hndlr_dynamic_ut(grid_type const &g)
       : halo()
-      , base_type::haloexch(g)
+      , base_type::m_haloexch(g)
     {}
 
 
@@ -642,7 +643,7 @@ namespace gridtools {
 
 #ifdef GCL_TRACE
     void set_pattern_tag(int tag) {
-        base_type::haloexch.set_pattern_tag(tag);
+        base_type::m_haloexch.set_pattern_tag(tag);
     };
 #endif
 

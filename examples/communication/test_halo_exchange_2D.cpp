@@ -26,14 +26,14 @@ struct pair_t {
   pair_t(): x(0), y(0) {}
 };
 
-std::ostream& operator<<(std::ostream &s, pair_t const & t) { 
-  return s << " (" 
+std::ostream& operator<<(std::ostream &s, pair_t const & t) {
+  return s << " ("
            << t.x << ", "
            << t.y << ") ";
 }
 
 bool operator==(pair_t const & a, pair_t const & b) {
-  return (a.x == b.x && 
+  return (a.x == b.x &&
           a.y == b.y);
 }
 
@@ -91,9 +91,9 @@ int main(int argc, char** argv) {
   for (int ii=0; ii<DIM1+2*H; ++ii)
     for (int jj=0; jj<DIM2+2*H; ++jj) {
       a[jj*(DIM1+2*H)+ii] = pair_t(0,0);
-      b[jj*(DIM1+2*H)+ii] = pair_t(0,0);                                      
+      b[jj*(DIM1+2*H)+ii] = pair_t(0,0);
       c[jj*(DIM1+2*H)+ii] = pair_t(0,0);
-    }      
+    }
 
 
   /* Here we compute the computing gris as in many applications
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
   int period[2] = {1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims, period, false, &CartComm);
   int coords[2]={0,0};
   MPI_Cart_get(CartComm, 2, dims, period, coords);
@@ -140,8 +140,8 @@ int main(int argc, char** argv) {
      moving on 'i' dimension from processot (p,q) will lead you
      logically to processor (p+1,q).
    */
-  typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0>, 
-        gridtools::layout_map<0,1>, pair_t, 2, gridtools::gcl_cpu, gridtools::version_manual > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0>,
+        gridtools::layout_map<0,1>, pair_t, gridtools::MPI_2D_process_grid_t<gridtools::boollist<2> >, gridtools::gcl_cpu, gridtools::version_manual > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
   //printbuff(file,a, DIM1+2*H, DIM2+2*H);
   //   printbuff(file,b, DIM1+2*H, DIM2+2*H);
   printbuff(file,c, DIM1+2*H, DIM2+2*H);
-  
+
   /* This is self explanatory now
    */
   std::vector<pair_t*> vect(3);
@@ -210,36 +210,36 @@ int main(int argc, char** argv) {
    */
   for (int ii=0; ii<DIM1+2*H; ++ii)
     for (int jj=0; jj<DIM2+2*H; ++jj) {
-      if (a[jj*(DIM1+2*H)+ii] != 
+      if (a[jj*(DIM1+2*H)+ii] !=
           pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
                  modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])) ) {
         passed = false;
         file << ii << ", " << jj << ": "
-             << "a " << a[jj*(DIM1+2*H)+ii] << " != " 
+             << "a " << a[jj*(DIM1+2*H)+ii] << " != "
              << pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0]),
-                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])) 
+                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1]))
              << "\n";
       }
 
-      if (b[jj*(DIM1+2*H)+ii] != 
+      if (b[jj*(DIM1+2*H)+ii] !=
           pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
                  modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1) ) {
         passed = false;
         file << ii << ", " << jj << ": "
-             << "b " << b[jj*(DIM1+2*H)+ii] << " != " 
+             << "b " << b[jj*(DIM1+2*H)+ii] << " != "
              << pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+1,
-                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1) 
+                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+1)
              << "\n";
       }
 
-      if (c[jj*(DIM1+2*H)+ii] != 
+      if (c[jj*(DIM1+2*H)+ii] !=
           pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
                  modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100) ) {
         passed = false;
         file << ii << ", " << jj << ": "
-             << "c " << c[jj*(DIM1+2*H)+ii] << " != " 
+             << "c " << c[jj*(DIM1+2*H)+ii] << " != "
              << pair_t(modulus(ii-H+(DIM1)*coords[0], DIM1*dims[0])+100,
-                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100) 
+                       modulus(jj-H+(DIM2)*coords[1], DIM2*dims[1])+100)
              << "\n";
       }
     }

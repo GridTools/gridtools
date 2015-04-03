@@ -16,7 +16,7 @@
 
 
 #define MACRO_IMPL(z, n, N)                     \
-  AA.at( n ) BOOST_PP_COMMA_IF(BOOST_PP_NOT_EQUAL(n,N))                                      
+  AA.at( n ) BOOST_PP_COMMA_IF(BOOST_PP_NOT_EQUAL(n,N))
 
 inline int modulus(int __i, int __j) {
   return (((((__i%__j)<0)?(__j+__i%__j):(__i%__j))));
@@ -28,15 +28,15 @@ struct triple_t {
   triple_t(): x(-1), y(-1), z(-1) {}
 };
 
-std::ostream& operator<<(std::ostream &s, triple_t const & t) { 
-  return s << " (" 
+std::ostream& operator<<(std::ostream &s, triple_t const & t) {
+  return s << " ("
            << t.x << ", "
            << t.y << ", "
            << t.z << ") ";
 }
 
 bool operator==(triple_t const & a, triple_t const & b) {
-  return (a.x == b.x && 
+  return (a.x == b.x &&
           a.y == b.y &&
           a.z == b.z);
 }
@@ -48,7 +48,7 @@ bool operator!=(triple_t const & a, triple_t const & b) {
 #define N 9
 #define GCL_LEFT AA.at ## BOOST_PP_LPAREN()
 #define GCL_RIGHT BOOST_PP_RPAREN()
- 
+
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
 
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
   std::vector<triple_t*> AA(N);
- 
+
   for (int i=0; i<N; ++i)
     AA[i] = new triple_t[DIM1*(DIM2+pid)*(DIM3+2*pid+1)];
 
@@ -94,11 +94,11 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   typedef gridtools::boollist<3> cyc;
-  typedef gridtools::MPI_3D_process_grid_t<cyc> grid_type;
+  typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
   cyc periodicity(true, true, true);
 
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
   typedef gridtools::halo_exchange_dynamic_ut
     <gridtools::layout_map<0,1,2>,
     gridtools::layout_map<0,1,2>,
-    triple_t,3> HD_TYPE;
+    triple_t,grid_type> HD_TYPE;
 
 #ifdef SPLIT_PHASE
   std::vector<HD_TYPE* > hd(N);
@@ -149,9 +149,9 @@ int main(int argc, char** argv) {
     for (int i=H; i<DIM3-H; i++)
       for (int j=H; j<DIM2-H; j++)
         for (int k=H; k<DIM1-H; k++)
-          AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] = triple_t(i-H+(DIM3-2*H)*pi+l, 
-                                                                          j-H+(DIM2-2*H)*pj+l, 
-                                                                          k-H+(DIM1-2*H)*pk+l);        
+          AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] = triple_t(i-H+(DIM3-2*H)*pi+l,
+                                                                          j-H+(DIM2-2*H)*pj+l,
+                                                                          k-H+(DIM1-2*H)*pk+l);
   }
 
   int maxi, maxj, maxk;
@@ -159,10 +159,10 @@ int main(int argc, char** argv) {
   maxj = (DIM2-2*H)*PJ; // this is to compute modulo in cyclic boundary communications
   maxk = (DIM1-2*H)*PK; // this is to compute modulo in cyclic boundary communications
 
-  std::cout << "Overall problem size: " 
-            << maxi << " x " 
-            << maxj << " x " 
-            << maxk << "\n"; 
+  std::cout << "Overall problem size: "
+            << maxi << " x "
+            << maxj << " x "
+            << maxk << "\n";
 
 #ifdef VECTOR_INTERFACE
 #ifdef SPLIT_PHASE
@@ -179,9 +179,9 @@ int main(int argc, char** argv) {
 #else
   file << "testing vector interface\n";
   hd.pack(AA);
-  
+
   hd.exchange();
-  
+
   hd.unpack(AA);
 #endif
 #else
@@ -198,14 +198,14 @@ int main(int argc, char** argv) {
   }
 #else
   file << "testing variable argument list interface\n";
-  hd.pack(     
+  hd.pack(
           BOOST_PP_REPEAT(N, MACRO_IMPL, BOOST_PP_DEC(N))
                );
-  
-  
+
+
   hd.exchange();
-  
-  hd.unpack(     
+
+  hd.unpack(
           BOOST_PP_REPEAT(N, MACRO_IMPL, BOOST_PP_DEC(N))
                );
 #endif
@@ -216,27 +216,27 @@ int main(int argc, char** argv) {
   bool passed=true;
 
   for (int l=0; l<N; ++l) {
-    for (int i=((pi>0)?0:((periodicity.value2)?0:H)); i<((pi<PI-1)?DIM3:((periodicity.value2)?DIM3:DIM3-H)); i++)
-      for (int j=((pj>0)?0:((periodicity.value1)?0:H)); j<((pj<PJ-1)?DIM2:((periodicity.value1)?DIM2:DIM2-H)); j++)
-        for (int k=((pk>0)?0:((periodicity.value0)?0:H)); k<((pk<PK-1)?DIM1:((periodicity.value0)?DIM1:DIM1-H)); k++)
-          if (AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] != triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l, 
-                                                                               modulus(j-H+(DIM2-2*H)*pj,maxj)+l, 
+    for (int i=((pi>0)?0:((periodicity.value(2))?0:H)); i<((pi<PI-1)?DIM3:((periodicity.value(2))?DIM3:DIM3-H)); i++)
+      for (int j=((pj>0)?0:((periodicity.value(1))?0:H)); j<((pj<PJ-1)?DIM2:((periodicity.value(1))?DIM2:DIM2-H)); j++)
+        for (int k=((pk>0)?0:((periodicity.value(0))?0:H)); k<((pk<PK-1)?DIM1:((periodicity.value(0))?DIM1:DIM1-H)); k++)
+          if (AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] != triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l,
+                                                                               modulus(j-H+(DIM2-2*H)*pj,maxj)+l,
                                                                                modulus(k-H+(DIM1-2*H)*pk,maxk)+l))
             {
-              file << l << " " 
-                   << i << " " 
-                   << j << " " 
-                   << k << " " 
+              file << l << " "
+                   << i << " "
+                   << j << " "
+                   << k << " "
                    << AA[l][gridtools::access(k,j,i,DIM1,DIM2+pid,DIM3+2*pid+1)] << " "
-                   << triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l, 
-                               modulus(j-H+(DIM2-2*H)*pj,maxj)+l, 
+                   << triple_t(modulus(i-H+(DIM3-2*H)*pi,maxi)+l,
+                               modulus(j-H+(DIM2-2*H)*pj,maxj)+l,
                                modulus(k-H+(DIM1-2*H)*pk,maxk)+l)
-                   << " -- modulo " << maxi << " " << maxj << " " << maxk 
+                   << " -- modulo " << maxi << " " << maxj << " " << maxk
                    << std::endl;
               passed=false;
             }
   }
-  
+
   if (passed)
     file << "RESULT: PASSED\n";
   else
