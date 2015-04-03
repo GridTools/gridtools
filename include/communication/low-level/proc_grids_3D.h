@@ -136,16 +136,24 @@ namespace gridtools {
       compute_id_coords(pid);
     }
 
-  private:
-      _3D_process_grid_t( _3D_process_grid_t const& oter){
-          assert(false);
-      }
 
       _3D_process_grid_t& operator =(_3D_process_grid_t const& other){
           assert(false);
       }
 
   public:
+
+      _3D_process_grid_t( _3D_process_grid_t const& other)
+      : cyclic(other.c)
+      , R(other.R)
+      , C(other.C)
+      , S(other.S)
+      , r(other.r)
+      , c(other.c)
+      , s(other.s)
+      {
+      }
+
     /** Constructor that takes the number of processes and the caller ID to produce the grid
         \param[in] c The object of the class used to specify periodicity in each dimension
         \param[in] P Number of processes that will make the grid
@@ -305,7 +313,7 @@ namespace gridtools {
    * \n
    * This is a process grid matching the \ref proc_grid_concept concept
    */
-    template <int Ndims, int SubDims=Ndims>
+    template <int Ndims>
   struct MPI_3D_process_grid_t {
 
         /** number of dimensions
@@ -317,19 +325,13 @@ namespace gridtools {
 
 
   private:
-      MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
+        MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
         period_type cyclic;
         int m_nprocs;
-        int m_dimensions[ndims];
+        gridtools::array<int, ndims>  m_dimensions;
         int m_coordinates[ndims];
 //       int m_boundary;
   public:
-    /**
-        Returns communicator
-     */
-      MPI_Comm communicator() const {
-          return m_communicator;
-      }
 
 //   private:
       MPI_3D_process_grid_t( MPI_3D_process_grid_t const& other): m_communicator(other.m_communicator), cyclic(other.cyclic)// , m_boundary(other.m_boundary)
@@ -351,34 +353,41 @@ namespace gridtools {
         \param c Object containing information about periodicities as defined in \ref boollist_concept
         \param comm MPI Communicator describing the MPI 3D computing grid
      */
-      MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm)
+        MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm, gridtools::array<int, ndims> const* dimensions=NULL)
           :
           m_communicator(comm),
           cyclic(c),
-          m_nprocs(0)
+          m_nprocs(0),
+          m_dimensions()
 #if  !defined(__clang__) && defined(CXX11_ENABLED)
-          ,m_dimensions{0},
-          m_coordinates{0}
+          , m_coordinates{0}
 #endif
           {
+
 #if defined(__clang__) || !defined(CXX11_ENABLED)
+
               for (ushort_t i=0; i<ndims; ++i){
-                  m_dimensions[i]=0;
                   m_coordinates[i]=0;
               }
 #endif
-              MPI_Comm_size(comm, &m_nprocs);
-              if(SubDims>0)
-              {
-                  assert(SubDims<ndims);
-                  MPI_Dims_create(m_nprocs, SubDims, m_dimensions);
-                  for (ushort i=SubDims; i<ndims; ++i)
-                      m_dimensions[i]=1;
+              if(!dimensions)
+                  MPI_Dims_create(m_nprocs, ndims, &m_dimensions[0]);
+              else{
+                  for (ushort_t i=0; i<ndims; ++i){
+                      m_dimensions[i]=(*dimensions)[i];
+                  }
               }
-              else
-                  MPI_Dims_create(m_nprocs, ndims, m_dimensions);
+
+              MPI_Comm_size(comm, &m_nprocs);
               create(comm);
           }
+
+    /**
+        Returns communicator
+     */
+      MPI_Comm communicator() const {
+          return m_communicator;
+      }
 
     /** Function to create the grid. This can be called in case the
         grid is default constructed. Its direct use is discouraged
@@ -390,29 +399,8 @@ namespace gridtools {
         int period[ndims];
         for (ushort_t i=0; i<ndims; ++i)
             period[i]=cyclic.value(i);
-        MPI_Cart_create(comm, ndims, m_dimensions, period, false, &m_communicator);
-        MPI_Cart_get(m_communicator, ndims, m_dimensions, period/*does not really care*/, m_coordinates);
-//         m_boundary=0;
-//         for (ushort_t i=0; i<ndims; ++i)
-//             if(m_coordinates[i]==m_dimensions[i]-1) m_boundary  += std::pow(2, i);
-//         for (ushort_t i=ndims; i<2*ndims; ++i)
-//             if(m_coordinates[i]==0) m_boundary  += std::pow(2, i);
-
-        // if(m_coordinates[0]==m_dimensions[0]-1) m_boundary  =  1; else m_boundary = 0;
-        // if(m_coordinates[1]==m_dimensions[1]-1) m_boundary +=  2;
-        // if(m_coordinates[0]==0)  m_boundary += 4;
-        // if(m_coordinates[1]==0)  m_boundary += 8;
-
-// #ifndef NDEBUG
-//         printf("comunicator coordinates: [%d, %d, %d]\n",m_coordinates[0], m_coordinates[1], m_coordinates[2] );
-//         printf("boundary: [%d]\n",m_boundary );
-//         printf("dimensions: [%d, %d, %d]\n",m_dimensions[0], m_dimensions[1], m_dimensions[2] );
-// #endif
-        // for(ushort_t i=0; i<ndims; ++i)
-      // {
-      //     m_dimensions[i]=dims[i];
-      //     m_coordinates[i] = coords[i];
-      // }
+        MPI_Cart_create(comm, ndims, &m_dimensions[0], period, false, &m_communicator);
+        MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period/*does not really care*/, m_coordinates);
     }
 
     /** Returns in t_R and t_C the lenght of the dimensions of the process grid AS PRESCRIBED BY THE CONCEPT
@@ -474,26 +462,11 @@ namespace gridtools {
         return proc(I, J, K);
     }
 
-//       int proc(int const& I, int const& J, int const& K) const {
-//           int coords[3]={I,J,K};
-//           return proc(coords);
-//       }
-
-//     template <int I, int J>
-//         int proc() const {
-//         int coords[3]={I,J,-1};
-//         return proc(coords);
-//     }
-
       int pid() const {
           int rank;
           MPI_Comm_rank(m_communicator, &rank);
           return rank;
       }
-
-//       int const& boundary() const {
-//           return m_boundary;
-//       };
 
 
     /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
@@ -533,47 +506,11 @@ namespace gridtools {
       MPI_Comm_rank(MPI_COMM_WORLD, &pid);
       int res;
       MPI_Cart_rank(m_communicator, _coords, &res);
-#ifndef NDEBUG
-      std::cout<<"communication from: "<<pid<<"along["<<I<<", "<<J<<", "<<K<<"]" <<std::endl;
-      std::cout<<" cyclic: "<<cyclic.value(0)<<" "<<cyclic.value(1)<<" "<<cyclic.value(2)<<"]"<<std::endl;
-      std::cout<<"m_coordinates:[ "<<m_coordinates[0]<<" "<<m_coordinates[1]<<" "<<m_coordinates[2]<<"]"<<std::endl;
-      std::cout<<"m_dimensions:[ "<<m_dimensions[0]<<" "<<m_dimensions[1]<<" "<<m_dimensions[2]<<"]"<<std::endl;
-      std::cout<<"_coords:[ "<<_coords[0]<<" "<<_coords[1]<<" "<<_coords[2]<<"]"<<std::endl;
-      std::cout<<"result: "<<res<<std::endl;
-#endif
       return res;
     }
 
-    /** Returns the process ID of the process with relative coordinates (I,J) with respect to the caller process AS PRESCRIBED BY THE CONCEPT
-        \param[in] I Relative coordinate in the first dimension
-        \param[in] J Relative coordinate in the second dimension
-        \param[in] K Relative coordinate in the third dimension
-        \return The process ID of the required process
-    */
-//       int proc(int const* coords) const {
-//           int _coords[ndims];
-//           int res;
-
-//           for (ushort_t i=0; i<ndims; ++i)
-//               if (cyclic.value(i)) {
-//                   _coords[i] = (m_coordinates[i]+coords[i])%m_dimensions[i];
-//               }
-//               else {
-//                   _coords[i] = m_coordinates[i]+coords[i];
-//                   if(_coords[i]>=0 && _coords[i]<m_dimensions[i])
-//                       return -1;
-//               }
-
-//           printf("getting rank. [I,J,K] :[%d, %d, %d]\n\n\n", coords[0],coords[1],coords[2]);
-//           printf("getting rank. m_dimensions:[%d, %d, %d]\n", m_dimensions[0], m_dimensions[1], m_dimensions[2]);
-//           printf("getting rank. m_coordinates:[%d, %d, %d]\n", m_coordinates[0], m_coordinates[1], m_coordinates[2]);
-//           printf("getting rank. _coords:[%d, %d, %d]\n\n\n", _coords[0], _coords[1], _coords[2]);
-//           MPI_Cart_rank(m_communicator, _coords, &res);
-//           return res;
-//       }
-
-      int const* coordinates()const {return m_coordinates;}
-      int const* dimensions()const {return m_dimensions;}
+        int const* coordinates()const {return m_coordinates;}
+        gridtools::array<int, ndims> const& dimensions()const {return m_dimensions;}
 
     /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
         \param[in] crds gridtools::aray of coordinates of the processor of which the ID is needed

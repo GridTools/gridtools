@@ -8,12 +8,15 @@
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
+
+#include <communication/halo_exchange.h>
+
 //#include <storage/io.h>
 
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 #endif
 
 #ifdef CUDA_EXAMPLE
@@ -216,7 +219,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            ata_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<2, Snapshot>()[data_field0._index(i,j+1,k)];
+            data_field0.template get<2, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<2, Snapshot>()[data_field0._index(i,j+1,k)];
         }
 
         // periodic boundary conditions in I
@@ -522,7 +525,7 @@ namespace shallow_water{
         {// block for RAII
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
                                                     gridtools::gcl_gpu,
 #else
@@ -536,18 +539,18 @@ namespace shallow_water{
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
 
-        parallel_storage<partitioner_t> hx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> ux(part, d1, d2, d3);
-        parallel_storage<partitioner_t> vx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> hy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> uy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> vy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> h (part, d1, d2, d3);
-        parallel_storage<partitioner_t> u (part, d1, d2, d3);
-        parallel_storage<partitioner_t> v (part, d1, d2, d3);
+        parallel_storage<partitioner_t> hx(part); hx.setup( d1, d2, d3);
+        parallel_storage<partitioner_t> ux(part); ux.setup( d1, d2, d3);
+        parallel_storage<partitioner_t> vx(part); vx.setup( d1, d2, d3);
+        parallel_storage<partitioner_t> hy(part); hy.setup( d1, d2, d3);
+        parallel_storage<partitioner_t> uy(part); uy.setup( d1, d2, d3);
+        parallel_storage<partitioner_t> vy(part); vy.setup( d1, d2, d3);
+        parallel_storage<partitioner_t> h (part); h .setup( d1, d2, d3);
+        parallel_storage<partitioner_t> u (part); u .setup( d1, d2, d3);
+        parallel_storage<partitioner_t> v (part); v .setup( d1, d2, d3);
 
-        he.add_halo<0>(part.get_halo_gcl<0>());//the parallel storage, not the partitioner, must hold this information
-        he.add_halo<1>(part.get_halo_gcl<1>());
+        he.add_halo<0>(v.get_halo_gcl<0>());//the parallel storage, not the partitioner, must hold this information
+        he.add_halo<1>(v.get_halo_gcl<1>());
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(3);
@@ -575,7 +578,7 @@ namespace shallow_water{
         //uint_t di2[5] =  {1, 0, 1, 9, 11};
 
         //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
-        coordinates<axis, partitioner_t> coords(&part);
+        coordinates<axis, partitioner_t> coords(&part, u);
 
         //coordinates<axis, partitioner_t> coords(di2, dj2);
         coords.value_list[0] = 0;
@@ -634,11 +637,11 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
-            if(!he.comm().pid()==target_process)
-                cudaProfilerStart();
+//             if(!he.comm().pid()==target_process)
+//                 cudaProfilerStart();
             shallow_water_stencil->run();
-            if(!he.comm().pid())
-                cudaProfilerStop();
+//             if(!he.comm().pid())
+//                 cudaProfilerStop();
 
             std::vector<pointer_type::pointee_t*> vec(3);
             vec[0]=h.data().get();
@@ -657,7 +660,6 @@ namespace shallow_water{
 #endif
         }
         he.wait();
-        he.free();
 
 #ifdef NDEBUG
         shallow_water_stencil->finalize();

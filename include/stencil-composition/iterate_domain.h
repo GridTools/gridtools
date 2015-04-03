@@ -290,8 +290,6 @@ namespace gridtools {
         template<uint_t ID, typename BackendType>
         struct assign_storage{
 
-            template<typename Left, typename Right>
-            GT_FUNCTION
             /**@brief does the actual assignment
                This method is also responsible of computing the index for the memory access at
                the location (i,j,k). Such index is shared among all the fields contained in the
@@ -301,6 +299,8 @@ namespace gridtools {
                threasd. There are potentially two ids, one over i and one over j, since
                our execution model is parallel on (i,j). Defaulted to 1.
             */
+            template<typename Left, typename Right>
+            GT_FUNCTION
             static void assign(Left& l, Right const & r, int EU_id_i, int EU_id_j){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer

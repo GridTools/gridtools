@@ -567,7 +567,7 @@ namespace gridtools {
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t steps, uint_t const& /*block*/, uint_t* index, uint_t* strides_){
+        void decrement(uint_t steps, uint_t const& /*block*/, uint_t* index, uint_t const* strides_){
        BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
        if( layout::template at_< Coordinate >::value >= 0 )
        {
@@ -818,7 +818,7 @@ namespace gridtools {
             {}
     };
 
-#if defined(CXX11_ENABLED) || !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
     /** @brief traits class defining some useful compile-time counters
      */
     template < typename First, typename  ...  StorageExtended>
@@ -869,7 +869,7 @@ namespace gridtools {
 /**@brief template specialization at the end of the recustion.*/
     template < typename First>
     struct dimension_extension_traits
-#if defined(CXX11_ENABLED) || !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
     <First>
 #endif
     {

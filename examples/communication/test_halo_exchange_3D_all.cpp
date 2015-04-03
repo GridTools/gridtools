@@ -35,7 +35,7 @@ template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
     typedef gridtools::layout_map<I1,I2,I3> layoutmap;
-  
+
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
   array<triple_t<USE_DOUBLE>, layoutmap > c(_c, (DIM1+2*H),(DIM2+2*H),(DIM3+2*H));
@@ -45,7 +45,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
     for (int jj=0; jj<DIM2+2*H; ++jj) {
       for (int kk=0; kk<DIM3+2*H; ++kk) {
         a(ii,jj,kk) = triple_t<USE_DOUBLE>();
-        b(ii,jj,kk) = triple_t<USE_DOUBLE>();                                      
+        b(ii,jj,kk) = triple_t<USE_DOUBLE>();
         c(ii,jj,kk) = triple_t<USE_DOUBLE>();
       }
     }
@@ -69,8 +69,8 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
      the others.
    */
   static const int version = gridtools::version_manual; // 0 is the usual version, 1 is the one that build the whole datatype (Only vector interface supported)
-  typedef gridtools::halo_exchange_dynamic_ut<layoutmap, 
-    gridtools::layout_map<0,1,2>, triple_t<USE_DOUBLE>::data_type, 3, arch_type, version > pattern_type;
+  typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
+    gridtools::layout_map<0,1,2>, triple_t<USE_DOUBLE>::data_type, gridtools::MPI_3D_process_grid_t<3>, arch_type, version > pattern_type;
 
 
   /* The pattern is now instantiated with the periodicities and the
@@ -104,17 +104,17 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
   /* Data is initialized in the inner region of size DIM1xDIM2
    */
   for (int ii=H; ii<DIM1+H; ++ii)
-    for (int jj=H; jj<DIM2+H; ++jj) 
+    for (int jj=H; jj<DIM2+H; ++jj)
       for (int kk=H; kk<DIM3+H; ++kk) {
-        a(ii,jj,kk) = 
+        a(ii,jj,kk) =
           triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0],
                    jj-H+(DIM2)*coords[1],
                    kk-H+(DIM3)*coords[2]);
-        b(ii,jj,kk) = 
+        b(ii,jj,kk) =
           triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+B_ADD,
                    jj-H+(DIM2)*coords[1]+B_ADD,
                    kk-H+(DIM3)*coords[2]+B_ADD);
-        c(ii,jj,kk) = 
+        c(ii,jj,kk) =
           triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+C_ADD,
                    jj-H+(DIM2)*coords[1]+C_ADD,
                    kk-H+(DIM3)*coords[2]+C_ADD);
@@ -132,7 +132,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
   vect[1] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr);
   vect[2] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr);
   MPI_Barrier(gridtools::GCL_WORLD);
-  
+
   gettimeofday(&start_tv, NULL);
 
   he.pack(vect);
@@ -194,7 +194,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         tcz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H)) || 
+          if ( ((coords[0]==0) && (ii<H)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H)) ) {
             tax=triple_t<USE_DOUBLE>().x();
             tbx=triple_t<USE_DOUBLE>().x();
@@ -203,7 +203,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H)) || 
+          if ( ((coords[1]==0) && (jj<H)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H)) ) {
             tay=triple_t<USE_DOUBLE>().y();
             tby=triple_t<USE_DOUBLE>().y();
@@ -212,7 +212,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H)) || 
+          if ( ((coords[2]==0) && (kk<H)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H)) ) {
             taz=triple_t<USE_DOUBLE>().z();
             tbz=triple_t<USE_DOUBLE>().z();
@@ -227,7 +227,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         if (a(ii,jj,kk) != ta) {
           passed = false;
           file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
-               << "a " << a(ii,jj,kk) << " != " 
+               << "a " << a(ii,jj,kk) << " != "
                << ta
                << "\n";
         }
@@ -235,7 +235,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         if (b(ii,jj,kk) != tb) {
           passed = false;
           file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
-               << "b " << b(ii,jj,kk) << " != " 
+               << "b " << b(ii,jj,kk) << " != "
                << tb
                << "\n";
         }
@@ -243,7 +243,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOUBLE> *_
         if (c(ii,jj,kk) != tc) {
           passed = false;
           file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
-               << "c " << c(ii,jj,kk) << " != " 
+               << "c " << c(ii,jj,kk) << " != "
                << tc
                << "\n";
         }
@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   MPI_Cart_get(CartComm, 3, dims, period, coords);

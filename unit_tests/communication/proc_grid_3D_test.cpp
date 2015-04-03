@@ -53,7 +53,7 @@ int _main(int pid, int nprocs) {
 
 int MPImain(MPI_Comm &comm) {
 
-  gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > pg(gridtools::boollist<3>(true, true, true), comm);
+  gridtools::MPI_3D_process_grid_t<3 > pg(gridtools::boollist<3>(true, true, true), comm);
 
   int R_,C_,S_;
   pg.dims(R_,C_,S_);

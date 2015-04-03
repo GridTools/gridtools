@@ -14,9 +14,9 @@
 #endif
 
 #ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
+#include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
-#include <stencil-composition/backend_host.h>
+#include <stencil-composition/backend_host/backend_host.h>
 #endif
 
 #ifdef CUDA_EXAMPLE
@@ -24,6 +24,8 @@
 #else
 #include <boundary-conditions/apply.h>
 #endif
+
+#include <communication/halo_exchange.h>
 
 //#define BACKEND_BLOCK 1
 /*
@@ -267,7 +269,7 @@ namespace shallow_water{
         typedef range<0,1,0,0> xrange_subdomain;
 
         typedef Dimension<5> comp;
-        **@brief space discretization step in direction i */
+        /* *@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
         /**@brief space discretization step in direction j */
@@ -504,7 +506,7 @@ namespace shallow_water{
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
                                                     gridtools::gcl_gpu,
 #else

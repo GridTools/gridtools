@@ -18,7 +18,7 @@ The partitioner class is storage-agnostic, does not know anything about the stor
 namespace gridtools{
 
     //use of static polimorphism (partitioner methods may be accessed from whithin loops)
-    template <typename Communicator>
+    template <typename Storage, typename Communicator>
     class partitioner_trivial : public partitioner<partitioner_trivial<Storage, Communicator> > {
     public:
         typedef Storage storage_t;
@@ -28,7 +28,7 @@ namespace gridtools{
            then we have a coordinates (e.g. the local i,j,k identifying a processor id) and dimensions (e.g. IxJxK)
         */
         partitioner_trivial(// communicator_t const& comm,
-            const communicator_t& comm, const ushort_t* halo ): m_pid(comm.coordinates()), m_ntasks(comm.dimensions()), m_halo(halo), m_comm(comm){
+            const communicator_t& comm, const ushort_t* halo ): m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(halo), m_comm(comm){
 
             m_boundary=0;//bitmap
 //             if(comm.coordinates(0)==comm.dimensions(0)-1) m_boundary  =  1; else m_boundary = 0;

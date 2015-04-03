@@ -46,11 +46,10 @@ namespace gridtools {
             typename GT,
             typename proc_layout,
             typename Gcl_Arch,
-            int SubDim,
-            template < int Ndim, int SubD>
+            template < int Ndim>
             class GridType
             >
-  class hndlr_dynamic_ut<DataType, GridType<2, SubDim> ,Halo_Exchange_2D_DT<GT>, proc_layout, Gcl_Arch, 1>
+  class hndlr_dynamic_ut<DataType, GridType<2> ,Halo_Exchange_2D_DT<GT>, proc_layout, Gcl_Arch, 1>
       : public descriptor_base<Halo_Exchange_2D_DT<GT> > {
     static const int DIMS = 2;
     static const int MaxFields = 20;
@@ -58,7 +57,7 @@ namespace gridtools {
       typedef descriptor_base<Halo_Exchange_2D_DT<GT> > base_type;
       typedef typename base_type::pattern_type HaloExch;
 
-      typedef hndlr_dynamic_ut<DataType,GridType<2, SubDim>,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType<2>,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
     typedef array<MPI_Datatype, _impl::static_pow3<DIMS>::value> MPDT_t;
 
     //typedef array<array<MPI_Datatype,MaxFields>, _impl::static_pow3<DIMS>::value> MPDT_array_t;
@@ -80,7 +79,7 @@ namespace gridtools {
     /**
        Type of the computin grid associated to the pattern
      */
-      typedef GridType<2, SubDim> grid_type;
+      typedef GridType<2> grid_type;
 
     /**
        Type of the translation used to map dimensions to buffer addresses
@@ -93,7 +92,7 @@ namespace gridtools {
 
 #ifdef GCL_TRACE
     void set_pattern_tag(int tag) {
-        base_type::haloexch.set_pattern_tag(tag);
+        base_type::m_haloexch.set_pattern_tag(tag);
     };
 #endif
     /**
@@ -102,8 +101,9 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
-        : base_type(c,comm)
+    template <typename Array>
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const* dimensions)
+        : base_type(c,comm, dimensions)
         , halo()
     {
       for(int i=0; i<MaxFields; ++i)
@@ -197,10 +197,10 @@ namespace gridtools {
           typedef typename translate_P::map_type map_type;
           const int i_P = map_type().template select<0>(i,j);
           const int j_P = map_type().template select<1>(i,j);
-          base_type::haloexch.register_send_to_buffer
+          base_type::m_haloexch.register_send_to_buffer
             (fields[0], MPDT_INSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P);
 
-          base_type::haloexch.register_receive_from_buffer
+          base_type::m_haloexch.register_receive_from_buffer
             (fields[0], MPDT_OUTSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P);
         }
       }
@@ -244,17 +244,16 @@ namespace gridtools {
             typename GT,
             typename proc_layout,
             typename Gcl_Arch,
-            int SubDim,
-            template <int Ndim, int SubD>
+            template <int Ndim>
             class GridType
             >
-  class hndlr_dynamic_ut<DataType, GridType< 3, SubDim>,Halo_Exchange_3D_DT<GT>, proc_layout, Gcl_Arch, 1>
+  class hndlr_dynamic_ut<DataType, GridType< 3>,Halo_Exchange_3D_DT<GT>, proc_layout, Gcl_Arch, 1>
       : public descriptor_base<Halo_Exchange_3D_DT<GT> > {
     static const int DIMS = 3;
     static const int MaxFields = 20;
       typedef descriptor_base<Halo_Exchange_3D_DT<GT> > base_type;
       typedef typename base_type::pattern_type HaloExch;
-      typedef hndlr_dynamic_ut<DataType,GridType<3, SubDim>,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
+      typedef hndlr_dynamic_ut<DataType,GridType<3>,HaloExch,proc_layout, Gcl_Arch, 1> this_type;
     typedef array<MPI_Datatype, _impl::static_pow3<DIMS>::value> MPDT_t;
 
     //typedef array<array<MPI_Datatype,MaxFields>, _impl::static_pow3<DIMS>::value> MPDT_array_t;
@@ -289,8 +288,9 @@ namespace gridtools {
        \param[in] c The object of the class used to specify periodicity in each dimension
        \param[in] comm MPI communicator (typically MPI_Comm_world)
     */
-    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
-        : base_type(c,comm)
+    template <typename Array>
+    explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const* dimensions)
+        : base_type(c,comm, dimensions)
         , halo()
     {
       for(int i=0; i<MaxFields; ++i)
@@ -398,7 +398,7 @@ namespace gridtools {
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
 
-                base_type::haloexch.register_send_to_buffer
+                base_type::m_haloexch.register_send_to_buffer
                   (fields[0], MPDT_INSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P, k_P);
 
               } else {
@@ -408,7 +408,7 @@ namespace gridtools {
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
 
-                base_type::haloexch.register_send_to_buffer
+                base_type::m_haloexch.register_send_to_buffer
                   (NULL, MPI_INT, 0, i_P, j_P, k_P);
                }
 
@@ -419,7 +419,7 @@ namespace gridtools {
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
 
-                base_type::haloexch.register_receive_from_buffer
+                base_type::m_haloexch.register_receive_from_buffer
                   (fields[0], MPDT_OUTSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P, k_P);
               } else {
                 typedef translate_t<3,proc_layout> translate_P;
@@ -428,7 +428,7 @@ namespace gridtools {
                 const int j_P = map_type().template select<1>(i,j,k);
                 const int k_P = map_type().template select<2>(i,j,k);
 
-                base_type::haloexch.register_receive_from_buffer
+                base_type::m_haloexch.register_receive_from_buffer
                   (NULL, MPI_INT, 0, i_P, j_P, k_P);
               }
 

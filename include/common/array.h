@@ -12,6 +12,7 @@
 #include "host_device.h"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
+#include <gridtools.h>
 
 namespace gridtools {
 
@@ -32,6 +33,7 @@ namespace gridtools {
         array() {}
 
 #ifdef CXX11_ENABLED
+        GT_FUNCTION
         array(std::initializer_list<T> c) {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
@@ -53,13 +55,6 @@ namespace gridtools {
         T & operator[](size_t i) {
             assert((i>=0) && (i < _size));
             return _array[i];
-        }
-
-        template <typename A>
-        GT_FUNCTION
-        array& operator=(A *const& a) {
-            _array=a;
-            return this;
         }
 
         template <typename A>

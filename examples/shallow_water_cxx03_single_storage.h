@@ -516,27 +516,28 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
         typedef sol_type::original_storage::pointer_type pointer_type;
 
         {//scope for RAII
+            gridtools::array<int, 3> dimensions;
+            MPI_Dims_create(nprocs, 2, &dimensions[0]);
+            dimensions[2]=1;
+
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
-                                                    gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
+            gridtools::layout_map<0, 1, 2>,
+            pointer_type::pointee_t,
+            MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
-                                                    gridtools::gcl_gpu,
+            gridtools::gcl_gpu,
 #else
-                                                    gridtools::gcl_cpu,
+            gridtools::gcl_cpu,
 #endif
-                                                    gridtools::version_manual> pattern_type;
+            gridtools::version_manual> pattern_type;
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
 
-        // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
-        // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
         parallel_storage<partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
-        //parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
-        //parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
 
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());

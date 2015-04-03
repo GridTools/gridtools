@@ -208,7 +208,7 @@ this macro expands to n definitions of the function apply, taking a number of ar
     }
 
     private:
-        ** fixing compilation */
+        /** fixing compilation */
         void apply( ) const {}
 
     };

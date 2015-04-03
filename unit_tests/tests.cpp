@@ -163,9 +163,11 @@ TEST(stencil, tridiagonal) {
     EXPECT_EQ(tridiagonal::solver(1, 1, 6), true);
 }
 
+#ifdef CXX11_ENABLED
 TEST(stencil, extended_4D) {
     EXPECT_EQ(assembly::test(5, 5, 6), true);
 }
+#endif
 
 #ifdef CXX11_ENABLED
 TEST(testdomain, assignplchdrs) {
