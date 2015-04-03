@@ -584,7 +584,7 @@ class MultiStageStencil ( ):
         elif self.backend == 'python':
             self.kernel (**kwargs)
         else:
-            logging.warning ("Unknown backend [%s]" % self.backend)
+            logging.error ("Unknown backend '%s'" % self.backend)
 
 
     def set_halo (self, halo=(0,0,0,0)):
