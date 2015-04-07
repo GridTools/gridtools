@@ -48,12 +48,12 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 
 bool test (uint_t d1, uint_t d2, uint_t d3,
-           {%- for arg in params -%}
+           {%- for arg in params %}
            float_type *{{ arg.name }}_buff
                {%- if not loop.last -%}
                ,
                {%- endif -%}
-           {%- endfor -%})
+           {% endfor -%})
 {
     //
     // Fortran-like memory layout

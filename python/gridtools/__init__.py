@@ -236,6 +236,40 @@ class StencilInspector (ast.NodeVisitor):
                 self.stencil_scope.add_constant (lvalue, None)
                 logging.debug ("Constant '%s' will be resolved later" % lvalue)
 
+    
+    def visit_For (self, node):
+        """
+        Looks for 'get_interior_points' comprehensions.-
+        """
+        from random import choice
+        from string import digits
+
+        #
+        # the iteration should call 'get_interior_points'
+        #
+        call = node.iter
+        if (call.func.value.id == 'self' and 
+            call.func.attr == 'get_interior_points'):
+            #
+            # a random name for this functor
+            #
+            funct_name = 'functor_%03d' % len (self.symbols.functor_scopes)
+            
+            #
+            # create a new scope for the symbols of this functor
+            #
+            functor_scope = self.symbols.add_functor (funct_name)
+
+            #
+            # create a functor object
+            #
+            funct = Functor (funct_name,
+                             node,
+                             functor_scope,
+                             self.stencil_scope)
+            self.functors.append (funct)
+            logging.debug ("Functor '%s' created" % funct.name)
+
 
     def visit_FunctionDef (self, node):
         """
@@ -281,50 +315,20 @@ class StencilInspector (ast.NodeVisitor):
             #
             # this function should return 'None'
             #
-            if node.returns is None:
-                #
-                # the parameters of the 'kernel' are the stencil
-                # arguments in the generated code
-                #
-                self.analyze_params (node.args.args)
-                #
-                # continue traversing the AST
-                #
-                for n in node.body:
-                    #
-                    # looks for 'get_interior_points' comprehensions
-                    # 
-                    if isinstance (n, ast.For):
-                        from random import choice
-                        from string import digits
-
-                        #
-                        # the iteration should call 'get_interior_points'
-                        #
-                        call = n.iter
-                        if (call.func.value.id == 'self' and 
-                            call.func.attr == 'get_interior_points'):
-                            #
-                            # a random name for this functor
-                            #
-                            funct_name = 'functor_%03d' % len (self.symbols.functor_scopes)
-                            
-                            #
-                            # create a new scope for the symbols of this functor
-                            #
-                            functor_scope = self.symbols.add_functor (funct_name)
-
-                            #
-                            # create a functor object
-                            #
-                            funct = Functor (funct_name,
-                                             n,
-                                             functor_scope,
-                                             self.stencil_scope)
-                            self.functors.append (funct)
-                            logging.debug ("Functor '%s' created" % funct.name)
-            else:
+            if node.returns is not None:
                 raise ValueError ("The 'kernel' function should return 'None'")
+                return
+            #
+            # the parameters of the 'kernel' function are the stencil
+            # arguments in the generated code
+            #
+            self.analyze_params (node.args.args)
+
+            #
+            # continue traversing the AST
+            #
+            for n in node.body:
+                self.visit (n)
 
 
 
