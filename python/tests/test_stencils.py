@@ -266,7 +266,6 @@ class LaplaceTest (CopyTest):
 class HorizontalDiffusion (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
-
         #
         # temporary data fields to share data among the different stages
         #
@@ -311,7 +310,7 @@ class HorizontalDiffusionTest (CopyTest):
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (8, 8, 1)
+        self.domain = (32, 32, 4)
         self.params = ('out_data', 
                        'in_data',
                        'in_wgt')
