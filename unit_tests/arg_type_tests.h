@@ -47,12 +47,12 @@ namespace interface{
         //mixing caompile time and runtime values
         using t=Dimension<15>;
         typedef arg_type0<0, 15> arg_t;
-        using alias_t = alias<arg_t, t, x>::set<-3, 4>;
+        using alias_t = alias<arg_t, t, x, Dimension<7> >::set<-3, 4, 2>;
 
         alias_t first(Dimension<8>(23), z(-5));
 
         GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr<14>()==4, "that's wrong man")
-        return first.get<14-0>()==4 && first.get<14-14>()==-3 && first.get<14-7>()==23 && first.get<14-2>()==-5 ;
+        return first.get<14-6>()==2 && first.get<14-0>()==4 && first.get<14-14>()==-3 && first.get<14-7>()==23 && first.get<14-2>()==-5 ;
     }
 
 /** @brief interface with aliases defined at run-time

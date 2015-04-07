@@ -837,21 +837,22 @@ namespace gridtools {
         typedef dimension_extension_traits<StorageExtended ... > super;
     };
 
-    template<typename Storage, uint_t Id>
+
+    template<typename T>
+    struct get_fields{
+        using type = static_int<T::n_fields>;
+    };
+
+    template<typename T>
+    struct get_value{
+        using type = static_int<T::value>;
+    };
+
+    template<typename Storage, uint_t Id, uint_t IdMax>
     struct compute_storage_offset{
 
-        template<typename T>
-        struct get_fields{
-            using type = static_int<T::n_fields>;
-        };
-
-        template<typename T>
-        struct get_value{
-            using type = static_int<T::value>;
-        };
-
-        GRIDTOOLS_STATIC_ASSERT(Id>=0, "Library internal error")
-        typedef typename boost::mpl::eval_if_c<Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id-1> > >::type type;
+        GRIDTOOLS_STATIC_ASSERT(IdMax>=Id && Id>=0, "Library internal error")
+            typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id+1, IdMax> > >::type type;
         static const uint_t value=type::value;
     };
 

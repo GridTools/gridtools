@@ -226,7 +226,7 @@ namespace gridtools {
     private:
         static constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type,  ArgType::n_dim, ArgType::n_dim>::type s_args_constexpr{ enumtype::Dimension<Pair::first>{Pair::second} ... };
         typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type m_args_runtime;
-        typedef boost::mpl::vector<static_int<Pair::first-1> ... > coordinates;
+        typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
     public:
 
         template<typename ... ArgsRuntime>

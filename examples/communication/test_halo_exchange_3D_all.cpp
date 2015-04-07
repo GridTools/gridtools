@@ -297,6 +297,10 @@ int main(int argc, char** argv) {
 
   MPI_Cart_get(CartComm, 3, dims, period, coords);
 
+  if (argc != 5) {
+      std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo\n where args are integer sizes of the data fields and halo width" << std::endl;
+      return 1;
+  }
 
   /* Each process will hold a tile of size
      (DIM1+2*H)x(DIM2+2*H)x(DIM3+2*H). The DIM1xDIM2xDIM3 area inside

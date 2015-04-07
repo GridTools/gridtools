@@ -120,17 +120,6 @@ namespace shallow_water{
 };
 
 
-    namespace{
-
-        using comp=Dimension<5>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpy;
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
-        using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
-        using ux=alias<tmpx, comp>::set<1>; using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
-        using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
-
-    }
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
@@ -144,9 +133,10 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-        // auto hx=alias<tmpx, comp>(0); auto h=alias<sol, comp>(0);
-        // auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
-        // auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
+
+            using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>;
+            using ux=alias<tmpx, comp>::set<1>; using u=alias<sol, comp>::set<1>;
+            using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>;
 
             eval(hx())=
                 eval((h(i+1,j+1) +h(j+1))/2. -
@@ -183,24 +173,25 @@ namespace shallow_water{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-        // auto hy=alias<tmpy, comp>(0); auto h=alias<sol, comp>(0);
-        // auto uy=alias<tmpy, comp>(1); auto u=alias<sol, comp>(1);
-        // auto vy=alias<tmpy, comp>(2); auto v=alias<sol, comp>(2);
+            using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
+            using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
+            using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
 
-        eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
-                         (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
 
-        eval(uy())=eval( (u(i+1,j+1) +
-                          u(i+1))/2. -
-                         (v(i+1,j+1)*u(i+1,j+1)/h(i+1,j+1) -
-                          v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy())) );
+            eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
+                             (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
 
-        eval(vy())=eval(v(i+1, j+1) +
-                        v(i+1)/2.-
-                        ((pow<2>(v(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
-                         (pow<2>(v(i+1))/h(i+1) +
-                          pow<2>(h(i+1))*(g()/2.)
-                             ))*(dt()/(2.*dy())));
+            eval(uy())=eval( (u(i+1,j+1) +
+                              u(i+1))/2. -
+                             (v(i+1,j+1)*u(i+1,j+1)/h(i+1,j+1) -
+                              v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy())) );
+
+            eval(vy())=eval(v(i+1, j+1) +
+                            v(i+1)/2.-
+                            ((pow<2>(v(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
+                             (pow<2>(v(i+1))/h(i+1) +
+                              pow<2>(h(i+1))*(g()/2.)
+                                 ))*(dt()/(2.*dy())));
 
         }
     };
@@ -221,21 +212,13 @@ namespace shallow_water{
         //notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
         //Using a strategy to define some arguments beforehand
 
-        // static constexpr auto hx=alias<tmpy, comp>(0); static constexpr auto hy=alias<sol, comp>(0);
-        // static constexpr auto ux=alias<tmpy, comp>(1); static constexpr auto uy=alias<sol, comp>(0);
-        // static constexpr auto vx=alias<tmpy, comp>(2); static constexpr auto vy=alias<sol, comp>(0);
-        // typedef decltype(hx) hx_t;         typedef decltype(hy) hy_t;
-        // typedef decltype(ux) ux_t;         typedef decltype(uy) uy_t;
-        // typedef decltype(vx) vx_t;         typedef decltype(vy) vy_t;
-
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-
-            // auto hx=alias<tmpx, comp>(0); auto hy=alias<tmpy, comp>(0);
-            // auto ux=alias<tmpx, comp>(1); auto uy=alias<tmpy, comp>(1);
-            // auto vx=alias<tmpx, comp>(2); auto vy=alias<tmpy, comp>(2);
+            using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
+            using ux=alias<tmpx, comp>::set<1>; using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
+            using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
 
             eval(sol()) =
                 eval(sol()-
@@ -336,7 +319,7 @@ namespace shallow_water{
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3, 2 >,
+                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
                                                     gridtools::gcl_gpu,
 #else
