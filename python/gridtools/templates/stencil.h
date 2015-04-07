@@ -83,8 +83,8 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // 
     {% for p in params -%}
     storage_type {{ p.name }} (d1, d2, d3,
-                               (float_type *) {{ p.name }}_buff,
-                               "{{ p.name }}");
+                         (float_type *) {{ p.name }}_buff,
+                          "{{ p.name }}");
     {% endfor %}
     {% endif -%}
 
@@ -99,7 +99,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
         {%- else -%}
             storage_type>
         {%- endif %} p_{{ p.name|replace('.', '_') }};
-    {% endfor -%}
+    {% endfor %}
 
     //
     // an array of placeholders to be passed to the domain
