@@ -111,15 +111,9 @@ namespace shallow_water{
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i>0 && j>0 && i<4 && j<4)
-                return 1.+height * std::exp(-5*(((i-1)*dx())*(((i-1)*dx()))+((j-1)*dy())*((j-1)*dy())));
-            else
-                return 1.;
+                return 1.+height * std::exp(-5*(((i-15)*dx())*(((i-15)*dx()))+((j-15)*dy())*((j-15)*dy())));
        }
-
 };
-
-
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
@@ -209,7 +203,7 @@ namespace shallow_water{
 
         //########## FINAL STEP #############
         //data dependencies with the previous parts
-        //notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
+        //notation: alias<tmp, comp, step>::set<0, 0>() is ==> tmp(comp(0), step(0)).
         //Using a strategy to define some arguments beforehand
 
         template <typename Evaluation>
@@ -244,14 +238,6 @@ namespace shallow_water{
         }
 
     };
-
-    // constexpr final_step::hy_t final_step::hy;
-    // constexpr final_step::uy_t final_step::uy;
-    // constexpr final_step::vy_t final_step::vy;
-    // constexpr final_step::hx_t final_step::hx;
-    // constexpr final_step::ux_t final_step::ux;
-    // constexpr final_step::vx_t final_step::vx;
-
 
 
     uint_t final_step::current_time=0;
@@ -317,6 +303,10 @@ namespace shallow_water{
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
         typedef sol_type::original_storage::pointer_type pointer_type;
 
+        gridtools::array<int, 3> dimensions;
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
+        dimensions[2]=1;
+
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
@@ -327,17 +317,13 @@ namespace shallow_water{
 #endif
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
+        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-    // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
-    // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
         parallel_storage<partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
-//         parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
-//         parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
 
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());
@@ -346,17 +332,14 @@ namespace shallow_water{
         he.setup(3);
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
-        if(!he.comm().pid())
-            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
-        else
-            sol.set<0,0>(out7, 1.);//h
+        // if(!he.comm().pid())
+        //     sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+        // else
+        //     sol.set<0,0>(out7, 1.);//h
         sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         sol.set<0,1>(out8, 0.);//u
         sol.set<0,2>(out9, 0.);//v
 
-//         std::cout<<"INITIALIZED VALUES"<<std::endl;
-//         sol.print();
-//         std::cout<<"#####################################################"<<std::endl;
 #ifndef NDEBUG
     int pid=0;
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
@@ -365,9 +348,9 @@ namespace shallow_water{
     name<<"example"<<pid<<".txt";
     myfile.open (name.str().c_str());
 
-//     std::cout<<"INITIALIZED VALUES"<<std::endl;
-//     sol.print(myfile);
-//     std::cout<<"#####################################################"<<std::endl;
+    std::cout<<"INITIALIZED VALUES"<<std::endl;
+    sol.print(myfile);
+    std::cout<<"#####################################################"<<std::endl;
 
 #endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -379,13 +362,8 @@ namespace shallow_water{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // coordinates<axis> coords(2,d1-2,2,d2-2);
-        //uint_t di2[5] =  {1, 0, 1, 9, 11};
-
-        //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
         coordinates<axis, partitioner_t> coords(&part, sol);
 
-        //coordinates<axis, partitioner_t> coords(di2, dj2);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 
@@ -406,11 +384,6 @@ namespace shallow_water{
         shallow_water_stencil->ready();
 
         shallow_water_stencil->steady();
-
-//         array<halo_descriptor, 3> halos;
-//         halos[0] = halo_descriptor(1,0,1,d1-1,d1);
-//         halos[1] = halo_descriptor(1,0,1,d2-1,d2);
-//         halos[2] = halo_descriptor(0,0,1,d3-1,d3);
 
         //the following might be runtime value
         uint_t total_time=t;
@@ -446,9 +419,6 @@ namespace shallow_water{
 #else
         myfile.close();
 #endif
-
-        //hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
-        //out.write(sol.get<0,0>());
 
         he.wait();
 

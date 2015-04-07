@@ -147,7 +147,7 @@ namespace gridtools {
     {}
 
 
-      void free(){
+    ~hndlr_dynamic_ut() {
 #ifdef _GCL_CHECK_DESTRUCTOR
       std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
@@ -184,47 +184,7 @@ namespace gridtools {
       if(err != cudaSuccess) {
           printf("Error freeing halo_d_r: %d\n", err);
       }
-    }
 
-
-    ~hndlr_dynamic_ut() {
-// #ifdef _GCL_CHECK_DESTRUCTOR
-//       std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
-// #endif
-
-//       for (int i = -1; i <= 1; ++i)
-//         for (int j = -1; j <= 1; ++j)
-//           for (int k = -1; k <= 1; ++k) {
-//             if (!send_buffer[translate()(i,j,k)])
-//               _impl::gcl_alloc<DataType,arch_type>::free(send_buffer[translate()(i,j,k)]);
-//             if (!recv_buffer[translate()(i,j,k)])
-//               _impl::gcl_alloc<DataType,arch_type>::free(recv_buffer[translate()(i,j,k)]);
-//           }
-//       int err = cudaFree(d_send_buffer);
-//       if(err != cudaSuccess) {
-//           printf("Error freeing d_send_buffer: %s \n", cudaGetErrorString(cudaGetLastError()) );
-//       }
-//       err = cudaFree(d_recv_buffer);
-//       if(err != cudaSuccess) {
-//           printf("Error freeing d_recv_buffer: %d\n", err);
-//       }
-//       err = cudaFree(d_send_size);
-//       if(err != cudaSuccess) {
-//           printf("Error freeing d_send_size: %d\n", err);
-//       }
-//       err = cudaFree(d_recv_size);
-//       if(err != cudaSuccess) {
-//           printf("Error freeing d_recv_size: %d\n", err);
-//       }
-//       err = cudaFree(halo_d);
-//       if(err != cudaSuccess) {
-//           printf("Error freeing halo_d: %d\n", err);
-//       }
-//       err = cudaFree(halo_d_r);
-//       if(err != cudaSuccess) {
-//           printf("Error freeing halo_d_r: %d\n", err);
-//       }
-    }
 
     /**
        Function to setup internal data structures for data exchange and preparing eventual underlying layers
