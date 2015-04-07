@@ -5,7 +5,7 @@ int main(int argc, char** argv)
 {
 
     if (argc != 4) {
-        std::cout << "Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+        std::cout << "Usage: copy_stencil_parallel_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
         return 1;
     }
 

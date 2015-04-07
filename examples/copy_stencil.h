@@ -32,15 +32,13 @@ namespace copy_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef range<0,0,0,0> xrange;
-        typedef range<0,0,0,0> xrange_subdomain;
 
 #ifdef CXX11_ENABLED
         typedef arg_type<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
         typedef Dimension<4> time;
 
-    /* static const auto expression=in(1,0,0)-out(); */
+        //defining the expressions as compile-time constants
         using  lhs=alias<in, z, Dimension<4> >::set< 0,1>;
         using  rhs=alias<in, z, Dimension<4> >::set< 0,0>;
 #else
@@ -53,18 +51,12 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            eval(lhs(0,0)) = eval(rhs(0,0));
+            eval(lhs()) = eval(rhs());
 #else
             eval(out()) = eval(in());
 #endif
         }
-        // static auto constexpr lhs=in{0,0,0,1};
-        // static auto constexpr rhs=in{0,0,0,0};
-        // typedef decltype(lhs) lhs_t;
-        // typedef decltype(rhs) rhs_t;
     };
-    // constexpr copy_functor::lhs_t copy_functor::lhs;
-    // constexpr copy_functor::rhs_t copy_functor::rhs;
 
     /*
      * The following operators and structs are for debugging only
@@ -107,7 +99,7 @@ namespace copy_stencil{
 #else
 #if defined(__CUDACC__) && defined(CXX11_ENABLED)
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-//pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
+        //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
         typedef extend_width<base_type1, 0>  extended_type;
         typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
@@ -299,12 +291,7 @@ namespace copy_stencil{
                                 success = false;
                         }
                     }
-        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
-        boost::chrono::nanoseconds nanoseconds = boost::chrono::nanoseconds(lapse_time.user + lapse_time.system);
-        boost::chrono::milliseconds milliseconds = boost::chrono::duration_cast<boost::chrono::milliseconds>(nanoseconds);
-        //std::cout << seconds.count() << std::endl;
-        std::cout<< " time: "<<milliseconds.count()<<" milliseconds"<<std::endl;
-        std::cout<< " time: "<<nanoseconds.count()<<" nanoseconds"<<std::endl;
+                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
         return success;
     }
 }//namespace copy_stencil

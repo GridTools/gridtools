@@ -95,7 +95,7 @@ namespace copy_stencil{
  typedef boost::mpl::vector<p_in, p_out> arg_type_list;
  /* typedef arg<1, vec_storage_type > p_out; */
  // Definition of the actual data fields that are used for input/output
-//#ifdef CXX11_ENABLED
+ //#ifdef CXX11_ENABLED
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);

@@ -97,21 +97,13 @@ namespace shallow_water{
 #define height 2.
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            //if(i<3 && j<3)
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
-                //else
-                //return 1.;
        }
 
         GT_FUNCTION
         static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-//             if(i>1 && j>1 && i<5 && j<5)
-//              int pid=0;
-//              MPI_Comm_rank(MPI_COMM_WORLD, &pid);
 
-             return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-//             else
-//                 return 1.;
+            return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
        }
 
 };
@@ -287,9 +279,6 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        // static const x::Index i;
-        // static const y::Index j;
-
         //typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
         typedef arg_type<0, range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<sol> arg_list;
@@ -322,8 +311,6 @@ eval(sol(step(2),comp(1),i+1, j+1)) +
 
         }
     };
-    // const x::Index first_step_x::i;
-    // const y::Index first_step_x::j;
 
     struct second_step_y {
 
@@ -341,9 +328,6 @@ eval(sol(step(2),comp(1),i+1, j+1)) +
         /**@brief gravity acceleration */
         GT_FUNCTION
         static float_type g(){return 9.81;}
-
-        // static const x::Index i;
-        // static const y::Index j;
 
         typedef range<0,-2,0,-2> xrange;
 //         typedef range<0,0,0,0>   xrange_subdomain;
@@ -379,12 +363,9 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
 
         }
     };
-    // const x::Index second_step_y::i;
-    // const y::Index second_step_y::j;
 
     struct final_step {
 
-//         typedef range<0,-3,0,-2> xrange;
         typedef range<0,-3,0,-3> xrange;
         typedef range<1,1,1,1> xrange_subdomain;
 
@@ -456,8 +437,6 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
         }
 
     };
-    // const x::Index final_step::i;
-    // const y::Index final_step::j;
 
 
     uint_t final_step::current_time=0;
@@ -517,7 +496,7 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
 
         {//scope for RAII
             gridtools::array<int, 3> dimensions;
-            MPI_Dims_create(nprocs, 2, &dimensions[0]);
+            MPI_Dims_create(PROCS, 2, &dimensions[0]);
             dimensions[2]=1;
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
@@ -531,7 +510,7 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
 #endif
             gridtools::version_manual> pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
+        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;

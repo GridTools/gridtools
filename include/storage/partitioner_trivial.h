@@ -44,19 +44,6 @@ namespace gridtools{
         }
 
 
-        virtual uint_t coord_length(ushort_t const& ID, uint_t const& size) const
-            {
-                uint_t ret;
-                if(ID<communicator_t::ndims)
-                {
-                    div_t value=std::div(size, m_ntasks[ID]);
-                    ret = ((int)(value.quot/**(pid+1)*/) + (int)((value.rem>m_pid[ID]) ? (/*pid+*/1) : value.rem));
-                }
-                else
-                    ret = size;
-                return ret;
-            }
-
         /**@brief computes the lower and upprt index of the local interval
            \param component the dimension being partitioned
            \param size the total size of the quantity being partitioned
@@ -115,54 +102,81 @@ namespace gridtools{
 
                     }
 
-                    uint_t tile_dimension = coord_length(component, sizes[component]);
+                    uint_t tile_dimension = up_bound[component]-low_bound[component];
 
-                    //ushort_t fact=component+1;//TODO ugly and errorprone use enums/bitmaps
-                    //                                            if component is periodic or if it is not on the border then add the halo
                     coordinates[component] = halo_descriptor( compute_halo(component,4),
-                                                                compute_halo(component,1), //(m_comm.periodic(component) || m_comm.boundary()%(2*fact)<fact)?m_halo[component]:0,
-                                                                compute_halo(component,4), //(m_comm.periodic(component) || m_comm.boundary()%(8*fact)<4*fact)?m_halo[component]:0,
+                                                                compute_halo(component,1),
+                                                                compute_halo(component,4),
                                                                 tile_dimension + ( compute_halo(component,4)) - 1,
-                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) ); //(m_comm.periodic(0) || m_comm.boundary()%(2*fact)<fact) ? m_halo[component]+1 : 1)
+                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) );
 
                     coordinates_gcl[component] = halo_descriptor( m_halo[component]-1,
-                                                                m_halo[component]-1, //(m_comm.periodic(component) || m_comm.boundary()%(2*fact)<fact)?m_halo[component]:0,
-                                                                compute_halo(component,4), //(m_comm.periodic(component) || m_comm.boundary()%(8*fact)<4*fact)?m_halo[component]:0,
-                                                                tile_dimension + ( compute_halo(component,4)) - 1/*-1*/,//index error??
-                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) ); //(m_comm.periodic(0) || m_comm.boundary()%(2*fact)<fact) ? m_halo[component]+1 : 1)
+                                                                m_halo[component]-1,
+                                                                compute_halo(component,4),
+                                                                tile_dimension + ( compute_halo(component,4)) - 1,
+                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) );
 
 #ifndef NDEBUG
-                int pid=0;
-                MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-
-                std::cout<<"["<<pid<<"]"<<"coordinates"<< compute_halo(component,4)<<" "
+                std::cout<<"["<<PID<<"]"<<"coordinates"<< compute_halo(component,4)<<" "
                          <<compute_halo(component,1) << " "
                          << tile_dimension+(compute_halo(component,4))-1<<" "
                          <<( tile_dimension+ compute_halo(component,1))+(compute_halo(component,4))
                          << std::endl;
                 std::cout<<"boundary for coords definition: "<<boundary()<<std::endl;
                 std::cout<<"partitioning"<<std::endl;
-                std::cout<<"up bounds: "<<up_bound[0]<<" "<<up_bound[1]<<" "<<up_bound[2]<<std::endl
-                         <<"low bounds: "<<low_bound[0]<<" "<<low_bound[1]<<" "<<low_bound[2]<<std::endl
+                std::cout<<"up bounds for component "<< component <<": "<<up_bound[component]<<std::endl
+                         <<"low bounds for component "<< component <<": "<<low_bound[component]<<std::endl
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
                          <<"component, size: "<<component<<" "<<sizes[component]<<std::endl;
-                printf("pid: %d, size: %d - %d + %d + %d\n", pid, up_bound[component], low_bound[component], compute_halo(component,1), compute_halo(component,4));
 #endif
                 dims[component]=up_bound[component]-low_bound[component]+ compute_halo(component,1)+compute_halo(component,4);
                 }
             }
 
+        /** @brief method to query the halo dimension based on the periodicity of the communicator and the boundary flag
+
+            \param component is the current component, x or y (i.e. 0 or 1) in 2D
+            \param flag is a flag identifying whether we are quering the high (flag=2) or low (flag=1) boundary.
+            Conventionally we consider the left/bottom corner as the frame origin, which is
+            consistent with the domain indexing.
+
+            Consider the following representation of the 2D domain with the given boundary flags
+            \verbatim
+            ####### 8 ######
+            #              #
+            #              #
+            #              #
+            1              4
+            #              #
+            #              #
+            #              #
+            ####### 2 ######
+            \endverbatim
+
+            example:
+            - when component=0, flag=1, the grid is not periodic in x, and the boundary of this partition contains a portion of the "1" edge, this method returns 0.
+            - when component=0, flag=2, the grid is not periodic in x, and the boundary of this partition contains a portion of the "4" edge, this method returns 0.
+            - when component=1, flag=0, the grid is not periodic in y, and the boundary of this partition contains a portion of the "2" edge, this method returns 0.
+            - when component=1, flag=2, the grid is not periodic in y, and the boundary of this partition contains a portion of the "8" edge, this method returns 0.
+            - returns the halo in the component direction otherwise.
+
+            The formula used for the computation is easily generalizable for hypercubes, given that
+            the faces numeration satisfies the following rule
+
+            \verbatim
+            ####2^(d+1)#####
+            #              #
+            #              #
+            #              #
+           2^0            2^(d)
+            #              #
+            #              #
+            #              #
+            #######2^1######
+            \endverbatim
+        */
         int_t compute_halo(ushort_t const& component, ushort_t const& flag) const {
-//             std::cout<<m_comm.periodic(component)<<" || "
-//                      <<m_comm.boundary()<<" % 2*( "
-//                      << component << "+1)*"<<flag
-//                      << " <" <<((component+1)*flag)
-//                      <<" ? "
-//                      <<m_halo[component]<<" : 0 ====>"
-//                      << (false || m_comm.boundary()%(2*(component+1)*flag)<((component+1)*flag)?m_halo[component]:0)
-//                      << std::endl;
-//TODO: how to query periodicity from m_comm?
-            return (/*m_comm.periodic(component)*/false || boundary()%(2*(component+1)*flag)<((component+1)*flag))?m_halo[component]:0;
+            return (  m_comm.periodic(component) || boundary()%(2*(component+1)*flag)<((component+1)*flag))?m_halo[component]:0;
             }
 
         template<int_t Component>

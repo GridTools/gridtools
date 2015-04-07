@@ -81,43 +81,6 @@ namespace gridtools {
       }
     };
 
-
-//       template <typename Datatype, typename T2>
-//     struct allocation_service<hndlr_descriptor_ut<Datatype, 2, T2> > {
-//       void operator()(hndlr_descriptor_ut<Datatype, 2, T2> *hm) const {
-//         typedef typename hndlr_descriptor_ut<Datatype, 2, T2>::pattern_type::translate_type translate;
-//         for (int ii=-1; ii<=1; ++ii)
-//           for (int jj=-1; jj<=1; ++jj)
-//             if (ii!=0 || jj!=0) {
-//               hm->send_buffer[translate()(ii,jj)]
-//                 = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_pack_size(make_array(ii,jj)));
-//               hm->recv_buffer[translate()(ii,jj)]
-//                 = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(hm->total_unpack_size(make_array(ii,jj)));
-//               //std::cout << "@" << gridtools::PID << "@ " << hm->send_buffer[translate()(ii,jj)] << " -- " << hm->recv_buffer[translate()(ii,jj)] << "\n";
-
-//               hm->m_haloexch.register_send_to_buffer
-//                 (&(hm->send_buffer[translate()(ii,jj)][0]),
-//                  hm->total_pack_size(make_array(ii,jj))*sizeof(Datatype), ii,jj);
-
-//               hm->m_haloexch.register_receive_from_buffer
-//                 (&(hm->recv_buffer[translate()(ii,jj)][0]),
-//                  hm->total_unpack_size(make_array(ii,jj))*sizeof(Datatype), ii, jj);
-//             }
-//       }
-//     };
-
-//       template <typename Pair,
-//                 template <int Ndim>
-//                 class GridType
-//                 >
-//       struct allocation_service<gridtools::hndlr_dynamic_ut<Pair
-//                                                             , GridType<2>//gridtools::_2D_process_grid_t<gridtools::boollist<2u> >
-//                                                , gridtools::Halo_Exchange_2D<gridtools::_2D_process_grid_t<gridtools::boollist<2u> > >
-//                                                , gridtools::layout_map<0, 1>
-//                                                , gridtools::gcl_cpu
-//                                                             , 0> >{
-//       };
-
       template <typename Datatype, typename T2, typename procmap, typename arch, int V,
                 template <typename T>
                 class GridType
@@ -150,7 +113,7 @@ namespace gridtools {
       }
     };
 
-      template <typename Datatype, typename T2>
+    template <typename Datatype, typename T2>
     struct allocation_service<hndlr_descriptor_ut<Datatype, 3, T2> > {
       void operator()(hndlr_descriptor_ut<Datatype, 3, T2> *hm) const {
         typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;

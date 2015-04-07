@@ -465,19 +465,11 @@ namespace gridtools {
 #endif
         uint_t  _index(uint_t const* strides_, uint_t const& i, uint_t const& j, uint_t const&  k) const {
             uint_t index;
-            if (IsTemporary) {
-                index =
-                    strides_[0]
-                    * (modulus(layout::template find_val<0,uint_t,0>(i,j,k),layout::template find<0>(m_dims))) +
-                    strides_[1] * modulus(layout::template find_val<1,uint_t,0>(i,j,k),layout::template find<1>(m_dims)) +
-                    modulus(layout::template find_val<2,uint_t,0>(i,j,k),layout::template find<2>(m_dims));
-            } else {
-      index =
-          strides_[0]
-          * layout::template find_val<0,uint_t,0>(i,j,k) +
-          strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
-          layout::template find_val<2,uint_t,0>(i,j,k);
-       }
+            index =
+                strides_[0]
+                * layout::template find_val<0,uint_t,0>(i,j,k) +
+                strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
+                layout::template find_val<2,uint_t,0>(i,j,k);
 
        //if(index>=size()){ printf("bad index: %d = %d * %d + %d * %d+ %d \n", index, strides_[0], layout::template find_val<0,uint_t,0>(i,j,k), strides_[1], layout::template find_val<1,uint_t,0>(i,j,k), layout::template find_val<2,uint_t,0>(i,j,k)); }
        assert(index<size());
