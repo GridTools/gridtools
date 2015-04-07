@@ -55,14 +55,26 @@ class CopyTest (unittest.TestCase):
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_range_detection (self):
+    def test_automatic_range_detection (self, ranges=None):
+        """
+        Parameter 'ranges' is a dictionary where the key is the name of a
+        data field and its value the expected range.-
+        """
         self.stencil.backend = 'c++'
         self._run ( )
 
-        scope = self.stencil.inspector.functors[0].scope
-       
-        for p in self.params:
-            self.assertTrue (scope[p].range is None)
+        #
+        # check the range detection within each functor
+        #
+        expected = None
+        for f in self.stencil.inspector.functors:
+            sc = f.scope
+            for p in sc.get_all ( ):
+                try:
+                    expected = ranges[p.name]
+                except (TypeError, KeyError):
+                    expected = None
+                self.assertEqual (sc[p.name].range, expected)
 
 
     def test_compare_python_and_native_executions (self):
@@ -72,12 +84,13 @@ class CopyTest (unittest.TestCase):
         stencil_native.backend = 'c++'
 
         #
-        # data fields
+        # data fields - Py and C++ sets
         #
-        out_field_py  = np.zeros (self.domain)
-        out_field_cxx = np.array (out_field_py)
-        in_field_py   = np.random.rand (*self.domain)
-        in_field_cxx  = np.array (in_field_py)
+        params_py  = dict ( )
+        params_cxx = dict ( )
+        for p in self.params:
+            params_py[p]  = np.random.rand (*self.domain)
+            params_cxx[p] = np.copy (params_py[p])
 
         #
         # apply the stencil 10 times
@@ -86,18 +99,19 @@ class CopyTest (unittest.TestCase):
             #
             # apply the Python version of the stencil
             #
-            self.stencil.run (out_data=out_field_py,
-                              in_data=in_field_py)
+            self.stencil.run (**params_py)
+
             #
             # apply the native version of the stencil
             #
-            stencil_native.run (out_data=out_field_cxx,
-                                in_data=in_field_cxx)
+            stencil_native.run (**params_cxx)
+
             #
             # compare the field contents
             #
-            self.assertTrue (np.array_equal (out_field_py, out_field_cxx))
-            self.assertTrue (np.array_equal (in_field_py, in_field_py))
+            for k in params_py.keys ( ):
+                self.assertTrue (np.array_equal (params_py[k],
+                                                 params_cxx[k]))
 
 
     def test_symbol_discovery (self):
@@ -155,6 +169,7 @@ class CopyTest (unittest.TestCase):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
 
 
+    @attr(lang='python')
     def test_python_execution (self):
         self._run ( )
 
@@ -166,7 +181,8 @@ class CopyTest (unittest.TestCase):
         self.assertTrue (np.array_equal (self.in_data[beg_i:end_i, beg_j:end_j],
                                          self.out_data[beg_i:end_i, beg_j:end_j]))
 
-    @attr(speed='fast')
+
+    @attr(lang='c++')
     def test_native_execution_performance (self):
         import time
 
@@ -233,15 +249,12 @@ class LaplaceTest (CopyTest):
 
 
     def test_automatic_range_detection (self):
-        self.stencil.backend = 'c++'
-        self._run ( )
-
-        scope = self.stencil.inspector.functors[0].scope
-        
-        self.assertEqual (scope['out_data'].range, None)
-        self.assertEqual (scope['in_data'].range, [-1,1,-1,1])
+        expected_ranges = {'out_data': None,
+                           'in_data':  [-1,1,-1,1]}
+        super ( ).test_automatic_range_detection (ranges=expected_ranges)
 
 
+    @attr(lang='python')
     def test_python_execution (self):
         import os
 
@@ -253,6 +266,103 @@ class LaplaceTest (CopyTest):
 
         self.assertTrue (np.array_equal (self.out_data,
                                          expected))
+
+
+
+
+class HorizontalDiffusion (MultiStageStencil):
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+
+        #
+        # temporary data fields to share data among the different stages
+        #
+        self.lap = np.zeros (domain)
+        self.fli = np.zeros (domain)
+        self.flj = np.zeros (domain)
+
+
+    def kernel (self, out_data, in_data, in_wgt):
+        #
+        # Laplace
+        #
+        for p in self.get_interior_points (in_data):
+            self.lap[p] = -4.0 * in_data[p] +  (
+                          in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
+                          in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
+        #
+        # Flux over 'i'
+        #
+        for p in self.get_interior_points (self.lap):
+            self.fli[p] = self.lap[p + (1,0,0)] - self.lap[p]
+        #
+        # Flux over 'j'
+        #
+        for p in self.get_interior_points (self.lap):
+            self.flj[p] = self.lap[p + (0,1,0)] - self.lap[p]
+        #
+        # Last stage
+        #
+        for p in self.get_interior_points (out_data):
+            out_data[p] = in_wgt[p] * (
+                          self.fli[p + (-1,0,0)] - self.fli[p] + 
+                          self.flj[p + (0,-1,0)] - self.flj[p] )
+
+
+
+
+class HorizontalDiffusionTest (CopyTest):
+    """
+    A test case for the HorizontalDiffusion stencil defined above.-
+    """
+    def setUp (self):
+        logging.basicConfig (level=logging.DEBUG)
+
+        self.domain = (8, 8, 1)
+        self.params = ('out_data', 
+                       'in_data',
+                       'in_wgt')
+        self.temps  = ('self.lap', 
+                       'self.fli',
+                       'self.flj')
+
+        self.out_data = np.zeros (self.domain)
+        self.in_data  = np.random.rand (*self.domain)
+        self.in_wgt   = np.ones  (self.domain)
+
+        self.stencil = HorizontalDiffusion (self.domain)
+        self.stencil.set_halo ( (2, 2, 2, 2) )
+        self.stencil.set_k_direction ("forward")
+
+
+    def test_automatic_range_detection (self):
+        expected_ranges = {'out_data': None,
+                           'in_data' : [-1,1,-1,1],
+                           'in_wgt'  : None,
+                           'lap'     : [0,1,0,0],
+                           'fli'     : [-1,0,0,0],
+                           'flj'     : [0,0,-1,0]}
+        super ( ).test_automatic_range_detection (ranges=expected_ranges)
+
+
+    @attr(lang='python')
+    def test_python_execution (self):
+        import os
+
+        self.stencil.backend = 'python'
+        self._run ( )
+        print ("In_data:", np.sum (self.in_data))
+        print ("lap tmp:", np.sum (self.stencil.lap))
+        print ("fli tmp:", np.sum (self.stencil.fli))
+        print ("flj tmp:", np.sum (self.stencil.flj))
+
+        #
+        # FIXME create the test data for this test
+        #
+        #cur_dir  = os.path.dirname (os.path.abspath (__file__))
+        #expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        #self.assertTrue (np.array_equal (self.out_data,
+        #                                 expected))
 
 
 
@@ -468,13 +578,14 @@ class MovingTest (CopyTest):
         self.assertEqual (scope['out_V'].range, exp_rng)
 
 
+    @attr(lang='python')
     def test_python_execution (self):
         import os
 
         self.stencil.backend = 'python'
         self._run ( )
 
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
+        #cur_dir  = os.path.dirname (os.path.abspath (__file__))
         #expected = np.load ('%s/laplace_result.npy' % cur_dir)
 
         #self.assertTrue (np.array_equal (self.out_data,

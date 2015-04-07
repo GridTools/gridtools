@@ -309,6 +309,15 @@ class FunctorBody (ast.NodeVisitor):
                                indexing)
             
 
+    def visit_UnaryOp (self, node):
+        """
+        Generates code for an unary operator, e.g., -
+        """
+        sign = self._sign_operator (node.op)
+        return "%s%s" % (sign,
+                         self.visit (node.operand))
+
+
 
 
 class Functor ( ):
