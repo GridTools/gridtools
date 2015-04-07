@@ -7,38 +7,52 @@ import numpy as np
 
 
 
-class FunctorParameter ( ):
+class SymbolInspector (ast.NodeVisitor):
     """
-    Represents a parameter of a stencil functor.-
+    Inspects the AST looking for known symbols.-
     """
-    def __init__ (self, name):
-        """
-        Creates a new parameter with the received name.-
-        """
-        self.id     = None
-        self.name   = None 
-        self.dim    = None
-        self.input  = None
-        self.output = None
-        self.set_name (name)
+    def __init__ (self, scope):
+        self.scope = scope
 
 
-    def set_name (self, name):
+    def search (self, node):
         """
-        Sets a new name to this functor parameter.-
+        Returns True if a symbol belonging to the current scope is found
+        in the AST, the root of which is 'node'.-
         """
-        #
-        # do not add 'self' as a functor parameter
-        #
-        if name != 'self':
-            self.name = name
-            #
-            # temporary parameters are not 'input' nor 'output'
-            #                                                                        
-            self.input  = self.name.startswith ('in_')
-            self.output = self.name.startswith ('out_')
+        return self.visit (node)
+        
+
+    def visit_Attribute (self, node):
+        """
+        Looks for this attribute in the current scope.-
+        """
+        name = "%s.%s" % (node.value.id,
+                          node.attr)
+        if name in self.scope:
+            symbol = self.scope[name]
+            symbol.read_only = False
+            logging.debug ("Marking symbol '%s' as non-const" % name)
+            return True
         else:
-            self.name = None
+            return False
+
+
+    def visit_Name (self, node):
+        """
+        Looks for this name in the current scope.-
+        """
+        name = node.id
+        if name in self.scope:
+            symbol = self.scope[name]
+            symbol.read_only = False
+            logging.debug ("Marking symbol '%s' as non-const" % name)
+        else:
+            return False
+
+
+    def visit_Subscript (self, node):
+        self.visit (node.value)
 
 
 
@@ -55,8 +69,9 @@ class FunctorBody (ast.NodeVisitor):
             encl_scope  the enclosing scope of symbols that are visible to this
                         functor.-
         """
-        self.scope      = scope 
-        self.encl_scope = encl_scope
+        self.scope       = scope 
+        self.encl_scope  = encl_scope
+        self.symbol_insp = SymbolInspector (scope)
         try:
             if len (nodes) > 0:
                 self.nodes = nodes
@@ -122,8 +137,14 @@ class FunctorBody (ast.NodeVisitor):
         Generates code from an Assignment node, i.e., expr = expr.-
         """
         for tgt in node.targets:
-            return "%s = %s" % (self.visit (tgt),          # lvalue
-                                self.visit (node.value))   # rvalue
+            ret_value = "%s = %s" % (self.visit (tgt),          # lvalue
+                                     self.visit (node.value))   # rvalue
+        #
+        # try to find any known symbols as lvalue
+        #
+        for lval in node.targets:
+            self.symbol_insp.search (lval)
+        return ret_value
 
 
     def visit_Attribute (self, node):
@@ -150,7 +171,7 @@ class FunctorBody (ast.NodeVisitor):
                 #
                 return name.replace ('.', '_')
         #
-        # then within the enclosing one, so to enforce correct scope shadowing
+        # then within the enclosing scope, so to enforce correct scope shadowing
         #
         elif name in self.encl_scope:
             symbol = self.encl_scope[name]
@@ -166,8 +187,7 @@ class FunctorBody (ast.NodeVisitor):
                 #
                 self.scope.add_parameter (name,
                                           symbol.value,
-                                          read_only=self.encl_scope.is_parameter (name,
-                                                                                  read_only=True))
+                                          read_only=symbol.read_only)
                 #
                 # replacing the dot with underscore gives a valid C++ name
                 #
@@ -181,9 +201,14 @@ class FunctorBody (ast.NodeVisitor):
         Generates code for an operation-assignment node, e.g., expr += expr.-
         """
         sign = self._sign_operator (node.op)
-        return "%s %s= %s" % (self.visit (node.target),
-                              sign,
-                              self.visit (node.value))
+        ret_value = "%s %s= %s" % (self.visit (node.target),
+                                   sign,
+                                   self.visit (node.value))
+        #
+        # try to find any known symbols as lvalue
+        #
+        self.symbol_insp.search (node.target)
+        return ret_value
 
 
     def visit_BinOp (self, node):
@@ -228,8 +253,7 @@ class FunctorBody (ast.NodeVisitor):
             #
             self.scope.add_parameter (name,
                                       symbol.value,
-                                      read_only=self.encl_scope.is_parameter (name,
-                                                                              read_only=True))
+                                      read_only=symbol.read_only)
         else:
             raise RuntimeError ("Unknown symbol '%s'" % name)
         #
@@ -270,7 +294,7 @@ class FunctorBody (ast.NodeVisitor):
                             indexing += "%s%s," % (self._sign_operator (e.op),
                                                    str (e.operand.n))
                         else:
-                            raise RuntimeError ("Subscript shifting operation %s unknown"
+                            raise RuntimeError ("Subscript shifting operation '%s' unknown"
                                                 % str (e.op))
                     #
                     # strip the last comma off
@@ -305,8 +329,10 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
 
-        return "eval(%s%s)" % (self.visit (node.value), 
-                               indexing)
+            return "eval(%s%s)" % (self.visit (node.value), 
+                                   indexing)
+        else:
+            logging.warning ("Slicing operations cannot be translated")
             
 
     def visit_UnaryOp (self, node):

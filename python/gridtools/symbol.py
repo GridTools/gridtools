@@ -12,15 +12,9 @@ class Symbol (object):
     """
     KINDS = (
         #
-        # the 'param_rw' kind indicates a read-write stencil and/or functor 
-        # data-field parameter
+        # the 'param' kind indicates a stencil and/or functor data-field parameter
         #
-        'param_rw',
-        #
-        # the 'param_ro' kind indicates a read-only stencil and/or functor 
-        # data-field parameter
-        #
-        'param_ro',
+        'param',
         #
         # the 'temp' kind indicates a temporary data field
         #
@@ -60,6 +54,11 @@ class Symbol (object):
         #    minimum index accessed in _j_, maximum index accessed in _j_)
         #
         self.range = None
+
+        #
+        # a flag indicating whether this symbol is read-only
+        #
+        self.read_only = True
         
 
     def set_range (self, rng):
@@ -147,19 +146,16 @@ class Scope (object):
         self.add_symbol (Symbol (name, 'const', value))
 
 
-    def add_parameter (self, name, value=None, read_only=False):
+    def add_parameter (self, name, value=None, read_only=True):
         """ 
         Adds a parameter data field to this scope:
 
             name        the name of the parameter;
             value       its value;
-            read_only   whether the parameter is read-only or not (default).-
+            read_only   whether the parameter is read-only (default).-
         """
-        if read_only:
-            kind = 'param_ro'
-        else:
-            kind = 'param_rw'
-        self.add_symbol (Symbol (name, kind, value))
+        self.add_symbol (Symbol (name, 'param', value))
+        self[name].read_only = read_only
         if value is not None:
             if isinstance (value, np.ndarray):
                 logging.debug ("Parameter '%s' has dimension %s" % (name,
@@ -239,13 +235,11 @@ class Scope (object):
         return name in [t.name for t in self.get_constants ( )]
 
 
-    def is_parameter (self, name, read_only=False):
+    def is_parameter (self, name):
         """
-        Returns True is symbol 'name' is a parameter in this scope:
-
-            read_only   whether the parameter is read-only or not (default).-
+        Returns True is symbol 'name' is a parameter in this scope.-
         """
-        return name in [p.name for p in self.get_parameters (read_only)]
+        return name in [p.name for p in self.get_parameters ( )]
 
 
     def is_temporary (self, name):
@@ -278,18 +272,11 @@ class Scope (object):
         return self.get_all (['const'])
 
 
-    def get_parameters (self, read_only=False):
+    def get_parameters (self):
         """
-        Returns a sorted list of all parameters in this scope:
-
-            read_only   whether the returned list should contain just read-only
-                        parameters or not (default).-
+        Returns a sorted list of all parameters in this scope.-
         """
-        kinds = ['param_ro']
-        if not read_only:
-            kinds.append ('param_rw')
-
-        return self.get_all (kinds)
+        return self.get_all (['param'])
 
 
     def get_temporaries (self):
