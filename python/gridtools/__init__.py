@@ -146,8 +146,7 @@ class StencilInspector (ast.NodeVisitor):
                     #
                     self.stencil_scope.add_parameter (k,
                                                       v,
-                                                      read_only=self.stencil_scope.is_parameter (k,
-                                                                                                 read_only=True))
+                                                      read_only=self.stencil_scope[k].read_only)
                     #
                     #
                     # check the dimensions of different parameters match
@@ -711,4 +710,4 @@ class InteriorPoint (tuple):
         return tuple (map (sum, zip (self, other)))
 
     def __sub__ (self, other):
-        raise NotImplementedError ("Offsets are not supported with '-'.")
+        raise NotImplementedError ("Offsets with '-' are not supported.")
