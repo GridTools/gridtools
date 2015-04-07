@@ -485,7 +485,11 @@ class MultiStageStencil ( ):
         """
         Marks the currently compiled library as dirty, needing recompilation.-
         """
-        self.lib_obj = None
+        #
+        # clear the compiled library and the symbols inspector
+        #
+        self.lib_obj   = None
+        self.inspector = StencilInspector (self)
 
 
     def run (self, *args, halo=None, k_direction=None, **kwargs):
