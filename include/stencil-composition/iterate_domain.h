@@ -712,28 +712,26 @@ public:
 
                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 
-
-
                 return get_value(arg,
                                  (*m_data_pointer)[ //static if
                                      //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
-                                 storage_type::get_index(
+                                     storage_type::get_index(
                                          (
                                              ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
                                              arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
                                              :
                                              arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
-#ifdef CXX11_ENABLED
+ #ifdef CXX11_ENABLED
                                              //hypotheses (we can weaken it using constexpr static functions):
                                              //storage offsets are known at compile-time
-                                             + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>() >::value //stride of the current dimension inside the vector of storages
+                                             + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
 #else
                                              //limitation to "rectangular" vector fields for non-C++11 storages
-                                             +  arg_mixed_t::get_constexpr<1>()
+                                             +  arg_mixed_t::template get_constexpr<1>()
                                              * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
 #endif
                                              ))//+ the offset of the other extra dimension
-                                 + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
+                                     + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
                                      ]);
 
         }

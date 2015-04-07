@@ -19,18 +19,18 @@ public:
     typedef va_backend::temporary_storage_type<gridtools::float_type, layout_ijk >::type tmp_storage_type;
     typedef va_backend::temporary_storage_type<gridtools::float_type, layout_scalar>::type tmp_scalar_storage_type;
 
-    repository(const int idim, const int jdim, const int kdim, const int halo_size) :
-        utens_stage_(idim, jdim, kdim, -1, "utens_stage"),
-        utens_stage_ref_(idim, jdim, kdim, -1, "utens_stage_ref"),
-        u_stage_(idim, jdim, kdim, -1, "u_stage"),
-        wcon_(idim, jdim, kdim, -1, "wcon"),
-        u_pos_(idim, jdim, kdim, -1, "u_pos"),
-        utens_(idim, jdim, kdim, -1, "utens"),
-        ipos_(idim, jdim, kdim, -1, "ipos"),
-        jpos_(idim, jdim, kdim, -1, "jpos"),
-        kpos_(idim, jdim, kdim, -1, "kpos"),
+    repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size) :
+        utens_stage_(idim, jdim, kdim, -1., "utens_stage"),
+        utens_stage_ref_(idim, jdim, kdim, -1., "utens_stage_ref"),
+        u_stage_(idim, jdim, kdim, -1., "u_stage"),
+        wcon_(idim, jdim, kdim, -1., "wcon"),
+        u_pos_(idim, jdim, kdim, -1., "u_pos"),
+        utens_(idim, jdim, kdim, -1., "utens"),
+        ipos_(idim, jdim, kdim, -1., "ipos"),
+        jpos_(idim, jdim, kdim, -1., "jpos"),
+        kpos_(idim, jdim, kdim, -1., "kpos"),
         //dtr_stage_(0,0,0, -1, "dtr_stage"),
-        dtr_stage_(idim,jdim,kdim, -1, "dtr_stage"),
+        dtr_stage_(idim,jdim,kdim, -1., "dtr_stage"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
     {}
@@ -40,12 +40,12 @@ public:
         // set the fields to advect
         const double PI = std::atan(1.)*4.;
 
-        const int i_begin = 0;
-        const int i_end=  idim_;
-        const int j_begin = 0;
-        const int j_end=  jdim_;
-        const int k_begin = 0;
-        const int k_end=  kdim_;
+        const uint_t i_begin = 0;
+        const uint_t i_end=  idim_;
+        const uint_t j_begin = 0;
+        const uint_t j_end=  jdim_;
+        const uint_t k_begin = 0;
+        const uint_t k_end=  kdim_;
 
         double dtadv = (double)20./3.;
         dtr_stage_(0,0,0) = (double)1.0 / dtadv;
@@ -105,8 +105,8 @@ public:
     {
         double dtr_stage = dtr_stage_(0,0,0);
 
-        ij_storage_type datacol(idim_, jdim_, 1, -1, "datacol");
-        storage_type ccol(idim_, jdim_, kdim_, -1, "ccol"), dcol(idim_, jdim_, kdim_, -1, "dcol");
+        ij_storage_type datacol(idim_, jdim_, (uint_t)1, -1., "datacol");
+        storage_type ccol(idim_, jdim_, kdim_, -1., "ccol"), dcol(idim_, jdim_, kdim_, -1., "dcol");
 
         init_field_to_value(ccol, 0.0);
         init_field_to_value(dcol, 0.0);
@@ -248,7 +248,7 @@ public:
     storage_type& jpos() {return jpos_;}
     storage_type& kpos() {return kpos_;}
     //TODO fix this, with a scalar storage the GPU version does not work
-    //scalar_storage_type& dtr_stage() 
+    //scalar_storage_type& dtr_stage()
     storage_type& dtr_stage() {return dtr_stage_;}
 
     //output fields

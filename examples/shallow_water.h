@@ -73,7 +73,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
             // TODO use placeholders here instead of the storage
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -83,7 +83,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
             // TODO use placeholders here instead of the storage
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),data_field0.template dims<0>()-1-i,j,k)];
         }
 
         // default: do nothing
@@ -481,7 +481,7 @@ namespace shallow_water{
                 // TODO: use placeholders here instead of the storage
                 /*                             component,snapshot */
                 boundary_apply< bc_periodic<0,0> >(halos, bc_periodic<0,0>()).apply(sol);
-                bo ndary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
+                boundary_apply< bc_periodic<1,0> >(halos, bc_periodic<1,0>()).apply(sol);
 #endif
                 shallow_water_stencil1->run();
                 shallow_water_stencil2->run();

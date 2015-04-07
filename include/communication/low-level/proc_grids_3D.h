@@ -357,19 +357,17 @@ namespace gridtools {
           :
           m_communicator(comm),
           cyclic(c),
-          m_nprocs(0),
-          m_dimensions()
-#if  !defined(__clang__) && defined(CXX11_ENABLED)
-          , m_coordinates{0}
-#endif
+          m_nprocs(0)
+          , m_dimensions()
+          , m_coordinates()
           {
-
-#if defined(__clang__) || !defined(CXX11_ENABLED)
-
               for (ushort_t i=0; i<ndims; ++i){
                   m_coordinates[i]=0;
+                  m_dimensions[i]=0;
               }
-#endif
+
+              MPI_Comm_size(comm, &m_nprocs);
+
               if(!dimensions)
                   MPI_Dims_create(m_nprocs, ndims, &m_dimensions[0]);
               else{
@@ -378,7 +376,6 @@ namespace gridtools {
                   }
               }
 
-              MPI_Comm_size(comm, &m_nprocs);
               create(comm);
           }
 
