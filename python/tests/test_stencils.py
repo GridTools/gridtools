@@ -43,7 +43,7 @@ class CopyTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.domain = (128, 128, 64)
+        self.domain = (16, 16, 8)
         self.params = ('out_data', 'in_data')
         self.temps  = ( )
 
@@ -93,17 +93,10 @@ class CopyTest (unittest.TestCase):
             params_cxx[p] = np.copy (params_py[p])
 
         #
-        # apply the stencil 10 times
+        # apply both stencils 10 times
         #
         for i in range (10):
-            #
-            # apply the Python version of the stencil
-            #
-            self.stencil.run (**params_py)
-
-            #
-            # apply the native version of the stencil
-            #
+            self.stencil.run   (**params_py)
             stencil_native.run (**params_cxx)
 
             #
