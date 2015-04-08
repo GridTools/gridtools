@@ -29,8 +29,8 @@ public:
 
                     if(!compare_below_threashold(expected, actual))
                     {
-                        std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
-                                " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
+                        // std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
+                        //         " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
                         verified = false;
                     }
                 }

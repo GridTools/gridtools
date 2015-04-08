@@ -1,13 +1,9 @@
-
 #pragma once
-#include <stencil-composition/make_computation.h>
 
 #include <gridtools.h>
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host/backend_host.h>
-#endif
+#include <stencil-composition/make_computation.h>
+
+#include <stencil-composition/backend.h>
 
 #include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
@@ -18,6 +14,7 @@
 #endif
 
 /*
+  @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
 
@@ -29,23 +26,50 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace copy_stencils_3D_2D_1D_0D {
+#ifdef CXX11_ENABLED
+#define POSTFIX
+#else
+#define POSTFIX
+#endif
+
+namespace positional_copy_stencil{
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
-    struct copy_functor {
-        static const int n_args = 2;
-        typedef const arg_type<0> in;
-        typedef arg_type<1> out;
+    template <int V>
+    struct init_functor {
+        typedef arg_type<0, range<0,0,0,0> > POSTFIX in;
+        typedef arg_type<1, range<0,0,0,0> > POSTFIX out;
         typedef boost::mpl::vector<in, out> arg_list;
 
-        template <typename Domain>
+        template <typename Evaluation>
         GT_FUNCTION
-        static void Do(Domain const & dom, x_interval) {
+        static void Do(Evaluation const & eval, x_interval) {
+            // std::cout << "i = " << eval.i
+            //           << " j = " << eval.j
+            //           << " k = " << eval.k
+            //           << std::endl;
+            eval(in()) = static_cast<float_type>(V)*(eval.i+eval.j+eval.k);
+            eval(out()) = -1.1;
+        }
+    };
 
-            dom(out()) = dom(in());
+    // These are the stencil operators that compose the multistage stencil in this test
+    struct copy_functor {
+
+        typedef const arg_type<0, range<0,0,0,0>, 3> POSTFIX in;
+        typedef arg_type<1, range<0,0,0,0>, 3> POSTFIX out;
+        typedef boost::mpl::vector<in,out> arg_list;
+
+    /* static const auto expression=in(1,0,0)-out(); */
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            eval(out())
+                =eval(in());
         }
     };
 
@@ -56,12 +80,18 @@ namespace copy_stencils_3D_2D_1D_0D {
         return s << "copy_functor";
     }
 
-    void handle_error(int)
+    /*
+     * The following operators and structs are for debugging only
+     */
+    template <int I>
+    std::ostream& operator<<(std::ostream& s, init_functor<I> const) {
+        return s << "(positional) init_functor";
+    }
+
+    void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-
-    template <typename SrcLayout, typename DstLayout >
-    bool test(int x, int y, int z) {
+    bool test(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
         int collector_init = pw_new_collector("Init");
@@ -72,7 +102,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend<Cuda, Naive >
 #else
 #ifdef BACKEND_BLOCK
@@ -81,51 +111,82 @@ namespace copy_stencils_3D_2D_1D_0D {
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
+        //                   strides  1 x xy
+        //                      dims  x y z
+        typedef gridtools::layout_map<2,1,0> layout_t;
+        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
-        typedef DstLayout layout_t;
-        typedef typename gridtools::BACKEND::storage_type<double, DstLayout >::type storage_type;
-        typedef typename gridtools::BACKEND::storage_type<double, SrcLayout >::type src_storage_type;
-
-        // Definition of the actual data fields that are used for input/output
-        src_storage_type in(d1,d2,d3,-3.5/*, std::string("in")*/);
-
-        for(int i=0; i<d1; ++i)
-            for(int j=0; j<d2; ++j)
-                for(int k=0; k<d3; ++k)
-                    {
-                        in(i, j, k)=i+j+k;
-                    }
-
-
-        storage_type out(d1,d2,d3,1.5/*, std::string("out")*/);
-
-        // in.print();
+        //out.print();
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg<0, src_storage_type > p_in;
-        typedef arg<1, storage_type > p_out;
 
+        typedef arg<0, storage_type> p_in;
+        typedef arg<1, storage_type> p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector<p_in, p_out> arg_type_list;
 
+        /* typedef arg<1, vec_field_type > p_out; */
+
+        // Definition of the actual data fields that are used for input/output
+        storage_type in(d1,d2,d3,-3.5,"in");
+        storage_type out(d1,d2,d3,1.5,"out");
+
+//         for(uint_t i=0; i<d1; ++i)
+//             for(uint_t j=0; j<d2; ++j)
+//                 for(uint_t k=0; k<d3; ++k)
+//                     {
+// #ifdef CXX11_ENABLED
+//                         in(i, j, k)=i+j+k;
+// #else
+//                         in(i, j, k)=i+j+k;
+// #endif
+//                     }
+
+
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+
         gridtools::domain_type<arg_type_list> domain
             (boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(??2,d1-2,2,d2-2??);
+        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
         gridtools::coordinates<axis> coords(di, dj);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
+        
+#ifdef __CUDACC__
+        gridtools::computation* init =
+#else
+        boost::shared_ptr<gridtools::computation> init =
+#endif
+        gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
+            (
+             gridtools::make_mss // mss_descriptor
+             (
+              execute<forward>(),
+              gridtools::make_esf<init_functor<31415926> >(
+                                                           p_in(), p_out() // esf_descriptor
+                                                           )
+              ),
+             domain, coords
+             );
+
+        init->ready();
+
+        init->steady();
+        domain.clone_to_gpu();
+        init->run();
+
+        init->finalize();
 
         /*
           Here we do lot of stuff
@@ -164,14 +225,17 @@ namespace copy_stencils_3D_2D_1D_0D {
 #ifdef __CUDACC__
         gridtools::computation* copy =
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+        boost::shared_ptr<gridtools::computation> copy =
 #endif
             gridtools::make_computation<gridtools::BACKEND, layout_t>
             (
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
-              gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
+              gridtools::make_esf<copy_functor>(
+                                                p_in() // esf_descriptor
+                                                ,p_out()
+                                                )
               ),
              domain, coords
              );
@@ -193,6 +257,7 @@ namespace copy_stencils_3D_2D_1D_0D {
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
+    boost::timer::cpu_timer time;
         copy->run();
 
 #ifdef USE_PAPI
@@ -210,31 +275,38 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         copy->finalize();
 
-#ifdef CUDA_EXAMPLE
-        out.data().update_cpu();
-#endif
+        boost::timer::cpu_times lapse_time = time.elapsed();
+        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+        //#ifdef CUDA_EXAMPLE
+        //out.data().update_cpu();
+        //#endif
+#define NX 5
+#define NY 5
+#define NZ 5
 
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
 
-        // out.print();
-
-        bool ok = true;
-        for(int i=0; i<d1; ++i)
-            for(int j=0; j<d2; ++j)
-                for(int k=0; k<d3; ++k)
+        bool success = true;
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
                     {
                         if (in(i, j, k)!=out(i,j,k)) {
-                             // std::cout << "i = " << i
-                             //           << "j = " << j
-                             //           << "k = " << k
-                             //           << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
-                            ok=false;
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+                                      << "in = " << in(i, j, k)
+                                      << ", out = " << out(i, j, k)
+                                      << std::endl;
+                            success = false;
                         }
                     }
+                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        return success;
 
-        return  ok;
     }
 
-}//namespace copy_stencils_3D_2D_1D_0D
+}//namespace copy_stencil

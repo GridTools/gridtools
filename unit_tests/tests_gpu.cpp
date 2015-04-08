@@ -66,9 +66,9 @@ TEST(stencil, horizontaldiffusion) {
     EXPECT_EQ(horizontal_diffusion::test(16, 16, 5), true);
 }
 
-#define __Size0 32
-#define __Size1 32
-#define __Size2 2
+#define __Size0 52
+#define __Size1 52
+#define __Size2 60
 
 TEST(stencil, copies3D) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2,1,0> , gridtools::layout_map<2,1,0> >(__Size0, __Size1, __Size2)), true);
