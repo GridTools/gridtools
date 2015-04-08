@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import ast
 import logging
 import numpy as np
-
 
 
 
@@ -83,6 +83,50 @@ class Symbol (object):
 
         except IndexError:
             logging.error ("Range descriptor %s should be 3-dimensional" % rng)
+
+
+
+class SymbolInspector (ast.NodeVisitor):
+    """
+    Inspects the AST looking for known symbols.-
+    """
+    def __init__ (self, scope):
+        self.scope         = scope
+        self.symbols_found = None
+
+
+    def search (self, node):
+        """
+        Returns a list of the symbols belonging to the current scope that are
+        found in the AST, the root of which is 'node'.-
+        """
+        self.symbols_found = list ( )
+        self.visit (node)
+        return self.symbols_found
+        
+
+    def visit_Attribute (self, node):
+        """
+        Looks for this attribute in the current scope.-
+        """
+        name = "%s.%s" % (node.value.id,
+                          node.attr)
+        if name in self.scope:
+            self.symbols_found.append (self.scope[name])
+
+
+    def visit_Name (self, node):
+        """
+        Looks for this name in the current scope.-
+        """
+        name = node.id
+        if name in self.scope:
+            self.symbols_found.append (self.scope[name])
+
+
+    def visit_Subscript (self, node):
+        self.visit (node.value)
+
 
 
 

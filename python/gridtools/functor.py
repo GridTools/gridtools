@@ -5,54 +5,8 @@ import logging
 
 import numpy as np
 
+from gridtools.symbol import SymbolInspector
 
-
-class SymbolInspector (ast.NodeVisitor):
-    """
-    Inspects the AST looking for known symbols.-
-    """
-    def __init__ (self, scope):
-        self.scope = scope
-
-
-    def search (self, node):
-        """
-        Returns True if a symbol belonging to the current scope is found
-        in the AST, the root of which is 'node'.-
-        """
-        return self.visit (node)
-        
-
-    def visit_Attribute (self, node):
-        """
-        Looks for this attribute in the current scope.-
-        """
-        name = "%s.%s" % (node.value.id,
-                          node.attr)
-        if name in self.scope:
-            symbol = self.scope[name]
-            symbol.read_only = False
-            logging.debug ("Marking symbol '%s' as non-const" % name)
-            return True
-        else:
-            return False
-
-
-    def visit_Name (self, node):
-        """
-        Looks for this name in the current scope.-
-        """
-        name = node.id
-        if name in self.scope:
-            symbol = self.scope[name]
-            symbol.read_only = False
-            logging.debug ("Marking symbol '%s' as non-const" % name)
-        else:
-            return False
-
-
-    def visit_Subscript (self, node):
-        self.visit (node.value)
 
 
 
@@ -77,6 +31,15 @@ class FunctorBody (ast.NodeVisitor):
                 self.nodes = nodes
         except TypeError:
             logging.warning ("FunctorBody expects a list of AST nodes.")
+
+
+    def _mark_lvalue (self, nodes):
+        """
+        Find any known symbols as LValue and mark them as 'non-const'.-
+        """
+        for lval in nodes:
+            for s in self.symbol_insp.search (lval):
+                s.read_only = False
 
 
     def _sign_operator (self, op):
@@ -139,11 +102,7 @@ class FunctorBody (ast.NodeVisitor):
         for tgt in node.targets:
             ret_value = "%s = %s" % (self.visit (tgt),          # lvalue
                                      self.visit (node.value))   # rvalue
-        #
-        # try to find any known symbols as lvalue
-        #
-        for lval in node.targets:
-            self.symbol_insp.search (lval)
+        self._mark_lvalue (node.targets)
         return ret_value
 
 
@@ -204,10 +163,7 @@ class FunctorBody (ast.NodeVisitor):
         ret_value = "%s %s= %s" % (self.visit (node.target),
                                    sign,
                                    self.visit (node.value))
-        #
-        # try to find any known symbols as lvalue
-        #
-        self.symbol_insp.search (node.target)
+        self._mark_lvalue ( (node.target) )
         return ret_value
 
 
