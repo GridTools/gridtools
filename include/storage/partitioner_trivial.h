@@ -24,23 +24,37 @@ namespace gridtools{
         typedef Storage storage_t;
         typedef Communicator communicator_t;
         /**@brief constructor
+
            suppose we are using an MPI cartesian communicator:
-           then we have a coordinates (e.g. the local i,j,k identifying a processor id) and dimensions (e.g. IxJxK)
+           then we have a coordinates frame (e.g. the local i,j,k identifying a processor id) and dimensions array (e.g. IxJxK).
+           The constructor assigns the boundary flag in case the partition is at the boundary of the processors grid,
+           regardless whether the communicator is periodic or not in that direction. The boundary assignment follows the convention
+           represented in the figure below
+
+            \verbatim
+            ######2^1#######
+            #              #
+            #              #
+            #              #
+           2^(d)          2^0
+            #              #
+            #              #
+            #              #
+            ###2^(d+1)######
+            \endverbatim
+
+            where d is the number of dimensions of the processors grid.
+            The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
         */
         partitioner_trivial(// communicator_t const& comm,
             const communicator_t& comm, const ushort_t* halo ): m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(halo), m_comm(comm){
 
             m_boundary=0;//bitmap
-//             if(comm.coordinates(0)==comm.dimensions(0)-1) m_boundary  =  1; else m_boundary = 0;
-//             if(comm.coordinates(1)==comm.dimensions(1)-1) m_boundary +=  2;
-//             if(comm.coordinates(0)==0)  m_boundary += 4;
-//             if(comm.coordinates(1)==0)  m_boundary += 8;
 
-            //TODO think general
-            for (ushort_t i=0; i<communicator_t::ndims-1; ++i)
+            for (ushort_t i=0; i<communicator_t::ndims; ++i)
                 if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
-            for (ushort_t i=communicator_t::ndims-1; i<2*(communicator_t::ndims-1); ++i)
-                if(comm.coordinates(i-(communicator_t::ndims-1))==0) m_boundary  += std::pow(2, i);
+            for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
+                if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
         }
 
 
@@ -78,10 +92,7 @@ namespace gridtools{
                     //assert(low_bound[component]>=0);
 #ifndef NDEBUG
                         if(low_bound[component]<0){
-                            int pid=0;
-                            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-
-                            printf("\n\n\n ERROR[%d]: low bound for component %d is %d<0\n\n\n", pid,  component, low_bound[component] );
+                            printf("\n\n\n ERROR[%d]: low bound for component %d is %d<0\n\n\n", PID,  component, low_bound[component] );
                         }
 #endif
                     }
@@ -95,32 +106,30 @@ namespace gridtools{
                         /*error in the partitioner*/
                     //assert(up_bound[component]<size);
                         if(up_bound[component]>sizes[component]){
-                            int pid=0;
-                            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-                            printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", pid,  component, up_bound[component], sizes[component] );
+                            printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", PID,  component, up_bound[component], sizes[component] );
                         }
 
                     }
 
                     uint_t tile_dimension = up_bound[component]-low_bound[component];
 
-                    coordinates[component] = halo_descriptor( compute_halo(component,4),
+                    coordinates[component] = halo_descriptor( compute_halo(component,8),
                                                                 compute_halo(component,1),
-                                                                compute_halo(component,4),
-                                                                tile_dimension + ( compute_halo(component,4)) - 1,
-                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) );
+                                                                compute_halo(component,8),
+                                                                tile_dimension + ( compute_halo(component,8)) - 1,
+                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,8)) );
 
                     coordinates_gcl[component] = halo_descriptor( m_halo[component]-1,
                                                                 m_halo[component]-1,
-                                                                compute_halo(component,4),
-                                                                tile_dimension + ( compute_halo(component,4)) - 1,
-                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,4)) );
+                                                                compute_halo(component,8),
+                                                                tile_dimension + ( compute_halo(component,8)) - 1,
+                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,8)) );
 
 #ifndef NDEBUG
-                std::cout<<"["<<PID<<"]"<<"coordinates"<< compute_halo(component,4)<<" "
+                std::cout<<"["<<PID<<"]"<<"coordinates"<< compute_halo(component,8)<<" "
                          <<compute_halo(component,1) << " "
-                         << tile_dimension+(compute_halo(component,4))-1<<" "
-                         <<( tile_dimension+ compute_halo(component,1))+(compute_halo(component,4))
+                         << tile_dimension+(compute_halo(component,8))-1<<" "
+                         <<( tile_dimension+ compute_halo(component,1))+(compute_halo(component,8))
                          << std::endl;
                 std::cout<<"boundary for coords definition: "<<boundary()<<std::endl;
                 std::cout<<"partitioning"<<std::endl;
@@ -129,28 +138,29 @@ namespace gridtools{
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
                          <<"component, size: "<<component<<" "<<sizes[component]<<std::endl;
 #endif
-                dims[component]=up_bound[component]-low_bound[component]+ compute_halo(component,1)+compute_halo(component,4);
+                dims[component]=up_bound[component]-low_bound[component]+ compute_halo(component,1)+compute_halo(component,8);
                 }
             }
 
         /** @brief method to query the halo dimension based on the periodicity of the communicator and the boundary flag
 
             \param component is the current component, x or y (i.e. 0 or 1) in 2D
-            \param flag is a flag identifying whether we are quering the high (flag=2) or low (flag=1) boundary.
+            \param flag is a flag identifying whether we are quering the high (flag=1) or low (flag=2^d) boundary,
+            where d is the number of dimensions of the processor grid.
             Conventionally we consider the left/bottom corner as the frame origin, which is
             consistent with the domain indexing.
 
             Consider the following representation of the 2D domain with the given boundary flags
             \verbatim
-            ####### 8 ######
-            #              #
-            #              #
-            #              #
-            1              4
-            #              #
-            #              #
-            #              #
             ####### 2 ######
+            #              #
+            #              #
+            #              #
+            4              1
+            #              #
+            #              #
+            #              #
+            ####### 8 ######
             \endverbatim
 
             example:
@@ -164,15 +174,15 @@ namespace gridtools{
             the faces numeration satisfies the following rule
 
             \verbatim
-            ####2^(d+1)#####
+            ######2^1#######
             #              #
             #              #
             #              #
-           2^0            2^(d)
+           2^(d)          2^0
             #              #
             #              #
             #              #
-            #######2^1######
+            ###2^(d+1)######
             \endverbatim
         */
         int_t compute_halo(ushort_t const& component, ushort_t const& flag) const {

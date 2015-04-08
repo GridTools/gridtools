@@ -1,11 +1,15 @@
 #pragma once
 
 #include "../storage/host_tmp_storage.h"
-//#include "backend_traits_fwd.h"
 #include "backend_fwd.h"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
 #include "common/gridtools_runtime.h"
+
+/**
+@file
+TODO Document me!
+*/
 
 namespace gridtools {
     namespace _impl {
@@ -28,9 +32,9 @@ namespace gridtools {
             */
             struct instantiate_tmps
             {
-                uint_t m_tile_i;// or offset along i
-                uint_t m_tile_j;// or offset along j
-                uint_t m_tile_k;// or offset along k
+                uint_t m_tile_i;// tile along i
+                uint_t m_tile_j;// tile along j
+                uint_t m_tile_k;// tile along k
 
                 GT_FUNCTION
                 instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
@@ -99,21 +103,21 @@ namespace gridtools {
             */
             struct instantiate_tmps
             {
-                uint_t m_tile_i;// or offset along i
-                uint_t m_tile_j;// or offset along j
-                uint_t m_tile_k;// or offset along k
+                uint_t m_offset_i;// offset along i
+                uint_t m_offset_j;// offset along j
+                uint_t m_offset_k;// offset along k
                 uint_t m_n_i_threads;
                 uint_t m_n_j_threads;
 
                 GT_FUNCTION
-                instantiate_tmps(uint_t tile_i,
-                                 uint_t tile_j,
-                                 uint_t tile_k,
+                instantiate_tmps(uint_t offset_i,
+                                 uint_t offset_j,
+                                 uint_t offset_k,
                                  uint_t m_n_i_threads,
                                  uint_t m_n_j_threads)
-                    : m_tile_i(tile_i)
-                    , m_tile_j(tile_j)
-                    , m_tile_k(tile_k)
+                    : m_offset_i(offset_i)
+                    , m_offset_j(offset_j)
+                    , m_offset_k(offset_k)
                     , m_n_i_threads(m_n_i_threads)
                     , m_n_j_threads(m_n_j_threads)
                 {}
@@ -126,9 +130,9 @@ namespace gridtools {
 
                     //calls the constructor of the storage
                     //TODO noone deletes this new
-                    e = new ElemType(m_tile_i,
-                                     m_tile_j,
-                                     m_tile_k,
+                    e = new ElemType(m_offset_i,
+                                     m_offset_j,
+                                     m_offset_k,
                                      m_n_i_threads,
                                      m_n_j_threads);
                     e->allocate();

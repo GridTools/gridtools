@@ -1,23 +1,10 @@
 #pragma once
 
 #include <gridtools.h>
-#include <common/halo_descriptor.h>
-#include <boost/lambda/bind.hpp>
-#include <boost/lambda/construct.hpp>
-#include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
-
-#ifdef HDF5_ENABLED
-#include <storage/io.h>
-#endif
-
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.h>
