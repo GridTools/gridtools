@@ -33,13 +33,24 @@ class FunctorBody (ast.NodeVisitor):
             logging.warning ("FunctorBody expects a list of AST nodes.")
 
 
-    def _mark_lvalue (self, nodes):
+    def _analyze_assignment (self, lval_node, rval_node):
         """
-        Find any known symbols as LValue and mark them as 'non-const'.-
+        Analyze any known symbols appearing as LValue or RValue in an expression.-
         """
-        for lval in nodes:
-            for s in self.symbol_insp.search (lval):
-                s.read_only = False
+        lvalues = self.symbol_insp.search (lval_node)
+        rvalues = self.symbol_insp.search (rval_node)
+
+        for lsymbol in lvalues:
+            #
+            # lvalues are read/write
+            #
+            lsymbol.read_only = False
+            #
+            # lvalues depend on rvalues
+            #
+            for rsymbol in rvalues:
+                self.symbol_insp.add_dependency (lsymbol,
+                                                 rsymbol)
 
 
     def _sign_operator (self, op):
@@ -102,7 +113,8 @@ class FunctorBody (ast.NodeVisitor):
         for tgt in node.targets:
             ret_value = "%s = %s" % (self.visit (tgt),          # lvalue
                                      self.visit (node.value))   # rvalue
-        self._mark_lvalue (node.targets)
+            self._analyze_assignment (tgt,
+                                      node.value)
         return ret_value
 
 
@@ -163,7 +175,8 @@ class FunctorBody (ast.NodeVisitor):
         ret_value = "%s %s= %s" % (self.visit (node.target),
                                    sign,
                                    self.visit (node.value))
-        self._mark_lvalue ( (node.target) )
+        self._analyze_assignment (node.target,
+                                  node.value)
         return ret_value
 
 
@@ -345,4 +358,8 @@ class Functor ( ):
                     this is used to display user-friendly error messages.-
         """
         self.body.generate_code (src)
+
+
+    def get_dependency_graph (self):
+        return self.body.symbol_insp.depency_graph
 

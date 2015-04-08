@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import ast
 import logging
-import numpy as np
+import numpy    as np
+import networkx as nx
+
 
 
 
@@ -88,11 +90,20 @@ class Symbol (object):
 
 class SymbolInspector (ast.NodeVisitor):
     """
-    Inspects the AST looking for known symbols.-
+    Inspects the AST looking for known symbols, keeping their dependency graph.-
     """
     def __init__ (self, scope):
         self.scope         = scope
+        self.depency_graph = nx.DiGraph ( )
         self.symbols_found = None
+
+
+    def add_dependency (self, left_symbol, right_symbol):
+        """
+        Creates a dependency between 'left_symbol' and 'right_symbol'.-
+        """
+        self.depency_graph.add_edge (left_symbol.name,
+                                     right_symbol.name)
 
 
     def search (self, node):

@@ -505,6 +505,7 @@ class MultiStageStencil ( ):
                             which might be any of 'forward' or 'backward'.-
         """
         import ctypes
+        import networkx as nx
 
         #
         # we only accept keyword arguments to avoid confusion
@@ -549,11 +550,16 @@ class MultiStageStencil ( ):
                         f.scope.dump ( )
 
                 #
-                # generate the code of all functors in this stencil
+                # generate the code of *all* functors in this stencil
+                # and build a data-dependency graph among *all* data fields
                 #
+                data_dependency = nx.DiGraph ( )
+
                 try:
                     for func in self.inspector.functors:
                         func.generate_code (self.inspector.src)
+                        data_dependency.add_edges_from (func.get_dependency_graph ( ).edges ( ))
+                    print (data_dependency.edges ( ))
 
                 except Exception as e:
                     logging.error ("Error while generating code\n%s" % str (e))
