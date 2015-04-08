@@ -28,7 +28,7 @@ namespace gridtools {
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct arg_type : public arg_extend<ID, Range, Number, Number>::type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
-#ifndef __CUDACC__
+#ifdef CXX11_ENABLED // #ifndef __CUDACC__
         using type::arg_decorator;
 #else
 
@@ -40,13 +40,13 @@ namespace gridtools {
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
            language keyword used at the interface level.
         */
-#ifdef CXX11_ENABLED
+//#ifdef CXX11_ENABLED
         template <typename... Whatever>
         GT_FUNCTION
         constexpr arg_type ( Whatever... x): type (x)
             {
             }
-#else
+//#else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
         constexpr arg_type ( X x, Y y, Z z, T t ): type(x, y, z, t)
@@ -68,7 +68,7 @@ namespace gridtools {
         constexpr arg_type ( X x, Y y ): type(x, y)
             {
             }
-#endif
+//#endif
 
 #endif
     };

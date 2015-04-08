@@ -228,56 +228,16 @@ arg_type_base ( int const& t, Whatever const& ... x) {
             std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
         }
 
-//     protected:
-
-// #ifdef CXX11_ENABLED
-//         int_t m_offset;
-// #else
-//         int_t m_offset;
-// #endif
-
         template<short_t Idx>
         constexpr bool end(){return true;}
 
         template<short_t Idx>
         GT_FUNCTION
-        //#ifdef NDEBUG
         constexpr
-        //#endif
-        int_t const get() const {//stop recursion
-
-// #ifndef NDEBUG
-//             printf("The dimension you are trying to access exceeds the number of dimensions by %d.\n \
-// check your expressions and the field/space dimensions \n", -Idx);
-//             //assert(false);
-// #endif
-            return (int_t)0./*-9999*/;//TODO change this
+        int_t get() const {
+            return (int_t)0.;
         }
 
-
-//         /**@brief returns a copy of the arg_type with all offsets set to zero*/
-//         GT_FUNCTION
-// #ifdef CXX11_ENABLED
-//         static constexpr  arg_type_base<I>&& center() {
-//             return std::move(arg_type_base<I>());
-//         }
-// #else
-//         static constexpr  arg_type_base<I> center() {
-//             return arg_type_base<I>();
-//         }
-// #endif
-
-//         /**returns a new arg_type where the offsets are the sum of the current offsets plus the values specified via the argument*/
-//         GT_FUNCTION
-// #ifdef CXX11_ENABLED
-//         constexpr arg_type_base<I>&& plus(int_t _i, int_t _j, int_t _k) const {
-//             return std::move(arg_type_base<I>(i()+_i, j()+_j, k()+_k));
-//         }
-// #else
-//         constexpr arg_type_base<I> plus(int_t _i, int_t _j, int_t _k) const {
-//             return arg_type_base<I>(i()+_i, j()+_j, k()+_k);
-//         }
-// #endif
 
 
 // #ifdef CXX11_ENABLED
@@ -424,7 +384,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         template<short_t Idx>
         GT_FUNCTION
         constexpr
-        int_t const get() const {
+        int_t get() const {
             //NOTE: this should be a constexpr whenever m_offset is a static const
             //this might not be compile-time efficient for large indexes,
             //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
