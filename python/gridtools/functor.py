@@ -49,8 +49,8 @@ class FunctorBody (ast.NodeVisitor):
             # lvalues depend on rvalues
             #
             for rsymbol in rvalues:
-                self.symbol_insp.add_dependency (lsymbol,
-                                                 rsymbol)
+                self.scope.add_dependency (lsymbol,
+                                           rsymbol)
 
 
     def _sign_operator (self, op):
@@ -361,5 +361,5 @@ class Functor ( ):
 
 
     def get_dependency_graph (self):
-        return self.body.symbol_insp.depency_graph
+        return self.scope.depency_graph
 

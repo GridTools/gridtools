@@ -63,6 +63,13 @@ class Symbol (object):
         self.read_only = True
         
 
+    def __hash__ (self):
+        return self.name.__hash__ ( )
+
+    def __repr__ (self):
+        return self.name
+
+
     def set_range (self, rng):
         """
         Sets or updates the range of this symbol.-
@@ -94,16 +101,7 @@ class SymbolInspector (ast.NodeVisitor):
     """
     def __init__ (self, scope):
         self.scope         = scope
-        self.depency_graph = nx.DiGraph ( )
         self.symbols_found = None
-
-
-    def add_dependency (self, left_symbol, right_symbol):
-        """
-        Creates a dependency between 'left_symbol' and 'right_symbol'.-
-        """
-        self.depency_graph.add_edge (left_symbol.name,
-                                     right_symbol.name)
 
 
     def search (self, node):
@@ -153,6 +151,12 @@ class Scope (object):
         # 
         self.symbol_table = dict ( )
 
+        #
+        # a data-dependency graph
+        #
+        #
+        self.depency_graph = nx.DiGraph ( )
+
 
     def __contains__ (self, name):
         """
@@ -166,15 +170,6 @@ class Scope (object):
         Returns 'name' symbol from this scope.-
         """
         return self.symbol_table[name]
-
-
-    def add_symbol (self, symbol):
-        """
-        Adds the received 'symbol' to this scope.-
-        """
-        if symbol.name in self:
-            logging.debug ("Updated symbol '%s'" % symbol.name)
-        self.symbol_table[symbol.name] = symbol
 
 
     def add_constant (self, name, value=None):
@@ -199,6 +194,26 @@ class Scope (object):
         else:
             logging.debug ("Constant '%s' is None" % name)
         self.add_symbol (Symbol (name, 'const', value))
+
+
+    def add_dependency (self, left_symbol, right_symbol):
+        """
+        Creates a dependency between 'left_symbol' and 'right_symbol'.-
+        """
+        if (left_symbol.name in self) and (right_symbol.name in self):
+            self.depency_graph.add_edge (left_symbol,
+                                         right_symbol)
+        else:
+            raise ValueError ("Trying to add a dependency between non-existent symbols")
+
+
+    def add_dependencies (self, deps):
+        """
+        Adds a sequence of data dependencies, each of which must be given
+        as a 2-tuples (u,v).-
+        """
+        for d in deps:
+            self.add_dependency (d[0], d[1])
 
 
     def add_parameter (self, name, value=None, read_only=True):
@@ -244,6 +259,15 @@ class Scope (object):
                                  (type (value), name))
         else:
             raise ValueError ("Temporary data field '%s' cannot be None" % name)
+
+
+    def add_symbol (self, symbol):
+        """
+        Adds the received 'symbol' to this scope.-
+        """
+        if symbol.name in self:
+            logging.debug ("Updated symbol '%s'" % symbol.name)
+        self.symbol_table[symbol.name] = symbol
 
 
     def arrange_ids (self):
