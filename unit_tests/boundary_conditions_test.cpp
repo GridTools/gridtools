@@ -170,9 +170,7 @@ bool basic() {
 
 #ifdef __CUDACC__
     in.clone_to_gpu();
-//    out.clone_to_gpu();
     in.h2d_update();
-//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic>(halos, bc_basic()).apply(in);
 
@@ -311,9 +309,7 @@ bool predicate() {
 
 #ifdef __CUDACC__
     in.clone_to_gpu();
-//    out.clone_to_gpu();
     in.h2d_update();
-//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
 
@@ -472,9 +468,7 @@ bool twosurfaces() {
 
 #ifdef __CUDACC__
     in.clone_to_gpu();
-//    out.clone_to_gpu();
     in.h2d_update();
-//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in);
 
@@ -632,9 +626,7 @@ bool usingzero_1() {
 
 #ifdef __CUDACC__
     in.clone_to_gpu();
-//    out.clone_to_gpu();
     in.h2d_update();
-//    out.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
 
@@ -784,6 +776,7 @@ bool usingzero_2() {
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in, out);
 
     in.d2h_update();
+    out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in, out);
 #endif
@@ -950,6 +943,7 @@ bool usingvalue_2() {
     gridtools::boundary_apply_gpu<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
 
     in.d2h_update();
+    out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
 #endif
@@ -1134,14 +1128,17 @@ bool usingcopy_3() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-//    in.clone_to_gpu();
-//    out.clone_to_gpu();
-//    in.h2d_update();
-//    out.h2d_update();
+    one.clone_to_gpu();
+    one.h2d_update();
+    two.clone_to_gpu();
+    two.h2d_update();
+    src.clone_to_gpu();
+    src.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
 
-//    in.d2h_update();
+    one.d2h_update();
+    two.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(one, two, src);
 #endif

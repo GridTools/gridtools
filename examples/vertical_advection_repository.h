@@ -110,9 +110,8 @@ public:
 
         init_field_to_value(ccol, 0.0);
         init_field_to_value(dcol, 0.0);
-        std::cout << "Call D " << std::endl;
+
         init_field_to_value(datacol, 0.0);
-        std::cout << "After " << std::endl;
 
         //Generate U
         forward_sweep(1, 0, ccol, dcol);
@@ -143,9 +142,9 @@ public:
                 ccol(i, j, k) = ccol(i, j, k) * divided;
                 dcol(i, j, k) = dcol(i, j, k) * divided;
 
-                if(i==3 && j == 3)
-                std::cout << "AT ref at  " << k << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "  " << gcv <<
-                "  " << wcon_(i,j,k+1) << "  " << wcon_(i+ishift, j+jshift, k+1) << std::endl;
+                // if(i==3 && j == 3)
+                // std::cout << "AT ref at  " << k << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "  " << gcv <<
+                // "  " << wcon_(i,j,k+1) << "  " << wcon_(i+ishift, j+jshift, k+1) << std::endl;
 
             }
         }
@@ -175,8 +174,8 @@ public:
                     double divided = (double)1.0 / (bcol - (ccol(i,j,k-1) * acol));
                     ccol(i,j,k) = ccol(i,j,k) * divided;
                     dcol(i,j,k) = (dcol(i,j,k) - (dcol(i,j,k-1) * acol)) * divided;
-                    if(i==3 && j == 3)
-                    std::cout << "FORDW REF at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << std::endl;
+                    // if(i==3 && j == 3)
+                    // std::cout << "FORDW REF at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << std::endl;
                 }
             }
         }

@@ -56,7 +56,7 @@ namespace gridtools {
 
     template <sign I, sign J, sign K>
     std::ostream & operator<<(std::ostream& s, direction<I,J,K> const &) {
-        s << "dierction<" << I
+        s << "direction<" << I
                   << ", " << J
                   << ", " << K
                   << ">";

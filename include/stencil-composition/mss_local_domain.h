@@ -16,16 +16,16 @@ namespace gridtools
          * @name Few short and obvious metafunctions
          * @{
          * */
-        template <typename StoragePointers, template <class A, class C> class LocalDomain>
+        template <typename StoragePointers, template <class , class , bool > class LocalDomain, bool IsStateful>
         struct get_local_domain {
             template <typename T>
             struct apply {
-                typedef LocalDomain<StoragePointers,T> type;
+                typedef LocalDomain<StoragePointers,T,IsStateful> type;
             };
         };
     } //namespace _impl
 
-    template<typename MssType, typename DomainType, typename actual_arg_list_type>
+    template<typename MssType, typename DomainType, typename actual_arg_list_type, bool IsStateful>
     struct mss_local_domain
     {
         /**
@@ -34,7 +34,7 @@ namespace gridtools
          */
         typedef typename boost::mpl::transform<
             typename MssType::linear_esf,
-            _impl::get_local_domain<actual_arg_list_type, local_domain>
+            _impl::get_local_domain<actual_arg_list_type, local_domain, IsStateful>
         >::type mpl_local_domain_list;
 
         /**
@@ -50,7 +50,7 @@ namespace gridtools
     };
     template<typename T> struct is_mss_local_domain : boost::mpl::false_{};
 
-    template<typename MssType, typename DomainType, typename actual_arg_list_type>
-    struct is_mss_local_domain<mss_local_domain<MssType, DomainType, actual_arg_list_type> > : boost::mpl::true_{};
+    template<typename MssType, typename DomainType, typename actual_arg_list_type, bool IsStateful>
+    struct is_mss_local_domain<mss_local_domain<MssType, DomainType, actual_arg_list_type, IsStateful> > : boost::mpl::true_{};
 
 } //namespace gridtools

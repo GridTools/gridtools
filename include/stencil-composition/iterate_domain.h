@@ -895,4 +895,61 @@ public:
 #endif //CXX11_ENABLED
 
     };
+
+    /**@brief class handling the computation of the */
+    template <typename LocalDomain>
+    struct stateful_iterate_domain: public iterate_domain<LocalDomain> {
+
+        typedef iterate_domain<LocalDomain> base_type;
+        
+        uint_t i,j,k;
+
+#ifdef CXX11_ENABLED
+        using iterate_domain<LocalDomain>::iterate_domain;
+#else
+        GT_FUNCTION
+        stateful_iterate_domain(LocalDomain const& local_domain)
+            : iterate_domain<LocalDomain>(local_domain)
+        {}
+#endif
+        /**@brief method for incrementing the index when moving forward along the k direction */
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void assign_ij(uint_t index, uint_t block)
+        {
+            if (Coordinate==0) {
+                i = index;
+            }
+            if (Coordinate==1) {
+                j = index;
+            }
+
+            base_type::template assign_ij<Coordinate>(index, block);
+        }
+
+            /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
+        GT_FUNCTION
+        void set_k_start(uint_t from)
+        {
+            k = from;
+            base_type::set_k_start(from);
+        }
+
+            /**@brief method for incrementing the index when moving forward along the k direction */
+        GT_FUNCTION
+        void increment()
+        {
+            ++k;
+            base_type::increment();
+        }
+
+        /**@brief method for decrementing the index when moving backward along the k direction*/
+        GT_FUNCTION
+        void decrement()
+        {
+            --k;
+            base_type::decrement();
+        }
+};
+    
 } // namespace gridtools
