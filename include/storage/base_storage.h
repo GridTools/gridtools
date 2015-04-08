@@ -120,11 +120,18 @@ namespace gridtools {
         template <typename T, typename U, bool B>
         friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B> const & );
 
-   /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-   base_storage():
-       is_set( false ),
-       m_name("default_storage")
-            {}
+
+        /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
+        base_storage():
+            is_set( false ),
+            m_name("default_storage")
+        {}
+
+        /**@brief sets the name of the current field*/
+        GT_FUNCTION
+        void set_name(char* const string){
+            m_name=string;
+        }
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
 

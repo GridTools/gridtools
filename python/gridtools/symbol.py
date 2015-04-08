@@ -119,7 +119,7 @@ class Scope (object):
         Adds the received 'symbol' to this scope.-
         """
         if symbol.name in self:
-            logging.info ("Updated symbol '%s'" % symbol.name)
+            logging.debug ("Updated symbol '%s'" % symbol.name)
         self.symbol_table[symbol.name] = symbol
 
 
@@ -133,17 +133,17 @@ class Scope (object):
         if value:
             try:
                 value = float (value)
-                logging.info ("Constant '%s' has value %.3f" % (name,
+                logging.debug ("Constant '%s' has value %.3f" % (name,
                                                                 value))
             except TypeError:
                 if isinstance (value, np.ndarray):
-                    logging.info ("Constant '%s' is a NumPy array %s" % (name,
+                    logging.debug ("Constant '%s' is a NumPy array %s" % (name,
                                                                          value.shape))
                 else:
-                    logging.info ("Constant '%s' has value %s" % (name,
+                    logging.debug ("Constant '%s' has value %s" % (name,
                                                                   value))
         else:
-            logging.info ("Constant '%s' is None" % name)
+            logging.debug ("Constant '%s' is None" % name)
         self.add_symbol (Symbol (name, 'const', value))
 
 
@@ -162,14 +162,14 @@ class Scope (object):
         self.add_symbol (Symbol (name, kind, value))
         if value is not None:
             if isinstance (value, np.ndarray):
-                logging.info ("Parameter '%s' has dimension %s" % (name,
+                logging.debug ("Parameter '%s' has dimension %s" % (name,
                                                                    value.shape))
             else:
                 try:
-                    logging.info ("Parameter '%s' has value %.3f" % (name,
+                    logging.debug ("Parameter '%s' has value %.3f" % (name,
                                                                      float (value)))
                 except ValueError:
-                    logging.info ("Parameter '%s' has value %s" % (name,
+                    logging.debug ("Parameter '%s' has value %s" % (name,
                                                                    value))
 
 
@@ -186,7 +186,7 @@ class Scope (object):
                 # add the field as a temporary
                 #
                 self.add_symbol (Symbol (name, 'temp', value))
-                logging.info ("Temporary field '%s' has dimension %s" % (name,
+                logging.debug ("Temporary field '%s' has dimension %s" % (name,
                                                                          value.shape))
             else:
                 raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" % 
@@ -232,6 +232,13 @@ class Scope (object):
                                                      val))
 
 
+    def is_constant (self, name):
+        """ 
+        Returns True if symbol 'name' is a constant.-
+        """
+        return name in [t.name for t in self.get_constants ( )]
+
+
     def is_parameter (self, name, read_only=False):
         """
         Returns True is symbol 'name' is a parameter in this scope:
@@ -242,19 +249,33 @@ class Scope (object):
 
 
     def is_temporary (self, name):
-        """
+        """ 
         Returns True if symbol 'name' is a temporary data field.-
         """
         return name in [t.name for t in self.get_temporaries ( )]
 
 
-    def get_all (self):
+    def get_all (self, kinds=None):
         """
-        Returns all symbols in this scope sorted by name.-
+        Returns all symbols in this scope sorted by name:
+
+            kinds   returns only symbol kinds contained in this list.-
         """
         sorted_names = sorted (self.symbol_table.keys ( ))
-        for n in sorted_names:
-            yield self.symbol_table[n]
+        if kinds is None:
+            for n in sorted_names:
+                yield self.symbol_table[n]
+        else:
+            for n in sorted_names:
+                if self.symbol_table[n].kind in kinds:
+                    yield self.symbol_table[n]
+
+
+    def get_constants (self):
+        """
+        Returns a sorted list of all constants in this scope.-
+        """
+        return self.get_all (['const'])
 
 
     def get_parameters (self, read_only=False):
@@ -268,20 +289,14 @@ class Scope (object):
         if not read_only:
             kinds.append ('param_rw')
 
-        symbol_names = sorted (self.symbol_table.keys ( ))
-        for n in symbol_names:
-            if self.symbol_table[n].kind in kinds:
-                yield self.symbol_table[n]
+        return self.get_all (kinds)
 
 
     def get_temporaries (self):
         """
         Returns a sorted list of all temporary data fields at this scope.-
         """
-        symbol_names = sorted (self.symbol_table.keys ( ))
-        for n in symbol_names:
-            if self.symbol_table[n].kind == 'temp':
-                yield self.symbol_table[n]
+        return self.get_all (['temp'])
 
 
 

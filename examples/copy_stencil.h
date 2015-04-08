@@ -2,7 +2,7 @@
 
 #include <gridtools.h>
 #include <stencil-composition/backend.h>
-#include "stencil-composition/make_computation.h"
+#include <stencil-composition/make_computation.h>
 #include <stencil-composition/interval.h>
 
 
