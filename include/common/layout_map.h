@@ -102,7 +102,7 @@ namespace gridtools {
             using type=T;
         };
 
-        /** Given a tuple of values and a static index, the function
+        /** Given a parameter pack of values and a static index, the function
             returns the reference to the value in the position indicated
             at position 'I' in the map.
 
@@ -146,7 +146,7 @@ namespace gridtools {
         };
 
 
-        /** Given a tuple of values and a static index I, the function
+        /** Given a parameter pack of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
 
@@ -199,7 +199,7 @@ namespace gridtools {
                 };
             };
 
-        /** Given a tuple of values and a static index I, the function
+        /** Given a parameter pack of values and a static index I, the function
             returns the value of the element whose position
             corresponds to the position of 'I' in the map. If the
             value is not found a default value is returned, which is
@@ -261,18 +261,15 @@ namespace gridtools {
                 indices[pos_<I>::value];
         }
 
-
-        /** Given a tuple of values and a static index I, the function
-            returns the value of the element whose position
+        /** Given a tuple and a static index I, the function
+            returns the value of the element in the tuple whose position
             corresponds to the position of 'I' in the map. If the
             value is not found a default value is returned, which is
             passed as template parameter. It works for intergal types.
 
-            Default value is picked by default if C++11 is anabled,
-            otherwise it has to be provided.
-
             \code
-            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            tuple=arg_type(a,b,c);
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(tuple) == c
             \endcode
 
             \tparam I Index to be searched in the map
@@ -283,6 +280,7 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
+            //GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
             return(pos_<I>::value >= length ) ?
                 DefaultVal
                 :

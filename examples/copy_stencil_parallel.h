@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 #include <storage/partitioner_trivial.h>
 #include <storage/parallel_storage.h>
 #include <stencil-composition/interval.h>

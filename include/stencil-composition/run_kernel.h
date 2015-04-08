@@ -1,5 +1,4 @@
 #pragma once
-#include "backend.h"
 namespace gridtools {
     namespace _impl {
 
