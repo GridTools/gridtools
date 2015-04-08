@@ -270,24 +270,6 @@ class Scope (object):
         self.symbol_table[symbol.name] = symbol
 
 
-    def arrange_ids (self):
-        """
-        Rearranges the IDs of all data fields in order to uniquely identify
-        each of them.-
-        """
-        curr_id = 0
-        for k in sorted (Symbol.KINDS, reverse=True):
-            for k,v in self.symbol_table[k].items ( ):
-                try:
-                    v.id = curr_id
-                    curr_id += 1
-                except AttributeError:
-                    #
-                    # not a data field, ignore it
-                    #
-                    pass
-
-
     def dump (self):
         """
         Prints a formatted list of all in this scope.-

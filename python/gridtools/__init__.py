@@ -316,7 +316,6 @@ class StencilInspector (ast.NodeVisitor):
             #
             if node.returns is not None:
                 raise ValueError ("The 'kernel' function should return 'None'")
-                return
             #
             # the parameters of the 'kernel' function are the stencil
             # arguments in the generated code
