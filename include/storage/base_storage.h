@@ -120,18 +120,11 @@ namespace gridtools {
         template <typename T, typename U, bool B>
         friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B> const & );
 
-
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage():
             is_set( false ),
             m_name("default_storage")
-        {}
-
-        /**@brief sets the name of the current field*/
-        GT_FUNCTION
-        void set_name(char* const string){
-            m_name=string;
-        }
+            {}
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
 
@@ -464,7 +457,8 @@ namespace gridtools {
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
            This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
            index for temporary storages is computed in the subclass gridtools::host_tmp_storge
-           NOTE: this version will be preferred over the templated overloads
+           NOTE: this version will be preferred over the templated overloads,
+           NOTE: the strides are passed in as an argument, and the result can be a constexpr also when the storage is not.
         */
         GT_FUNCTION
 #ifndef __CUDACC__
@@ -478,10 +472,14 @@ namespace gridtools {
                 strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
                 layout::template find_val<2,uint_t,0>(i,j,k);
 
-       //if(index>=size()){ printf("bad index: %d = %d * %d + %d * %d+ %d \n", index, strides_[0], layout::template find_val<0,uint_t,0>(i,j,k), strides_[1], layout::template find_val<1,uint_t,0>(i,j,k), layout::template find_val<2,uint_t,0>(i,j,k)); }
-       assert(index<size());
+            assert(index<size());
             return index;
         }
+
+        // /**@brief straightforward interface*/
+        // GT_FUNCTION
+        // uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { _index(strides(), i, j, k);}
+
 
 #ifdef CXX11_ENABLED
         /**
@@ -491,6 +489,7 @@ namespace gridtools {
         */
         template <typename ... UInt>
         GT_FUNCTION
+        constexpr
         uint_t _index( uint_t const* strides_, UInt const& ... dims) const {
 #ifndef __CUDACC__
             typedef boost::mpl::vector<UInt...> tlist;
@@ -501,6 +500,11 @@ namespace gridtools {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
 #endif
+
+        // /**@brief straightforward interface*/
+        // template <typename ... UInt>
+        // GT_FUNCTION
+        // uint_t _index(UInt const& ... dims) const { _index(strides(), dims...);}
 
         /**
            @brief computing index to access the storage relative to the coordinates passed as parameters.

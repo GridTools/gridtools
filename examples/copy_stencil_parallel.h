@@ -95,8 +95,8 @@ namespace copy_stencil{
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-        parallel_storage<partitioner_t> in(part);
-        parallel_storage<partitioner_t> out(part);
+        parallel_storage<storage_type, partitioner_t> in(part);
+        parallel_storage<storage_type, partitioner_t> out(part);
         in.setup(d1, d2, d3);
         out.setup(d1, d2, d3);
 

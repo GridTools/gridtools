@@ -309,7 +309,7 @@ namespace shallow_water{
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-        parallel_storage<partitioner_t> sol(part);
+        parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
 
         he.add_halo<0>(sol.get_halo_gcl<0>());

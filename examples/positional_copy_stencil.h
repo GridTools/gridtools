@@ -162,7 +162,7 @@ namespace positional_copy_stencil{
         gridtools::coordinates<axis> coords(di, dj);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
-        
+
 #ifdef __CUDACC__
         gridtools::computation* init =
 #else
