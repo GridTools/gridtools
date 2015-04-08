@@ -28,8 +28,16 @@ namespace gridtools {
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct arg_type : public arg_extend<ID, Range, Number, Number>::type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
-#ifdef CXX11_ENABLED // #ifndef __CUDACC__
+#ifdef CXX11_ENABLED
+#ifndef __CUDACC__
         using type::arg_decorator;
+#else
+        template <typename... Whatever>
+        GT_FUNCTION
+        constexpr arg_type ( Whatever... x): type (x)
+            {
+            }
+#endif
 #else
 
         GT_FUNCTION
@@ -41,11 +49,11 @@ namespace gridtools {
            language keyword used at the interface level.
         */
 //#ifdef CXX11_ENABLED
-        template <typename... Whatever>
-        GT_FUNCTION
-        constexpr arg_type ( Whatever... x): type (x)
-            {
-            }
+//         template <typename... Whatever>
+//         GT_FUNCTION
+//         constexpr arg_type ( Whatever... x): type (x)
+//             {
+//             }
 //#else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
