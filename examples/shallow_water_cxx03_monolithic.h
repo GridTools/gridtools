@@ -9,10 +9,6 @@
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
 
-#ifdef HDF5_ENABLED
-#include <storage/io.h>
-#endif
-
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda/backend_cuda.h>
 #else
@@ -576,10 +572,10 @@ namespace shallow_water{
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-        parallel_storage<partitioner_t> sol(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmpx(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmpy(part, d1, d2, d3);
-        parallel_storage<partitioner_t> tmp3(part, d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> sol(part, d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> tmpx(part, d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> tmpy(part, d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> tmp3(part, d1, d2, d3);
 
         he.add_halo<0>(part.get_halo_gcl<0>());
         he.add_halo<1>(part.get_halo_gcl<1>());

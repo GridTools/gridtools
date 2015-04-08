@@ -1,6 +1,5 @@
 #pragma once
 #include "partitioner.h"
-#include <common/halo_descriptor.h>
 
 /**
 @file
@@ -18,10 +17,10 @@ The partitioner class is storage-agnostic, does not know anything about the stor
 namespace gridtools{
 
     //use of static polimorphism (partitioner methods may be accessed from whithin loops)
-    template <typename Storage, typename Communicator>
-    class partitioner_trivial : public partitioner<partitioner_trivial<Storage, Communicator> > {
+    template <typename GridTopology, typename Communicator>
+    class partitioner_trivial : public partitioner<partitioner_trivial<GridTopology, Communicator> > {
     public:
-        typedef Storage storage_t;
+        typedef GridTopology topology_t;
         typedef Communicator communicator_t;
         /**@brief constructor
 
@@ -32,15 +31,15 @@ namespace gridtools{
            represented in the figure below
 
             \verbatim
-            ######2^1#######
+            ######2^0#######
             #              #
             #              #
             #              #
-           2^(d)          2^0
+         2^(d+1)          2^1
             #              #
             #              #
             #              #
-            ###2^(d+1)######
+            #####2^(d)######
             \endverbatim
 
             where d is the number of dimensions of the processors grid.
@@ -81,7 +80,7 @@ namespace gridtools{
 #else
                 uint_t sizes[3]={d1, d2, d3};
 #endif
-                for(uint_t component=0; component<Storage::space_dimensions; ++component){
+                for(uint_t component=0; component<topology_t::space_dimensions; ++component){
                     if ( component >= communicator_t::ndims || m_pid[component]==0 )
                         low_bound[component] = 0;
                     else
@@ -152,15 +151,15 @@ namespace gridtools{
 
             Consider the following representation of the 2D domain with the given boundary flags
             \verbatim
-            ####### 2 ######
+            ####### 1 ######
             #              #
             #              #
             #              #
-            4              1
+            8              2
             #              #
             #              #
             #              #
-            ####### 8 ######
+            ####### 4 ######
             \endverbatim
 
             example:
@@ -171,18 +170,18 @@ namespace gridtools{
             - returns the halo in the component direction otherwise.
 
             The formula used for the computation is easily generalizable for hypercubes, given that
-            the faces numeration satisfies the following rule
+            the faces numeration satisfies a generalization of the following rule (where d is the dimension of the processors grid)
 
             \verbatim
-            ######2^1#######
+            ######2^0#######
             #              #
             #              #
             #              #
-           2^(d)          2^0
+         2^(d+1)          2^1
             #              #
             #              #
             #              #
-            ###2^(d+1)######
+            #####2^(d)######
             \endverbatim
         */
         int_t compute_halo(ushort_t const& component, ushort_t const& flag) const {
@@ -211,8 +210,6 @@ namespace gridtools{
         const int* m_ntasks;
         const ushort_t* m_halo;
         communicator_t const& m_comm;
-        /**this are the offsets which allow to compute the global coordinates given the local ones*/
-        //uint_t m_sizes[storage_t::space_dimensions];
         int m_boundary;
     };
 }//namespace gridtools

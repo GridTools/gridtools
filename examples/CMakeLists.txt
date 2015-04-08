@@ -63,8 +63,8 @@ if(CUDA_FOUND)
             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
 
             target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
-        endforeach(srcfile)
-    endif()
+          endforeach(srcfile)
+        endif()
 
     if( NOT ENABLE_CXX11 )
         cuda_add_executable(shallow_water_cxx03_cuda  shallow_water_cxx03.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})

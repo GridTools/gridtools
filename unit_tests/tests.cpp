@@ -3,7 +3,7 @@
 #define SILENT_RUN
 #include "test_domain_indices.h"
 #include "test_smallstorage_indices.h"
-//#include "boundary_conditions_test.h"
+#include "boundary_conditions_test.h"
 #include "../examples/interface1.h"
 #include "../examples/positional_copy_stencil.h"
 #include "copies_2D_1D_0D.h"
@@ -24,34 +24,6 @@ TEST(testdomain, testindices) {
 TEST(testsmallstorage, testindices) {
     EXPECT_EQ(test_smallstorage_indices(), true);
 }
-
-// TEST(boundaryconditions, basic) {
-//     EXPECT_EQ(basic(), true);
-// }
-
-// TEST(boundaryconditions, predicate) {
-//     EXPECT_EQ(predicate(), true);
-// }
-
-// TEST(boundaryconditions, twosurfaces) {
-//     EXPECT_EQ(twosurfaces(), true);
-// }
-
-// TEST(boundaryconditions, usingzero1) {
-//     EXPECT_EQ(usingzero_1(), true);
-// }
-
-// TEST(boundaryconditions, usingzero2) {
-//     EXPECT_EQ(usingzero_2(), true);
-// }
-
-// TEST(boundaryconditions, usingvalue2) {
-//     EXPECT_EQ(usingvalue_2(), true);
-// }
-
-// TEST(boundaryconditions, usingcopy3) {
-//     EXPECT_EQ(usingcopy_3(), true);
-// }
 
 TEST(interface, arg_type1) {
     EXPECT_EQ(interface::test_trivial(), true);

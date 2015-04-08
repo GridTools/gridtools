@@ -519,13 +519,13 @@ namespace shallow_water{
     // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
     // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         ushort_t halo[3]={2,2,0};
-        typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
+        typedef partitioner_trivial< cell_topology<topology::cartesian<layout_map<0,1,2> > > , pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
-        parallel_storage<partitioner_t> sol(part);
+        parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
-        parallel_storage<partitioner_t> tmpx(part);
+        parallel_storage<sol_type, partitioner_t> tmpx(part);
         tmpx.setup(d1, d2, d3);
-        parallel_storage<partitioner_t> tmpy(part);
+        parallel_storage<sol_type, partitioner_t> tmpy(part);
         tmpy.setup(d1, d2, d3);
 
         he.add_halo<0>(sol.get_halo_gcl<0>());

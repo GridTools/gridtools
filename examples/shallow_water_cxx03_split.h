@@ -539,15 +539,15 @@ namespace shallow_water{
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
 
-        parallel_storage<partitioner_t> hx(part); hx.setup( d1, d2, d3);
-        parallel_storage<partitioner_t> ux(part); ux.setup( d1, d2, d3);
-        parallel_storage<partitioner_t> vx(part); vx.setup( d1, d2, d3);
-        parallel_storage<partitioner_t> hy(part); hy.setup( d1, d2, d3);
-        parallel_storage<partitioner_t> uy(part); uy.setup( d1, d2, d3);
-        parallel_storage<partitioner_t> vy(part); vy.setup( d1, d2, d3);
-        parallel_storage<partitioner_t> h (part); h .setup( d1, d2, d3);
-        parallel_storage<partitioner_t> u (part); u .setup( d1, d2, d3);
-        parallel_storage<partitioner_t> v (part); v .setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> hx(part); hx.setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> ux(part); ux.setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> vx(part); vx.setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> hy(part); hy.setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> uy(part); uy.setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> vy(part); vy.setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> h (part); h .setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> u (part); u .setup( d1, d2, d3);
+        parallel_storage<storage_type, partitioner_t> v (part); v .setup( d1, d2, d3);
 
         he.add_halo<0>(v.get_halo_gcl<0>());//the parallel storage, not the partitioner, must hold this information
         he.add_halo<1>(v.get_halo_gcl<1>());
