@@ -54,9 +54,28 @@ class CopyTest (unittest.TestCase):
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
+    def test_automatic_dependency_detection (self, deps=None):
+        self.stencil.backend = 'c++'
+        self._run ( )
+
+        if deps is None:
+            deps = [ ('out_data', 'in_data') ]
+
+        stencil_deps = self.stencil.inspector.stencil_scope.depency_graph.edges ( )
+        #
+        # check the dependency detection for the whole stencil
+        #
+        for d in deps:
+            found = False
+            for sd in stencil_deps:
+                if d[0] == sd[0].name and d[1] == sd[1].name:
+                    found = True
+                    break
+            self.assertTrue (found)
+
 
     def test_automatic_range_detection (self, ranges=None):
-        """
+        """ 
         Parameter 'ranges' is a dictionary where the key is the name of a
         data field and its value the expected range.-
         """
@@ -327,6 +346,16 @@ class HorizontalDiffusionTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
+    def test_automatic_dependency_detection (self):
+        expected_deps = [('out_data', 'in_wgt'),
+                         ('out_data', 'self.flj'),
+                         ('out_data', 'self.fli'),
+                         ('self.fli', 'self.lap'),
+                         ('self.flj', 'self.lap'),
+                         ('self.lap', 'in_data')]
+        super ( ).test_automatic_dependency_detection (deps=expected_deps)
+
+
     def test_automatic_range_detection (self):
         expected_ranges = {'out_data': None,
                            'in_data' : [-1,1,-1,1],
@@ -535,8 +564,22 @@ class MovingTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
+    def test_automatic_dependency_detection (self):
+        expected_deps = [('out_U', 'self.Ux'),
+                         ('out_V', 'self.Vx'),
+                         ('out_H', 'self.Hx'),
+                         ('self.Ux', 'out_U'),
+                         ('self.Uy', 'out_U'),
+                         ('self.Vx', 'out_V'),
+                         ('self.Vy', 'out_V'),
+                         ('self.Hx', 'out_H'),
+                         ('self.Hy', 'out_H')]
+        super ( ).test_automatic_dependency_detection (deps=expected_deps)
+
+
     def test_compare_python_and_native_executions (self):
         pass
+
 
     def test_automatic_range_detection (self):
         self.stencil.backend = 'c++'
