@@ -100,8 +100,8 @@ namespace gridtools{
     template<>
     struct strategy_from_id <enumtype::Block>
     {
-        static const uint_t BI=8;
-        static const uint_t BJ=8;
+        static const uint_t BI=GT_DEFAULT_TILE;
+        static const uint_t BJ=GT_DEFAULT_TILE;
         static const uint_t BK=0;
 
         /**

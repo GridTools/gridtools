@@ -135,37 +135,45 @@ class FunctorBody (ast.NodeVisitor):
         symbol = None
 
         #
-        # looking for the symbol name in this order forces
-        # correct symbol name shadowing
+        # first look for the symbol within this functor's scope
         #
         if name in self.scope:
             symbol = self.scope[name]
+            #
+            # try to inline the value of the symbol
+            #
+            if self.scope.is_constant (name):
+                return str (symbol.value)
+            else:
+                #
+                # replacing the dot with underscore gives a valid C++ name
+                #
+                return name.replace ('.', '_')
+        #
+        # then within the enclosing one, so to enforce correct scope shadowing
+        #
         elif name in self.encl_scope:
             symbol = self.encl_scope[name]
             #
-            # existing symbols in the enclosing scope
-            # are parameters to this functor
+            # try to inline the value of the symbol
             #
-            self.scope.add_parameter (name,
-                                      symbol.value,
-                                      read_only=self.encl_scope.is_parameter (name,
-                                                                              read_only=True))
+            if self.encl_scope.is_constant (name):
+                return str (symbol.value)
+            else:
+                #
+                # non-constant symbols in the enclosing scope 
+                # become parameters of this functor
+                #
+                self.scope.add_parameter (name,
+                                          symbol.value,
+                                          read_only=self.encl_scope.is_parameter (name,
+                                                                                  read_only=True))
+                #
+                # replacing the dot with underscore gives a valid C++ name
+                #
+                return name.replace ('.', '_')
         else:
             raise RuntimeError ("Unknown symbol '%s'" % attr_name)
-        #
-        # do not replace strings or NumPy arrays
-        #
-        if (isinstance (symbol.value, str) or
-            isinstance (symbol.value, np.ndarray)):
-            #
-            # replacing the dot with underscore gives a valid C++ name
-            #
-            return name.replace ('.', '_')
-        else:
-            #
-            # otherwise, we just inline the value of the symbol
-            #
-            return str (symbol.value)
 
 
     def visit_AugAssign (self, node):

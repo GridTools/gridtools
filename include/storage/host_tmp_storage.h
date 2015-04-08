@@ -119,12 +119,12 @@ namespace gridtools {
             m_initial_offsets[0] = initial_offset_i - MinusI;
             m_initial_offsets[1] = initial_offset_j - MinusJ;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
-            std::cout << "size: "
-                      << (TileI+MinusI+PlusI)*n_i_threads << ", "
-                      << (TileJ+MinusJ+PlusJ)*n_j_threads << ", "
-                      << dim3
-                      << std::endl;
-            info();
+            // std::cout << "size: "
+            //           << (TileI+MinusI+PlusI)*n_i_threads << ", "
+            //           << (TileJ+MinusJ+PlusJ)*n_j_threads << ", "
+            //           << dim3
+            //           << std::endl;
+            // info();
         }
 
 
