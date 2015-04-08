@@ -21,11 +21,12 @@ namespace gridtools {
             }                                   \
         };
 
-        NEW_OP(int)
-        NEW_OP(unsigned int)
+        NEW_OP(int_t)
+        NEW_OP(uint_t)
+        NEW_OP(ushort_t)
+        NEW_OP(short_t)
         NEW_OP(char)
-        NEW_OP(float)
-        NEW_OP(double)
+        NEW_OP(float_type)
     }
 
 
@@ -89,11 +90,11 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void allocate_it(uint_t size){
-/* #if (CUDA_VERSION > 5050) */
+#if (CUDA_VERSION > 5050)
         m_cpu_p = new T[size];
-/* #else */
-/* m_cpu_p = workaround_::new_op<T>()(size); */
-/* #endif */
+#else
+        m_cpu_p = workaround_::new_op<T>()(size);
+#endif
     }
 
     GT_FUNCTION

@@ -184,6 +184,7 @@ namespace gridtools {
       if(err != cudaSuccess) {
           printf("Error freeing halo_d_r: %d\n", err);
       }
+    }
 
 
     /**
