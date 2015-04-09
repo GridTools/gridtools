@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools import MultiStageStencil, StencilInspector
+from gridtools.stencil import MultiStageStencil, StencilInspector
 
 
 
@@ -15,7 +15,7 @@ class Copy (MultiStageStencil):
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
     def __init__ (self):
-        super (Copy, self).__init__ ( )
+        super ( ).__init__ ( )
 
     def kernel (self, out_data, in_data):
         """
@@ -61,7 +61,7 @@ class CopyTest (unittest.TestCase):
         if deps is None:
             deps = [ ('out_data', 'in_data') ]
 
-        stencil_deps = self.stencil.inspector.stencil_scope.depency_graph.edges ( )
+        stencil_deps = self.stencil.inspector.scope.depency_graph.edges ( )
         #
         # check the dependency detection for the whole stencil
         #
@@ -132,7 +132,7 @@ class CopyTest (unittest.TestCase):
         #
         # check input/output fields were correctly discovered
         #
-        scope = self.stencil.inspector.stencil_scope
+        scope = self.stencil.inspector.scope
         for p in self.params:
             self.assertTrue (scope.is_parameter (p))
         for t in self.temps:
