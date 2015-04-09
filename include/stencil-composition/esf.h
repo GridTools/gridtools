@@ -36,6 +36,15 @@ namespace gridtools {
       : boost::true_type
     {};
 
+    template <typename T> struct is_esf_descriptor : boost::mpl::false_{};
+
+    template<typename ESF, typename ArgArray>
+    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray> > : boost::mpl::true_{};
+
+    template <typename T>
+    struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
+
+
     // Metafunctions
     template <typename Esf>
     struct is_written_temp {
