@@ -35,12 +35,11 @@ namespace gridtools {
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
-        template <typename Dom, typename ArgList, bool IsStateful>
+        template <typename ArgList, bool IsStateful>
         struct instantiate_local_domain {
             GT_FUNCTION
-            instantiate_local_domain(Dom const& dom, ArgList const& arg_list)
-                : m_dom(dom)
-                , m_arg_list(arg_list)
+            instantiate_local_domain(ArgList const& arg_list)
+                : m_arg_list(arg_list)
             {}
 
             /**Elem is a local_domain*/
@@ -49,7 +48,7 @@ namespace gridtools {
             void operator()(Elem & elem) const {
                 BOOST_STATIC_ASSERT((is_local_domain<Elem>::value));
 
-                elem.init(m_dom, m_arg_list, 0,0,0);
+                elem.init(m_arg_list, 0,0,0);
                 elem.clone_to_gpu();
             }
 
@@ -63,19 +62,17 @@ namespace gridtools {
         };
 
         private:
-            Dom const& m_dom;
             ArgList const& m_arg_list;
         };
 
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
-        template <typename Dom, typename ArgList, bool IsStateful>
+        template <typename ArgList, bool IsStateful>
         struct instantiate_mss_local_domain {
             GT_FUNCTION
-            instantiate_mss_local_domain(Dom const& dom, ArgList const& arg_list)
-                : m_dom(dom)
-                , m_arg_list(arg_list)
+            instantiate_mss_local_domain(ArgList const& arg_list)
+                : m_arg_list(arg_list)
             {}
 
             /**Elem is a local_domain*/
@@ -85,12 +82,11 @@ namespace gridtools {
                 BOOST_STATIC_ASSERT((is_mss_local_domain<Elem>::value));
 
                 boost::fusion::for_each(mss_local_domain_list.local_domain_list,
-                                        _impl::instantiate_local_domain<Dom, ArgList, IsStateful>(m_dom, m_arg_list)
+                                        _impl::instantiate_local_domain<ArgList, IsStateful>(m_arg_list)
                                         );
             }
 
         private:
-            Dom const& m_dom;
             ArgList const& m_arg_list;
         };
 
@@ -294,7 +290,7 @@ namespace gridtools {
 
 /**
  * @class
-*  @brief structure collecting helper metafunctions
+ *  @brief structure collecting helper metafunctions
  * */
     template <typename Backend,
               typename LayoutType,
@@ -332,10 +328,6 @@ namespace gridtools {
                 >::template apply<boost::mpl::_2>
             >
         >::type mpl_actual_arg_list;
-
-        //typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::written_temps_per_functor temp_list;
-
-        //typedef typename Backend::template obtain_storage_types<DomainType, MssType, range_sizes>::temporaries tomp_list;
 
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list_type;
 
@@ -462,7 +454,7 @@ namespace gridtools {
                 }
 
             boost::fusion::for_each(mss_local_domain_list,
-                                    _impl::instantiate_mss_local_domain<DomainType, actual_arg_list_type, IsStateful>(m_domain, actual_arg_list));
+                                    _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
 
 #ifndef NDEBUG
             m_domain.info();

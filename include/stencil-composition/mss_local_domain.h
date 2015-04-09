@@ -18,9 +18,10 @@ namespace gridtools
          * */
         template <typename StoragePointers, template <class , class , bool > class LocalDomain, bool IsStateful>
         struct get_local_domain {
-            template <typename T>
+            template <typename Esf>
             struct apply {
-                typedef LocalDomain<StoragePointers,T,IsStateful> type;
+                BOOST_STATIC_ASSERT((is_esf_descriptor<Esf>::value));
+                typedef LocalDomain<StoragePointers,typename Esf::args,IsStateful> type;
             };
         };
     } //namespace _impl
