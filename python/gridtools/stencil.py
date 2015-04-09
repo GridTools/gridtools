@@ -744,14 +744,14 @@ class MultiStageStencil (Stencil):
         ret_value = CombinedStencil ( )
 
         if len (kwargs) == 0:
-            out_field_name = None
+            lvalue_field_name = None
         elif len (kwargs) == 1:
-            out_field_name = kwargs.keys ( )[0]
+            lvalue_field_name = kwargs.keys ( )[0]
         elif len (kwargs) > 1:
             raise ValueError ("Only one output field per stencil is supported")
 
         ret_value.add_stencil (self,
-                               out_field_name=out_field_name)
+                               lvalue_field=lvalue_field_name)
         return ret_value
 
 
@@ -776,15 +776,30 @@ class CombinedStencil (MultiStageStencil):
         return ret_value
 
 
-    def add_stencil (self, stencil, out_field_name=None):
+    def add_stencil (self, stencil, lvalue_field=None):
         """
         Adds a stencil, the output of which is to be saved in the data field
-        called 'out_field_name'.-
+        called 'in_field_name'.-
         """
-        import ipdb; ipdb.set_trace ( )
-        stencil.inspector.analyze ( )
+        if lvalue_field is not None:
+            #
+            # look for the output data field of 'stencil'
+            #
+            stencil.inspector.analyze ( )
+            stencil_params = stencil.inspector.scope.get_parameters ( )
+            stencil_out_params = [p for p in stencil_params if p.name.startswith ('out_')]
+            #
+            # only one output field is supported
+            #
+            if len (stencil_out_params) == 1:
+                print ("Pairing '%s' of stencil '%s' with '%s'" % (stencil_out_params[0],
+                                                                          stencil.name,
+                                                                          lvalue_field))
+            else:
+                raise RuntimeError ("Could not uniquely identify output fields of stencil '%s', candidates are: %s" % (stencil.name,
+                            stencil_out_params))
         self.execution_graph.add_node (stencil,
-                                       output=out_field_name)
+                                       lvalue=lvalue_field)
 
 
     def run (self, *args, halo=None, k_direction=None, **kwargs):
