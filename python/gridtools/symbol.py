@@ -348,7 +348,7 @@ class Scope (object):
 
 
 
-class StencilSymbols (object):
+class StencilScope (Scope):
     """
     Stencil symbols are organized into scopes that alter the visibility 
     of the variables defined in the stencil or any of its functors.
@@ -357,11 +357,7 @@ class StencilSymbols (object):
     is accesible within that functor only.-
     """
     def __init__ (self):
-        #
-        # the top-most stencil scope
-        #
-        self.stencil_scope = Scope ( )
-
+        super ( ).__init__ ( )
         #
         # the scope of each stencil functor is kept as a dict, i.e.:
         #
@@ -381,5 +377,3 @@ class StencilSymbols (object):
         else:
             self.functor_scopes[funct_name] = Scope ( )
             return self.functor_scopes[funct_name]
-
-
