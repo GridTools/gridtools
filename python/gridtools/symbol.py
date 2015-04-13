@@ -347,6 +347,13 @@ class Scope (object):
         return self.get_all (['temp'])
 
 
+    def remove (self, name):
+        """
+        Removes symbol with 'name'.-
+        """
+        self.symbol_table.pop (name)
+
+
 
 class StencilScope (Scope):
     """
