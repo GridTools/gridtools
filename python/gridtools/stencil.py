@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 import networkx as nx
 
-from gridtools.symbol import StencilScope
+from gridtools.symbol  import StencilScope, Scope
 from gridtools.functor import Functor
 
 
@@ -35,12 +35,13 @@ class StencilInspector (ast.NodeVisitor):
         """
         Creates an inspector object using the source code of a stencil:
 
-            obj     an object extending the MultiStageStencil.-
+            obj     a Stencil object.-
         """
         import inspect
 
-        if issubclass (obj.__class__, MultiStageStencil):
-            super (StencilInspector, self).__init__ ( )
+        if (issubclass (obj.__class__, MultiStageStencil) or
+            issubclass (obj.__class__, CombinedStencil)):
+            super ( ).__init__ ( )
 
             #
             # a reference to the MultiStageStencil we have to inspect
@@ -72,13 +73,13 @@ class StencilInspector (ast.NodeVisitor):
             #
             self.functors = list ( )
         else:
-            raise TypeError ("Class %s must extend 'MultiStageStencil'" % obj.__class__)
+            raise TypeError ("Class '%s' must extend 'MultiStageStencil'" % 
+                             obj.__class__)
 
 
-    def analyze (self):
+    def static_analysis (self):
         """
-        Analyzes the source code of this stencil as a first step 
-        to generate its C++ counterpart.-
+        Performs a static analysis of the source code of this stencil.-
         """
         if self.src:
             module = ast.parse (self.src)
@@ -90,7 +91,7 @@ class StencilInspector (ast.NodeVisitor):
             # if the source code is not available, we may infer the user is
             # running from an interactive session
             #
-            raise RuntimeError ("Please save your stencil classes to a file before changing the backend.-")
+            raise RuntimeError ("Please save your stencil classes to a file before changing the backend")
         #
         # print out the discovered symbols if in DEBUG mode
         #
@@ -392,6 +393,10 @@ class Stencil ( ):
         return self.name.__hash__ ( )
 
 
+    def __repr__ (self):
+        return self.name
+
+
     def compile (self):
         """
         Compiles the translated code to a shared library, ready to be used.-
@@ -491,6 +496,10 @@ class Stencil ( ):
                     for k in range (start_k, end_k, inc_k):
                         yield InteriorPoint ((i, j, k))
 
+    @property
+    def scope (self):
+        return self.inspector.scope
+
 
     def kernel (self, *args, **kwargs):
         """
@@ -527,7 +536,7 @@ class Stencil ( ):
         # we only accept keyword arguments to avoid confusion
         #
         if len (args) > 0:
-            raise KeyError ("Only keyword arguments are accepted.-")
+            raise KeyError ("Only keyword arguments are accepted")
 
         #
         # set halo and execution order in 'k' direction
@@ -548,7 +557,7 @@ class Stencil ( ):
                 # try to resolve all symbols before compiling:
                 # first with doing a static code analysis, ...
                 #
-                self.inspector.analyze ( )
+                self.inspector.static_analysis ( )
 
                 #
                 # ... then including runtime information
@@ -728,46 +737,187 @@ class MultiStageStencil (Stencil):
         super ( ).__init__ ( )
 
 
-    def build (self, *args, **kwargs):
+    def build (self, output, **kwargs):
         """
-        Use this stencil as part of a new CombinedStencil.-
+        Use this stencil as part of a new CombinedStencil, the output parameter
+        of which is called 'output' and should be linked to '**kwargs' parameters
+        of the following stencil.-
         """
         #
-        # we only accept keyword arguments to avoid confusion
+        # make sure the output parameter is there
         #
-        if len (args) > 0:
-            raise KeyError ("Only keyword arguments are accepted.-")
+        if output is None:
+            raise ValueError ("The output parameter cannot be None")
         #
-        # the keyword arguments map the output of a stencil
-        # with the input of the next one
+        # the keyword arguments map the output of this stencil
+        # with an input parameter of the following one
         #
         ret_value = CombinedStencil ( )
-
-        if len (kwargs) == 0:
-            lvalue_field_name = None
-        elif len (kwargs) == 1:
-            lvalue_field_name = kwargs.keys ( )[0]
-        elif len (kwargs) > 1:
-            raise ValueError ("Only one output field per stencil is supported")
-
         ret_value.add_stencil (self,
-                               lvalue_field=lvalue_field_name)
+                               output=output,
+                               **kwargs)
         return ret_value
 
 
 
-class CombinedStencil (MultiStageStencil):
+class CombinedStencil (Stencil):
     """
     A stencil created as a combination of several MultiStageStencils.-
     """
     def __init__ (self):
-        super ( ).__init__ ( )
-        self.execution_graph = nx.DiGraph ( )
-
-
-    def _get_leafs (self):
         """
-        Returns a list containinig the leafs of the execution graph.-
+        Creates a CombinedStencil with an output field named 'output_field'.-
+        """
+        super ( ).__init__ ( )
+        #
+        # graphs for data-dependency and execution order
+        #
+        self.data_graph      = nx.DiGraph ( )
+        self.execution_graph = nx.DiGraph ( )
+        #
+        # a dictionary to keep track of the intermediate temporary fields
+        #
+        self.temporaries = dict ( )
+
+
+    def _prepare_parameters (self, stencil, **kwargs):
+        """
+        Extracts the parameters for 'stencil' from 'kwargs', and create
+        temporaries for linked stencils.-
+        """
+        domain    = None
+        ret_value = dict ( )
+        for p in stencil.scope.get_parameters ( ):
+            try:
+                if isinstance (kwargs[p.name], np.ndarray):
+                    domain = kwargs[p.name].shape
+                ret_value[p.name] = kwargs[p.name]
+            except KeyError:
+                #
+                # get the value of this parameter from the data-dependency graph
+                #
+                if self.data_graph.has_node (p.name):
+                    linked_data = self.data_graph.successors (p.name)
+                    if len (linked_data) == 0:
+                        #
+                        # create a new temporary data field
+                        #
+                        self.temporaries[p.name] = None
+                    elif len (linked_data) == 1:
+                        #
+                        # get the value from the linked field
+                        #
+                        ret_value[p.name] = self.temporaries[linked_data[0]]
+                else:
+                    raise RuntimeError ("Parameter '%s' not found ... this shouldn't be happening ..."
+                                        % p.name)
+        #
+        # generate a temporary for every missing parameter
+        #
+        if domain is not None:
+            for k,v in self.temporaries.items ( ):
+                if v is None:
+                    self.temporaries[k] = np.zeros (domain)
+                    ret_value[k]        = self.temporaries[k]
+        else:
+            raise RuntimeError ("Could not infer data-field dimension sizes")
+        return ret_value
+
+
+    def _update_parameters (self):
+        """
+        Updates the parameters of this combined stencil.-
+        """
+        #
+        # add all the parameters of all the stencils combined
+        #
+        for stencil in self.execution_graph.nodes_iter ( ):
+            for p in stencil.scope.get_parameters ( ):
+                self.scope.add_parameter (p.name,
+                                          p.value,
+                                          p.read_only)
+        #
+        # remove linked parameters, i.e., output of one stencil is the input
+        # of the following one
+        #
+        for n in self.data_graph.nodes_iter ( ):
+            try:
+                self.scope.remove (n)
+            except KeyError:
+                pass
+
+
+    def add_stencil (self, stencil, output, **kwargs):
+        """
+        Adds a stencil, the output of which is called 'output' and should be
+        forwarded into an input parameter of an adjacent stencil in the 
+        execution graph.-
+        """
+        stencil.inspector.static_analysis ( )
+        try:
+            out_param = stencil.scope[output]
+            if stencil.scope.is_parameter (out_param.name):
+                #
+                # add 'stencil' to the execution graph
+                #
+                stencil_params = [p for p in stencil.scope.get_parameters ( )]
+                self.execution_graph.add_node (stencil,
+                                               output=out_param.name,
+                                               params=stencil_params)
+                if len (kwargs) > 0:
+                    #
+                    # 'stencil' is linked to the output of another one
+                    #
+                    input_param   = next (iter (kwargs.keys ( )))
+                    input_stencil = kwargs[input_param]
+                    try:
+                        #
+                        # update execution graph of this stencil ...
+                        #
+                        for n,d in input_stencil.execution_graph.nodes_iter (data=True):
+                            self.execution_graph.add_node (n, d)
+                        for u,v in input_stencil.execution_graph.edges_iter ( ):
+                            self.execution_graph.add_edge (u, v)
+                        #
+                        # ... with data from the linked stencil
+                        #
+                        linked_stencil        = input_stencil.get_root ( )
+                        linked_stencil_output = input_stencil.execution_graph.node[linked_stencil]['output']
+                        #
+                        # create the data dependency ...
+                        #
+                        self.data_graph.add_node (input_param,
+                                                  value=None)
+                        self.data_graph.add_node (linked_stencil_output,
+                                                  value=None)
+                        self.data_graph.add_edge (input_param,
+                                                  linked_stencil_output)
+                        #
+                        # ... and the execution order
+                        #
+                        self.execution_graph.add_edge (stencil, 
+                                                       linked_stencil)
+                    except AttributeError:
+                        logging.error ("Parameter '%s' should hold an instance of CombinedStencil" % input_param)
+                        return
+                #
+                # update the parameters of this combined stencil
+                #
+                self._update_parameters ( )
+                logging.debug ("Execution graph of '%s'\n\t%s" % (self,
+                                                                  self.execution_graph.edges (data=True)))
+            else:
+                raise ValueError ("'%s' is not a parameter of '%s'" % (output,
+                                                                       stencil.name))
+        except KeyError:
+            raise ValueError ("'%s' is not a parameter of '%s'" % (output,
+                                                                   stencil.name))
+
+
+    def get_leafs (self):
+        """
+        Returns a list containinig the leafs of the execution graph, i.e.,
+        the *first* stencils to be executed.-
         """
         ret_value = list ( )
         for n in self.execution_graph.nodes_iter ( ):
@@ -776,32 +926,22 @@ class CombinedStencil (MultiStageStencil):
         return ret_value
 
 
-    def add_stencil (self, stencil, lvalue_field=None):
+    def get_root (self):
         """
-        Adds a stencil, the output of which is to be saved in the data field
-        called 'in_field_name'.-
+        Returns the root node of the execution graph, i.e., the *last* stencil
+        to be executed, including its associated data.-
         """
-        if lvalue_field is not None:
-            #
-            # look for the output data field of 'stencil'
-            #
-            stencil.inspector.analyze ( )
-            stencil_params = stencil.inspector.scope.get_parameters ( )
-            stencil_out_params = [p for p in stencil_params if p.name.startswith ('out_')]
-            #
-            # only one output field is supported
-            #
-            if len (stencil_out_params) == 1:
-                print ("Pairing '%s' of stencil '%s' with '%s'" % (stencil_out_params[0],
-                                                                          stencil.name,
-                                                                          lvalue_field))
-            else:
-                raise RuntimeError ("Could not uniquely identify output fields of stencil '%s', candidates are: %s" % (stencil.name,
-                            stencil_out_params))
-        self.execution_graph.add_node (stencil,
-                                       lvalue=lvalue_field)
-
-
+        ret_value = None
+        for node in self.execution_graph.nodes_iter ( ):
+            if len (self.execution_graph.predecessors (node)) == 0:
+                if ret_value is None:
+                    ret_value = node
+                else:
+                    raise RuntimeError ("The execution graph of '%s' contains two roots"
+                                        % self)
+        return ret_value
+    
+    
     def run (self, *args, halo=None, k_direction=None, **kwargs):
         """
         Starts the execution of the stencil:
@@ -812,12 +952,24 @@ class CombinedStencil (MultiStageStencil):
                             which might be any of 'forward' or 'backward'.-
         """
         #
-        # run in Python mode, from the leafs towards the root
+        # make sure all needed parameters were provided
+        #
+        for p in self.scope.get_parameters ( ):
+            if p.name not in kwargs.keys ( ):
+                raise ValueError ("Missing parameter '%s'" % p.name)
+
+        #
+        # run in Python mode
         #
         if self.backend == 'python':
-            for k in self._get_leafs ( ):
-                k.run (*args, 
-                       halo=halo, 
-                       k_direction=k_direction,
-                       **kwargs)
-        
+            #
+            # execution order is from the leafs towards the root
+            #
+            for st in nx.dfs_postorder_nodes (self.execution_graph,
+                                              source=self.get_root ( )):
+                params = self._prepare_parameters (st,
+                                                   **kwargs)
+                st.run (*args, 
+                        halo=halo, 
+                        k_direction=k_direction,
+                        **params)
