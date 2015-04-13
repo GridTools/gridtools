@@ -67,9 +67,9 @@ public:
                     u_stage_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
                     u_pos_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
                     // utens values between -3e-6 and 3e-6 (with zero at k=0)
-                    utens_(i,j,k) = 3e-6*(-1 + 2*(2.+cos(PI*(x+y)) + cos(PI*y*z))/4.+ 0.05*(0.5-double(rand()%100)/50.));
+                    utens_(i,j,k) = 3e-6*(-1 + 2*(2.+cos(PI*(x+y)) + cos(PI*y*z))/4.+ 0.05*(0.5-24.0/50.));
                     // wcon values between -2e-4 and 2e-4 (with zero at k=0)
-                    wcon_(i,j,k) = 2e-4*(-1 + 2*(2.+cos(PI*(x+z)) + cos(PI*y))/4. + 0.1*(0.5-double(rand()%100)/50.));
+                    wcon_(i,j,k) = 2e-4*(-1 + 2*(2.+cos(PI*(x+z)) + cos(PI*y))/4. + 0.1*(0.5-35.5/50.));
 
                     utens_stage_(i,j,k) = 7. + 5*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4. + k*0.1;
                     utens_stage_ref_(i,j,k) = utens_stage_(i,j,k);
