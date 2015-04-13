@@ -146,7 +146,7 @@ class CopyTest (unittest.TestCase):
             insp = StencilInspector (DoesNotExtendAndShouldFail)
 
         insp = self.stencil.inspector
-        insp.analyze ( )
+        insp.static_analysis ( )
         self.assertNotEqual (insp, None)
 
 
