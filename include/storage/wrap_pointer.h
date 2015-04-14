@@ -21,10 +21,12 @@ namespace gridtools {
             }                                       \
         };
 
-        NEW_OP(int_t)
-        NEW_OP(uint_t)
-        NEW_OP(ushort_t)
-        NEW_OP(short_t)
+        NEW_OP(int)
+        NEW_OP(unsigned int)
+        NEW_OP(unsigned long int)
+        NEW_OP(long int)
+        NEW_OP(short)
+        NEW_OP(unsigned short)
         NEW_OP(char)
         NEW_OP(float_type)
     }

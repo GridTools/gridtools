@@ -89,7 +89,7 @@ namespace gridtools {
             std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
-                    array<void*,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
+                    array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
                     storage_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
                     /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
 

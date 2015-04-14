@@ -7,7 +7,7 @@
    templates.*/
 namespace gridtools{
 
-#ifdef __CUDACC__
+//#ifdef __CUDACC__
     /**@brief Class in substitution of std::pow, not available in CUDA*/
     template <uint_t Number>
     struct products{
@@ -29,7 +29,7 @@ namespace gridtools{
                 return 1.;
             }
     };
-#endif
+//#endif
 
 
 #ifdef CXX11_ENABLED
