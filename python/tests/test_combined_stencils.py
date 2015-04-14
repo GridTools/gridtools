@@ -10,25 +10,6 @@ from gridtools.stencil import MultiStageStencil, StencilInspector
 
 
 
-class Copy (MultiStageStencil):
-    def kernel (self, out_cpy, in_cpy):
-        for p in self.get_interior_points (out_cpy):
-              out_cpy[p] = in_cpy[p]
-
-
-
-class Laplace (MultiStageStencil):
-    def kernel (self, out_data, in_data):
-        """
-        Stencil's entry point.-
-        """
-        for p in self.get_interior_points (out_data):
-            out_data[p] = -4.0 * in_data[p] + (
-                          in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
-                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
-
-
-
 class FluxI (MultiStageStencil):
     def kernel (self, out_fli, in_lapi):
         for p in self.get_interior_points (out_fli):
@@ -54,6 +35,7 @@ class Out (MultiStageStencil):
 class CombinedStencilTest (unittest.TestCase):
     def setUp (self):
         import os
+        from tests.test_stencils import Copy, Laplace
 
         logging.basicConfig (level=logging.DEBUG)
         self.cur_dir = os.path.dirname (os.path.abspath (__file__))
