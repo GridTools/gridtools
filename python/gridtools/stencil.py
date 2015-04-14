@@ -956,6 +956,9 @@ class CombinedStencil (Stencil):
                 else:
                     raise RuntimeError ("The execution graph of '%s' contains two roots"
                                         % self)
+        if ret_value is None:
+            logging.warning ("Root node could not be found")
+            ret_value = self.execution_graph.nodes ( )[0]
         return ret_value
    
 
