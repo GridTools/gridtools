@@ -780,6 +780,25 @@ class CombinedStencil (Stencil):
         self.temporaries = dict ( )
 
 
+    def _plot_graph (self, G):
+        """
+        Renders graph 'G' using 'matplotlib'.-
+        """
+        try:
+            import matplotlib as plt
+
+            pos = nx.spring_layout (G)
+            nx.draw_networkx_nodes (G,
+                                    pos=pos)
+            nx.draw_networkx_edges (G,
+                                    pos=pos,
+                                    arrows=True)
+            nx.draw_networkx_labels (G,
+                                     pos=pos)
+        except ImportError:
+            logging.warning ("MatplotLib is not available")
+
+
     def _prepare_parameters (self, stencil, **kwargs):
         """
         Extracts the parameters for 'stencil' from 'kwargs', and create
@@ -808,6 +827,13 @@ class CombinedStencil (Stencil):
                         # get the value from the linked field
                         #
                         ret_value[p.name] = self.temporaries[linked_data[0]]
+                        try:
+                            domain = ret_value[p.name].shape
+                        except AttributeError:
+                            #
+                            # not a NumPy array ... no problem
+                            #
+                            pass
                 else:
                     raise RuntimeError ("Parameter '%s' not found ... this shouldn't be happening ..."
                                         % p.name)
@@ -866,40 +892,43 @@ class CombinedStencil (Stencil):
                                                params=stencil_params)
                 if len (kwargs) > 0:
                     #
-                    # 'stencil' is linked to the output of another one
+                    # 'stencil' is linked to the output of other stencils
                     #
-                    input_param   = next (iter (kwargs.keys ( )))
-                    input_stencil = kwargs[input_param]
-                    try:
-                        #
-                        # update execution graph of this stencil ...
-                        #
-                        for n,d in input_stencil.execution_graph.nodes_iter (data=True):
-                            self.execution_graph.add_node (n, d)
-                        for u,v in input_stencil.execution_graph.edges_iter ( ):
-                            self.execution_graph.add_edge (u, v)
-                        #
-                        # ... with data from the linked stencil
-                        #
-                        linked_stencil        = input_stencil.get_root ( )
-                        linked_stencil_output = input_stencil.execution_graph.node[linked_stencil]['output']
-                        #
-                        # create the data dependency ...
-                        #
-                        self.data_graph.add_node (input_param,
-                                                  value=None)
-                        self.data_graph.add_node (linked_stencil_output,
-                                                  value=None)
-                        self.data_graph.add_edge (input_param,
-                                                  linked_stencil_output)
-                        #
-                        # ... and the execution order
-                        #
-                        self.execution_graph.add_edge (stencil, 
-                                                       linked_stencil)
-                    except AttributeError:
-                        logging.error ("Parameter '%s' should hold an instance of CombinedStencil" % input_param)
-                        return
+                    for input_param in kwargs.keys ( ):
+                        input_stencil = kwargs[input_param]
+                        try:
+                            #
+                            # update the execution graph ...
+                            #
+                            for n,d in input_stencil.execution_graph.nodes_iter (data=True):
+                                self.execution_graph.add_node (n, d)
+                            for u,v in input_stencil.execution_graph.edges_iter ( ):
+                                self.execution_graph.add_edge (u, v)
+                            #
+                            # ... and the data graph of this stencil
+                            #
+                            for n in input_stencil.data_graph.nodes_iter ( ):
+                                self.data_graph.add_node (n)
+                            for u,v in input_stencil.data_graph.edges_iter ( ):
+                                self.data_graph.add_edge (u, v)
+                            #
+                            #
+                            # link the data dependency with the other stencil
+                            #
+                            linked_stencil        = input_stencil.get_root ( )
+                            linked_stencil_output = input_stencil.execution_graph.node[linked_stencil]['output']
+                            self.data_graph.add_node (input_param)
+                            self.data_graph.add_node (linked_stencil_output)
+                            self.data_graph.add_edge (input_param,
+                                                      linked_stencil_output)
+                            #
+                            # ... and the execution order
+                            #
+                            self.execution_graph.add_edge (stencil, 
+                                                           linked_stencil)
+                        except AttributeError:
+                            logging.error ("Parameter '%s' should hold an instance of CombinedStencil" % input_param)
+                            return
                 #
                 # update the parameters of this combined stencil
                 #
@@ -912,18 +941,6 @@ class CombinedStencil (Stencil):
         except KeyError:
             raise ValueError ("'%s' is not a parameter of '%s'" % (output,
                                                                    stencil.name))
-
-
-    def get_leafs (self):
-        """
-        Returns a list containinig the leafs of the execution graph, i.e.,
-        the *first* stencils to be executed.-
-        """
-        ret_value = list ( )
-        for n in self.execution_graph.nodes_iter ( ):
-            if len (self.execution_graph.successors (n)) == 0:
-                ret_value.append (n)
-        return ret_value
 
 
     def get_root (self):
@@ -940,8 +957,22 @@ class CombinedStencil (Stencil):
                     raise RuntimeError ("The execution graph of '%s' contains two roots"
                                         % self)
         return ret_value
-    
-    
+   
+
+    def plot_data_graph (self):
+        """
+        Renders the data graph using 'matplotlib'.-
+        """
+        self._plot_graph (self.data_graph)
+
+
+    def plot_execution_graph (self):
+        """
+        Renders the execution graph using 'matplotlib'.-
+        """
+        self._plot_graph (self.execution_graph)
+
+
     def run (self, *args, halo=None, k_direction=None, **kwargs):
         """
         Starts the execution of the stencil:
