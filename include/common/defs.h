@@ -63,8 +63,8 @@ namespace gridtools{  namespace enumtype{
         };
 
 
-        /** 
-            enum used to distinguish between 
+        /**
+            enum used to distinguish between
         */
     }//namespace enumtype
 #ifndef CXX11_ENABLED
@@ -103,10 +103,10 @@ namespace gridtools{  namespace enumtype{
 
 #include <boost/mpl/integral_c.hpp>
 #ifdef CXX11_ENABLED
-using int_t          = long int;
+using int_t          = int;
 using short_t        = int;
-using uint_t         = unsigned long int;
-using ushort_t       = unsigned int;
+using uint_t         = int;
+using ushort_t       = int;
 template<int_t N>
 using  static_int=boost::mpl::integral_c<int_t,N>;
 template<uint_t N>

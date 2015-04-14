@@ -63,10 +63,12 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
-            void do_loop(uint_t from, uint_t to) const {
+            void do_loop(uint_t const& bound) const {
 
-                for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
+                //auto const bound=to-from;
+                for (long int k=0 ; k<=bound; ++k) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
+                    IterationPolicy::increment(this->m_domain);
                     /* printf("k=%d\n", k); */
                 }
 

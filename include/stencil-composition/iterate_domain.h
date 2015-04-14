@@ -97,8 +97,8 @@ namespace gridtools {
                      , typename Strides
                      >
             GT_FUNCTION
-            static void apply(LocalArgs& local_args, uint_t factor, uint_t* index
-                              , Strides & strides
+            static void apply(LocalArgs& local_args, uint_t factor, uint_t* __restrict__ index
+                              , Strides& __restrict__ strides
 ) {
                 // k direction does does not have bolcks
                 boost::fusion::at_c<ID>(local_args)->template increment<2>(factor, (uint_t)0, &index[ID]
@@ -117,8 +117,8 @@ namespace gridtools {
                      , typename Strides
                      >
             GT_FUNCTION
-            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* index_
-                              , Strides & strides_
+            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* __restrict__ index_
+                              , Strides & __restrict__ strides_
                 ) {
                 boost::fusion::at_c<0>(local_args_)->template increment<2>(factor_, (uint_t)0, index_, strides_.template get<0>());
             }
@@ -129,7 +129,7 @@ namespace gridtools {
         struct decrement_k {
             template<typename LocalArgs, typename Strides>
             GT_FUNCTION
-            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* index_, Strides & strides_) {
+            static void apply(LocalArgs&  local_args_, uint_t factor_, uint_t*  __restrict__ index_, Strides&  __restrict__ strides_) {
                 boost::fusion::at_c<ID>(local_args_)->template decrement<2>(factor_, (uint_t)0, &index_[ID], strides_.template get<ID>());
                 decrement_k<ID-1>::apply(local_args_, factor_, index_, strides_);
             }
@@ -140,7 +140,7 @@ namespace gridtools {
         struct decrement_k<0> {
             template<typename LocalArgs, typename Strides>
             GT_FUNCTION
-            static void apply(LocalArgs& local_args_, uint_t factor_, uint_t* index_, Strides & strides_) {
+            static void apply(LocalArgs&  local_args_, uint_t factor_, uint_t* __restrict__ index_, Strides& __restrict__ strides_) {
                 boost::fusion::at_c<0>(local_args_)->template decrement<2>(factor_, (uint_t)0, index_, strides_.template get<0>());
             }
         };
@@ -158,7 +158,7 @@ namespace gridtools {
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[Number]=r[Number].get();
@@ -168,7 +168,7 @@ namespace gridtools {
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
                            typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[Number]=r[Number].get();
@@ -186,7 +186,7 @@ namespace gridtools {
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             //l[0]=r[0].get();
@@ -195,7 +195,7 @@ namespace gridtools {
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& l, Right const& r, int EU_id_i, int EU_id_j,
+        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
                            typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
         {
             BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields()[0].get());
@@ -233,7 +233,7 @@ namespace gridtools {
             */
             template<typename Storage, typename Strides>
             GT_FUNCTION
-            static void assign(Storage const& r_, uint_t id_, uint_t block_, uint_t* index_, Strides & strides_){
+            static void assign(Storage const& r_, uint_t id_, uint_t block_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
                 //if the following fails, the ID is larger than the number of storage types,
                 //or the index was not properly initialized to 0,
                 //or you know what you are doing (then comment out the assert)
@@ -250,7 +250,7 @@ namespace gridtools {
                      , typename Strides
                      >
             GT_FUNCTION
-            static void assign( Storage const & r_, uint_t id_, uint_t block_, uint_t* index_, Strides & strides_){
+            static void assign( Storage const &  r_, uint_t id_, uint_t block_, uint_t* __restrict__ index_, Strides & __restrict__ strides_){
                 boost::fusion::at_c<0>(r_)->template increment<Coordinate>(id_, block_, &index_[0], (strides_.template get<0>() )
                     );
             }
@@ -266,7 +266,7 @@ namespace gridtools {
                same storage class instance, and it is not shared among different storage instances.
             */
             GT_FUNCTION
-            static void set(Storage & r, uint_t id, uint_t* index){
+            static void set(Storage & r, uint_t id, uint_t* __restrict__ index){
                 //if the following fails, the ID is larger than the number of storage types,
                 //or the index was not properly initialized to 0,
                 //or you know what you are doing (then comment out the assert)
@@ -280,7 +280,7 @@ namespace gridtools {
         struct set_index_recur<0>{
             template<typename Storage>
             GT_FUNCTION
-            static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
+            static void set( Storage& r, uint_t id, uint_t* __restrict__ index/* , ushort_t* lru */){
                 boost::fusion::at_c<0>(r)->set_index(id, &index[0]);
             }
         };
@@ -301,7 +301,7 @@ namespace gridtools {
             */
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void assign(Left& l, Right const & r, int EU_id_i, int EU_id_j){
+            static void assign(Left& __restrict__ l, Right const & __restrict__ r, int EU_id_i, int EU_id_j){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer
                     <typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
@@ -332,7 +332,7 @@ namespace gridtools {
 
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void assign(Left & l, Right const & r, int EU_id_i, int EU_id_j){
+            static void assign(Left & __restrict__ l, Right const & __restrict__ r, int EU_id_i, int EU_id_j){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #else
@@ -354,7 +354,7 @@ namespace gridtools {
             static const uint_t Id=(Number)%BLOCK_SIZE;
             template<typename Left , typename Right >
             GT_FUNCTION
-            static void assign(Left* l, Right const* r){
+            static void assign(Left* __restrict__ l, Right const* __restrict__ r){
                 BackendType:: template once_per_block<Id>::assign(l[Number],r[Number]);
             assign_strides_rec<Number-1, BackendType>::assign(l, r);
         }
@@ -367,7 +367,7 @@ namespace gridtools {
         static const uint_t Id=0;
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* l, Right const* r){
+        static void assign(Left* __restrict__ l, Right const* __restrict__ r){
             BackendType:: template once_per_block<Id>::assign(l[0],r[0]);
         }
     };
@@ -382,7 +382,7 @@ namespace gridtools {
                the location (i,j,k). Such index is shared among all the fields contained in the
                same storage class instance, and it is not shared among different storage instances.
             */
-            static void assign(Left& l, Right const& r){
+            static void assign(Left& __restrict__ l, Right const& __restrict__ r){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
@@ -400,7 +400,7 @@ namespace gridtools {
             struct assign_strides<0, BackendType>{
             template<typename Left, typename Right>
             GT_FUNCTION
-            static void assign(Left & l_, Right const & r_){
+            static void assign(Left & __restrict__ l_, Right const & __restrict__ r_){
 #ifdef CXX11_ENABLED
                 typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
 #else
@@ -438,9 +438,9 @@ private:
         LocalDomain const& local_domain;
         array<uint_t,N_STORAGES> m_index;
 
-        array<void*, N_DATA_POINTERS>* m_data_pointer;
+        array<void* __restrict__, N_DATA_POINTERS>* __restrict__ m_data_pointer;
 
-        storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* m_strides;
+        storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* __restrict__ m_strides;
 
 public:
         /**@brief constructor of the iterate_domain struct
@@ -470,7 +470,7 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( array<void*, N_DATA_POINTERS>* data_pointer ){
+        void assign_storage_pointers( array<void* __restrict__, N_DATA_POINTERS>* __restrict__ data_pointer ){
 
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
@@ -542,8 +542,8 @@ public:
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
-        get_value(ArgType const& arg , StoragePointer & storage_pointer) const
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& __restrict__
+        get_value(ArgType const& arg , StoragePointer & __restrict__ storage_pointer) const
 {
 
 
@@ -552,7 +552,7 @@ public:
 #else
                 typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
-                typename storage_type::value_type * real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+                typename storage_type::value_type * __restrict__ real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
                 // std::cout<<"(m_index[ArgType::index_type::value]) + (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) ->_index(m_strides->template get<ArgType::index_type::value>(), arg) = "
                 //          <<(m_index[ArgType::index_type::value])
@@ -618,7 +618,7 @@ public:
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type&
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type& __restrict__
         operator()(expr_direct_access<ArgType > const& arg) const {
             return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type >::value]);
         }
@@ -630,8 +630,8 @@ public:
         template <typename ArgType>
         GT_FUNCTION
         typename boost::enable_if<typename boost::mpl::bool_<(ArgType::type::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type,
-                                                             typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type&
-                                                             >::type
+                                                             typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type
+                                                             >::type& __restrict__
         operator()(ArgType const& arg) const {
 
             return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::index_type::value==0), LocalDomain, typename ArgType::type >::value]);
@@ -644,7 +644,7 @@ public:
         GT_FUNCTION
         typename boost::enable_if<
             typename boost::mpl::bool_<(ArgType::type::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
-                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type& >::type
+                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  __restrict__
         operator()(ArgType const& arg) const {
 
 #ifdef CXX11_ENABLED
@@ -694,7 +694,7 @@ public:
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
         template < typename ArgType, typename ... Pairs>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& __restrict__
         operator()(arg_mixed<ArgType, Pairs ... > const& arg) const {
 
             typedef arg_mixed<ArgType, Pairs ... > arg_mixed_t;
@@ -743,8 +743,8 @@ public:
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
-        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& __restrict__
+        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & __restrict__ storage_pointer) const {
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
@@ -759,7 +759,7 @@ public:
             typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
 
-            typename storage_type::value_type * real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+            typename storage_type::value_type * __restrict__ real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
             return *(real_storage_pointer
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
@@ -837,26 +837,27 @@ public:
            (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
            @{*/
         /** integer power evaluation*/
-#ifndef __CUDACC__
+// #ifndef __CUDACC__
+//         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
+//         GT_FUNCTION
+//         auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), arg.second_operand)) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
+
+//         template <typename ArgType1, int exponent >
+//         GT_FUNCTION
+//         auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), exponent)) {return std::pow((*this)(arg.first_operand), exponent);}
+
+// #else
+
         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), arg.second_operand)) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
-
-        template <typename ArgType1, int exponent >
-        GT_FUNCTION
-        auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), exponent)) {return std::pow((*this)(arg.first_operand), exponent);}
-
-#else
-
-        template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(products<2>::apply((*this)(arg.first_operand))) {return products<2>::apply((*this)(arg.first_operand));}
+        auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(products<2>::apply((*this)(arg.first_operand))) {return products<2>::apply((*this)(arg.first_operand));
+        }
 
         template <typename ArgType1, /*typename IntType, IntType*/int exponent/*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */>
             GT_FUNCTION
             auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
 
-#endif //ifndef __CUDACC__
+// #endif //ifndef __CUDACC__
 
         /**@}@}*/
 
@@ -901,7 +902,7 @@ public:
     struct stateful_iterate_domain: public iterate_domain<LocalDomain> {
 
         typedef iterate_domain<LocalDomain> base_type;
-        
+
         uint_t i,j,k;
 
 #ifdef CXX11_ENABLED
@@ -951,5 +952,5 @@ public:
             base_type::decrement();
         }
 };
-    
+
 } // namespace gridtools
