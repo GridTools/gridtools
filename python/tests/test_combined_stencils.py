@@ -10,25 +10,22 @@ from gridtools.stencil import MultiStageStencil, StencilInspector
 
 
 
+class Copy (MultiStageStencil):
+    def kernel (self, out_cpy, in_cpy):
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
 class Laplace (MultiStageStencil):
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
         """
-        #
-        # iterate over the interior points
-        #
         for p in self.get_interior_points (out_data):
-            out_data[p] = 4 * in_data[p] - (
+            out_data[p] = -4.0 * in_data[p] + (
                           in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
-
-
-
-class Copy (MultiStageStencil):
-    def kernel (self, out_cpy, in_cpy):
-        for p in self.get_interior_points (out_cpy):
-              out_cpy[p] = in_cpy[p]
 
 
 
@@ -56,16 +53,22 @@ class Out (MultiStageStencil):
 
 class CombinedStencilTest (unittest.TestCase):
     def setUp (self):
+        import os
+
         logging.basicConfig (level=logging.DEBUG)
+        self.cur_dir = os.path.dirname (os.path.abspath (__file__))
 
         self.domain = (64, 64, 32)
         self.params = ('out_fli', 'in_data')
         self.temps  = ( )
 
-        self.out_fli  = np.zeros  (self.domain)
-        self.in_data  = np.arange (np.prod (self.domain)).reshape (self.domain)
-        self.in_data /= 7.0
-        self.in_wgt   = np.ones   (self.domain)
+        self.out_fli  = np.zeros (self.domain)
+        self.in_wgt   = np.ones  (self.domain)
+        self.in_data  = np.zeros (self.domain)
+        for i in range (self.domain[0]):
+            for j in range (self.domain[1]):
+                for k in range (self.domain[2]):
+                    self.in_data[i,j,k] = i**3 + j
 
         self.lap = Laplace ( )
 
@@ -76,9 +79,8 @@ class CombinedStencilTest (unittest.TestCase):
         self.out = Out   ( )
 
 
+    @attr(lang='python')
     def test_single_combination (self):
-        import os
-
         self.lap.set_halo  ( (1, 1, 1, 1) )
 
         combined = self.lap.build (output='out_data')
@@ -93,15 +95,12 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # results should be correct
         #
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
 
 
     def test_double_combination (self):
-        import os
-
         self.lap.set_halo  ( (1, 1, 1, 1) )
         self.copy.set_halo ( (0, 0, 0, 0) )
 
@@ -118,15 +117,12 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # results should be correct
         #
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
 
 
     def test_order_should_not_alter_results (self):
-        import os
-
         self.lap.set_halo  ( (1, 1, 1, 1) )
         self.copy.set_halo ( (0, 0, 0, 0) )
 
@@ -138,8 +134,7 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # results should be correct
         #
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
         #
@@ -158,8 +153,7 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # results should be correct
         #
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
 
@@ -180,8 +174,8 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # results should be correct
         #
-        self.assertTrue (np.all (np.equal (self.out_fli,
-                                           self.in_data)))
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         self.in_data))
 
 
     def test_triple_self_combination (self):
@@ -204,15 +198,74 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # results should be correct
         #
-        self.assertTrue (np.all (np.equal (self.out_fli,
-                                           self.in_data)))
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         self.in_data))
+
+
+    def test_partial_combinations (self):
+        self.lap.set_halo ( (1, 1, 1, 1) )
+        self.fli.set_halo ( (1, 1, 1, 1) )
+        self.flj.set_halo ( (1, 1, 1, 1) )
+        self.out.set_halo ( (1, 1, 1, 1) )
+
+        #
+        # FluxI + Laplace
+        #
+        combo = self.fli.build (output='out_fli',
+                                in_lapi=self.lap.build (output='out_data'))
+        combo.backend = 'python'
+        combo.run (out_fli=self.out_fli,
+                   in_data=self.in_data)
+        #
+        # check parameters and results
+        #
+        for p in combo.scope.get_parameters ( ):
+            self.assertTrue (p.name in ('out_fli', 'in_data'))
+        expected = np.load ('%s/fluxi_result.npy' % self.cur_dir)
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         expected))
+        #
+        # FluxJ + Laplace
+        #
+        combo = self.flj.build (output='out_flj',
+                                in_lapj=self.lap.build (output='out_data'))
+        combo.backend = 'python'
+        combo.run (out_flj=self.out_fli,
+                   in_data=self.in_data)
+        #
+        # check parameters and results
+        #
+        for p in combo.scope.get_parameters ( ):
+            self.assertTrue (p.name in ('out_flj', 'in_data'))
+        expected = np.load ('%s/fluxj_result.npy' % self.cur_dir)
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         expected))
+        #
+        # Out + FluxI + FluxJ
+        #
+        combo = self.out.build (output='out_hr',
+                                in_fli=self.fli.build (output='out_fli'),
+                                in_flj=self.flj.build (output='out_flj'))
+        combo.backend = 'python'
+        combo.run (out_hr=self.out_fli,
+                   in_wgt=self.in_wgt,
+                   in_lapi=np.load ('%s/laplace_result.npy' % self.cur_dir),
+                   in_lapj=np.load ('%s/laplace_result.npy' % self.cur_dir))
+        #
+        # check parameters and results
+        #
+        for p in combo.scope.get_parameters ( ):
+            self.assertTrue (p.name in ('out_hr', 'in_wgt', 'in_lapi', 'in_lapj'))
+        expected = np.load ('%s/horizontaldiffusion_result.npy' % self.cur_dir)
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         expected))
 
 
     def test_horizontal_diffusion_combination (self):
-        self.lap.set_halo ( (2, 2, 2, 2) )
+        self.lap.set_halo ( (1, 1, 1, 1) )
         self.fli.set_halo ( (1, 1, 1, 1) )
         self.flj.set_halo ( (1, 1, 1, 1) )
-        self.out.set_halo ( (0, 0, 0, 0) )
+        self.out.set_halo ( (1, 1, 1, 1) )
 
         hor_dif = self.out.build (output='out_hr',
                                   in_fli=self.fli.build (output='out_fli',
@@ -224,27 +277,11 @@ class CombinedStencilTest (unittest.TestCase):
                      in_wgt=self.in_wgt,
                      in_data=self.in_data)
         #
-        # parameters correctly inferred
+        # check parameters and results
         #
         for p in hor_dif.scope.get_parameters ( ):
             self.assertTrue (p.name in ('out_hr', 'in_wgt', 'in_data'))
-        #
-        # results should be correct
-        #
-        from tests.test_stencils import HorizontalDiffusion
+        expected = np.load ('%s/horizontaldiffusion_result.npy' % self.cur_dir)
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         expected))
 
-        out_expected = np.zeros (self.domain)
-        hor_dif_ok   = HorizontalDiffusion (self.domain)
-
-        hor_dif_ok.set_halo ( (2, 2, 2, 2) )
-        hor_dif_ok.backend = 'python'
-        hor_dif_ok.run (out_data=out_expected,
-                        in_wgt=self.in_wgt,
-                        in_data=self.in_data)
-        try:
-            self.assertTrue (np.all (np.equal (out_expected,
-                                               self.out_fli)))
-        except AssertionError:
-            print ('known to fail')
-
-        
