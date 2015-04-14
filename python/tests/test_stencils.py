@@ -17,15 +17,15 @@ class Copy (MultiStageStencil):
     def __init__ (self):
         super ( ).__init__ ( )
 
-    def kernel (self, out_data, in_data):
+    def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
         """
         #
         # iterate over the points, excluding halo ones
         #
-        for p in self.get_interior_points (out_data):
-              out_data[p] = in_data[p]
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
 
 
 
@@ -44,22 +44,23 @@ class CopyTest (unittest.TestCase):
         logging.basicConfig (level=logging.INFO)
 
         self.domain = (16, 16, 8)
-        self.params = ('out_data', 'in_data')
+        self.params = ('out_cpy', 'in_cpy')
         self.temps  = ( )
 
-        self.out_data = np.zeros (self.domain)
-        self.in_data  = np.random.rand (*self.domain)
+        self.out_cpy = np.zeros (self.domain)
+        self.in_cpy  = np.random.rand (*self.domain)
 
         self.stencil = Copy ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
+
 
     def test_automatic_dependency_detection (self, deps=None):
         self.stencil.backend = 'c++'
         self._run ( )
 
         if deps is None:
-            deps = [ ('out_data', 'in_data') ]
+            deps = [ self.params ]
 
         stencil_deps = self.stencil.scope.depency_graph.edges ( )
         #
@@ -190,8 +191,8 @@ class CopyTest (unittest.TestCase):
         beg_j = self.stencil.halo[2]
         end_j = self.domain[1] - self.stencil.halo[3]
 
-        self.assertTrue (np.array_equal (self.in_data[beg_i:end_i, beg_j:end_j],
-                                         self.out_data[beg_i:end_i, beg_j:end_j]))
+        self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
+                                         self.out_cpy[beg_i:end_i, beg_j:end_j]))
 
 
     @attr(lang='c++')
