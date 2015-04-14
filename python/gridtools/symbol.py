@@ -256,7 +256,7 @@ class Scope (object):
                                                                          value.shape))
             else:
                 raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" % 
-                                 (type (value), name))
+                                 (name, type (value)))
         else:
             raise ValueError ("Temporary data field '%s' cannot be None" % name)
 

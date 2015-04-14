@@ -747,7 +747,7 @@ class MultiStageStencil (Stencil):
         # make sure the output parameter is there
         #
         if output is None:
-            raise ValueError ("The output parameter cannot be None")
+            raise ValueError ("You must specify an 'output' parameter")
         #
         # the keyword arguments map the output of this stencil
         # with an input parameter of the following one
