@@ -124,6 +124,46 @@ class CombinedStencilTest (unittest.TestCase):
                                          expected))
 
 
+    def test_order_should_not_alter_results (self):
+        import os
+
+        self.lap.set_halo  ( (1, 1, 1, 1) )
+        self.copy.set_halo ( (0, 0, 0, 0) )
+
+        combined = self.copy.build (output='out_cpy',
+                                    in_cpy=self.lap.build (output='out_data'))
+        combined.backend = 'python'
+        combined.run (out_cpy=self.out_fli,
+                      in_data=self.in_data)
+        #
+        # results should be correct
+        #
+        cur_dir  = os.path.dirname (os.path.abspath (__file__))
+        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         expected))
+        #
+        # change the order of the combination
+        #
+        combined = self.lap.build (output='out_data',
+                                   in_data=self.copy.build (output='out_cpy'))
+        #
+        # parameters correctly inferred
+        #
+        for p in combined.scope.get_parameters ( ):
+            self.assertTrue (p.name in ('out_data', 'in_cpy'))
+        combined.backend = 'python'
+        combined.run (out_data=self.out_fli,
+                      in_cpy=self.in_data)
+        #
+        # results should be correct
+        #
+        cur_dir  = os.path.dirname (os.path.abspath (__file__))
+        expected = np.load ('%s/laplace_result.npy' % cur_dir)
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         expected))
+
+
     def test_double_self_combination (self):
         self.in_data = np.random.rand (*self.domain)
 
@@ -150,25 +190,22 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # this one fails because of the depth of the built tree
         #
-        try:
-            combined = self.copy.build (output='out_cpy',
-                                        in_cpy=self.copy.build (output='out_cpy',
-                                                                in_cpy=self.copy.build (output='out_cpy')))
-            combined.backend = 'python'
-            combined.run (out_cpy=self.out_fli,
-                          in_cpy=self.in_data)
-            #
-            # parameters correctly inferred
-            #
-            for p in combined.scope.get_parameters ( ):
-                self.assertTrue (p.name in ('out_cpy', 'in_cpy'))
-            #
-            # results should be correct
-            #
-            self.assertTrue (np.all (np.equal (self.out_fli,
-                                               self.in_data)))
-        except ValueError:
-            print ('known to fail')
+        combined = self.copy.build (output='out_cpy',
+                                    in_cpy=self.copy.build (output='out_cpy',
+                                                            in_cpy=self.copy.build (output='out_cpy')))
+        combined.backend = 'python'
+        combined.run (out_cpy=self.out_fli,
+                      in_cpy=self.in_data)
+        #
+        # parameters correctly inferred
+        #
+        for p in combined.scope.get_parameters ( ):
+            self.assertTrue (p.name in ('out_cpy', 'in_cpy'))
+        #
+        # results should be correct
+        #
+        self.assertTrue (np.all (np.equal (self.out_fli,
+                                           self.in_data)))
 
 
     def test_horizontal_diffusion_combination (self):
