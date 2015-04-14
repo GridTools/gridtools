@@ -234,7 +234,7 @@ class Laplace (MultiStageStencil):
         # iterate over the interior points
         #
         for p in self.get_interior_points (out_data):
-            out_data[p] = 4 * in_data[p] - (
+            out_data[p] = -4.0 * in_data[p] + (
                           in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
@@ -251,9 +251,12 @@ class LaplaceTest (CopyTest):
         self.params = ('out_data', 'in_data')
         self.temps  = ( )
 
-        self.out_data  = np.zeros (self.domain)
-        self.in_data   = np.arange (np.prod (self.domain)).reshape (self.domain)
-        self.in_data  /= 7.0
+        self.out_data = np.zeros (self.domain)
+        self.in_data  = np.zeros (self.domain)
+        for i in range (self.domain[0]):
+            for j in range (self.domain[1]):
+                for k in range (self.domain[2]):
+                    self.in_data[i,j,k] = i**3 + j
 
         self.stencil = Laplace ( ) 
         self.stencil.set_halo ( (1, 1, 1, 1) )
@@ -301,6 +304,7 @@ class HorizontalDiffusion (MultiStageStencil):
             self.lap[p] = -4.0 * in_data[p] +  (
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
+        np.save ('tests/lap_result.npy', self.lap)
         #
         # Flux over 'i'
         #
@@ -329,7 +333,7 @@ class HorizontalDiffusionTest (CopyTest):
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (32, 32, 4)
+        self.domain = (64, 64, 32)
         self.params = ('out_data', 
                        'in_data',
                        'in_wgt')
@@ -338,11 +342,15 @@ class HorizontalDiffusionTest (CopyTest):
                        'self.flj')
 
         self.out_data = np.zeros (self.domain)
-        self.in_data  = np.random.rand (*self.domain)
         self.in_wgt   = np.ones  (self.domain)
+        self.in_data  = np.zeros (self.domain)
+        for i in range (self.domain[0]):
+            for j in range (self.domain[1]):
+                for k in range (self.domain[2]):
+                    self.in_data[i,j,k] = i**3 + j
 
         self.stencil = HorizontalDiffusion (self.domain)
-        self.stencil.set_halo ( (2, 2, 2, 2) )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
@@ -372,18 +380,11 @@ class HorizontalDiffusionTest (CopyTest):
 
         self.stencil.backend = 'python'
         self._run ( )
-        print ("In_data:", np.sum (self.in_data))
-        print ("lap tmp:", np.sum (self.stencil.lap))
-        print ("fli tmp:", np.sum (self.stencil.fli))
-        print ("flj tmp:", np.sum (self.stencil.flj))
-
-        #
-        # FIXME create the test data for this test
-        #
-        #cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        #expected = np.load ('%s/laplace_result.npy' % cur_dir)
-        #self.assertTrue (np.array_equal (self.out_data,
-        #                                 expected))
+        
+        cur_dir  = os.path.dirname (os.path.abspath (__file__))
+        expected = np.load ('%s/horizontaldiffusion_result.npy' % cur_dir)
+        self.assertTrue (np.array_equal (self.out_data,
+                                         expected))
 
 
 
