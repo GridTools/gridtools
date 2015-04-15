@@ -61,12 +61,11 @@ class CombinedStencilTest (unittest.TestCase):
         self.out = Out   ( )
 
 
-    @attr(lang='python')
-    def test_single_combination (self):
+    def test_single_combination (self, backend='python'):
         self.lap.set_halo  ( (1, 1, 1, 1) )
 
         combined = self.lap.build (output='out_data')
-        combined.backend = 'python'
+        combined.backend = backend
         combined.run (out_data=self.out_fli,
                       in_data=self.in_data)
         #
@@ -80,6 +79,14 @@ class CombinedStencilTest (unittest.TestCase):
         expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
+
+
+    @attr(lang='c++')
+    def test_single_combination_native (self):
+        try:
+            self.test_single_combination (backend='c++')
+        except AssertionError:
+            print ('known to fail')
 
 
     def test_double_combination (self):

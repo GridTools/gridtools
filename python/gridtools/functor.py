@@ -350,6 +350,10 @@ class Functor ( ):
                                  self.encl_scope)
 
 
+    def __hash__ (self):
+        return self.name.__hash__ ( )
+
+
     def generate_code (self, src):
         """
         Generates the C++ code of this functor:

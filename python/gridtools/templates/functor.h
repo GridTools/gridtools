@@ -1,10 +1,5 @@
 {% block functor %}
 
-//
-// the definition of the operators that compose a multistage stencil
-// is extracted from the AST analysis of the loop comprehensions
-// in Python, which use the 'kernel' function as a starting point
-//
 struct {{ functor.name }}
 {
     //
