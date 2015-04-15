@@ -82,6 +82,14 @@ class StencilInspector (ast.NodeVisitor):
         Performs a static analysis of the source code of this stencil.-
         """
         if self.src:
+            #
+            # do not the static analysis twice over the same code
+            #
+            if len (self.functors) > 0:
+                self.__init__ (self.stencil)
+            #
+            # analysis starts by parsing the stencil source code
+            #
             module = ast.parse (self.src)
             self.visit (module)
             if len (self.functors) == 0:
@@ -142,10 +150,10 @@ class StencilInspector (ast.NodeVisitor):
                         # update the symbol table in this scope
                         #
                         self.scope.add_temporary (s.name,
-                                                          s.value)
+                                                  s.value)
                     else:
                         self.scope.add_constant (s.name, 
-                                                         s.value)
+                                                 s.value)
 
 
     def resolve_params (self, **kwargs):
@@ -160,8 +168,8 @@ class StencilInspector (ast.NodeVisitor):
                     # update the value of this parameter
                     #
                     self.scope.add_parameter (k,
-                                                      v,
-                                                      read_only=self.scope[k].read_only)
+                                              v,
+                                              read_only=self.scope[k].read_only)
                     #
                     #
                     # check the dimensions of different parameters match
@@ -376,12 +384,14 @@ class Stencil ( ):
         self.set_k_direction ('forward')
 
         #
-        # these files are automatically generated compile time
+        # these entities are automatically generated at compile time
         #
-        self.lib_file  = None
-        self.hdr_file  = None
-        self.cpp_file  = None
-        self.make_file = None
+        self.src_dir      = None
+        self.lib_file     = None
+        self.hdr_file     = None
+        self.cpp_file     = None
+        self.make_file    = None
+        self.fun_hdr_file = None
 
         #
         # a reference to the compiled dynamic library
@@ -401,53 +411,79 @@ class Stencil ( ):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os         import write, path, getcwd, chdir
+        from os         import path, getcwd, chdir
         from ctypes     import cdll
-        from tempfile   import mkdtemp, mkstemp
         from subprocess import call
 
         #
-        # create a temporary directory and files for the generated code
-        #
-        tmp_dir        = mkdtemp (prefix="__gridtools_")
-        self.lib_file  = 'lib%s.so' % self.name.lower ( )
-        self.hdr_file  = '%s.h' % self.name
-        self.cpp_file  = '%s.cpp' % self.name
-        self.make_file = 'Makefile'
-
-        #
-        # ... and populate it ...
-        #
-        logging.info ("Compiling C++ code in [%s]" % tmp_dir)
-        hdr_src, cpp_src, make_src = self.translate ( )
-
-        with open (path.join (tmp_dir, self.hdr_file), 'w') as hdr_hdl:
-            hdr_hdl.write (hdr_src)
-
-        with open (path.join (tmp_dir, self.cpp_file), 'w') as cpp_hdl:
-            cpp_hdl.write (cpp_src)
-
-        with open (path.join (tmp_dir, self.make_file), 'w') as make_hdl:
-            make_hdl.write (make_src)
-
-        #
-        # ... before starting the compilation of the dynamic library
+        # start the compilation of the dynamic library
         #
         current_dir = getcwd ( )
-        chdir (tmp_dir)
+        chdir (self.src_dir)
         call (["make", 
                "--silent", 
                "--file=%s" % self.make_file])
         chdir (current_dir)
-
-        #
-        # attach the library object
-        #
         try:
-            self.lib_obj = cdll.LoadLibrary ("%s" % path.join (tmp_dir, 
+            #
+            # attach the library object
+            #
+            self.lib_obj = cdll.LoadLibrary ("%s" % path.join (self.src_dir, 
                                                                self.lib_file))
         except OSError as e:
             self.lib_obj = None
+            raise e
+
+
+    def generate_code (self, src_dir=None):
+        """
+        Generates native code for this stencil:
+
+            src_dir     directory where the files should be saved (optional).-
+        """
+        from os       import write, path, makedirs
+        from tempfile import mkdtemp
+
+        try:
+            #
+            # create directory and files for the generated code
+            #
+            if src_dir is None:
+                self.src_dir = mkdtemp (prefix="__gridtools_")
+            else:
+                if not path.exists (src_dir):
+                    makedirs (src_dir)
+                self.src_dir = src_dir
+
+            self.lib_file     = 'lib%s.so' % self.name.lower ( )
+            self.hdr_file     = '%s.h' % self.name
+            self.cpp_file     = '%s.cpp' % self.name
+            self.make_file    = 'Makefile'
+            self.fun_hdr_file = '%sFunctors.h' %self.name
+
+            #
+            # ... and populate them
+            #
+            logging.info ("Generating C++ code in '%s'" % self.src_dir)
+            #
+            # generate the code of *all* functors in this stencil
+            # build a data-dependency graph among *all* data fields
+            #
+            for func in self.inspector.functors:
+                func.generate_code (self.inspector.src)
+                self.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
+            fun_src, hdr_src, cpp_src, make_src = self.translate ( )
+
+            with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
+                fun_hdl.write (fun_src)
+            with open (path.join (self.src_dir, self.hdr_file), 'w') as hdr_hdl:
+                hdr_hdl.write (hdr_src)
+            with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
+                cpp_hdl.write (cpp_src)
+            with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
+                make_hdl.write (make_src)
+        except Exception as e:
+            logging.error ("Error while generating code:\n\t%s" % str (e))
             raise e
 
 
@@ -520,6 +556,31 @@ class Stencil ( ):
         self.inspector = StencilInspector (self)
 
 
+    def resolve (self, **kwargs):
+        """
+        Resolve the names and types of the symbols used in this stencil.-
+        """
+        #
+        # try to resolve all symbols by applying static-code analysis
+        #
+        self.inspector.static_analysis ( )
+
+        #
+        # ... and by including runtime information
+        #
+        self.inspector.resolve ( )
+        self.inspector.resolve_params (**kwargs)
+        
+        #
+        # print out the discovered symbols if in DEBUG mode
+        #
+        if __debug__:
+            logging.debug ("Symbols found after using run-time resolution:")
+            self.scope.dump ( )
+            for f in self.inspector.functors:
+                f.scope.dump ( )
+
+
     def run (self, *args, halo=None, k_direction=None, **kwargs):
         """
         Starts the execution of the stencil:
@@ -530,14 +591,12 @@ class Stencil ( ):
                             which might be any of 'forward' or 'backward'.-
         """
         import ctypes
-        import networkx as nx
 
         #
         # we only accept keyword arguments to avoid confusion
         #
         if len (args) > 0:
             raise KeyError ("Only keyword arguments are accepted")
-
         #
         # set halo and execution order in 'k' direction
         #
@@ -553,49 +612,9 @@ class Stencil ( ):
             # automatic compilation only if the library is not available
             #
             if self.lib_obj is None:
-                #
-                # try to resolve all symbols before compiling:
-                # first with doing a static code analysis, ...
-                #
-                self.inspector.static_analysis ( )
-
-                #
-                # ... then including runtime information
-                #
-                self.inspector.resolve ( )
-                self.inspector.resolve_params (**kwargs)
-                
-                #
-                # print out the discovered symbols if in DEBUG mode
-                #
-                if __debug__:
-                    logging.debug ("Symbols found after using run-time resolution:")
-                    self.inspector.scope.dump ( )
-                    for f in self.inspector.functors:
-                        f.scope.dump ( )
-
-                #
-                # generate the code of *all* functors in this stencil
-                # and build a data-dependency graph among *all* data fields
-                #
-                try:
-                    for func in self.inspector.functors:
-                        func.generate_code (self.inspector.src)
-                        self.inspector.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
-
-                except Exception as e:
-                    logging.error ("Error while generating code\n%s" % str (e))
-                    raise e
-
-                else:
-                    #
-                    # compile the generated code
-                    #
-                    try:
-                        self.compile ( )
-                    except Exception as e:
-                        logging.error ("%s\nCompilation failed" % str(e))
-                        return
+                self.resolve (**kwargs)
+                self.generate_code ( )
+                self.compile ( )
             #
             # prepare the list of parameters to call the library function
             #
@@ -604,7 +623,7 @@ class Stencil ( ):
             #
             # extract the buffer pointers from the NumPy arrays
             #
-            for p in self.inspector.scope.get_parameters ( ):
+            for p in self.scope.get_parameters ( ):
                 if p.name in kwargs.keys ( ):
                     lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
                 else:
@@ -667,14 +686,13 @@ class Stencil ( ):
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 
 
-    def translate (self):
+    def translate (self, namespace=None):
         """
-        Translates this functor to C++, using the gridtools interface.
-        It returns a string pair of rendered (header, cpp, make) files.-
+        Translates this stencil to C++, using the gridtools interface, returning
+        a string tuple of rendered files (functors, header, cpp, make).-
         """
         from os.path import basename
         from jinja2  import Environment, PackageLoader
-
         
         def join_with_prefix (a_list, prefix, attribute=None):
             """
@@ -692,14 +710,10 @@ class Stencil ( ):
         jinja_env.filters["join_with_prefix"] = join_with_prefix
 
         #
-        # prepare the functor template
-        #
-        functor_tpl = jinja_env.get_template ("functor.h")
-
-        #
         # render the source code for each of the functors
         #
         functor_src = ""
+        functor_tpl = jinja_env.get_template ("functor.h")
         for f in self.inspector.functors:
             params       = list (f.scope.get_parameters ( ))
             functor_src += functor_tpl.render (functor=f,
@@ -707,20 +721,25 @@ class Stencil ( ):
         #
         # instantiate each of the templates and render them
         #
-        header = jinja_env.get_template ("stencil.h")
-        cpp    = jinja_env.get_template ("stencil.cpp")
-        make   = jinja_env.get_template ("Makefile")
+        functors  = jinja_env.get_template ("functors.h")
+        header    = jinja_env.get_template ("stencil.h")
+        cpp       = jinja_env.get_template ("stencil.cpp")
+        make      = jinja_env.get_template ("Makefile")
 
-        params = list (self.inspector.scope.get_parameters ( ))
-        temps  = list (self.inspector.scope.get_temporaries ( ))
+        params    = list (self.scope.get_parameters ( ))
+        temps     = list (self.scope.get_temporaries ( ))
 
-        return (header.render (namespace=self.name.lower ( ),
+        if namespace is None:
+            namespace = self.name.lower ( )
+
+        return (functors.render (namespace=namespace,
+                                 functor_src=functor_src),
+                header.render (namespace=namespace,
                                stencil=self,
-                               scope=self.inspector.scope,
+                               scope=self.scope,
                                params=params,
                                temps=temps,
                                params_temps=params + temps,
-                               functor_src=functor_src,
                                functors=self.inspector.functors),
                 cpp.render  (stencil=self,
                              params=params),
@@ -943,6 +962,64 @@ class CombinedStencil (Stencil):
                                                                    stencil.name))
 
 
+    def generate_code (self, src_dir=None):
+        """
+        Generates native code for this stencil:
+
+            src_dir     directory where the files should be saved (optional).-
+        """
+        from os         import write, path, makedirs
+        from tempfile   import mkdtemp
+
+        #
+        # create directory and files for the generated code
+        #
+        if src_dir is None:
+            self.src_dir = mkdtemp (prefix="__gridtools_")
+        else:
+            if not path.exists (src_dir):
+                makedirs (src_dir)
+            self.src_dir = src_dir
+
+        self.lib_file     = 'lib%s.so' % self.name.lower ( )
+        self.hdr_file     = '%s.h' % self.name
+        self.cpp_file     = '%s.cpp' % self.name
+        self.make_file    = 'Makefile'
+        self.fun_hdr_file = '%sFunctors.h' %self.name
+
+        #
+        # generation order is from the leafs towards the root
+        #
+        logging.info ("Generating C++ code in '%s'" % self.src_dir)
+        with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
+            fun_hdl.write ('\n')
+        for st in nx.dfs_postorder_nodes (self.execution_graph,
+                                          source=self.get_root ( )):
+            #
+            # generate the code of *all* functors in this stencil
+            # build a data-dependency graph among *all* data fields
+            #
+            for func in st.inspector.functors:
+                func.generate_code (st.inspector.src)
+                st.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
+            #
+            # ... and populate them
+            #
+            fun_src,hdr,cpp,make = st.translate (namespace=self.name.lower ( ))
+            with open (path.join (self.src_dir, self.fun_hdr_file), 'a') as fun_hdl:
+                fun_hdl.write (fun_src)
+        #
+        # code for the stencil, the library entry point and makefile
+        #
+        hdr_src, cpp_src, make_src = self.translate ( )
+        with open (path.join (self.src_dir, self.hdr_file), 'w') as hdr_hdl:
+            hdr_hdl.write (hdr_src)
+        with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
+            cpp_hdl.write (cpp_src)
+        with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
+            make_hdl.write (make_src)
+
+
     def get_root (self):
         """
         Returns the root node of the execution graph, i.e., the *last* stencil
@@ -976,6 +1053,25 @@ class CombinedStencil (Stencil):
         self._plot_graph (self.execution_graph)
 
 
+    def resolve (self, **kwargs):
+        #
+        # resolution order is from the leafs towards the root
+        #
+        for st in nx.dfs_postorder_nodes (self.execution_graph,
+                                          source=self.get_root ( )):
+            st.backend = self.backend
+            params     = self._prepare_parameters (st,
+                                                   **kwargs)
+            st.resolve (**params)
+            #
+            # update the current field domain
+            #
+            if self.inspector.domain is not None:
+                if self.inspector.domain != st.inspector.domain:
+                    logging.warning ("Different domain sizes detected")
+            self.inspector.domain = st.inspector.domain
+
+
     def run (self, *args, halo=None, k_direction=None, **kwargs):
         """
         Starts the execution of the stencil:
@@ -985,25 +1081,109 @@ class CombinedStencil (Stencil):
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward' or 'backward'.-
         """
+        import ctypes
+
         #
         # make sure all needed parameters were provided
         #
         for p in self.scope.get_parameters ( ):
             if p.name not in kwargs.keys ( ):
                 raise ValueError ("Missing parameter '%s'" % p.name)
+        #
+        # generate one compilation unit for all stencils combined
+        #
+        if self.backend == 'c++':
+            #
+            # automatic compilation only if the library is not available
+            #
+            if self.lib_obj is None:
+                self.resolve (**kwargs)
+                self.generate_code (src_dir='/tmp/combined_stencil')
+                self.compile ( )
+                    
+            #
+            # prepare the list of parameters to call the library function
+            #
+            lib_params = list (self.inspector.domain)
 
-        #
-        # run in Python mode
-        #
-        if self.backend == 'python':
+            #
+            # extract the buffer pointers from the NumPy arrays
+            #
+            for p in self.scope.get_parameters ( ):
+                if p.name in kwargs.keys ( ):
+                    lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
+                else:
+                    logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
+            #
+            # call the compiled stencil
+            # 
+            self.lib_obj.run (*lib_params)
+        elif self.backend == 'python':
             #
             # execution order is from the leafs towards the root
             #
             for st in nx.dfs_postorder_nodes (self.execution_graph,
                                               source=self.get_root ( )):
-                params = self._prepare_parameters (st,
-                                                   **kwargs)
+                st.backend = self.backend
+                params     = self._prepare_parameters (st,
+                                                       **kwargs)
                 st.run (*args, 
                         halo=halo, 
                         k_direction=k_direction,
                         **params)
+
+
+    def translate (self):
+        """
+        Translates this stencil to C++, using the gridtools interface, returning
+        a string tuple of rendered files (header, cpp, make).-
+        """
+        from os.path import basename
+        from jinja2  import Environment, PackageLoader
+        
+        def join_with_prefix (a_list, prefix, attribute=None):
+            """
+            A custom filter for template rendering.-
+            """
+            if attribute is None:
+                return ['%s%s' % (prefix, e) for e in a_list]
+            else:
+                return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
+        #
+        # initialize the template renderer environment
+        #
+        jinja_env = Environment (loader=PackageLoader ('gridtools',
+                                                       'templates'))
+        jinja_env.filters["join_with_prefix"] = join_with_prefix
+
+        #
+        # instantiate each of the templates and render them
+        #
+        header    = jinja_env.get_template ("stencil.h")
+        cpp       = jinja_env.get_template ("stencil.cpp")
+        make      = jinja_env.get_template ("Makefile")
+
+        namespace = self.name.lower ( )
+        params    = list (self.scope.get_parameters ( ))
+        temps     = list (self.scope.get_temporaries ( ))
+
+        #
+        # the functors defined by all combined stencils
+        #
+        functors = set ( )
+        for st in nx.dfs_postorder_nodes (self.execution_graph,
+                                          source=self.get_root ( )):
+            for f in st.inspector.functors:
+                functors.add (f)
+
+        return (header.render (namespace=namespace,
+                               stencil=self,
+                               scope=self.scope,
+                               params=params,
+                               temps=temps,
+                               params_temps=params + temps,
+                               functors=functors),
+                cpp.render  (stencil=self,
+                             params=params),
+                make.render (stencil=self))
+

@@ -7,8 +7,8 @@
 
 #include <gridtools.h>
 #include <stencil-composition/backend.h>
-
 #include <boost/fusion/include/make_vector.hpp>
+#include "{{ stencil.fun_hdr_file }}"
 
 
 
@@ -36,14 +36,6 @@ namespace {{ namespace }}
 //
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
-
-//
-// functor definition - begin
-//
-{{ functor_src }}
-//
-// functor definition - end
-//
 
 
 
