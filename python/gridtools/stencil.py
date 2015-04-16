@@ -735,7 +735,9 @@ class Stencil ( ):
         return (functors.render (namespace=namespace,
                                  functor_src=functor_src),
                 header.render (namespace=namespace,
-                               stencil=self,
+                               fun_hdr_file=self.fun_hdr_file,
+                               stencil_name=self.name,
+                               stencils=[self],
                                scope=self.scope,
                                params=params,
                                temps=temps,
@@ -1168,16 +1170,20 @@ class CombinedStencil (Stencil):
         temps     = list (self.scope.get_temporaries ( ))
 
         #
-        # the functors defined by all combined stencils
+        # the stencils and all their functors combined
         #
+        stencils = set ( )
         functors = set ( )
         for st in nx.dfs_postorder_nodes (self.execution_graph,
                                           source=self.get_root ( )):
+            stencils.add (st)
             for f in st.inspector.functors:
                 functors.add (f)
 
         return (header.render (namespace=namespace,
-                               stencil=self,
+                               fun_hdr_file=self.fun_hdr_file,
+                               stencil_name=self.name.lower ( ),
+                               stencils=stencils,
                                scope=self.scope,
                                params=params,
                                temps=temps,

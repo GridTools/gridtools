@@ -83,10 +83,7 @@ class CombinedStencilTest (unittest.TestCase):
 
     @attr(lang='c++')
     def test_single_combination_native (self):
-        try:
-            self.test_single_combination (backend='c++')
-        except AssertionError:
-            print ('known to fail')
+        self.test_single_combination (backend='c++')
 
 
     def test_double_combination (self):
