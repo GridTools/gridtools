@@ -30,7 +30,7 @@ namespace gridtools {
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
             __shared__
-                array<void*,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
+                array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
 
             __shared__
                 storage_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
