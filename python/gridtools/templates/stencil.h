@@ -8,7 +8,7 @@
 #include <gridtools.h>
 #include <stencil-composition/backend.h>
 #include <boost/fusion/include/make_vector.hpp>
-#include "{{ stencil.fun_hdr_file }}"
+#include "{{ fun_hdr_file }}"
 
 
 
@@ -111,6 +111,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
         {{- params|join_with_prefix('&', attribute='name')|join(', ') }}));
 
+    {% for s in stencils %}
     //
     // definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions, i.e.:
@@ -121,15 +122,15 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //   index of the last interior element,
     //   total number of elements in dimension }
     //
-    uint_t di[5] = { {{ stencil.halo[0] }},
-                     {{ stencil.halo[1] }},
-                     {{ stencil.halo[1] }},
-                     d1-{{ stencil.halo[0] }}-1,
+    uint_t di[5] = { {{ s.halo[0] }},
+                     {{ s.halo[1] }},
+                     {{ s.halo[1] }},
+                     d1-{{ s.halo[0] }}-1,
                      d1 };
-    uint_t dj[5] = { {{ stencil.halo[2] }},
-                     {{ stencil.halo[3] }},
-                     {{ stencil.halo[3] }},
-                     d2-{{ stencil.halo[2] }}-1,
+    uint_t dj[5] = { {{ s.halo[2] }},
+                     {{ s.halo[3] }},
+                     {{ s.halo[3] }},
+                     d2-{{ s.halo[2] }}-1,
                      d2 };
 
     //
@@ -147,13 +148,13 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
-    boost::shared_ptr<gridtools::computation> comp_{{ stencil.name|lower }} =
+    boost::shared_ptr<gridtools::computation> comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss
             (
-                execute<{{ stencil.k_direction }}>(),
-                {% for f in functors -%}
+                execute<{{ s.k_direction }}>(),
+                {% for f in s.inspector.functors -%}
                 gridtools::make_esf<{{ f.name }}>(
                    {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
                    {%- if not loop.last -%}
@@ -163,18 +164,32 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                 ),
             domain, coords
             );
+    {% endfor %}
 
     //
-    // execute the stencil
+    // preparation ...
     //
-    comp_{{ stencil.name|lower }}->ready();
-    comp_{{ stencil.name|lower }}->steady();
-    comp_{{ stencil.name|lower }}->run();
+    {% for s in stencils %}
+    comp_{{ s.name|lower }}->ready();
+    {% endfor %}
+
+    {% for s in stencils %}
+    comp_{{ s.name|lower }}->steady();
+    {% endfor %}
+
+    //
+    // ... and execution
+    //
+    {% for s in stencils %}
+    comp_{{ s.name|lower }}->run();
+    {% endfor %}
 
     //
     // clean everything up
     //
-    comp_{{ stencil.name|lower }}->finalize();
+    {% for s in stencils %}
+    comp_{{ s.name|lower }}->finalize();
+    {% endfor %}
 
     return EXIT_SUCCESS;
 }
