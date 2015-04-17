@@ -122,12 +122,12 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //   index of the last interior element,
     //   total number of elements in dimension }
     //
-    uint_t di[5] = { {{ s.halo[0] }},
+    uint_t di_{{ loop.index0 }}[5] = { {{ s.halo[0] }},
                      {{ s.halo[1] }},
                      {{ s.halo[1] }},
                      d1-{{ s.halo[0] }}-1,
                      d1 };
-    uint_t dj[5] = { {{ s.halo[2] }},
+    uint_t dj_{{ loop.index0 }}[5] = { {{ s.halo[2] }},
                      {{ s.halo[3] }},
                      {{ s.halo[3] }},
                      d2-{{ s.halo[2] }}-1,
@@ -136,9 +136,9 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     // the vertical dimension of the problem is a property of this object
     //
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::coordinates<axis> coords_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
+    coords_{{ loop.index0 }}.value_list[0] = 0;
+    coords_{{ loop.index0 }}.value_list[1] = d3-1;
 
     //
     // Here we do a lot of stuff
@@ -150,7 +150,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     //
     boost::shared_ptr<gridtools::computation> comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
-        (
+      (
             gridtools::make_mss
             (
                 execute<{{ s.k_direction }}>(),
@@ -162,32 +162,29 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                    {%- endif %}
                 {% endfor -%}
                 ),
-            domain, coords
-            );
+            domain, coords_{{ loop.index0 }}
+      );
     {% endfor %}
 
     //
     // preparation ...
     //
-    {% for s in stencils %}
+    {% for s in stencils -%}
     comp_{{ s.name|lower }}->ready();
     {% endfor %}
-
-    {% for s in stencils %}
+    {% for s in stencils -%}
     comp_{{ s.name|lower }}->steady();
     {% endfor %}
-
     //
     // ... and execution
     //
-    {% for s in stencils %}
+    {% for s in stencils -%}
     comp_{{ s.name|lower }}->run();
     {% endfor %}
-
     //
     // clean everything up
     //
-    {% for s in stencils %}
+    {% for s in stencils -%}
     comp_{{ s.name|lower }}->finalize();
     {% endfor %}
 
