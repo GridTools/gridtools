@@ -62,6 +62,11 @@ class Symbol (object):
         #
         self.read_only = True
         
+    def __eq__ (self, other):
+        return self.__hash__ ( ) == other.__hash__ ( )
+
+    def __ne__ (self, other):
+        return not self.__eq__ (other)
 
     def __hash__ (self):
         return self.name.__hash__ ( )

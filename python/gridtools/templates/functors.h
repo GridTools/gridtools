@@ -32,3 +32,4 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 {{ functor_src }}
 
 } // namespace {{ namespace }}
+

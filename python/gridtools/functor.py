@@ -90,7 +90,6 @@ class FunctorBody (ast.NodeVisitor):
                 self.cpp_src += self.visit (n)
                 if self.cpp_src:
                     self.cpp_src = "%s;\n\t\t" % self.cpp_src
-
             except RuntimeError as e:
                 #
                 # preprocess the source code to correctly display the line,
@@ -367,3 +366,16 @@ class Functor ( ):
     def get_dependency_graph (self):
         return self.scope.depency_graph
 
+
+    def translate (self):
+        """
+        Translates this functor to C++, using the gridtools interface, returning
+        a string of rendered file.-
+        """
+        from gridtools import JinjaEnv
+
+        functor_tpl = JinjaEnv.get_template ("functor.h")
+        params       = list (self.scope.get_parameters ( ))
+
+        return functor_tpl.render (functor=self,
+                                   params=params)

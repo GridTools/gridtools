@@ -275,7 +275,8 @@ class StencilInspector (ast.NodeVisitor):
             #
             # a random name for this functor
             #
-            funct_name = 'functor_%03d' % len (self.scope.functor_scopes)
+            funct_name = '%s_functor_%03d' % (self.stencil.name.lower ( ),
+                                              len (self.scope.functor_scopes))
             
             #
             # create a new scope for the symbols of this functor
@@ -361,7 +362,7 @@ class Stencil ( ):
         #
         # a unique name for the stencil object
         #
-        self.name = "%sStencil" % self.__class__.__name__.capitalize ( )
+        self.name = self.__class__.__name__.capitalize ( )
 
         #
         # defines the way to execute the stencil, one of 'python' or 'c++'
@@ -413,24 +414,25 @@ class Stencil ( ):
         """
         from os         import path, getcwd, chdir
         from ctypes     import cdll
-        from subprocess import call
+        from subprocess import check_call
 
-        #
-        # start the compilation of the dynamic library
-        #
-        current_dir = getcwd ( )
-        chdir (self.src_dir)
-        call (["make", 
-               "--silent", 
-               "--file=%s" % self.make_file])
-        chdir (current_dir)
         try:
+            #
+            # start the compilation of the dynamic library
+            #
+            current_dir = getcwd ( )
+            chdir (self.src_dir)
+            check_call (["make", 
+                         "--silent", 
+                         "--file=%s" % self.make_file])
+            chdir (current_dir)
             #
             # attach the library object
             #
             self.lib_obj = cdll.LoadLibrary ("%s" % path.join (self.src_dir, 
                                                                self.lib_file))
-        except OSError as e:
+        except Exception as e:
+            logging.error ("Compilation error")
             self.lib_obj = None
             raise e
 
@@ -441,8 +443,9 @@ class Stencil ( ):
 
             src_dir     directory where the files should be saved (optional).-
         """
-        from os       import write, path, makedirs
-        from tempfile import mkdtemp
+        from os        import write, path, makedirs
+        from tempfile  import mkdtemp
+        from gridtools import JinjaEnv
 
         try:
             #
@@ -459,7 +462,7 @@ class Stencil ( ):
             self.hdr_file     = '%s.h' % self.name
             self.cpp_file     = '%s.cpp' % self.name
             self.make_file    = 'Makefile'
-            self.fun_hdr_file = '%sFunctors.h' %self.name
+            self.fun_hdr_file = '%sFunctors.h' % self.name
 
             #
             # ... and populate them
@@ -475,7 +478,10 @@ class Stencil ( ):
             fun_src, hdr_src, cpp_src, make_src = self.translate ( )
 
             with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-                fun_hdl.write (fun_src)
+                functors  = JinjaEnv.get_template ("functors.h")
+                namespace = self.name.lower ( )
+                fun_hdl.write (functors.render (namespace=namespace,
+                                                functor_src=fun_src))
             with open (path.join (self.src_dir, self.hdr_file), 'w') as hdr_hdl:
                 hdr_hdl.write (hdr_src)
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
@@ -585,8 +591,8 @@ class Stencil ( ):
         """
         Starts the execution of the stencil:
 
-            halo            a tuple defining a 2D halo over the given 
-                            'data_field'. See 'set_halo';
+            halo            a tuple defining a 2D halo over the given parameters.
+                            See 'set_halo';
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward' or 'backward'.-
         """
@@ -691,49 +697,28 @@ class Stencil ( ):
         Translates this stencil to C++, using the gridtools interface, returning
         a string tuple of rendered files (functors, header, cpp, make).-
         """
-        from os.path import basename
-        from jinja2  import Environment, PackageLoader
-        
-        def join_with_prefix (a_list, prefix, attribute=None):
-            """
-            A custom filter for template rendering.-
-            """
-            if attribute is None:
-                return ['%s%s' % (prefix, e) for e in a_list]
-            else:
-                return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
-        #
-        # initialize the template renderer environment
-        #
-        jinja_env = Environment (loader=PackageLoader ('gridtools',
-                                                       'templates'))
-        jinja_env.filters["join_with_prefix"] = join_with_prefix
+        from gridtools import JinjaEnv
 
         #
         # render the source code for each of the functors
         #
         functor_src = ""
-        functor_tpl = jinja_env.get_template ("functor.h")
         for f in self.inspector.functors:
-            params       = list (f.scope.get_parameters ( ))
-            functor_src += functor_tpl.render (functor=f,
-                                               params=params)
+            functor_src += f.translate ( )
         #
         # instantiate each of the templates and render them
         #
-        functors  = jinja_env.get_template ("functors.h")
-        header    = jinja_env.get_template ("stencil.h")
-        cpp       = jinja_env.get_template ("stencil.cpp")
-        make      = jinja_env.get_template ("Makefile")
+        header   = JinjaEnv.get_template ("stencil.h")
+        cpp      = JinjaEnv.get_template ("stencil.cpp")
+        make     = JinjaEnv.get_template ("Makefile")
 
-        params    = list (self.scope.get_parameters ( ))
-        temps     = list (self.scope.get_temporaries ( ))
+        params   = list (self.scope.get_parameters ( ))
+        temps    = list (self.scope.get_temporaries ( ))
 
         if namespace is None:
             namespace = self.name.lower ( )
 
-        return (functors.render (namespace=namespace,
-                                 functor_src=functor_src),
+        return (functor_src,
                 header.render (namespace=namespace,
                                fun_hdr_file=self.fun_hdr_file,
                                stencil_name=self.name,
@@ -795,10 +780,27 @@ class CombinedStencil (Stencil):
         #
         self.data_graph      = nx.DiGraph ( )
         self.execution_graph = nx.DiGraph ( )
-        #
-        # a dictionary to keep track of the intermediate temporary fields
-        #
-        self.temporaries = dict ( )
+
+
+    def _extract_domain (self, **kwargs):
+        """
+        Returns the current domain dimensions from 'kwargs'.-
+        """
+        domain = None
+        for k,v in kwargs.items ( ):
+            try:
+                if domain is None:
+                    domain = v.shape
+                if domain != v.shape:
+                    logging.warning ("Different domain sizes detected")
+            except AttributeError:
+                #
+                # not a NumPy array
+                #
+                pass
+        if domain is None:
+            raise RuntimeError ("Could not infer data-field dimensions")
+        return domain 
 
 
     def _plot_graph (self, G):
@@ -823,14 +825,12 @@ class CombinedStencil (Stencil):
     def _prepare_parameters (self, stencil, **kwargs):
         """
         Extracts the parameters for 'stencil' from 'kwargs', and create
-        temporaries for linked stencils.-
+        intermediate data fields for linked stencils.-
         """
-        domain    = None
         ret_value = dict ( )
+        domain    = self._extract_domain (**kwargs)
         for p in stencil.scope.get_parameters ( ):
             try:
-                if isinstance (kwargs[p.name], np.ndarray):
-                    domain = kwargs[p.name].shape
                 ret_value[p.name] = kwargs[p.name]
             except KeyError:
                 #
@@ -840,34 +840,18 @@ class CombinedStencil (Stencil):
                     linked_data = self.data_graph.successors (p.name)
                     if len (linked_data) == 0:
                         #
-                        # create a new temporary data field
+                        # create a new linked data field
                         #
-                        self.temporaries[p.name] = None
+                        self.data_graph.node[p.name]['value'] = np.zeros (domain)
+                        ret_value[p.name] = self.data_graph.node[p.name]['value']
                     elif len (linked_data) == 1:
                         #
                         # get the value from the linked field
                         #
-                        ret_value[p.name] = self.temporaries[linked_data[0]]
-                        try:
-                            domain = ret_value[p.name].shape
-                        except AttributeError:
-                            #
-                            # not a NumPy array ... no problem
-                            #
-                            pass
+                        ret_value[p.name] = self.data_graph.node[linked_data[0]]['value']
                 else:
-                    raise RuntimeError ("Parameter '%s' not found ... this shouldn't be happening ..."
+                    raise RuntimeError ("Parameter '%s' not found in data graph"
                                         % p.name)
-        #
-        # generate a temporary for every missing parameter
-        #
-        if domain is not None:
-            for k,v in self.temporaries.items ( ):
-                if v is None:
-                    self.temporaries[k] = np.zeros (domain)
-                    ret_value[k]        = self.temporaries[k]
-        else:
-            raise RuntimeError ("Could not infer data-field dimension sizes")
         return ret_value
 
 
@@ -928,8 +912,8 @@ class CombinedStencil (Stencil):
                             #
                             # ... and the data graph of this stencil
                             #
-                            for n in input_stencil.data_graph.nodes_iter ( ):
-                                self.data_graph.add_node (n)
+                            for n,d in input_stencil.data_graph.nodes_iter (data=True):
+                                self.data_graph.add_node (n, d)
                             for u,v in input_stencil.data_graph.edges_iter ( ):
                                 self.data_graph.add_edge (u, v)
                             #
@@ -938,17 +922,20 @@ class CombinedStencil (Stencil):
                             #
                             linked_stencil        = input_stencil.get_root ( )
                             linked_stencil_output = input_stencil.execution_graph.node[linked_stencil]['output']
-                            self.data_graph.add_node (input_param)
-                            self.data_graph.add_node (linked_stencil_output)
+                            self.data_graph.add_node (input_param, 
+                                                      {'value': None})
+                            self.data_graph.add_node (linked_stencil_output,
+                                                      {'value': None})
                             self.data_graph.add_edge (input_param,
                                                       linked_stencil_output)
                             #
-                            # ... and the execution order
+                            # ... and the execution dependency
                             #
                             self.execution_graph.add_edge (stencil, 
                                                            linked_stencil)
                         except AttributeError:
-                            logging.error ("Parameter '%s' should hold an instance of CombinedStencil" % input_param)
+                            logging.error ("Parameter '%s' should hold an instance of '%s'"
+                                           % (input_param, self.__class__))
                             return
                 #
                 # update the parameters of this combined stencil
@@ -970,8 +957,9 @@ class CombinedStencil (Stencil):
 
             src_dir     directory where the files should be saved (optional).-
         """
-        from os         import write, path, makedirs
-        from tempfile   import mkdtemp
+        from os        import write, path, makedirs
+        from tempfile  import mkdtemp
+        from gridtools import JinjaEnv
 
         #
         # create directory and files for the generated code
@@ -983,33 +971,30 @@ class CombinedStencil (Stencil):
                 makedirs (src_dir)
             self.src_dir = src_dir
 
-        self.lib_file     = 'lib%s.so' % self.name.lower ( )
+        namespace         = self.name.lower ( )
+        functor_src       = ''
+        self.lib_file     = 'lib%s.so' % namespace
         self.hdr_file     = '%s.h' % self.name
         self.cpp_file     = '%s.cpp' % self.name
         self.make_file    = 'Makefile'
-        self.fun_hdr_file = '%sFunctors.h' %self.name
+        self.fun_hdr_file = '%sFunctors.h' % self.name
 
-        #
-        # generation order is from the leafs towards the root
-        #
         logging.info ("Generating C++ code in '%s'" % self.src_dir)
-        with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-            fun_hdl.write ('\n')
+        #
+        # generate the code for *all* functors within the combined stencil
+        #
         for st in nx.dfs_postorder_nodes (self.execution_graph,
                                           source=self.get_root ( )):
-            #
-            # generate the code of *all* functors in this stencil
-            # build a data-dependency graph among *all* data fields
-            #
             for func in st.inspector.functors:
                 func.generate_code (st.inspector.src)
                 st.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
-            #
-            # ... and populate them
-            #
-            fun_src,hdr,cpp,make = st.translate (namespace=self.name.lower ( ))
-            with open (path.join (self.src_dir, self.fun_hdr_file), 'a') as fun_hdl:
-                fun_hdl.write (fun_src)
+            fun_src, _, _, _ = st.translate (namespace=namespace)
+            functor_src     += fun_src
+
+        with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
+            functors = JinjaEnv.get_template ("functors.h")
+            fun_hdl.write (functors.render (namespace=namespace,
+                                            functor_src=functor_src))
         #
         # code for the stencil, the library entry point and makefile
         #
@@ -1078,8 +1063,7 @@ class CombinedStencil (Stencil):
         """
         Starts the execution of the stencil:
 
-            halo            a tuple defining a 2D halo over the given 
-                            'data_field'. See 'set_halo';
+            halo            a tuple defining a 2D halo over the given parameters;
             k_direction     defines the execution direction in 'k' dimension,
                             which might be any of 'forward' or 'backward'.-
         """
@@ -1140,30 +1124,14 @@ class CombinedStencil (Stencil):
         Translates this stencil to C++, using the gridtools interface, returning
         a string tuple of rendered files (header, cpp, make).-
         """
-        from os.path import basename
-        from jinja2  import Environment, PackageLoader
-        
-        def join_with_prefix (a_list, prefix, attribute=None):
-            """
-            A custom filter for template rendering.-
-            """
-            if attribute is None:
-                return ['%s%s' % (prefix, e) for e in a_list]
-            else:
-                return ['%s%s' % (prefix, getattr (e, attribute)) for e in a_list]
-        #
-        # initialize the template renderer environment
-        #
-        jinja_env = Environment (loader=PackageLoader ('gridtools',
-                                                       'templates'))
-        jinja_env.filters["join_with_prefix"] = join_with_prefix
+        from gridtools import JinjaEnv
 
         #
         # instantiate each of the templates and render them
         #
-        header    = jinja_env.get_template ("stencil.h")
-        cpp       = jinja_env.get_template ("stencil.cpp")
-        make      = jinja_env.get_template ("Makefile")
+        header    = JinjaEnv.get_template ("stencil.h")
+        cpp       = JinjaEnv.get_template ("stencil.cpp")
+        make      = JinjaEnv.get_template ("Makefile")
 
         namespace = self.name.lower ( )
         params    = list (self.scope.get_parameters ( ))
@@ -1172,13 +1140,21 @@ class CombinedStencil (Stencil):
         #
         # the stencils and all their functors combined
         #
-        stencils = set ( )
-        functors = set ( )
+        stencils = list ( )
+        functors = list ( )
         for st in nx.dfs_postorder_nodes (self.execution_graph,
                                           source=self.get_root ( )):
-            stencils.add (st)
+            if st in stencils:
+                logging.warning ("Ignoring mutiple instances of stencil '%s' in '%s'"
+                                 % (st, self))
+            else:
+                stencils.append (st)
             for f in st.inspector.functors:
-                functors.add (f)
+                if f in functors:
+                    logging.warning ("Ignoring mutiple instances of functor '%s' in stencil '%s'"
+                                     % (f, st))
+                else:
+                    functors.append (f)
 
         return (header.render (namespace=namespace,
                                fun_hdr_file=self.fun_hdr_file,
