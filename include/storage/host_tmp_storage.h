@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/basic_utils.h>
 #include "base_storage.h"
 #include <boost/mpl/int.hpp>
 
@@ -171,11 +172,11 @@ namespace gridtools {
                vertical direction, where at present no blocking is
                performed.
             */
-            template <uint_t Coordinate>
-            GT_FUNCTION
-            void increment(uint_t b, uint_t const* strides_){
-                base_type::template increment<Coordinate>(b, strides_);
-            }
+            // template <uint_t Coordinate>
+            // GT_FUNCTION
+            // void increment(uint_t const* strides_){
+            //     base_type::template increment<Coordinate>(strides_);
+            // }
 
 
             /** @brief increment in the horizontal direction (i or j).
@@ -198,55 +199,34 @@ namespace gridtools {
                 C between tiles (identified by the data dependency
                 requirements between tiles).
             */
-            template <uint_t Coordinate>
-            GT_FUNCTION
-            void increment(const uint_t steps, const uint_t b, uint_t* index, uint_t const* strides_){
-                // no blocking along k
-                if(Coordinate != 2)
-                    {
-                        uint_t tile=Coordinate==0?TileI:TileJ;
-                        uint_t var=steps - b * tile;
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void increment( uint_t* index_, uint_t const* strides_){
+            base_type::template increment<Coordinate>( index_, strides_);
+        }
 
-                        uint_t coor=var-
-                            m_initial_offsets[Coordinate];
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void increment(const uint_t steps_, uint_t* index_, uint_t const* strides_){
+            base_type::template increment<Coordinate>( steps_, index_, strides_);
+        }
 
-                        BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                        *index += coor*basic_type::template strides<Coordinate>(strides_);
-                    }
-                else
-                    {
-                        base_type::template increment<Coordinate>( steps, b, index, strides_);
-                    }
+
+        template <uint_t Coordinate>
+        GT_FUNCTION
+        void initialize(const uint_t steps_, const uint_t block_, uint_t* index_, uint_t const* strides_){
+            // no blocking along k
+            if(Coordinate != 2)
+            {
+                uint_t tile_=Coordinate==0?TileI:TileJ;
+                BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
+                *index_+=(steps_ - block_*tile_ - m_initial_offsets[Coordinate])*basic_type::template strides<Coordinate>(strides_);
             }
-
-            /**@brief decrement in the horizontal direction (i or j). Analogous to the increment.
-               TODO avoid code repetition*/
-            template <uint_t Coordinate>
-            GT_FUNCTION
-            void decrement(const uint_t steps, const uint_t b, uint_t* index, uint_t const* strides_){
-
-
-                if(Coordinate != 2)
-                    {
-                        uint_t tile=Coordinate==0?TileI:TileJ;
-                        uint_t var=steps - b * tile;
-                        // \todo CHECK IF THIS IS RIGHT PREVIOUS VERSION HAD TWO BUGS
-                        // THIS FUNCTION WAS PROBABLY NEVER TESTED BEFORE VERTICAL ADVECTION
-                        // BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                        // uint_t coor=var-m_initial_offsets[layout::template at_<Coordinate>::value]
-                        //     + m_halo[layout::template  find<Coordinate>::value];  <<<<<<< HERE
-                        // *index -= coor*m_strides[layout::template at_<Coordinate>::value+1]; <<<< HERE
-
-                        BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
-                        uint_t coor=var-m_initial_offsets[Coordinate];
-
-                        *index -= coor*basic_type::template strides<Coordinate>(strides_);
-                    }
-                else
-                    {
-                        base_type::template decrement<Coordinate>( steps, b, index, strides_);
-                    }
+            else
+            {
+                base_type::template initialize<Coordinate>( steps_, block_, index_, strides_);
             }
+        }
     };
 
 

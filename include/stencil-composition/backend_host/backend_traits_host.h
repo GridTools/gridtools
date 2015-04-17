@@ -1,6 +1,7 @@
 #pragma once
 #include <gt_for_each/for_each.hpp>
 #include "../backend_traits_fwd.h"
+#include <omp.h>
 
 /**@file
 @brief type definitions and structures specific for the Host backend*/
@@ -12,6 +13,8 @@ namespace gridtools{
         struct run_functor_host;
     }
 
+    int s_thread_id;
+#pragma omp threadprivate(s_thread_id)
 
     /**forward declaration*/
     template<typename T>
@@ -59,15 +62,18 @@ namespace gridtools{
          *  that determines the i coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
-        static uint_t processing_element_i() {
-            return thread_id();
+        static uint_t const& processing_element_i()  {
+            return s_thread_id;
         }
 
+        static void set_thread_id(){
+            s_thread_id=thread_id();
+        }
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
-        static uint_t processing_element_j() {
+        static uint_t  processing_element_j()  {
             return 0;
         }
 
@@ -90,6 +96,7 @@ namespace gridtools{
                 l=r;
             }
         };
+
     };
 
 }//namespace gridtools

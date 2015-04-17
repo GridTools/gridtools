@@ -537,7 +537,7 @@ namespace gridtools {
        BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
        if(layout::template at_< Coordinate >::value >=0)//static if
        {
-      *index += strides<Coordinate>(strides_);
+           *index += strides<Coordinate>(strides_);
        }
         }
 
@@ -548,7 +548,7 @@ namespace gridtools {
        BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
        if(layout::template at_<Coordinate>::value >=0)
        {
-      *index-=strides<Coordinate>(strides_);
+           *index-=strides<Coordinate>(strides_);
        }
         }
 
@@ -559,23 +559,33 @@ namespace gridtools {
         */
         template <uint_t Coordinate>
         GT_FUNCTION
-   void increment(uint_t const& dimension, uint_t const& /*block*/, uint_t* index, uint_t const* strides_){
-       BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-        if( layout::template at_< Coordinate >::value >= 0 )//static if
-        {
+        void increment(uint_t const& dimension, uint_t* index, uint_t const* strides_){
+            BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+            if( layout::template at_< Coordinate >::value >= 0 )//static if
+            {
                 *index += strides<Coordinate>(strides_)*dimension;
-        }
+            }
         }
 
         /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
         template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t steps, uint_t const& /*block*/, uint_t* index, uint_t const* strides_){
+        void decrement(uint_t steps, uint_t* index, uint_t const* strides_){
        BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
        if( layout::template at_< Coordinate >::value >= 0 )
        {
-      *index-=strides<Coordinate>(strides_)*steps;
+           *index-=strides<Coordinate>(strides_)*steps;
        }
+        }
+
+        template <uint_t Coordinate >
+        GT_FUNCTION
+        void initialize(uint_t const& steps_, uint_t const& /*block*/, uint_t* __restrict__ index_, uint_t const* __restrict__ strides_){
+            BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+            if( layout::template at_< Coordinate >::value >= 0 )//static if
+            {
+                *index_+=strides<Coordinate>(strides_)*steps_;
+            }
         }
 
         GT_FUNCTION
