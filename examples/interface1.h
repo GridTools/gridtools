@@ -26,6 +26,7 @@ using namespace gridtools;
 using namespace enumtype;
 #ifdef CXX11_ENABLED
 using namespace expressions;
+
 #endif
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
@@ -334,7 +335,7 @@ PAPI_stop(event_set, values);
     verifier verif(1e-9, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
 
-#ifndef SILENT_RUN
+// #ifndef SILENT_RUN
     //    in.print();
     //    out.print();
     //    lap.print();
@@ -343,7 +344,7 @@ PAPI_stop(event_set, values);
 #ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
-#endif
+// #endif
 
 #ifdef USE_PAPI_WRAP
     pw_print();

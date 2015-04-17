@@ -33,6 +33,11 @@ namespace gridtools {
         array() {}
 
 #ifdef CXX11_ENABLED
+        template<typename ... ElTypes>
+        GT_FUNCTION
+        constexpr array(ElTypes const& ... types): _array{types ... } {
+        }
+
         GT_FUNCTION
         array(std::initializer_list<T> c) {
             assert(c.size() == _size);

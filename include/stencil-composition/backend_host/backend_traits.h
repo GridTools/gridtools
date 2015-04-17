@@ -130,6 +130,7 @@ namespace gridtools{
 
                 #pragma omp parallel
                 {
+                    backend_traits::set_thread_id();
                 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
