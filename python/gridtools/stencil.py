@@ -1084,7 +1084,23 @@ class CombinedStencil (Stencil):
             #
             if self.lib_obj is None:
                 self.resolve (**kwargs)
-                self.generate_code (src_dir='/tmp/combined_stencil')
+                #
+                # add extra parameters needed to connect linked stencils
+                #
+                for n,d in self.data_graph.nodes_iter (data=True):
+                    succ = self.data_graph.successors (n)
+                    if len (succ) == 0:
+                        self.scope.add_parameter (n,
+                                                  value=d['value'],
+                                                  read_only=False)
+                    elif len (succ) == 1:
+                        self.scope.add_parameter (n,
+                                                  value=self.data_graph.node[succ[0]]['value'],
+                                                  read_only=True)
+                #
+                # continue generating the code ...
+                #
+                self.generate_code ( )
                 self.compile ( )
                     
             #
@@ -1099,7 +1115,13 @@ class CombinedStencil (Stencil):
                 if p.name in kwargs.keys ( ):
                     lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
                 else:
-                    logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
+                    logging.debug ("Adding linked parameter '%s'" % p.name)
+                    linked_param = self.data_graph.node[p.name]['value']
+                    if linked_param is None:
+                        for s in self.data_graph.successors (p.name):
+                            if self.data_graph.node[s]['value'] is not None:
+                                linked_param = self.data_graph.node[s]['value']
+                    lib_params.append (linked_param.ctypes.data_as (ctypes.c_void_p))
             #
             # call the compiled stencil
             # 

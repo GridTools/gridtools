@@ -97,31 +97,35 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # parameters correctly inferred
         #
-        for p in combined.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_cpy', 'in_data'))
+        for p in ('out_cpy', 'in_data'):
+            self.assertTrue (p in combined.scope.get_parameters ( ))
         #
         # results should be correct
         #
         expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
+        return combined
 
 
-    @attr(lang='c++')
     def test_double_combination_native (self):
-        try:
-            self.test_double_combination (backend='c++')
-        except Exception:
-            print ('known to fail')
+        import ctypes
+
+        combined = self.test_double_combination (backend='c++')
+        #
+        # linked parameters should hold the same address
+        #
+        self.assertEqual (str (combined.scope['out_data'].value.ctypes.data_as (ctypes.c_void_p)),
+                          str (combined.scope['in_cpy'].value.ctypes.data_as (ctypes.c_void_p)))
 
 
-    def test_order_should_not_alter_results (self):
+    def test_order_should_not_alter_results (self, backend='python'):
         self.lap.set_halo  ( (1, 1, 1, 1) )
         self.copy.set_halo ( (0, 0, 0, 0) )
 
         combined = self.copy.build (output='out_cpy',
                                     in_cpy=self.lap.build (output='out_data'))
-        combined.backend = 'python'
+        combined.backend = backend
         combined.run (out_cpy=self.out_fli,
                       in_data=self.in_data)
         #
@@ -135,12 +139,7 @@ class CombinedStencilTest (unittest.TestCase):
         #
         combined = self.lap.build (output='out_data',
                                    in_data=self.copy.build (output='out_cpy'))
-        #
-        # parameters correctly inferred
-        #
-        for p in combined.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_data', 'in_cpy'))
-        combined.backend = 'python'
+        combined.backend = backend
         combined.run (out_data=self.out_fli,
                       in_cpy=self.in_data)
         #
@@ -149,6 +148,10 @@ class CombinedStencilTest (unittest.TestCase):
         expected = np.load ('%s/laplace_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
+
+
+    def test_order_should_not_alter_results_native (self):
+        self.test_order_should_not_alter_results (backend='c++')
 
 
     def test_double_self_combination (self):
@@ -203,7 +206,7 @@ class CombinedStencilTest (unittest.TestCase):
                                          self.in_data))
 
 
-    def test_partial_combinations (self):
+    def test_partial_combinations (self, backend='python'):
         self.lap.set_halo ( (1, 1, 1, 1) )
         self.fli.set_halo ( (1, 1, 1, 1) )
         self.flj.set_halo ( (1, 1, 1, 1) )
@@ -214,14 +217,14 @@ class CombinedStencilTest (unittest.TestCase):
         #
         combo = self.fli.build (output='out_fli',
                                 in_lapi=self.lap.build (output='out_data'))
-        combo.backend = 'python'
+        combo.backend = backend
         combo.run (out_fli=self.out_fli,
                    in_data=self.in_data)
         #
         # check parameters and results
         #
-        for p in combo.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_fli', 'in_data'))
+        for p in ('out_fli', 'in_data'):
+            self.assertTrue (p in combo.scope.get_parameters ( ))
         expected = np.load ('%s/fluxi_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
@@ -230,14 +233,14 @@ class CombinedStencilTest (unittest.TestCase):
         #
         combo = self.flj.build (output='out_flj',
                                 in_lapj=self.lap.build (output='out_data'))
-        combo.backend = 'python'
+        combo.backend = backend
         combo.run (out_flj=self.out_fli,
                    in_data=self.in_data)
         #
         # check parameters and results
         #
-        for p in combo.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_flj', 'in_data'))
+        for p in ('out_flj', 'in_data'):
+            self.assertTrue (p in combo.scope.get_parameters ( ))
         expected = np.load ('%s/fluxj_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
@@ -247,7 +250,7 @@ class CombinedStencilTest (unittest.TestCase):
         combo = self.out.build (output='out_hr',
                                 in_fli=self.fli.build (output='out_fli'),
                                 in_flj=self.flj.build (output='out_flj'))
-        combo.backend = 'python'
+        combo.backend = backend
         combo.run (out_hr=self.out_fli,
                    in_wgt=self.in_wgt,
                    in_lapi=np.load ('%s/laplace_result.npy' % self.cur_dir),
@@ -255,14 +258,18 @@ class CombinedStencilTest (unittest.TestCase):
         #
         # check parameters and results
         #
-        for p in combo.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_hr', 'in_wgt', 'in_lapi', 'in_lapj'))
+        for p in ('out_hr', 'in_wgt', 'in_lapi', 'in_lapj'):
+            self.assertTrue (p in combo.scope.get_parameters ( ))
         expected = np.load ('%s/horizontaldiffusion_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
 
 
-    def test_horizontal_diffusion_combination (self):
+    def test_partial_combinations_native (self):
+        self.test_partial_combinations (backend='c++')
+
+
+    def test_horizontal_diffusion_combination (self, backend='python'):
         self.lap.set_halo ( (1, 1, 1, 1) )
         self.fli.set_halo ( (1, 1, 1, 1) )
         self.flj.set_halo ( (1, 1, 1, 1) )
@@ -273,16 +280,20 @@ class CombinedStencilTest (unittest.TestCase):
                                                          in_lapi=self.lap.build (output='out_data')),
                                   in_flj=self.flj.build (output='out_flj',
                                                          in_lapj=self.lap.build (output='out_data')))
-        hor_dif.backend = 'python'
+        hor_dif.backend = backend
         hor_dif.run (out_hr=self.out_fli,
                      in_wgt=self.in_wgt,
                      in_data=self.in_data)
         #
         # check parameters and results
         #
-        for p in hor_dif.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_hr', 'in_wgt', 'in_data'))
+        for p in ('out_hr', 'in_wgt', 'in_data'):
+            self.assertTrue (p in hor_dif.scope.get_parameters ( ))
         expected = np.load ('%s/horizontaldiffusion_result.npy' % self.cur_dir)
         self.assertTrue (np.array_equal (self.out_fli,
                                          expected))
+
+
+    def test_horizontal_diffusion_combination_native (self):
+        self.test_horizontal_diffusion_combination (backend='c++')
 
