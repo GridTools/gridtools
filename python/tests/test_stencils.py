@@ -43,12 +43,19 @@ class CopyTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.domain = (16, 16, 8)
+        self.domain = (128, 128, 64)
         self.params = ('out_cpy', 'in_cpy')
         self.temps  = ( )
 
-        self.out_cpy = np.zeros (self.domain)
-        self.in_cpy  = np.random.rand (*self.domain)
+        self.out_cpy = np.zeros (self.domain,
+                                  dtype=np.float64)
+        self.in_cpy  = np.zeros (self.domain,
+                                  dtype=np.float64)
+        #
+        # workaround because of a bug in the power (**) implemention of NumPy
+        #
+        self.in_cpy = np.random.random_integers (10, 
+                                                 size=self.domain)
 
         self.stencil = Copy ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
@@ -182,7 +189,6 @@ class CopyTest (unittest.TestCase):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
 
 
-    @attr(lang='python')
     def test_python_execution (self):
         self._run ( )
 
@@ -194,8 +200,7 @@ class CopyTest (unittest.TestCase):
         self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
                                          self.out_cpy[beg_i:end_i, beg_j:end_j]))
 
-
-    @attr(lang='c++')
+    @attr(speed='fast')
     def test_native_execution_performance (self):
         import time
 
@@ -217,6 +222,45 @@ class CopyTest (unittest.TestCase):
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
+
+
+
+class Power (MultiStageStencil):
+    """
+    Immitates the CopyStencil using the power operator.-
+    """
+    def kernel (self, out_cpy, in_cpy):
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+
+              out_cpy[p] =  5 **  0
+              out_cpy[p] =  5 **  1
+              out_cpy[p] =  5 **  2
+              out_cpy[p] =  5 **  3
+              out_cpy[p] =  5 **  +3
+              out_cpy[p] =  (-5) **  +3
+              out_cpy[p] =  5 ** -1
+              out_cpy[p] =  5 ** -2
+              out_cpy[p] =  5 ** -2*3
+              out_cpy[p] =  5 ** (-2*3)
+              out_cpy[p] = in_cpy[p] ** -1
+              out_cpy[p] = -in_cpy[p] ** -1
+              out_cpy[p] = (-in_cpy[p]) ** -1
+              out_cpy[p] = (-in_cpy[p]) ** -3
+              out_cpy[p] = (in_cpy[p] ** -1) * (in_cpy[p] ** 2)
+              out_cpy[p] = (((-in_cpy[p]) ** -2) * ((-in_cpy[p]) ** 2)) * (in_cpy[p])
+              out_cpy[p] = (in_cpy[p]**2)*(in_cpy[p] ** -1) # The final statement so that we can rerun test
+
+
+
+class PowerTest (CopyTest):
+    def setUp (self):
+        super ( ).setUp ( )
+        self.stencil = Power ( )
+        self.stencil.set_k_direction ("forward")
+
 
 
 class Laplace (MultiStageStencil):
@@ -270,7 +314,6 @@ class LaplaceTest (CopyTest):
         super ( ).test_automatic_range_detection (ranges=expected_ranges)
 
 
-    @attr(lang='python')
     def test_python_execution (self):
         import os
 
@@ -615,7 +658,6 @@ class MovingTest (CopyTest):
         self.assertEqual (scope['out_V'].range, exp_rng)
 
 
-    @attr(lang='python')
     def test_python_execution (self):
         import os
 
@@ -712,4 +754,3 @@ class MovingTest (CopyTest):
         for dir in ('forward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
-
