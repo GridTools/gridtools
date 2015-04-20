@@ -28,7 +28,8 @@ namespace gridtools {
         NEW_OP(short)
         NEW_OP(unsigned short)
         NEW_OP(char)
-        NEW_OP(float_type)
+        NEW_OP(float)
+        NEW_OP(double)
     }
 
 

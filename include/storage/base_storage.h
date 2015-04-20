@@ -416,10 +416,10 @@ namespace gridtools {
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
            Coordinates 0,1,2 correspond to i,j,k respectively*/
-        template<uint_t Coordinate>
+        template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr uint_t strides(uint_t const* __restrict__ str){
-            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((str[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
+        static constexpr uint_t strides(StridesVector const& __restrict__ strides_){
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
         }
 
         /**@brief printing a portion of the content of the data field*/
@@ -460,11 +460,12 @@ namespace gridtools {
            NOTE: this version will be preferred over the templated overloads,
            NOTE: the strides are passed in as an argument, and the result can be a constexpr also when the storage is not.
         */
+        template<typename StridesVector>
         GT_FUNCTION
 #ifndef __CUDACC__
         constexpr
 #endif
-        uint_t  _index(uint_t const* strides_, uint_t const& i, uint_t const& j, uint_t const&  k) const {
+        uint_t  _index(StridesVector const& __restrict__ strides_, uint_t const& i, uint_t const& j, uint_t const&  k) const {
             uint_t index;
             index =
                 strides_[0]
@@ -487,10 +488,10 @@ namespace gridtools {
 
            This interface must be used with unsigned integers of type uint_t, and the result must be a positive integer as well
         */
-        template <typename ... UInt>
+        template <typename StridesVector, typename ... UInt>
         GT_FUNCTION
         constexpr
-        uint_t _index( uint_t const* strides_, UInt const& ... dims) const {
+        uint_t _index(StridesVector const& __restrict__ strides_, UInt const& ... dims) const {
 #ifndef __CUDACC__
             typedef boost::mpl::vector<UInt...> tlist;
             //boost::is_same<boost::mpl::_1, uint_t>
@@ -511,18 +512,18 @@ namespace gridtools {
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template <typename OffsetTuple>
+        template <typename OffsetTuple, typename StridesVector>
         GT_FUNCTION
-        int_t _index(uint_t const* __restrict__ strides_, OffsetTuple  const& tuple) const {
+        int_t _index(StridesVector const& __restrict__ strides_, OffsetTuple  const& tuple) const {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 
 
         /** @brief returns the memory access index of the element with coordinate (i,j,k)
             note: returns a signed int because it might be negative (used e.g. in iterate_domain)*/
-   template<typename IntType>
+   template<typename IntType, typename StridesVector>
         GT_FUNCTION
-        int_t _index( uint_t const* __restrict__ strides_, IntType* __restrict__ indices) const {
+        int_t _index( StridesVector const& __restrict__ strides_, IntType* __restrict__ indices) const {
 
             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, indices);
         }
@@ -531,9 +532,9 @@ namespace gridtools {
 
             SFINAE: design pattern used to avoid the compilation of the overloaded method which are not used (and which would produce a compilation error)
         */
-        template <uint_t Coordinate, enumtype::execution Execution>
+        template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment( uint_t* __restrict__ index_, uint_t const* __restrict__ strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment( uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if(layout::template at_< Coordinate >::value >=0)//static if
             {
@@ -546,9 +547,9 @@ namespace gridtools {
             \param steps: the number of steps of the increment
             \param index: the output index being set
         */
-        template <uint_t Coordinate, enumtype::execution Execution>
+        template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment(uint_t const& steps_, uint_t* __restrict__ index_, uint_t const* __restrict__ strides_){
+        void increment(uint_t const& steps_, uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
@@ -561,9 +562,9 @@ namespace gridtools {
             *index=value;
         }
 
-        template <uint_t Coordinate >
+        template <uint_t Coordinate, typename StridesVector >
         GT_FUNCTION
-        void initialize(uint_t const& steps_, uint_t const& /*block*/, uint_t* __restrict__ index_, uint_t const* __restrict__ strides_){
+        void initialize(uint_t const& steps_, uint_t const& /*block*/, uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
@@ -597,8 +598,7 @@ namespace gridtools {
          */
         GT_FUNCTION
         uint_t const& strides(ushort_t i) const {
-            //"you might thing that with m_srides[0] you are accessing a stride,\n
-            // but you are indeed accessing the whole storage dimension."
+            // m_strides[0] contains the whole storage dimension."
             assert(i!=0);
             return m_strides[i];
         }
@@ -607,7 +607,8 @@ namespace gridtools {
          */
         GT_FUNCTION
         uint_t const* strides() const {
-            return &m_strides[1];
+            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage")
+            return (&m_strides[1]);
         }
 
         /**
@@ -625,8 +626,8 @@ namespace gridtools {
         const char* m_name;
         // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
         pointer_type m_fields[field_dimensions];
-        uint_t m_dims[space_dimensions];
-        uint_t m_strides[space_dimensions];
+        array<uint_t, space_dimensions> m_dims;
+        array<uint_t, space_dimensions> m_strides;
 
 //    /**only for stdcout purposes*/
 //    base_storage(){}
@@ -1087,11 +1088,11 @@ namespace gridtools {
       \param value the value to be set
         */
 #ifdef CXX11_ENABLED
-   template<short_t field_dim=0, short_t snapshot=0>
+            template<typename StridesVector, short_t field_dim=0, short_t snapshot=0>
 #else
-   template<short_t field_dim  , short_t snapshot  >
+            template<typename StridesVector, short_t field_dim  , short_t snapshot  >
 #endif
-   void set_value( uint_t const* strides_, typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
+            void set_value( StridesVector const& strides_, typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
                 {
                     super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot].set(value, super::_index(strides_,x, y, z));
                 }
@@ -1269,8 +1270,8 @@ namespace gridtools {
       \tparam snapshot the snapshot of dimension field_dim to be set
       \param value the value to be set
         */
-   template<short_t field_dim  , short_t snapshot  >
-   void set_value( uint_t const* strides_, typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
+            template<typename StridesVector, short_t field_dim  , short_t snapshot  >
+   void set_value( StridesVector const& strides_, typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
                 {
                     super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot].set(value, super::_index(strides_,x, y, z));
                 }

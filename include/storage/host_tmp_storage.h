@@ -199,22 +199,22 @@ namespace gridtools {
                 C between tiles (identified by the data dependency
                 requirements between tiles).
             */
-        template <uint_t Coordinate, enumtype::execution Execution>
+        template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment( uint_t* __restrict__ index_, uint_t const* __restrict__ strides_){
+        void increment( uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_){
             base_type::template increment<Coordinate, Execution>( index_, strides_);
         }
 
-        template <uint_t Coordinate, enumtype::execution Execution>
+        template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment(const uint_t& steps_, uint_t* __restrict__ index_, uint_t const*  __restrict__ strides_){
+        void increment(const uint_t& steps_, uint_t* __restrict__ index_, StridesVector const&  __restrict__ strides_){
             base_type::template increment<Coordinate, Execution>( steps_, index_, strides_);
         }
 
 
-        template <uint_t Coordinate>
+        template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        void initialize(const uint_t steps_, const uint_t block_, uint_t* index_, uint_t const* strides_){
+        void initialize(const uint_t steps_, const uint_t block_, uint_t* index_, StridesVector const& strides_){
             // no blocking along k
             if(Coordinate != 2)
             {

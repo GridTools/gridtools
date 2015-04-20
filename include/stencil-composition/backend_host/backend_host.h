@@ -52,6 +52,13 @@ namespace gridtools {
             typedef CoordsType coords_t;
         };
 
+        /**
+           @brief functor implementing the kernel executed in the innermost loop
+
+           This functor contains the portion of the code executed in the innermost loop. In this case it
+           is the loop over the third dimension (k), but the generality of the loop hierarchy implementation
+           allows to easily generalize this.
+         */
         template<typename LoopIntervals, typename RunOnInterval, typename IterateDomain, typename RunKernelType, typename  IterationPolicy>
         struct innermost_functor{
 
@@ -75,12 +82,13 @@ namespace gridtools {
                     ( RunOnInterval (m_it_domain,m_functor->m_coords) );
             }
         };
+
         /**
            @brief core of the kernel execution
            \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
         */
         template< typename Traits >
-        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
+        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * func_ )
         {
             typedef typename Arguments::coords_t coords_type;
             typedef typename Arguments::loop_intervals_t loop_intervals_t;
@@ -95,7 +103,7 @@ namespace gridtools {
             typedef typename sum_range<new_range_t, range_t>::type xrange_t;
             typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
 
-            int_t boundary=f->m_coords.partitioner()/*.communicator()*/.boundary();
+            int_t boundary=func_->m_coords.partitioner()/*.communicator()*/.boundary();
             int_t jminus=(int_t)  xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0) ;//j-low
             int_t iminus=(int_t) (xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) );//i-low
             int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0)) ;//j-high
@@ -104,17 +112,17 @@ namespace gridtools {
             typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG
             std::cout << "Functor " <<  functor_type() << "\n";
-            std::cout << "I loop " << (int_t)f->m_start[0] <<"+"<< iminus << " -> "
-                      << f->m_start[0] <<"+"<< f->m_block[0] <<"+"<< iplus << "\n";
-            std::cout << "J loop " << (int_t)f->m_start[1] <<"+"<< jminus << " -> "
-                      << (int_t)f->m_start[1] <<"+"<< f->m_block[1] <<"+"<< jplus << "\n";
+            std::cout << "I loop " << (int_t)func_->m_start[0] <<"+"<< iminus << " -> "
+                      << func_->m_start[0] <<"+"<< func_->m_block[0] <<"+"<< iplus << "\n";
+            std::cout << "J loop " << (int_t)func_->m_start[1] <<"+"<< jminus << " -> "
+                      << (int_t)func_->m_start[1] <<"+"<< func_->m_block[1] <<"+"<< jplus << "\n";
             std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-            std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+            std::cout << " ******************** " << func_->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
             std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
             array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
-            storage_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
+            strides_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
 
              iterate_domain_type it_domain(local_domain);
              it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
@@ -126,19 +134,18 @@ namespace gridtools {
              typedef typename index_to_level<typename interval::second>::type to;
              typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-#ifdef NEW_IMPLEMENTATION
 
              typedef array<int_t, Traits::iterate_domain_t::N_STORAGES> array_t;
                     loop_hierarchy<array_t, loop_item<0, enumtype::forward>, loop_item<1, enumtype::forward> > ij_loop(
-                        f->m_start[0] + iminus,
-                        f->m_start[0] + f->m_block[0] + iplus,
-                        f->m_start[1] + jminus,
-                        f->m_start[1] + f->m_block[1] + jplus
+                        func_->m_start[0] + iminus,
+                        func_->m_start[0] + func_->m_block[0] + iplus,
+                        func_->m_start[1] + jminus,
+                        func_->m_start[1] + func_->m_block[1] + jplus
                         );
 
                     //reset the index
                     it_domain.set_index(0);
-                    ij_loop.initialize(it_domain, f->m_block_id);
+                    ij_loop.initialize(it_domain, func_->m_block_id);
 
                     typedef innermost_functor<loop_intervals_t
                                               , _impl::run_f_on_interval
@@ -151,72 +158,9 @@ namespace gridtools {
                                               , iteration_policy
                                               > innermost_functor_t;
 
-                    ij_loop.apply(it_domain, innermost_functor_t(it_domain,f));
+                    innermost_functor_t f(it_domain,func_);
+                    ij_loop.apply(it_domain, f);
 
-#else
-             it_domain.set_index(0);
-             it_domain.template initialize<0>((int_t)f->m_start[0] + iminus, f->m_block_id[0]);
-             it_domain.template initialize<1>((int_t)f->m_start[1] + jminus, f->m_block_id[1]);
-             array<int_t, Traits::iterate_domain_t::N_STORAGES> restore_index_j(0);
-             array<int_t, Traits::iterate_domain_t::N_STORAGES> restore_index_k(0);
-
-             //initialization
-             it_domain.get_index(restore_index_j);
-             it_domain.get_index(restore_index_k);
-
-
-
-                    for (int_t i = (int_t)f->m_start[0] + iminus;
-                         i <= (int_t)f->m_start[0] + (int_t)f->m_block[0] + iplus;
-                         ++i)
-                    {
-                        // for_each<local_domain.local_args>(increment<0>);
-                        for (int_t j = (int_t)f->m_start[1] + jminus;
-                             j <= (int_t)f->m_start[1] + (int_t)f->m_block[1] + jplus;
-                             ++j)
-                        {
-                            // it_domain.template assign_ij<2>( f->m_coords.template value_at< typename iteration_policy::from >());
-
-                            assert(i>=0);
-                            assert(j>=0);
-
-
-                            /** setting an iterator to the address of the current i,j entry to be accessed */
-                            it_domain.set_k_start( f->m_coords.template value_at< typename iteration_policy::from >() );
-
-                            //local structs can be passed as template arguments in C++11 (would improve readability)
-                            // struct extra_arguments{
-                            //     typedef functor_type functor_t;
-                            //     typedef interval_map_type interval_map_t;
-                            //     typedef iterate_domain_type local_domain_t;
-                            //     typedef coords_type coords_t;};
-
-                            /** run the iteration on the k dimension */
-                            gridtools::for_each< loop_intervals_t >
-                                (_impl::run_f_on_interval
-                                 <
-                                 execution_type_t,
-                                 extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
-                                 >
-                                 (it_domain,f->m_coords)
-                                 );
-                            //restore the k index
-                            it_domain.set_index(restore_index_k);
-                            it_domain.template increment<1, enumtype::forward>();
-                            // it_domain.template increment<1, enumtype::forward>(1, f->blk_idx_j);
-                            it_domain.get_index(restore_index_k);//redundant in the last iteration
-
-                        }
-                        //restore the j index
-                        it_domain.set_index(restore_index_j);
-                        //increment it
-                        it_domain.template increment<0, enumtype::forward>();
-                        // it_domain.template increment<0, enumtype::forward>(1, f->blk_idx_i);
-                        //save the new value
-                        it_domain.get_index(restore_index_j);
-                        it_domain.get_index(restore_index_k);
-                }
-#endif
         }
 
     };

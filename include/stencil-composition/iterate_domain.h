@@ -1,10 +1,5 @@
 #pragma once
-#ifndef CXX11_ENABLED
-#include <boost/typeof/typeof.hpp>
-#endif
-#include <boost/fusion/include/size.hpp>
-#include "expressions.h"
-#include "arg_type.h"
+#include "iterate_domain_impl.h"
 
 /**@file
    @brief file handling the access to the storage.
@@ -44,375 +39,6 @@
 
 namespace gridtools {
 
-    //struct to allocate recursively all the strides with the proper dimension
-    template<uint_t ID, typename storage_list>
-    struct storage_cached : public storage_cached<ID-1, storage_list> {
-        typedef typename  boost::mpl::at_c<storage_list, ID>::type::storage_type storage_type;
-        typedef storage_cached<ID-1, storage_list> super;
-
-        GT_FUNCTION
-        storage_cached():super(){}
-
-        template<short_t Idx>
-        GT_FUNCTION
-        //constexpr
-        uint_t* get() {
-            return ((Idx==ID-1)? &(m_data[0]) : (super::template get<Idx>()));
-        }
-
-        //private:
-        uint_t m_data[storage_type::space_dimensions-1];
-    };
-
-    template<typename storage_list>
-    struct storage_cached<0, storage_list>  {
-        typedef typename boost::mpl::at_c<storage_list, 0>::type::storage_type storage_type;
-
-        GT_FUNCTION
-        storage_cached(){}
-
-        template<short_t Idx>
-        GT_FUNCTION
-        //constexpr
-        uint_t* get() {//stop recursion
-            //GRIDTOOLS_STATIC_ASSERT(Idx==0, "Internal library error: Index exceeding the storage_list dimension.")
-                return &(m_data[0]);
-        }
-
-        uint_t m_data[storage_type::space_dimensions-1];
-    };
-
-
-        //this value is available so far only at runtime (we might not have enough threads)
-        //should be increased to get parallel shared memory initialization
-#define BLOCK_SIZE 32
-
-    /**@brief recursively assigning the 'raw' data pointers to the m_data_pointers array.
-       It enhances the performances, but principle it could be avoided.
-       The 'raw' datas are the one or more data fields contained in each storage class
-    */
-
-    template<uint_t Number, uint_t Offset, typename BackendType, typename StorageType>
-    struct assign_raw_data{
-        typedef StorageType storage_type;
-        static const uint_t Id=(Number+Offset)%BLOCK_SIZE;
-
-        template<typename Left , typename Right >
-        GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
-                           typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            //l[Number]=r[Number].get();
-            BackendType::template once_per_block<Id>::assign(l[Offset+Number],r->field_offset(Number,EU_id_i, EU_id_j));
-            assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
-        }
-
-        template<typename Left , typename Right >
-        GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
-                           typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            //l[Number]=r[Number].get();
-            BackendType::template once_per_block<Id>::assign(l[Offset+Number], r->fields()[Number].get());
-            assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
-        }
-
-    };
-
-    /**@brief stopping the recursion*/
-    template<uint_t Offset, typename BackendType, typename StorageType>
-    struct assign_raw_data<0, Offset, BackendType, StorageType>{
-        typedef StorageType storage_type;
-        static const uint_t Id=(Offset)%BLOCK_SIZE;
-
-        template<typename Left , typename Right >
-        GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
-                           typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            //l[0]=r[0].get();
-            BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields_offset(0,EU_id_i, EU_id_j));
-        }
-
-        template<typename Left , typename Right >
-        GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
-                           typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields()[0].get());
-        }
-    };
-
-    /**@brief this struct counts the total number of data fields are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
-       TODO code repetition in the _traits class
-    */
-    template <typename StoragesVector, int_t index>
-    struct total_storages{
-        //the index must not exceed the number of storages
-        GRIDTOOLS_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value, "the index must not exceed the number of storages")
-        static const uint_t count=total_storages<StoragesVector, index-1>::count+
-            boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<StoragesVector, index >::type>::type>
-            ::type::field_dimensions;
-    };
-
-    /**@brief partial specialization to stop the recursion*/
-    template <typename StoragesVector>
-    struct total_storages<StoragesVector, 0 >{
-        static const uint_t count=boost::remove_pointer<typename boost::remove_reference<typename  boost::mpl::at_c<StoragesVector, 0 >::type>::type>::type::field_dimensions;
-    };
-
-    namespace {
-
-        /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID, uint_t Coordinate, enumtype::execution Execution>
-        struct increment_index {
-
-            /**@brief does the actual assignment
-               This method is responsible of computing the index for the memory access at
-               the location (i,j,k). Such index is shared among all the fields contained in the
-               same storage class instance, and it is not shared among different storage instances.
-            */
-            template<typename Storage, typename Strides>
-            GT_FUNCTION
-            static void assign(Storage const& r_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-                boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(&index_[ID], strides_.template get<ID>());
-                increment_index<ID-1, Coordinate, Execution>::assign(r_,index_,strides_);
-            }
-
-            /** @brief method for computing the index rof the memory access at a specific (i,j,k) location incremented by 'increment_' in direction 'Coordinate'. */
-            template<typename Storage, typename Strides>
-            GT_FUNCTION
-            static void assign(Storage const& r_, uint const& increment_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-                boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(increment_,&index_[ID], strides_.template get<ID>());
-                increment_index<ID-1, Coordinate, Execution>::assign(r_,increment_,index_,strides_);
-            }
-
-        };
-
-
-        /**usual specialization to stop the recursion*/
-        template<uint_t Coordinate, enumtype::execution Execution>
-        struct increment_index<0, Coordinate, Execution>{
-
-            template<typename Storage
-                     , typename Strides
-                     >
-            GT_FUNCTION
-            static void assign( Storage const &  r_, uint_t* __restrict__ index_, Strides & __restrict__ strides_){
-                boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(&index_[0], (strides_.template get<0>() )
-                    );
-            }
-
-            template<typename Storage, typename Strides>
-            GT_FUNCTION
-            static void assign(Storage const& r_, uint const& increment_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-                boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(increment_,&index_[0], strides_.template get<0>());
-            }
-
-        };
-
-
-    /**@brief assigning all the storage pointers to the m_data_pointers array*/
-    template<uint_t ID>
-    struct set_index_recur{
-        /**@brief does the actual assignment
-           This method is responsible of computing the index for the memory access at
-           the location (i,j,k). Such index is shared among all the fields contained in the
-           same storage class instance, and it is not shared among different storage instances.
-        */
-        template <typename Array>
-        GT_FUNCTION
-        static void set(uint_t const& id, Array& index){
-            index[ID]=id;
-            set_index_recur<ID-1>::set(id,index);
-        }
-
-        template<typename Array>
-        GT_FUNCTION
-        static void set(Array const& index, Array& out){
-            out[ID]=index[ID];
-            set_index_recur<ID-1>::set(index, out);
-        }
-    };
-
-    /**usual specialization to stop the recursion*/
-    template<>
-    struct set_index_recur<0>{
-
-        template<typename Array>
-        GT_FUNCTION
-        static void set( uint_t const& id, Array& index/* , ushort_t* lru */){
-            index[0]=id;
-        }
-
-        template<typename Array>
-        GT_FUNCTION
-        static void set(Array const& index, Array& out){
-            out[0]=index[0];
-        }
-    };
-
-        /**@brief assigning all the storage pointers to the m_data_pointers array*/
-
-        template<uint_t ID, typename BackendType>
-        struct assign_storage{
-
-            /**@brief does the actual assignment
-               This method is also responsible of computing the index for the memory access at
-               the location (i,j,k). Such index is shared among all the fields contained in the
-               same storage class instance, and it is not shared among different storage instances.
-
-               The EU stands for ExecutionUnit (thich may be a thread or a group of
-               threasd. There are potentially two ids, one over i and one over j, since
-               our execution model is parallel on (i,j). Defaulted to 1.
-            */
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left& __restrict__ l, Right const & __restrict__ r, int EU_id_i, int EU_id_j){
-#ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer
-                    <typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
-#else
-                typedef typename boost::remove_pointer
-                    <typename boost::remove_reference
-                    <BOOST_TYPEOF(boost::fusion::at_c<ID>(r))
-                    >::type
-                    >::type storage_type;
-#endif
-                //if the following fails, the ID is larger than the number of storage types
-                GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
-
-                    assign_raw_data<storage_type::field_dimensions-1,
-                                    total_storages<Right, ID-1>::count,
-                                    BackendType,
-                                    storage_type>::
-                    assign(l, boost::fusion::at_c<ID>(r),
-                           EU_id_i, EU_id_j);
-
-                assign_storage<ID-1, BackendType>::assign(l, r, EU_id_i, EU_id_j); //tail recursion
-            }
-        };
-
-        /**usual specialization to stop the recursion*/
-        template<typename BackendType>
-        struct assign_storage<0, BackendType>{
-
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left & __restrict__ l, Right const & __restrict__ r, int EU_id_i, int EU_id_j){
-#ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
-#else
-                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
-#endif
-                // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1, 0, BackendType, storage_type>::
-                    assign(l, boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
-            }
-        };
-
-
-    /**@brief recursively assigning the 'raw' data pointers to the m_data_pointers array.
-       It enhances the performances, but principle it could be avoided.
-       The 'raw' datas are the one or more data fields contained in each storage class
-    */
-        template<uint_t Number, typename BackendType>
-            struct assign_strides_rec{
-            static const uint_t Id=(Number)%BLOCK_SIZE;
-            template<typename Left , typename Right >
-            GT_FUNCTION
-            static void assign(Left* __restrict__ l, Right const* __restrict__ r){
-                BackendType:: template once_per_block<Id>::assign(l[Number],r[Number]);
-            assign_strides_rec<Number-1, BackendType>::assign(l, r);
-        }
-
-    };
-
-    /**@brief stopping the recursion*/
-    template<typename BackendType>
-    struct assign_strides_rec<0, BackendType>{
-        static const uint_t Id=0;
-        template<typename Left , typename Right >
-        GT_FUNCTION
-        static void assign(Left* __restrict__ l, Right const* __restrict__ r){
-            BackendType:: template once_per_block<Id>::assign(l[0],r[0]);
-        }
-    };
-
-        /**@brief assigning all the storage strides to the m_strides array*/
-        template<uint_t ID, typename BackendType>
-            struct assign_strides{
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            /**@brief does the actual assignment
-               This method is also responsible of computing the index for the memory access at
-               the location (i,j,k). Such index is shared among all the fields contained in the
-               same storage class instance, and it is not shared among different storage instances.
-            */
-            static void assign(Left& __restrict__ l, Right const& __restrict__ r){
-#ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
-#else
-                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
-#endif
-                //if the following fails, the ID is larger than the number of storage types
-                GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
-                    assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(l.template get<ID>(), &boost::fusion::at_c<ID>(r)->strides(1));
-                assign_strides<ID-1,BackendType>::assign(l,r); //tail recursion
-            }
-        };
-
-        /**usual specialization to stop the recursion*/
-        template<typename BackendType>
-            struct assign_strides<0, BackendType>{
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left & __restrict__ l_, Right const & __restrict__ r_){
-#ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
-#else
-                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
-#endif
-                assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(l_.template get<0>(), &boost::fusion::at_c<0>(r_)->strides(1));
-            }
-        };
-    } //namespace
-
-
-
-        /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID, uint_t Coordinate>
-        struct initialize_index {
-
-        /**@brief does the actual assignment
-           This method is responsible of computing the index for the memory access at
-           the location (i,j,k). Such index is shared among all the fields contained in the
-           same storage class instance, and it is not shared among different storage instances.
-        */
-        template<typename Storage, typename Strides>
-        GT_FUNCTION
-        static void assign(Storage const& r_, uint_t id_, uint_t block_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-
-            boost::fusion::at_c<ID>(r_)->template initialize<Coordinate>(id_, block_, &index_[ID], strides_.template get<ID>());
-            initialize_index<ID-1, Coordinate>::assign(r_, id_,block_,index_,strides_);
-        }
-    };
-
-    /**usual specialization to stop the recursion*/
-    template<uint_t Coordinate>
-    struct initialize_index<0, Coordinate>{
-
-        template<typename Storage
-                 , typename Strides
-                 >
-        GT_FUNCTION
-        static void assign( Storage const &  r_, uint_t id_, uint_t block_, uint_t* __restrict__ index_, Strides & __restrict__ strides_){
-
-            boost::fusion::at_c<0>(r_)->template initialize<Coordinate>(id_, block_, &index_[0], (strides_.template get<0>() )
-                );
-        }
-    };
-
 
     /**@brief class handling the computation of the */
     template <typename LocalDomain>
@@ -442,7 +68,7 @@ private:
 
         array<void* __restrict__, N_DATA_POINTERS>* __restrict__ m_data_pointer;
 
-        storage_cached<N_STORAGES-1, typename LocalDomain::esf_args>* __restrict__ m_strides;
+        strides_cached<N_STORAGES-1, typename LocalDomain::esf_args>* __restrict__ m_strides;
 
 public:
         /**@brief constructor of the iterate_domain struct
@@ -480,8 +106,8 @@ public:
 
         template<typename BackendType, typename Strides>
         GT_FUNCTION
-        void assign_stride_pointers( Strides * strides){
-            m_strides=strides;
+        void assign_stride_pointers( Strides * __restrict__ strides_){
+            m_strides=strides_;
             assign_strides< N_STORAGES-1, BackendType >::assign(*m_strides, local_domain.local_args);
         }
 
@@ -541,14 +167,6 @@ public:
                 typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
                 typename storage_type::value_type * __restrict__ real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
-
-                // std::cout<<"(m_index[ArgType::index_type::value]) + (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) ->_index(m_strides->template get<ArgType::index_type::value>(), arg) = "
-                //          <<(m_index[ArgType::index_type::value])
-                //          <<"+"<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                //     ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                //          <<std::endl;
-
-                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<std::endl;
 
                 //the following assert fails when an out of bound access is observed, i.e. either one of
                 //i+offset_i or j+offset_j or k+offset_k is too large.
@@ -650,9 +268,7 @@ public:
                 GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 
-#ifndef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
-#endif
 
                 // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
@@ -665,7 +281,7 @@ public:
                                              arg.template get<0>() //offset for the current dimension
                                              :
                                              arg.template get<0>() //offset for the current dimension
-                                             //limitation to "rectangular" vector fields for non-C++11 storages
+                                             //limitation to "rectangular" vector fields for non-static fields dimensions
                                              +  arg.template get<1>()
                                              * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
                                              ))//+ the offset of the other extra dimension
@@ -824,17 +440,6 @@ public:
            Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
            (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
            @{*/
-        /** integer power evaluation*/
-// #ifndef __CUDACC__
-//         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-//         GT_FUNCTION
-//         auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), arg.second_operand)) {return std::pow((*this)(arg.first_operand), arg.second_operand);}
-
-//         template <typename ArgType1, int exponent >
-//         GT_FUNCTION
-//         auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(std::pow((*this)(arg.first_operand), exponent)) {return std::pow((*this)(arg.first_operand), exponent);}
-
-// #else
 
         template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
@@ -844,8 +449,6 @@ public:
         template <typename ArgType1, /*typename IntType, IntType*/int exponent/*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */>
             GT_FUNCTION
             auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
-
-// #endif //ifndef __CUDACC__
 
         /**@}@}*/
 
@@ -911,18 +514,18 @@ public:
         {}
 #endif
         /**@brief method for incrementing the index when moving forward along the k direction */
-        template <ushort_t Coordinate>
+        template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void assign_ij(uint_t index, uint_t block=0)
+        void increment()
         {
             if (Coordinate==0) {
-                i = index;
+                i++;
             }
             if (Coordinate==1) {
-                j = index;
+                j++;
             }
 
-            base_type::template assign_ij<Coordinate>(index, block);
+            base_type::template increment<Coordinate, Execution>();
         }
             /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
@@ -930,22 +533,6 @@ public:
         {
             k = from;
             base_type::set_k_start(from);
-        }
-
-            /**@brief method for incrementing the index when moving forward along the k direction */
-        GT_FUNCTION
-        void increment()
-        {
-            ++k;
-            base_type::increment();
-        }
-
-        /**@brief method for decrementing the index when moving backward along the k direction*/
-        GT_FUNCTION
-        void decrement()
-        {
-            --k;
-            base_type::decrement();
         }
 
     };
