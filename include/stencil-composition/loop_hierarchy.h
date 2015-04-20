@@ -129,7 +129,7 @@ public:
 #endif
             next::apply(it_domain, kernel);
             it_domain.set_index(restore_index);//redundant in the last iteration
-            it_domain.template increment<First::s_id, First::s_execution>();//redundant in the last iteration
+            it_domain.template increment_ij<First::s_id, First::s_execution>();//redundant in the last iteration
             update_index(it_domain);
         }
     }
@@ -183,7 +183,7 @@ public:
 #endif
             kernel();
             it_domain.set_index(restore_index);//redundant in the last iteration
-            it_domain.template increment<First::s_id, First::s_execution>();
+            it_domain.template increment_ij<First::s_id, First::s_execution>();
             update_index(it_domain);
         }
     }

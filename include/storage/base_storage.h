@@ -418,7 +418,7 @@ namespace gridtools {
            Coordinates 0,1,2 correspond to i,j,k respectively*/
         template<uint_t Coordinate>
         GT_FUNCTION
-        static constexpr uint_t strides(uint_t const* str){
+        static constexpr uint_t strides(uint_t const* __restrict__ str){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((str[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
         }
 
@@ -513,7 +513,7 @@ namespace gridtools {
         */
         template <typename OffsetTuple>
         GT_FUNCTION
-        int_t _index(uint_t const* strides_, OffsetTuple  const& tuple) const {
+        int_t _index(uint_t const* __restrict__ strides_, OffsetTuple  const& tuple) const {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 
@@ -522,7 +522,7 @@ namespace gridtools {
             note: returns a signed int because it might be negative (used e.g. in iterate_domain)*/
    template<typename IntType>
         GT_FUNCTION
-        int_t _index( uint_t const* strides_, IntType* indices) const {
+        int_t _index( uint_t const* __restrict__ strides_, IntType* __restrict__ indices) const {
 
             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, indices);
         }
@@ -531,25 +531,14 @@ namespace gridtools {
 
             SFINAE: design pattern used to avoid the compilation of the overloaded method which are not used (and which would produce a compilation error)
         */
-        template <uint_t Coordinate>
+        template <uint_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment( uint_t* index, uint_t const* strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
-       BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-       if(layout::template at_< Coordinate >::value >=0)//static if
-       {
-           *index += strides<Coordinate>(strides_);
-       }
-        }
-
-        /** @brief method to decrement the memory address index by moving backward one step in the given Coordinate direction */
-        template <uint_t Coordinate>
-        GT_FUNCTION
-        void decrement( uint_t* index, uint_t const* strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
-       BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-       if(layout::template at_<Coordinate>::value >=0)
-       {
-           *index-=strides<Coordinate>(strides_);
-       }
+        void increment( uint_t* __restrict__ index_, uint_t const* __restrict__ strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+            BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+            if(layout::template at_< Coordinate >::value >=0)//static if
+            {
+                increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_));
+            }
         }
 
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction
@@ -557,25 +546,19 @@ namespace gridtools {
             \param steps: the number of steps of the increment
             \param index: the output index being set
         */
-        template <uint_t Coordinate>
+        template <uint_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment(uint_t const& dimension, uint_t* index, uint_t const* strides_){
+        void increment(uint_t const& steps_, uint_t* __restrict__ index_, uint_t const* __restrict__ strides_){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
-                *index += strides<Coordinate>(strides_)*dimension;
+                increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_)*steps_);
             }
         }
 
-        /** @brief method to decrement the memory address index by moving backward a given number of step in the given Coordinate direction */
-        template <uint_t Coordinate>
         GT_FUNCTION
-        void decrement(uint_t steps, uint_t* index, uint_t const* strides_){
-       BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-       if( layout::template at_< Coordinate >::value >= 0 )
-       {
-           *index-=strides<Coordinate>(strides_)*steps;
-       }
+        void set_index(uint_t value, uint_t* index){
+            *index=value;
         }
 
         template <uint_t Coordinate >
@@ -586,11 +569,6 @@ namespace gridtools {
             {
                 *index_+=strides<Coordinate>(strides_)*steps_;
             }
-        }
-
-        GT_FUNCTION
-        void set_index(uint_t value, uint_t* index){
-            *index=value;
         }
 
         /**@brief returns the data field*/

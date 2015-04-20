@@ -24,7 +24,7 @@ namespace gridtools{
 
             template<typename Domain>
             GT_FUNCTION
-            static void increment(Domain& dom){dom.increment();}
+            static void increment(Domain& dom){dom.template increment<enumtype::forward>();}
 
             GT_FUNCTION
             static bool condition(uint_t const& a, uint_t const& b){return a<=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)
@@ -43,7 +43,7 @@ namespace gridtools{
 
             template <typename Domain>
             GT_FUNCTION
-            static void increment(Domain& dom){dom.decrement();}
+            static void increment(Domain& dom){dom.template increment<enumtype::forward>();}
 
             GT_FUNCTION
             static bool condition(uint_t const& a, uint_t const& b){return a>=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)

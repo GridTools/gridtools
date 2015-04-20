@@ -199,16 +199,16 @@ namespace gridtools {
                 C between tiles (identified by the data dependency
                 requirements between tiles).
             */
-        template <uint_t Coordinate>
+        template <uint_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment( uint_t* index_, uint_t const* strides_){
-            base_type::template increment<Coordinate>( index_, strides_);
+        void increment( uint_t* __restrict__ index_, uint_t const* __restrict__ strides_){
+            base_type::template increment<Coordinate, Execution>( index_, strides_);
         }
 
-        template <uint_t Coordinate>
+        template <uint_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment(const uint_t steps_, uint_t* index_, uint_t const* strides_){
-            base_type::template increment<Coordinate>( steps_, index_, strides_);
+        void increment(const uint_t& steps_, uint_t* __restrict__ index_, uint_t const*  __restrict__ strides_){
+            base_type::template increment<Coordinate, Execution>( steps_, index_, strides_);
         }
 
 
@@ -222,13 +222,13 @@ namespace gridtools {
                 BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
                 *index_+=(steps_ - block_*tile_ - m_initial_offsets[Coordinate])*basic_type::template strides<Coordinate>(strides_);
             }
-            else
-            {
-                base_type::template initialize<Coordinate>( steps_, block_, index_, strides_);
-            }
+                else
+                {
+                    base_type::template initialize<Coordinate>( steps_, block_, index_, strides_);
+                }
         }
-    };
 
+    };
 
     template < typename StorageType, uint_t TileI, uint_t TileJ, uint_t MinusI, uint_t MinusJ, uint_t PlusI, uint_t PlusJ
                >

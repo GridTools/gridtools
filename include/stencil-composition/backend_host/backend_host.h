@@ -7,7 +7,7 @@
 
 #include "../iteration_policy.h"
 #include "../../common/gridtools_runtime.h"
- // #include "../loop_hierarchy.h"
+ #include "../loop_hierarchy.h"
 
 /**
    @file
@@ -70,7 +70,7 @@ namespace gridtools {
                 m_functor(f){}
 
             void operator() () const {
-                m_it_domain.template increment<2, enumtype::forward>( m_functor->m_coords.template value_at< typename IterationPolicy::from >() );
+                m_it_domain.template set_k_start( m_functor->m_coords.template value_at< typename IterationPolicy::from >() );
                 gridtools::for_each< LoopIntervals >
                     ( RunOnInterval (m_it_domain,m_functor->m_coords) );
             }
@@ -113,53 +113,52 @@ namespace gridtools {
             std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
-                    array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
-                    storage_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
-                    /*typename iterate_domain_type::storage_sequence_t* data_pointer;*/
+            array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
+            storage_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
 
-                    iterate_domain_type it_domain(local_domain);
-                    it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
+             iterate_domain_type it_domain(local_domain);
+             it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
 
-                    it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
+             it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
 
-                                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
+             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
              typedef typename index_to_level<typename interval::first>::type from;
              typedef typename index_to_level<typename interval::second>::type to;
              typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-// #ifdef NEW_IMPLEMENTATION
+#ifdef NEW_IMPLEMENTATION
 
-//              typedef array<int_t, Traits::iterate_domain_t::N_STORAGES> array_t;
-//                     loop_hierarchy<array_t, loop_item<0, enumtype::forward>, loop_item<1, enumtype::forward> > ij_loop(
-//                         f->m_start[0] + iminus,
-//                         f->m_start[0] + f->m_block[0] + iplus,
-//                         f->m_start[1] + jminus,
-//                         f->m_start[1] + f->m_block[1] + jplus
-//                         );
+             typedef array<int_t, Traits::iterate_domain_t::N_STORAGES> array_t;
+                    loop_hierarchy<array_t, loop_item<0, enumtype::forward>, loop_item<1, enumtype::forward> > ij_loop(
+                        f->m_start[0] + iminus,
+                        f->m_start[0] + f->m_block[0] + iplus,
+                        f->m_start[1] + jminus,
+                        f->m_start[1] + f->m_block[1] + jplus
+                        );
 
-//                     //reset the index
-//                     it_domain.set_index(0);
-//                     ij_loop.initialize(it_domain, f->m_block_id);
-
-//                     typedef innermost_functor<loop_intervals_t
-//                                               , _impl::run_f_on_interval
-//                                               <
-//                                                   execution_type_t,
-//                                                   extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
-//                                                   >
-//                                               , typename Traits::iterate_domain_t
-//                                               , backend_t
-//                                               , iteration_policy
-//                                               > innermost_functor_t;
-
-//                     ij_loop.apply(it_domain, innermost_functor_t(it_domain,f));
-
-// #else
+                    //reset the index
                     it_domain.set_index(0);
-                    it_domain.template initialize<0>((int_t)f->m_start[0] + iminus, f->m_block_id[0]);
-                    it_domain.template initialize<1>((int_t)f->m_start[1] + jminus, f->m_block_id[1]);
-                    array<int_t, Traits::iterate_domain_t::N_STORAGES> restore_index_j(0);
-                    array<int_t, Traits::iterate_domain_t::N_STORAGES> restore_index_k(0);
+                    ij_loop.initialize(it_domain, f->m_block_id);
+
+                    typedef innermost_functor<loop_intervals_t
+                                              , _impl::run_f_on_interval
+                                              <
+                                                  execution_type_t,
+                                                  extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
+                                                  >
+                                              , typename Traits::iterate_domain_t
+                                              , backend_t
+                                              , iteration_policy
+                                              > innermost_functor_t;
+
+                    ij_loop.apply(it_domain, innermost_functor_t(it_domain,f));
+
+#else
+             it_domain.set_index(0);
+             it_domain.template initialize<0>((int_t)f->m_start[0] + iminus, f->m_block_id[0]);
+             it_domain.template initialize<1>((int_t)f->m_start[1] + jminus, f->m_block_id[1]);
+             array<int_t, Traits::iterate_domain_t::N_STORAGES> restore_index_j(0);
+             array<int_t, Traits::iterate_domain_t::N_STORAGES> restore_index_k(0);
 
              //initialization
              it_domain.get_index(restore_index_j);
@@ -203,7 +202,7 @@ namespace gridtools {
                                  );
                             //restore the k index
                             it_domain.set_index(restore_index_k);
-                            it_domain.template assign_ij<1>();
+                            it_domain.template increment_ij<1, enumtype::forward>();
                             // it_domain.template increment<1, enumtype::forward>(1, f->blk_idx_j);
                             it_domain.get_index(restore_index_k);//redundant in the last iteration
 
@@ -211,13 +210,13 @@ namespace gridtools {
                         //restore the j index
                         it_domain.set_index(restore_index_j);
                         //increment it
-                        it_domain.template assign_ij<0>();
+                        it_domain.template increment_ij<0, enumtype::forward>();
                         // it_domain.template increment<0, enumtype::forward>(1, f->blk_idx_i);
                         //save the new value
                         it_domain.get_index(restore_index_j);
                         it_domain.get_index(restore_index_k);
                 }
-// #endif
+#endif
         }
 
     };
