@@ -307,4 +307,4 @@ namespace gridtools {
     template <typename StoragePointers, typename EsfDescriptor, bool IsStateful>
     struct is_local_domain<local_domain<StoragePointers, EsfDescriptor, IsStateful> > : boost::mpl::true_{};
 
-}
+}//namespace gridtools

@@ -149,10 +149,10 @@ namespace gridtools{
             }
         };
 
-/**@brief metafunction to access a type sequence at a given position, numeration from 0
+        /**@brief metafunction to access a type sequence at a given position, numeration from 0
 
-   he types in the sequence must define a 'super' type. Can be seen as a compile-time equivalent of a linked-list.
-*/
+           he types in the sequence must define a 'super' type. Can be seen as a compile-time equivalent of a linked-list.
+        */
         template<int_t ID, typename Sequence>
         struct access{
             BOOST_STATIC_ASSERT(ID>0);
@@ -160,13 +160,13 @@ namespace gridtools{
             typedef typename access<ID-1, typename Sequence::super>::type type;
         };
 
-/**@brief template specialization to stop the recursion*/
+        /**@brief template specialization to stop the recursion*/
         template<typename Sequence>
         struct access<0, Sequence>{
             typedef Sequence type;
         };
 
-/**@brief recursively advance the ODE finite difference for all the field dimensions*/
+        /**@brief recursively advance the ODE finite difference for all the field dimensions*/
         template<short_t Dimension>
         struct advance_recursive{
             template<typename This>
@@ -177,7 +177,7 @@ namespace gridtools{
             }
         };
 
-/**@brief template specialization to stop the recursion*/
+        /**@brief template specialization to stop the recursion*/
         template<>
         struct advance_recursive<0>{
             template<typename This>
@@ -225,6 +225,25 @@ namespace gridtools{
 //     };
 
     }//namespace _impl
+
+    template <enumtype::execution Execution>
+    struct increment_policy;
+
+    template<>
+    struct increment_policy<enumtype::forward>{
+
+        template<typename Lhs, typename Rhs>
+        GT_FUNCTION
+        static void apply(Lhs& lhs, Rhs const& rhs){ lhs += rhs;}
+    };
+
+    template<>
+    struct increment_policy<enumtype::backward>{
+
+        template<typename Lhs, typename Rhs>
+        GT_FUNCTION
+        static void apply(Lhs& lhs, Rhs const& rhs){ lhs -= rhs;}
+    };
 
 
     namespace _debug{

@@ -83,44 +83,38 @@ namespace gridtools {
     };
 
 
-    namespace iterate_domain_aux {
-
         //this value is available so far only at runtime (we might not have enough threads)
         //should be increased to get parallel shared memory initialization
 #define BLOCK_SIZE 32
 
         /**@brief static function incrementing the iterator with the stride on the vertical direction*/
-        template<uint_t ID>
+        template<uint_t ID, enumtype::execution Execution>
         struct increment_k {
 
-            template<typename LocalArgs
-                     , typename Strides
-                     >
+            template<typename LocalArgs, typename Strides>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t* __restrict__ index
                               , Strides& __restrict__ strides
 ) {
                 // k direction does does not have bolcks
-                boost::fusion::at_c<ID>(local_args)->template increment<2>( &index[ID]
+                boost::fusion::at_c<ID>(local_args)->template increment<2, Execution>( &index[ID]
                                                                            , strides.template get<ID>()
                     );
-                increment_k<ID-1>::apply(local_args, index
+                increment_k<ID-1, Execution>::apply(local_args, index
                                          , strides
                     );
             }
 
-            template<typename LocalArgs
-                     , typename Strides
-                     >
+            template<typename LocalArgs, typename Strides>
             GT_FUNCTION
             static void apply(LocalArgs& local_args, uint_t const& from, uint_t* __restrict__ index
                               , Strides& __restrict__ strides
 ) {
                 // k direction does does not have bolcks
-                boost::fusion::at_c<ID>(local_args)->template increment<2>( from, &index[ID]
+                boost::fusion::at_c<ID>(local_args)->template increment<2, Execution>( from, &index[ID]
                                                                            , strides.template get<ID>()
                     );
-                increment_k<ID-1>::apply(local_args, from, index
+                increment_k<ID-1, Execution>::apply(local_args, from, index
                                          , strides
                     );
             }
@@ -128,8 +122,8 @@ namespace gridtools {
         };
 
         /**@brief specialization to stop the recursion*/
-        template<>
-        struct increment_k<0> {
+        template< enumtype::execution Execution>
+        struct increment_k<0, Execution> {
             template<typename LocalArgs
                      , typename Strides
                      >
@@ -137,7 +131,7 @@ namespace gridtools {
             static void apply(LocalArgs& local_args_, uint_t* __restrict__ index_
                               , Strides & __restrict__ strides_
                 ) {
-                boost::fusion::at_c<0>(local_args_)->template increment<2>( index_, strides_.template get<0>());
+                boost::fusion::at_c<0>(local_args_)->template increment<2, Execution>( index_, strides_.template get<0>());
             }
 
             template<typename LocalArgs
@@ -148,32 +142,10 @@ namespace gridtools {
                               , Strides& __restrict__ strides
 ) {
                 // k direction does does not have bolcks
-                boost::fusion::at_c<0>(local_args)->template increment<2>( from, &index[0], strides.template get<0>());
+                boost::fusion::at_c<0>(local_args)->template increment<2, Execution>( from, &index[0], strides.template get<0>());
             }
 
         };
-
-        /**@brief static function decrementing the iterator with the stride on the vertical direction*/
-        template<uint_t ID>
-        struct decrement_k {
-            template<typename LocalArgs, typename Strides>
-            GT_FUNCTION
-            static void apply(LocalArgs&  local_args_, uint_t factor_, uint_t*  __restrict__ index_, Strides&  __restrict__ strides_) {
-                boost::fusion::at_c<ID>(local_args_)->template decrement<2>(factor_, (uint_t)0, &index_[ID], strides_.template get<ID>());
-                decrement_k<ID-1>::apply(local_args_, factor_, index_, strides_);
-            }
-        };
-
-        /**@brief specialization to stop the recursion*/
-        template<>
-        struct decrement_k<0> {
-            template<typename LocalArgs, typename Strides>
-            GT_FUNCTION
-            static void apply(LocalArgs&  local_args_, uint_t factor_, uint_t* __restrict__ index_, Strides& __restrict__ strides_) {
-                boost::fusion::at_c<0>(local_args_)->template decrement<2>(factor_, (uint_t)0, index_, strides_.template get<0>());
-            }
-        };
-    } // namespace iterate_domain_aux
 
     /**@brief recursively assigning the 'raw' data pointers to the m_data_pointers array.
        It enhances the performances, but principle it could be avoided.
@@ -252,7 +224,7 @@ namespace gridtools {
     namespace {
 
         /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID, uint_t Coordinate>
+        template<uint_t ID, uint_t Coordinate, enumtype::execution Execution>
         struct assign_index {
 
             /**@brief does the actual assignment
@@ -266,21 +238,21 @@ namespace gridtools {
                 //if the following fails, the ID is larger than the number of storage types,
                 //or the index was not properly initialized to 0,
                 //or you know what you are doing (then comment out the assert)
-                boost::fusion::at_c<ID>(r_)->template increment<Coordinate>(&index_[ID], strides_.template get<ID>());
-                assign_index<ID-1, Coordinate>::assign(r_,index_,strides_);
+                boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(&index_[ID], strides_.template get<ID>());
+                assign_index<ID-1, Coordinate, Execution>::assign(r_,index_,strides_);
             }
         };
 
         /**usual specialization to stop the recursion*/
-        template<uint_t Coordinate>
-            struct assign_index<0, Coordinate>{
+        template<uint_t Coordinate, enumtype::execution Execution>
+        struct assign_index<0, Coordinate, Execution>{
 
             template<typename Storage
                      , typename Strides
                      >
             GT_FUNCTION
             static void assign( Storage const &  r_, uint_t* __restrict__ index_, Strides & __restrict__ strides_){
-                boost::fusion::at_c<0>(r_)->template increment<Coordinate>(&index_[0], (strides_.template get<0>() )
+                boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(&index_[0], (strides_.template get<0>() )
                     );
             }
         };
@@ -575,46 +547,34 @@ public:
             set_index_recur< N_STORAGES-1>::set( index, m_index);
         }
 
-        // /**@brief method for incrementing the index when moving forward along the k direction */
-        // GT_FUNCTION
-        // void set_index(uint_t index)
-        // {
-        //     set_index_recur< N_STORAGES-1>::set(local_domain.local_args, index, &m_index[0]);
-        // }
-
         /**@brief method for incrementing the index when moving forward along the k direction */
-        template <ushort_t Coordinate>
+        template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment_ij()
         {
-            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, &m_index[0], *m_strides);
+            assign_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
         }
 
-        /**@brief method for incrementing the index when moving forward along the k direction */
-        template <ushort_t Coordinate>
-        GT_FUNCTION
-        void assign_ij()
-        {
-            assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, &m_index[0], *m_strides);
-        }
+        // /**@brief method for incrementing the index when moving forward along the k direction */
+        // template <ushort_t Coordinate>
+        // GT_FUNCTION
+        // void assign_ij()
+        // {
+        //     assign_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, &m_index[0], *m_strides);
+        // }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
+        template <enumtype::execution Execution>
         GT_FUNCTION
         void increment() {
-            iterate_domain_aux::increment_k<N_STORAGES-1>::apply( local_domain.local_args, &m_index[0], *m_strides);
-        }
-
-        /**@brief method for decrementing the index when moving backward along the k direction*/
-        GT_FUNCTION
-        void decrement() {
-            iterate_domain_aux::decrement_k<N_STORAGES-1>::apply( local_domain.local_args, &m_index[0], *m_strides);
+            increment_k<N_STORAGES-1, Execution >::apply( local_domain.local_args, &m_index[0], *m_strides);
         }
 
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from)
         {
-            iterate_domain_aux::increment_k<N_STORAGES-1>::apply(local_domain.local_args, from, &m_index[0], *m_strides);
+            increment_k<N_STORAGES-1, enumtype::forward>::apply(local_domain.local_args, from, &m_index[0], *m_strides);
         }
 
         template <typename T>
