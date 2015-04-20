@@ -66,11 +66,7 @@ class FunctorBody (ast.NodeVisitor):
         elif isinstance (op, ast.Div):
             sign = '/'
         elif isinstance (op, ast.Pow):
-            #
-            # TODO: translate power to a multiplication
-            #
-            sign = None
-            logging.warning ("Cannot translate 'x**y'")
+            sign = '**'
         else:
             sign = None
             logging.warning ("Cannot translate '%s'" % str (op))
@@ -179,6 +175,43 @@ class FunctorBody (ast.NodeVisitor):
         return ret_value
 
 
+    def transpow(self, base, exp):
+        logging.debug ("Exponent type %s" % type(exp))
+        if (isinstance (exp, ast.UnaryOp)):
+            exp = op.operand.n
+        if ( not isinstance(exp, float) and not isinstance(exp, int)):
+            logging.warn ("This is neither a float nor an int.  type = %s", type(exp))
+            exp = eval(exp)
+            logging.debug ("After evaluating it, the new type of the expression is %s", type(exp))
+
+        if ( not isinstance(exp, int)):
+            if ( isinstance(exp, float)):
+                exp = int(exp)  # Convert float to int
+                logging.warn ("WARNING!  The evaluated exponent is a floating point.  Currently, only whole integers can be translated.  Truncating to integer.")
+            else:
+                logging.error ("Can not determine a number for the exponent (type = %s)", type(exp))
+                return "NaN"
+
+        if (exp == 0): 
+            return "(1)"
+        elif (exp == 1): 
+            return "("+str(base)+")"
+        elif (exp > 1): 
+            if ( not isinstance(base, float) and not isinstance(base, int)):
+                val = "*("+str(base)+")"
+                return "(({0}){1})".format(base, ''.join([val for num in range(exp-1)]))
+            else:
+                val = "*"+str(base)
+                return "({0}{1})".format(base, ''.join([val for num in range(exp-1)]))
+        elif (exp < 0): 
+            if ( not isinstance(base, float) and not isinstance(base, int)):
+                val = "*("+str(base)+")"
+                return "(1/(({0}){1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
+            else:
+                val = "*"+str(base)
+                return "(1/({0}{1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
+
+
     def visit_BinOp (self, node):
         """
         Generates code for a binary operation, e.g., +,-,*, ...
@@ -194,10 +227,15 @@ class FunctorBody (ast.NodeVisitor):
                 isinstance (op, ast.Attribute) or
                 isinstance (op, ast.Subscript)):
                 operand.append ('%s' % self.visit (op))
+            elif (isinstance (op, ast.UnaryOp) ):
+                operand.append ('%s' % self.visit_UnaryOp(op) )
             else:
                 operand.append ('(%s)' % self.visit (op))
 
-        return "%s %s %s" % (operand[0], sign, operand[1])
+        if (sign == '**'):
+            return self.transpow(operand[0], operand[1])
+        else:
+            return "%s %s %s" % (operand[0], sign, operand[1])
 
 
     def visit_Name (self, node):
