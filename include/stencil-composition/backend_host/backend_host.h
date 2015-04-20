@@ -202,7 +202,7 @@ namespace gridtools {
                                  );
                             //restore the k index
                             it_domain.set_index(restore_index_k);
-                            it_domain.template increment_ij<1, enumtype::forward>();
+                            it_domain.template increment<1, enumtype::forward>();
                             // it_domain.template increment<1, enumtype::forward>(1, f->blk_idx_j);
                             it_domain.get_index(restore_index_k);//redundant in the last iteration
 
@@ -210,7 +210,7 @@ namespace gridtools {
                         //restore the j index
                         it_domain.set_index(restore_index_j);
                         //increment it
-                        it_domain.template increment_ij<0, enumtype::forward>();
+                        it_domain.template increment<0, enumtype::forward>();
                         // it_domain.template increment<0, enumtype::forward>(1, f->blk_idx_i);
                         //save the new value
                         it_domain.get_index(restore_index_j);
