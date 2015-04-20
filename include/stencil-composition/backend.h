@@ -21,7 +21,6 @@
 #include "heap_allocated_temps.h"
 #include "arg_type.h"
 #include "domain_type.h"
-#include "execution_types.h"
 #include "mss_metafunctions.h"
 #include "mss_local_domain.h"
 #include "mss.h"
