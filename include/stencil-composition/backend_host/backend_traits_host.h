@@ -1,11 +1,13 @@
 #pragma once
 #include <gt_for_each/for_each.hpp>
 #include "../backend_traits_fwd.h"
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 /**@file
-@brief type definitions and structures specific for the Host backend*/
-
+@brief type definitions and structures specific for the Host backend
+*/
 namespace gridtools{
     namespace _impl_host{
         /**forward declaration*/
@@ -13,8 +15,17 @@ namespace gridtools{
         struct run_functor_host;
     }
 
-    int s_thread_id;
-#pragma omp threadprivate(s_thread_id)
+    namespace multithreading{
+        /**
+           Global variable storing the current thread id
+        */
+#ifdef _OPENMP
+        int __attribute__((weak)) gt_thread_id;
+#pragma omp threadprivate(gt_thread_id)
+#else
+        static const int gt_thread_id=1;
+#endif
+    }//namespace multithreading
 
     /**forward declaration*/
     template<typename T>
@@ -24,12 +35,18 @@ namespace gridtools{
     template<>
     struct backend_traits_from_id<enumtype::Host>{
 
+        /**
+           @brief pointer type associated to the host backend
+         */
         template <typename T>
         struct pointer
         {
             typedef wrap_pointer<T> type;
         };
 
+        /**
+           @brief storage type associated to the host backend
+         */
         template <typename ValueType, typename Layout, bool Temp=false, short_t FieldDim=1>
         struct storage_traits{
             typedef storage<base_storage<typename pointer<ValueType>::type, Layout, Temp, FieldDim > >   storage_t;
@@ -63,11 +80,21 @@ namespace gridtools{
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
         static uint_t const& processing_element_i()  {
-            return s_thread_id;
+            return multithreading::gt_thread_id;
         }
 
+        /**@brief set the thread id
+
+           this method when openmp is enabled calls the thread_id() routine.
+           NOTE: the reason why the latter routine is not called directly every time
+           the thread id is queried is a possibly non-negligible overhead introduced by such call.
+           This interface allows to store the thread id in a global variable when a parallel
+           region is encountered.
+         */
         static void set_thread_id(){
-            s_thread_id=thread_id();
+#ifdef _OPENMP
+            multithreading::gt_thread_id=thread_id();
+#endif
         }
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
@@ -83,10 +110,18 @@ namespace gridtools{
             typename Sequence
             , typename F
             >
-        //unnecessary copies/indirections if the compiler is not smart (std::forward)
-        inline static void for_each(F f){
-                gridtools::for_each<Sequence>(f);
+
+#ifdef CXX11_ENABLED
+        //unnecessary copies/indirections if the compiler is not smart
+        inline static void for_each(F&& f){
+            gridtools::for_each<Sequence>(std::forward<F>(f));
             }
+#else
+        //unnecessary copies/indirections if the compiler is not smart
+        inline static void for_each(F f){
+            gridtools::for_each<Sequence>(f);
+            }
+#endif
 
         template <uint_t Id>
         struct once_per_block {

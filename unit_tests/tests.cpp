@@ -14,6 +14,7 @@
 #include "test-assign-placeholders.h"
 #endif
 #include "arg_type_tests.h"
+#include "loop_hierarchy_test.h"
 
 #include "communication/layout_map.cpp"
 
@@ -58,6 +59,10 @@ TEST(stencil, extended_4D) {
     EXPECT_EQ(assembly::test(5, 5, 6), true);
 }
 #endif
+
+TEST(stencil, loop_hierarchy) {
+    EXPECT_EQ(loop_test::test(), true);
+}
 
 #ifdef CXX11_ENABLED
 TEST(testdomain, assignplchdrs) {

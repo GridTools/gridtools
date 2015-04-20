@@ -33,7 +33,7 @@ namespace gridtools {
                 array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
 
             __shared__
-                storage_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
+                strides_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
 
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
