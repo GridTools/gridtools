@@ -20,7 +20,7 @@ namespace gridtools {
                   typename Traits,
                   typename ExtraArguments>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
+        void do_it_on_gpu(typename Traits::local_domain_t const * RESTRICT l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
 //             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
 //             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
             int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -30,7 +30,7 @@ namespace gridtools {
             typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
 
             __shared__
-                array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
+                array<void* RESTRICT,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
 
             __shared__
                 strides_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;

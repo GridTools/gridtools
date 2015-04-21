@@ -55,27 +55,27 @@ namespace assembly{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-	    x::Index i;
-	    y::Index j;
-	    z::Index k;
-	    quad::Index qp;
-	    //projection of f on a (e.g.) P1 FE space:
-	    //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
-	    //computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
-	    for(short_t I=0; I<2; ++I)
-	    	for(short_t J=0; J<2; ++J)
-	    	    for(short_t K=0; K<2; ++K)
-			for(short_t q=0; q<2; ++q)
-			    eval(result(I,J,K)) +=
-				eval(!phi(i+I,j+J,k+K,qp+q)*!psi(qp+q)             *jac(qp+q)*f() +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(i+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(j+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(k+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(i+1, j+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(i+1, k+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(j+1,k+1) +
-				     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(i+1,j+1,k+1))
-				/8;
+        x::Index i;
+        y::Index j;
+        z::Index k;
+        quad::Index qp;
+        //projection of f on a (e.g.) P1 FE space:
+        //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
+        //computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
+        for(short_t I=0; I<2; ++I)
+            for(short_t J=0; J<2; ++J)
+                for(short_t K=0; K<2; ++K)
+            for(short_t q=0; q<2; ++q)
+                eval(result(I,J,K)) +=
+                eval(!phi(i+I,j+J,k+K,qp+q)*!psi(qp+q)             *jac(qp+q)*f() +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(i+1) +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(j+1) +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(k+1) +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(i+1, j+1) +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(i+1, k+1) +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(j+1,k+1) +
+                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(i+1,j+1,k+1))
+                /8;
 
         }
     };

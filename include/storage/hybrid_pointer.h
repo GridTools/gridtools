@@ -23,8 +23,8 @@ namespace gridtools {
         GT_FUNCTION
         explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
 
-	GT_FUNCTION
-	explicit  hybrid_pointer(T* p, bool managed=true) : wrap_pointer<T>(p, managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
+        GT_FUNCTION
+        explicit  hybrid_pointer(T* p, bool managed=true) : wrap_pointer<T>(p, managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
 
         //GT_FUNCTION
