@@ -48,12 +48,6 @@ namespace gridtools {
                 , m_block_id(0, 0)
             {}
 
-            run_functor<Derived> const& set(uint_t const& bi, uint const& bj){
-                m_block[0]=bi;
-                m_block[1]=bj;
-                return *this;
-            }
-
             /**
              * \brief given the index of a functor in the functors
              * list, it calls a kernel on the GPU executing the
