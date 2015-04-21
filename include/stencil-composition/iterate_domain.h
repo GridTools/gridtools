@@ -305,7 +305,7 @@ namespace gridtools {
         template <typename Arg, template<typename Arg1, int Arg2> class Expression
                   , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
         GT_FUNCTION
-        auto operator() (Expressio<Anrg, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+        auto operator() (Expression<Arg, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
             return evaluation::value_int((*this), arg);
         }
 
