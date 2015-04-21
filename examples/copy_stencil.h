@@ -37,10 +37,6 @@ namespace copy_stencil{
         typedef arg_type<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
         typedef Dimension<4> time;
-
-        //defining the expressions as compile-time constants
-        using  lhs=alias<in, z, Dimension<4> >::set< 0,1>;
-        using  rhs=alias<in, z, Dimension<4> >::set< 0,0>;
 #else
         typedef const arg_type<0, range<0,0,0,0>, 3> in;
         typedef arg_type<1, range<0,0,0,0>, 3> out;
@@ -51,10 +47,11 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            eval(lhs()) = eval(rhs());
+            eval(in(0,0,0,1))
 #else
-            eval(out()) = eval(in());
+                eval(out())
 #endif
+                =eval(in());
         }
     };
 
@@ -269,10 +266,11 @@ namespace copy_stencil{
                 for(uint_t k=0; k<d3; ++k)
                 {
 #ifdef CXX11_ENABLED
-                    if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k))
 #else
-                        if (in(i, j, k)!=out(i,j,k)) {
+                        if (in(i, j, k)!=out(i,j,k))
 #endif
+                        {
                             std::cout << "error in "
                                       << i << ", "
                                       << j << ", "
@@ -287,8 +285,8 @@ namespace copy_stencil{
                                       << std::endl;
                             success = false;
                         }
-                    }
-                    std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
-                    return success;
                 }
-    }//namespace copy_stencil
+        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        return success;
+    }
+}//namespace copy_stencil

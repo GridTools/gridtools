@@ -122,15 +122,16 @@ type;
             };
         };
 
-//         struct call_h2d {
-//             template <typename Arg>
-//             GT_FUNCTION
-//             void operator()(Arg * arg) const {
-// #ifndef __CUDA_ARCH__
-//                 arg->h2d_update();
-// #endif
-//             }
-//         };
+        //TODO : This struct is never used
+        struct call_h2d {
+            template <typename Arg>
+            GT_FUNCTION
+            void operator()(Arg * arg) const {
+#ifndef __CUDA_ARCH__
+                arg->h2d_update();
+#endif
+            }
+        };
 
         struct call_d2h {
             template <typename Arg>

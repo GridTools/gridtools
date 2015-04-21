@@ -73,7 +73,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
             // TODO use placeholders here instead of the storage
-            data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -82,8 +82,8 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            // TODO use placeholders here instead of the storage
-            data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.strides(),data_field0.template dims<0>()-1-i,j,k)];
+	    // TODO use placeholders here instead of the storage
+	    data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
         // default: do nothing
@@ -104,36 +104,6 @@ namespace shallow_water{
        }
 
 };
-
-    // struct bc : functor_traits{
-    //     // periodic boundary conditions in K
-    //     typedef arg_type<0> bc1;
-    //     typedef arg_type<0> bc2;
-    //  static const float_type height=3.;
-
-    //  GT_FUNCTION
-    //  static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-    //      return height * std::exp(-5*((i*dx())*((i*dx())+(j*dy())*(j*dy())));
-    //  }
-
-    //     template < typename Evaluation>
-    //     GT_FUNCTION
-    //  static void Do(Evaluation const & eval, x_interval) {
-    //      {
-    //   bc1() = bc2;
-    //      }
-    // };
-
-    // struct bc_vertical{
-    //     // periodic boundary conditions in K
-    //     template < sign K, typename DataField0, typename DataField1>
-    //     GT_FUNCTION
-    //     void operator()(direction<zero_, zero_, K>,
-    //                     DataField0 & data_field0, DataField1 const & data_field1,
-    //                     uint_t i, uint_t j, uint_t k) const {
-    //         data_field0(i,j,k) = data_field1(i,j,k);
-    //     }
-    // };
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {

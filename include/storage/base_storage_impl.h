@@ -1,9 +1,9 @@
 #pragma once
+#include <gridtools.h>
+#include <common/defs.h>
 #include <boost/lexical_cast.hpp>
-#include "../common/basic_utils.h"
 #include "../common/gt_assert.h"
 #include "../common/is_temporary_storage.h"
-//#include "hybrid_pointer.h"
 #include <iostream>
 #include "accumulate.h"
 
@@ -186,43 +186,6 @@ namespace gridtools{
                 t->template advance<0>();
             }
         };
-
-
-// /**@brief Metafunction for computing the coordinate N from the index (not currently used anywhere)
-//    N=0 is the coordinate with stride 1*/
-// template <ushort_t N>
-// struct coord_from_index;
-
-// //specializations for each dimension (supposing we have 3)
-// template<>
-// struct coord_from_index<2>
-// {
-//     static uint_t apply(uint_t index, uint_t* strides){
-//         printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
-//         return index%strides[2];
-//     }
-// };
-
-// template<>
-// struct coord_from_index<1>
-//     {
-//         static uint_t apply(uint_t index, uint_t* strides){
-//             printf("the coord from index: tile along %d is %d\n ", 1, strides[1]);
-//             return (index%strides[1]// tile<N>::value
-//                     -index% strides[2]);//(index%(K*J)-index%K%base_type::size()
-//         }
-//     };
-
-
-// template<>
-// struct coord_from_index<0>
-//     {
-//         static uint_t apply(uint_t index, uint_t* strides){
-//             printf("the coord from index: tile along %d is %d\n ", 2, strides[0]);
-//             return (index//%strides[0]
-//                     -index%strides[1]-index% strides[2]);//(index%(K*J)-index%K
-//         }
-//     };
 
     }//namespace _impl
 

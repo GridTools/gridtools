@@ -1,7 +1,7 @@
 #pragma once
 #include "base_storage_impl.h"
 #include "hybrid_pointer.h"
-//#include "../common/layout_map.h"
+#include "../common/array.h"
 
 /**@file
    @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
@@ -477,10 +477,9 @@ namespace gridtools {
             return index;
         }
 
-        // /**@brief straightforward interface*/
-        // GT_FUNCTION
-        // uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { _index(strides(), i, j, k);}
-
+        /**@brief straightforward interface*/
+        GT_FUNCTION
+        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { _index(strides(), i, j, k);}
 
 #ifdef CXX11_ENABLED
         /**
@@ -516,7 +515,7 @@ namespace gridtools {
 
         /** @brief returns the memory access index of the element with coordinate (i,j,k)
             note: returns a signed int because it might be negative (used e.g. in iterate_domain)*/
-   template<typename IntType, typename StridesVector>
+        template<typename IntType, typename StridesVector>
         GT_FUNCTION
         int_t _index( StridesVector const& RESTRICT strides_, IntType* RESTRICT indices) const {
 

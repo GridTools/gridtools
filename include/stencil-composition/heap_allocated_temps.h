@@ -46,7 +46,6 @@ namespace gridtools {
                 // ElemType: an element in the data field place-holders list
                 template <typename ElemType>
                 void operator()(ElemType*&  e) const {
-                    //char const* s = "default tmp storage";//avoids a warning
                     //ElemType::info_string.c_str();
 
                     //calls the constructor of the storage
@@ -54,6 +53,7 @@ namespace gridtools {
                     e = new ElemType(m_tile_i,
                                      m_tile_j,
                                      m_tile_k);
+                    e->set_name("default tmp storage");
                     e->allocate();
                 }
             };
