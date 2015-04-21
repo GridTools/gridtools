@@ -1,5 +1,5 @@
 #pragma once
-#include "iterate_domain_impl.h"
+#include "iterate_domain_aux.h"
 
 /**@file
    @brief file handling the access to the storage.
@@ -119,7 +119,7 @@ namespace gridtools {
                 set_index_recur< N_STORAGES-1>::set(m_index, index);
             }
 
-        /**@brief method for incrementing the index when moving forward along the k direction */
+        /**@brief method for setting the index array */
         template <typename Input>
         GT_FUNCTION
         void set_index(Input const& index)
@@ -127,7 +127,11 @@ namespace gridtools {
                 set_index_recur< N_STORAGES-1>::set( index, m_index);
             }
 
-        /**@brief method for incrementing the index when moving forward along the k direction */
+        /**@brief method for incrementing by 1 the index when moving forward along the given direction
+
+           \tparam Coordinate dimension being incremented
+           \tparam Execution the policy for the increment (e.g. forward/backward)
+         */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment()
@@ -135,12 +139,29 @@ namespace gridtools {
                 increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
             }
 
-        /**@brief method for incrementing the index when moving forward along the k direction */
+        /**@brief method for incrementing the index when moving forward along the given direction
+
+           \param steps_ the increment
+           \tparam Coordinate dimension being incremented
+           \tparam Execution the policy for the increment (e.g. forward/backward)
+         */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment(uint_t const& steps_)
             {
                 increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, steps_, &m_index[0], *m_strides);
+            }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void initialize(uint_t const& index=0, uint_t const& block=0)
+            {
+                initialize_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args
+                                                                    , index
+                                                                    , block
+                                                                    , &m_index[0]
+                                                                    , *m_strides);
             }
 
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
@@ -165,50 +186,7 @@ namespace gridtools {
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-        get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const
-            {
-
-
-#ifdef CXX11_ENABLED
-                using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
-#else
-                typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
-                typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
-
-                //the following assert fails when an out of bound access is observed, i.e. either one of
-                //i+offset_i or j+offset_j or k+offset_k is too large.
-                //Most probably this is due to you specifying a positive offset which is larger than expected,
-                //or maybe you did a mistake when specifying the ranges in the placehoders definition
-                assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
-                       +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                       ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                    );
-
-                //the following assert fails when an out of bound access is observed,
-                //i.e. when some offset is negative and either one of
-                //i+offset_i or j+offset_j or k+offset_k is too small.
-                //Most probably this is due to you specifying a negative offset which is
-                //smaller than expected, or maybe you did a mistake when specifying the ranges
-                //in the placehoders definition.
-                // If you are running a parallel simulation another common reason for this to happen is
-                // the definition of an halo region which is too small in one direction
-                // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
-                assert( (int_t)(m_index[ArgType::index_type::value])
-                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                        ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                        >= 0);
-
-#ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
-#endif
-                    return *(real_storage_pointer
-                             +(m_index[ArgType::index_type::value])
-                             +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                             //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                             ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                        );
-            }
+        get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const;
 
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
@@ -243,12 +221,18 @@ namespace gridtools {
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::enable_if<typename boost::mpl::bool_<(ArgType::type::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type,
-                                                             typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type
-                                                             >::type& RESTRICT
+        typename boost::enable_if<
+            typename boost::mpl::bool_< (ArgType::type::n_args <=
+                                         boost::mpl::at<
+                                         typename LocalDomain::esf_args
+                                         , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+                                        , typename boost::mpl::at<typename LocalDomain::esf_args
+                                                                  , typename ArgType::type::index_type>::type::value_type
+                                        >::type& RESTRICT
         operator()(ArgType const& arg) const {
 
-            return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::index_type::value==0), LocalDomain, typename ArgType::type >::value]);
+            return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::index_type::value==0)
+                                                    , LocalDomain, typename ArgType::type >::value]);
         }
 
 
@@ -257,96 +241,28 @@ namespace gridtools {
             template < typename ArgType>
             GT_FUNCTION
             typename boost::enable_if<
-                typename boost::mpl::bool_<(ArgType::type::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
-                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  RESTRICT
-            operator()(ArgType const& arg) const {
-
-#ifdef CXX11_ENABLED
-                using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
-#else
-                typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
-                //if the following assertion fails you have specified a dimension for the extended storage
-                //which does not correspond to the size of the extended placeholder for that storage
-                /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::type::n_args); */
-
-                //for the moment the extra dimensionality of the storage is limited to max 2
-                //(3 space dim + 2 extra= 5, which gives n_args==4)
-                GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-                    GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+                typename boost::mpl::bool_<(ArgType::type::n_args >
+                                            boost::mpl::at<
+                                            typename LocalDomain::esf_args
+                                            , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+                                            , typename boost::mpl::at<typename LocalDomain::esf_args
+                                                                      , typename ArgType::type::index_type>::type::value_type
+                                           >::type&  RESTRICT
+            operator()(ArgType const& arg) const ;
 
 
-                    GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+#if defined(CXX11_ENABLED)
 
-                    // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
-
-                    return get_value(arg,
-                                     (*m_data_pointer)[
-                                         storage_type::get_index
-                                         (
-                                             (
-                                                 ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
-                                                 arg.template get<0>() //offset for the current dimension
-                                                 :
-                                                 arg.template get<0>() //offset for the current dimension
-                                                 //limitation to "rectangular" vector fields for non-static fields dimensions
-                                                 +  arg.template get<1>()
-                                                 * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
-                                                 ))//+ the offset of the other extra dimension
-                                         + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
-                                         ]);
-            }
-
-
-
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-
+#if !defined(__CUDACC__)
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
         template < typename ArgType, typename ... Pairs>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-        operator()(arg_mixed<ArgType, Pairs ... > const& arg) const {
-
-            typedef arg_mixed<ArgType, Pairs ... > arg_mixed_t;
-            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
-
-            //if the following assertion fails you have specified a dimension for the extended storage
-            //which does not correspond to the size of the extended placeholder for that storage
-            /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_args); */
-
-            //for the moment the extra dimensionality of the storage is limited to max 2
-            //(3 space dim + 2 extra= 5, which gives n_args==4)
-            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-                GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
-
-
-                GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
-
-                return get_value(arg,
-                                 (*m_data_pointer)[ //static if
-                                     //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
-                                     storage_type::get_index(
-                                         (
-                                             ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
-                                             arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
-                                             :
-                                             arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
-#ifdef CXX11_ENABLED
-                                             //hypotheses (we can weaken it using constexpr static functions):
-                                             //storage offsets are known at compile-time
-                                             + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
-#else
-                                             //limitation to "rectangular" vector fields for non-C++11 storages
-                                             +  arg_mixed_t::template get_constexpr<1>()
-                                             * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
-#endif
-                                             ))//+ the offset of the other extra dimension
-                                     + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
-                                     ]);
-
-        }
+        typename boost::mpl::at<typename LocalDomain::esf_args
+                                , typename ArgType::index_type>::type::value_type& RESTRICT
+        operator()(arg_mixed<ArgType, Pairs ... > const& arg) const;
+#endif //ifndef __CUDACC__
 
         /** @brief method called in the Do methods of the functors.
 
@@ -356,152 +272,44 @@ namespace gridtools {
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
         typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const {
-
-            assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
-
-            assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
-            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
-
-#ifdef CXX11_ENABLED
-                using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
-#else
-            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
-
-            typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
-
-            return *(real_storage_pointer
-                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                     ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
-        }
-
-        /**\section binding_expressions (Expressions Bindings)
-           @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
-           They evalueate the operator passed as argument, by recursively evaluating its arguments
-           @{
-        */
-
-        /** plus evaluation*/
-        template <typename ArgType1, typename ArgType2>
-        GT_FUNCTION
-        auto value(expr_plus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) + (*this)(arg.second_operand)) {return (*this)(arg.first_operand) + (*this)(arg.second_operand);}
-
-        /** minus evaluation*/
-        template <typename ArgType1, typename ArgType2>
-        GT_FUNCTION
-        auto value(expr_minus<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) - (*this)(arg.second_operand)) {return (*this)(arg.first_operand) - (*this)(arg.second_operand);}
-
-        /** multiplication evaluation*/
-        template <typename ArgType1, typename ArgType2>
-        GT_FUNCTION
-        auto value(expr_times<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) * (*this)(arg.second_operand)) {return (*this)(arg.first_operand) * (*this)(arg.second_operand);}
-
-        /** division evaluation*/
-        template <typename ArgType1, typename ArgType2>
-        GT_FUNCTION
-        auto value(expr_divide<ArgType1, ArgType2> const& arg) const -> decltype((*this)(arg.first_operand) / (*this)(arg.second_operand)) {return (*this)(arg.first_operand) / (*this)(arg.second_operand);}
-
-        /**\subsection specialization (Partial Specializations)
-           partial specializations for double (or float)
-           @{*/
-        /** sum with scalar evaluation*/
-        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_scalar(expr_plus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) + arg.second_operand) {return (*this)(arg.first_operand) + arg.second_operand;}
-
-        /** subtract with scalar evaluation*/
-        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_scalar(expr_minus<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) - arg.second_operand) {return (*this)(arg.first_operand) - arg.second_operand;}
-
-        /** multiply with scalar evaluation*/
-        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_scalar(expr_times<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) * arg.second_operand) {return (*this)(arg.first_operand) * arg.second_operand;}
-
-        /** divide with scalar evaluation*/
-        template <typename ArgType1, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_scalar(expr_divide<ArgType1, FloatType> const& arg) const -> decltype((*this)(arg.first_operand) / arg.second_operand) {return (*this)(arg.first_operand) / arg.second_operand;}
-
-#ifndef __CUDACC__
-        /** power of scalar evaluation*/
-        template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return std::pow(arg.first_operand, arg.second_operand);}
-
-#else //ifndef __CUDACC__
-        /** power of scalar evaluation of CUDA*/
-        template <typename FloatType, typename IntType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_scalar(expr_exp<FloatType, IntType> const& arg) const -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {return products<2>::apply(arg.first_operand);}
-
-#endif //ifndef __CUDACC__
-
-        /**
-           @}
-           \subsection specialization2 (Partial Specializations)
-           @brief partial specializations for integer
-           Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
-           (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
-           @{*/
-
-        template <typename ArgType1, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto value_int(expr_exp<ArgType1, IntType> const& arg) const -> decltype(products<2>::apply((*this)(arg.first_operand))) {return products<2>::apply((*this)(arg.first_operand));
-        }
-
-        template <typename ArgType1, /*typename IntType, IntType*/int exponent/*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */>
-        GT_FUNCTION
-        auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
-
-        /**@}@}*/
+        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const ;
 
         /** @brief method called in the Do methods of the functors. */
-        template <typename FirstArg, typename SecondArg, template<typename Arg1, typename Arg2> class Expression >
+        template <typename ... Arguments, template<typename ... Args> class Expression >
         GT_FUNCTION
-        auto operator() (Expression<FirstArg, SecondArg> const& arg) const ->decltype(this->value(arg)) {
+        auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) {
             //arg.to_string();
-            return value(arg);
+            return evaluation::value((*this), arg);
         }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for double (or float)*/
-        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+                  , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Arg, FloatType> const& arg) const ->decltype(this->value_scalar(arg)) {
-            return value_scalar(arg);
+        auto operator() (Expression<Arg, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+            return evaluation::value_scalar((*this), arg);
         }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
         // template <typename Arg, int Arg2, template<typename Arg1, int a> class Expression >
-        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
+        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType
+                  , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Arg, IntType> const& arg) const ->decltype(this->value_int(arg)) {
-            return value_int(arg);
+        auto operator() (Expression<Arg, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+            return evaluation::value_int((*this), arg);
         }
 
-        template <typename Arg, template<typename Arg1, int Arg2> class Expression, /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
+        template <typename Arg, template<typename Arg1, int Arg2> class Expression
+                  , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
         GT_FUNCTION
-        auto operator() (Expression<Arg, exponent> const& arg) const ->decltype(this->value_int(arg)) {
-            return value_int(arg);
+        auto operator() (Expressio<Anrg, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+            return evaluation::value_int((*this), arg);
         }
 
-#endif //CXX11_ENABLED
-
-        /**@brief method for incrementing the index when moving forward along the k direction */
-        template <ushort_t Coordinate>
-        GT_FUNCTION
-        void initialize(uint_t const& index=0, uint_t const& block=0)
-            {
-                initialize_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0], *m_strides);
-            }
-
+#endif // CXX11_ENABLED
 
     };
 
@@ -545,4 +353,191 @@ namespace gridtools {
 
     };
 
+
+//    ################## IMPLEMENTATION ##############################
+
+
+    /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
+       \param arg placeholder containing the storage ID and the offsets
+       \param storage_pointer pointer to the first element of the specific data field used
+    */
+    template<typename LocalDomain>
+    template <typename ArgType, typename StoragePointer>
+    GT_FUNCTION
+    typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
+    iterate_domain<LocalDomain>::get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const
+    {
+
+
+#ifdef CXX11_ENABLED
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+#else
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+#endif
+        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+
+        //the following assert fails when an out of bound access is observed, i.e. either one of
+        //i+offset_i or j+offset_j or k+offset_k is too large.
+        //Most probably this is due to you specifying a positive offset which is larger than expected,
+        //or maybe you did a mistake when specifying the ranges in the placehoders definition
+        assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
+               +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+               ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+            );
+
+        //the following assert fails when an out of bound access is observed,
+        //i.e. when some offset is negative and either one of
+        //i+offset_i or j+offset_j or k+offset_k is too small.
+        //Most probably this is due to you specifying a negative offset which is
+        //smaller than expected, or maybe you did a mistake when specifying the ranges
+        //in the placehoders definition.
+        // If you are running a parallel simulation another common reason for this to happen is
+        // the definition of an halo region which is too small in one direction
+        // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
+        assert( (int_t)(m_index[ArgType::index_type::value])
+                +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+                >= 0);
+
+#ifdef CXX11_ENABLED
+        GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+#endif
+            return *(real_storage_pointer
+                     +(m_index[ArgType::index_type::value])
+                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                     //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
+                     ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+                );
+    }
+
+
+    /** @brief method called in the Do methods of the functors.
+        Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+    template<typename LocalDomain>
+    template < typename ArgType>
+    GT_FUNCTION
+    typename boost::enable_if<
+        typename boost::mpl::bool_<(ArgType::type::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+        , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  RESTRICT
+    iterate_domain<LocalDomain>::operator()(ArgType const& arg) const {
+
+#ifdef CXX11_ENABLED
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
+#else
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args)) )>::type storage_type;
+#endif
+        //if the following assertion fails you have specified a dimension for the extended storage
+        //which does not correspond to the size of the extended placeholder for that storage
+        /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::type::n_args); */
+
+        //for the moment the extra dimensionality of the storage is limited to max 2
+        //(3 space dim + 2 extra= 5, which gives n_args==4)
+        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
+            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+
+
+            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+
+            // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
+
+            return get_value(arg,
+                             (*m_data_pointer)[
+                                 storage_type::get_index
+                                 (
+                                     (
+                                         ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
+                                         arg.template get<0>() //offset for the current dimension
+                                         :
+                                         arg.template get<0>() //offset for the current dimension
+                                         //limitation to "rectangular" vector fields for non-static fields dimensions
+                                         +  arg.template get<1>()
+                                         * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+                                         ))//+ the offset of the other extra dimension
+                                 + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
+                                 ]);
+    }
+
+
+#ifndef __CUDACC__
+    /** @brief method called in the Do methods of the functors.
+
+        Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+    template <typename LocalDomain>
+    template < typename ArgType, typename ... Pairs>
+    GT_FUNCTION
+    typename boost::mpl::at<typename LocalDomain::esf_args
+                            , typename ArgType::index_type>::type::value_type& RESTRICT
+    iterate_domain<LocalDomain>::operator()(arg_mixed<ArgType, Pairs ... > const& arg) const {
+
+        typedef arg_mixed<ArgType, Pairs ... > arg_mixed_t;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
+
+        //if the following assertion fails you have specified a dimension for the extended storage
+        //which does not correspond to the size of the extended placeholder for that storage
+        /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_args); */
+
+        //for the moment the extra dimensionality of the storage is limited to max 2
+        //(3 space dim + 2 extra= 5, which gives n_args==4)
+        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
+            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+
+
+            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+
+            return get_value(arg,
+                             (*m_data_pointer)[ //static if
+                                 //TODO: re implement offsets in arg_type which can be or not constexpr (not in a vector)
+                                 storage_type::get_index(
+                                     (
+                                         ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
+                                         arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
+                                         :
+                                         arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
+#ifdef CXX11_ENABLED
+                                         //hypotheses (we can weaken it using constexpr static functions):
+                                         //storage offsets are known at compile-time
+                                         + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
+#else
+                                         //limitation to "rectangular" vector fields for non-C++11 storages
+                                         +  arg_mixed_t::template get_constexpr<1>()
+                                         * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+#endif
+                                         ))//+ the offset of the other extra dimension
+                                 + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
+                                 ]);
+
+    }
+
+
+    /** @brief method called in the Do methods of the functors.
+
+        specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
+        Allows direct access to the storage by only using the offsets
+    */
+    template <typename LocalDomain>
+    template <typename ArgType, typename StoragePointer>
+    GT_FUNCTION
+    typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
+    iterate_domain<LocalDomain>::get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const {
+
+        assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+               ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
+
+        assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+               ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
+        GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+
+#ifdef CXX11_ENABLED
+            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+#else
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+#endif
+
+        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+
+        return *(real_storage_pointer
+                 +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                 ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
+    }
+#endif //ifndef __CUDACC__
 } // namespace gridtools

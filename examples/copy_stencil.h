@@ -11,7 +11,6 @@
 #include <papi.h>
 #endif
 
-#include<omp.h>
 /*
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
@@ -25,8 +24,6 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-int k;
-#pragma omp threadprivate(k)
 
 namespace copy_stencil{
     // This is the definition of the special regions in the "vertical" direction
@@ -93,7 +90,7 @@ namespace copy_stencil{
 #endif
         //                   strides  1 x xy
         //                      dims  x y z
-        typedef gridtools::layout_map<0,1,2> layout_t;
+        typedef gridtools::layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)
@@ -139,13 +136,13 @@ namespace copy_stencil{
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
-                    {
+                {
 #ifdef CXX11_ENABLED
-                        in(i, j, k)=i+j+k;
+                    in(i, j, k)=i+j+k;
 #else
-                        in(i, j, k)=i+j+k;
+                    in(i, j, k)=i+j+k;
 #endif
-                    }
+                }
 
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -208,20 +205,20 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-    gridtools::make_computation<gridtools::BACKEND, layout_t>
-    (
-        gridtools::make_mss // mss_descriptor
-        (
-            execute<forward>(),
-            gridtools::make_esf<copy_functor>(
-                p_in() // esf_descriptor
+            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            (
+                gridtools::make_mss // mss_descriptor
+                (
+                    execute<forward>(),
+                    gridtools::make_esf<copy_functor>(
+                        p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                ,p_out()
+                        ,p_out()
 #endif
-            )
-        ),
-        domain, coords
-    );
+                        )
+                    ),
+                domain, coords
+                );
 
         copy->ready();
 
@@ -265,32 +262,33 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
+        printf("dimensions are: %d, %d, %d\n", d1, d2, d3);
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
-                    {
+                {
 #ifdef CXX11_ENABLED
-                        if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
 #else
-                            if (in(i, j, k)!=out(i,j,k)) {
+                        if (in(i, j, k)!=out(i,j,k)) {
 #endif
-                                std::cout << "error in "
-                                          << i << ", "
-                                          << j << ", "
-                                          << k << ": "
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
 #ifdef CXX11_ENABLED
-                                          << "in = " << (in.get_value<0,0>(i, j, k))
-                                          << ", out = " << (in.get_value<0,1>(i, j, k))
+                                      << "in = " << (in.get_value<0,0>(i, j, k))
+                                      << ", out = " << (in.get_value<0,1>(i, j, k))
 #else
-                                          << "in = " << in(i, j, k)
-                                          << ", out = " << out(i, j, k)
+                                      << "in = " << in(i, j, k)
+                                      << ", out = " << out(i, j, k)
 #endif
-                                          << std::endl;
-                                success = false;
+                                      << std::endl;
+                            success = false;
                         }
                     }
-                        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
-                        return success;
-    }
-}//namespace copy_stencil
+                    std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+                    return success;
+                }
+    }//namespace copy_stencil

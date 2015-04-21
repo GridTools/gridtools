@@ -121,7 +121,7 @@ namespace gridtools {
         friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B> const & );
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        base_storage():
+        base_storage() :
             is_set( false ),
             m_name("default_storage")
             {}
@@ -133,7 +133,7 @@ namespace gridtools {
       \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
         */
    template<typename FloatType=float_type, typename boost::enable_if<boost::is_float<FloatType>, int>::type=0>
-   base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType const& init=float_type(), char const* s="default storage"):
+   base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType const& init=float_type(), char const* s="default storage") :
        is_set( true ),
        m_name(s),
        m_dims(),
@@ -158,7 +158,7 @@ namespace gridtools {
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
    template <class ... UIntTypes, typename Dummy = typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<UIntTypes>::type::value ... ), bool >::type >
-   base_storage(  UIntTypes const& ... args  ):
+   base_storage(  UIntTypes const& ... args  ) :
        is_set( false ),
        m_name("default_storage"),
        m_dims(),
@@ -187,7 +187,7 @@ namespace gridtools {
            sets all the data members given the storage dimensions
         */
    base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3,
-           value_type init = value_type(0.), char const* s="default storage" ):
+           value_type init = value_type(0.), char const* s="default storage" ) :
        is_set( true )
        , m_name(s)
             {
@@ -502,11 +502,6 @@ namespace gridtools {
         }
 #endif
 
-        // /**@brief straightforward interface*/
-        // template <typename ... UInt>
-        // GT_FUNCTION
-        // uint_t _index(UInt const& ... dims) const { _index(strides(), dims...);}
-
         /**
            @brief computing index to access the storage relative to the coordinates passed as parameters.
 
@@ -576,11 +571,6 @@ namespace gridtools {
         GT_FUNCTION
         pointer_type const& data() const {return (m_fields[0]);}
 
-        /** @brief returns a pointer to the data field*/
-        GT_FUNCTION
-        typename pointer_type::pointee_t* get_address() const {
-            return (m_fields[0]).get();}
-
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
         pointer_type const* fields() const {return &(m_fields[0]);}
@@ -625,7 +615,7 @@ namespace gridtools {
         bool is_set;
         const char* m_name;
         // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
-        pointer_type m_fields[field_dimensions];
+        array<pointer_type, field_dimensions> m_fields;
         array<uint_t, space_dimensions> m_dims;
         array<uint_t, space_dimensions> m_strides;
 
@@ -693,11 +683,6 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
         using super::setup;
 
-        /** @brief returns the address to the first element of the current data field (pointed by (m_fields[0]))*/
-        GT_FUNCTION
-        typename pointer_type::pointee_t* get_address() const {
-            return super::get_address();}
-
         /**
            @brief returns the index (in the array of data snapshots) corresponding to the specified offset
            basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the latter case it returns offset modulo the size of the array.
@@ -708,12 +693,11 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
             return (offset+n_width)%n_width;
         }
 
-        /** @brief returns the address of the first element of the specified data field
-            The data field to be accessed is identified given an offset, which is the index of the local array of snapshots.
+        /**
+            @brief returns a const reference to the specified data snapshot
+
+            \param index the index of the snapshot in the array
         */
-        GT_FUNCTION
-        typename pointer_type::pointee_t* get_address(short_t offset) const {
-            return super::m_fields[get_index(offset)].get();}
         GT_FUNCTION
         pointer_type const& get_field(int index) const {return super::m_fields[index];};
 
@@ -733,10 +717,6 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         */
         GT_FUNCTION
         void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
-            //Too many shaphots pushed! exceeding the buffer width allocated of the storage.
-// #ifndef __CUDACC__
-//        assert(!super::m_fields[to-1].get());
-// #endif
             //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
             for(uint_t i=from+1;i<to;i++) super::m_fields[i]=super::m_fields[i-1];
             super::m_fields[from]=(field);
@@ -749,11 +729,6 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
             pointer_type tmp(super::m_fields[to-1]);
             for(uint_t i=from+1;i<to;i++) super::m_fields[i]=super::m_fields[i-1];
             super::m_fields[from]=tmp;
-        }
-
-        GT_FUNCTION
-        pointer_type const*  fields(){
-            return super::fields();
         }
 
         /**@brief printing the first values of all the snapshots contained in the discrete field*/
