@@ -1,9 +1,6 @@
 #pragma once
 #include <gt_for_each/for_each.hpp>
 #include "../backend_traits_fwd.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 /**@file
 @brief type definitions and structures specific for the Host backend
@@ -19,12 +16,8 @@ namespace gridtools{
         /**
            Global variable storing the current thread id
         */
-#ifdef _OPENMP
         int __attribute__((weak)) gt_thread_id;
 #pragma omp threadprivate(gt_thread_id)
-#else
-        static const int gt_thread_id=1;
-#endif
     }//namespace multithreading
 
     /**forward declaration*/
@@ -92,9 +85,7 @@ namespace gridtools{
            region is encountered.
          */
         static void set_thread_id(){
-#ifdef _OPENMP
             multithreading::gt_thread_id=thread_id();
-#endif
         }
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
