@@ -57,7 +57,7 @@ namespace gridtools {
             actual_args_type,
             boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
 
-private:
+    private:
         // iterate_domain remembers the state. This is necessary when
         // we do finite differences and don't want to recompute all
         // the iterators (but simply use the ones available for the
@@ -66,11 +66,11 @@ private:
         LocalDomain const& local_domain;
         array<uint_t,N_STORAGES> m_index;
 
-        array<void* __restrict__, N_DATA_POINTERS>* __restrict__ m_data_pointer;
+        array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT m_data_pointer;
 
-        strides_cached<N_STORAGES-1, typename LocalDomain::esf_args>* __restrict__ m_strides;
+        strides_cached<N_STORAGES-1, typename LocalDomain::esf_args>* RESTRICT m_strides;
 
-public:
+    public:
         /**@brief constructor of the iterate_domain struct
 
            It assigns the storage pointers to the first elements of
@@ -95,7 +95,7 @@ public:
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( array<void* __restrict__, N_DATA_POINTERS>* __restrict__ data_pointer ){
+        void assign_storage_pointers( array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT data_pointer ){
 
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
@@ -106,7 +106,7 @@ public:
 
         template<typename BackendType, typename Strides>
         GT_FUNCTION
-        void assign_stride_pointers( Strides * __restrict__ strides_){
+        void assign_stride_pointers( Strides * RESTRICT strides_){
             m_strides=strides_;
             assign_strides< N_STORAGES-1, BackendType >::assign(*m_strides, local_domain.local_args);
         }
@@ -115,47 +115,47 @@ public:
         /**@brief getter for the index array */
         GT_FUNCTION
         void get_index(array<uint_t, N_STORAGES>& index) const
-        {
-            set_index_recur< N_STORAGES-1>::set(m_index, index);
-        }
+            {
+                set_index_recur< N_STORAGES-1>::set(m_index, index);
+            }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <typename Input>
         GT_FUNCTION
         void set_index(Input const& index)
-        {
-            set_index_recur< N_STORAGES-1>::set( index, m_index);
-        }
+            {
+                set_index_recur< N_STORAGES-1>::set( index, m_index);
+            }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment()
-        {
-            increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
-        }
+            {
+                increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
+            }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment(uint_t const& steps_)
-        {
-            increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, steps_, &m_index[0], *m_strides);
-        }
+            {
+                increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, steps_, &m_index[0], *m_strides);
+            }
 
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from_)
-        {
-            increment_index<N_STORAGES-1, 2, enumtype::forward>::assign(local_domain.local_args, from_, &m_index[0], *m_strides);
-        }
+            {
+                increment_index<N_STORAGES-1, 2, enumtype::forward>::assign(local_domain.local_args, from_, &m_index[0], *m_strides);
+            }
 
         template <typename T>
         GT_FUNCTION
         void info(T const &x) const
-        {
-            local_domain.info(x);
-        }
+            {
+                local_domain.info(x);
+            }
 
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
@@ -164,17 +164,17 @@ public:
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& __restrict__
-        get_value(ArgType const& arg , StoragePointer & __restrict__ storage_pointer) const
-{
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
+        get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const
+            {
 
 
 #ifdef CXX11_ENABLED
-            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+                using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
 #else
                 typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
-                typename storage_type::value_type * __restrict__ real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+                typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
                 //the following assert fails when an out of bound access is observed, i.e. either one of
                 //i+offset_i or j+offset_j or k+offset_k is too large.
@@ -194,20 +194,20 @@ public:
                 // If you are running a parallel simulation another common reason for this to happen is
                 // the definition of an halo region which is too small in one direction
                 // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
-        assert( (int_t)(m_index[ArgType::index_type::value])
-               +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                assert( (int_t)(m_index[ArgType::index_type::value])
+                        +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                         ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
                         >= 0);
 
 #ifdef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 #endif
-                return *(real_storage_pointer
-                         +(m_index[ArgType::index_type::value])
-                         +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                         //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                         ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                    );
+                    return *(real_storage_pointer
+                             +(m_index[ArgType::index_type::value])
+                             +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                             //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
+                             ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+                        );
             }
 
 
@@ -232,7 +232,7 @@ public:
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type& __restrict__
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type& RESTRICT
         operator()(expr_direct_access<ArgType > const& arg) const {
             return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type >::value]);
         }
@@ -245,7 +245,7 @@ public:
         GT_FUNCTION
         typename boost::enable_if<typename boost::mpl::bool_<(ArgType::type::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type,
                                                              typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type
-                                                             >::type& __restrict__
+                                                             >::type& RESTRICT
         operator()(ArgType const& arg) const {
 
             return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::index_type::value==0), LocalDomain, typename ArgType::type >::value]);
@@ -254,48 +254,48 @@ public:
 
         /** @brief method called in the Do methods of the functors.
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
-        template < typename ArgType>
-        GT_FUNCTION
-        typename boost::enable_if<
-            typename boost::mpl::bool_<(ArgType::type::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
-                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  __restrict__
-        operator()(ArgType const& arg) const {
+            template < typename ArgType>
+            GT_FUNCTION
+            typename boost::enable_if<
+                typename boost::mpl::bool_<(ArgType::type::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  RESTRICT
+            operator()(ArgType const& arg) const {
 
 #ifdef CXX11_ENABLED
-            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
+                using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
 #else
-            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args)) )>::type storage_type;
+                typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
-            //if the following assertion fails you have specified a dimension for the extended storage
-            //which does not correspond to the size of the extended placeholder for that storage
-            /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::type::n_args); */
+                //if the following assertion fails you have specified a dimension for the extended storage
+                //which does not correspond to the size of the extended placeholder for that storage
+                /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::type::n_args); */
 
-            //for the moment the extra dimensionality of the storage is limited to max 2
-            //(3 space dim + 2 extra= 5, which gives n_args==4)
-            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-                GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+                //for the moment the extra dimensionality of the storage is limited to max 2
+                //(3 space dim + 2 extra= 5, which gives n_args==4)
+                GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
+                    GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 
-                GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+                    GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
 
-                // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
+                    // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
-                return get_value(arg,
-                                 (*m_data_pointer)[
-                                     storage_type::get_index
-                                     (
+                    return get_value(arg,
+                                     (*m_data_pointer)[
+                                         storage_type::get_index
                                          (
-                                             ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
-                                             arg.template get<0>() //offset for the current dimension
-                                             :
-                                             arg.template get<0>() //offset for the current dimension
-                                             //limitation to "rectangular" vector fields for non-static fields dimensions
-                                             +  arg.template get<1>()
-                                             * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
-                                             ))//+ the offset of the other extra dimension
-                                     + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
-                                     ]);
-        }
+                                             (
+                                                 ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
+                                                 arg.template get<0>() //offset for the current dimension
+                                                 :
+                                                 arg.template get<0>() //offset for the current dimension
+                                                 //limitation to "rectangular" vector fields for non-static fields dimensions
+                                                 +  arg.template get<1>()
+                                                 * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+                                                 ))//+ the offset of the other extra dimension
+                                         + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
+                                         ]);
+            }
 
 
 
@@ -306,7 +306,7 @@ public:
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
         template < typename ArgType, typename ... Pairs>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& __restrict__
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
         operator()(arg_mixed<ArgType, Pairs ... > const& arg) const {
 
             typedef arg_mixed<ArgType, Pairs ... > arg_mixed_t;
@@ -333,7 +333,7 @@ public:
                                              arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
                                              :
                                              arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
- #ifdef CXX11_ENABLED
+#ifdef CXX11_ENABLED
                                              //hypotheses (we can weaken it using constexpr static functions):
                                              //storage offsets are known at compile-time
                                              + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
@@ -355,14 +355,14 @@ public:
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& __restrict__
-        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & __restrict__ storage_pointer) const {
+        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
+        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const {
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
 
-         assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
+            assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                   ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
             GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 #ifdef CXX11_ENABLED
@@ -371,7 +371,7 @@ public:
             typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
 
-            typename storage_type::value_type * __restrict__ real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+            typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
             return *(real_storage_pointer
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
@@ -455,8 +455,8 @@ public:
         }
 
         template <typename ArgType1, /*typename IntType, IntType*/int exponent/*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */>
-            GT_FUNCTION
-            auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
+        GT_FUNCTION
+        auto value_int(expr_pow<ArgType1, exponent> const& arg) const -> decltype(products<exponent>::apply((*this)(arg.first_operand))) {return products<exponent>::apply((*this)(arg.first_operand));}
 
         /**@}@}*/
 
@@ -498,9 +498,9 @@ public:
         template <ushort_t Coordinate>
         GT_FUNCTION
         void initialize(uint_t const& index=0, uint_t const& block=0)
-        {
-            initialize_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0], *m_strides);
-        }
+            {
+                initialize_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args, index, block, &m_index[0], *m_strides);
+            }
 
 
     };
@@ -519,29 +519,29 @@ public:
         GT_FUNCTION
         stateful_iterate_domain(LocalDomain const& local_domain)
             : iterate_domain<LocalDomain>(local_domain)
-        {}
+            {}
 #endif
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment(uint_t steps_=1)
-        {
-            if (Coordinate==0) {
-                i+=steps_;
-            }
-            if (Coordinate==1) {
-                j+=steps_;
-            }
+            {
+                if (Coordinate==0) {
+                    i+=steps_;
+                }
+                if (Coordinate==1) {
+                    j+=steps_;
+                }
 
-            base_type::template increment<Coordinate, Execution>(steps_);
-        }
-            /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
+                base_type::template increment<Coordinate, Execution>(steps_);
+            }
+        /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from_)
-        {
-            k = from_;
-            base_type::set_k_start(from_);
-        }
+            {
+                k = from_;
+                base_type::set_k_start(from_);
+            }
 
     };
 

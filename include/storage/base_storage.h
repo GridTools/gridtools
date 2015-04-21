@@ -418,7 +418,7 @@ namespace gridtools {
            Coordinates 0,1,2 correspond to i,j,k respectively*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr uint_t strides(StridesVector const& __restrict__ strides_){
+        static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
         }
 
@@ -465,7 +465,7 @@ namespace gridtools {
 #ifndef __CUDACC__
         constexpr
 #endif
-        uint_t  _index(StridesVector const& __restrict__ strides_, uint_t const& i, uint_t const& j, uint_t const&  k) const {
+        uint_t  _index(StridesVector const& RESTRICT strides_, uint_t const& i, uint_t const& j, uint_t const&  k) const {
             uint_t index;
             index =
                 strides_[0]
@@ -491,7 +491,7 @@ namespace gridtools {
         template <typename StridesVector, typename ... UInt>
         GT_FUNCTION
         constexpr
-        uint_t _index(StridesVector const& __restrict__ strides_, UInt const& ... dims) const {
+        uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) const {
 #ifndef __CUDACC__
             typedef boost::mpl::vector<UInt...> tlist;
             //boost::is_same<boost::mpl::_1, uint_t>
@@ -514,7 +514,7 @@ namespace gridtools {
         */
         template <typename OffsetTuple, typename StridesVector>
         GT_FUNCTION
-        int_t _index(StridesVector const& __restrict__ strides_, OffsetTuple  const& tuple) const {
+        int_t _index(StridesVector const& RESTRICT strides_, OffsetTuple  const& tuple) const {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 
@@ -523,7 +523,7 @@ namespace gridtools {
             note: returns a signed int because it might be negative (used e.g. in iterate_domain)*/
    template<typename IntType, typename StridesVector>
         GT_FUNCTION
-        int_t _index( StridesVector const& __restrict__ strides_, IntType* __restrict__ indices) const {
+        int_t _index( StridesVector const& RESTRICT strides_, IntType* RESTRICT indices) const {
 
             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, indices);
         }
@@ -534,7 +534,7 @@ namespace gridtools {
         */
         template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment( uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment( uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if(layout::template at_< Coordinate >::value >=0)//static if
             {
@@ -549,7 +549,7 @@ namespace gridtools {
         */
         template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment(uint_t const& steps_, uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_){
+        void increment(uint_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
@@ -564,7 +564,7 @@ namespace gridtools {
 
         template <uint_t Coordinate, typename StridesVector >
         GT_FUNCTION
-        void initialize(uint_t const& steps_, uint_t const& /*block*/, uint_t* __restrict__ index_, StridesVector const& __restrict__ strides_){
+        void initialize(uint_t const& steps_, uint_t const& /*block*/, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {

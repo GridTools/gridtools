@@ -8,21 +8,21 @@
 #include "arg_type.h"
 
 /**
-@file
-@brief file implementing helper functions which are used in iterate_domain to assign/increment strides, access indices and storage pointers.
+   @file
+   @brief file implementing helper functions which are used in iterate_domain to assign/increment strides, access indices and storage pointers.
 
-All the helper functions use template recursion to implement loop unrolling
+   All the helper functions use template recursion to implement loop unrolling
 */
 
 namespace gridtools{
     /**
-        @brief struct to allocate recursively all the strides with the proper dimension
+       @brief struct to allocate recursively all the strides with the proper dimension
 
-        the purpose of this struct is to allocate the storage for the strides of a set of storages. Tipically
-        it is used to cache these strides in a fast memory (e.g. shared memory).
-        \tparam ID recursion index, representing the current storage
-        \tparam StorageList typelist of the storages
-     */
+       the purpose of this struct is to allocate the storage for the strides of a set of storages. Tipically
+       it is used to cache these strides in a fast memory (e.g. shared memory).
+       \tparam ID recursion index, representing the current storage
+       \tparam StorageList typelist of the storages
+    */
     template<uint_t ID, typename StorageList>
     struct strides_cached : public strides_cached<ID-1, StorageList> {
         typedef typename  boost::mpl::at_c<StorageList, ID>::type::storage_type storage_type;
@@ -32,11 +32,11 @@ namespace gridtools{
         GT_FUNCTION
             strides_cached():super(){
             GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<StorageList>::value > ID, "Library internal error: strides index exceeds the number of storages")
-        }
+                }
 
         template<short_t Idx>
             GT_FUNCTION
-            uint_t * __restrict__ get() {
+            uint_t * RESTRICT get() {
             return ((Idx==ID-1)? &m_data[0] : (super::template get<Idx>()));
         }
 
@@ -55,7 +55,7 @@ namespace gridtools{
 
         template<short_t Idx>
         GT_FUNCTION
-        uint_t * __restrict__ get() {//stop recursion
+        uint_t * RESTRICT get() {//stop recursion
             //GRIDTOOLS_STATIC_ASSERT(Idx==0, "Internal library error: Index exceeding the storage_list dimension.")
             return &m_data[0];
         }
@@ -87,21 +87,21 @@ namespace gridtools{
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
+        static void assign(Left& RESTRICT l, Right const& RESTRICT r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            BackendType::template once_per_block<Id>::assign(l[Offset+Number],r->field_offset(Number,EU_id_i, EU_id_j));
-            assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
-        }
+            {
+                BackendType::template once_per_block<Id>::assign(l[Offset+Number],r->field_offset(Number,EU_id_i, EU_id_j));
+                assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
+            }
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
+        static void assign(Left& RESTRICT l, Right const& RESTRICT r, int EU_id_i, int EU_id_j,
                            typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            BackendType::template once_per_block<Id>::assign(l[Offset+Number], r->fields()[Number].get());
-            assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
-        }
+            {
+                BackendType::template once_per_block<Id>::assign(l[Offset+Number], r->fields()[Number].get());
+                assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
+            }
 
     };
 
@@ -113,19 +113,19 @@ namespace gridtools{
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
+        static void assign(Left& RESTRICT l, Right const& RESTRICT r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields_offset(0,EU_id_i, EU_id_j));
-        }
+            {
+                BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields_offset(0,EU_id_i, EU_id_j));
+            }
 
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r, int EU_id_i, int EU_id_j,
+        static void assign(Left& RESTRICT l, Right const& RESTRICT r, int EU_id_i, int EU_id_j,
                            typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
-        {
-            BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields()[0].get());
-        }
+            {
+                BackendType:: template once_per_block<Id>::assign(l[Offset],r->fields()[0].get());
+            }
     };
 
     /**@brief this struct counts the total number of data fields which are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
@@ -146,69 +146,69 @@ namespace gridtools{
         static const uint_t count=boost::remove_pointer<typename boost::remove_reference<typename  boost::mpl::at_c<StoragesVector, 0 >::type>::type>::type::field_dimensions;
     };
 
-        /**@brief incrementing all the storage pointers to the m_data_pointers array
+    /**@brief incrementing all the storage pointers to the m_data_pointers array
 
-           \tparam ID identifier for the current storage (recursion index)
-           \tparam Coordinate direction along which the increment takes place
-           \tparam Execution policy determining how the increment is done (e.g. increment/decrement)
+       \tparam ID identifier for the current storage (recursion index)
+       \tparam Coordinate direction along which the increment takes place
+       \tparam Execution policy determining how the increment is done (e.g. increment/decrement)
+    */
+    template<uint_t ID, uint_t Coordinate, enumtype::execution Execution>
+    struct increment_index {
+
+        /**@brief does the actual assignment
+
+           This method is responsible of incrementing the index for the memory access at
+           the location (i,j,k) incremented/decremented by 1 along the 'Coordinate' direction. Such index is shared among all the fields contained in the
+           same storage class instance, and it is not shared among different storage instances.
+
+           The actual increment computation is delegated to the storage classes, the reason being that the implementation may depend on the storage type
+           (e.g. whether the storage is temporary, partiitoned into blocks, ...)
         */
-        template<uint_t ID, uint_t Coordinate, enumtype::execution Execution>
-        struct increment_index {
+        template<typename Storage, typename Strides>
+        GT_FUNCTION
+        static void assign(Storage const& r_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+            boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(&index_[ID], strides_.template get<ID>());
+            increment_index<ID-1, Coordinate, Execution>::assign(r_,index_,strides_);
+        }
 
-            /**@brief does the actual assignment
+        /** @brief method for computing the index rof the memory access at a specific (i,j,k) location incremented/decremented by 'increment_' in direction 'Coordinate'.
+         */
+        template<typename Storage, typename Strides>
+        GT_FUNCTION
+        static void assign(Storage const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+            boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(increment_,&index_[ID], strides_.template get<ID>());
+            increment_index<ID-1, Coordinate, Execution>::assign(r_,increment_,index_,strides_);
+        }
 
-               This method is responsible of incrementing the index for the memory access at
-               the location (i,j,k) incremented/decremented by 1 along the 'Coordinate' direction. Such index is shared among all the fields contained in the
-               same storage class instance, and it is not shared among different storage instances.
-
-               The actual increment computation is delegated to the storage classes, the reason being that the implementation may depend on the storage type
-               (e.g. whether the storage is temporary, partiitoned into blocks, ...)
-            */
-            template<typename Storage, typename Strides>
-            GT_FUNCTION
-            static void assign(Storage const& r_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-                boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(&index_[ID], strides_.template get<ID>());
-                increment_index<ID-1, Coordinate, Execution>::assign(r_,index_,strides_);
-            }
-
-            /** @brief method for computing the index rof the memory access at a specific (i,j,k) location incremented/decremented by 'increment_' in direction 'Coordinate'.
-             */
-            template<typename Storage, typename Strides>
-            GT_FUNCTION
-            static void assign(Storage const& r_, uint const& increment_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-                boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(increment_,&index_[ID], strides_.template get<ID>());
-                increment_index<ID-1, Coordinate, Execution>::assign(r_,increment_,index_,strides_);
-            }
-
-        };
+    };
 
 
-        /**usual specialization to stop the recursion*/
-        template<uint_t Coordinate, enumtype::execution Execution>
-        struct increment_index<0, Coordinate, Execution>{
+    /**usual specialization to stop the recursion*/
+    template<uint_t Coordinate, enumtype::execution Execution>
+    struct increment_index<0, Coordinate, Execution>{
 
-            template<typename Storage
-                     , typename Strides
-                     >
-            GT_FUNCTION
-            static void assign( Storage const &  r_, uint_t* __restrict__ index_, Strides & __restrict__ strides_){
-                boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(&index_[0], (strides_.template get<0>() )
-                    );
-            }
+        template<typename Storage
+                 , typename Strides
+                 >
+        GT_FUNCTION
+        static void assign( Storage const &  r_, uint_t* RESTRICT index_, Strides & RESTRICT strides_){
+            boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(&index_[0], (strides_.template get<0>() )
+                );
+        }
 
-            template<typename Storage, typename Strides>
-            GT_FUNCTION
-            static void assign(Storage const& r_, uint const& increment_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
-                boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(increment_,&index_[0], strides_.template get<0>());
-            }
+        template<typename Storage, typename Strides>
+        GT_FUNCTION
+        static void assign(Storage const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+            boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(increment_,&index_[0], strides_.template get<0>());
+        }
 
-        };
+    };
 
 
     /**@brief assigning all the storage pointers to the m_data_pointers array
 
        similar to the increment_index class, but assigns the indices, and it does not depend on the storage type
-     */
+    */
     template<uint_t ID>
     struct set_index_recur{
         /**@brief does the actual assignment
@@ -259,9 +259,9 @@ namespace gridtools{
     };
 
 
-        /**@brief initializing the indeces*/
-        template<uint_t ID, uint_t Coordinate>
-        struct initialize_index {
+    /**@brief initializing the indeces*/
+    template<uint_t ID, uint_t Coordinate>
+    struct initialize_index {
 
         /**@brief does the actual assignment
            This method is responsible of computing the index for the memory access at
@@ -270,7 +270,7 @@ namespace gridtools{
         */
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& __restrict__ r_, uint_t id_, uint_t block_, uint_t* __restrict__ index_, Strides &  __restrict__ strides_){
+        static void assign(Storage const& RESTRICT r_, uint_t id_, uint_t block_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
 
             boost::fusion::at_c<ID>(r_)->template initialize<Coordinate>(id_, block_, &index_[ID], strides_.template get<ID>());
             initialize_index<ID-1, Coordinate>::assign(r_, id_,block_,index_,strides_);
@@ -285,69 +285,69 @@ namespace gridtools{
                  , typename Strides
                  >
         GT_FUNCTION
-        static void assign( Storage const & __restrict__ r_, uint_t id_, uint_t block_, uint_t* __restrict__ index_, Strides & __restrict__ strides_){
+        static void assign( Storage const & RESTRICT r_, uint_t id_, uint_t block_, uint_t* RESTRICT index_, Strides & RESTRICT strides_){
 
             boost::fusion::at_c<0>(r_)->template initialize<Coordinate>(id_, block_, &index_[0], (strides_.template get<0>() )
                 );
         }
     };
 
-        /**@brief assigning all the storage pointers to the m_data_pointers array*/
-        template<uint_t ID, typename BackendType>
-        struct assign_storage{
+    /**@brief assigning all the storage pointers to the m_data_pointers array*/
+    template<uint_t ID, typename BackendType>
+    struct assign_storage{
 
-            /**@brief does the actual assignment
-               This method is responsible of copying the base pointers of the storages inside a local vector
-               which is tipically instantiated on a fast local memory.
+        /**@brief does the actual assignment
+           This method is responsible of copying the base pointers of the storages inside a local vector
+           which is tipically instantiated on a fast local memory.
 
-               The EU stands for ExecutionUnit (thich may be a thread or a group of
-               threads. There are potentially two ids, one over i and one over j, since
-               our execution model is parallel on (i,j). Defaulted to 1.
-            */
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left& __restrict__ l, Right const & __restrict__ r, int EU_id_i, int EU_id_j){
+           The EU stands for ExecutionUnit (thich may be a thread or a group of
+           threads. There are potentially two ids, one over i and one over j, since
+           our execution model is parallel on (i,j). Defaulted to 1.
+        */
+        template<typename Left, typename Right>
+        GT_FUNCTION
+        static void assign(Left& RESTRICT l, Right const & RESTRICT r, int EU_id_i, int EU_id_j){
 #ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer
-                    <typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
+            typedef typename std::remove_pointer
+                <typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
-                typedef typename boost::remove_pointer
-                    <typename boost::remove_reference
-                    <BOOST_TYPEOF(boost::fusion::at_c<ID>(r))
-                    >::type
-                    >::type storage_type;
+            typedef typename boost::remove_pointer
+                <typename boost::remove_reference
+                 <BOOST_TYPEOF(boost::fusion::at_c<ID>(r))
+                  >::type
+                 >::type storage_type;
 #endif
-                //if the following fails, the ID is larger than the number of storage types
-                GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
+            //if the following fails, the ID is larger than the number of storage types
+            GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
 
-                    assign_raw_data<storage_type::field_dimensions-1,
-                                    total_storages<Right, ID-1>::count,
-                                    BackendType,
-                                    storage_type>::
-                    assign(l, boost::fusion::at_c<ID>(r),
-                           EU_id_i, EU_id_j);
+                assign_raw_data<storage_type::field_dimensions-1,
+                                total_storages<Right, ID-1>::count,
+                                BackendType,
+                                storage_type>::
+                assign(l, boost::fusion::at_c<ID>(r),
+                       EU_id_i, EU_id_j);
 
-                assign_storage<ID-1, BackendType>::assign(l, r, EU_id_i, EU_id_j); //tail recursion
-            }
-        };
+            assign_storage<ID-1, BackendType>::assign(l, r, EU_id_i, EU_id_j); //tail recursion
+        }
+    };
 
-        /**usual specialization to stop the recursion*/
-        template<typename BackendType>
-        struct assign_storage<0, BackendType>{
+    /**usual specialization to stop the recursion*/
+    template<typename BackendType>
+    struct assign_storage<0, BackendType>{
 
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left & __restrict__ l, Right const & __restrict__ r, int EU_id_i, int EU_id_j){
+        template<typename Left, typename Right>
+        GT_FUNCTION
+        static void assign(Left & RESTRICT l, Right const & RESTRICT r, int EU_id_i, int EU_id_j){
 #ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
+            typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #else
-                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
+            typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
 #endif
-                // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
-                assign_raw_data<storage_type::field_dimensions-1, 0, BackendType, storage_type>::
-                    assign(l, boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
-            }
-        };
+            // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
+            assign_raw_data<storage_type::field_dimensions-1, 0, BackendType, storage_type>::
+                assign(l, boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
+        }
+    };
 
 
     /**
@@ -360,7 +360,7 @@ namespace gridtools{
         static const uint_t Id=(Number)%BLOCK_SIZE;
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* __restrict__ l, Right const* __restrict__ r){
+        static void assign(Left* RESTRICT l, Right const* RESTRICT r){
             BackendType:: template once_per_block<Id>::assign(l[Number],r[Number]);
             assign_strides_rec<Number-1, BackendType>::assign(l, r);
         }
@@ -373,7 +373,7 @@ namespace gridtools{
         static const uint_t Id=0;
         template<typename Left , typename Right >
         GT_FUNCTION
-        static void assign(Left* __restrict__ l, Right const* __restrict__ r){
+        static void assign(Left* RESTRICT l, Right const* RESTRICT r){
             BackendType:: template once_per_block<Id>::assign(l[0],r[0]);
         }
     };
@@ -387,13 +387,13 @@ namespace gridtools{
        for(j=0; j<n_d(i); ++j)
     */
     template<uint_t ID, typename BackendType>
-            struct assign_strides{
+    struct assign_strides{
 
         /**@brief does the actual assignment
          */
         template<typename Left, typename Right>
         GT_FUNCTION
-        static void assign(Left& __restrict__ l, Right const& __restrict__ r){
+        static void assign(Left& RESTRICT l, Right const& RESTRICT r){
 #ifdef CXX11_ENABLED
             typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
 #else
@@ -406,19 +406,19 @@ namespace gridtools{
         }
     };
 
-        /**usual specialization to stop the recursion*/
-        template<typename BackendType>
-            struct assign_strides<0, BackendType>{
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left & __restrict__ l_, Right const & __restrict__ r_){
+    /**usual specialization to stop the recursion*/
+    template<typename BackendType>
+    struct assign_strides<0, BackendType>{
+        template<typename Left, typename Right>
+        GT_FUNCTION
+        static void assign(Left & RESTRICT l_, Right const & RESTRICT r_){
 #ifdef CXX11_ENABLED
-                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
+            typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
 #else
-                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
+            typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
 #endif
-                assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(l_.template get<0>(), &boost::fusion::at_c<0>(r_)->strides(1));
-            }
-        };
+            assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(l_.template get<0>(), &boost::fusion::at_c<0>(r_)->strides(1));
+        }
+    };
 
 }//namespace gridtools

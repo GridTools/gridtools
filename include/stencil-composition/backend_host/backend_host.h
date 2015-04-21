@@ -7,7 +7,7 @@
 
 #include "../iteration_policy.h"
 #include "../../common/gridtools_runtime.h"
- #include "../loop_hierarchy.h"
+#include "../loop_hierarchy.h"
 
 /**
    @file
@@ -27,11 +27,18 @@ namespace gridtools {
             typedef _impl::run_functor < run_functor_host < Arguments > > base_type;
             explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
                 : base_type(domain_list, coords)
-            {}
+                {}
 
-            explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj, uint_t blki, uint_t blkj)
+            explicit run_functor_host(typename Arguments::local_domain_list_t& domain_list
+                                      , typename Arguments::coords_t const& coords
+                                      , uint_t i
+                                      , uint_t j
+                                      , uint_t bi
+                                      , uint_t bj
+                                      , uint_t blki
+                                      , uint_t blkj)
                 : base_type(domain_list, coords, i, j, bi, bj, blki, blkj)
-            {}
+                {}
 
         };
     }
@@ -58,7 +65,7 @@ namespace gridtools {
            This functor contains the portion of the code executed in the innermost loop. In this case it
            is the loop over the third dimension (k), but the generality of the loop hierarchy implementation
            allows to easily generalize this.
-         */
+        */
         template<typename LoopIntervals, typename RunOnInterval, typename IterateDomain, typename RunKernelType, typename  IterationPolicy>
         struct innermost_functor{
 
@@ -89,85 +96,89 @@ namespace gridtools {
         */
         template< typename Traits >
         static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * func_ )
-        {
-            typedef typename Arguments::coords_t coords_type;
-            typedef typename Arguments::loop_intervals_t loop_intervals_t;
-            typedef typename Traits::range_t range_t;
-            typedef typename Traits::functor_t functor_type;
-            typedef typename Traits::local_domain_t  local_domain_t;
-            typedef typename Traits::interval_map_t interval_map_type;
-            typedef typename Traits::iterate_domain_t iterate_domain_type;
-            typedef typename Arguments::execution_type_t execution_type_t;
+            {
+                typedef typename Arguments::coords_t coords_type;
+                typedef typename Arguments::loop_intervals_t loop_intervals_t;
+                typedef typename Traits::range_t range_t;
+                typedef typename Traits::functor_t functor_type;
+                typedef typename Traits::local_domain_t  local_domain_t;
+                typedef typename Traits::interval_map_t interval_map_type;
+                typedef typename Traits::iterate_domain_t iterate_domain_type;
+                typedef typename Arguments::execution_type_t execution_type_t;
 
-            typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value, get_xrange< functor_type >, boost::mpl::identity<range<0,0,0> > >::type new_range_t;
-            typedef typename sum_range<new_range_t, range_t>::type xrange_t;
-            typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value, get_xrange_subdomain< functor_type >, boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+                typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value
+                                                       , get_xrange< functor_type >
+                                                       , boost::mpl::identity<range<0,0,0> > >::type new_range_t;
 
-            int_t boundary=func_->m_coords.partitioner()/*.communicator()*/.boundary();
-            int_t jminus=(int_t)  xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0) ;//j-low
-            int_t iminus=(int_t) (xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) );//i-low
-            int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0)) ;//j-high
-            int_t iplus=(int_t) xrange_subdomain_t::iplus::value + ((boundary%2)>0? xrange_t::iplus::value : 0) ;//i-high
+                typedef typename sum_range<new_range_t, range_t>::type xrange_t;
 
-            typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
+                typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value
+                                                       , get_xrange_subdomain< functor_type >
+                                                       , boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+
+                int_t boundary=func_->m_coords.partitioner()/*.communicator()*/.boundary();
+                int_t jminus=(int_t)  xrange_subdomain_t::jminus::value + ((boundary)>7? xrange_t::jminus::value : 0) ;//j-low
+                int_t iminus=(int_t) (xrange_subdomain_t::iminus::value + ((boundary%8)>3? xrange_t::iminus::value : 0) );//i-low
+                int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + ((boundary%4)>1? xrange_t::jplus::value : 0)) ;//j-high
+                int_t iplus=(int_t) xrange_subdomain_t::iplus::value + ((boundary%2)>0? xrange_t::iplus::value : 0) ;//i-high
+
+                typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG
-            std::cout << "Functor " <<  functor_type() << "\n";
-            std::cout << "I loop " << (int_t)func_->m_start[0] <<"+"<< iminus << " -> "
-                      << func_->m_start[0] <<"+"<< func_->m_block[0] <<"+"<< iplus << "\n";
-            std::cout << "J loop " << (int_t)func_->m_start[1] <<"+"<< jminus << " -> "
-                      << (int_t)func_->m_start[1] <<"+"<< func_->m_block[1] <<"+"<< jplus << "\n";
-            std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-            std::cout << " ******************** " << func_->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
-            std::cout<<"iminus::value: "<<iminus<<std::endl;
+                std::cout << "Functor " <<  functor_type() << "\n";
+                std::cout << "I loop " << (int_t)func_->m_start[0] <<"+"<< iminus << " -> "
+                          << func_->m_start[0] <<"+"<< func_->m_block[0] <<"+"<< iplus << "\n";
+                std::cout << "J loop " << (int_t)func_->m_start[1] <<"+"<< jminus << " -> "
+                          << (int_t)func_->m_start[1] <<"+"<< func_->m_block[1] <<"+"<< jplus << "\n";
+                std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
+                std::cout << " ******************** " << func_->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+                std::cout<<"iminus::value: "<<iminus<<std::endl;
 #endif
 
-            array<void* __restrict__,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
-            strides_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
+                array<void* RESTRICT,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
+                strides_cached<Traits::iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
 
-             iterate_domain_type it_domain(local_domain);
-             it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
+                iterate_domain_type it_domain(local_domain);
+                it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
 
-             it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
+                it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
 
-             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
-             typedef typename index_to_level<typename interval::first>::type from;
-             typedef typename index_to_level<typename interval::second>::type to;
-             typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+                typedef typename boost::mpl::front<loop_intervals_t>::type interval;
+                typedef typename index_to_level<typename interval::first>::type from;
+                typedef typename index_to_level<typename interval::second>::type to;
+                typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
+                typedef array<uint_t, Traits::iterate_domain_t::N_STORAGES> array_t;
+                loop_hierarchy<array_t, loop_item<0, enumtype::forward>
+                               , loop_item<1, enumtype::forward> > ij_loop(
+                    func_->m_start[0] + iminus,
+                    func_->m_start[0] + func_->m_block[0] + iplus,
+                    func_->m_start[1] + jminus,
+                    func_->m_start[1] + func_->m_block[1] + jplus
+                    );
 
-             typedef array<uint_t, Traits::iterate_domain_t::N_STORAGES> array_t;
-                    loop_hierarchy<array_t, loop_item<0, enumtype::forward>, loop_item<1, enumtype::forward> > ij_loop(
-                        func_->m_start[0] + iminus,
-                        func_->m_start[0] + func_->m_block[0] + iplus,
-                        func_->m_start[1] + jminus,
-                        func_->m_start[1] + func_->m_block[1] + jplus
-                        );
+                //reset the index
+                it_domain.set_index(0);
+                ij_loop.initialize(it_domain, func_->m_block_id);
 
-                    //reset the index
-                    it_domain.set_index(0);
-                    ij_loop.initialize(it_domain, func_->m_block_id);
+                //define the kernel functor
+                typedef innermost_functor<loop_intervals_t
+                                          , _impl::run_f_on_interval
+                                          <
+                                                execution_type_t,
+                                                extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
+                                                >
+                                          , typename Traits::iterate_domain_t
+                                          , backend_t
+                                          , iteration_policy
+                                          > innermost_functor_t;
 
-                    //define the kernel functor
-                    typedef innermost_functor<loop_intervals_t
-                                              , _impl::run_f_on_interval
-                                              <
-                                                  execution_type_t,
-                                                  extra_arguments<functor_type, interval_map_type, iterate_domain_type, coords_type>
-                                                  >
-                                              , typename Traits::iterate_domain_t
-                                              , backend_t
-                                              , iteration_policy
-                                              > innermost_functor_t;
+                //instantiate the kernel functor
+                innermost_functor_t f(it_domain,func_);
 
-                    //instantiate the kernel functor
-                    innermost_functor_t f(it_domain,func_);
+                //run the nested ij loop
+                ij_loop.apply(it_domain, f);
 
-                    //run the nested ij loop
-                    ij_loop.apply(it_domain, f);
-
-        }
-
+            }
     };
-
 
 } // namespace gridtools

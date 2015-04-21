@@ -92,7 +92,7 @@ namespace gridtools{
                \param indices the array of coordinates
             */template<typename IntType, typename StridesVector>
             GT_FUNCTION
-            static constexpr int_t apply(StridesVector const& __restrict__ strides_, IntType* indices_){
+            static constexpr int_t apply(StridesVector const& RESTRICT strides_, IntType* indices_){
                 return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 
@@ -103,7 +103,7 @@ namespace gridtools{
             */
             template< typename StridesVector, typename ... UInt>
             GT_FUNCTION
-            static constexpr int_t apply(StridesVector const& __restrict__ strides_, UInt const& ... indices_){
+            static constexpr int_t apply(StridesVector const& RESTRICT strides_, UInt const& ... indices_){
                 return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)+compute_offset<Id-1, Layout>::apply(strides_, indices_... );
             }
 #endif
@@ -113,7 +113,7 @@ namespace gridtools{
             */
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
-            static constexpr int_t apply(StridesVector const& __restrict__ strides_, Tuple const&  indices_){
+            static constexpr int_t apply(StridesVector const& RESTRICT strides_, Tuple const&  indices_){
                 return (int_t)strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 
@@ -127,14 +127,14 @@ namespace gridtools{
 
             template<typename IntType, typename StridesVector>
             GT_FUNCTION
-            static int_t apply(StridesVector const& __restrict__ /*strides*/, IntType* indices_){
+            static int_t apply(StridesVector const& RESTRICT /*strides*/, IntType* indices_){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices_);
             }
 
 #ifdef CXX11_ENABLED
             template<typename StridesVector, typename ... IntType>
             GT_FUNCTION
-            static int_t apply(StridesVector const& __restrict__ /*strides*/, IntType const& ... indices_){
+            static int_t apply(StridesVector const& RESTRICT /*strides*/, IntType const& ... indices_){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices_ ...);
             }
 #endif
@@ -144,7 +144,7 @@ namespace gridtools{
             */
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
-            static int_t apply(StridesVector const& __restrict__ /*strides*/, Tuple const&  indices_){
+            static int_t apply(StridesVector const& RESTRICT /*strides*/, Tuple const&  indices_){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices_);
             }
         };

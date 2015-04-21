@@ -98,10 +98,10 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     //
     storage_type in_data ((uint_t) 3,(uint_t) 2,(uint_t) 1,
                                  (float_type *) in_data_buff,
-								 "in_data");
+                                 "in_data");
     storage_type out_data ((uint_t) 3,(uint_t) 2,(uint_t) 1,
                                  (float_type *) out_data_buff,
-								 "out_data");
+                                 "out_data");
 
     //
     // place-holder definition: their order matches the stencil parameters,

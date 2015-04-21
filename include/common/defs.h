@@ -25,6 +25,8 @@
 #define DEPRECATED(func) func
 #endif
 
+#define RESTRICT __restrict__
+
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
 
