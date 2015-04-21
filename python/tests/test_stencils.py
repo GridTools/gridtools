@@ -200,7 +200,7 @@ class CopyTest (unittest.TestCase):
         self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
                                          self.out_cpy[beg_i:end_i, beg_j:end_j]))
 
-    @attr(speed='fast')
+
     def test_native_execution_performance (self):
         import time
 

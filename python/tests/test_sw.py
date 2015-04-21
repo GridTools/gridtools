@@ -27,13 +27,15 @@ import unittest
 import logging
 import numpy as np
 
-from numpy import zeros
+from nose.plugins.attrib import attr
 
-from gridtools import MultiStageStencil
+from gridtools.stencil import MultiStageStencil
+from tests.test_stencils import CopyTest
 
 
 
-class ShallowWater (MultiStageStencil):
+
+class ShallowWater2D (MultiStageStencil):
     """
     Implements the shallow water equation as a multi-stage stencil.-
     """
@@ -41,7 +43,7 @@ class ShallowWater (MultiStageStencil):
         """
         A comment to make AST parsing more difficult.-
         """
-        super (ShallowWater, self).__init__ ( )
+        super ( ).__init__ ( )
 
         self.domain = domain
         #
@@ -61,44 +63,55 @@ class ShallowWater (MultiStageStencil):
         self.g = 9.8
 
         #
-        # time and timestep
+        # timestep
         #
-        self.t  = 0.00
-        self.dt = 0.02
+        self.dt = 0.00125
+        self.bl = 0.2
 
         #
         # temporary data fields
         #
-        self.Hx = np.zeros ((self.n+1, self.n+1, 1))
-        self.Ux = np.zeros ((self.n+1, self.n+1, 1))
-        self.Vx = np.zeros ((self.n+1, self.n+1, 1))
+        self.Hd = np.zeros (self.domain)
+        self.Ud = np.zeros (self.domain)
+        self.Vd = np.zeros (self.domain)
 
-        self.Hy = np.zeros ((self.n+1, self.n+1, 1))
-        self.Uy = np.zeros ((self.n+1, self.n+1, 1))
-        self.Vy = np.zeros ((self.n+1, self.n+1, 1))
+        self.Hx = np.zeros (self.domain)
+        self.Ux = np.zeros (self.domain)
+        self.Vx = np.zeros (self.domain)
+
+        self.Hy = np.zeros (self.domain)
+        self.Uy = np.zeros (self.domain)
+        self.Vy = np.zeros (self.domain)
+
+        self.Havg = np.zeros (self.domain)
+        self.Uavg = np.zeros (self.domain)
+        self.Vavg = np.zeros (self.domain)
 
 
-    def droplet (self, height, width):
+    def droplet (self, H):
         """
-        A two-dimensional Gaussian of the falling drop into the water:
+        A two-dimensional falling drop into the water:
 
-            height  height of the generated drop;
-            width   width of the generated drop.-
+            H   the water height field.-
         """
-        x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
-        y = np.copy (x)
-        drop = height * np.exp (-5*(x*x + y*y))
-        #
-        # pad the resulting array with zeros
-        #
-        #zeros = np.zeros (shape[:-1])
-        #zeros[:drop.shape[0], :drop.shape[1]] = drop
-        #return zeros.reshape (zeros.shape[0],
-        #                      zeros.shape[1], 
-        #                      1)
-        return drop.reshape ((drop.shape[0],
-                              drop.shape[1],
-                              1))
+        x,y = np.mgrid[:self.domain[0], :self.domain[1]]
+        droplet_x, droplet_y = self.domain[0]/2, self.domain[1]/2
+        rr = (x-droplet_x)**2 + (y-droplet_y)**2
+        H[rr<(self.domain[0]/10)**2] = 1.1 # add a perturbation in pressure surface
+        #x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
+        #y = np.copy (x)
+        #drop = height * np.exp (-5*(x*x + y*y))
+        ##
+        ## pad the resulting array with zeros
+        ##
+        ##zeros = np.zeros (shape[:-1])
+        ##zeros[:drop.shape[0], :drop.shape[1]] = drop
+        ##return zeros.reshape (zeros.shape[0],
+        ##                      zeros.shape[1], 
+        ##                      1)
+        #return drop.reshape ((drop.shape[0],
+        #                      drop.shape[1],
+        #                      1))
 
 
     def create_random_drop (self, H):
@@ -141,6 +154,66 @@ class ShallowWater (MultiStageStencil):
 
 
     def kernel (self, out_H, out_U, out_V):
+        for p in self.get_interior_points (out_U):
+            #
+            # temporaries used later
+            #
+            self.Ux[p]   = out_U[p + (1,0,0)] - out_U[p + (-1,0,0)]
+            self.Uy[p]   = out_U[p + (0,1,0)] - out_U[p + (0,-1,0)]
+            self.Uavg[p] = (out_U[p + (1,0,0)] + out_U[p + (-1,0,0)] + out_U[p + (0,1,0)] + out_U[p + (0,-1,0)]) / 4.0
+            #
+            # diffusion
+            #
+            out_U[p] = out_U[p] * (1-self.bl) + self.bl * self.Uavg[p]
+            #
+            # dynamics
+            #
+            self.Ud[p] = -out_U[p] * self.Ux[p]
+
+        for p in self.get_interior_points (out_V):
+            #
+            # temporaries used later
+            #
+            self.Vx[p]   = out_V[p + (1,0,0)] - out_V[p + (-1,0,0)]
+            self.Vy[p]   = out_V[p + (0,1,0)] - out_V[p + (0,-1,0)]
+            self.Vavg[p] = (out_V[p + (1,0,0)] + out_V[p + (-1,0,0)] + out_V[p + (0,1,0)] + out_V[p + (0,-1,0)]) / 4.0
+            #
+            # diffusion
+            #
+            out_V[p] = out_V[p] * (1-self.bl) + self.bl * self.Vavg[p]
+            #
+            # dynamics
+            #
+            self.Vd[p] = -out_V[p] * self.Vy[p]
+
+        for p in self.get_interior_points (out_H):
+            #
+            # temporaries used later
+            #
+            self.Hx[p]   = out_H[p + (1,0,0)] - out_H[p + (-1,0,0)]
+            self.Hy[p]   = out_H[p + (0,1,0)] - out_H[p + (0,-1,0)]
+            self.Havg[p] = (out_H[p + (1,0,0)] + out_H[p + (-1,0,0)] + out_H[p + (0,1,0)] + out_H[p + (0,-1,0)]) / 4.0
+            #
+            # diffusion
+            #
+            out_H[p] = out_H[p] * (1-self.bl) + self.bl * self.Havg[p]
+            #
+            # dynamics
+            #
+            self.Ud[p] = self.Ud[p] - 0.12 * self.Hx[p]
+            self.Vd[p] = self.Vd[p] - 0.12 * self.Hy[p]
+            self.Hd[p] = self.Hd[p] - out_H[p] * (self.Ux[p] + self.Vy[p])
+            #
+            # take first-order Euler step
+            #
+            out_U[p] = out_U[p] + self.dt * self.Ud[p];
+            out_V[p] = out_V[p] + self.dt * self.Vd[p];
+            out_H[p] = out_H[p] + self.dt * self.Hd[p];
+
+
+
+
+    def kernel_old (self, out_H, out_U, out_V):
         """
         This stencil comprises multiple stages.-
         """
@@ -172,8 +245,7 @@ class ShallowWater (MultiStageStencil):
         for p in self.get_interior_points (out_H):
             # height
             self.Hy[p]  = ( out_H[p + (1,1,0)] + out_H[p + (1,0,0)] ) / 2.0
-            self.Hy[p] -= self.dt / (2*self.dy) * ( out_V[p + (1,1,0)] - out_V[p+ (1,0,0)] )
-
+            self.Hy[p] -= ( out_V[p + (1,1,0)] - out_V[p + (1,0,0)] ) * ( self.dt / (2*self.dy) )
             # X momentum
             self.Uy[p]  = ( out_U[p + (1,1,0)] + out_U[p + (1,0,0)] ) / 2.0
             self.Uy[p] -= self.dt / (2*self.dy) * ( ( out_V[p + (1,1,0)] * out_U[p + (1,1,0)] / out_H[p + (1,1,0)] ) -
@@ -193,7 +265,7 @@ class ShallowWater (MultiStageStencil):
         #
         for p in self.get_interior_points (out_H):
             # height
-            out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-2,0)] - self.Ux[p + (-1,-1,0)] )
+            out_H[p] -= (self.dt / self.dx) * ( self.Ux[p + (0,-1,0)] - self.Ux[p + (-1,-1,0)] )
             out_H[p] -= (self.dt / self.dy) * ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] )
 
             # X momentum
@@ -217,29 +289,31 @@ class ShallowWater (MultiStageStencil):
 
 
 
-
-#class ShallowWaterTest (CopyTest):
-class ShallowWaterTest (unittest.TestCase):
+class ShallowWater2DTest (CopyTest):
     """
     A test case for the shallow water stencil defined above.-
     """
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (32, 32, 1)
+        self.domain = (16, 16, 1)
 
         self.params = ('out_H', 'out_U', 'out_V')
-        self.temps  = ('Hx', 'Hy', 'Ux', 'Uy', 'Vx', 'Vy')
+        self.temps  = ('Havg', 'Hd', 'Hx', 'Hy', 
+                       'Uavg', 'Ud', 'Ux', 'Uy', 
+                       'Vavg', 'Vd', 'Vx', 'Vy')
 
         self.out_H = np.ones  (self.domain)
         self.out_U = np.zeros (self.domain)
         self.out_V = np.zeros (self.domain)
 
-        self.stencil = ShallowWater (self.domain)
-        self.stencil.set_halo        ( (1, 1, 1, 1) )
+        self.stencil = ShallowWater2D (self.domain)
+        
+        self.stencil.set_halo        ( (2, 2, 2, 2) )
         self.stencil.set_k_direction ("forward")
 
 
+    @attr(lang='c++')
     def test_interactive_plot (self):
         """
         Displays an animation inside a matplotlib graph.-
@@ -251,28 +325,25 @@ class ShallowWaterTest (unittest.TestCase):
         #
         # enable native execution for the stencil
         #
-        self.stencil.backend = 'c++'
+        #self.stencil.backend = 'c++'
+        self.stencil.backend = 'python'
 
         #
         # disturb the water surface
         #
-        self.stencil.create_random_drop (self.H)
+        self.stencil.droplet (self.out_H)
 
         #
         # show its evolution
         #
-        for i in range (100):
-            self.stencil.reflect_borders (self.H,
-                                        self.U,
-                                        self.V)
-            self.stencil.run (out_H=self.H,
-                            out_U=self.U,
-                            out_V=self.V)
-            print ("%d - %s - sum(H): %s" % (i,
-                                             self.stencil.backend,
-                                             np.sum (self.H)))
+        for i in range (1000):
+            #self.stencil.reflect_borders (self.out_H,
+            #                            self.out_U,
+            #                            self.out_V)
+            self.stencil.run (out_H=self.out_H,
+                              out_U=self.out_U,
+                              out_V=self.out_V)
 
-        """
         #
         # initialize 3D plot
         #
@@ -282,7 +353,7 @@ class ShallowWaterTest (unittest.TestCase):
         rng  = np.arange (self.domain[0])
         X, Y = np.meshgrid (rng, rng)
         surf = ax.plot_wireframe (X, Y, 
-                                 np.squeeze (self.H, axis=(2,)),
+                                 np.squeeze (self.out_H, axis=(2,)),
                                  rstride=1, 
                                  cstride=1, 
                                  cmap=cm.jet, 
@@ -295,29 +366,29 @@ class ShallowWaterTest (unittest.TestCase):
             #
             # reflective boundary conditions
             #
-            swobj.reflect_borders (self.H,
-                                   self.U,
-                                   self.V)
+            swobj.reflect_borders (self.out_H,
+                                   self.out_U,
+                                   self.out_V)
             #
             # run the stencil
             #
-            swobj.run (out_H=self.H,
-                       out_U=self.U,
-                       out_V=self.V)
+            swobj.run (out_H=self.out_H,
+                       out_U=self.out_U,
+                       out_V=self.out_V)
             #print ("%d - %s - sum(H): %s" % (framenumber,
             #                                 swobj.backend,
-            #                                 np.sum (self.H)))
+            #                                 np.sum (self.out_H)))
             #
             # reset if the system becomes unstable
             #
-            if np.any (np.isnan (self.H)):
+            if np.any (np.isnan (self.out_H)):
                 self.setUp ( )
-                self.stencil.create_random_drop (self.H)
+                self.stencil.droplet (self.out_H)
                 print ("Reseting ...")
 
             ax.cla ( )
             surf = ax.plot_wireframe (X, Y, 
-                                np.squeeze (self.H, axis=(2,)),
+                                np.squeeze (self.out_H, axis=(2,)),
                                 rstride=1, 
                                 cstride=1, 
                                 cmap=cm.jet, 
@@ -343,97 +414,27 @@ class ShallowWaterTest (unittest.TestCase):
        
         for p in self.params:
             self.assertEqual (scope[p].range, [0, 1, 0, 1])
-    """
 
 
-    def test_compare_python_and_native_executions (self):
-        import copy
+    @attr (lang='python')
+    def test_python_execution (self):
+        """
+        Checks that the stencil results are correct if executing in Python mode.-
+        """
+        #self.stencil.reflect_borders (self.out_H,
+        #                            self.out_U,
+        #                            self.out_V)
+        self.stencil.droplet (self.out_H)
 
-        water_py          = self.stencil
-        water_cxx         = copy.deepcopy (self.stencil)
-        water_cxx.backend = 'c++'
-
-        #
-        # disturb the water surface
-        #
-        self.stencil.create_random_drop (self.out_H)
-
-        #
-        # show its evolution
-        #
-        for i in range (100):
-            self.stencil.reflect_borders (self.out_H,
-                                          self.out_U,
-                                          self.out_V)
-            #
-            # original content of the data fields
-            #
-            orig_H = np.array (self.out_H)
-            orig_U = np.array (self.out_U)
-            orig_V = np.array (self.out_V)
-
-            #
-            # apply the Python version of the stencil
-            #
-            water_py.run (out_H=self.out_H,
+        self.stencil.run (out_H=self.out_H,
                           out_U=self.out_U,
                           out_V=self.out_V)
-            #
-            # apply the native version of the stencil
-            #
-            water_cxx.run (out_H=orig_H,
-                           out_U=orig_U,
-                           out_V=orig_V)
-            #
-            # compare the field contents
-            #
-            print ('%d - H - %s == %s' % (i, np.sum (orig_H), np.sum (self.out_H)))
-            #self.assertTrue (np.all (np.equal (orig_H, self.out_H)))
-            print ('%d - U - %s == %s' % (i, np.sum (orig_U), np.sum (self.out_U)))
-            #self.assertTrue (np.all (np.equal (orig_U, self.out_U)))
-            print ('%d - V - %s == %s' % (i, np.sum (orig_V), np.sum (self.out_V)))
-            #self.assertTrue (np.all (np.equal (orig_V, self.out_V)))
 
+        print (self.out_H[:,:,0])
+        print (self.out_U[:,:,0])
+        print (self.out_V[:,:,0])
 
-    """
-    def test_symbol_discovery (self):
-        ""
-        Checks that all the symbols have been correctly recognized.-
-        ""
-        self.stencil.backend = 'c++'
-        self.stencil.run (out_H=self.H,
-                        out_U=self.U,
-                        out_V=self.V)
-        #
-        # check input/output fields were correctly discovered
-        #
-        insp = self.stencil.inspector
-        out_fields = ['out_H', 'out_U', 'out_V']
-        for f in out_fields:
-            self.assertIsNotNone (insp.symbols[f])
-            self.assertTrue (insp.symbols.is_parameter (f))
-
-        #
-        # check temporary fields were correctly discovered
-        #
-        tmp_fields = [
-        for f in tmp_fields:
-            self.assertIsNotNone (insp.symbols[f])
-            self.assertTrue (insp.symbols.is_temporary (f))
-        
-
-    def test_python_execution (self):
-        ""
-        Checks that the stencil results are correct if executing in Python mode.-
-        ""
-        self.stencil.reflect_borders (self.H,
-                                    self.U,
-                                    self.V)
-        self.stencil.run (out_H=self.H,
-                        out_U=self.U,
-                        out_V=self.V)
-        self.assertIsNotNone (self.H)
-        self.assertIsNotNone (self.U)
-        self.assertIsNotNone (self.V)
-     """
+        self.assertIsNotNone (self.out_H)
+        self.assertIsNotNone (self.out_U)
+        self.assertIsNotNone (self.out_V)
 
