@@ -90,6 +90,42 @@ namespace gridtools{
                 l=r;
             }
         };
+
+        template<typename T> struct printu{BOOST_MPL_ASSERT_MSG((false), UUUUUUUU, (T));};
+        /**
+         * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
+         * and sequentially executes all the functors in the mss
+         * @tparam RunFunctorArgs run functor arguments
+         * @tparam StrategyId id of the strategy
+         */
+        template<typename RunFunctorArgs, enumtype::strategy StrategyId>
+        struct mss_loop
+        {
+            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
+            template<typename LocalDomainList, typename Coords>
+            static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
+            {
+                //each strategy executes a different high level loop for a mss
+                strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::template run(local_domain_list, coords, bi, bj);
+            }
+        };
+
+        template<typename MssLocalDomain>
+        struct fuse_mss_local_domain_strategy
+        {
+            BOOST_STATIC_ASSERT((is_mss_local_domain<MssLocalDomain>::value));
+            typedef MssLocalDomain type;
+        };
+
+        template<typename MssLocalDomain, typename MergedMssLocalDomain>
+        struct args_lookup_map
+        {
+            BOOST_STATIC_ASSERT((is_mss_local_domain<MssLocalDomain>::value));
+            BOOST_STATIC_ASSERT((is_mss_local_domain<MergedMssLocalDomain>::value));
+            typedef create_trivial_args_lookup_map<MssLocalDomain> type;
+        };
+
+
     };
 
 }//namespace gridtools
