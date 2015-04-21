@@ -135,11 +135,19 @@ public:
             increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
         }
 
+        /**@brief method for incrementing the index when moving forward along the k direction */
+        template <ushort_t Coordinate, enumtype::execution Execution>
+        GT_FUNCTION
+        void increment(uint_t const& steps_)
+        {
+            increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, steps_, &m_index[0], *m_strides);
+        }
+
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
-        void set_k_start(uint_t from)
+        void set_k_start(uint_t from_)
         {
-            increment_index<N_STORAGES-1, 2, enumtype::forward>::assign(local_domain.local_args, from, &m_index[0], *m_strides);
+            increment_index<N_STORAGES-1, 2, enumtype::forward>::assign(local_domain.local_args, from_, &m_index[0], *m_strides);
         }
 
         template <typename T>
@@ -516,23 +524,23 @@ public:
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment()
+        void increment(uint_t steps_=1)
         {
             if (Coordinate==0) {
-                i++;
+                i+=steps_;
             }
             if (Coordinate==1) {
-                j++;
+                j+=steps_;
             }
 
-            base_type::template increment<Coordinate, Execution>();
+            base_type::template increment<Coordinate, Execution>(steps_);
         }
             /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
-        void set_k_start(uint_t from)
+        void set_k_start(uint_t from_)
         {
-            k = from;
-            base_type::set_k_start(from);
+            k = from_;
+            base_type::set_k_start(from_);
         }
 
     };

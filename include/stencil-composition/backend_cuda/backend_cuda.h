@@ -44,8 +44,8 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
 
-                it_domain.template assign_ij<0>(i+starti,0);
-                it_domain.template assign_ij<1>(j+startj,0);
+                it_domain.template increment<0, enumtype::forward>(i+starti);
+                it_domain.template increment<1, enumtype::forward>(j+startj);
 
                 typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
@@ -156,10 +156,10 @@ namespace gridtools {
                 std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
                 std::cout << "Boundary " <<  f->m_coords.partitioner().boundary() << "\n";
                 std::cout << "Functor " <<  functor_type() << "\n";
-                std::cout <<"[" << pid<< "] "<< "I loop " << f->m_starti<<"  + "<<iminus << " -> "
-                          << f->m_starti<<" + "<<f->m_BI<<" + "<<iplus << "\n";
-                std::cout <<"[" << pid<< "] "<< "J loop " << f->m_startj<<" + "<<jminus << " -> "
-                          << f->m_startj<<" + "<<f->m_BJ<<" + "<<jplus << "\n";
+                std::cout <<"[" << pid<< "] "<< "I loop " << f->m_start[0]<<"  + "<<iminus << " -> "
+                          << f->m_start[0]<<" + "<<f->m_block[0]<<" + "<<iplus << "\n";
+                std::cout <<"[" << pid<< "] "<< "J loop " << f->m_start[1]<<" + "<<jminus << " -> "
+                          << f->m_start[1]<<" + "<<f->m_block[1]<<" + "<<jplus << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
