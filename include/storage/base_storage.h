@@ -629,9 +629,13 @@ namespace gridtools {
         array<uint_t, space_dimensions> m_dims;
         array<uint_t, space_dimensions> m_strides;
 
-//    /**only for stdcout purposes*/
-//    base_storage(){}
     };
+
+template < typename PointerType,
+               typename Layout,
+               bool IsTemporary,
+               short_t FieldDimension>
+const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::field_dimensions;
 
     /** @brief storage class containing a buffer of data snapshots
 
