@@ -135,7 +135,7 @@ namespace gridtools {
              typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
 
-             typedef array<int_t, Traits::iterate_domain_t::N_STORAGES> array_t;
+             typedef array<uint_t, Traits::iterate_domain_t::N_STORAGES> array_t;
                     loop_hierarchy<array_t, loop_item<0, enumtype::forward>, loop_item<1, enumtype::forward> > ij_loop(
                         func_->m_start[0] + iminus,
                         func_->m_start[0] + func_->m_block[0] + iplus,
@@ -147,6 +147,7 @@ namespace gridtools {
                     it_domain.set_index(0);
                     ij_loop.initialize(it_domain, func_->m_block_id);
 
+                    //define the kernel functor
                     typedef innermost_functor<loop_intervals_t
                                               , _impl::run_f_on_interval
                                               <
@@ -158,7 +159,10 @@ namespace gridtools {
                                               , iteration_policy
                                               > innermost_functor_t;
 
+                    //instantiate the kernel functor
                     innermost_functor_t f(it_domain,func_);
+
+                    //run the nested ij loop
                     ij_loop.apply(it_domain, f);
 
         }
