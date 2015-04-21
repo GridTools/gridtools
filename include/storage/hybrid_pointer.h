@@ -27,14 +27,13 @@ namespace gridtools {
 	explicit  hybrid_pointer(T* p, bool managed=true) : wrap_pointer<T>(p, managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
 
-	GT_FUNCTION
-        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
-            allocate_it(size);
+    explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
+        allocate_it(size);
 
 #ifndef NDEBUG
-            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+        printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
-        }
+    }
 
 // copy constructor passes on the ownership
 	GT_FUNCTION

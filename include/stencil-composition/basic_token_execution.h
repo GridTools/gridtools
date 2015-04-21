@@ -30,13 +30,12 @@ namespace gridtools {
 */
         template < typename Derived >
         struct run_f_on_interval_base {
-
             /**\brief necessary because the Derived class is an incomplete type at the moment of the instantiation of the base class*/
             typedef typename execution_policy<Derived>::traits_t traits;
             typedef typename execution_policy<Derived>::execution_engine_t execution_engine;
 
             GT_FUNCTION
-            explicit run_f_on_interval_base(typename traits::local_domain_t & domain, typename traits::coords_t const& coords)
+            explicit run_f_on_interval_base(typename traits::iterate_domain_t & domain, typename traits::coords_t const& coords)
                 : m_coords(coords)
                 , m_domain(domain)
             {}
@@ -69,7 +68,7 @@ namespace gridtools {
 
         protected:
             typename traits::coords_t const &m_coords;
-            typename traits::local_domain_t &m_domain;
+            typename traits::iterate_domain_t &m_domain;
         };
 
     } // namespace _impl

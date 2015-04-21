@@ -35,7 +35,6 @@ namespace gridtools{
             typedef typename enumtype::execute<IterationType>::type execution_engine;
             typedef ExtraArguments traits;
 
-
             //////////////////////Compile time checks ////////////////////////////////////////////////////////////
             //checking that all the placeholders have a different index
             /**
@@ -59,18 +58,14 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
 
             GT_FUNCTION
-            explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
-
+            explicit run_f_on_interval(typename traits::iterate_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
 
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(uint_t from, uint_t to) const {
-
                 for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
-                    /* printf("k=%d\n", k); */
                 }
-
             }
 
         };

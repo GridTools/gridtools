@@ -45,14 +45,24 @@ namespace gridtools {
             typedef typename boost::mpl::at<typename TMssArray::elements, Index>::type MssType;
             typedef typename mss_local_domain_t::LocalDomainList local_domain_list_t;
 
+            typedef typename backend_traits_from_id<BackendId>::
+                    template fuse_mss_local_domain_strategy<mss_local_domain_t>::type fused_mss_local_domain_t;
+
+            typedef typename backend_traits_from_id<BackendId>::
+                    template args_lookup_map<mss_local_domain_t, fused_mss_local_domain_t>::type args_lookup_map_t;
+
             local_domain_list_t& local_domain_list = (local_domain_list_t&)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;
 
             typedef typename MssType::execution_engine_t ExecutionEngine;
 
             typedef typename mss_loop_intervals<MssType, Coords>::type LoopIntervals; // List of intervals on which functors are defined
             //wrapping all the template arguments in a single container
-            typedef typename boost::mpl::if_<typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type, LoopIntervals, typename boost::mpl::reverse<LoopIntervals>::type >::type oriented_loop_intervals_t;
-                        // List of functors to execute (in order)
+            typedef typename boost::mpl::if_<
+                    typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type,
+                    LoopIntervals,
+                    typename boost::mpl::reverse<LoopIntervals>::type
+            >::type oriented_loop_intervals_t;
+            // List of functors to execute (in order)
             typedef typename MssType::functors_list functors_list_t;
             // computed range sizes to know where to compute functot at<i>
             typedef typename MssType::range_sizes range_sizes;
@@ -68,8 +78,8 @@ namespace gridtools {
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
-            //execute all the functors of the mss
-            strategy_from_id<StrategyId>::template mss_loop<run_functor_args_t, BackendId>::template run(local_domain_list, m_coords, m_block_idx, m_block_idy);
+            //now the corresponding backend has to execute all the functors of the mss
+            backend_traits_from_id<BackendId>::template mss_loop<run_functor_args_t, StrategyId>::template run(local_domain_list, m_coords, m_block_idx, m_block_idy);
         }
 
     private:

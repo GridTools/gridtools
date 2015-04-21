@@ -47,7 +47,7 @@ namespace gridtools {
         struct extra_arguments{
             typedef FunctorType functor_t;
             typedef IntervalMapType interval_map_t;
-            typedef IterateDomainType local_domain_t;
+            typedef IterateDomainType iterate_domain_t;
             typedef CoordsType coords_t;
         };
 

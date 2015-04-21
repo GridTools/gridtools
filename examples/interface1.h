@@ -297,11 +297,11 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 (
                     gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
                     gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-                    ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
                 ),
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+            ),
             domain, coords
-            );
+        );
 
     horizontal_diffusion->ready();
 

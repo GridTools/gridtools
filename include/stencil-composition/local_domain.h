@@ -277,4 +277,27 @@ namespace gridtools {
     template <typename StoragePointers, typename EsfArgs, bool IsStateful>
     struct is_local_domain<local_domain<StoragePointers, EsfArgs, IsStateful> > : boost::mpl::true_{};
 
+    template<typename T> struct local_domain_is_stateful;
+
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain_is_stateful<local_domain<StoragePointers, EsfArgs, IsStateful> > : boost::mpl::bool_<IsStateful>{};
+
+    template<typename T>
+    struct local_domain_esf_args;
+
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain_esf_args<local_domain<StoragePointers, EsfArgs, IsStateful> >
+    {
+        typedef EsfArgs type;
+    };
+
+    template<typename T>
+    struct local_domain_storage_pointers;
+
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain_storage_pointers<local_domain<StoragePointers, EsfArgs, IsStateful> >
+    {
+        typedef StoragePointers type;
+    };
+
 }
