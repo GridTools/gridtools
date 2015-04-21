@@ -16,7 +16,6 @@
 */
 
 namespace gridtools{
-
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
        A single loop spans all three directions, i, j and k

@@ -288,19 +288,38 @@ namespace gridtools {
         }
     };
 
-/**
- * @class
- *  @brief structure collecting helper metafunctions
- * */
-    template <typename Backend,
-              typename LayoutType,
-              typename TMssArray,
-              typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct intermediate : public computation {
+    template<
+        typename MssArray,
+        typename DomainType,
+        typename ActualArgListType,
+        bool IsStateful
+    > struct create_mss_local_domains
+    {
+        BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
 
-        BOOST_STATIC_ASSERT((is_meta_array<TMssArray>::value));
+        struct get_the_mss_local_domain {
+            template <typename T>
+            struct apply {
+                typedef mss_local_domain<T, DomainType, ActualArgListType, IsStateful> type;
+            };
+        };
+
+        typedef typename boost::mpl::transform<
+            typename MssArray::elements,
+            get_the_mss_local_domain
+        >::type type;
+    };
+
+    template<
+        typename Backend,
+        typename DomainType,
+        typename MssArray,
+        typename StencilValueType,
+        typename LayoutType
+    >
+    struct create_actual_arg_list
+    {
+        BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -310,8 +329,8 @@ namespace gridtools {
          */
         typedef typename Backend::template obtain_temporary_storage_types<
             DomainType,
-            TMssArray,
-            float_type,
+            MssArray,
+            StencilValueType,
             LayoutType
         >::type mpl_actual_tmp_pairs;
 
@@ -329,21 +348,36 @@ namespace gridtools {
             >
         >::type mpl_actual_arg_list;
 
-        typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type actual_arg_list_type;
+        typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type type;
 
-        struct _get_the_mss_local_domain {
-            template <typename T>
-            struct apply {
-                typedef mss_local_domain<T, DomainType, actual_arg_list_type, IsStateful> type;
-            };
-        };
+    };
 
-        typedef typename boost::mpl::transform<
-            typename TMssArray::elements,
-            _get_the_mss_local_domain
-        >::type MssLocalDomains;
+    /**
+     * @class
+     *  @brief structure collecting helper metafunctions
+     */
+    template <typename Backend,
+              typename LayoutType,
+              typename TMssArray,
+              typename DomainType,
+              typename Coords,
+              bool IsStateful>
+    struct intermediate : public computation {
+        BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
 
-        typedef typename boost::fusion::result_of::as_vector<MssLocalDomains>::type MssLocalDomainsList;
+        typedef typename create_actual_arg_list<
+                Backend,
+                DomainType,
+                TMssArray,
+                float_type,
+                LayoutType
+        >::type actual_arg_list_type;
+
+        typedef typename create_mss_local_domains<
+            TMssArray, DomainType, actual_arg_list_type, IsStateful
+        >::type mss_local_domains_t;
+
+        typedef typename boost::fusion::result_of::as_vector<mss_local_domains_t>::type MssLocalDomainsList;
 
         MssLocalDomainsList mss_local_domain_list;
 
@@ -444,17 +478,17 @@ namespace gridtools {
 #ifndef NDEBUG
                     printf("Setup computation\n");
 #endif
-                }
+            }
             else
-                {
+            {
 #ifndef NDEBUG
                     printf("Setup computation FAILED\n");
 #endif
                     exit( GT_ERROR_NO_TEMPS );
-                }
+            }
 
             boost::fusion::for_each(mss_local_domain_list,
-                                    _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
+                   _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
 
 #ifndef NDEBUG
             m_domain.info();
@@ -485,10 +519,7 @@ namespace gridtools {
             void operator()(TIndex&) const {
 
                 typedef typename boost::mpl::at<mss_array, TIndex>::type MssType;
-                std::cout << "REUNING BACKEND " << typeid(MssType).name() << std::endl;
-
                 Backend::template run<MssType>( m_coords, boost::fusion::at<TIndex>(m_mss_local_domains_list).local_domain_list );
-                std::cout << "OUT" << std::endl;
             }
 
         private:
@@ -512,16 +543,78 @@ namespace gridtools {
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
 #endif
 
-            BOOST_STATIC_ASSERT((boost::mpl::size<typename TMssArray::elements>::value == boost::mpl::size<MssLocalDomains>::value));
+            BOOST_STATIC_ASSERT((boost::mpl::size<typename TMssArray::elements>::value == boost::mpl::size<mss_local_domains_t>::value));
 
             Backend::template run<TMssArray>( m_coords, mss_local_domain_list );
-
-//            gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<TMssArray>::value > >
-//                (run_backend_functor<Coords, MssLocalDomainsList, TMssArray>(m_coords, mss_local_domain_list));
         }
 
     private:
         bool is_storage_ready;
+    };
+
+    template<typename T> struct intermediate_backend;
+
+    template <typename Backend,
+              typename LayoutType,
+              typename MssArray,
+              typename DomainType,
+              typename Coords,
+              bool IsStateful>
+    struct intermediate_backend<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+    {
+        typedef Backend type;
+    };
+
+    template<typename T> struct intermediate_domain_type;
+
+    template <typename Backend,
+              typename LayoutType,
+              typename MssArray,
+              typename DomainType,
+              typename Coords,
+              bool IsStateful>
+    struct intermediate_domain_type<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+    {
+        typedef DomainType type;
+    };
+
+    template<typename T> struct intermediate_mss_array;
+
+    template <typename Backend,
+              typename LayoutType,
+              typename MssArray,
+              typename DomainType,
+              typename Coords,
+              bool IsStateful>
+    struct intermediate_mss_array<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+    {
+        typedef MssArray type;
+    };
+
+    template<typename T> struct intermediate_layout_type;
+
+    template <typename Backend,
+              typename LayoutType,
+              typename MssArray,
+              typename DomainType,
+              typename Coords,
+              bool IsStateful>
+    struct intermediate_layout_type<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+    {
+        typedef LayoutType type;
+    };
+
+    template<typename T> struct intermediate_is_stateful;
+
+    template <typename Backend,
+              typename LayoutType,
+              typename MssArray,
+              typename DomainType,
+              typename Coords,
+              bool IsStateful>
+    struct intermediate_is_stateful<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+    {
+        typedef boost::mpl::bool_<IsStateful> type;
     };
 
 } // namespace gridtools

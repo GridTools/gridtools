@@ -110,6 +110,31 @@ namespace gridtools{
             }
         };
 
+        /**
+         * @brief main execution of a mss.
+         * @tparam RunFunctorArgs run functor arguments
+         * @tparam StrategyId id of the strategy (ignored for the CUDA backend as for the moment there is only one way
+         *     scheduling the work)
+         */
+        template<typename RunFunctorArgs, enumtype::strategy StrategyId>
+        struct mss_loop
+        {
+
+            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
+            template<typename LocalDomainList, typename Coords>
+            static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
+            {
+                //each strategy executes a different high level loop for a mss
+                strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Cuda>::template run(local_domain_list, coords, bi, bj);
+            }
+        };
+
+        template<typename MssLocalDomain>
+        struct fuse_mss_local_domain_strategy
+        {
+            BOOST_STATIC_CAST((is_mss_local_domain<MssLocalDomain>::value));
+            typedef MssLocalDomain type;
+        };
     };
 
 }//namespace gridtools
