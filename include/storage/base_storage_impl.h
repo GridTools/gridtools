@@ -254,22 +254,6 @@ namespace gridtools{
             void operator()(StorageType* s) const {
                 printf("CIAOOO TATATA %x\n",  s);
             }
-
-// #ifdef __CUDACC__
-//             template < typename T, typename U, bool B, ushort_t FieldsDimensions
-//                        >
-//             GT_FUNCTION_WARNING
-//             void operator()(base_storage<T,U,B, FieldsDimensions> *& s) const {
-//                 printf("CIAO POINTER %X\n", s);
-//             }
-// #endif
-
-            // /**@brief print for debugging purposes*/
-            // struct print_index{
-            //     template <typename BaseStorage>
-            //     GT_FUNCTION
-            //     void operator()(BaseStorage* b ) const {printf("index -> %d, address %lld, 0x%08x \n", b->index(), &b->index(), &b->index());}
-            // };
         };
 #endif
     }//namespace _debug

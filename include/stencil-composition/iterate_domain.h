@@ -114,7 +114,7 @@ public:
 
         /**@brief getter for the index array */
         GT_FUNCTION
-        void get_index(array<int_t, N_STORAGES>& index) const
+        void get_index(array<uint_t, N_STORAGES>& index) const
         {
             set_index_recur< N_STORAGES-1>::set(m_index, index);
         }

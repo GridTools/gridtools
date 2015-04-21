@@ -66,6 +66,21 @@ namespace gridtools{
         static const enumtype::execution s_execution=Execution;
     };
 
+    template<typename Loop>
+    struct is_static_loop;
+
+    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, uint_t Step>
+    struct is_static_loop< static_loop_item<ID, Execution, LowBound, UpBound, Step> > : public boost::true_type
+    {};
+
+    template<ushort_t ID, enumtype::execution Execution, uint_t Step>
+    struct is_static_loop< loop_item<ID, Execution, Step> > : public boost::false_type
+    {};
+
+    template<ushort_t ID, enumtype::execution Execution>
+    struct is_static_loop< loop_item<ID, Execution> > : public boost::false_type
+    {};
+
 /**@class Main class for handling the loop hierarchy
 
 It provides interfaces for initializing the loop and applying it.
@@ -79,13 +94,16 @@ private:
 
 public:
 
+#ifdef CXX11_ENABLED
     /**@brief constructor
 
        The constructor is templated with a pack of loop items, while it takes the loop items bounds as argument, so the first two arguments will correspond to the loop bounds (low and up respectively) of the first loop item. Note that if some of the loop items are static (static_loop_item) then their loop bounds are available from their types, and must not be specified as arguments.
      */
-    template <typename ... ExtraArgs>
+    template < typename ... ExtraArgs
+               , typename = std::enable_if< is_static_loop<First>::value >
+               >
     GT_FUNCTION
-    constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound, ExtraArgs const& ... extra ) : next(extra...), loop(low_bound, up_bound)
+    constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound, ExtraArgs const& ... extra) : next(extra...), loop(low_bound, up_bound)
         {
             //GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)>=sizeof...(Order), "not enough arguments passed to the constructor of the loops hierarchy")
             GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)/2<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy")
@@ -95,13 +113,28 @@ public:
 
        This constructor hopefully gets chosen when First is of type static_loop_item. Otherwise we have to enforce it with an enable_if.
      */
-    template <typename ... ExtraArgs>
+    template < typename ... ExtraArgs
+               , typename = std::enable_if< is_static_loop<First>::value >
+               >
     GT_FUNCTION
-    constexpr loop_hierarchy(ExtraArgs const& ... extra ) : next(extra...), loop()
+    constexpr loop_hierarchy(ExtraArgs const& ... extra  ) : next(extra...), loop()
         {
-            //GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)>=sizeof...(Order), "not enough arguments passed to the constructor of the loops hierarchy")
             GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy")
         }
+
+#else //for CXX11_ENABLED==false only 2 nested loops are allowed
+
+    // typedef typename First::fuck fuck;
+    GT_FUNCTION
+    constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound, ushort_t const& low_bound2, ushort_t const& up_bound2 ) : next(low_bound2, up_bound2), loop(low_bound, up_bound){}
+
+    //for CXX11_ENABLED==false the static loops MUST be the last ones
+    GT_FUNCTION
+    constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound)
+        : next(), loop(low_bound, up_bound){}
+
+
+#endif //CXX11_ENABLED
 
     template <typename IterateDomain, typename BlockIdVector>
     GT_FUNCTION

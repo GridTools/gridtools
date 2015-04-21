@@ -43,6 +43,17 @@ namespace gridtools {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
         }
+#else
+        GT_FUNCTION
+        array(T const& i): _array{i} {
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j): _array{i, j} {
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k): _array{i, j, k} {
+        }
+
 #endif
 
         GT_FUNCTION
