@@ -457,8 +457,7 @@ namespace gridtools {
                                  ]);
     }
 
-
-#ifndef __CUDACC__
+#if defined(CXX11_ENABLED) && !defined( __CUDACC__ )
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -493,15 +492,8 @@ namespace gridtools {
                                          arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
                                          :
                                          arg_mixed_t::template get_constexpr<0>() //offset for the current dimension
-#ifdef CXX11_ENABLED
-                                         //hypotheses (we can weaken it using constexpr static functions):
-                                         //storage offsets are known at compile-time
+                                         //hypotheses : storage offsets are known at compile-time
                                          + compute_storage_offset< typename storage_type::traits, arg_mixed_t::template get_constexpr<1>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
-#else
-                                         //limitation to "rectangular" vector fields for non-C++11 storages
-                                         +  arg_mixed_t::template get_constexpr<1>()
-                                         * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
-#endif
                                          ))//+ the offset of the other extra dimension
                                  + current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type>::value
                                  ]);
@@ -527,11 +519,7 @@ namespace gridtools {
                ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
         GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
-#ifdef CXX11_ENABLED
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
-#else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
 
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
@@ -539,5 +527,5 @@ namespace gridtools {
                  +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                  ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
     }
-#endif //ifndef __CUDACC__
+#endif //ifndef CXX11_ENABLED
 } // namespace gridtools
