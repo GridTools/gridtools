@@ -37,10 +37,6 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-
-    typedef range<0,0,0,0> xrange;
-    typedef range<0,0,0,0> xrange_subdomain;
-
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
     typedef boost::mpl::vector<out, in> arg_list;
@@ -55,9 +51,6 @@ struct lap_function {
 };
 
 struct flx_function {
-
-    typedef range<0,0,0,0> xrange;
-    typedef range<0,0,0,0> xrange_subdomain;
 
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
@@ -78,9 +71,6 @@ struct flx_function {
 
 struct fly_function {
 
-    typedef range<0,0,0,0> xrange;
-    typedef range<0,0,0,0> xrange_subdomain;
-
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
@@ -98,9 +88,6 @@ struct fly_function {
 };
 
 struct out_function {
-
-    typedef range<0,0,0,0> xrange;
-    typedef range<0,0,0,0> xrange_subdomain;
 
     typedef arg_type<0> out;
     typedef const arg_type<1> in;

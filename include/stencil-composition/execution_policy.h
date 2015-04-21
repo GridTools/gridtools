@@ -66,7 +66,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             void do_loop(uint_t const& bound) const {
 
                 //auto const bound=to-from;
-                for (long int k=0 ; k<=bound; ++k) {
+                for (uint_t k=0 ; k<=bound; ++k) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
                     IterationPolicy::increment(this->m_domain);
                     /* printf("k=%d\n", k); */

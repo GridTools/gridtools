@@ -21,7 +21,7 @@ namespace gridtools{
         constexpr string() {
         }
 
-//operator calls the constructor of the arg_type
+        //operator calls the constructor of the arg_type
         GT_FUNCTION
         static void apply (  )
             {  Callable::apply(Known::value ...);}
@@ -36,8 +36,8 @@ namespace gridtools{
         constexpr string_c() {
         }
 
-//static constexpr char* m_known[]={Known...};
-//operator calls the constructor of the arg_type
+        //static constexpr char* m_known[]={Known...};
+        //operator calls the constructor of the arg_type
         GT_FUNCTION
         static void apply (  )
             {  Callable::apply(Known ...);}
