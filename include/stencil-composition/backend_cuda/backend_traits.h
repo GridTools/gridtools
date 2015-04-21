@@ -17,7 +17,6 @@
 
 namespace gridtools{
 
-
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
        A single loop spans all three directions, i, j and k
@@ -157,7 +156,6 @@ namespace gridtools{
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-
                 typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functor_list_t>::type::value> iter_range;
 
                 typedef typename boost::mpl::at<typename RunFunctorArgs::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;

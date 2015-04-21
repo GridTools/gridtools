@@ -98,12 +98,12 @@ namespace gridtools {
         template<
             typename FunctorType,
             typename IntervalMap,
-            typename LocalDomainType,
+            typename IterateDomainType,
             typename Coords>
         struct extra_arguments{
             typedef FunctorType functor_t;
             typedef IntervalMap interval_map_t;
-            typedef LocalDomainType local_domain_t;
+            typedef IterateDomainType iterate_domain_t;
             typedef Coords coords_t;
         };
 
