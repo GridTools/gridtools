@@ -44,6 +44,7 @@ namespace gridtools {
 
             if ((i < nx) && (j < ny)) {
 
+                it_domain.set_index(0);
                 it_domain.template increment<0, enumtype::forward>(i+starti);
                 it_domain.template increment<1, enumtype::forward>(j+startj);
 

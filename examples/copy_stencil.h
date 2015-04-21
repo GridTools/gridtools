@@ -54,8 +54,7 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            //k++;
-            eval(lhs())++;// = eval(rhs());
+            eval(lhs()) = eval(rhs());
 #else
             eval(out()) = eval(in());
 #endif
@@ -263,38 +262,35 @@ namespace copy_stencil{
         //out.data().update_cpu();
         //#endif
 
-// #ifdef USE_PAPI_WRAP
-//         pw_print();
-// #endif
-//         printf("dimensions are: %d, %d, %d\n", d1, d2, d3);
-//         bool success = true;
-//         for(uint_t i=0; i<d1; ++i)
-//             for(uint_t j=0; j<d2; ++j)
-//                 for(uint_t k=0; k<d3; ++k)
-//                     {
-// #ifdef CXX11_ENABLED
-//                         if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
-// #else
-//                             if (in(i, j, k)!=out(i,j,k)) {
-// #endif
-//                                 std::cout << "error in "
-//                                           << i << ", "
-//                                           << j << ", "
-//                                           << k << ": "
-// #ifdef CXX11_ENABLED
-//                                           << "in = " << (in.get_value<0,0>(i, j, k))
-//                                           << ", out = " << (in.get_value<0,1>(i, j, k))
-// #else
-//                                           << "in = " << in(i, j, k)
-//                                           << ", out = " << out(i, j, k)
-// #endif
-//                                           << std::endl;
-//                                 success = false;
-//                         }
-//                     }
-//                         //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
-
-                        std::cout<<k;
-                        return 0;//success;
+#ifdef USE_PAPI_WRAP
+        pw_print();
+#endif
+        bool success = true;
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
+                    {
+#ifdef CXX11_ENABLED
+                        if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
+#else
+                            if (in(i, j, k)!=out(i,j,k)) {
+#endif
+                                std::cout << "error in "
+                                          << i << ", "
+                                          << j << ", "
+                                          << k << ": "
+#ifdef CXX11_ENABLED
+                                          << "in = " << (in.get_value<0,0>(i, j, k))
+                                          << ", out = " << (in.get_value<0,1>(i, j, k))
+#else
+                                          << "in = " << in(i, j, k)
+                                          << ", out = " << out(i, j, k)
+#endif
+                                          << std::endl;
+                                success = false;
+                        }
+                    }
+                        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+                        return success;
     }
 }//namespace copy_stencil
