@@ -36,9 +36,17 @@ bool test(){
     iterate_domain_ it_domain;
     functor fun;
 
-    loop_hierarchy<array_t, loop_item<1, enumtype::forward>, loop_item<5, enumtype::forward>, static_loop_item<0, enumtype::forward, 0, 10> > h(2, 5, 6, 8);
+    loop_hierarchy<array_t, loop_item<1, enumtype::forward>, loop_item<5, enumtype::forward>
+#ifdef CXX11_ENABLED
+        , static_loop_item<0, enumtype::forward, 0, 10>
+#endif
+        > h(2, 5, 6, 8);
     h.apply(it_domain, fun);
 
-    return fun.m_iterations == 4*3*11;
+    return fun.m_iterations == 4*3
+#ifdef CXX11_ENABLED
+        *11
+#endif
+        ;
 }
 }//namespace loop_test

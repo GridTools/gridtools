@@ -81,6 +81,7 @@ namespace gridtools{
     struct is_static_loop< loop_item<ID, Execution> > : public boost::false_type
     {};
 
+#ifdef CXX11_ENABLED
 /**@class Main class for handling the loop hierarchy
 
    It provides interfaces for initializing the loop and applying it.
@@ -91,6 +92,22 @@ namespace gridtools{
         First loop;
         Array restore_index;
         typedef loop_hierarchy<Array, Order ...> next;
+#else
+
+    template <typename Array, typename First>
+    struct loop_hierarchy0;
+// only 2 nested loops possible when CXX11 is disabled
+/**@class Main class for handling the loop hierarchy
+
+   It provides interfaces for initializing the loop and applying it.
+*/
+    template<typename Array, typename First, typename Order>
+    struct loop_hierarchy : public loop_hierarchy0<Array, Order > {
+    private:
+        First loop;
+        Array restore_index;
+        typedef loop_hierarchy0<Array, Order> next;
+#endif
 
     public:
 
@@ -188,7 +205,12 @@ namespace gridtools{
        TODO: there is some code repetition here below
     */
     template<typename Array, typename First>
-    struct loop_hierarchy<Array, First> {
+#ifdef CXX11_ENABLED
+    struct loop_hierarchy<Array, First>
+#else
+    struct loop_hierarchy0
+#endif
+{
 
     private:
         First loop;
@@ -196,14 +218,24 @@ namespace gridtools{
 
     public:
         GT_FUNCTION
-        constexpr loop_hierarchy(ushort_t const& up_bound, ushort_t const& low_bound ): loop(up_bound, low_bound)
+        constexpr
+#ifdef CXX11_ENABLED
+        loop_hierarchy
+#else
+        loop_hierarchy0
+#endif
+(ushort_t const& up_bound, ushort_t const& low_bound ): loop(up_bound, low_bound)
             {
             }
 
         GT_FUNCTION
-        constexpr loop_hierarchy( ) : loop()
-            {
-            }
+        constexpr
+#ifdef CXX11_ENABLED
+        loop_hierarchy
+#else
+        loop_hierarchy0
+#endif
+( ) : loop(){}
 
         /**@brief executes the loop
 
