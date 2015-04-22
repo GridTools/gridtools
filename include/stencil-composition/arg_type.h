@@ -23,8 +23,6 @@ namespace gridtools {
                "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
                field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
      */
-
-
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct arg_type : public arg_extend<ID, Range, Number, Number>::type {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
@@ -32,9 +30,9 @@ namespace gridtools {
 #ifndef __CUDACC__
         using type::arg_decorator;
 #else
-        template <typename... Whatever>
+        template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr arg_type ( Whatever... x): type (x)
+        constexpr arg_type ( ForwardedArgs... x): type (x)
             {
             }
 #endif
@@ -69,7 +67,6 @@ namespace gridtools {
         constexpr arg_type ( X x, Y y ): type(x, y)
             {
             }
-//#endif
 
 #endif
     };
@@ -86,9 +83,9 @@ namespace gridtools {
         using type::arg_decorator;
 #else
 
-        template <typename... Whatever>
+        template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr arg_type0 ( Whatever... x): type (x)
+        constexpr arg_type0 ( ForwardedArgs... x): type (x)
             {
             }
 
@@ -254,10 +251,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr
         const int_t get() const {
-            // boost::mpl::find<coordinates, static_int<Idx> >::type::fuck();
-            // boost::mpl::end<coordinates>::type::you();
-            // boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::fuckyou();
-            // static_int<Idx>::bitch();
             return boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::value ? m_args_runtime.get<Idx>() : s_args_constexpr.get<Idx>() ;
         }
     };
