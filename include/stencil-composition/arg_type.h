@@ -48,13 +48,6 @@ namespace gridtools {
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
            language keyword used at the interface level.
         */
-//#ifdef CXX11_ENABLED
-//         template <typename... Whatever>
-//         GT_FUNCTION
-//         constexpr arg_type ( Whatever... x): type (x)
-//             {
-//             }
-//#else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
         constexpr arg_type ( X x, Y y, Z z, T t ): type(x, y, z, t)
