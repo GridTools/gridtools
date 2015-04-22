@@ -70,17 +70,17 @@ namespace copy_stencil{
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3> ,
 #ifdef CUDA_EXAMPLE
-            gridtools::gcl_gpu,
+                                                    gridtools::gcl_gpu,
 #else
-            gridtools::gcl_cpu,
+                                                    gridtools::gcl_cpu,
 #endif
-            gridtools::version_manual> pattern_type;
+                                                    gridtools::version_manual> pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(true, true, true), GCL_WORLD);
         printf("halo exchange ok\n");
 
 
-    /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+        /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -88,10 +88,10 @@ namespace copy_stencil{
         typedef arg<1, storage_type> p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
- typedef boost::mpl::vector<p_in, p_out> arg_type_list;
- /* typedef arg<1, vec_storage_type > p_out; */
- // Definition of the actual data fields that are used for input/output
- //#ifdef CXX11_ENABLED
+        typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+        /* typedef arg<1, vec_storage_type > p_out; */
+        // Definition of the actual data fields that are used for input/output
+        //#ifdef CXX11_ENABLED
         ushort_t halo[3]={1,1,1};
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
@@ -115,90 +115,90 @@ namespace copy_stencil{
                 }
 
 // // Definition of the physical dimensions of the problem.
- // The constructor takes the horizontal plane dimensions,
- // while the vertical ones are set according the the axis property soon after
+        // The constructor takes the horizontal plane dimensions,
+        // while the vertical ones are set according the the axis property soon after
         //gridtools::coordinates<axis> coords(part.template get_halo_descriptor<0>(), part.template get_halo_descriptor<1>());
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
         gridtools::coordinates<axis> coords(di, dj);
         //k dimension not partitioned
- coords.value_list[0] = 0;
- coords.value_list[1] = d3-1;
+        coords.value_list[0] = 0;
+        coords.value_list[1] = d3-1;
 
 
- // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
- // It must be noted that the only fields to be passed to the constructor are the non-temporary.
- // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<arg_type_list> domain
-    (boost::fusion::make_vector(&in, &out));
+        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
+        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+        // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+        gridtools::domain_type<arg_type_list> domain
+            (boost::fusion::make_vector(&in, &out));
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual domain dimensions
-    */
+        /*
+          Here we do lot of stuff
+          1) We pass to the intermediate representation ::run function the description
+          of the stencil, which is a multi-stage stencil (mss)
+          The mss includes (in order of execution) a laplacian, two fluxes which are independent
+          and a final step that is the out_function
+          2) The logical physical domain with the fields to use
+          3) The actual domain dimensions
+        */
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* copy =
+        gridtools::computation* copy =
 #else
-                    boost::shared_ptr<gridtools::computation> copy =
+            boost::shared_ptr<gridtools::computation> copy =
 #endif
-                    gridtools::make_computation<gridtools::BACKEND, layout_t>
-                    (
-                        gridtools::make_mss // mss_descriptor
-                        (
-                            execute<forward>(),
-                            gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
+            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            (
+                gridtools::make_mss // mss_descriptor
+                (
+                    execute<forward>(),
+                    gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
                                                       , p_out()
-                                )
-                            ),
-                        domain, coords
-                        );
+                        )
+                    ),
+                domain, coords
+                );
         printf("computation instantiated\n");
 
-    copy->ready();
+        copy->ready();
 
         printf("computation ready\n");
 
-    copy->steady();
+        copy->steady();
 
         printf("computation steady\n");
 
-    copy->run();
+        copy->run();
 
         printf("computation run\n");
 
-    copy->finalize();
+        copy->finalize();
 
         printf("computation finalized\n");
 
-    std::vector<pointer_type::pointee_t*> vec(2);
+        std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=in.fields()[0].get();
         vec[1]=out.fields()[0].get();
 
-    he.pack(vec);
+        he.pack(vec);
 
         printf("copy packed \n");
 
-    he.exchange();
+        he.exchange();
 
         printf("copy exchanged\n");
 
-    he.unpack(vec);
+        he.unpack(vec);
 
         printf("copy unpacked\n");
 
         in.print();
 
-    MPI_Barrier(GCL_WORLD);
-    GCL_Finalize();
+        MPI_Barrier(GCL_WORLD);
+        GCL_Finalize();
 
-    return true;
+        return true;
     }
 
 }//namespace copy_stencil
