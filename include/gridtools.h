@@ -28,13 +28,3 @@
 #include "common/array.h"
 #include "common/layout_map.h"
 #include "common/gridtools_runtime.h"
-
-
-// #include "stencil-composition/axis.h"
-// #include "stencil-composition/make_stencils.h"
-// #include "stencil-composition/arg_type.h"
-// #include "stencil-composition/execution_types.h"
-// #include "stencil-composition/domain_type.h"
-// #include "stencil-composition/computation.h"
-// #include "stencil-composition/intermediate.h"
-// #include "stencil-composition/make_computation.h"
