@@ -110,21 +110,11 @@ namespace gridtools{
             }
         };
 
-        template<typename MssLocalDomain>
-        struct fuse_mss_local_domain_strategy
+        struct mss_fuse_esfs_strategy
         {
-            BOOST_STATIC_ASSERT((is_mss_local_domain<MssLocalDomain>::value));
-            typedef MssLocalDomain type;
+            typedef boost::mpl::bool_<false> type;
+            BOOST_STATIC_CONSTANT(bool, value=(type::value));
         };
-
-        template<typename MssLocalDomain, typename MergedMssLocalDomain>
-        struct args_lookup_map
-        {
-            BOOST_STATIC_ASSERT((is_mss_local_domain<MssLocalDomain>::value));
-            BOOST_STATIC_ASSERT((is_mss_local_domain<MergedMssLocalDomain>::value));
-            typedef create_trivial_args_lookup_map<MssLocalDomain> type;
-        };
-
 
     };
 

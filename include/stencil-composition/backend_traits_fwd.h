@@ -48,9 +48,5 @@ namespace gridtools {
     template <class Subclass>
     struct run_functor_traits;
 
-    template<typename MssLocalDomain>
-    struct fuse_mss_local_domain_strategy;
-
-    template<typename MssLocalDomain, typename MergedMssLocalDomain>
-    struct args_lookup_map;
+    struct mss_fuse_esfs_strategy;
 }
