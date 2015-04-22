@@ -123,7 +123,6 @@ namespace gridtools{
             }
         };
 
-        template<typename T> struct printu{BOOST_MPL_ASSERT_MSG((false), UUUUUUUU, (T));};
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss

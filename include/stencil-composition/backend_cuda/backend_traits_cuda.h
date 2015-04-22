@@ -124,6 +124,8 @@ namespace gridtools{
             template<typename LocalDomainList, typename Coords>
             static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
             {
+                //make sure all the local domains where fused for this backend. So there should be only one in the sequence
+                BOOST_STATIC_ASSERT((boost::mpl::size<LocalDomainList>::value == 1));
                 //each strategy executes a different high level loop for a mss
                 strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Cuda>::template run(local_domain_list, coords, bi, bj);
             }
