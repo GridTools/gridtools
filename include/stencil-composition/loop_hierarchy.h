@@ -141,7 +141,6 @@ namespace gridtools{
 
 #else //for CXX11_ENABLED==false only 2 nested loops are allowed
 
-        // typedef typename First::fuck fuck;
         GT_FUNCTION
         constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound, ushort_t const& low_bound2, ushort_t const& up_bound2 ) : next(low_bound2, up_bound2), loop(low_bound, up_bound){}
 
