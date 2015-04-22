@@ -12,6 +12,7 @@ namespace gridtools {
     /** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
     template<
         typename FunctorList,
+        typename EsfArgsMap,
         typename LoopIntervals,
         typename FunctorsMap,
         typename RangeSizes,
@@ -22,6 +23,7 @@ namespace gridtools {
     struct run_functor_arguments
     {
         typedef FunctorList functor_list_t;
+        typedef EsfArgsMap esf_args_map_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef RangeSizes range_sizes_t;
@@ -35,6 +37,7 @@ namespace gridtools {
 
     template<
         typename FunctorList,
+        typename EsfArgsMap,
         typename LoopIntervals,
         typename FunctorsMap,
         typename RangeSizes,
@@ -42,7 +45,18 @@ namespace gridtools {
         typename Coords,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
-    struct is_run_functor_arguments<run_functor_arguments<FunctorList, LoopIntervals, FunctorsMap, RangeSizes, LocalDomainList, Coords, ExecutionEngine, StrategyId> > :
-        boost::mpl::true_{};
+    struct is_run_functor_arguments<
+        run_functor_arguments<
+            FunctorList,
+            EsfArgsMap,
+            LoopIntervals,
+            FunctorsMap,
+            RangeSizes,
+            LocalDomainList,
+            Coords,
+            ExecutionEngine,
+            StrategyId
+        >
+    > : boost::mpl::true_{};
 
 } // namespace gridtools
