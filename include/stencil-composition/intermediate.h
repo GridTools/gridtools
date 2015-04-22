@@ -24,6 +24,7 @@
 #include "heap_allocated_temps.h"
 #include "mss_local_domain.h"
 #include "common/meta_array.h"
+#include "backend_metafunctions.h"
 
 /**
  * @file
@@ -289,6 +290,7 @@ namespace gridtools {
     };
 
     template<
+        enumtype::backend BackendId,
         typename MssArray,
         typename DomainType,
         typename ActualArgListType,
@@ -300,7 +302,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template <typename T>
             struct apply {
-                typedef mss_local_domain<T, DomainType, ActualArgListType, IsStateful> type;
+                typedef mss_local_domain<BackendId, T, DomainType, ActualArgListType, IsStateful> type;
             };
         };
 
@@ -364,6 +366,8 @@ namespace gridtools {
               bool IsStateful>
     struct intermediate : public computation {
         BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
+//        typedef typename ::gridtools::is_backend<Backend>::type PP;
+        BOOST_STATIC_ASSERT((is_backend<Backend>::value));
 
         typedef typename create_actual_arg_list<
                 Backend,
@@ -374,7 +378,11 @@ namespace gridtools {
         >::type actual_arg_list_type;
 
         typedef typename create_mss_local_domains<
-            TMssArray, DomainType, actual_arg_list_type, IsStateful
+            backend_id<Backend>::value,
+            TMssArray,
+            DomainType,
+            actual_arg_list_type,
+            IsStateful
         >::type mss_local_domains_t;
 
         typedef typename boost::fusion::result_of::as_vector<mss_local_domains_t>::type MssLocalDomainsList;

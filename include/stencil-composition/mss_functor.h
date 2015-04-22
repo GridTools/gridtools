@@ -43,11 +43,8 @@ namespace gridtools {
             BOOST_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value));
             BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename TMssArray::elements>::value));
             typedef typename boost::mpl::at<typename TMssArray::elements, Index>::type MssType;
-            typedef typename mss_local_domain_t::LocalDomainList local_domain_list_t;
-
-            typedef typename fuse_mss_local_domains<BackendId, mss_local_domain_t>::type fused_local_domains_sequence_t;
-            typedef typename generate_args_lookup_map<BackendId, mss_local_domain_t, fused_local_domains_sequence_t>::type
-                    fused_local_domain_args_map;
+            typedef typename mss_local_domain_list<mss_local_domain_t>::type local_domain_list_t;
+            typedef typename mss_local_domain_esf_args_map<mss_local_domain_t>::type local_domain_esf_args_map_t;
 
             local_domain_list_t& local_domain_list = (local_domain_list_t&)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;
 
@@ -68,7 +65,17 @@ namespace gridtools {
             typedef typename mss_functor_do_method_lookup_maps<MssType, Coords>::type FunctorsMap;
 
             // compute the struct with all the type arguments for the run functor
-            typedef run_functor_arguments<functors_list_t, oriented_loop_intervals_t, FunctorsMap, range_sizes, local_domain_list_t, Coords, ExecutionEngine, StrategyId> run_functor_args_t;
+            typedef run_functor_arguments<
+                functors_list_t,
+                local_domain_esf_args_map_t,
+                oriented_loop_intervals_t,
+                FunctorsMap,
+                range_sizes,
+                local_domain_list_t,
+                Coords,
+                ExecutionEngine,
+                StrategyId
+            > run_functor_args_t;
 
             typedef backend_traits_from_id< BackendId > backend_traits_t;
 
