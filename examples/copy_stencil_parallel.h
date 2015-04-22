@@ -68,7 +68,8 @@ namespace copy_stencil{
 
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
-                                                    pointer_type::pointee_t, MPI_3D_process_grid_t<3> ,
+                                                    pointer_type::pointee_t,
+                                                    MPI_3D_process_grid_t<3> ,
 #ifdef CUDA_EXAMPLE
                                                     gridtools::gcl_gpu,
 #else
@@ -76,7 +77,7 @@ namespace copy_stencil{
 #endif
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(true, true, true), GCL_WORLD);
+        pattern_type he(pattern_type::grid_type::period_type(true, false, false), GCL_WORLD);
         printf("halo exchange ok\n");
 
 
@@ -92,7 +93,7 @@ namespace copy_stencil{
         /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
-        ushort_t halo[3]={1,1,1};
+        array<ushort_t, 3> halo(1,1,1);
         typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
         parallel_storage<storage_type, partitioner_t> in(part);
@@ -102,6 +103,9 @@ namespace copy_stencil{
 
         he.add_halo<0>(out.template get_halo_gcl<0>());
         he.add_halo<1>(out.template get_halo_gcl<1>());
+        // he.add_halo<0>(1,1,1,d1,d1+2);
+        // he.add_halo<1>(1,1,1,d2,d2+2);
+
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(2);
@@ -111,16 +115,13 @@ namespace copy_stencil{
             for(uint_t j=0; j<in.template dims<1>(); ++j)
                 for(uint_t k=0; k<in.template dims<2>(); ++k)
                 {
-                    in(i, j, k)=i+j+k;//+comm.coordinates()[0]*100+comm.coordinates()[1]*200+comm.coordinates()[2]*300;
+                    in(i, j, k) = (i + j + k)*gridtools::PID;
                 }
 
-// // Definition of the physical dimensions of the problem.
+        // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        //gridtools::coordinates<axis> coords(part.template get_halo_descriptor<0>(), part.template get_halo_descriptor<1>());
-        uint_t di[5] = {0, 0, 0, d1-1, d1};
-        uint_t dj[5] = {0, 0, 0, d2-1, d2};
-        gridtools::coordinates<axis> coords(di, dj);
+        gridtools::coordinates<axis, partitioner_t> coords(&part, out);
         //k dimension not partitioned
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
@@ -178,8 +179,8 @@ namespace copy_stencil{
         printf("computation finalized\n");
 
         std::vector<pointer_type::pointee_t*> vec(2);
-        vec[0]=in.fields()[0].get();
-        vec[1]=out.fields()[0].get();
+        vec[0]=in.data().get();
+        vec[1]=out.data().get();
 
         he.pack(vec);
 

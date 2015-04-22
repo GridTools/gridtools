@@ -510,11 +510,15 @@ namespace shallow_water{
 #endif
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
+        gridtools::array<int, 3> dimensions(0,0,0);
+        MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+        dimensions[2]=1;
+
+        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
         // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
         // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
-        ushort_t halo[3]={2,2,0};
+        array<ushort_t, 3> halo=(2,2,0);
         typedef partitioner_trivial< cell_topology<topology::cartesian<layout_map<0,1,2> > > , pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
         parallel_storage<sol_type, partitioner_t> sol(part);
@@ -576,7 +580,6 @@ namespace shallow_water{
         //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
         coordinates<axis, partitioner_t> coords(&part, sol);
 
-        //coordinates<axis, partitioner_t> coords(di2, dj2);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 

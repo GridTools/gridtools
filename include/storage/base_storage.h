@@ -377,7 +377,8 @@ namespace gridtools {
 #endif
             return (m_fields[0])[_index(strides(),dims...)];
         }
-#else
+#else //CXX11_ENABLED
+
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()(uint_t const& i, uint_t const& j, uint_t const& k) {

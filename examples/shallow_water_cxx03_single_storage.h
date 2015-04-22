@@ -491,8 +491,8 @@ namespace shallow_water{
         typedef sol_type::original_storage::pointer_type pointer_type;
 
         {//scope for RAII
-            gridtools::array<int, 3> dimensions;
-            MPI_Dims_create(PROCS, 2, &dimensions[0]);
+            gridtools::array<int, 3> dimensions(0,0,0);
+            MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
             dimensions[2]=1;
 
             typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
@@ -508,7 +508,7 @@ namespace shallow_water{
 
             pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-            ushort_t halo[3]={2,2,0};
+            array<ushort_t, 3> halo(2,2,0);
             typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
             partitioner_t part(he.comm(), halo);
             parallel_storage<sol_type, partitioner_t> sol(part);

@@ -146,11 +146,6 @@ namespace shallow_water{
                              (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
                               u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
 
-            //  void to_string(){
-            //      (sol(V,d1,d2) +
-            //       sol(V,d1)/2. -
-            //       (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
-            //        sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
         }
     };
 
@@ -199,7 +194,6 @@ namespace shallow_water{
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-        //typedef Dimension<3> step;
         typedef Dimension<5> comp;
 #endif
         static uint_t current_time;
@@ -217,7 +211,6 @@ namespace shallow_water{
 
 #ifdef __CUDACC__
             comp::Index c;
-            //step::Index s;
 
             eval(sol()) = eval(sol()-
                                (tmpx(c+1, i-1) - tmpx(c+1, i-1, j-1))*(dt()/dx())-
@@ -309,8 +302,8 @@ namespace shallow_water{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-            //                      dims  z y x
-            //                   strides xy x 1
+            //           dims  z y x
+            //         strides xy x 1
             typedef layout_map<2,1,0> layout_t;
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 

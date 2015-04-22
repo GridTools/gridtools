@@ -46,6 +46,7 @@ namespace gridtools {
                 uint_t dims[3];
                 m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
                 super::setup(dims[0], dims[1], dims[2]);
+                super::allocate(1);
             }
 
 #ifdef CXX11_ENABLED

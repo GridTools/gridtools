@@ -386,6 +386,14 @@ namespace gridtools {
           return m_communicator;
       }
 
+
+      /**@brief wrapper around MPI_Dims_Create checking the array size*/
+      static int dims_create(int const& procs_, int const& ndims_ , array<int, ndims>& dims_array_)
+        {
+          assert(ndims>=procs_);
+          return MPI_Dims_create(procs_, ndims_, &dims_array_[0]);
+        }
+
     /** Function to create the grid. This can be called in case the
         grid is default constructed. Its direct use is discouraged
 
