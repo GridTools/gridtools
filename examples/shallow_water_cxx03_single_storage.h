@@ -28,7 +28,7 @@
   @file
   @brief This file shows an implementation of the "shallow water" stencil using the CXX03 interfaces, with periodic boundary conditions.
   It is an horrible crappy unreadable solution, but it is more portable for the moment
- */
+*/
 
 using gridtools::level;
 using gridtools::arg_type;
@@ -94,15 +94,15 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
-       }
+        }
 
         GT_FUNCTION
         static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
 
             return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-       }
+        }
 
-};
+    };
 
 
     template<uint_t Component, uint_t Snapshot=0>
@@ -137,7 +137,7 @@ namespace shallow_water{
             data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i+1,j,k)];
         }
 
-                // periodic boundary conditions in J (I=0) for H
+        // periodic boundary conditions in J (I=0) for H
         template <sign J, sign K, typename DataField0>
         GT_FUNCTION
         void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
@@ -154,7 +154,7 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-};
+    };
 
     template<uint_t Snapshot>
     struct bc_reflective<1, Snapshot> {
@@ -188,10 +188,10 @@ namespace shallow_water{
 
         // periodic boundary conditions in J (I=0) for H
         template <sign J, sign K, typename DataField0, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>
-        GT_FUNCTION
-        void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
-                        DataField0 & data_field0,
-                        uint_t i, uint_t j, uint_t k) const {
+            GT_FUNCTION
+            void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
+                            DataField0 & data_field0,
+                            uint_t i, uint_t j, uint_t k) const {
             data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<1, Snapshot>()[data_field0._index(i-1,j,k)];
         }
 
@@ -202,7 +202,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
         }
-};
+    };
 
     template<uint_t Snapshot>
     struct bc_reflective<2, Snapshot> {
@@ -250,7 +250,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
         }
-};
+    };
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
@@ -292,16 +292,16 @@ namespace shallow_water{
                 (eval(sol(step(2),comp(1),i+1,j+1)) - eval(sol(step(2),comp(1),j+1)))*(dt()/(2*dx()));
 
             eval(sol(step(0),comp(1)))=
-eval(sol(step(2),comp(1),i+1, j+1)) +
-                eval(sol(step(2),comp(1),j+1))/2.-
+                (eval(sol(step(2),comp(1),i+1, j+1)) +
+                 eval(sol(step(2),comp(1),j+1)))/2.-
                 (((eval(sol(step(2),comp(1),i+1,j+1))*eval(sol(step(2),comp(1),i+1,j+1)))/eval(sol(step(2),comp(0),i+1,j+1))+(eval(sol(step(2),comp(0),i+1,j+1))*eval(sol(step(2),comp(0),i+1,j+1)))*g()/2.)  -
                  ((eval(sol(step(2),comp(1),j+1))*eval(sol(step(2),comp(1),j+1)))/eval(sol(step(2),comp(0),j+1)) +
                   (eval(sol(step(2),comp(0),j+1))*eval(sol(step(2),comp(0),j+1)))*(g()/2.)
                      ))*(dt()/(2.*dx()));
 
             eval(sol(step(0),comp(2)))=
-(eval(sol(step(2),comp(2),i+1,j+1)) +
-                                  eval(sol(step(2),comp(2),j+1)))/2. -
+                (eval(sol(step(2),comp(2),i+1,j+1)) +
+                 eval(sol(step(2),comp(2),j+1)))/2. -
                 (eval(sol(step(2),comp(1),i+1,j+1))*eval(sol(step(2),comp(2),i+1,j+1))/eval(sol(step(2),comp(0),i+1,j+1)) -
                  eval(sol(step(2),comp(1),j+1))*eval(sol(step(2),comp(2),j+1))/eval(sol(step(2),comp(0),j+1)))*(dt()/(2*dx())) ;
 
@@ -340,22 +340,22 @@ eval(sol(step(2),comp(1),i+1, j+1)) +
             y::Index j;
 
             eval(sol(step(1),comp(0)))=
-(eval(sol(step(2),comp(0),i+1,j+1)) + eval(sol(step(2),comp(0),i+1)))/2. -
-            (eval(sol(step(2),comp(2),i+1,j+1)) - eval(sol(step(2),comp(2),i+1)))*(dt()/(2*dy()));
+                (eval(sol(step(2),comp(0),i+1,j+1)) + eval(sol(step(2),comp(0),i+1)))/2. -
+                (eval(sol(step(2),comp(2),i+1,j+1)) - eval(sol(step(2),comp(2),i+1)))*(dt()/(2*dy()));
 
             eval(sol(step(1),comp(1)))=
-(eval(sol(step(2),comp(1),i+1,j+1)) +
-                    eval(sol(step(2),comp(1),i+1)))/2. -
-            (eval(sol(step(2),comp(2),i+1,j+1))*eval(sol(step(2),comp(1),i+1,j+1))/eval(sol(step(2),comp(0),i+1,j+1)) -
-             eval(sol(step(2),comp(2),i+1))*eval(sol(step(2),comp(1),i+1))/eval(sol(step(2),comp(0),i+1)))*(dt()/(2*dy()));
+                (eval(sol(step(2),comp(1),i+1,j+1)) +
+                 eval(sol(step(2),comp(1),i+1)))/2. -
+                (eval(sol(step(2),comp(2),i+1,j+1))*eval(sol(step(2),comp(1),i+1,j+1))/eval(sol(step(2),comp(0),i+1,j+1)) -
+                 eval(sol(step(2),comp(2),i+1))*eval(sol(step(2),comp(1),i+1))/eval(sol(step(2),comp(0),i+1)))*(dt()/(2*dy()));
 
             eval(sol(step(1),comp(2)))=
-eval(sol(step(2),comp(2),i+1, j+1)) +
-            eval(sol(step(2),comp(2),i+1))/2.-
-            (((eval(sol(step(2),comp(2),i+1,j+1))*eval(sol(step(2),comp(2),i+1,j+1)))/eval(sol(step(2),comp(0),i+1,j+1))+(eval(sol(step(2),comp(0),i+1,j+1))*eval(sol(step(2),comp(0),i+1,j+1)))*g()/2.)  -
-             (eval(sol(step(2),comp(2),i+1))*eval(sol(step(2),comp(2),i+1))/eval(sol(step(2),comp(0),i+1)) +
-              (eval(sol(step(2),comp(0),i+1))*eval(sol(step(2),comp(0),i+1)))*(g()/2.)
-                 ))*(dt()/(2.*dy()));
+                (eval(sol(step(2),comp(2),i+1, j+1)) +
+                 eval(sol(step(2),comp(2),i+1)))/2.-
+                (((eval(sol(step(2),comp(2),i+1,j+1))*eval(sol(step(2),comp(2),i+1,j+1)))/eval(sol(step(2),comp(0),i+1,j+1))+(eval(sol(step(2),comp(0),i+1,j+1))*eval(sol(step(2),comp(0),i+1,j+1)))*g()/2.)  -
+                 (eval(sol(step(2),comp(2),i+1))*eval(sol(step(2),comp(2),i+1))/eval(sol(step(2),comp(0),i+1)) +
+                  (eval(sol(step(2),comp(0),i+1))*eval(sol(step(2),comp(0),i+1)))*(g()/2.)
+                     ))*(dt()/(2.*dy()));
 
         }
     };
@@ -407,18 +407,18 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
                 -
                 //(vy(i-1)               -           vy(i-1, j-1) )(dt/dy)
                 (eval(sol(step(1),comp(2),i-1)) - eval(sol(step(1),comp(2),i-1, j-1)))*(dt()/dy())
-               ;
+                ;
 
             eval(sol(step(2),comp(1))) =
                 eval(sol(step(2),comp(1))) -
-               //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
-               ((eval(sol(step(0),comp(1),j-1))*eval(sol(step(0),comp(1),j-1)))                / eval(sol(step(0),comp(0),j-1))      + eval(sol(step(0),comp(0),j-1))*eval(sol(step(0),comp(0),j-1))*((g()/2.))                 -
-                //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
-                ((eval(sol(step(0),comp(1),i-1,j-1))*eval(sol(step(0),comp(1),i-1,j-1)))            / eval(sol(step(0),comp(0),i-1, j-1)) +(eval(sol(step(0),comp(0),i-1,j-1))*eval(sol(step(0),comp(0),i-1,j-1)) )*((g()/2.))))*((dt()/dx()));// -
-                //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
-                (eval(sol(step(1),comp(2),i-1))*eval(sol(step(1),comp(1),i-1))          / eval(sol(step(1),comp(0),i-1))                                                   -
-                 //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
-                 eval(sol(step(1),comp(2),i-1, j-1))*eval(sol(step(1),comp(1),i-1,j-1)) / eval(sol(step(1),comp(0),i-1, j-1))) *(dt()/dy());
+                //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
+                ((eval(sol(step(0),comp(1),j-1))*eval(sol(step(0),comp(1),j-1)))                / eval(sol(step(0),comp(0),j-1))      + eval(sol(step(0),comp(0),j-1))*eval(sol(step(0),comp(0),j-1))*((g()/2.))                 -
+                 //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
+                 ((eval(sol(step(0),comp(1),i-1,j-1))*eval(sol(step(0),comp(1),i-1,j-1)))            / eval(sol(step(0),comp(0),i-1, j-1)) +(eval(sol(step(0),comp(0),i-1,j-1))*eval(sol(step(0),comp(0),i-1,j-1)) )*((g()/2.))))*((dt()/dx()));// -
+            //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
+            (eval(sol(step(1),comp(2),i-1))*eval(sol(step(1),comp(1),i-1))          / eval(sol(step(1),comp(0),i-1))                                                   -
+             //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
+             eval(sol(step(1),comp(2),i-1, j-1))*eval(sol(step(1),comp(1),i-1,j-1)) / eval(sol(step(1),comp(0),i-1, j-1))) *(dt()/dy());
 
             eval(sol(step(2),comp(2))) =
                 // v()
@@ -495,157 +495,157 @@ eval(sol(step(2),comp(2),i+1, j+1)) +
             MPI_Dims_create(PROCS, 2, &dimensions[0]);
             dimensions[2]=1;
 
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
-            gridtools::layout_map<0, 1, 2>,
-            pointer_type::pointee_t,
-            MPI_3D_process_grid_t<3>,
+            typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
+                                                        gridtools::layout_map<0, 1, 2>,
+                                                        pointer_type::pointee_t,
+                                                        MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
-            gridtools::gcl_gpu,
+                                                        gridtools::gcl_gpu,
 #else
-            gridtools::gcl_cpu,
+                                                        gridtools::gcl_cpu,
 #endif
-            gridtools::version_manual> pattern_type;
+                                                        gridtools::version_manual> pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
+            pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-        ushort_t halo[3]={2,2,0};
-        typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
-        partitioner_t part(he.comm(), halo);
-        parallel_storage<sol_type, partitioner_t> sol(part);
-        sol.setup(d1, d2, d3);
+            ushort_t halo[3]={2,2,0};
+            typedef partitioner_trivial<sol_type, pattern_type::grid_type> partitioner_t;
+            partitioner_t part(he.comm(), halo);
+            parallel_storage<sol_type, partitioner_t> sol(part);
+            sol.setup(d1, d2, d3);
 
-        he.add_halo<0>(sol.get_halo_gcl<0>());
-        he.add_halo<1>(sol.get_halo_gcl<1>());
-        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+            he.add_halo<0>(sol.get_halo_gcl<0>());
+            he.add_halo<1>(sol.get_halo_gcl<1>());
+            he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
-        he.setup(3);
+            he.setup(3);
 
-        ptr out1(sol.size()), out2(sol.size()), out3(sol.size());
-        sol.set<0,0>(out1, 0.);
-        sol.set<0,1>(out2, 0.);
-        sol.set<0,2>(out3, 0.);
-        ptr out4(sol.size()), out5(sol.size()), out6(sol.size());
-        sol.set<1,0>(out4, 0.);
-        sol.set<1,1>(out5, 0.);
-        sol.set<1,2>(out6, 0.);
+            ptr out1(sol.size()), out2(sol.size()), out3(sol.size());
+            sol.set<0,0>(out1, 0.);
+            sol.set<0,1>(out2, 0.);
+            sol.set<0,2>(out3, 0.);
+            ptr out4(sol.size()), out5(sol.size()), out6(sol.size());
+            sol.set<1,0>(out4, 0.);
+            sol.set<1,1>(out5, 0.);
+            sol.set<1,2>(out6, 0.);
 
-        ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
-        if(!he.comm().pid())
-            sol.set<2,0>(out7, &bc_periodic<0,0>::droplet);//h
-        else
-            sol.set<2,0>(out7, &bc_periodic<0,0>::droplet2);//h
-    //sol.set<0,0>(out7, 1.);//h
-        sol.set<2,1>(out8, 0.);//u
-        sol.set<2,2>(out9, 0.);//v
+            ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
+            if(!he.comm().pid())
+                sol.set<2,0>(out7, &bc_periodic<0,0>::droplet);//h
+            else
+                sol.set<2,0>(out7, &bc_periodic<0,0>::droplet2);//h
+            //sol.set<0,0>(out7, 1.);//h
+            sol.set<2,1>(out8, 0.);//u
+            sol.set<2,2>(out9, 0.);//v
 
 #ifndef NDEBUG
-    int pid=0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    std::ofstream myfile;
-    std::stringstream name;
-    name<<"example"<<pid<<".txt";
-    myfile.open (name.str().c_str());
+            int pid=0;
+            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+            std::ofstream myfile;
+            std::stringstream name;
+            name<<"example"<<pid<<".txt";
+            myfile.open (name.str().c_str());
 
-    std::cout<<"INITIALIZED VALUES"<<std::endl;
-    sol.print(myfile);
-    std::cout<<"#####################################################"<<std::endl;
+            std::cout<<"INITIALIZED VALUES"<<std::endl;
+            sol.print(myfile);
+            std::cout<<"#####################################################"<<std::endl;
 
 #endif
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-        domain_type<arg_type_list> domain
-            (boost::fusion::make_vector(&sol));
+            // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
+            // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+            // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+            domain_type<arg_type_list> domain
+                (boost::fusion::make_vector(&sol));
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // coordinates<axis> coords(2,d1-2,2,d2-2);
-        //uint_t di2[5] =  {1, 0, 1, 9, 11};
+            // Definition of the physical dimensions of the problem.
+            // The constructor takes the horizontal plane dimensions,
+            // while the vertical ones are set according the the axis property soon after
+            // coordinates<axis> coords(2,d1-2,2,d2-2);
+            //uint_t di2[5] =  {1, 0, 1, 9, 11};
 
-        //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
-        coordinates<axis, partitioner_t> coords(&part, sol);
+            //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
+            coordinates<axis, partitioner_t> coords(&part, sol);
 
-        //coordinates<axis, partitioner_t> coords(di2, dj2);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+            //coordinates<axis, partitioner_t> coords(di2, dj2);
+            coords.value_list[0] = 0;
+            coords.value_list[1] = d3-1;
 
 #ifdef __CUDACC__
-        gridtools::computation*
+            gridtools::computation*
 #else
-            boost::shared_ptr<gridtools::computation>
+                boost::shared_ptr<gridtools::computation>
 #endif
-            shallow_water_stencil =
-            make_computation<gridtools::BACKEND, layout_t>
-            (
-                make_mss // mss_descriptor
+                shallow_water_stencil =
+                make_computation<gridtools::BACKEND, layout_t>
                 (
-                    execute<forward>(),
-                    make_independent(
-                        make_esf<first_step_x> (p_sol() ),
-                        make_esf<second_step_y>(p_sol() )),
-                    make_esf<final_step>(p_sol() )
-                    ),
-                domain, coords
-                );
+                    make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        make_independent(
+                            make_esf<first_step_x> (p_sol() ),
+                            make_esf<second_step_y>(p_sol() )),
+                        make_esf<final_step>(p_sol() )
+                        ),
+                    domain, coords
+                    );
 
-        shallow_water_stencil->ready();
+            shallow_water_stencil->ready();
 
-        shallow_water_stencil->steady();
+            shallow_water_stencil->steady();
 
 //         array<halo_descriptor, 3> halos;
 //         halos[0] = halo_descriptor(1,0,1,d1-1,d1);
 //         halos[1] = halo_descriptor(1,0,1,d2-1,d2);
 //         halos[2] = halo_descriptor(0,0,1,d3-1,d3);
 
-        //the following might be runtime value
-        uint_t total_time=t;
+            //the following might be runtime value
+            uint_t total_time=t;
 
-        for (;final_step::current_time < total_time; ++final_step::current_time)
-        {
+            for (;final_step::current_time < total_time; ++final_step::current_time)
+            {
 #ifdef CUDA_EXAMPLE
-            /*                        component,snapshot */
+                /*                        component,snapshot */
 //             boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
 //             boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #else
-            /*                    component,snapshot */
+                /*                    component,snapshot */
 //             boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
 #ifdef __CUDACC__
-            if(!he.comm().pid()==target_process)
-                cudaProfilerStart();
+                if(!he.comm().pid()==target_process)
+                    cudaProfilerStart();
 #endif
-            shallow_water_stencil->run();
+                shallow_water_stencil->run();
 #ifdef __CUDACC__
-            if(!he.comm().pid())
-                cudaProfilerStop();
+                if(!he.comm().pid())
+                    cudaProfilerStop();
 #endif
 
-            std::vector<pointer_type::pointee_t*> vec(3);
-            vec[0]=sol.get<2,0>().get();
-            vec[1]=sol.get<2,1>().get();
-            vec[2]=sol.get<2,2>().get();
+                std::vector<pointer_type::pointee_t*> vec(3);
+                vec[0]=sol.get<2,0>().get();
+                vec[1]=sol.get<2,1>().get();
+                vec[2]=sol.get<2,2>().get();
 
-            he.pack(vec);
-            he.exchange();
-            he.unpack(vec);
+                he.pack(vec);
+                he.exchange();
+                he.unpack(vec);
 
 
 #ifndef NDEBUG
-            shallow_water_stencil->finalize();
-            sol.print(myfile);
+                shallow_water_stencil->finalize();
+                sol.print(myfile);
 #endif
-        }
+            }
 
-        he.wait();
+            he.wait();
 
 #ifdef NDEBUG
-        shallow_water_stencil->finalize();
+            shallow_water_stencil->finalize();
 #else
-        myfile.close();
+            myfile.close();
 #endif
         }
 

@@ -28,7 +28,7 @@
   @file
   @brief This file shows an implementation of the "shallow water" stencil using the CXX03 interfaces, with periodic boundary conditions.
   It is an horrible crappy unreadable solution, but it is more portable for the moment
- */
+*/
 
 using gridtools::level;
 using gridtools::arg_type;
@@ -94,19 +94,19 @@ namespace shallow_water{
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             //if(i<3 && j<3)
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
-                //else
-                //return 1.;
-       }
+            //else
+            //return 1.;
+        }
 
         GT_FUNCTION
         static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
 //             if(i>1 && j>1 && i<5 && j<5)
-                return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+            return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
 //             else
 //                 return 1.;
-       }
+        }
 
-};
+    };
 
 
     template<uint_t Component, uint_t Snapshot=0>
@@ -141,7 +141,7 @@ namespace shallow_water{
             data_field0.template get<0, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<0, Snapshot>()[data_field0._index(i+1,j,k)];
         }
 
-                // periodic boundary conditions in J (I=0) for H
+        // periodic boundary conditions in J (I=0) for H
         template <sign J, sign K, typename DataField0>
         GT_FUNCTION
         void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
@@ -158,7 +158,7 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-};
+    };
 
     template<uint_t Snapshot>
     struct bc_reflective<1, Snapshot> {
@@ -192,10 +192,10 @@ namespace shallow_water{
 
         // periodic boundary conditions in J (I=0) for H
         template <sign J, sign K, typename DataField0, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>
-        GT_FUNCTION
-        void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
-                        DataField0 & data_field0,
-                        uint_t i, uint_t j, uint_t k) const {
+            GT_FUNCTION
+            void operator()(direction<plus_, J, K, typename boost::enable_if_c<J!=minus_&&J!=plus_>::type>,
+                            DataField0 & data_field0,
+                            uint_t i, uint_t j, uint_t k) const {
             data_field0.template get<1, Snapshot>()[data_field0._index(i,j,k)] = -data_field0.template get<1, Snapshot>()[data_field0._index(i-1,j,k)];
         }
 
@@ -206,7 +206,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
         }
-};
+    };
 
     template<uint_t Snapshot>
     struct bc_reflective<2, Snapshot> {
@@ -254,7 +254,7 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
         }
-};
+    };
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
@@ -295,8 +295,8 @@ namespace shallow_water{
             eval(tmpx())= (eval(sol(comp(0),i+1,j+1)) +eval(sol(comp(0),j+1)))/2. -
                 (eval(sol(comp(1),i+1,j+1)) - eval(sol(comp(1),j+1)))*(dt()/(2*dx()));
 
-            eval(tmpx(comp(1)))=eval(sol(comp(1),i+1, j+1)) +
-                eval(sol(comp(1),j+1))/2.-
+            eval(tmpx(comp(1)))=(eval(sol(comp(1),i+1, j+1)) +
+                                 eval(sol(comp(1),j+1)))/2.-
                 (((eval(sol(comp(1),i+1,j+1))*eval(sol(comp(1),i+1,j+1)))/eval(sol(comp(0),i+1,j+1))+(eval(sol(comp(0),i+1,j+1))*eval(sol(comp(0),i+1,j+1)))*g()/2.)  -
                  ((eval(sol(comp(1),j+1))*eval(sol(comp(1),j+1)))/eval(sol(comp(0),j+1)) +
                   (eval(sol(comp(0),j+1))*eval(sol(comp(0),j+1)))*(g()/2.)
@@ -345,20 +345,20 @@ namespace shallow_water{
             x::Index i;
             y::Index j;
 
-        eval(tmpy(comp(0)))= (eval(sol(comp(0),i+1,j+1)) + eval(sol(comp(0),i+1)))/2. -
-            (eval(sol(comp(2),i+1,j+1)) - eval(sol(comp(2),i+1)))*(dt()/(2*dy()));
+            eval(tmpy(comp(0)))= (eval(sol(comp(0),i+1,j+1)) + eval(sol(comp(0),i+1)))/2. -
+                (eval(sol(comp(2),i+1,j+1)) - eval(sol(comp(2),i+1)))*(dt()/(2*dy()));
 
-        eval(tmpy(comp(1)))=(eval(sol(comp(1),i+1,j+1)) +
-                    eval(sol(comp(1),i+1)))/2. -
-            (eval(sol(comp(2),i+1,j+1))*eval(sol(comp(1),i+1,j+1))/eval(sol(comp(0),i+1,j+1)) -
-             eval(sol(comp(2),i+1))*eval(sol(comp(1),i+1))/eval(sol(comp(0),i+1)))*(dt()/(2*dy()));
+            eval(tmpy(comp(1)))=(eval(sol(comp(1),i+1,j+1)) +
+                                 eval(sol(comp(1),i+1)))/2. -
+                (eval(sol(comp(2),i+1,j+1))*eval(sol(comp(1),i+1,j+1))/eval(sol(comp(0),i+1,j+1)) -
+                 eval(sol(comp(2),i+1))*eval(sol(comp(1),i+1))/eval(sol(comp(0),i+1)))*(dt()/(2*dy()));
 
-        eval(tmpy(comp(2)))=eval(sol(comp(2),i+1, j+1)) +
-            eval(sol(comp(2),i+1))/2.-
-            (((eval(sol(comp(2),i+1,j+1))*eval(sol(comp(2),i+1,j+1)))/eval(sol(comp(0),i+1,j+1))+(eval(sol(comp(0),i+1,j+1))*eval(sol(comp(0),i+1,j+1)))*g()/2.)  -
-             (eval(sol(comp(2),i+1))*eval(sol(comp(2),i+1))/eval(sol(comp(0),i+1)) +
-              (eval(sol(comp(0),i+1))*eval(sol(comp(0),i+1)))*(g()/2.)
-                 ))*(dt()/(2.*dy()));
+            eval(tmpy(comp(2)))=(eval(sol(comp(2),i+1, j+1)) +
+                                 eval(sol(comp(2),i+1)))/2.-
+                (((eval(sol(comp(2),i+1,j+1))*eval(sol(comp(2),i+1,j+1)))/eval(sol(comp(0),i+1,j+1))+(eval(sol(comp(0),i+1,j+1))*eval(sol(comp(0),i+1,j+1)))*g()/2.)  -
+                 (eval(sol(comp(2),i+1))*eval(sol(comp(2),i+1))/eval(sol(comp(0),i+1)) +
+                  (eval(sol(comp(0),i+1))*eval(sol(comp(0),i+1)))*(g()/2.)
+                     ))*(dt()/(2.*dy()));
         }
     };
     // const x::Index second_step_y::i;
@@ -414,18 +414,18 @@ namespace shallow_water{
                 -
                 //(vy(i-1)               -           vy(i-1, j-1) )(dt/dy)
                 (eval(tmpy(comp(2),i-1)) - eval(tmpy(comp(2),i-1, j-1)))*(dt()/dy())
-               ;
+                ;
 
             eval(sol(comp(1))) =
-               eval(sol(comp(1))) -
-               //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
-               ((eval(tmpx(comp(1),j-1))*eval(tmpx(comp(1),j-1)))                / eval(tmpx(comp(0),j-1))      + eval(tmpx(comp(0),j-1))*eval(tmpx(comp(0),j-1))*((g()/2.))                 -
-                //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
-                ((eval(tmpx(comp(1),i-1,j-1))*eval(tmpx(comp(1),i-1,j-1)))            / eval(tmpx(comp(0),i-1, j-1)) +(eval(tmpx(comp(0),i-1,j-1))*eval(tmpx(comp(0),i-1,j-1)) )*((g()/2.))))*((dt()/dx()));// -
-                //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
-                (eval(tmpy(comp(2),i-1))*eval(tmpy(comp(1),i-1))          / eval(tmpy(comp(0),i-1))                                                   -
-                 //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
-                 eval(tmpy(comp(2),i-1, j-1))*eval(tmpy(comp(1),i-1,j-1)) / eval(tmpy(comp(0),i-1, j-1))) *(dt()/dy())
+                eval(sol(comp(1))) -
+                //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
+                ((eval(tmpx(comp(1),j-1))*eval(tmpx(comp(1),j-1)))                / eval(tmpx(comp(0),j-1))      + eval(tmpx(comp(0),j-1))*eval(tmpx(comp(0),j-1))*((g()/2.))                 -
+                 //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
+                 ((eval(tmpx(comp(1),i-1,j-1))*eval(tmpx(comp(1),i-1,j-1)))            / eval(tmpx(comp(0),i-1, j-1)) +(eval(tmpx(comp(0),i-1,j-1))*eval(tmpx(comp(0),i-1,j-1)) )*((g()/2.))))*((dt()/dx()));// -
+            //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
+            (eval(tmpy(comp(2),i-1))*eval(tmpy(comp(1),i-1))          / eval(tmpy(comp(0),i-1))                                                   -
+             //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
+             eval(tmpy(comp(2),i-1, j-1))*eval(tmpy(comp(1),i-1,j-1)) / eval(tmpy(comp(0),i-1, j-1))) *(dt()/dy())
                 ;
 
             eval(sol(comp(2))) =
@@ -512,8 +512,8 @@ namespace shallow_water{
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
 
-    // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
-    // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
+        // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
+        // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         ushort_t halo[3]={2,2,0};
         typedef partitioner_trivial< cell_topology<topology::cartesian<layout_map<0,1,2> > > , pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
@@ -544,17 +544,17 @@ namespace shallow_water{
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
-    //sol.set<0,0>(out7, 1.);//h
+        //sol.set<0,0>(out7, 1.);//h
         sol.set<1,0>(out8, 0.);//u
         sol.set<2,0>(out9, 0.);//v
 
 #ifndef NDEBUG
-    int pid=0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    std::ofstream myfile;
-    std::stringstream name;
-    name<<"example"<<pid<<".txt";
-    myfile.open (name.str().c_str());
+        int pid=0;
+        MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+        std::ofstream myfile;
+        std::stringstream name;
+        name<<"example"<<pid<<".txt";
+        myfile.open (name.str().c_str());
 #endif
 
 //         std::cout<<"INITIALIZED VALUES"<<std::endl;

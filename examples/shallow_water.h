@@ -20,7 +20,7 @@
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
   It defines
- */
+*/
 
 using gridtools::level;
 using gridtools::arg_type;
@@ -101,9 +101,9 @@ namespace shallow_water{
                 return 1.+height * std::exp(-5*(((i-1)*dx())*(((i-1)*dx()))+((j-1)*dy())*((j-1)*dy())));
             else
                 return 1.;
-       }
+        }
 
-};
+    };
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
@@ -124,33 +124,33 @@ namespace shallow_water{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-        auto hx=alias<tmpx, comp>(0); auto h=alias<sol, comp>(0);
-        auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
-        auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
+            auto hx=alias<tmpx, comp>(0); auto h=alias<sol, comp>(0);
+            auto ux=alias<tmpx, comp>(1); auto u=alias<sol, comp>(1);
+            auto vx=alias<tmpx, comp>(2); auto v=alias<sol, comp>(2);
 
-        x::Index i;
-        y::Index j;
+            x::Index i;
+            y::Index j;
 
 
-        eval(hx())=eval((h(i+1,j+1) +h(j+1))/2. -
-                        (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
-        eval(ux())=eval(u(i+1, j+1) +
-                        u(j+1)/2.-
-                        ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
-                         (pow<2>(u(j+1))/h(j+1) +
-                         pow<2>(h(j+1))*(g()/2.)
-                             ))*(dt()/(2.*dx())));
+            eval(hx())=eval((h(i+1,j+1) +h(j+1))/2. -
+                            (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
+            eval(ux())=eval((u(i+1, j+1) +
+                             u(j+1))/2.-
+                            ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
+                             (pow<2>(u(j+1))/h(j+1) +
+                              pow<2>(h(j+1))*(g()/2.)
+                                 ))*(dt()/(2.*dx())));
 
-        eval(vx())=eval( (v(i+1,j+1) +
-                          v(j+1))/2. -
-                         (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
-                          u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
+            eval(vx())=eval( (v(i+1,j+1) +
+                              v(j+1))/2. -
+                             (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
+                              u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
 
-        //  void to_string(){
-        //      (sol(V,d1,d2) +
-        //       sol(V,d1)/2. -
-        //       (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
-        //        sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
+            //  void to_string(){
+            //      (sol(V,d1,d2) +
+            //       sol(V,d1)/2. -
+            //       (sol(U,d1,d2)*sol(V,d1,d2)/sol(d1,d2) -
+            //        sol(U,d2)*sol(V,d2)/sol(d2))*(dt()/(2*delta)) )).to_string();
         }
     };
 
@@ -165,27 +165,27 @@ namespace shallow_water{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-        auto hy=alias<tmpy, comp>(0); auto h=alias<sol, comp>(0);
-        auto uy=alias<tmpy, comp>(1); auto u=alias<sol, comp>(1);
-        auto vy=alias<tmpy, comp>(2); auto v=alias<sol, comp>(2);
+            auto hy=alias<tmpy, comp>(0); auto h=alias<sol, comp>(0);
+            auto uy=alias<tmpy, comp>(1); auto u=alias<sol, comp>(1);
+            auto vy=alias<tmpy, comp>(2); auto v=alias<sol, comp>(2);
 
-        x::Index i;
-        y::Index j;
+            x::Index i;
+            y::Index j;
 
-        eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
-                         (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
+            eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
+                             (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
 
-        eval(uy())=eval( (u(i+1,j+1) +
-                          u(i+1))/2. -
-                         (v(i+1,j+1)*u(i+1,j+1)/h(i+1,j+1) -
-                          v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy())) );
+            eval(uy())=eval( (u(i+1,j+1) +
+                              u(i+1))/2. -
+                             (v(i+1,j+1)*u(i+1,j+1)/h(i+1,j+1) -
+                              v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy())) );
 
-        eval(vy())=eval(v(i+1, j+1) +
-                        v(i+1)/2.-
-                        ((pow<2>(v(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
-                         (pow<2>(v(i+1))/h(i+1) +
-                          pow<2>(h(i+1))*(g()/2.)
-                             ))*(dt()/(2.*dy())));
+            eval(vy())=eval((v(i+1, j+1) +
+                             v(i+1))/2.-
+                            ((pow<2>(v(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
+                             (pow<2>(v(i+1))/h(i+1) +
+                              pow<2>(h(i+1))*(g()/2.)
+                                 ))*(dt()/(2.*dy())));
         }
     };
 
@@ -248,14 +248,14 @@ namespace shallow_water{
                 );
 
             eval(sol(comp(1))) = eval(sol(comp(1)) -
-                                       (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
-                                        (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-                                              (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-                                               vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
+                                      (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
+                                       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+                                      (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
+                                       vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
 
             eval(sol(comp(2))) = eval(sol(comp(2)) -
-                                       (ux(j-1)    *vx(j-1)       /hx(j-1) -
-                                        (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
+                                      (ux(j-1)    *vx(j-1)       /hx(j-1) -
+                                       (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
                                       (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
                                        (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
 #endif
@@ -314,7 +314,7 @@ namespace shallow_water{
             typedef layout_map<2,1,0> layout_t;
             typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
-    /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+            /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED) && (!defined(__GNUC__) || (defined(__clang__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >=9))))
             //typedef field<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef field<storage_type::basic_type, 1, 1, 1>::type sol_type;

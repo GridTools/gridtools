@@ -124,8 +124,8 @@ namespace shallow_water{
                      (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
 
             eval(ux())=
-                eval(u(i+1, j+1) +
-                     u(j+1)/2.-
+                eval((u(i+1, j+1) +
+                      u(j+1))/2.-
                      ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
                       (pow<2>(u(j+1))/h(j+1) +
                        pow<2>(h(j+1))*(g()/2.)
@@ -167,8 +167,8 @@ namespace shallow_water{
                              (v(i+1,j+1)*u(i+1,j+1)/h(i+1,j+1) -
                               v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy())) );
 
-            eval(vy())=eval(v(i+1, j+1) +
-                            v(i+1)/2.-
+            eval(vy())=eval((v(i+1, j+1) +
+                             v(i+1))/2.-
                             ((pow<2>(v(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
                              (pow<2>(v(i+1))/h(i+1) +
                               pow<2>(h(i+1))*(g()/2.)
