@@ -35,6 +35,12 @@ namespace gridtools {
         int boundary() const {return 16+8+4+2+1;}
     };
 
+    template<typename Partitioner>
+    struct is_partitioner_dummy : boost::false_type{};
+
+    template<>
+    struct is_partitioner_dummy<partitioner_dummy> : boost::true_type{};
+
     template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
         BOOST_STATIC_ASSERT(is_interval<Axis>::value);
@@ -61,7 +67,10 @@ namespace gridtools {
             m_partitioner(part_)
             , m_direction_i(storage_.template get_halo_descriptor<0>())//copy
             , m_direction_j(storage_.template get_halo_descriptor<1>())//copy
-        {}
+        {
+            GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy<Partitioner>::value,
+                                    "you have to add the partitioner to the coordinates template parameters")
+        }
 
         GT_FUNCTION
         explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)

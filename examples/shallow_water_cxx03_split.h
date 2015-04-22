@@ -529,9 +529,13 @@ namespace shallow_water{
 #endif
                                                         gridtools::version_manual> pattern_type;
 
-            pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD);
+            gridtools::array<int, 3> dimensions(0,0,0);
+            MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+            dimensions[2]=1;
 
-            ushort_t halo[3]={2,2,0};
+            pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, dimensions);
+
+            array<ushort_t, 3> halo(2,2,0);
             typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
             partitioner_t part(he.comm(), halo);
 
