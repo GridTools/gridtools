@@ -18,7 +18,10 @@
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
-  It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
+
+  For an exhaustive description of the shallow water problem refer to: http://www.mathworks.ch/moler/exm/chapters/water.pdf
+
+  NOTE: It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
  */
 
 using gridtools::level;

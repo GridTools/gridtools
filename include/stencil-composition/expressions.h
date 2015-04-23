@@ -34,7 +34,7 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
 
-    /** \section expressions (Expressions Definition)
+    /** \section expressions Expressions Definition
         @{
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.

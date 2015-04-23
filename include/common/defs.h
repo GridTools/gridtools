@@ -45,6 +45,10 @@
 #endif
 
 namespace gridtools{  namespace enumtype{
+        /**
+           @section enumtypes Gridtools enumeration types
+           @{
+         */
         /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
 
@@ -77,37 +81,23 @@ namespace gridtools{  namespace enumtype{
         template<enumtype::execution U>
         struct execute
         {
-        typedef execute_impl<serial, U> type;
+            typedef execute_impl<serial, U> type;
         };
 
 
         template<>
         struct execute<parallel>
         {
-        typedef execute_impl<parallel_impl, forward> type;
+            typedef execute_impl<parallel_impl, forward> type;
         };
-
         /**
-            enum used to distinguish between
-        */
+           @}
+         */
     }//namespace enumtype
+
 #ifndef CXX11_ENABLED
 #define constexpr
 #endif
-
-#ifndef FLOAT_PRECISION
-#define FLOAT_PRECISION 8
-#endif
-
-#if FLOAT_PRECISION == 4
-    typedef float float_type;
-#elif FLOAT_PRECISION == 8
-    typedef double float_type;
-#else
-#error float precision not properly set (4 or 8 bytes supported)
-#endif
-
-}
 
 #define GT_WHERE_AM_I                           \
     std::cout << __PRETTY_FUNCTION__ << " "     \
@@ -126,39 +116,70 @@ namespace gridtools{  namespace enumtype{
 
 
 #include <boost/mpl/integral_c.hpp>
-#ifdef CXX11_ENABLED
-using int_t          = int;
-using short_t        = int;
-using uint_t         = int;
-using ushort_t       = int;
-template<int_t N>
-using  static_int=boost::mpl::integral_c<int_t,N>;
-template<uint_t N>
-using  static_uint=boost::mpl::integral_c<uint_t,N>;
-template<short_t N>
-using  static_short=boost::mpl::integral_c<short_t,N>;
-template<ushort_t N>
-using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
+
+//################ Type aliases for GridTools ################
+
+    /**
+       @section typedefs Gridtools types definitions
+       @{
+       @NOTE: the integer types are all signed,
+       also the ones which should be logically unsigned (uint_t). This is due
+       to a GCC (4.8.2) bug which is preventing vectorization of nested loops
+       with an unsigned iteration index.
+       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
+    */
+
+#ifndef FLOAT_PRECISION
+#define FLOAT_PRECISION 8
+#endif
+
+#if FLOAT_PRECISION == 4
+    typedef float float_type;
+#elif FLOAT_PRECISION == 8
+    typedef double float_type;
 #else
-typedef int                     int_t;
-typedef int                     short_t;
-typedef int                     uint_t;
-typedef int                     ushort_t;
-template<int_t N>
-struct static_int : boost::mpl::integral_c<int_t,N>{
-    typedef boost::mpl::integral_c<int_t,N> type;
-};
-template<uint_t N>
-struct static_uint : boost::mpl::integral_c<uint_t,N>{
-    typedef boost::mpl::integral_c<uint_t,N> type;
-};
-template<short_t N>
-struct static_short : boost::mpl::integral_c<short_t,N>{
-    typedef boost::mpl::integral_c<short_t,N> type;
-};
-template<ushort_t N>
-struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
-    typedef boost::mpl::integral_c<ushort_t,N> type;
-};
+#error float precision not properly set (4 or 8 bytes supported)
+#endif
+
+#ifdef CXX11_ENABLED
+    using int_t          = int;
+    using short_t        = int;
+    using uint_t         = int;
+    using ushort_t       = int;
+    template<int_t N>
+    using  static_int=boost::mpl::integral_c<int_t,N>;
+    template<uint_t N>
+    using  static_uint=boost::mpl::integral_c<uint_t,N>;
+    template<short_t N>
+    using  static_short=boost::mpl::integral_c<short_t,N>;
+    template<ushort_t N>
+    using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
+#else
+    typedef int                     int_t;
+    typedef int                     short_t;
+    typedef int                     uint_t;
+    typedef int                     ushort_t;
+    template<int_t N>
+    struct static_int : boost::mpl::integral_c<int_t,N>{
+        typedef boost::mpl::integral_c<int_t,N> type;
+    };
+    template<uint_t N>
+    struct static_uint : boost::mpl::integral_c<uint_t,N>{
+        typedef boost::mpl::integral_c<uint_t,N> type;
+    };
+    template<short_t N>
+    struct static_short : boost::mpl::integral_c<short_t,N>{
+        typedef boost::mpl::integral_c<short_t,N> type;
+    };
+    template<ushort_t N>
+    struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
+        typedef boost::mpl::integral_c<ushort_t,N> type;
+    };
+    /**
+       @}
+     */
+//######################################################
+
+}//namespace gridtools
 
 #endif
