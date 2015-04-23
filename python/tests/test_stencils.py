@@ -138,7 +138,7 @@ class CopyTest (unittest.TestCase):
         self.stencil.backend = 'c++'
         self._run ( )
         #
-        # check input/output fields were correctly discovered
+        # check fields were correctly discovered
         #
         scope = self.stencil.scope
         for p in self.params:
