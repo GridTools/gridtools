@@ -235,7 +235,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         GT_FUNCTION
         constexpr
         int_t get() const {
-            return (int_t)0.;
+            return 0;
         }
 
 
