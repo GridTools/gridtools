@@ -236,8 +236,16 @@ namespace gridtools {
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
     private:
-        static constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type,  ArgType::n_dim, ArgType::n_dim>::type s_args_constexpr{ enumtype::Dimension<Pair::first>{Pair::second} ... };
-        typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type m_args_runtime;
+        static constexpr typename arg_extend<ArgType::index_type::value
+                                             , typename ArgType::range_type
+                                             ,  ArgType::n_dim
+                                             , ArgType::n_dim>::type s_args_constexpr{
+            enumtype::Dimension<Pair::first>{Pair::second} ... };
+
+        typename arg_extend<ArgType::index_type::value
+                            , typename ArgType::range_type
+                            , ArgType::n_dim
+                            , ArgType::n_dim>::type m_args_runtime;
         typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
     public:
 
@@ -275,7 +283,10 @@ namespace gridtools {
     };
 
     template <typename ArgType, typename ... Pair>
-    constexpr typename arg_extend<ArgType::index_type::value, typename ArgType::range_type, ArgType::n_dim, ArgType::n_dim>::type arg_mixed<ArgType, Pair...>::s_args_constexpr;
+    constexpr typename arg_extend<ArgType::index_type::value
+                                  , typename ArgType::range_type
+                                  , ArgType::n_dim
+                                  , ArgType::n_dim>::type arg_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
 /**this struct allows the specification of SOME of the arguments before instantiating the arg_decorator.

@@ -2,9 +2,9 @@
 #include <common/defs.h>
 #include "partitioner.h"
 /**
-@file
-@brief Parallel Storage class
-This file defines a policy class extending the storage to distributed memory.
+   @file
+   @brief Parallel Storage class
+   This file defines a policy class extending the storage to distributed memory.
 */
 
 namespace gridtools {
@@ -40,9 +40,11 @@ namespace gridtools {
 
            Given the partitioner and the three space dimensions it constructs a storage and allocate the data
            relative to the current process
-         */
+        */
         void setup(uint_t const& d1, uint_t const& d2, uint_t const& d3)
             {
+                /**the partitioner must be set at this point*/
+                assert(m_partitioner);
                 uint_t dims[3];
                 m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
                 super::setup(dims[0], dims[1], dims[2]);
@@ -54,20 +56,20 @@ namespace gridtools {
         template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
         typename super::value_type& get_value( UInt const& ... i )
             {
-                    if(m_partitioner->mine(i...))
-                        return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i...)];
-                    else
+                if(m_partitioner->mine(i...))
+                    return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i...)];
+                else
 #ifndef DNDEBUG
-                        printf("(%d, %d, %d) not available in processor %d \n\n", i ... , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
+                    printf("(%d, %d, %d) not available in processor %d \n\n", i ... , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
 #endif
-                    return -1.;
+                return -1.;
             }
 #endif
 
         /**
-         @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
+           @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
 
-         It sums the offset given by the partitioner to the local index
+           It sums the offset given by the partitioner to the local index
         */
         template<uint_t Component>
         uint_t const& local_to_global(uint_t const& value){return m_partitioner->template global_offset<Component>()+value;}
@@ -79,6 +81,8 @@ namespace gridtools {
         halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
 
     private:
+
+        parallel_storage();
 
         partitioner_t const* m_partitioner;
         //these are set by the partitioner
