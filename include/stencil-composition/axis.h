@@ -55,6 +55,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit coordinates( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
+            m_partitioner(NULL),
             m_direction_i(direction_i),
             m_direction_j(direction_j)
             {}
@@ -75,7 +76,8 @@ namespace gridtools {
         GT_FUNCTION
         explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)
             :
-              m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
+            m_partitioner(NULL)
+            , m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
             , m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
         {}
 
@@ -124,7 +126,10 @@ namespace gridtools {
 
         halo_descriptor const& direction_j() const { return m_direction_j;}
 
-        const Partitioner & partitioner() const {return *m_partitioner;}
+        const Partitioner & partitioner() const {
+            //the partitioner must be set
+            assert(m_partitioner);
+            return *m_partitioner;}
     private:
 
         Partitioner const* m_partitioner;
