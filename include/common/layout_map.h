@@ -51,7 +51,6 @@ namespace gridtools {
     }//namespace _impl
 
 
-#ifdef CXX11_ENABLED
     // forward declarations
     template < ushort_t ID, typename Range, ushort_t Number>
     struct arg_type;
@@ -59,8 +58,10 @@ namespace gridtools {
     template < ushort_t ID, ushort_t Numbers>
     struct arg_type0;
 
+#ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
     struct arg_mixed;
+#endif
 
     //template arguments type checking
     template <typename T>
@@ -72,9 +73,9 @@ namespace gridtools {
     template < ushort_t ID, typename Range, ushort_t Number>
     struct is_arg_tuple<arg_type<ID, Range, Number> > : boost::true_type{};
 
+#ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
     struct is_arg_tuple<arg_mixed<ArgType, Pair ... > > : boost::true_type {};
-
 #endif
 
     /**
@@ -296,9 +297,7 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
-#ifdef CXX11_ENABLED
             GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
-#endif
             return (pos_<I>::value >= length ) ?
                 DefaultVal
                 :
