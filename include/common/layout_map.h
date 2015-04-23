@@ -120,12 +120,12 @@ namespace gridtools {
             return  std::template get<layout_vector[I]>( std::tie(args...) );
         }
 
-                                                                                          //returns the dimension corresponding to the given strides (get<0> for stride 1)
-                                                                                          template <ushort_t i>
-                                                                                          GT_FUNCTION
-                                                                                          static constexpr ushort_t get() {
-                                                                                              return layout_vector[i];
-                                                                                          }
+        //returns the dimension corresponding to the given strides (get<0> for stride 1)
+        template <ushort_t i>
+        GT_FUNCTION
+        static constexpr ushort_t get() {
+            return layout_vector[i];
+        }
 
         GT_FUNCTION
         short_t constexpr operator[](ushort_t i) {
