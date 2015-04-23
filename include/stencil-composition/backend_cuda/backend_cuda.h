@@ -145,19 +145,19 @@ namespace gridtools {
 
                 const typename backend_t::coords_t::partitioner_t::Flag UP=backend_t::coords_t::partitioner_t::UP;
                 const typename backend_t::coords_t::partitioner_t::Flag LOW=backend_t::coords_t::partitioner_t::LOW;
-                int_t jminus=(int_t) (xrange_subdomain_t::jminus::value + (func_->m_coords.at_boundary(1,LOW)? xrange_t::jminus::value : 0) ) ;//j-low
-                int_t iminus=(int_t) (xrange_subdomain_t::iminus::value + (func_->m_coords.at_boundary(0,LOW)? xrange_t::iminus::value : 0) ) ;//i-low
-                int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + (func_->m_coords.at_boundary(1,UP)? xrange_t::jplus::value : 0) ) ;//j-high
-                int_t iplus=(int_t)  (xrange_subdomain_t::iplus::value + (func_->m_coords.at_boundary(0,UP)? xrange_t::iplus::value : 0) ) ;//i-high
+                const int_t jminus=( int_t) (xrange_subdomain_t::jminus::value + (func_->m_coords.at_boundary(1,LOW)? xrange_t::jminus::value : 0) ) ;//j-low
+                const int_t iminus=( int_t) (xrange_subdomain_t::iminus::value + (func_->m_coords.at_boundary(0,LOW)? xrange_t::iminus::value : 0) ) ;//i-low
+                const int_t jplus=( int_t)  (xrange_subdomain_t::jplus::value + (func_->m_coords.at_boundary(1,UP)? xrange_t::jplus::value : 0) ) ;//j-high
+                const int_t iplus=( int_t)  (xrange_subdomain_t::iplus::value + (func_->m_coords.at_boundary(0,UP)? xrange_t::iplus::value : 0) ) ;//i-high
 
 #ifndef NDEBUG
 
                 std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
                 std::cout << "Boundary " <<  f->m_coords.partitioner().boundary() << "\n";
                 std::cout << "Functor " <<  functor_type() << "\n";
-                std::cout <<"[" << PID<< "] "<< "I loop " << f->m_start[0]<<"  + "<<iminus << " -> "
+                std::cout << "I loop " << f->m_start[0]<<"  + "<<iminus << " -> "
                           << f->m_start[0]<<" + "<<f->m_block[0]<<" + "<<iplus << "\n";
-                std::cout <<"[" << PID<< "] "<< "J loop " << f->m_start[1]<<" + "<<jminus << " -> "
+                std::cout << "J loop " << f->m_start[1]<<" + "<<jminus << " -> "
                           << f->m_start[1]<<" + "<<f->m_block[1]<<" + "<<jplus << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
                 std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
