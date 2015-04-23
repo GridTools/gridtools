@@ -260,8 +260,6 @@ namespace shallow_water{
     struct first_step_x {
 
         typedef range<0,-2,0,-2> xrange;
-//         last one: typedef range<0,0,0,-2> xrange;
-//         typedef range<0,1,0,-1> xrange_subdomain;
         typedef range<0,1,0,0> xrange_subdomain;
 
         typedef Dimension<5> comp;
@@ -308,8 +306,6 @@ namespace shallow_water{
                  eval(sol(comp(1),j+1))*eval(sol(comp(2),j+1))/eval(sol(comp(0),j+1)))*(dt()/(2*dx())) ;
         }
     };
-    // const x::Index first_step_x::i;
-    // const y::Index first_step_x::j;
 
     struct second_step_y {
 
@@ -327,11 +323,7 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        // static const x::Index i;
-        // static const y::Index j;
-
         typedef range<0,-2,0,-2> xrange;
-//         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
         typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy;
@@ -441,8 +433,6 @@ namespace shallow_water{
         }
 
     };
-    // const x::Index final_step::i;
-    // const y::Index final_step::j;
 
 
     uint_t final_step::current_time=0;
@@ -452,7 +442,6 @@ namespace shallow_water{
  */
     std::ostream& operator<<(std::ostream& s, first_step_x const) {
         return s << "initial step 1: ";
-        // initiali_step.to_string();
     }
 
     std::ostream& operator<<(std::ostream& s, second_step_y const) {
@@ -548,7 +537,6 @@ namespace shallow_water{
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
-        //sol.set<0,0>(out7, 1.);//h
         sol.set<1,0>(out8, 0.);//u
         sol.set<2,0>(out9, 0.);//v
 
@@ -575,9 +563,6 @@ namespace shallow_water{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // coordinates<axis> coords(2,d1-2,2,d2-2);
-        //uint_t di2[5] =  {1, 0, 1, 9, 11};
-
-        //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
         coordinates<axis, partitioner_t> coords(&part, sol);
 
         coords.value_list[0] = 0;
@@ -606,12 +591,6 @@ namespace shallow_water{
 
         shallow_water_stencil->steady();
 
-//         array<halo_descriptor, 3> halos;
-//         halos[0] = halo_descriptor(1,0,1,d1-1,d1);
-//         halos[1] = halo_descriptor(1,0,1,d2-1,d2);
-//         halos[2] = halo_descriptor(0,0,1,d3-1,d3);
-
-        //the following might be runtime value
         uint_t total_time=t;
 
         for (;final_step::current_time < total_time; ++final_step::current_time)
@@ -639,16 +618,10 @@ namespace shallow_water{
 //             vec[6]=tmpy.fields()[0].get();
 //             vec[7]=tmpy.fields()[1].get();
 //             vec[8]=tmpy.fields()[2].get();
-            //printf("right before packing \n");
+
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
-
-//             if(!comm.pid())
-//             {
-//                 float_type f(2.);
-//                 sol.set_value<0,0>(f,0,0,0);
-//             }
 
 #ifndef NDEBUG
             shallow_water_stencil->finalize();

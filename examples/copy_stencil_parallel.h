@@ -94,7 +94,7 @@ namespace copy_stencil{
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
         array<ushort_t, 3> halo(1,1,1);
-        typedef partitioner_trivial<storage_type, pattern_type::grid_type> partitioner_t;
+        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
         parallel_storage<storage_type, partitioner_t> in(part);
         parallel_storage<storage_type, partitioner_t> out(part);

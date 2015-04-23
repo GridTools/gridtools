@@ -16,12 +16,23 @@ The partitioner class is storage-agnostic, does not know anything about the stor
 
 namespace gridtools{
 
+    template<typename TopologyType>
+    class cell_topology;
+
+    template <typename T>
+    struct is_cell_topology : boost::false_type {};
+
+    template <typename TopologyType>
+    struct is_cell_topology<cell_topology<TopologyType> > : boost::true_type {};
+
     //use of static polimorphism (partitioner methods may be accessed from whithin loops)
     template <typename GridTopology, typename Communicator>
     class partitioner_trivial : public partitioner<partitioner_trivial<GridTopology, Communicator> > {
     public:
         typedef GridTopology topology_t;
         typedef Communicator communicator_t;
+
+        GRIDTOOLS_STATIC_ASSERT(is_cell_topology<GridTopology>::value, "check that the first template argument to the partitioner is a supported cell_topology type")
         /**@brief constructor
 
            suppose we are using an MPI cartesian communicator:
