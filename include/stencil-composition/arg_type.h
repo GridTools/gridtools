@@ -28,8 +28,11 @@ namespace gridtools {
         typedef typename arg_extend<ID, Range, Number, Number>::type type;
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
+        /**inheriting all constructors from arg_decorator*/
         using type::arg_decorator;
 #else
+        /**@brief constructor forwarding all the arguments
+        */
         template <typename... ForwardedArgs>
         GT_FUNCTION
         constexpr arg_type ( ForwardedArgs... x): type (x)
@@ -42,26 +45,26 @@ namespace gridtools {
         constexpr explicit arg_type(): type()
             {}
 
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
+        /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
         constexpr arg_type ( X x, Y y, Z z, T t ): type(x, y, z, t)
             {
             }
 
+        /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
         constexpr arg_type ( X x, Y y, Z z ): type(x, y, z)
             {
             }
+        /** @brief constructor forwarding all the arguments*/
         template <typename X>
         GT_FUNCTION
         constexpr arg_type ( X x ): type(x)
             {
             }
+        /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y>
         GT_FUNCTION
         constexpr arg_type ( X x, Y y ): type(x, y)
@@ -71,7 +74,12 @@ namespace gridtools {
 #endif
     };
 
-    template < int ID, int Number>
+
+    /**
+       @brief convenient interface allowing to specify an arbitrary dimensional
+       \ref gridtools::arg_type with zero range
+    */
+    template < ushort_t ID, ushort_t Number>
     struct arg_type0 : public arg_extend<ID, range<0,0,0,0>, Number, Number>::type {
         typedef typename arg_extend<ID, range<0,0,0,0>, Number, Number>::type type;
         GT_FUNCTION
@@ -88,12 +96,6 @@ namespace gridtools {
         constexpr arg_type0 ( ForwardedArgs... x): type (x)
             {
             }
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
-
 #endif
 #else
         template <typename X, typename Y, typename Z,  typename T>
@@ -152,10 +154,13 @@ namespace gridtools {
     namespace enumtype
     {
         /**
+           @section enumtype
+           @{
            @brief The following struct defines one specific component of a field
-           It contains a direction (compile time constant, specifying the ID of the component), and a value
-           (runtime value, which is storing the offset in the given direction).
-           As everything what is inside the enumtype namespace, the Dimension keyword is supposed to be used at the application interface level.
+           It contains a direction (compile time constant, specifying the ID of the component),
+           and a value (runtime value, which is storing the offset in the given direction).
+           As everything what is inside the enumtype namespace, the Dimension keyword is
+           supposed to be used at the application interface level.
         */
         template <ushort_t Coordinate>
         struct Dimension{
@@ -210,11 +215,19 @@ namespace gridtools {
         typedef Dimension<2> y;
         typedef Dimension<3> z;
 
+        /**@}*/
     }
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
-    /**TODO Document me*/
+    /**@brief same as arg_type but mixing run-time offsets with compile-time ones
+
+       When we know beforehand that the dimension which we are querying is
+       a compile-time one, we can use the static method get_constexpr() to get the offset.
+       Otherwise the method get() checks before among the static dimensions, and if the
+       queried dimension is not found it looks up in the dynamic dimensions. Note that this
+       lookup is anyway done at compile time, i.e. the get() method returns in constant time.
+     */
     template <typename ArgType, typename ... Pair>
     struct arg_mixed{
 
@@ -234,7 +247,10 @@ namespace gridtools {
         arg_mixed( ArgsRuntime const& ... args ): m_args_runtime(args...) {
         }
 
-        /**@brief returns the offset at a specific index Idx*/
+        /**@brief returns the offset at a specific index Idx
+
+           this is the constexpr version of the get() method (e.g. can be used as template parameter).
+         */
         template<short_t Idx>
         GT_FUNCTION
         static constexpr
@@ -246,7 +262,10 @@ namespace gridtools {
             return s_args_constexpr.template get<Idx>();
         }
 
-        /**@brief returns the offset at a specific index Idx*/
+        /**@brief returns the offset at a specific index Idx
+
+           the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
+         */
         template<short_t Idx>
         GT_FUNCTION
         constexpr

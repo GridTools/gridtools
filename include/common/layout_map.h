@@ -50,6 +50,33 @@ namespace gridtools {
 
     }//namespace _impl
 
+
+#ifdef CXX11_ENABLED
+    // forward declarations
+    template < ushort_t ID, typename Range, ushort_t Number>
+    struct arg_type;
+
+    template < ushort_t ID, ushort_t Numbers>
+    struct arg_type0;
+
+    template <typename ArgType, typename ... Pair>
+    struct arg_mixed;
+
+    //template arguments type checking
+    template <typename T>
+    struct is_arg_tuple : boost::false_type {};
+
+    template < ushort_t ID, ushort_t Number>
+    struct is_arg_tuple<arg_type0<ID, Number> > : boost::true_type{};
+
+    template < ushort_t ID, typename Range, ushort_t Number>
+    struct is_arg_tuple<arg_type<ID, Range, Number> > : boost::true_type{};
+
+    template <typename ArgType, typename ... Pair>
+    struct is_arg_tuple<arg_mixed<ArgType, Pair ... > > : boost::true_type {};
+
+#endif
+
     /**
        Layout maps are simple sequences of integers specified
        statically. The specification happens as
@@ -248,6 +275,8 @@ namespace gridtools {
                 indices[pos_<I>::value];
         }
 
+
+
         /** Given a tuple and a static index I, the function
             returns the value of the element in the tuple whose position
             corresponds to the position of 'I' in the map. If the
@@ -267,8 +296,10 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
-            //GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
-            return(pos_<I>::value >= length ) ?
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
+#endif
+            return (pos_<I>::value >= length ) ?
                 DefaultVal
                 :
                 indices.template get<Tuple::n_args-pos_<I>::value-1>();
