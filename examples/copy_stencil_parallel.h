@@ -121,7 +121,7 @@ namespace copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::coordinates<axis, partitioner_t> coords(&part, out);
+        gridtools::coordinates<axis, partitioner_t> coords(part, out);
         //k dimension not partitioned
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;

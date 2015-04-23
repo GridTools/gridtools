@@ -17,6 +17,15 @@ template <typename Derived>
 class partitioner {
 
 public:
+
+    enum Flag{UP=1, LOW=
+#ifdef CXX11_ENABLED
+              products<Derived::space_dimensions>::apply(2)
+#else
+              8 // 2^3, 3D topology
+#endif
+    };
+
     /**@brief constructor
        suppose we are using an MPI cartesian communicator:
        then we have a coordinates (e.g. the local i,j,k identifying a processor id) and dimensions (e.g. IxJxK)
@@ -55,6 +64,26 @@ public:
             static_cast<Derived*>(this)->compute_bounds(dims, coordinates, coordinates_gcl, low_bound, up_bound, d1, d2, d3);
         }
 #endif
+
 };
+
+
+    /**@brief dummy partitioner, must be empty (only static data)
+
+       used in the case in which no partitioner is needed
+     */
+    class partitioner_dummy : public partitioner<partitioner_dummy> {
+
+    public:
+        static int boundary() {return 64+32+16+8+4+2+1;}
+        static bool at_boundary(ushort_t const& /*coordinate*/, Flag const& /*flag_*/) {return true;}
+        //static const ushort_t space_dimensions=3;
+    };
+
+    template<typename Partitioner>
+    struct is_partitioner_dummy : boost::false_type{};
+
+    template<>
+    struct is_partitioner_dummy<partitioner_dummy> : boost::true_type{};
 
 }//namespace gridtools

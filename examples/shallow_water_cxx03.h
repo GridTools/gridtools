@@ -563,7 +563,7 @@ namespace shallow_water{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // coordinates<axis> coords(2,d1-2,2,d2-2);
-        coordinates<axis, partitioner_t> coords(&part, sol);
+        coordinates<axis, partitioner_t> coords(part, sol);
 
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;

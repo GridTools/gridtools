@@ -30,21 +30,12 @@ namespace gridtools {
 
     using namespace enumtype_axis;
 
-    class partitioner_dummy{
-    public:
-        int boundary() const {return 16+8+4+2+1;}
-    };
-
-    template<typename Partitioner>
-    struct is_partitioner_dummy : boost::false_type{};
-
-    template<>
-    struct is_partitioner_dummy<partitioner_dummy> : boost::true_type{};
 
     template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
         BOOST_STATIC_ASSERT(is_interval<Axis>::value);
         typedef Axis axis_type;
+        typedef Partitioner partitioner_t;
 
         typedef typename boost::mpl::plus<
                 boost::mpl::minus<typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter>,
@@ -55,15 +46,18 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit coordinates( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
-            m_partitioner(NULL),
+            m_partitioner(partitioner_dummy()),
             m_direction_i(direction_i),
             m_direction_j(direction_j)
-            {}
+            {
+                static_int<sizeof(partitioner_t)>::fuck();
+                GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
+            }
 
 
         template<typename ParallelStorage>
         GT_FUNCTION
-        explicit coordinates( const Partitioner * part_, ParallelStorage const & storage_ )
+        explicit coordinates( const Partitioner& part_, ParallelStorage const & storage_ )
             :
             m_partitioner(part_)
             , m_direction_i(storage_.template get_halo_descriptor<0>())//copy
@@ -76,10 +70,12 @@ namespace gridtools {
         GT_FUNCTION
         explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)
             :
-            m_partitioner(NULL)
+            m_partitioner(partitioner_dummy())
             , m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
             , m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
-        {}
+        {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
+        }
 
         GT_FUNCTION
         uint_t i_low_bound() const {
@@ -128,11 +124,17 @@ namespace gridtools {
 
         const Partitioner & partitioner() const {
             //the partitioner must be set
-            assert(m_partitioner);
-            return *m_partitioner;}
+            return m_partitioner;}
+
+        template<typename Flag>
+        bool at_boundary(ushort_t const& coordinate_, Flag const& flag_) const
+            {
+                return m_partitioner.at_boundary(coordinate_, flag_);
+            }
+
     private:
 
-        Partitioner const* m_partitioner;
+        Partitioner const& m_partitioner;
         halo_descriptor m_direction_i;
         halo_descriptor m_direction_j;
 

@@ -564,7 +564,7 @@ namespace shallow_water{
             //uint_t di2[5] =  {1, 0, 1, 9, 11};
 
             //uint_t dj2[5] = {0, 0, 0, d2-1, d2};
-            coordinates<axis, partitioner_t> coords(&part, sol);
+            coordinates<axis, partitioner_t> coords(part, sol);
 
             //coordinates<axis, partitioner_t> coords(di2, dj2);
             coords.value_list[0] = 0;
