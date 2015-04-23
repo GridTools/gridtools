@@ -31,6 +31,12 @@ namespace gridtools{
     public:
         typedef GridTopology topology_t;
         typedef Communicator communicator_t;
+        typedef partitioner<partitioner_trivial<GridTopology, Communicator> > super;
+
+        using super::LOW;
+        using super::UP;
+
+        static const ushort_t space_dimensions=topology_t::space_dimensions;
 
         GRIDTOOLS_STATIC_ASSERT(is_cell_topology<GridTopology>::value, "check that the first template argument to the partitioner is a supported cell_topology type")
         /**@brief constructor
@@ -57,7 +63,7 @@ namespace gridtools{
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
         */
         partitioner_trivial(// communicator_t const& comm,
-            const communicator_t& comm, const gridtools::array<ushort_t, topology_t::space_dimensions>& halo )
+            const communicator_t& comm, const gridtools::array<ushort_t, space_dimensions>& halo )
             : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_comm(comm){
 
             m_boundary=0;//bitmap
@@ -92,7 +98,7 @@ namespace gridtools{
 #else
                 uint_t sizes[3]={d1, d2, d3};
 #endif
-                for(uint_t component=0; component<topology_t::space_dimensions; ++component){
+                for(uint_t component=0; component<space_dimensions; ++component){
                     if ( component >= communicator_t::ndims || m_pid[component]==0 )
                         low_bound[component] = 0;
                     else
@@ -124,24 +130,24 @@ namespace gridtools{
 
                     uint_t tile_dimension = up_bound[component]-low_bound[component];
 
-                    coordinates[component] = halo_descriptor( compute_halo(component,8),
-                                                                compute_halo(component,1),
-                                                                compute_halo(component,8),
-                                                                tile_dimension + ( compute_halo(component,8)) - 1,
-                                                                tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,8)) );
+                    coordinates[component] = halo_descriptor( compute_halo(component,LOW),
+                                                              compute_halo(component,UP),
+                                                              compute_halo(component,LOW),
+                                                              tile_dimension + ( compute_halo(component,LOW)) - 1,
+                                                                tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
 
                     coordinates_gcl[component] = halo_descriptor( m_halo[component],
                                                                   m_halo[component],
-                                                                  compute_halo(component,8),
-                                                                  tile_dimension + ( compute_halo(component,8)) - 1,
-                                                                  tile_dimension + ( compute_halo(component,1)) + (compute_halo(component,8)) );
+                                                                  compute_halo(component,LOW),
+                                                                  tile_dimension + ( compute_halo(component,LOW)) - 1,
+                                                                  tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
 
 #ifndef NDEBUG
-                std::cout<<"["<<PID<<"]"<<"coordinates ["<< compute_halo(component,8)<<" "
-                         <<compute_halo(component,1) << " "
-                         <<compute_halo(component,8) << " "
-                         << tile_dimension+(compute_halo(component,8))-1<<" "
-                         <<( tile_dimension+ compute_halo(component,1))+(compute_halo(component,8))<<"]"
+                std::cout<<"["<<PID<<"]"<<"coordinates ["<< compute_halo(component,LOW)<<" "
+                         <<compute_halo(component,UP) << " "
+                         <<compute_halo(component,LOW) << " "
+                         << tile_dimension+(compute_halo(component,LOW))-1<<" "
+                         <<( tile_dimension+ compute_halo(component,UP))+(compute_halo(component,LOW))<<"]"
                          << std::endl;
                 std::cout<<"boundary for coords definition: "<<boundary()<<std::endl;
                 std::cout<<"partitioning"<<std::endl;
@@ -150,7 +156,7 @@ namespace gridtools{
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
                          <<"component, size: "<<component<<" "<<sizes[component]<<std::endl;
 #endif
-                dims[component]=up_bound[component]-low_bound[component]+ compute_halo(component,1)+compute_halo(component,8);
+                dims[component]=up_bound[component]-low_bound[component]+ compute_halo(component,UP)+compute_halo(component,LOW);
                 }
             }
 
@@ -197,20 +203,26 @@ namespace gridtools{
             #####2^(d)######
             \endverbatim
         */
-        int_t compute_halo(ushort_t const& component, ushort_t const& flag) const {
-            return (  m_comm.periodic(component) || boundary()%((ushort_t)std::pow(2,component+1)*flag)<((component+1)*flag))?m_halo[component]:0;
+        int_t compute_halo(ushort_t const& component_, typename super::Flag const& flag_) const {
+            return (  m_comm.periodic(component_) || at_boundary(component_, flag_)) ? m_halo[component_]:0;
             }
+
+        bool at_boundary(ushort_t component_, typename super::Flag const& flag_) const {
+            return boundary()%((ushort_t)std::pow(2,component_+1)*flag_)<((component_+1)*flag_);
+        }
+
+        uint_t const & boundary() const {
+            return m_boundary;
+        }
 
         template<int_t Component>
         int_t pid() const {return m_pid[Component];}
-
-        int const&  boundary()const{return m_boundary;}
 
     private:
         const int* m_pid;
         const int* m_ntasks;
         const ushort_t* m_halo;
         communicator_t const& m_comm;
-        int m_boundary;
+        uint_t m_boundary;
     };
 }//namespace gridtools
