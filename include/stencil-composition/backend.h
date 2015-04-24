@@ -76,7 +76,15 @@ namespace gridtools {
     template <typename PlcArgType>
     struct is_temporary_arg : is_temporary_storage<typename PlcArgType::storage_type>{};
 
-
+    template<
+        typename Arguments,
+        template <typename > class Impl
+    >
+    struct run_functor_impl_arguments<Impl<Arguments> >
+    {
+        BOOST_STATIC_ASSERT((is_run_functor_arguments<Arguments>::value));
+        typedef Arguments type;
+    };
 
     /**
        @brief traits struct for the run_functor
@@ -210,10 +218,11 @@ namespace gridtools {
 
          */
         template <typename Domain
-                  , typename MssType>
+                  , typename MssComponents>
         struct obtain_map_ranges_temporaries_mss
         {
-            typedef typename MssType::range_sizes RangeSizes;
+            BOOST_STATIC_ASSERT((is_mss_components<MssComponents>::value));
+            typedef typename MssComponents::range_sizes_t RangeSizes;
             //full list of temporaries in list of place holders of domain
             typedef typename boost::mpl::fold<typename Domain::placeholders,
                 boost::mpl::vector<>,
@@ -224,12 +233,12 @@ namespace gridtools {
             >::type list_of_temporaries;
 
             //vector of written temporaries per functor (vector of vectors)
-            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
+            typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
 
             typedef typename boost::mpl::fold<
                 list_of_temporaries,
                 boost::mpl::map0<>,
-                _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor, RangeSizes>
+                _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, RangeSizes>
             >::type type;
         };
 
@@ -267,13 +276,13 @@ namespace gridtools {
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
          */
-        template <typename Domain, typename MssArray>
+        template <typename Domain, typename MssComponentsArray>
         struct obtain_map_ranges_temporaries_mss_array {
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
 
             typedef typename boost::mpl::fold<
-                typename MssArray::elements,
+                typename MssComponentsArray::elements,
                 boost::mpl::map0<>,
                 merge_range_temporary_maps<
                     boost::mpl::_1,
@@ -285,17 +294,17 @@ namespace gridtools {
         /**
          * @brief compute a list with all the temporary storage types used by an array of mss
          * @tparam Domain domain
-         * @tparam MssArray meta array of mss
+         * @tparam MssComponentsArray meta array of mss components
          * @tparam ValueType type of field values stored in the temporary storage
          * @tparam LayoutType memory layout
          */
         template <typename Domain
-                  , typename MssArray
+                  , typename MssComponentsArray
                   , typename ValueType
                   , typename LayoutType >
         struct obtain_temporary_storage_types {
 
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
             BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
 
@@ -305,8 +314,7 @@ namespace gridtools {
 
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
-
-            typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssArray>::type map_of_ranges;
+            typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssComponentsArray>::type map_of_ranges;
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
                     "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"
@@ -341,7 +349,7 @@ namespace gridtools {
          * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
         template <
-            typename MssArray,
+            typename MssComponentsArray,
             typename Coords,
             typename MssLocalDomainArray
         > // List of local domain to be pbassed to functor at<i>
@@ -349,9 +357,9 @@ namespace gridtools {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
             BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
 
-            strategy_from_id< s_strategy_id >::template fused_mss_loop<MssArray, BackendId>::run(mss_local_domain_list, coords);
+            strategy_from_id< s_strategy_id >::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, coords);
         }
 
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/static_assert.hpp>
 #include "basic_token_execution.h"
 #include "domain_type_impl.h"
 #ifdef __CUDACC__
@@ -18,7 +19,11 @@ namespace gridtools{
         /**
            @brief   Execution kernel containing the loop over k levels
         */
-        template< typename ExecutionEngine, typename ExtraArguments >
+        template<
+            typename ExecutionEngine,
+            typename RunFunctorArguments,
+            typename EsfArguments
+        >
         struct run_f_on_interval{
             typedef uint_t local_domain_t;
         };
@@ -28,12 +33,32 @@ namespace gridtools{
         */
         template<
             enumtype::execution IterationType,
-            typename ExtraArguments>
-        struct run_f_on_interval< typename enumtype::execute<IterationType>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<IterationType>, ExtraArguments > >
+            typename RunFunctorArguments,
+            typename EsfArguments
+        >
+        struct run_f_on_interval<
+            typename enumtype::execute<IterationType>,
+            EsfArguments,
+            RunFunctorArguments
+        > : public run_f_on_interval_base< run_f_on_interval<
+                    typename enumtype::execute<IterationType>, EsfArguments, RunFunctorArguments
+                >
+            > //CRTP
         {
-            typedef run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<IterationType>, ExtraArguments > > super;
+            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
+            BOOST_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value));
+
+            typedef run_f_on_interval_base<
+                        run_f_on_interval<
+                            typename enumtype::execute<IterationType>,
+                            EsfArguments,
+                            RunFunctorArguments
+                        >
+                    > super;
             typedef typename enumtype::execute<IterationType>::type execution_engine;
-            typedef ExtraArguments traits;
+            typedef EsfArguments esf_arguments_t;
+
+            typedef typename EsfArguments::functor_t functor_t;
 
             //////////////////////Compile time checks ////////////////////////////////////////////////////////////
             //checking that all the placeholders have a different index
@@ -41,7 +66,7 @@ namespace gridtools{
              * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
              * note that the static const indexes are transformed into types using mpl::integral_c
              */
-            typedef _impl::compute_index_set<typename traits::functor_t::arg_list> check_holes;
+            typedef _impl::compute_index_set<typename functor_t::arg_list> check_holes;
             typedef typename check_holes::raw_index_list raw_index_list;
             typedef typename check_holes::index_set index_set;
             static const ushort_t len=check_holes::len;
@@ -58,13 +83,16 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
 
             GT_FUNCTION
-            explicit run_f_on_interval(typename traits::iterate_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
+            explicit run_f_on_interval(
+                    typename EsfArguments::iterate_domain_t & domain,
+                    typename RunFunctorArguments::coords_t const& coords):
+                super(domain, coords){}
 
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
             void loop(uint_t from, uint_t to) const {
                 for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
-                    traits::functor_t::Do(this->m_domain, IntervalType());
+                    functor_t::Do(this->m_domain, IntervalType());
                 }
             }
 
@@ -75,9 +103,21 @@ The numeration of the placeholders is not contiguous. You have to define each ar
            stub
         */
         template<
-            typename ExtraArguments>
-        struct run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > >
-        {
+            typename RunFunctorArguments,
+            typename EsfArguments
+        >
+        struct run_f_on_interval<
+            typename enumtype::execute<enumtype::parallel>,
+            EsfArguments,
+            RunFunctorArguments
+        > : public run_f_on_interval_base<
+            run_f_on_interval<
+                typename enumtype::execute<enumtype::parallel>,
+                RunFunctorArguments, EsfArguments
+            >
+        > {
+            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
+            BOOST_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value));
             //*TODO implement me
         };
     } // namespace _impl

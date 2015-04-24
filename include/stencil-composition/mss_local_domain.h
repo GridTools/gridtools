@@ -11,8 +11,8 @@
 #include <boost/mpl/has_key.hpp>
 
 #include "local_domain.h"
-#include "general_metafunctions.h"
 #include "backend_traits_fwd.h"
+#include "mss_components.h"
 #include "local_domain_metafunctions.h"
 
 namespace gridtools
@@ -35,19 +35,22 @@ namespace gridtools
 
     template<
         enumtype::backend BackendId,
-        typename MssType,
+        typename MssComponents,
         typename DomainType,
         typename actual_arg_list_type,
         bool IsStateful
     >
     struct mss_local_domain
     {
+        BOOST_STATIC_ASSERT((is_mss_components<MssComponents>::value));
+        BOOST_STATIC_ASSERT((is_domain_type<DomainType>::value));
+
         /**
          * Create a fusion::vector of domains for each functor
          *
          */
         typedef typename boost::mpl::transform<
-            typename MssType::linear_esf,
+            typename MssComponents::linear_esf_t,
             _impl::get_local_domain<actual_arg_list_type, IsStateful>
         >::type mpl_local_domain_list;
 

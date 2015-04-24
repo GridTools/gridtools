@@ -33,16 +33,19 @@ namespace gridtools{
          * @tparam TMssArray a meta array with all the mss descriptors
          * @tparam BackendId id of the backend
          */
-        template<typename TMssArray, enumtype::backend BackendId>
+        template<typename MssComponentsArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
-            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
+            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits;
-                backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, coords,0,0));
+                backend_traits::template for_each<iter_range> (
+                    mss_functor<MssComponentsArray, Coords, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, coords,0,0)
+                );
             }
         };
 
