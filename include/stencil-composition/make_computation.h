@@ -17,7 +17,7 @@
 
 #include "common/defs.h"
 #include "stencil-composition/esf.h"
-#include "stencil-composition/mss.h"
+#include "stencil-composition/mss_metafunctions.h"
 #ifndef __CUDACC__
 #include <boost/make_shared.hpp>
 #endif

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "mss_metafunctions.h"
+#include "mss_components_metafunctions.h"
 
 namespace gridtools {
 
@@ -23,11 +23,11 @@ namespace gridtools {
      * @tparam BackendId id of backend
      * @tparam StrategyId id of strategy
      */
-    template<typename TMssArray, typename Coords, typename MssLocalDomainArray, enumtype::backend BackendId, enumtype::strategy StrategyId>
+    template<typename MssComponentsArray, typename Coords, typename MssLocalDomainArray, enumtype::backend BackendId, enumtype::strategy StrategyId>
     struct mss_functor
     {
         BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
-        BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
+        BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
         BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
 
         mss_functor(MssLocalDomainArray& local_domain_lists, const Coords& coords, const int block_idx, const int block_idy) :
@@ -41,16 +41,16 @@ namespace gridtools {
         {
             typedef typename boost::fusion::result_of::value_at<MssLocalDomainArray, Index>::type mss_local_domain_t;
             BOOST_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value));
-            BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename TMssArray::elements>::value));
-            typedef typename boost::mpl::at<typename TMssArray::elements, Index>::type MssType;
+            BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename MssComponentsArray::elements>::value));
+            typedef typename boost::mpl::at<typename MssComponentsArray::elements, Index>::type mss_components_t;
             typedef typename mss_local_domain_list<mss_local_domain_t>::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map<mss_local_domain_t>::type local_domain_esf_args_map_t;
 
             local_domain_list_t& local_domain_list = (local_domain_list_t&)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;
 
-            typedef typename MssType::execution_engine_t ExecutionEngine;
+            typedef typename mss_components_t::execution_engine_t ExecutionEngine;
 
-            typedef typename mss_loop_intervals<MssType, Coords>::type LoopIntervals; // List of intervals on which functors are defined
+            typedef typename mss_loop_intervals<mss_components_t, Coords>::type LoopIntervals; // List of intervals on which functors are defined
             //wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<
                     typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type,
@@ -58,11 +58,11 @@ namespace gridtools {
                     typename boost::mpl::reverse<LoopIntervals>::type
             >::type oriented_loop_intervals_t;
             // List of functors to execute (in order)
-            typedef typename MssType::functors_list functors_list_t;
+            typedef typename mss_components_t::functors_list_t functors_list_t;
             // computed range sizes to know where to compute functot at<i>
-            typedef typename MssType::range_sizes range_sizes;
+            typedef typename mss_components_t::range_sizes_t range_sizes;
             // Map between interval and actual arguments to pass to Do methods
-            typedef typename mss_functor_do_method_lookup_maps<MssType, Coords>::type FunctorsMap;
+            typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Coords>::type FunctorsMap;
 
             // compute the struct with all the type arguments for the run functor
             typedef run_functor_arguments<

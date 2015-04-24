@@ -149,7 +149,9 @@ namespace gridtools {
             typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
             merge_local_domain_sequence<LocalDomainSequence>,
             boost::mpl::identity<LocalDomainSequence>
-        >::type type;
+        >::type fused_mss_local_domains_t;
+        typedef typename boost::fusion::result_of::as_vector<fused_mss_local_domains_t>::type type;
+
     };
 
     template<enumtype::backend BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
@@ -161,6 +163,16 @@ namespace gridtools {
             typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
             create_args_lookup_map<LocalDomainSequence, MergedLocalDomainSequence>,
             create_trivial_args_lookup_map<LocalDomainSequence>
+        >::type type;
+    };
+
+    template<typename Index, typename BackendId>
+    struct extract_local_domain_index
+    {
+        typedef typename boost::mpl::if_<
+            typename backend_traits_from_id<BackendId::value>::mss_fuse_esfs_strategy,
+            boost::mpl::int_<0>,
+            Index
         >::type type;
     };
 } // gridtools

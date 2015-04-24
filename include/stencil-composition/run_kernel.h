@@ -1,20 +1,23 @@
 #pragma once
+#include "backend.h"
 
 namespace gridtools {
     namespace _impl {
+
+        template<typename RunFunctorImpl>
+        struct run_functor_backend_id;
 
         /**
            \brief "base" struct for all the backend
            This class implements static polimorphism by means of the CRTP pattern. It contains all what is common for all the backends.
         */
-        template < typename Derived >
+        template < typename RunFunctorImpl >
 	    struct run_functor {
-
-            typedef Derived derived_t;
-            typedef run_functor_traits<Derived> derived_traits_t;
-            typedef typename derived_traits_t::arguments_t arguments_t;
-            typedef typename derived_traits_t::local_domain_list_t local_domain_list_t;
-            typedef typename derived_traits_t::coords_t coords_t;
+            typedef typename run_functor_impl_arguments<RunFunctorImpl>::type run_functor_arguments_t;
+            typedef typename run_functor_arguments_t::local_domain_list_t local_domain_list_t;
+            typedef typename run_functor_arguments_t::coords_t coords_t;
+            typedef typename run_functor_arguments_t::esf_args_map_sequence_t esf_args_map_sequence_t;
+            typedef typename run_functor_arguments_t::functor_list_t run_functor_list_t;
 
             local_domain_list_t & m_local_domain_list;
             coords_t const & m_coords;
@@ -57,16 +60,27 @@ namespace gridtools {
             template <typename Index>
             void operator()(Index const& ) const {
 
-                typename derived_traits_t::template traits<Index>::local_domain_t& local_domain = boost::fusion::at<Index>(m_local_domain_list);
-                typedef execute_kernel_functor<  derived_t > exec_functor_t;
+                typedef esf_arguments<
+                    typename run_functor_backend_id<RunFunctorImpl>::type,
+                    run_functor_arguments_t,
+                    Index
+                > esf_arguments_t;
+
+                typedef typename esf_arguments_t::local_domain_index_t local_domain_index_t;
+                typedef typename esf_arguments_t::local_domain_t local_domain_t;
+
+                local_domain_t& local_domain = boost::fusion::at<local_domain_index_t>(m_local_domain_list);
+
+                typedef execute_kernel_functor< RunFunctorImpl > exec_functor_t;
+                typedef typename boost::mpl::at<esf_args_map_sequence_t, Index>::type esf_args_map_t;
 
                 //check that the number of placeholders passed to the elementary stencil function
                 //(constructed during the computation) is the same as the number of arguments referenced
                 //in the functor definition (in the high level interface). This means that we cannot
                 // (although in theory we could) pass placeholders to the computation which are not
                 //also referenced in the functor.
-                GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<typename derived_traits_t::template traits<Index>::local_domain_t::esf_args>::value==
-                    boost::mpl::size<typename derived_traits_t::template traits<Index>::functor_t::arg_list>::value,
+                GRIDTOOLS_STATIC_ASSERT( (boost::mpl::size<esf_args_map_t>::value==
+                    boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::arg_list>::value ),
 		            "GRIDTOOLS ERROR:\n\
 		            check that the number of placeholders passed to the elementary stencil function\n \
 		            (constructed during the computation) is the same as the number of arguments referenced\n\
@@ -74,9 +88,10 @@ namespace gridtools {
 		            (although in theory we could) pass placeholders to the computation which are not\n\
 		            also referenced in the functor.");
 
-                exec_functor_t::template execute_kernel< typename derived_traits_t::template traits<Index> >(local_domain, static_cast<const derived_t*>(this));
+                exec_functor_t::template execute_kernel<
+                    esf_arguments_t
+                >(local_domain, static_cast<const RunFunctorImpl*>(this));
             }
         };
-
     } // namespace _impl
 } // namespace gridtools

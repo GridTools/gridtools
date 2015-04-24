@@ -9,33 +9,61 @@ namespace gridtools {
                @brief generic forward declaration of the execution_policy struct.
             */
             template < typename RunF >
-                struct execution_policy;
+            struct run_f_on_interval_esf_arguments;
+
+            template < typename RunF >
+            struct run_f_on_interval_run_functor_arguments;
+
+            template < typename RunF >
+            struct run_f_on_interval_execution_engine;
 
             /**
                @brief forward declaration of the execution_policy struct
             */
             template <
-                typename Arguments, typename T,
-                template < typename U, typename Argument > class Back
-                >
-                struct execution_policy<Back<T,Arguments> >
+                typename ExecutionEngine, typename EsfArguments, typename RunFunctorArguments,
+                template<typename , typename, typename > class Impl
+            >
+            struct run_f_on_interval_esf_arguments<Impl<ExecutionEngine, EsfArguments, RunFunctorArguments> >
             {
-                typedef Arguments traits_t;
-                typedef T execution_engine_t;
+                typedef EsfArguments type;
             };
+
+            template <
+                typename ExecutionEngine, typename EsfArguments, typename RunFunctorArguments,
+                template<typename, typename, typename> class Impl
+            >
+            struct run_f_on_interval_run_functor_arguments<Impl<ExecutionEngine, EsfArguments, RunFunctorArguments> >
+            {
+                typedef RunFunctorArguments type;
+            };
+            template <
+                typename ExecutionEngine, typename EsfArguments, typename RunFunctorArguments,
+                template<typename, typename, typename> class Impl
+            >
+            struct run_f_on_interval_execution_engine<Impl<ExecutionEngine, EsfArguments, RunFunctorArguments> >
+            {
+                typedef ExecutionEngine type;
+            };
+
         }//unnamed namespace
 
 /**
    @brief basic token of execution responsible of handling the discretization over the vertical dimension. This may be done with a loop over k or by partitoning the k axis and executing in parallel, depending on the execution_policy defined in the multi-stage stencil. The base class is then specialized using the CRTP pattern for the different policies.
 */
-        template < typename Derived >
+        template < typename RunFOnIntervalImpl >
         struct run_f_on_interval_base {
             /**\brief necessary because the Derived class is an incomplete type at the moment of the instantiation of the base class*/
-            typedef typename execution_policy<Derived>::traits_t traits;
-            typedef typename execution_policy<Derived>::execution_engine_t execution_engine;
+            typedef typename run_f_on_interval_esf_arguments<RunFOnIntervalImpl>::type esf_arguments_t;
+            typedef typename run_f_on_interval_run_functor_arguments<RunFOnIntervalImpl>::type run_functor_arguments_t;
+            typedef typename run_f_on_interval_execution_engine<RunFOnIntervalImpl>::type execution_engine;
+
+            typedef typename run_functor_arguments_t::coords_t coords_t;
+            typedef typename esf_arguments_t::interval_map_t interval_map_t;
+            typedef typename esf_arguments_t::iterate_domain_t iterate_domain_t;
 
             GT_FUNCTION
-            explicit run_f_on_interval_base(typename traits::iterate_domain_t & domain, typename traits::coords_t const& coords)
+            explicit run_f_on_interval_base(typename esf_arguments_t::iterate_domain_t & domain, coords_t const& coords)
                 : m_coords(coords)
                 , m_domain(domain)
             {}
@@ -48,13 +76,14 @@ namespace gridtools {
 
                 //check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
-                                        level_to_index<typename traits::coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
-                                        level_to_index<typename traits::coords_t::axis_type::ToLevel>::value >= Interval::second::value , "the k interval exceeds the axis you specified for the coordinates instance");
+                    (level_to_index<typename coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
+                    level_to_index<typename coords_t::axis_type::ToLevel>::value >= Interval::second::value) ,
+                    "the k interval exceeds the axis you specified for the coordinates instance");
 
                 typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
 
-                if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
-                    typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
+                if (boost::mpl::has_key<interval_map_t, Interval>::type::value) {
+                    typedef typename boost::mpl::at<interval_map_t, Interval>::type interval_type;
 
                     uint_t from=m_coords.template value_at<from_t>();
                     //m_coords.template value_at<typename iteration_policy::from>();
@@ -62,13 +91,13 @@ namespace gridtools {
                     /* uint_t to=m_coords.template value_at<typename iteration_policy::to>(); */
                     // std::cout<<"from==> "<<from<<std::endl;
                     // std::cout<<"to==> "<<to<<std::endl;
-                    static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template loop<iteration_policy, interval_type>(from, to);
+                    static_cast<RunFOnIntervalImpl*>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl>* >(this))->template loop<iteration_policy, interval_type>(from, to);
                 }
             }
 
         protected:
-            typename traits::coords_t const &m_coords;
-            typename traits::iterate_domain_t &m_domain;
+            coords_t const &m_coords;
+            iterate_domain_t &m_domain;
         };
 
     } // namespace _impl
