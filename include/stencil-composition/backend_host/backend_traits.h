@@ -108,11 +108,11 @@ namespace gridtools{
          * @tparam TMssArray a meta array with all the mss descriptors
          * @tparam BackendId id of the backend
          */
-        template<typename TMssArray, enumtype::backend BackendId>
+        template<typename MssComponentsArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
-            BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
-            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename TMssArray::elements>::type::value> iter_range;
+            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
+            typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
@@ -133,7 +133,7 @@ namespace gridtools{
                 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            backend_traits::template for_each<iter_range> (mss_functor<TMssArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
+                            backend_traits::template for_each<iter_range> (mss_functor<MssComponentsArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,bi,bj));
                         }
                     }
                 }
