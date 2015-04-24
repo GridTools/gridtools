@@ -35,78 +35,310 @@ from tests.test_stencils import CopyTest
 
 
 
-class SW_U (MultiStageStencil):
+class SW_Momentum (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
-        self.bl = 0.2
+        self.bl = 1.2
         #
         # temporary data fields
         #
-        self.Uavg  = np.zeros (domain)
+        self.Mavg = np.zeros (domain)
 
 
-    def kernel (self, out_U, out_Ud, out_Ux):
-        for p in self.get_interior_points (out_U):
+    def kernel (self, out_M, out_Mx, out_My, in_M):
+         for p in self.get_interior_points (out_M):
             #
-            # temporaries used later
+            # temporary used later
             #
-            out_Ux[p]   = out_U[p + (1,0,0)] - out_U[p + (-1,0,0)]
-            self.Uavg[p] = (out_U[p + (1,0,0)] + out_U[p + (-1,0,0)] + out_U[p + (0,1,0)] + out_U[p + (0,-1,0)]) / 4.0
+            self.Mavg[p] = (in_M[p + (1,0,0)] + in_M[p + (-1,0,0)] + 
+                            in_M[p + (0,1,0)] + in_M[p + (0,-1,0)]) / 4.0
+            #
+            # derivatives in 'x' and 'y' dimensions
+            #
+            out_Mx[p] = in_M[p + (1,0,0)] - in_M[p + (-1,0,0)]
+            out_My[p] = in_M[p + (0,1,0)] - in_M[p + (0,-1,0)]
             #
             # diffusion
             #
-            out_U[p] = out_U[p] * (1.0 - self.bl) + self.bl * self.Uavg[p]
+            out_M[p] = out_M[p] * (1.0 - self.bl) + self.bl * self.Mavg[p]
+
+
+
+class SW_Dynamic (MultiStageStencil):
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.dt     = 0.01
+        self.growth = 0.2
+
+
+    def kernel (self, out_H, out_Hd, in_H, in_Hx, in_Hy,
+                      out_U, out_Ud, in_U, in_Ux, 
+                      out_V, out_Vd, in_V, in_Vy):
+        for p in self.get_interior_points (out_Hd):
+            out_Ud[p] = -in_U[p] * in_Ux[p]
+            out_Vd[p] = -in_V[p] * in_Vy[p]
+
+            out_Ud[p] = out_Ud[p] - self.growth * in_Hx[p]
+            out_Vd[p] = out_Vd[p] - self.growth * in_Hy[p]
+            out_Hd[p] = out_Hd[p] - in_H[p] * (in_Ux[p] + in_Vy[p])
+
             #
-            # dynamics
+            # take first-order Euler step
             #
+            out_U[p] = out_U[p] + self.dt * out_Ud[p];
+            out_V[p] = out_V[p] + self.dt * out_Vd[p];
+            out_H[p] = out_H[p] + self.dt * out_Hd[p];
 
 
 
-class SW_UTest (CopyTest):
-    """
-    A test case for the shallow water stencil defined above.-
-    """
+class SWTest (CopyTest):
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (8, 8, 1)
+        self.domain = (64, 64, 1)
 
-        self.params = ('out_U', 'out_Ud', 'out_Ux')
-        self.temps  = [ 'self.Uavg' ]
+        self.params = ('out_H', 'out_Hd', 'in_Hx', 'in_Hy',
+                       'out_U', 'out_Ud', 'in_Ux', 
+                       'out_V', 'out_Vd', 'in_Vy')
+        self.temps  = ( )
 
-        self.out_U  = np.random.rand (*self.domain)
-        self.out_Ud = np.random.rand (*self.domain)
-        self.out_Ux = np.random.rand (*self.domain)
+        self.out_H  = np.ones  (self.domain)
+        self.out_U  = np.zeros (self.domain)
+        self.out_V  = np.zeros (self.domain)
+        self.out_Hd = np.zeros (self.domain)
+        self.out_Ud = np.zeros (self.domain)
+        self.out_Vd = np.zeros (self.domain)
+        self.out_Hx = np.zeros (self.domain)
+        self.out_Ux = np.zeros (self.domain)
+        self.out_Vx = np.zeros (self.domain)
+        self.out_Hy = np.zeros (self.domain)
+        self.out_Uy = np.zeros (self.domain)
+        self.out_Vy = np.zeros (self.domain)
 
-        self.stencil = SW_U (self.domain)
-        
-        self.stencil.set_halo        ( (1, 1, 1, 1) )
-        self.stencil.set_k_direction ("forward")
+        self.in_H  = np.ones  (self.domain)
+        self.in_U  = np.zeros (self.domain)
+        self.in_V  = np.zeros (self.domain)
+        self.in_Hd = np.zeros (self.domain)
+        self.in_Ud = np.zeros (self.domain)
+        self.in_Vd = np.zeros (self.domain)
+        self.in_Hx = np.zeros (self.domain)
+        self.in_Ux = np.zeros (self.domain)
+        self.in_Vx = np.zeros (self.domain)
+        self.in_Hy = np.zeros (self.domain)
+        self.in_Uy = np.zeros (self.domain)
+        self.in_Vy = np.zeros (self.domain)
 
 
-    def test_automatic_dependency_detection (self):
-        expected_deps = [('out_Ux',    'out_U'),
-                         ('self.Uavg', 'out_U'),
-                         ('out_U',     'out_U'),
-                         ('out_U',     'self.Uavg'),
-                         ('out_Ud',    'out_U'),
-                         ('out_Ud',    'out_Ux')]
-        super ( ).test_automatic_dependency_detection (deps=expected_deps)
+    def droplet (self, H):
+        """
+        A two-dimensional falling drop into the water:
+
+            H   the water height field.-
+        """
+        x,y = np.mgrid[:self.domain[0], :self.domain[1]]
+        droplet_x, droplet_y = self.domain[0]/2, self.domain[1]/2
+        rr = (x-droplet_x)**2 + (y-droplet_y)**2
+        H[rr<(self.domain[0]/10.0)**2] += 0.01
 
 
     def test_automatic_range_detection (self):
-        expected_ranges = {'out_U'    : [-1,1,-1,1],
+        expected_ranges = {'out_H'    : [-1,1,-1,1],
+                           'out_Hd'   : None,
+                           'out_U'    : None,
                            'out_Ud'   : None,
-                           'out_Ux'   : None}
+                           'out_V'    : None,
+                           'out_Vd'   : None,
+                           'in_Ux'    : None,
+                           'in_Vy'    : None}
         super ( ).test_automatic_range_detection (ranges=expected_ranges)
+
+
+    @attr(lang='c++')
+    def test_interactive_plot (self):
+        import matplotlib.pyplot as plt
+        from matplotlib import animation
+        from mpl_toolkits.mplot3d import axes3d
+
+        self.mom = SW_Momentum (self.domain)
+        self.dyn = SW_Dynamic  ( )
+
+        halo = (1, 1, 1, 1)
+        self.mom.set_halo ( halo )
+        self.dyn.set_halo ( halo )
+
+        backend = 'c++'
+        #backend = 'python'
+        self.mom.backend = backend
+        self.dyn.backend = backend
+
+        self.droplet (self.out_H)
+        self.droplet (self.in_H)
+
+        #
+        # initialize plot
+        #
+        plt.switch_backend ('agg')
+        fig = plt.figure ( )
+        ax  = fig.add_subplot (111,
+                               projection='3d',
+                               autoscale_on=False)
+        X, Y = np.meshgrid (np.arange (self.domain[0]),
+                            np.arange (self.domain[1]))
+        def init_frame ( ):
+            #im = ax.imshow (self.out_H[:,:,0])
+            ax.grid      (False)
+            ax.set_xlim  ( (0, self.domain[0] - 1) )
+            ax.set_ylim  ( (0, self.domain[1] - 1) )
+            ax.set_zlim  ( (0.9, 1.10) )
+            ax.view_init (azim=-60.0, elev=10.0)
+            im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
+                                    rstride=8,
+                                    cstride=8,
+                                    linewidth=1)
+            return [im]
+
+        #
+        # animation update function
+        #
+        def draw_frame (frame):
+            if frame % 2 == 0:
+                #
+                # run the stencil
+                #
+                self.mom.run (out_M  = self.out_U,
+                              out_Mx = self.out_Ux,
+                              out_My = self.out_Uy,
+                              in_M   = self.in_U)
+                self.mom.run (out_M  = self.out_V,
+                              out_Mx = self.out_Vx,
+                              out_My = self.out_Vy,
+                              in_M   = self.in_V)
+                self.mom.run (out_M  = self.out_H,
+                              out_Mx = self.out_Hx,
+                              out_My = self.out_Hy,
+                              in_M   = self.in_H)
+
+                self.dyn.run (out_H  = self.out_H,
+                              out_U  = self.out_U,
+                              out_V  = self.out_V,
+                              out_Hd = self.out_Hd,
+                              out_Ud = self.out_Ud,
+                              out_Vd = self.out_Vd,
+                              in_H   = self.in_H,
+                              in_U   = self.in_U,
+                              in_V   = self.in_V,
+                              in_Hx  = self.out_Hx,
+                              in_Ux  = self.out_Ux,
+                              in_Hy  = self.out_Hy,
+                              in_Vy  = self.out_Vy)
+            else:
+                #
+                # run the stencil with swapped fields
+                #
+                self.mom.run (out_M  = self.in_U,
+                              out_Mx = self.in_Ux,
+                              out_My = self.in_Uy,
+                              in_M   = self.out_U)
+                self.mom.run (out_M  = self.in_V,
+                              out_Mx = self.in_Vx,
+                              out_My = self.in_Vy,
+                              in_M   = self.out_V)
+                self.mom.run (out_M  = self.in_H,
+                              out_Mx = self.in_Hx,
+                              out_My = self.in_Hy,
+                              in_M   = self.out_H)
+
+                self.dyn.run (out_H  = self.in_H,
+                              out_U  = self.in_U,
+                              out_V  = self.in_V,
+                              out_Hd = self.out_Hd,
+                              out_Ud = self.out_Ud,
+                              out_Vd = self.out_Vd,
+                              in_H   = self.out_H,
+                              in_U   = self.out_U,
+                              in_V   = self.out_V,
+                              in_Hx  = self.out_Hx,
+                              in_Ux  = self.out_Ux,
+                              in_Hy  = self.out_Hy,
+                              in_Vy  = self.out_Vy)
+
+            #
+            # reset if the system becomes unstable
+            #
+            if np.any (np.isnan (self.out_H)):
+                self.setUp ( )
+                print ("Reseting ...")
+
+            #im = ax.imshow (self.out_H[:,:,0])
+            ax.cla  ( )
+            ax.grid      (False)
+            ax.set_xlim  ( (0, self.domain[0] - 1) )
+            ax.set_ylim  ( (0, self.domain[1] - 1) )
+            ax.set_zlim  ( (0.9, 1.10) )
+            ax.view_init (azim=-60.0, elev=10.0)
+            im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
+                                    rstride=8,
+                                    cstride=8,
+                                    linewidth=1)
+            return [im]
+
+        anim = animation.FuncAnimation (fig,
+                                        draw_frame,
+                                        frames=range (5000),
+                                        interval=30,
+                                        init_func=init_frame,
+                                        blit=False)
+        anim.save ('shallow.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+        #plt.show ( )
+
+
+    def test_shallow_water_combination (self, backend='python'):
+        self.swu = SW_U (self.domain)
+        self.swv = SW_V (self.domain)
+        self.swh = SW_H (self.domain)
+
+        self.swu.set_halo ( (1, 1, 1, 1) )
+        self.swv.set_halo ( (1, 1, 1, 1) )
+        self.swh.set_halo ( (1, 1, 1, 1) )
+
+        self.swu.backend = backend
+        self.swv.backend = backend
+        self.swh.backend = backend
+
+        self.swu.run (out_U=self.out_U,
+                      out_Ud=self.out_Ud,
+                      out_Ux=self.in_Ux)
+        self.swv.run (out_V=self.out_V,
+                      out_Vd=self.out_Vd,
+                      out_Vy=self.in_Vy)
+        self.swh.run (out_H=self.out_H,
+                      out_Hd=self.out_Hd,
+                      out_U=self.out_U,
+                      out_Ud=self.out_Ud,
+                      out_V=self.out_V,
+                      out_Vd=self.out_Vd,
+                      in_Ux=self.in_Ux,
+                      in_Vy=self.in_Vy)
+
+    
+    def test_shallow_water_combination_native (self):
+        self.test_shallow_water_combination (backend='c++')
 
 
     @attr (lang='python')
     def test_python_execution (self):
         for i in range (2):
-            self.stencil.run (out_U=self.out_U,
+            self.stencil.run (out_H=self.out_H,
+                              out_Hd=self.out_Hd,
+                              out_U=self.out_U,
                               out_Ud=self.out_Ud,
-                              out_Ux=self.out_Ux)
+                              out_V=self.out_V,
+                              out_Vd=self.out_Vd,
+                              in_Ux=self.in_Ux,
+                              in_Vy=self.in_Vy)
+
+
+
 
 
 
@@ -135,23 +367,6 @@ class SW_Diffusion (MultiStageStencil):
         for p in self.get_interior_points (out_V):
             out_V[p] = out_V[p] * (1.0 - self.bl) + self.bl * in_avg[p]
 
-
-
-class SW_Dynamic (MultiStageStencil):
-    def __init__ (self):
-        super ( ).__init__ ( )
-        self.growth = 1.2
-
-
-    def kernel (self, out_Hd, in_H, in_Hx, in_Hy,
-                      out_Ud, in_U, in_Ux, 
-                      out_Vd, in_V, in_Vy):
-        for p in self.get_interior_points (out_Hd):
-            out_Ud[p] = -in_U[p] * in_Ux[p]
-            out_Ud[p] = out_Ud[p] - self.growth * in_Hx[p]
-            out_Vd[p] = -in_V[p] * in_Vy[p]
-            out_Vd[p] = out_Vd[p] - self.growth * in_Hy[p]
-            out_Hd[p] = out_Hd[p] - in_H[p] * (in_Ux[p] + in_Vy[p])
 
 
 class SW_Euler (MultiStageStencil):
@@ -468,8 +683,9 @@ class ShallowWater2D (MultiStageStencil):
         #
         # timestep
         #
-        self.dt = 0.005
-        self.bl = 0.2
+        self.dt = 0.09
+        self.bl = 0.50
+        self.g  = 0.02
 
         #
         # temporary data fields
@@ -500,7 +716,7 @@ class ShallowWater2D (MultiStageStencil):
         x,y = np.mgrid[:self.domain[0], :self.domain[1]]
         droplet_x, droplet_y = self.domain[0]/2, self.domain[1]/2
         rr = (x-droplet_x)**2 + (y-droplet_y)**2
-        H[rr<(self.domain[0]/10)**2] = 1.1 
+        H[rr<(self.domain[0]/10)**2] = 1.01
         #x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
         #y = np.copy (x)
         #drop = height * np.exp (-5*(x*x + y*y))
@@ -540,20 +756,20 @@ class ShallowWater2D (MultiStageStencil):
         Implements the reflective boundary conditions in NumPy.-
         """
         H[:,0] =  H[:,1]
-        U[:,0] =  U[:,1]
-        V[:,0] = -V[:,1]
+        U[:,0] =  U[:,1]/2.0
+        V[:,0] = -V[:,1]/2.0
 
         H[:,self.domain[0]-2] =  H[:,self.domain[0]-1]  
-        U[:,self.domain[0]-2] =  U[:,self.domain[0]-1]  
-        V[:,self.domain[0]-2] = -V[:,self.domain[0]-1]
+        U[:,self.domain[0]-2] =  U[:,self.domain[0]-1]/2.0
+        V[:,self.domain[0]-2] = -V[:,self.domain[0]-1]/2.0
 
         H[0,:] =  H[1,:]
-        U[0,:] = -U[1,:]
-        V[0,:] =  V[1,:]
+        U[0,:] = -U[1,:]/2.0
+        V[0,:] =  V[1,:]/2.0
 
         H[self.domain[0]-1,:] =  H[self.domain[0]-2,:]
-        U[self.domain[0]-1,:] = -U[self.domain[0]-2,:]
-        V[self.domain[0]-1,:] =  V[self.domain[0]-2,:]
+        U[self.domain[0]-1,:] = -U[self.domain[0]-2,:]/2.0
+        V[self.domain[0]-1,:] =  V[self.domain[0]-2,:]/2.0
 
 
     def kernel (self, out_H, out_U, out_V, in_H, in_U, in_V):
@@ -606,8 +822,8 @@ class ShallowWater2D (MultiStageStencil):
             #
             # dynamics
             #
-            self.Ud[p] = self.Ud[p] - 1.2 * self.Hx[p]
-            self.Vd[p] = self.Vd[p] - 1.2 * self.Hy[p]
+            self.Ud[p] = self.Ud[p] - self.g * self.Hx[p]
+            self.Vd[p] = self.Vd[p] - self.g * self.Hy[p]
             self.Hd[p] = self.Hd[p] - in_H[p] * (self.Ux[p] + self.Vy[p])
             #
             # take first-order Euler step
@@ -718,7 +934,7 @@ class ShallowWater2DTest (CopyTest):
         
         self.stencil = ShallowWater2D (self.domain)
         
-        self.stencil.set_halo        ( (2, 2, 2, 2) )
+        self.stencil.set_halo        ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
@@ -764,6 +980,9 @@ class ShallowWater2DTest (CopyTest):
                 #
                 # run the stencil
                 #
+                #self.stencil.reflect_borders (self.out_H,
+                #                              self.out_U,
+                #                              self.out_V)
                 self.stencil.run (out_H=self.out_H,
                                   out_U=self.out_U,
                                   out_V=self.out_V,
@@ -774,6 +993,9 @@ class ShallowWater2DTest (CopyTest):
                 #
                 # run the stencil with swapped pointers
                 #
+                #self.stencil.reflect_borders (self.in_H,
+                #                              self.in_U,
+                #                              self.in_V)
                 self.stencil.run (out_H=self.in_H,
                                   out_U=self.in_U,
                                   out_V=self.in_V,
@@ -787,7 +1009,8 @@ class ShallowWater2DTest (CopyTest):
                 self.setUp ( )
                 print ("Reseting ...")
 
-            ax.cla ( )
+            ax.cla  ( )
+            ax.grid (False)
             im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
                                     linewidth=1)
             ax.set_xlim ( (0, self.domain[0] - 1) )
