@@ -48,5 +48,6 @@ namespace gridtools {
     template <class Subclass>
     struct run_functor_traits;
 
-    struct mss_fuse_esfs_strategy;
+    template<class Impl>
+    struct run_functor_impl_arguments;
 }

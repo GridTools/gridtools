@@ -15,25 +15,24 @@ namespace gridtools {
 
     /** Kernel function called from the GPU */
     namespace _impl_cuda {
-
         template <typename Arguments,
-                  typename Traits,
-                  typename ExtraArguments>
+                  typename EsfArguments,
+                  typename LocalDomain>
         __global__
-        void do_it_on_gpu(typename Traits::local_domain_t const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
+        void do_it_on_gpu(LocalDomain const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
 //             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
 //             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             int j = blockIdx.y * blockDim.y + threadIdx.y;
-            uint_t z = coords->template value_at<typename Traits::first_hit_t>();
+            uint_t z = coords->template value_at<typename EsfArguments::first_hit_t>();
 
-            typedef typename Traits::local_domain_t::iterate_domain_t iterate_domain_t;
+            typedef typename EsfArguments::iterate_domain_t iterate_domain_t;
             __shared__
-                typename iterate_domain_t::value_type* data_pointer[Traits::iterate_domain_t::N_DATA_POINTERS];
+                typename iterate_domain_t::value_type* data_pointer[iterate_domain_t::N_DATA_POINTERS];
 
             //Doing construction and assignment before the following 'if', so that we can
             //exploit parallel shared memory initialization
-            typename Traits::iterate_domain_t it_domain(*l_domain);
+            iterate_domain_t it_domain(*l_domain);
             it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(
                     (void**)(static_cast<typename iterate_domain_t::value_type**>(data_pointer))
             );
@@ -47,6 +46,7 @@ namespace gridtools {
                 typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
                 typedef typename index_to_level<typename interval::second>::type to;
+                typedef typename Arguments::execution_type_t execution_type_t;
                 typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
 
                 //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
@@ -57,10 +57,9 @@ namespace gridtools {
                 for_each<typename Arguments::loop_intervals_t>
                     (_impl::run_f_on_interval
                      <
-                     typename Arguments::execution_type_t,
-                     ExtraArguments
-                     >
-                     (it_domain,*coords));
+                         execution_type_t, EsfArguments, Arguments
+                      >(it_domain,*coords)
+                    );
             }
 
         }
@@ -81,15 +80,19 @@ namespace gridtools {
                 {}
 
         };
+
     }//namespace _impl_cuda
 
-
-//    namespace _impl
+    namespace _impl {
+        template<typename Arguments>
+        struct run_functor_backend_id<_impl_cuda::run_functor_cuda<Arguments> > : boost::mpl::integral_c<enumtype::backend, enumtype::Cuda> {};
+    } //  namespace _impl
 //    {
 /** Partial specialization: naive implementation for the Cuda backend (2 policies specify strategy and backend)*/
     template < typename Arguments >
     struct execute_kernel_functor < _impl_cuda::run_functor_cuda<Arguments> >
     {
+        BOOST_STATIC_ASSERT((is_run_functor_arguments<Arguments>::value));
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
         template<
@@ -98,9 +101,7 @@ namespace gridtools {
             typename IterateDomainType,
             typename Coords>
         struct extra_arguments{
-            typedef FunctorType functor_t;
             typedef IntervalMap interval_map_t;
-            typedef IterateDomainType iterate_domain_t;
             typedef Coords coords_t;
         };
 
@@ -108,17 +109,18 @@ namespace gridtools {
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
 */
-        template < typename Traits >
-        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
+        template <
+            typename EsfArguments,
+            typename LocalDomain >
+        static void execute_kernel( LocalDomain& local_domain, const backend_t * f )
         {
             typedef typename Arguments::coords_t coords_type;
             // typedef typename Arguments::loop_intervals_t loop_intervals_t;
-            typedef typename Traits::range_t range_t;
-            typedef typename Traits::functor_t functor_type;
-            typedef typename Traits::local_domain_t  local_domain_t;
-            typedef typename Traits::interval_map_t interval_map_type;
-            typedef typename Traits::iterate_domain_t iterate_domain_t;
-            typedef typename Traits::first_hit_t first_hit_t;
+            typedef typename EsfArguments::range_t range_t;
+            typedef typename EsfArguments::functor_t functor_type;
+            typedef typename EsfArguments::interval_map_t interval_map_type;
+            typedef typename LocalDomain::iterate_domain_t iterate_domain_t;
+            typedef typename EsfArguments::first_hit_t first_hit_t;
             typedef typename Arguments::execution_type_t execution_type_t;
 
 
@@ -134,8 +136,8 @@ namespace gridtools {
                                     << f->m_starti + f->m_BI + range_t::iplus::value << "\n";
             std::cout << "J loop " << f->m_startj + range_t::jminus::value << " -> "
                                     << f->m_startj + f->m_BJ + range_t::jplus::value << "\n";
-            std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-            std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+            std::cout <<  " ******************** " << typename EsfArguments::first_hit_t() << "\n";
+            std::cout << " ******************** " << f->m_coords.template value_at<typename EsfArguments::first_hit_t>() << "\n";
 
             short_t count;
             cudaGetDeviceCount ( &count  );
@@ -166,7 +168,7 @@ namespace gridtools {
             local_domain.clone_to_gpu();
             f->m_coords.clone_to_gpu();
 
-            local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
+            LocalDomain *local_domain_gp = local_domain.gpu_object_ptr;
 
             coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
 
@@ -188,7 +190,7 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-                _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
+                _impl_cuda::do_it_on_gpu<Arguments, EsfArguments, LocalDomain><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp,
                      coords_gp,
                      f->m_coords.i_low_bound() + range_t::iminus::value,

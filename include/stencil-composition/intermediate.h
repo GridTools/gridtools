@@ -25,6 +25,8 @@
 #include "mss_local_domain.h"
 #include "common/meta_array.h"
 #include "backend_metafunctions.h"
+#include "backend_traits_fwd.h"
+#include "mss_components_metafunctions.h"
 
 /**
  * @file
@@ -291,13 +293,13 @@ namespace gridtools {
 
     template<
         enumtype::backend BackendId,
-        typename MssArray,
+        typename MssComponentsArray,
         typename DomainType,
         typename ActualArgListType,
         bool IsStateful
     > struct create_mss_local_domains
     {
-        BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+        BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
 
         struct get_the_mss_local_domain {
             template <typename T>
@@ -307,7 +309,7 @@ namespace gridtools {
         };
 
         typedef typename boost::mpl::transform<
-            typename MssArray::elements,
+            typename MssComponentsArray::elements,
             get_the_mss_local_domain
         >::type type;
     };
@@ -315,13 +317,13 @@ namespace gridtools {
     template<
         typename Backend,
         typename DomainType,
-        typename MssArray,
+        typename MssComponentsArray,
         typename StencilValueType,
         typename LayoutType
     >
     struct create_actual_arg_list
     {
-        BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+        BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -331,7 +333,7 @@ namespace gridtools {
          */
         typedef typename Backend::template obtain_temporary_storage_types<
             DomainType,
-            MssArray,
+            MssComponentsArray,
             StencilValueType,
             LayoutType
         >::type mpl_actual_tmp_pairs;
@@ -360,26 +362,40 @@ namespace gridtools {
      */
     template <typename Backend,
               typename LayoutType,
-              typename TMssArray,
+              typename MssDescriptorArray,
               typename DomainType,
               typename Coords,
               bool IsStateful>
     struct intermediate : public computation {
-        BOOST_STATIC_ASSERT((is_meta_array_of<TMssArray, is_mss_descriptor>::value));
-//        typedef typename ::gridtools::is_backend<Backend>::type PP;
+        BOOST_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value));
         BOOST_STATIC_ASSERT((is_backend<Backend>::value));
+
+        typedef typename boost::mpl::fold<
+            typename MssDescriptorArray::elements,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                mss_compute_range_sizes<boost::mpl::_2>
+            >
+        >::type range_sizes_t;
+
+        typedef typename build_mss_components_array<
+            backend_id<Backend>::value,
+            MssDescriptorArray,
+            range_sizes_t
+        >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list<
                 Backend,
                 DomainType,
-                TMssArray,
+                mss_components_array_t,
                 float_type,
                 LayoutType
         >::type actual_arg_list_type;
 
         typedef typename create_mss_local_domains<
             backend_id<Backend>::value,
-            TMssArray,
+            mss_components_array_t,
             DomainType,
             actual_arg_list_type,
             IsStateful
@@ -551,9 +567,9 @@ namespace gridtools {
             boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
 #endif
 
-            BOOST_STATIC_ASSERT((boost::mpl::size<typename TMssArray::elements>::value == boost::mpl::size<mss_local_domains_t>::value));
+            BOOST_STATIC_ASSERT((boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value));
 
-            Backend::template run<TMssArray>( m_coords, mss_local_domain_list );
+            Backend::template run<mss_components_array_t>( m_coords, mss_local_domain_list );
         }
 
     private:

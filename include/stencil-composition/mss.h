@@ -1,5 +1,7 @@
 #pragma once
 #include <boost/mpl/transform.hpp>
+#include <boost/mpl/map/map0.hpp>
+#include <boost/mpl/assert.hpp>
 #include "execution_types.h"
 #include "functor_do_methods.h"
 #include "esf.h"
@@ -165,49 +167,53 @@ namespace gridtools {
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
-              typename ArrayEsfDescr>
+              typename EsfDescrSequence>
     struct mss_descriptor {
-        template <typename State, typename SubArray>
-        struct keep_scanning
-          : boost::mpl::fold<
-                typename SubArray::esf_list,
-                State,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-            >
-        {};
-
-        template <typename Array>
-        struct linearize_esf_array : boost::mpl::fold<
-	          Array,
-	          boost::mpl::vector<>,
-	          boost::mpl::if_<
-	              is_independent<boost::mpl::_2>,
-	              keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-	              boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-              >
-        >{};
-
-        typedef ArrayEsfDescr esf_array; // may contain independent constructs
-        typedef ExecutionEngine execution_engine_t;
+        BOOST_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value));
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
-        typedef typename linearize_esf_array<esf_array>::type linear_esf;
-
-        /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
-        typedef typename boost::mpl::fold<linear_esf,
-                boost::mpl::vector<>,
-                boost::mpl::push_back<boost::mpl::_1, get_temps_per_functor<boost::mpl::_2> >
-        >::type written_temps_per_functor;
-
-        /**
-         * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
-         * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
-         */
-        typedef typename boost::mpl::transform<
-            linear_esf,
-            _impl::extract_functor
-        >::type functors_list;
+//        template <typename State, typename SubArray>
+//        struct keep_scanning
+//          : boost::mpl::fold<
+//                typename SubArray::esf_list,
+//                State,
+//                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+//            >
+//        {};
+//
+//        template <typename Array>
+//        struct linearize_esf_array : boost::mpl::fold<
+//	          Array,
+//	          boost::mpl::vector<>,
+//	          boost::mpl::if_<
+//	              is_independent<boost::mpl::_2>,
+//	              keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+//	              boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+//              >
+//        >{};
+//
+//        typedef ArrayEsfDescr esf_array; // may contain independent constructs
+//        typedef ExecutionEngine execution_engine_t;
+//
+//        /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
+//            esf structs. Independent functors are listed one after the other.*/
+//        typedef typename linearize_esf_array<esf_array>::type linear_esf;
+//
+//        /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
+//        typedef typename boost::mpl::fold<linear_esf,
+//                boost::mpl::vector<>,
+//                boost::mpl::push_back<boost::mpl::_1, get_temps_per_functor<boost::mpl::_2> >
+//        >::type written_temps_per_functor;
+//
+//        /**
+//         * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
+//         * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
+//         */
+//        typedef typename boost::mpl::transform<
+//            linear_esf,
+//            _impl::extract_functor
+//        >::type functors_list;
 
 //        /**
 //         *  compute the functor do methods - This is the most computationally intensive part
@@ -234,12 +240,74 @@ namespace gridtools {
 //                compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals_t>
 //                >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
 //
+    };
+
+    template<typename mss>
+    struct is_mss_descriptor : boost::mpl::false_{};
+
+    template <typename ExecutionEngine, typename EsfDescrSequence>
+    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence> > : boost::mpl::true_{};
+
+    template<typename Mss>
+    struct mss_descriptor_esf_sequence {};
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence>
+    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+    {
+        typedef EsfDescrSequence type;
+    };
+
+    template<typename T>
+    struct mss_descriptor_linear_esf_sequence;
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence>
+    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+    {
+        template <typename State, typename SubArray>
+        struct keep_scanning
+          : boost::mpl::fold<
+                typename SubArray::esf_list,
+                State,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+            >
+        {};
+
+        template <typename Array>
+        struct linearize_esf_array : boost::mpl::fold<
+              Array,
+              boost::mpl::vector<>,
+              boost::mpl::if_<
+                  is_independent<boost::mpl::_2>,
+                  keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                  boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+              >
+        >{};
+
+        typedef typename linearize_esf_array<EsfDescrSequence>::type type;
+    };
+
+    template<typename Mss>
+    struct mss_descriptor_execution_engine {};
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence>
+    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+    {
+        typedef ExecutionEngine type;
+    };
+
+    template<typename MssDescriptor>
+    struct mss_compute_range_sizes
+    {
+        BOOST_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value));
 
         /**
          * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
          */
         typedef typename boost::mpl::fold<
-            esf_array,
+            typename mss_descriptor_esf_sequence<MssDescriptor>::type,
             boost::mpl::vector0<>,
             _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
         >::type ranges_list;
@@ -253,14 +321,12 @@ namespace gridtools {
          * linearize the data flow graph
          *
          */
-        typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type range_sizes;
+        typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type type;
 
+        BOOST_STATIC_ASSERT((
+            boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
+                    boost::mpl::size<type>::value
+        ));
     };
-
-    template<typename mss>
-    struct is_mss_descriptor : boost::mpl::false_{};
-
-    template <typename ExecutionEngine, typename ArrayEsfDescr>
-    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, ArrayEsfDescr> > : boost::mpl::true_{};
 
 } // namespace gridtools
