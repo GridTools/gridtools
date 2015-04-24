@@ -53,10 +53,23 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
+        template <typename ... UInt>
+        bool mine(UInt const& ... coordinates_)
+            {
+                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= super::space_dimensions), "not enough indices specified in the call to parallel_storage::mine()")
+                    GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= super::space_dimensions), "too many indices specified in the call to parallel_storage::mine()")
+                    uint_t coords[super::space_dimensions]={coordinates_ ...};
+                bool result=true;
+                for(ushort_t i=0; i<super::space_dimensions; ++i)
+                    if(coords[i]<m_low_bound[i] || coords[i]>m_up_bound[i] )
+                        result=false;
+                return result;
+            }
+
         template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
         typename super::value_type& get_value( UInt const& ... i )
             {
-                if(m_partitioner->mine(i...))
+                if(mine(i...))
                     return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i...)];
                 else
 #ifndef DNDEBUG
