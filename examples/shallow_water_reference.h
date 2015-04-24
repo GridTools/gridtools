@@ -21,19 +21,16 @@ struct shallow_water_reference{
     static float_type dx(){return 1.;}
     static float_type dy(){return 1.;}
     static float_type dt(){return .02;}
-    static float_type g(){return 9.8;}
+    static float_type g(){return 9.81;}
 
     static constexpr float_type height=2.;
     GT_FUNCTION
     static float_type droplet(uint_t const& i, uint_t const& j){
-        return 1.+height * std::exp(-5*(((i-15)*dx())*(((i-15)*dx()))+((j-15)*dy())*((j-15)*dy())));
+        return 1.+height * std::exp(-5*(((i-7)*dx())*(((i-7)*dx()))+((j-7)*dy())*((j-7)*dy())));
     }
 
     shallow_water_reference() : solution(){
         solution.setup(DimI, DimJ, 1);
-        solution.template set<0,0>(h);
-        solution.template set<0,1>(u);
-        solution.template set<0,2>(v);
     }
 
     void setup(){
@@ -59,16 +56,19 @@ struct shallow_water_reference{
                 vy[id]=0;
                 hy[id]=0;
             }
+        solution.template set<0,0>(h);
+        solution.template set<0,1>(u);
+        solution.template set<0,2>(v);
     }
 
     void iterate(){
 
-        for (uint_t i=0; i<DimI; ++i)
-            for (uint_t j=0; j<DimJ; ++j)
+        for (uint_t i=0; i<DimI-1; ++i)
+            for (uint_t j=0; j<DimJ-2; ++j)
             {
                 uint_t id=i*strides[0]+j*strides[1];
                 hx[id]=
-                    (h[id+ip1+jp1] + h[id+ip1])/2. -
+                    (h[id+ip1+jp1] + h[id+jp1])/2. -
                     (u[id+ip1+jp1] - u[id+jp1])*(dt()/(2*dx()));
 
                 ux[id]=
@@ -87,8 +87,8 @@ struct shallow_water_reference{
                      u[id+jp1]*v[id+jp1]/h[id+jp1])*(dt()/(2*dx()));
             }
 
-        for (uint_t i=0; i<DimI; ++i)
-            for (uint_t j=0; j<DimJ; ++j)
+        for (uint_t i=0; i<DimI-2; ++i)
+            for (uint_t j=0; j<DimJ-1; ++j)
             {
                 uint_t id=i*strides[0]+j*strides[1];
                 hy[id]= (h[id+ip1+jp1] + h[id+ip1])/2. -
@@ -100,15 +100,16 @@ struct shallow_water_reference{
                      v[id+ip1]*u[id+ip1]/h[id+ip1])*(dt()/(2*dy()));
 
                 vy[id]=(v[id+ip1+jp1] +
-                        v[id+ip1])/2.-
+                        v[id+ip1])/2.  -
                     ((pow<2>(v[id+ip1+jp1])/h[id+ip1+jp1]+pow<2>(h[id+ip1+jp1])*g()/2.)  -
-                     (pow<2>(v[id+ip1])/h[id+ip1] +
-                      pow<2>(h[id+ip1])*(g()/2.)
-                         ))*(dt()/(2.*dy()));
+                    (pow<2>(v[id+ip1])/h[id+ip1] +
+                     pow<2>(h[id+ip1])*(g()/2.)
+                        ))*(dt()/(2.*dy()));
+
             }
 
-        for (uint_t i=0; i<DimI; ++i)
-            for (uint_t j=0; j<DimJ; ++j)
+        for (uint_t i=1; i<DimI-2; ++i)
+            for (uint_t j=1; j<DimJ-2; ++j)
             {
                 uint_t id=i*strides[0]+j*strides[1];
                 h[id] =
@@ -117,14 +118,14 @@ struct shallow_water_reference{
                     -
                     (vy[id+im1] - vy[id+im1+jm1])*(dt()/dy());
 
-
                 u[id] =
                     u[id] -
-                    (pow<2>(ux[id+jm1]) / hx[id+jm1] + hx[id+jm1]*hx[id+jm1] * ((g()/2.))-
+                    (pow<2>(ux[id+jm1]) / hx[id+jm1] + hx[id+jm1]*hx[id+jm1] * ((g()/2.)) -
                      (pow<2>(ux[id+im1+jm1]) / hx[id+im1+jm1] +
                       pow<2>(hx[id+im1+jm1]) * ((g()/2.)))) * ((dt()/dx())) -
                     (vy[id+im1]*uy[id+im1] / hy[id+im1] -
-                     vy[id+im1+jm1]*uy[id+im1+jm1] / hy[id+im1+jm1]) * (dt()/dy());
+                     vy[id+im1+jm1]*uy[id+im1+jm1] / hy[id+im1+jm1]) * (dt()/dy())
+                    ;
 
                 v[id] =
                     v[id] -
@@ -132,11 +133,11 @@ struct shallow_water_reference{
                      (ux[id+im1+jm1] * vx[id+im1+jm1]) / hx[id+im1+jm1]) * ((dt()/dx()))-
                     (pow<2>(vy[id+im1]) / hy[id+im1] + pow<2>(hy[id+im1]) * ((g()/2.)) -
                      (pow<2>(vy[id+im1+jm1]) / hy[id+im1+jm1] + pow<2>(hy[id+im1+jm1])*((g()/2.)))) * ((dt()/dy()));
-                     }
+            }
 
     }
 
-    static constexpr uint_t strides[2]={DimJ, 1};
+    static constexpr uint_t strides[2]={DimI, 1};
     static constexpr uint_t size=DimI*DimJ;
     static constexpr uint_t ip1=strides[0];
     static constexpr uint_t jp1=strides[1];

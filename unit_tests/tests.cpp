@@ -11,6 +11,7 @@
 #include "../examples/extended_4D.h"
 #include "external_ptr_test/CopyStencil.h"
 #ifdef CXX11_ENABLED
+#include "../examples/shallow_water_enhanced.h"
 #include "test-assign-placeholders.h"
 #endif
 #include "arg_type_tests.h"
@@ -65,6 +66,10 @@ TEST(stencil, loop_hierarchy) {
 }
 
 #ifdef CXX11_ENABLED
+TEST(stencil, shallow_water) {
+    EXPECT_EQ(shallow_water::test(10,10,1,2), true);
+}
+
 TEST(testdomain, assignplchdrs) {
     EXPECT_EQ(assign_placeholders(), true);
 }

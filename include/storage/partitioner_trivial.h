@@ -204,11 +204,17 @@ namespace gridtools{
             \endverbatim
         */
         int_t compute_halo(ushort_t const& component_, typename super::Flag const& flag_) const {
-            return (  m_comm.periodic(component_) || at_boundary(component_, flag_)) ? m_halo[component_]:0;
+            return (  m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]:0;
         }
 
         bool at_boundary(ushort_t const& component_, typename super::Flag const& flag_) const {
-            return boundary()%(ushort_t)(std::pow(2,component_+1)*(ushort_t)flag_)<((component_+1)*(ushort_t)flag_);
+
+            ushort_t left = boundary()%(ushort_t)((ushort_t)std::pow(2,component_+1)*(ushort_t)flag_);
+            ushort_t right = ((component_+(ushort_t)1)*(ushort_t)flag_);
+            // std::cout<<boundary()<<" % ("<<std::pow(2,component_+1)<<" * "<< (ushort_t)flag_<<") < "<<(component_+1)<<" * "<<(ushort_t)flag_<<") ==>"<<
+            //     left<<" < "<<right << " ==> "<<(left<right)
+            //          <<std::endl;
+            return !(left < right);
         }
 
         uint_t const & boundary() const {

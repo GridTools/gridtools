@@ -103,7 +103,7 @@ namespace shallow_water{
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-                return 1.+height * std::exp(-5*(((i-15)*dx())*(((i-15)*dx()))+((j-15)*dy())*((j-15)*dy())));
+                return 1.+height * std::exp(-5*(((i-7)*dx())*(((i-7)*dx()))+((j-7)*dy())*((j-7)*dy())));
        }
 };
 
@@ -213,12 +213,15 @@ namespace shallow_water{
                      (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
                     );
 
+            // eval(sol(comp(1))) = eval(hx());
+
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
-                     (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
+                     (pow<2>(ux(j-1))                / hx(j-1)    + hx(j-1)*hx(j-1)*((g()/2.))                 -
                       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
                      (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-                      vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy()));
+                      vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy())
+                    );
 
             eval(sol(comp(2))) =
                 eval(sol(comp(2)) -
@@ -276,9 +279,9 @@ namespace shallow_water{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-        //                      dims  z y x
-        //                   strides xy x 1
-        typedef layout_map<2,1,0> layout_t;
+        //           dims  z y x
+        //           strides xy x 1
+        typedef layout_map<0,1,2> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
@@ -299,7 +302,7 @@ namespace shallow_water{
         MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
         dimensions[2]=1;
 
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
+        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
@@ -340,9 +343,9 @@ namespace shallow_water{
     name<<"example"<<pid<<".txt";
     myfile.open (name.str().c_str());
 
-    std::cout<<"INITIALIZED VALUES"<<std::endl;
+    myfile<<"INITIALIZED VALUES"<<std::endl;
     sol.print(myfile);
-    std::cout<<"#####################################################"<<std::endl;
+    myfile<<"#####################################################"<<std::endl;
 
 #endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -402,20 +405,21 @@ namespace shallow_water{
 
 #ifndef NDEBUG
             shallow_water_stencil->finalize();
+            myfile<<"############## SOLUTION ################"<<std::endl;
             sol.print(myfile);
 #endif
         }
 
-#ifdef NDEBUG
-        shallow_water_stencil->finalize();
-#else
-        myfile.close();
-#endif
 
         he.wait();
 
         GCL_Finalize();
 
+        bool retval=true;
+
+#ifdef NDEBUG
+        shallow_water_stencil->finalize();
+#else
         verifier check_result(1e-10, 0);
         shallow_water_reference<sol_type, 10, 10> reference;
         reference.setup();
@@ -423,10 +427,14 @@ namespace shallow_water{
         {
             reference.iterate();
         }
-        check_result.verify(sol, reference.solution);
+        retval=check_result.verify(sol, reference.solution);
+        myfile<<"############## REFERENCE ################"<<std::endl;
+        reference.solution.print(myfile);
 
+        myfile.close();
+#endif
 
-        return true;
+        return retval;
 
     }
 
