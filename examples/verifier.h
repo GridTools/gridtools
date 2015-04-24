@@ -1,5 +1,10 @@
 #pragma once
 
+namespace gridtools{
+template < typename Storage, typename Partitioner >
+class parallel_storage;
+}
+
 class verifier
 {
 public:
@@ -18,27 +23,37 @@ public:
         const int kdim = field1.template dims<2>();
 
         bool verified = true;
-        for(int i=m_halo_size; i < idim-m_halo_size; ++i)
-        {
-            for(int j=m_halo_size; j < jdim-m_halo_size; ++j)
-            {
-                for(int k=0; k < kdim; ++k)
-                {
-                    typename storage_type::value_type expected = field1(i,j,k);
-                    typename storage_type::value_type actual = field2(i,j,k);
 
-                    if(!compare_below_threashold(expected, actual))
+        for(int f=0; f<storage_type::field_dimensions; ++f)
+            for(int i=m_halo_size; i < idim-m_halo_size; ++i)
+            {
+                for(int j=m_halo_size; j < jdim-m_halo_size; ++j)
+                {
+                    for(int k=0; k < kdim; ++k)
                     {
-                        // std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
-                        //         " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
-                        verified = false;
+                        typename storage_type::value_type expected = field1.fields()[f][field1._index(i,j,k)];
+                        typename storage_type::value_type actual = field2.fields()[f][field2._index(i,j,k)];
+
+                        if(!compare_below_threashold(expected, actual))
+                        {
+                            std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
+                                " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
+                            verified = false;
+                        }
                     }
                 }
             }
-        }
 
         return verified;
     }
+
+    template<typename Partitioner, typename storage_type>
+    bool verify(gridtools::parallel_storage<storage_type, Partitioner>& field1, storage_type& field2)
+    {
+        return true;
+    }
+
+
 private:
     template<typename value_type>
     bool compare_below_threashold(value_type expected, value_type actual)

@@ -13,7 +13,7 @@ namespace gridtools{
     struct products{
         template<typename Value>
         GT_FUNCTION
-        static Value constexpr apply(Value& v)
+        static Value constexpr apply(Value const& v)
             {
                 return v*products<Number-1>::apply(v);
             }
@@ -24,7 +24,7 @@ namespace gridtools{
     struct products<0>{
         template<typename Value>
         GT_FUNCTION
-        static Value constexpr apply(Value& v)
+        static Value constexpr apply(Value const& v)
             {
                 return 1.;
             }
