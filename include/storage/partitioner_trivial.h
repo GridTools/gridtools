@@ -205,10 +205,10 @@ namespace gridtools{
         */
         int_t compute_halo(ushort_t const& component_, typename super::Flag const& flag_) const {
             return (  m_comm.periodic(component_) || at_boundary(component_, flag_)) ? m_halo[component_]:0;
-            }
+        }
 
-        bool at_boundary(ushort_t component_, typename super::Flag const& flag_) const {
-            return boundary()%((ushort_t)std::pow(2,component_+1)*flag_)<((component_+1)*flag_);
+        bool at_boundary(ushort_t const& component_, typename super::Flag const& flag_) const {
+            return boundary()%(ushort_t)(std::pow(2,component_+1)*(ushort_t)flag_)<((component_+1)*(ushort_t)flag_);
         }
 
         uint_t const & boundary() const {

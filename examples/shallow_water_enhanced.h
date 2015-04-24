@@ -14,6 +14,8 @@
 
 #include <communication/halo_exchange.h>
 
+#include "verifier.h"
+#include "shallow_water_reference.h"
 //#define BACKEND_BLOCK 1
 /*
   @file
@@ -413,6 +415,16 @@ namespace shallow_water{
         he.wait();
 
         GCL_Finalize();
+
+        verifier check_result(1e-10, 0);
+        shallow_water_reference<sol_type, 10, 10> reference;
+        reference.setup();
+        for (uint_t t=0;t < total_time; ++t)
+        {
+            reference.iterate();
+        }
+        check_result.verify(sol, reference.solution);
+
 
         return true;
 

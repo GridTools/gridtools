@@ -13,6 +13,19 @@ This file defines a simple partitioner splitting a structured cartesian grid
 */
 namespace gridtools{
 
+    struct partitioner_dummy;
+    template <typename GridTopology, typename Communicator>
+    class partitioner_trivial;
+
+    template <typename Derived>
+    struct space_dimensions;
+
+    template<>
+    struct space_dimensions<partitioner_dummy>{static const ushort_t value = 3;};
+
+    template<typename TopologyType, typename Communicator>
+    struct space_dimensions<partitioner_trivial<TopologyType, Communicator> >{static const ushort_t value = TopologyType::space_dimensions;};
+
 template <typename Derived>
 class partitioner {
 
@@ -20,7 +33,7 @@ public:
 
     enum Flag{UP=1, LOW=
 #ifdef CXX11_ENABLED
-              products<Derived::space_dimensions>::apply(2)
+              products<space_dimensions<Derived>::value>::apply(2)
 #else
               8 // 2^3, 3D topology
 #endif
@@ -75,9 +88,11 @@ public:
     class partitioner_dummy : public partitioner<partitioner_dummy> {
 
     public:
+        typedef partitioner< partitioner_dummy > super;
+
         static int boundary() {return 64+32+16+8+4+2+1;}
-        static bool at_boundary(ushort_t const& /*coordinate*/, Flag const& /*flag_*/) {return true;}
-        //static const ushort_t space_dimensions=3;
+        static bool at_boundary(ushort_t const& /*coordinate*/, super::Flag const& /*flag_*/) {return true;}
+        static const ushort_t space_dimensions=3;
     };
 
     template<typename Partitioner>
