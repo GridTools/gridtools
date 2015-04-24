@@ -34,6 +34,8 @@ namespace gridtools{
         template<typename MssComponentsArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
+            template<typename T> struct printp{BOOST_MPL_ASSERT_MSG((false), QQQQQQQQQQQQQQQQQQQQq, (T));};
+            printp<MssComponentsArray> lo;
             BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
@@ -120,7 +122,6 @@ namespace gridtools{
                 BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
                 typedef backend_traits_from_id<BackendId> backend_traits;
 
-                //TODO consider the largest ij range of all mss to compute number of blocks?
                 uint_t n = coords.i_high_bound() - coords.i_low_bound();
                 uint_t m = coords.j_high_bound() - coords.j_low_bound();
 
@@ -154,10 +155,12 @@ namespace gridtools{
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
+                //naive & block strategies are only executed by the host backend, where mss should contain only one esf
+                // (to avoid fusion of esf)
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functor_list_t>::type::value> iter_range;
+                BOOST_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1));
 
-                typedef typename boost::mpl::at<typename RunFunctorArgs::range_sizes_t, typename boost::mpl::back<iter_range>::type >::type range_t;
+                typedef typename boost::mpl::back<typename RunFunctorArgs::range_sizes_t >::type range_t;
 
                 uint_t n = coords.i_high_bound() + range_t::iplus::value - coords.i_low_bound() + range_t::iminus::value;
                 uint_t m = coords.j_high_bound() + range_t::jplus::value - coords.j_low_bound() + range_t::jminus::value;
@@ -185,8 +188,8 @@ namespace gridtools{
                     block_size_j = m-NBJ*BJ;
                 }
 
-                //std::cout << "threads " << n_threads() << ", id " << thread_id() << std::endl;
-                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
+//                run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj)();
+//                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
             }
         };
 

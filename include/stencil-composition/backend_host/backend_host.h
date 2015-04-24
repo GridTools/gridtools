@@ -47,14 +47,6 @@ namespace gridtools {
     {
         typedef _impl_host::run_functor_host< Arguments > backend_t;
 
-        template <typename FunctorType, typename IntervalMapType, typename IterateDomainType, typename CoordsType>
-        struct extra_arguments{
-            typedef FunctorType functor_t;
-            typedef IntervalMapType interval_map_t;
-            typedef IterateDomainType iterate_domain_t;
-            typedef CoordsType coords_t;
-        };
-
         /**
            @brief core of the kernel execution
            \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits

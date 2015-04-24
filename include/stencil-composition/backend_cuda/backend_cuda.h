@@ -95,16 +95,6 @@ namespace gridtools {
         BOOST_STATIC_ASSERT((is_run_functor_arguments<Arguments>::value));
         typedef _impl_cuda::run_functor_cuda<Arguments> backend_t;
 
-        template<
-            typename FunctorType,
-            typename IntervalMap,
-            typename IterateDomainType,
-            typename Coords>
-        struct extra_arguments{
-            typedef IntervalMap interval_map_t;
-            typedef Coords coords_t;
-        };
-
 /**
    @brief core of the kernel execution
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
