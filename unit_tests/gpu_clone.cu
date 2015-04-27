@@ -23,6 +23,9 @@
 #include <common/defs.h>
 #include <common/gpu_clone.h>
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 namespace gpu_clone_test {
 
     /********************************************************
