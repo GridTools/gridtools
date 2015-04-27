@@ -103,7 +103,7 @@ namespace shallow_water{
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-                return 1.+height * std::exp(-5*(((i-7)*dx())*(((i-7)*dx()))+((j-7)*dy())*((j-7)*dy())));
+                return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-3)*dy())*((j-3)*dy())));
        }
 };
 
@@ -184,7 +184,7 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
-        using xrange=range<0,-3,0,-3>;
+        using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<1,1,1,1>;
 
         typedef arg_type<0, range<0,0,0,0>, 5> tmpx;
@@ -330,25 +330,19 @@ namespace shallow_water{
         he.setup(3);
 
         ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
-        // if(!he.comm().pid())
-        //     sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
-        // else
-        //     sol.set<0,0>(out7, 1.);//h
-        sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+        if(PID==1)
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+        else
+            sol.set<0,0>(out7, 1.);//h
+        //sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         sol.set<0,1>(out8, 0.);//u
         sol.set<0,2>(out9, 0.);//v
 
 #ifndef NDEBUG
-    int pid=0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     std::ofstream myfile;
     std::stringstream name;
-    name<<"example"<<pid<<".txt";
+    name<<"example"<<PID<<".txt";
     myfile.open (name.str().c_str());
-
-    myfile<<"INITIALIZED VALUES"<<std::endl;
-    sol.print(myfile);
-    myfile<<"#####################################################"<<std::endl;
 
 #endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -399,12 +393,16 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
-            shallow_water_stencil->run();
-
             std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
+
+            myfile<<"INITIALIZED VALUES"<<std::endl;
+            sol.print(myfile);
+            myfile<<"#####################################################"<<std::endl;
+
+            shallow_water_stencil->run();
 
 #ifndef NDEBUG
             shallow_water_stencil->finalize();
@@ -424,7 +422,7 @@ namespace shallow_water{
         shallow_water_stencil->finalize();
 #else
         verifier check_result(1e-10, 0);
-        shallow_water_reference<sol_type, 10, 10> reference;
+        shallow_water_reference<sol_type, 16, 16> reference;
         reference.setup();
         for (uint_t t=0;t < total_time; ++t)
         {
