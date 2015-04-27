@@ -429,8 +429,10 @@ namespace shallow_water{
             reference.iterate();
         }
         retval=check_result.verify(sol, reference.solution);
+#ifdef NDEBUG
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
+#endif
 
         myfile.close();
 #endif
