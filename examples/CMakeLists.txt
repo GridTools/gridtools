@@ -8,7 +8,14 @@
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
 
-foreach(srcfile interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D copy_stencil_parallel )
+list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D )
+
+if( GCL_MPI )
+  list(APPEND SRCFILES copy_stencil_parallel)
+endif()
+
+foreach(srcfile IN LISTS SRCFILES )
+  message("srcfile is " ${srcfile})
     add_executable(${srcfile}_naive   ${srcfile}.cpp )
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block
@@ -35,7 +42,7 @@ if ( ENABLE_CXX11 )
     # target_link_libraries(unstructured ${exe_LIBS})
     # set_target_properties(unstructured PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
-endif()
+  endif()
 
 if( NOT ENABLE_CXX11 )
     add_executable(shallow_water_cxx03  shallow_water_cxx03.cpp)
