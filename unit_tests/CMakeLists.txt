@@ -27,9 +27,9 @@ if (GTEST_FOUND)
   set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
   else()
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
   endif()
 
 

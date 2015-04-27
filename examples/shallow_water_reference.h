@@ -26,7 +26,7 @@ struct shallow_water_reference{
     static constexpr float_type height=2.;
     GT_FUNCTION
     static float_type droplet(uint_t const& i, uint_t const& j){
-        return 1.+height * std::exp(-5*(((i-7)*dx())*(((i-7)*dx()))+((j-7)*dy())*((j-7)*dy())));
+        return 1.+height * std::exp(-5*(((i-9)*dx())*(((i-9)*dx()))+((j-3)*dy())*((j-3)*dy())));
     }
 
     shallow_water_reference() : solution(){

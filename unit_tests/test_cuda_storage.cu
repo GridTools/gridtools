@@ -67,7 +67,6 @@ bool test_cuda_storage() {
 
     data.h2d_update();
     data.clone_to_gpu();
-
 #ifdef __CUDACC__
     add_on_gpu<<<1,1>>>(data.gpu_object_ptr, d1, d2, d3);
     cudaDeviceSynchronize();
