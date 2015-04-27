@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 import sys
 from setuptools import setup
-
+import os
 
 
 version = "${VERSION}"
@@ -25,6 +25,8 @@ def read (fname):
 
 
 if __name__ == '__main__':
+    pck1=read("requirements.txt")
+    pck=pck1.split('\n')
     setup (
         name='gridtools4py',
         description="Python interface C++ library Gridtools",
@@ -34,8 +36,7 @@ if __name__ == '__main__':
         keywords="stencil jit c++ openmp cuda",
         package_dir={'': '${CMAKE_CURRENT_SOURCE_DIR}'},
         packages=["gridtools"],
-        install_requires=['Jinja2', 'numpy', 'tornado', 'pyzmq', 'urwid',
-                          'ipython'],
+        install_requires=pck,
         test_suite="tests",
         license="COSMO",
         url="https://github.com/eth-cscs/gridtools",
