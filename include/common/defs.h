@@ -141,8 +141,6 @@ namespace gridtools{  namespace enumtype{
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
 
-}//namespace gridtools
-
 #ifdef CXX11_ENABLED
     using int_t          = int;
     using short_t        = int;
@@ -181,5 +179,7 @@ namespace gridtools{  namespace enumtype{
        @}
      */
 //######################################################
+}//namespace gridtools
+
 
 #endif

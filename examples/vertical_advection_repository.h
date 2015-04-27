@@ -3,6 +3,9 @@
 #include <gridtools.h>
 #include "vertical_advection_defs.h"
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 namespace vertical_advection {
 
 class repository

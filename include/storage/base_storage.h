@@ -480,7 +480,7 @@ namespace gridtools {
 
         /**@brief straightforward interface*/
         GT_FUNCTION
-        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { _index(strides(), i, j, k);}
+        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return _index(strides(), i, j, k);}
 
 #ifdef CXX11_ENABLED
         /**
@@ -614,8 +614,11 @@ namespace gridtools {
     protected:
         bool is_set;
         const char* m_name;
-        // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
+#ifdef __CUDACC__ // this is related to the fact that the gridtools::array should not be templated to a const type when CXX11 disabled
+        pointer_type m_fields[field_dimensions];
+#else
         array<pointer_type, field_dimensions> m_fields;
+#endif
         array<uint_t, space_dimensions> m_dims;
         array<uint_t, space_dimensions> m_strides;
 
