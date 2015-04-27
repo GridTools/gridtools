@@ -3,8 +3,6 @@ import logging
 
 import numpy as np
 
-from nose.plugins.attrib import attr
-
 from gridtools.stencil import MultiStageStencil, StencilInspector
 
 
