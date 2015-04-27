@@ -50,10 +50,6 @@ public:
     template<typename Partitioner, typename storage_type>
     bool verify(gridtools::parallel_storage<storage_type, Partitioner>& field1, storage_type& field2)
     {
-        assert(field1.template dims<0>() == field2.template dims<0>());
-        assert(field1.template dims<1>() == field2.template dims<1>());
-        assert(field1.template dims<2>() == field2.template dims<2>());
-
         const int idim = field1.template dims<0>();
         const int jdim = field1.template dims<1>();
         const int kdim = field1.template dims<2>();

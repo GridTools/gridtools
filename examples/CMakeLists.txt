@@ -15,11 +15,10 @@ if( GCL_MPI )
 endif()
 
 foreach(srcfile IN LISTS SRCFILES )
-  message("srcfile is " ${srcfile})
     add_executable(${srcfile}_naive   ${srcfile}.cpp )
     add_executable(${srcfile}_block   ${srcfile}.cpp )
     set_target_properties(${srcfile}_block
-        PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
+      PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(${srcfile}_naive ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})

@@ -61,7 +61,7 @@ namespace gridtools {
                     uint_t coords[super::space_dimensions]={coordinates_ ...};
                 bool result=true;
                 for(ushort_t i=0; i<super::space_dimensions; ++i)
-                    if(coords[i]<m_low_bound[i] || coords[i]>m_up_bound[i] )
+                    if(coords[i]<=m_low_bound[i] || coords[i]>m_up_bound[i] )
                         result=false;
                 return result;
             }

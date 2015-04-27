@@ -687,16 +687,6 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         using super::setup;
 
         /**
-           @brief returns the index (in the array of data snapshots) corresponding to the specified offset
-           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the latter case it returns offset modulo the size of the array.
-           In the former case it returns the array size's complement of -offset.
-        */
-        GT_FUNCTION
-        static constexpr ushort_t get_index (short_t const& offset) {
-            return (offset+n_width)%n_width;
-        }
-
-        /**
             @brief returns a const reference to the specified data snapshot
 
             \param index the index of the snapshot in the array
