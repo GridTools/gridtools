@@ -42,7 +42,7 @@ namespace positional_copy_stencil{
     struct init_functor {
         typedef arg_type<0, range<0,0,0,0> > POSTFIX one;
         typedef arg_type<1, range<0,0,0,0> > POSTFIX two;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
