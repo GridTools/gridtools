@@ -138,7 +138,7 @@ class CopyTest (unittest.TestCase):
         self.stencil.backend = 'c++'
         self._run ( )
         #
-        # check input/output fields were correctly discovered
+        # check fields were correctly discovered
         #
         scope = self.stencil.scope
         for p in self.params:
@@ -200,7 +200,7 @@ class CopyTest (unittest.TestCase):
         self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
                                          self.out_cpy[beg_i:end_i, beg_j:end_j]))
 
-    @attr(speed='fast')
+
     def test_native_execution_performance (self):
         import time
 
