@@ -80,7 +80,7 @@ if(CUDA_FOUND)
         target_link_libraries(shallow_water_cxx03_cuda_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
     else()
 
-       add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+       cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
        target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 
     endif()
