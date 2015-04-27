@@ -390,7 +390,7 @@ namespace gridtools {
       /**@brief wrapper around MPI_Dims_Create checking the array size*/
       static int dims_create(int const& procs_, int const& ndims_ , array<int, ndims>& dims_array_)
         {
-          assert(ndims>=procs_);
+          assert(ndims>=ndims_);
           return MPI_Dims_create(procs_, ndims_, &dims_array_[0]);
         }
 

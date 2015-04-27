@@ -17,10 +17,7 @@
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
 
-#ifdef _GCL_MPI_
-#include <mpi.h>
 #include<communication/GCL.h>
-#endif
 
 #include "common/gt_assert.h"
 #include "common/defs.h"
