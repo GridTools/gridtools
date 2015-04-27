@@ -44,7 +44,7 @@ namespace gridtools {
             std::copy(c.begin(), c.end(), _array);
         }
 #else
-#ifndef __CUDACC__
+#ifndef __CUDACC__ //this generates a warning
         GT_FUNCTION
         array(T const& i): _array{i} {
         }

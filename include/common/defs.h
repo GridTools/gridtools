@@ -175,8 +175,6 @@ namespace gridtools{  namespace enumtype{
     struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
         typedef boost::mpl::integral_c<ushort_t,N> type;
     };
-#endif
-
     /**
        @}
      */
