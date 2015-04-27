@@ -179,7 +179,7 @@ namespace gridtools{  namespace enumtype{
        @}
      */
 //######################################################
+#endif
 }//namespace gridtools
 
 
-#endif
