@@ -17,6 +17,9 @@
 #include <common/defs.h>
 #include <stencil-composition/backend.h>
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 #ifdef __CUDACC__
 template <typename T>
 __global__

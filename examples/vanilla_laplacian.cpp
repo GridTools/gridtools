@@ -5,6 +5,9 @@
 
 #define offs_(i,j,k,n,m,l) ((i)*(m)*(l)+(j)*(l)+(k))
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 template <typename Stream>
 void print(double* that, uint_t n, uint_t m, uint_t l, Stream & stream) {
     //std::cout << "Printing " << name << std::endl;

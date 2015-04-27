@@ -112,7 +112,7 @@ namespace gridtools {
    \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
 */
         template < typename Traits >
-        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * f )
+        static void execute_kernel( typename Traits::local_domain_t& local_domain, const backend_t * func_ )
             {
                 typedef typename Arguments::coords_t coords_type;
                 // typedef typename Arguments::loop_intervals_t loop_intervals_t;
@@ -137,11 +137,11 @@ namespace gridtools {
 
 
                 local_domain.clone_to_gpu();
-                f->m_coords.clone_to_gpu();
+                func_->m_coords.clone_to_gpu();
 
                 local_domain_t *local_domain_gp = local_domain.gpu_object_ptr;
 
-                coords_type const *coords_gp = f->m_coords.gpu_object_ptr;
+                coords_type const *coords_gp = func_->m_coords.gpu_object_ptr;
 
                 const typename backend_t::coords_t::partitioner_t::Flag UP=backend_t::coords_t::partitioner_t::UP;
                 const typename backend_t::coords_t::partitioner_t::Flag LOW=backend_t::coords_t::partitioner_t::LOW;
@@ -153,14 +153,14 @@ namespace gridtools {
 #ifndef NDEBUG
 
                 std::cout<<"range< "<<xrange_subdomain_t::iminus::value<<","<<xrange_subdomain_t::iplus::value<<"..."<<std::endl;
-                std::cout << "Boundary " <<  f->m_coords.partitioner().boundary() << "\n";
+                std::cout << "Boundary " <<  func_->m_coords.partitioner().boundary() << "\n";
                 std::cout << "Functor " <<  functor_type() << "\n";
-                std::cout << "I loop " << f->m_start[0]<<"  + "<<iminus << " -> "
-                          << f->m_start[0]<<" + "<<f->m_block[0]<<" + "<<iplus << "\n";
-                std::cout << "J loop " << f->m_start[1]<<" + "<<jminus << " -> "
-                          << f->m_start[1]<<" + "<<f->m_block[1]<<" + "<<jplus << "\n";
+                std::cout << "I loop " << func_->m_start[0]<<"  + "<<iminus << " -> "
+                          << func_->m_start[0]<<" + "<<func_->m_block[0]<<" + "<<iplus << "\n";
+                std::cout << "J loop " << func_->m_start[1]<<" + "<<jminus << " -> "
+                          << func_->m_start[1]<<" + "<<func_->m_block[1]<<" + "<<jplus << "\n";
                 std::cout <<  " ******************** " << typename Traits::first_hit_t() << "\n";
-                std::cout << " ******************** " << f->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
+                std::cout << " ******************** " << func_->m_coords.template value_at<typename Traits::first_hit_t>() << "\n";
 
                 short_t count;
                 cudaGetDeviceCount ( &count  );
@@ -189,14 +189,14 @@ namespace gridtools {
                 }
 #endif
 
-//         int nx = f->m_coords.i_high_bound() + range_t::iplus::value - (f->m_coords.i_low_bound() + range_t::iminus::value);
-//         int ny = f->m_coords.j_high_bound() + range_t::jplus::value - (f->m_coords.j_low_bound() + range_t::jminus::value);
+//         int nx = func_->m_coords.i_high_bound() + range_t::iplus::value - (func_->m_coords.i_low_bound() + range_t::iminus::value);
+//         int ny = func_->m_coords.j_high_bound() + range_t::jplus::value - (func_->m_coords.j_low_bound() + range_t::jminus::value);
                 // number of threads
-                uint_t nx = (uint_t) (f->m_coords.i_high_bound() + iplus - (f->m_coords.i_low_bound() + iminus)+1);
-                uint_t ny = (uint_t) (f->m_coords.j_high_bound() + jplus - (f->m_coords.j_low_bound() + jminus)+1);
+                uint_t nx = (uint_t) (func_->m_coords.i_high_bound() + iplus - (func_->m_coords.i_low_bound() + iminus)+1);
+                uint_t ny = (uint_t) (func_->m_coords.j_high_bound() + jplus - (func_->m_coords.j_low_bound() + jminus)+1);
 
-//         uint_t nx_ = (uint_t) (f->m_coords.i_high_bound() + std::abs(xrange_t::iplus) + std::abs(xrange_subdomain_t::iplus) - (f->m_coords.i_low_bound() -std::abs(xrange_t::iminus) - std::abs(xrange_subdomain_t::iminus))/*+1*/);
-//         uint_t ny_ = (uint_t) (f->m_coords.j_high_bound() + std::abs(xrange_t::jplus) + std::abs(xrange_subdomain_t::jplus) - (f->m_coords.j_low_bound() -std::abs(xrange_t::jminus) - std::abs(xrange_subdomain_t::jminus))/*+1*/);
+//         uint_t nx_ = (uint_t) (func_->m_coords.i_high_bound() + std::abs(xrange_t::iplus) + std::abs(xrange_subdomain_t::iplus) - (func_->m_coords.i_low_bound() -std::abs(xrange_t::iminus) - std::abs(xrange_subdomain_t::iminus))/*+1*/);
+//         uint_t ny_ = (uint_t) (func_->m_coords.j_high_bound() + std::abs(xrange_t::jplus) + std::abs(xrange_subdomain_t::jplus) - (func_->m_coords.j_low_bound() -std::abs(xrange_t::jminus) - std::abs(xrange_subdomain_t::jminus))/*+1*/);
 
                 int ntx = 32, nty = 8, ntz = 1;
                 dim3 threads(ntx, nty, ntz);
@@ -215,8 +215,8 @@ namespace gridtools {
                 _impl_cuda::do_it_on_gpu<Arguments, Traits, extra_arguments<functor_type, interval_map_type, iterate_domain_t, coords_type> ><<<blocks, threads>>>
                     (local_domain_gp,
                      coords_gp,
-                     f->m_coords.i_low_bound() + iminus,
-                     f->m_coords.j_low_bound() + jminus,
+                     func_->m_coords.i_low_bound() + iminus,
+                     func_->m_coords.j_low_bound() + jminus,
                      (nx),
                      (ny));
                 cudaDeviceSynchronize();
