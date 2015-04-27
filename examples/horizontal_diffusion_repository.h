@@ -14,6 +14,9 @@ typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive
 #endif
 #endif
 
+using gridtools::uint_t;
+using gridtools::int_t;
+    
 class repository
 {
 public:

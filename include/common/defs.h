@@ -44,6 +44,8 @@
 #define GT_DEFAULT_TILE 8
 #endif
 
+#include <boost/mpl/integral_c.hpp>
+
 namespace gridtools{  namespace enumtype{
         /**
            @section enumtypes Gridtools enumeration types
@@ -114,8 +116,6 @@ namespace gridtools{  namespace enumtype{
 #endif
 
 
-
-#include <boost/mpl/integral_c.hpp>
 
 //################ Type aliases for GridTools ################
 
