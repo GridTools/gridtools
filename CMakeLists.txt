@@ -197,31 +197,43 @@ COMMENT "Generating API documentation with Doxygen" VERBATIM
 endif(DOXYGEN_FOUND)
 
 if (ENABLE_PYTHON)
+    message ("PYTHON enabled ")
+    # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
+    set (cmd "cat" )
+    set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
+    execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
+    #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
+    # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+
     find_package(PythonLibs)
     find_package(PythonInterp)
 
     #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
 
     if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-      string( REGEX MATCH [0-9]* PYTHON_VERSION_MAJOR "${PYTHONLIBS_VERSION_STRING}")
-      if(${PYTHON_VERSION_MAJOR} GREATER 2)
+     if(${PYTHON_VERSION_MAJOR} GREATER 2)
+        # Set here a check on the GRIDTOOLS_ROOT env var
+        if(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
+          set ( ENV{GRIDTOOLS_ROOT} ${CMAKE_SOURCE_DIR} )
+        endif(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
 
-      execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-      message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
-      message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
-      string( REGEX MATCH [0-9].[0-9]* PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
-
-      set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
-      set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
-      message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
-
-      add_custom_target(python)
-      add_custom_command(TARGET python
-    		     POST_BUILD
-    		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
-    		    )
-    endif(${PYTHON_VERSION_MAJOR} GREATER 2)
-
+        # Defining PYTHONLIBS_VERSION_STRING
+        # Reading from ${CMAKE_SOURCE_DIR}/.python_version (composing the cmd otherwise it doesn't work)
+        set (cmd "cat" )
+        set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
+        execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
+        # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
+        
+        #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
+        set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
+        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python_install.log")
+        message ("Log file is " ${OUTPUT} )
+        add_subdirectory( python )
+     endif(${PYTHON_VERSION_MAJOR} GREATER 2)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
 
