@@ -40,19 +40,15 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef arg_type<0, range<0,0,0,0> > POSTFIX in;
-        typedef arg_type<1, range<0,0,0,0> > POSTFIX out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef arg_type<0, range<0,0,0,0> > POSTFIX one;
+        typedef arg_type<1, range<0,0,0,0> > POSTFIX two;
+        typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            // std::cout << "i = " << eval.i
-            //           << " j = " << eval.j
-            //           << " k = " << eval.k
-            //           << std::endl;
-            eval(in()) = static_cast<float_type>(V)*(eval.i+eval.j+eval.k);
-            eval(out()) = -1.1;
+            eval(one()) = static_cast<float_type>(V)*(eval.i+eval.j+eval.k);
+            eval(two()) = -1.1;
         }
     };
 
@@ -133,18 +129,6 @@ namespace positional_copy_stencil{
         storage_type in(d1,d2,d3,-3.5,"in");
         storage_type out(d1,d2,d3,1.5,"out");
 
-//         for(uint_t i=0; i<d1; ++i)
-//             for(uint_t j=0; j<d2; ++j)
-//                 for(uint_t k=0; k<d3; ++k)
-//                     {
-// #ifdef CXX11_ENABLED
-//                         in(i, j, k)=i+j+k;
-// #else
-//                         in(i, j, k)=i+j+k;
-// #endif
-//                     }
-
-
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
@@ -166,16 +150,17 @@ namespace positional_copy_stencil{
 #ifdef __CUDACC__
         gridtools::computation* init =
 #else
-        boost::shared_ptr<gridtools::computation> init =
+            boost::shared_ptr<gridtools::computation> init =
 #endif
-        gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
             (
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
-              gridtools::make_esf<init_functor<31415926> >(
-                                                           p_in(), p_out() // esf_descriptor
-                                                           )
+              gridtools::make_esf<init_functor<31415926> >
+              (
+               p_in(), p_out() // esf_descriptor
+               )
               ),
              domain, coords
              );
