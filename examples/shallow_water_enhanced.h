@@ -260,6 +260,9 @@ namespace shallow_water{
     extern char const s2[]="world ";
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
+
+        gridtools::GCL_Init();
+
 #ifndef __CUDACC__
         //testing the static printing
         typedef string_c<print, s1, s2, s1, s1 > s;
