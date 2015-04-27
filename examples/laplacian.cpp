@@ -32,6 +32,9 @@ using gridtools::level;
 using gridtools::arg_type;
 using gridtools::range;
 using gridtools::arg;
+using gridtools::uint_t;
+using gridtools::int_t;
+
 
 
 /**

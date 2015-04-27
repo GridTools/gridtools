@@ -9,6 +9,9 @@
 
 #define DIM 10
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 struct triple_t {
   uint_t x,y,z;
   triple_t(uint_t a, uint_t b, uint_t c): x(a), y(b), z(c) {}
