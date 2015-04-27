@@ -480,7 +480,7 @@ namespace gridtools {
 
         /**@brief straightforward interface*/
         GT_FUNCTION
-        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { _index(strides(), i, j, k);}
+        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return _index(strides(), i, j, k);}
 
 #ifdef CXX11_ENABLED
         /**
