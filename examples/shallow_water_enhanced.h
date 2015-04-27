@@ -398,9 +398,11 @@ namespace shallow_water{
             he.exchange();
             he.unpack(vec);
 
+#ifndef NDEBUG
             myfile<<"INITIALIZED VALUES"<<std::endl;
             sol.print(myfile);
             myfile<<"#####################################################"<<std::endl;
+#endif
 
             shallow_water_stencil->run();
 
@@ -429,10 +431,8 @@ namespace shallow_water{
             reference.iterate();
         }
         retval=check_result.verify(sol, reference.solution);
-#ifdef NDEBUG
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
-#endif
 
         myfile.close();
 #endif
