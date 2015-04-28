@@ -87,7 +87,11 @@ namespace copy_stencil{
 #endif
         //                   strides  1 x xy
         //                      dims  x y z
-        typedef gridtools::layout_map<2,1,0> layout_t;
+#ifdef __CUDACC__
+        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
+#else
+        typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
+#endif
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)

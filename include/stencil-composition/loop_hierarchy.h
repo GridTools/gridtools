@@ -22,23 +22,25 @@ namespace gridtools{
 
        It consists of the loop bounds, the step (whose default value is set to 1), the execution type (e.g. forward or backward), and an index identifying the space dimension this loop is acting on.
     */
-    template<ushort_t ID, enumtype::execution Execution, uint_t Step=1>
+    template<ushort_t ID, enumtype::execution Execution, typename Integer=int_t, uint_t Step=1>
     struct loop_item{
+
+        typedef Integer value_type;
 
         /**@brief constructor*/
         GT_FUNCTION
-        constexpr loop_item(uint_t const& low_bound, uint_t const& up_bound):
+        constexpr loop_item(Integer const& low_bound, Integer const& up_bound):
             m_up_bound(up_bound),
             m_low_bound(low_bound)
             {};
 
         /**@brief getter for the upper bound */
         GT_FUNCTION
-        constexpr uint_t const&  up_bound() const {return m_up_bound; }
+        constexpr Integer const&  up_bound() const {return m_up_bound; }
 
         /**@brief getter for the lower bound */
         GT_FUNCTION
-        constexpr uint_t const&  low_bound() const {return m_low_bound; }
+        constexpr Integer const&  low_bound() const {return m_low_bound; }
 
         /**@brief getter for the step */
         GT_FUNCTION
@@ -50,16 +52,17 @@ namespace gridtools{
         static const uint_t s_step=Step;
         loop_item();
         loop_item(loop_item const& other);
-        uint_t m_up_bound;
-        uint_t m_low_bound;
+        Integer m_up_bound;
+        Integer m_low_bound;
     };
 
     /**@class this class is useful to compare with the case in which the loop
        bounds are static const*/
-    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, uint_t Step=1>
+    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, typename Integer=int_t, uint_t Step=1>
     struct static_loop_item{
-        constexpr uint_t up_bound() const {return UpBound; }
-        constexpr uint_t low_bound() const {return LowBound; }
+        typedef Integer value_type;
+        constexpr Integer up_bound() const {return UpBound; }
+        constexpr Integer low_bound() const {return LowBound; }
         constexpr uint_t step(){return s_step; }
         static const uint_t s_step=Step;
         static const  ushort_t s_id=ID;
@@ -69,12 +72,16 @@ namespace gridtools{
     template<typename Loop>
     struct is_static_loop;
 
-    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, uint_t Step>
-    struct is_static_loop< static_loop_item<ID, Execution, LowBound, UpBound, Step> > : public boost::true_type
+    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, typename Integer, uint_t Step>
+    struct is_static_loop< static_loop_item<ID, Execution, LowBound, UpBound, Integer, Step> > : public boost::true_type
     {};
 
-    template<ushort_t ID, enumtype::execution Execution, uint_t Step>
-    struct is_static_loop< loop_item<ID, Execution, Step> > : public boost::false_type
+    template<ushort_t ID, enumtype::execution Execution, typename Integer, uint_t Step>
+    struct is_static_loop< loop_item<ID, Execution,Integer,  Step> > : public boost::false_type
+    {};
+
+    template<ushort_t ID, enumtype::execution Execution, typename Integer>
+    struct is_static_loop< loop_item<ID, Execution, Integer> > : public boost::false_type
     {};
 
     template<ushort_t ID, enumtype::execution Execution>
@@ -85,6 +92,7 @@ namespace gridtools{
 /**@class Main class for handling the loop hierarchy
 
    It provides interfaces for initializing the loop and applying it.
+   TODO: store the iterate_domain as a const reference
 */
     template<typename Array, typename First, typename ... Order>
     struct loop_hierarchy : public loop_hierarchy<Array, Order ... > {
@@ -94,33 +102,34 @@ namespace gridtools{
         typedef loop_hierarchy<Array, Order ...> next;
 #else
 
-    template <typename Array, typename First>
-    struct loop_hierarchy0;
+        template <typename Array, typename First>
+        struct loop_hierarchy0;
 // only 2 nested loops possible when CXX11 is disabled
-/**@class Main class for handling the loop hierarchy
+        /**@class Main class for handling the loop hierarchy
 
-   It provides interfaces for initializing the loop and applying it.
-*/
-    template<typename Array, typename First, typename Order>
-    struct loop_hierarchy : public loop_hierarchy0<Array, Order > {
-    private:
-        First loop;
-        Array restore_index;
-        typedef loop_hierarchy0<Array, Order> next;
+           It provides interfaces for initializing the loop and applying it.
+        */
+        template<typename Array, typename First, typename Order>
+        struct loop_hierarchy : public loop_hierarchy0<Array, Order > {
+        private:
+            First loop;
+            Array restore_index;
+            typedef loop_hierarchy0<Array, Order> next;
 #endif
 
     public:
 
+            typedef typename First::value_type value_type;
 #ifdef CXX11_ENABLED
         /**@brief constructor
 
            The constructor is templated with a pack of loop items, while it takes the loop items bounds as argument, so the first two arguments will correspond to the loop bounds (low and up respectively) of the first loop item. Note that if some of the loop items are static (static_loop_item) then their loop bounds are available from their types, and must not be specified as arguments.
         */
         template < typename ... ExtraArgs
-                   , typename = std::enable_if< is_static_loop<First>::value >
+                   , typename = std::enable_if< !(is_static_loop<First>::value) >
                    >
         GT_FUNCTION
-        constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound, ExtraArgs const& ... extra) : next(extra...), loop(low_bound, up_bound)
+        constexpr loop_hierarchy(value_type const& low_bound, value_type const& up_bound, ExtraArgs const& ... extra) : next(extra...), loop(low_bound, up_bound)
             {
                 //GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)>=sizeof...(Order), "not enough arguments passed to the constructor of the loops hierarchy")
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)/2<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy")
@@ -142,11 +151,11 @@ namespace gridtools{
 #else //for CXX11_ENABLED==false only 2 nested loops are allowed
 
         GT_FUNCTION
-        constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound, ushort_t const& low_bound2, ushort_t const& up_bound2 ) : next(low_bound2, up_bound2), loop(low_bound, up_bound){}
+        constexpr loop_hierarchy(value_type const& low_bound, value_type const& up_bound, value_type const& low_bound2, value_type const& up_bound2 ) : next(low_bound2, up_bound2), loop(low_bound, up_bound){}
 
         //for CXX11_ENABLED==false the static loops MUST be the last ones
         GT_FUNCTION
-        constexpr loop_hierarchy(ushort_t const& low_bound, ushort_t const& up_bound)
+        constexpr loop_hierarchy(value_type const& low_bound, value_type const& up_bound)
             : next(), loop(low_bound, up_bound){}
 
 
@@ -175,7 +184,7 @@ namespace gridtools{
         template <typename IterateDomain, typename InnerMostFunctor>
         GT_FUNCTION
         void apply( IterateDomain& it_domain, InnerMostFunctor & kernel){
-            for (uint_t i=loop.low_bound(); i<=loop.up_bound(); i+=loop.step())
+            for (value_type i=loop.low_bound(); i<=loop.up_bound(); i+=loop.step())
             {
 #if defined(VERBOSE) && !defined(NDEBUG)
                 std::cout<<"iteration "<<i<<", index "<<First::s_id<<std::endl;
@@ -197,6 +206,9 @@ namespace gridtools{
             it_domain.get_index(restore_index);//redundant in the last iteration
             next::update_index(it_domain);//redundant in the last iteration
         }
+        private:
+            loop_hierarchy();
+            loop_hierarchy( const loop_hierarchy& other);
     };
 
     /**@class Specialization for the case of the innermost loop
@@ -216,6 +228,7 @@ namespace gridtools{
         Array restore_index;
 
     public:
+        typedef typename First::value_type value_type;
         GT_FUNCTION
         constexpr
 #ifdef CXX11_ENABLED
@@ -223,7 +236,7 @@ namespace gridtools{
 #else
         loop_hierarchy0
 #endif
-(ushort_t const& up_bound, ushort_t const& low_bound ): loop(up_bound, low_bound)
+(value_type const& up_bound, value_type const& low_bound ): loop(up_bound, low_bound)
             {
             }
 
@@ -244,7 +257,7 @@ namespace gridtools{
         template <typename IterateDomain, typename InnerMostFunctor>
         GT_FUNCTION
         void apply(IterateDomain & it_domain, InnerMostFunctor & kernel){
-            for (uint_t i=loop.low_bound(); i<=loop.up_bound(); i+=loop.step())
+            for (value_type i=loop.low_bound(); i<=loop.up_bound(); i+=loop.step())
             {
 #if defined(VERBOSE) && !defined(NDEBUG)
                 std::cout<<"iteration "<<i<<", last index "<<First::s_id<<std::endl;

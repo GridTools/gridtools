@@ -607,20 +607,13 @@ namespace shallow_water{
 
             shallow_water_stencil->steady();
 
-//         array<halo_descriptor, 3> halos;
-//         halos[0] = halo_descriptor(1,0,1,d1-1,d1);
-//         halos[1] = halo_descriptor(1,0,1,d2-1,d2);
-//         halos[2] = halo_descriptor(0,0,1,d3-1,d3);
-
             //the following might be runtime value
             uint_t total_time=t;
 
 #ifndef NDEBUG
-            int pid=0;
-            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
             std::ofstream myfile;
             std::stringstream name;
-            name<<"example"<<pid<<".txt";
+            name<<"example"<<PID<<".txt";
             myfile.open (name.str().c_str());
 #endif
 

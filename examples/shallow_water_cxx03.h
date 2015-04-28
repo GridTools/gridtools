@@ -89,21 +89,14 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-#define height 2.
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            //if(i<3 && j<3)
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
-            //else
-            //return 1.;
         }
 
         GT_FUNCTION
-        static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-//             if(i>1 && j>1 && i<5 && j<5)
-            return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-//             else
-//                 return 1.;
+        static float_type droplet_higher(uint_t const& i, uint_t const& j, uint_t const& k){
+            return 1.+4. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
         }
 
     };
@@ -505,8 +498,6 @@ namespace shallow_water{
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-        // typedef MPI_3D_process_grid_t<gridtools::boollist<3> > comm_t;
-        // comm_t comm(gridtools::boollist<3>(false,false,false), GCL_WORLD, 2);
         array<ushort_t, 3> halo=(2,2,0);
         typedef partitioner_trivial< cell_topology<topology::cartesian<layout_map<0,1,2> > > , pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo);
@@ -536,16 +527,14 @@ namespace shallow_water{
         if(!he.comm().pid())
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
-            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet2);//h
+            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet_higher);//h
         sol.set<1,0>(out8, 0.);//u
         sol.set<2,0>(out9, 0.);//v
 
 #ifndef NDEBUG
-        int pid=0;
-        MPI_Comm_rank(MPI_COMM_WORLD, &pid);
         std::ofstream myfile;
         std::stringstream name;
-        name<<"example"<<pid<<".txt";
+        name<<"example"<<PID<<".txt";
         myfile.open (name.str().c_str());
 #endif
 

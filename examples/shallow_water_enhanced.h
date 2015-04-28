@@ -68,7 +68,6 @@ namespace shallow_water{
         typedef decltype(i) i_t;        typedef decltype(j) j_t;
 
     };
-
     functor_traits::i_t functor_traits::i;
     functor_traits::j_t functor_traits::j;
 
@@ -103,7 +102,7 @@ namespace shallow_water{
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-                return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-3)*dy())*((j-3)*dy())));
+            return 1.+height * std::exp(-5*std::pow((i-3)*dx(), 2)+std::pow((j-3)*dy(), 2));
        }
 };
 
@@ -112,8 +111,9 @@ namespace shallow_water{
 
         using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<0,1,0,0>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
+        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+
+        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
         template <typename Evaluation>
@@ -151,8 +151,8 @@ namespace shallow_water{
         using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<0,0,0,1>;
 
-        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy;
-        typedef arg_type<1,range<0, 0, 0, 0>, 5> sol;
+        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
+        typedef arg_type<1,range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -187,9 +187,9 @@ namespace shallow_water{
         using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<1,1,1,1>;
 
-        typedef arg_type<0, range<0,0,0,0>, 5> tmpx;
-        typedef arg_type<1, range<0,0,0,0>, 5> tmpy;
-        typedef arg_type<2,range<0, 0, 0, 0>, 5> sol;
+        typedef arg_type<0, range<0,0,0,0>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef arg_type<1, range<0,0,0,0>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef arg_type<2,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 
@@ -291,7 +291,6 @@ namespace shallow_water{
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
         typedef field<storage_type, 1, 1, 1>::type sol_type;
         typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
-        typedef sol_type::original_storage::pointer_type ptr;
 
         // Definition of placeholders. The order of them reflects the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -299,7 +298,7 @@ namespace shallow_water{
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
-        typedef sol_type::original_storage::pointer_type pointer_type;
+        typedef storage_type::pointer_type pointer_type;
 
         gridtools::array<int, 3> dimensions(0,0,0);
         MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
@@ -325,11 +324,11 @@ namespace shallow_water{
 
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());
-        he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+        he.add_halo<2>(sol.get_halo_gcl<2>());
 
         he.setup(3);
 
-        ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
+        pointer_type out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(PID==1)
             sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         else
