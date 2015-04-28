@@ -68,7 +68,6 @@ endif()
 
   if( GCL_MPI )
     if ( $ENV{JENKINS_COMMUNICATION_TESTS} )
-##      foreach(srcfile test_all_to_all_halo test_all_to_all_ij_ji test_all_to_all_halo_3D test_halo_exchange test_halo_exchange_2D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_2D_generic test_halo_exchange_3D_generic_full)
 
 ################################## GPU
     if( GCL_GPU )
