@@ -35,6 +35,7 @@ for gpu in ON OFF; do
                         echo EVERYTTHING SEEMS FINE
                         echo
                         echo
+                        rm $name
                     fi
                 fi
             done
