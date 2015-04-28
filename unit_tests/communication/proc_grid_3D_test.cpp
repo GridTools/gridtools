@@ -10,46 +10,6 @@
 
 std::ostream *filep;
 
-int _main(int pid, int nprocs) {
-
-  gridtools::_3D_process_grid_t<gridtools::boollist<3> > pg(gridtools::boollist<3>(true,true,true), nprocs,pid);
-
-  int R_,C_,S_;
-  pg.dims(R_,C_,S_);
-  (*filep) << "@" << gridtools::PID << "@ GRID SIZE " << R_ << " - " << C_ << " - " << S_ << "\n";
-
-  (*filep) << "@" << gridtools::PID << "@ PROC GRID "
-    OUT(-1,-1,-1)
-    OUT(0,-1,-1)
-    OUT(1,-1,-1)
-    OUT(-1,0,-1)
-    OUT(0,0,-1)
-    OUT(1,0,-1)
-    OUT(-1,1,-1)
-    OUT(0,1,-1)
-    OUT(1,1,-1)
-    OUT(-1,-1,0)
-    OUT(0,-1,0)
-    OUT(1,-1,0)
-    OUT(-1,0,0)
-    OUT(0,0,0)
-    OUT(1,0,0)
-    OUT(-1,1,0)
-    OUT(0,1,0)
-    OUT(1,1,0)
-    OUT(-1,-1,1)
-    OUT(0,-1,1)
-    OUT(1,-1,1)
-    OUT(-1,0,1)
-    OUT(0,0,1)
-    OUT(1,0,1)
-    OUT(-1,1,1)
-    OUT(0,1,1)
-    OUT(1,1,1)
-            << "\n";
-
-  return 0;
-}
 
 int MPImain(MPI_Comm &comm) {
 
@@ -111,8 +71,6 @@ int main(int argc, char** argv) {
   std::ofstream file(filename.c_str());
 
   filep = &file;
-
-  _main(pid, nprocs);
 
   MPI_Comm CartComm;
   int dims[3] = {0,0,0};

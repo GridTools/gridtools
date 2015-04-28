@@ -5,43 +5,11 @@
 #include <stdio.h>
 #include <common/boollist.h>
 
-struct T1 {}; // GCL CYCLIC
-struct T2 {}; // GCL not CYCLIC
 struct T3 {}; // MPI CYCLIC
 struct T4 {}; // MPI not CYCLIC
 
 template <typename T>
 struct pgrid;
-
-template <>
-struct pgrid<T1> {
-
-  typedef gridtools::_3D_process_grid_t<gridtools::boollist<3> > grid_type;
-
-  static grid_type instantiate(MPI_Comm comm) {
-    int pid;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    int nprocs;
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(gridtools::boollist<3>(true, true, true), nprocs, pid);
-  }
-
-};
-
-template <>
-struct pgrid<T2> {
-
-    typedef gridtools::_3D_process_grid_t<gridtools::boollist<3> > grid_type;
-
-  static grid_type instantiate(MPI_Comm comm) {
-    int pid;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    int nprocs;
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(gridtools::boollist<3>(false,false,false), nprocs, pid);
-  }
-
-};
 
 template <>
 struct pgrid<T3> {

@@ -3,8 +3,6 @@
 
 #include "../../common/array.h"
 #include <vector>
-#include "../low-level/proc_grids_2D.h"
-#include "../low-level/Halo_Exchange_2D.h"
 #include "../low-level/proc_grids_3D.h"
 #include "../low-level/Halo_Exchange_3D.h"
 #include "../../common/make_array.h"
@@ -732,49 +730,6 @@ namespace gridtools {
     struct pack_dims {};
 
     template <int dummy>
-    struct pack_dims<2, dummy> {
-#ifdef CXX11_ENABLED
-      template <typename T, typename... FIELDS>
-      void operator()(const T& hm, const FIELDS&... _fields) const {
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
-        for (int ii=-1; ii<=1; ++ii) {
-          for (int jj=-1; jj<=1; ++jj) {
-            if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii,jj) != -1)) {
-              DataType *it = &(hm.send_buffer[translate()(ii,jj)][0]);
-              hm.halo.pack_all(make_array(ii,jj), it, _fields...);
-            }
-          }
-        }
-      }
-#else
-
-#ifndef _GCL_GPU_
-#define PUT_OMP _Pragma("omp parallel for schedule(dynamic) collapse(2)")
-#else
-#define PUT_OMP
-#endif
-
-#define MACRO_IMPL(z, n, _)                                             \
-      template <typename T, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
-      void operator()(const T& hm, BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)  ) const { \
-        PUT_OMP                                                         \
-        for (int ii=-1; ii<=1; ++ii) {                                  \
-          for (int jj=-1; jj<=1; ++jj) {                                \
-            if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii,jj) != -1)) { \
-              DataType *it = &(hm.send_buffer[translate()(ii,jj)][0]); \
-              hm.halo.pack_all(make_array(ii,jj), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
-            }                                                           \
-          }                                                             \
-        }                                                               \
-      }
-
-      BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#undef PUT_OMP
-#endif
-    };
-
-    template <int dummy>
     struct pack_dims<3, dummy> {
 #ifdef CXX11_ENABLED
       template <typename T, typename... FIELDS>
@@ -833,50 +788,6 @@ namespace gridtools {
 
     template <int I, int dummy>
     struct unpack_dims {};
-
-    template <int dummy>
-    struct unpack_dims<2, dummy> {
-#ifdef CXX11_ENABLED
-      template <typename T, typename... FIELDS>
-      void operator()(const T& hm, const FIELDS&... _fields) const {
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
-        for (int ii=-1; ii<=1; ++ii) {
-          for (int jj=-1; jj<=1; ++jj) {
-            if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii,jj) != -1)) {
-              DataType *it = &(hm.recv_buffer[translate()(ii,jj)][0]);
-              hm.halo.unpack_all(make_array(ii,jj), it, _fields...);
-            }
-          }
-        }
-      }
-#else
-
-#ifndef _GCL_GPU_
-#define PUT_OMP _Pragma("omp parallel for schedule(dynamic) collapse(2)")
-#else
-#define PUT_OMP
-#endif
-
-#define MACRO_IMPL(z, n, _)                                             \
-      template <typename T, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD)> \
-      void operator()(const T& hm, BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field) ) const { \
-        PUT_OMP                                                         \
-        for (int ii=-1; ii<=1; ++ii) {                                  \
-          for (int jj=-1; jj<=1; ++jj) {                                \
-            if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii,jj) != -1)) { \
-              DataType *it = &(hm.recv_buffer[translate()(ii,jj)][0]); \
-              hm.halo.unpack_all(make_array(ii,jj), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
-            }                                                           \
-          }                                                             \
-        }                                                               \
-      }
-
-      BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#undef PUT_OMP
-#endif
-
-    };
 
     template <int dummy>
     struct unpack_dims<3, dummy> {
@@ -938,24 +849,6 @@ namespace gridtools {
     struct pack_vector_dims {};
 
     template <int dummy>
-    struct pack_vector_dims<2, dummy> {
-      template <typename T>
-      void operator()(const T& hm, std::vector<DataType*> const& fields) const {
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
-        for (int ii=-1; ii<=1; ++ii) {
-          for (int jj=-1; jj<=1; ++jj) {
-            if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii,jj) != -1)) {
-              DataType *it = &(hm.send_buffer[translate()(ii,jj)][0]);
-              for (size_t i=0; i<fields.size(); ++i) {
-                hm.halo.pack(make_array(ii,jj), fields[i], it);
-              }
-            }
-          }
-        }
-      }
-    };
-
-    template <int dummy>
     struct pack_vector_dims<3, dummy> {
       template <typename T>
       void operator()(const T& hm, std::vector<DataType*> const& fields) const {
@@ -981,24 +874,6 @@ namespace gridtools {
 
     template <int I, int dummy>
     struct unpack_vector_dims {};
-
-    template <int dummy>
-    struct unpack_vector_dims<2, dummy> {
-      template <typename T>
-      void operator()(const T& hm, std::vector<DataType*> const& fields) const {
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
-        for (int ii=-1; ii<=1; ++ii) {
-          for (int jj=-1; jj<=1; ++jj) {
-            if ((ii!=0 || jj!=0) && (hm.pattern().proc_grid().proc(ii,jj) != -1)) {
-              DataType *it = &(hm.recv_buffer[translate()(ii,jj)][0]);
-              for (size_t i=0; i<fields.size(); ++i) {
-                hm.halo.unpack(make_array(ii,jj), fields[i], it);
-              }
-            }
-          }
-        }
-      }
-    };
 
     template <int dummy>
     struct unpack_vector_dims<3, dummy> {
@@ -1039,21 +914,6 @@ namespace gridtools {
                           if (!hm->recv_buffer[translate()(i,j,k)])
                               _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i,j,k)]);
                       }
-                  }
-              }
-          }
-      };
-
-      template <int Dummy>
-      struct _destroy_dynamic_ut<2, Dummy> {
-          template <typename T>
-          void do_it(T hm) const {
-              for (int i = -1; i <= 1; ++i) {
-                  for (int j = -1; j <= 1; ++j) {
-                      if (!hm->send_buffer[translate()(i,j)])
-                          _impl::gcl_alloc<DataType, arch_type>::free(hm->send_buffer[translate()(i,j)]);
-                      if (!hm->recv_buffer[translate()(i,j)])
-                          _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i,j)]);
                   }
               }
           }

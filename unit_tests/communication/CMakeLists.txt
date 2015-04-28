@@ -10,7 +10,7 @@ if( NOT GCL_ONLY )
   ### L3
   if( GCL_MPI )
     #CPU 2D MPI tests
-    foreach(srcfile Halo_Exchange_test Halo_Exchange_test_3D Halo_Exchange_test_2  proc_grid_2D_test proc_grid_3D_test)
+    foreach(srcfile Halo_Exchange_test_3D proc_grid_3D_test)
       add_executable( ${srcfile} ../../unit_tests/communication/${srcfile}.cpp)
       add_dependencies(${srcfile} gcl)
           set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} ${ADDITIONAL_CXX_FLAGS}")
@@ -23,7 +23,7 @@ if( NOT GCL_ONLY )
   ### L2
   if( GCL_MPI )
     #CPU 2D MPI tests
-    foreach(srcfile test_descriptors test_descriptors_2D test_descriptors_3D test_empty_descriptors_2D test_empty_descriptors_3D boolist ndloops layout_map)
+    foreach(srcfile test_descriptors_3D test_empty_descriptors_3D boolist ndloops layout_map)
       add_executable( ${srcfile} ../../unit_tests/communication/${srcfile}.cpp)
       add_dependencies(${srcfile} gcl)
       set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} ${ADDITIONAL_CXX_FLAGS}")

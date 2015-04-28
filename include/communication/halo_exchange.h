@@ -1,11 +1,8 @@
 #ifndef _HALO_EXCHANGE_H_
 #define _HALO_EXCHANGE_H_
 
-#include "low-level/Halo_Exchange_2D.h"
-#include "low-level/Halo_Exchange_2D_DT.h"
 #include "low-level/Halo_Exchange_3D.h"
 #include "low-level/Halo_Exchange_3D_DT.h"
-#include "low-level/proc_grids_2D.h"
 #include "low-level/proc_grids_3D.h"
 #include "../common/boollist.h"
 
@@ -13,13 +10,11 @@
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
-//#else
 #include "high-level/descriptors_dt.h"
 #include "high-level/descriptors_dt_whole.h"
 #include "high-level/descriptors.h"
 #include "high-level/descriptors_manual_gpu.h"
 #include "high-level/descriptor_generic_manual.h"
-//#endif
 
 #include "low-level/translate.h"
 #include "high-level/field_on_the_fly.h"
@@ -29,21 +24,6 @@ namespace gridtools {
     namespace _impl {
         template <int D, typename GT, int version>
         struct get_pattern;
-
-        template <typename GT>
-        struct get_pattern<2,GT,0> {
-            typedef Halo_Exchange_2D<GT> type;
-        };
-
-        template <typename GT>
-        struct get_pattern<2,GT,1> {
-            typedef Halo_Exchange_2D_DT<GT> type;
-        };
-
-        template <typename GT>
-        struct get_pattern<2,GT,2> {
-            typedef Halo_Exchange_2D<GT> type;
-        };
 
         template <typename GT>
         struct get_pattern<3,GT,0> {
@@ -65,12 +45,12 @@ namespace gridtools {
 
         template <>
         struct get_grid<2> {
-            typedef MPI_2D_process_grid_t<boollist<2> > type;
+            typedef MPI_3D_process_grid_t< 2 > type;
         };
 
         template <>
         struct get_grid<3> {
-            typedef MPI_3D_process_grid_t<3 > type;
+            typedef MPI_3D_process_grid_t< 3 > type;
         };
 
     }
