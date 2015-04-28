@@ -601,16 +601,6 @@ namespace gridtools {
             return (&m_strides[1]);
         }
 
-        /**
-           @brief returns the index (in the array of data snapshots) corresponding to the specified offset
-           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the latter case it returns offset modulo the size of the array.
-           In the former case it returns the array size's complement of -offset.
-        */
-        GT_FUNCTION
-        static constexpr ushort_t get_index (short_t const& offset) {
-            return (offset+n_width)%n_width;
-        }
-
     protected:
         bool is_set;
         const char* m_name;
@@ -1051,6 +1041,16 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
       return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
        }
 
+
+        /**
+           @brief returns the index (in the array of data snapshots) corresponding to the specified offset
+           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the latter case it returns offset modulo the size of the array.
+           In the former case it returns the array size's complement of -offset.
+        */
+        GT_FUNCTION
+        static constexpr ushort_t get_index (short_t const& offset) {
+            return (offset+n_width)%n_width;
+        }
 
    /**@biref sets the given storage as the nth snapshot of a specific field dimension, at the specified coordinates
 

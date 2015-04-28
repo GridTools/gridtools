@@ -81,42 +81,42 @@ namespace gridtools {
     */
     template < ushort_t ID, ushort_t Number>
     struct arg_type0 : public arg_extend<ID, range<0,0,0,0>, Number, Number>::type {
-        typedef typename arg_extend<ID, range<0,0,0,0>, Number, Number>::type type;
+        typedef typename arg_extend<ID, range<0,0,0,0>, Number, Number>::type super;
         GT_FUNCTION
-        constexpr arg_type0(): type()
+        constexpr arg_type0(): super()
             {}
 
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
-        using type::arg_decorator;
+        using super::arg_decorator;
 #else
 
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr arg_type0 ( ForwardedArgs... x): type (x)
+        constexpr arg_type0 ( ForwardedArgs... x): super (x)
             {
             }
 #endif
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr arg_type0 ( X x, Y y, Z z, T t ): type(x, y, z, t)
+        constexpr arg_type0 ( X x, Y y, Z z, T t ): super(x, y, z, t)
             {
             }
 
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr arg_type0 ( X x, Y y, Z z ): type(x, y, z)
+        constexpr arg_type0 ( X x, Y y, Z z ): super(x, y, z)
             {
             }
         template <typename X>
         GT_FUNCTION
-        constexpr arg_type0 ( X x ): type(x)
+        constexpr arg_type0 ( X x ): super(x)
             {
             }
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr arg_type0 ( X x, Y y ): type(x, y)
+        constexpr arg_type0 ( X x, Y y ): super(x, y)
             {
             }
 #endif

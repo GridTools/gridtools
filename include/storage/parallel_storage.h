@@ -85,11 +85,25 @@ namespace gridtools {
            It sums the offset given by the partitioner to the local index
         */
         template<uint_t Component>
-        uint_t const& local_to_global(uint_t const& value){return m_partitioner->template global_offset<Component>()+value;}
+        uint_t const& local_to_global(uint_t const& value){
+            GRIDTOOLS_STATIC_ASSERT(Component<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of local_to_global")
+            return m_partitioner->template global_offset<Component>()+value;}
 
-        template<ushort_t dimension>
-        halo_descriptor const& get_halo_descriptor() const {return m_coordinates[dimension];}
+        /**
+           @brief returns the halo descriptors to be used inside the coordinates object
 
+           The halo descriptors are computed in the setup phase using the partitioner
+        */
+        template<ushort_t Dimension>
+        halo_descriptor const& get_halo_descriptor() const {
+            GRIDTOOLS_STATIC_ASSERT(Dimension<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor")
+            return m_coordinates[Dimension];}
+
+        /**
+           @brief returns the halo descriptors to be used for the communication inside the GCL library
+
+           The halo descriptors are computed in the setup phase using the partitioner
+        */
         template<ushort_t dimension>
         halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
 

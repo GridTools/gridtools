@@ -35,7 +35,7 @@ namespace gridtools {
     };
 
 /** @brief given two vectors \f$a\f$ and \f$b\f$ it implements: \f$\sum_i(a(i)\prod_{j=0}^{i-1}b(j))\f$ */
-    template <uint_t D>
+    template <int_t D>
     struct access_to;
 
     template <>
@@ -48,7 +48,7 @@ namespace gridtools {
       }
     };
 
-    template <uint_t D>
+    template <int_t D>
     struct access_to {
       template <typename ARRAY>
       int operator()(ARRAY const & indices,
@@ -72,7 +72,7 @@ namespace gridtools {
       uint_t imax;
     };
 
-/**@brief of each element of an array it performs a loop between the array bounds defined in a template parameter, and it computes a function of type F */
+    /**@brief of each element of an array it performs a loop between the array bounds defined in a template parameter, and it computes a function of type F */
     template <int_t I, typename F>
     struct access_loop;
 

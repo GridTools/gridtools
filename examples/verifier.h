@@ -1,6 +1,7 @@
 #pragma once
 
 namespace gridtools{
+
 template < typename Storage, typename Partitioner >
 class parallel_storage;
 }
@@ -18,18 +19,18 @@ public:
         assert(field1.template dims<1>() == field2.template dims<1>());
         assert(field1.template dims<2>() == field2.template dims<2>());
 
-        const int idim = field1.template dims<0>();
-        const int jdim = field1.template dims<1>();
-        const int kdim = field1.template dims<2>();
+        const gridtools::uint_t idim = field1.template dims<0>();
+        const gridtools::uint_t jdim = field1.template dims<1>();
+        const gridtools::uint_t kdim = field1.template dims<2>();
 
         bool verified = true;
 
-        for(int f=0; f<storage_type::field_dimensions; ++f)
-            for(int i=m_halo_size; i < idim-m_halo_size; ++i)
+        for(gridtools::uint_t f=0; f<storage_type::field_dimensions; ++f)
+            for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
             {
-                for(int j=m_halo_size; j < jdim-m_halo_size; ++j)
+                for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
                 {
-                    for(int k=0; k < kdim; ++k)
+                    for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
                         typename storage_type::value_type expected = field1.fields()[f][field1._index(i,j,k)];
                         typename storage_type::value_type actual = field2.fields()[f][field2._index(i,j,k)];
@@ -50,18 +51,18 @@ public:
     template<typename Partitioner, typename storage_type>
     bool verify(gridtools::parallel_storage<storage_type, Partitioner>& field1, storage_type& field2)
     {
-        const int idim = field1.template dims<0>();
-        const int jdim = field1.template dims<1>();
-        const int kdim = field1.template dims<2>();
+        const gridtools::uint_t idim = field1.template dims<0>();
+        const gridtools::uint_t jdim = field1.template dims<1>();
+        const gridtools::uint_t kdim = field1.template dims<2>();
 
         bool verified = true;
 
-        for(int f=0; f<storage_type::field_dimensions; ++f)
-            for(int i=m_halo_size; i < idim-m_halo_size; ++i)
+        for(gridtools::uint_t f=0; f<storage_type::field_dimensions; ++f)
+            for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
             {
-                for(int j=m_halo_size; j < jdim-m_halo_size; ++j)
+                for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
                 {
-                    for(int k=0; k < kdim; ++k)
+                    for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
                         if(field1.mine(i,j,k)){
                             typename storage_type::value_type expected = field1.fields()[f][field1._index(i,j,k)];

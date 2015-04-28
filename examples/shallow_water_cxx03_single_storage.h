@@ -539,11 +539,9 @@ namespace shallow_water{
             sol.set<2,2>(out9, 0.);//v
 
 #ifndef NDEBUG
-            int pid=0;
-            MPI_Comm_rank(MPI_COMM_WORLD, &pid);
             std::ofstream myfile;
             std::stringstream name;
-            name<<"example"<<pid<<".txt";
+            name<<"example"<<PID<<".txt";
             myfile.open (name.str().c_str());
 
             std::cout<<"INITIALIZED VALUES"<<std::endl;
