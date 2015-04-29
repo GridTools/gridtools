@@ -30,7 +30,7 @@ struct shallow_water_reference{
     }
 
     shallow_water_reference() : solution(){
-        solution.setup(DimI, DimJ, 1);
+        solution.setup(DimI, DimJ, static_cast<uint_t>(1));
     }
 
     void setup(){

@@ -25,6 +25,10 @@
 #define DEPRECATED(func) func
 #endif
 
+/** Macro do enable additional checks that may catch some errors in user code
+ */
+#define PEDANTIC
+
 #define RESTRICT __restrict__
 
 #define GT_NO_ERRORS 0

@@ -72,7 +72,7 @@ namespace gridtools{
          *  that determines the i coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
-        static uint_t const& processing_element_i()  {
+        static uint_t processing_element_i()  {
             return multithreading::gt_thread_id;
         }
 
