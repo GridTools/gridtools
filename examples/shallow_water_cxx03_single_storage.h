@@ -31,7 +31,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -275,8 +275,8 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        //typedef arg_type<0, range<0, 0, 0, 0>, 5>::type tmpx;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> sol;
+        //typedef accessor<0, range<0, 0, 0, 0>, 5>::type tmpx;
+        typedef accessor<0, range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<sol> arg_list;
 
         template <typename Evaluation>
@@ -329,7 +329,7 @@ namespace shallow_water{
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
-        typedef arg_type<0,range<0, 0, 0, 0>, 5> sol;
+        typedef accessor<0,range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<sol> arg_list;
 
         template <typename Evaluation>
@@ -383,7 +383,7 @@ namespace shallow_water{
         static const x::Index i;
         static const y::Index j;
 
-        typedef arg_type<0,range<0,0,0,0>, 5> sol;
+        typedef accessor<0,range<0,0,0,0>, 5> sol;
         typedef boost::mpl::vector<sol>  arg_list;
         static uint_t current_time;
 
@@ -487,7 +487,7 @@ namespace shallow_water{
         //typedef arg<0, tmp_type > p_tmpx;
         //typedef arg<1, tmp_type > p_tmpy;
         typedef arg<0, sol_type > p_sol;
-        typedef boost::mpl::vector< p_sol> arg_type_list;
+        typedef boost::mpl::vector< p_sol> accessor_list;
         typedef sol_type::original_storage::pointer_type pointer_type;
 
         {//scope for RAII
@@ -552,7 +552,7 @@ namespace shallow_water{
             // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
             // It must be noted that the only fields to be passed to the constructor are the non-temporary.
             // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-            domain_type<arg_type_list> domain
+            domain_type<accessor_list> domain
                 (boost::fusion::make_vector(&sol));
 
             // Definition of the physical dimensions of the problem.

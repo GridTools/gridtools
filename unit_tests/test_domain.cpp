@@ -16,7 +16,7 @@
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
 #include <stencil-composition/domain_type.h>
-#include <stencil-composition/arg_type.h>
+#include <stencil-composition/accessor.h>
 #include <stencil-composition/intermediate.h>
 #include <stencil-composition/backend.h>
 
@@ -151,12 +151,12 @@ bool test_domain() {
 
     // // An array of placeholders to be passed to the domain
     // // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector</*p_lap, p_flx, p_fly*/ p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector</*p_lap, p_flx, p_fly*/ p_coeff, p_in, p_out> accessor_list;
 
     // // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<arg_type_list> domain
+    gridtools::domain_type<accessor_list> domain
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
 
@@ -170,12 +170,12 @@ bool test_domain() {
 // #endif
 
     typedef boost::mpl::vector<
-  gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<0> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<1> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<2> >::type
-    > mpl_arg_type_list;
+  gridtools::_impl::select_storage<accessor_list>::template apply<static_int<0> >::type,
+    gridtools::_impl::select_storage<accessor_list>::template apply<static_int<1> >::type,
+    gridtools::_impl::select_storage<accessor_list>::template apply<static_int<2> >::type
+    > mpl_accessor_list;
 
-    typedef typename boost::fusion::result_of::as_vector<mpl_arg_type_list>::type actual_arg_list_type;
+    typedef typename boost::fusion::result_of::as_vector<mpl_accessor_list>::type actual_arg_list_type;
 
     actual_arg_list_type actual_arg_list;
 
