@@ -42,8 +42,10 @@ class FunctorBody (ast.NodeVisitor):
 
         for lsymbol in lvalues:
             #
-            # lvalues are read/write
+            # lvalues (and their aliases) are read/write
             #
+            if self.scope.is_alias (lsymbol.name):
+                self.scope[lsymbol.value].read_only = False
             lsymbol.read_only = False
             #
             # lvalues depend on rvalues
@@ -73,6 +75,43 @@ class FunctorBody (ast.NodeVisitor):
         return sign
 
          
+    def _transpow (self, base, exp):
+        logging.debug ("Exponent type %s" % type(exp))
+        if (isinstance (exp, ast.UnaryOp)):
+            exp = op.operand.n
+        if ( not isinstance(exp, float) and not isinstance(exp, int)):
+            logging.warn ("This is neither a float nor an int.  type = %s", type(exp))
+            exp = eval(exp)
+            logging.debug ("After evaluating it, the new type of the expression is %s", type(exp))
+
+        if ( not isinstance(exp, int)):
+            if ( isinstance(exp, float)):
+                exp = int(exp)  # Convert float to int
+                logging.warn ("The evaluated exponent is a floating point.  Currently, only whole integers can be translated.  Truncating to integer.")
+            else:
+                logging.error ("Can not determine a number for the exponent (type = %s)", type(exp))
+                return "NaN"
+
+        if (exp == 0): 
+            return "(1)"
+        elif (exp == 1): 
+            return "("+str(base)+")"
+        elif (exp > 1): 
+            if ( not isinstance(base, float) and not isinstance(base, int)):
+                val = "*("+str(base)+")"
+                return "(({0}){1})".format(base, ''.join([val for num in range(exp-1)]))
+            else:
+                val = "*"+str(base)
+                return "({0}{1})".format(base, ''.join([val for num in range(exp-1)]))
+        elif (exp < 0): 
+            if ( not isinstance(base, float) and not isinstance(base, int)):
+                val = "*("+str(base)+")"
+                return "(1/(({0}){1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
+            else:
+                val = "*"+str(base)
+                return "(1/({0}{1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
+
+
     def generate_code (self, src):
         """
         Generates C++ code from the AST backing this object:
@@ -175,43 +214,6 @@ class FunctorBody (ast.NodeVisitor):
         return ret_value
 
 
-    def transpow(self, base, exp):
-        logging.debug ("Exponent type %s" % type(exp))
-        if (isinstance (exp, ast.UnaryOp)):
-            exp = op.operand.n
-        if ( not isinstance(exp, float) and not isinstance(exp, int)):
-            logging.warn ("This is neither a float nor an int.  type = %s", type(exp))
-            exp = eval(exp)
-            logging.debug ("After evaluating it, the new type of the expression is %s", type(exp))
-
-        if ( not isinstance(exp, int)):
-            if ( isinstance(exp, float)):
-                exp = int(exp)  # Convert float to int
-                logging.warn ("WARNING!  The evaluated exponent is a floating point.  Currently, only whole integers can be translated.  Truncating to integer.")
-            else:
-                logging.error ("Can not determine a number for the exponent (type = %s)", type(exp))
-                return "NaN"
-
-        if (exp == 0): 
-            return "(1)"
-        elif (exp == 1): 
-            return "("+str(base)+")"
-        elif (exp > 1): 
-            if ( not isinstance(base, float) and not isinstance(base, int)):
-                val = "*("+str(base)+")"
-                return "(({0}){1})".format(base, ''.join([val for num in range(exp-1)]))
-            else:
-                val = "*"+str(base)
-                return "({0}{1})".format(base, ''.join([val for num in range(exp-1)]))
-        elif (exp < 0): 
-            if ( not isinstance(base, float) and not isinstance(base, int)):
-                val = "*("+str(base)+")"
-                return "(1/(({0}){1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
-            else:
-                val = "*"+str(base)
-                return "(1/({0}{1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
-
-
     def visit_BinOp (self, node):
         """
         Generates code for a binary operation, e.g., +,-,*, ...
@@ -233,7 +235,7 @@ class FunctorBody (ast.NodeVisitor):
                 operand.append ('(%s)' % self.visit (op))
 
         if (sign == '**'):
-            return self.transpow(operand[0], operand[1])
+            return self._transpow(operand[0], operand[1])
         else:
             return "%s %s %s" % (operand[0], sign, operand[1])
 
@@ -261,7 +263,21 @@ class FunctorBody (ast.NodeVisitor):
                                       symbol.value,
                                       read_only=symbol.read_only)
         else:
-            raise RuntimeError ("Unknown symbol '%s'" % name)
+            raise NameError ("Unkown symbol '%s' in functor" % name)
+        #
+        # resolve aliases before trying to inline
+        #
+        if self.scope.is_alias (name):
+            if symbol.value in self.scope:
+                aliased = self.scope[symbol.value]
+            elif symbol.value in self.encl_scope:
+                aliased = self.encl_scope[symbol.value]
+            else:
+                raise NameError ("Could not dereference alias '%s'" % name)
+            self.scope.add_parameter (aliased.name,
+                                      aliased.value,
+                                      read_only=symbol.read_only)
+            return aliased.name.replace ('.', '_')
         #
         # try to inline the value of this symbol
         #

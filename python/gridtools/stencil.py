@@ -68,10 +68,11 @@ class StencilInspector (ast.NodeVisitor):
             self.scope = StencilScope ( )
 
             #
-            # a list of functors of this stenctil;
+            # a list of functors (i.e. stages) of this stenctil;
             # the kernel function is the entry functor of any stencil
             #
-            self.functors = list ( )
+            self.functors     = list ( )
+            self.functor_defs = list ( )
         else:
             raise TypeError ("Class '%s' must extend 'MultiStageStencil'" % 
                              obj.__class__)
@@ -90,10 +91,10 @@ class StencilInspector (ast.NodeVisitor):
             #
             # analysis starts by parsing the stencil source code
             #
-            module = ast.parse (self.src)
-            self.visit (module)
+            self.ast_root = ast.parse (self.src)
+            self.visit (self.ast_root)
             if len (self.functors) == 0:
-                raise NameError ("Class must implement a 'kernel' function")
+                raise NameError ("Could extract any stencil stage")
         else:
             #
             # if the source code is not available, we may infer the user is
@@ -259,7 +260,53 @@ class StencilInspector (ast.NodeVisitor):
                 logging.debug ("Constant '%s' will be resolved later" % lvalue)
 
     
-    def visit_For (self, node):
+    def visit_Expr (self, node):
+        """
+        Looks for named stages within a stencil.-
+        """
+        if isinstance (node.value, ast.Call):
+            call = node.value
+            if (isinstance (call.func, ast.Attribute) and
+                isinstance (call.func.value, ast.Name)):
+                if (call.func.value.id == 'self' and
+                    call.func.attr.startswith ('stage_') ):
+                    #
+                    # found a new stage
+                    #
+                    funct_name  = '%s_%s_%03d' % (self.stencil.name.lower ( ),
+                                                    call.func.attr,
+                                                    len (self.scope.functor_scopes))
+                    funct_scope = self.scope.add_functor (funct_name)
+                    #
+                    # extract its parameters
+                    #
+                    if len (call.args) > 0:
+                        logging.warning ("Ignoring positional arguments when calling intermediate stages")
+                    else:
+                        for kw in call.keywords:
+                            if isinstance (kw.value, ast.Attribute):
+                                funct_scope.add_alias (kw.arg,
+                                                       '%s.%s' % (kw.value.value.id,
+                                                                  kw.value.attr))
+                            elif isinstance (kw.value, ast.Name):
+                                funct_scope.add_alias (kw.arg,
+                                                       kw.value.id)
+                            else:
+                                raise TypeError ("Unknown type '%s' of keyword argument '%s'" 
+                                                 % (kw.value.__class__, kw.arg))
+                    #
+                    # look for its definition
+                    #
+                    for fun_def in self.functor_defs:
+                        if fun_def.name == call.func.attr:
+                            for node in fun_def.body:
+                                if isinstance (node, ast.For):
+                                    self.visit_For (node,
+                                                    funct_name=funct_name,
+                                                    funct_scope=funct_scope)
+
+
+    def visit_For (self, node, funct_name=None, funct_scope=None):
         """
         Looks for 'get_interior_points' comprehensions.-
         """
@@ -273,25 +320,21 @@ class StencilInspector (ast.NodeVisitor):
         if (call.func.value.id == 'self' and 
             call.func.attr == 'get_interior_points'):
             #
-            # a random name for this functor
+            # a random name for this functor if none given
             #
-            funct_name = '%s_functor_%03d' % (self.stencil.name.lower ( ),
-                                              len (self.scope.functor_scopes))
-            
-            #
-            # create a new scope for the symbols of this functor
-            #
-            functor_scope = self.scope.add_functor (funct_name)
-
+            if funct_name is None and funct_scope is None:
+                funct_name  = '%s_functor_%03d' % (self.stencil.name.lower ( ),
+                                                   len (self.scope.functor_scopes))
+                funct_scope = self.scope.add_functor (funct_name)
             #
             # create a functor object
             #
             funct = Functor (funct_name,
                              node,
-                             functor_scope,
+                             funct_scope,
                              self.scope)
             self.functors.append (funct)
-            logging.debug ("Functor '%s' created" % funct.name)
+            logging.info ("Functor '%s' created" % funct.name)
 
 
     def visit_FunctionDef (self, node):
@@ -351,6 +394,12 @@ class StencilInspector (ast.NodeVisitor):
             #
             for n in node.body:
                 self.visit (n)
+        #
+        # other function definitions are save for potential use later
+        #
+        else:
+            self.functor_defs.append (node)
+
 
 
 
@@ -408,6 +457,22 @@ class Stencil ( ):
         return self.name
 
 
+    def _plot_graph (self, G):
+        """
+        Renders graph 'G' using 'matplotlib'.-
+        """
+        from gridtools import plt
+
+        pos = nx.spring_layout (G)
+        nx.draw_networkx_nodes (G,
+                                pos=pos)
+        nx.draw_networkx_edges (G,
+                                pos=pos,
+                                arrows=True)
+        nx.draw_networkx_labels (G,
+                                 pos=pos)
+    
+    
     def compile (self):
         """
         Compiles the translated code to a shared library, ready to be used.-
@@ -468,8 +533,9 @@ class Stencil ( ):
             # ... and populate them
             #
             logging.info ("Generating C++ code in '%s'" % self.src_dir)
+
             #
-            # generate the code of *all* functors in this stencil
+            # generate the code of *all* functors in this stencil,
             # build a data-dependency graph among *all* data fields
             #
             for func in self.inspector.functors:
@@ -488,6 +554,7 @@ class Stencil ( ):
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
                 make_hdl.write (make_src)
+
         except Exception as e:
             logging.error ("Error while generating code:\n\t%s" % str (e))
             raise e
@@ -549,6 +616,26 @@ class Stencil ( ):
         should be implemented by the user.-
         """
         raise NotImplementedError ( )
+
+
+    def plot_3d (self, Z):
+        """
+        Plots the Z field in 3D, returning a Matplotlib's Line3DCollection.-
+        """
+        from gridtools import ax
+
+        X, Y = np.meshgrid (np.arange (Z.shape[0]),
+                            np.arange (Z.shape[1]))
+        im = ax.plot_wireframe (X, Y, Z,
+                                linewidth=1)
+        return im
+
+
+    def plot_dependency_graph (self):
+        """
+        Renders the data depencency graph using 'matplotlib'.-
+        """
+        self._plot_graph (self.scope.depency_graph)
 
 
     def recompile (self):
@@ -801,25 +888,6 @@ class CombinedStencil (Stencil):
         if domain is None:
             raise RuntimeError ("Could not infer data-field dimensions")
         return domain 
-
-
-    def _plot_graph (self, G):
-        """
-        Renders graph 'G' using 'matplotlib'.-
-        """
-        try:
-            import matplotlib as plt
-
-            pos = nx.spring_layout (G)
-            nx.draw_networkx_nodes (G,
-                                    pos=pos)
-            nx.draw_networkx_edges (G,
-                                    pos=pos,
-                                    arrows=True)
-            nx.draw_networkx_labels (G,
-                                     pos=pos)
-        except ImportError:
-            logging.warning ("MatplotLib is not available")
 
 
     def _prepare_parameters (self, stencil, **kwargs):
