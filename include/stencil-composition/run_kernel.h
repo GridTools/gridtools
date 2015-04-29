@@ -45,7 +45,7 @@ namespace gridtools {
                 , m_coords(coords)
                 , m_start(coords.i_low_bound(), coords.j_low_bound())
                 , m_block(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
-                , m_block_id(0, 0)
+                , m_block_id((uint_t)0, (uint_t)0)
             {}
 
             /**

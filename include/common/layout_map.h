@@ -156,7 +156,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        short_t constexpr operator[](ushort_t i) {
+        short_t constexpr operator[](ushort_t i) const {
             return _impl::__get<0, Args...>(i);
         }
 

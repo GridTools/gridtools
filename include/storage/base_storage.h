@@ -60,7 +60,6 @@ namespace gridtools {
         typedef typename  RegularStorageType::basic_type basic_type;
         typedef typename RegularStorageType::original_storage original_storage;
         typedef typename RegularStorageType::pointer_type pointer_type;
-        static const enumtype::backend backend=basic_type::backend;
         static const ushort_t n_width=basic_type::n_width;
         static const ushort_t filed_dimensions=basic_type::field_dimensions;
         typedef void storage_type;
@@ -467,15 +466,10 @@ namespace gridtools {
         constexpr
 #endif
         uint_t  _index(StridesVector const& RESTRICT strides_, uint_t const& i, uint_t const& j, uint_t const&  k) const {
-            uint_t index;
-            index =
-                strides_[0]
+            return strides_[0]
                 * layout::template find_val<0,uint_t,0>(i,j,k) +
                 strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
                 layout::template find_val<2,uint_t,0>(i,j,k);
-
-            assert(index<size());
-            return index;
         }
 
         /**@brief straightforward interface*/

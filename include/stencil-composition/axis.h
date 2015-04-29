@@ -70,7 +70,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit coordinates( uint_t* i, uint_t* j/*, uint_t* k*/)
             :
-            m_partitioner(partitioner_dummy())
+            m_partitioner(partitioner_dummy())//ok since partitioner_dummy is empty. Generates a warning
             , m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
             , m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
         {
