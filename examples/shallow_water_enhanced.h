@@ -27,7 +27,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -111,9 +111,9 @@ namespace shallow_water{
 
         using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<0,1,0,0>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
 
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1, range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
         template <typename Evaluation>
@@ -151,8 +151,8 @@ namespace shallow_water{
         using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<0,0,0,1>;
 
-        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef arg_type<1,range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
+        typedef accessor<1,range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -187,9 +187,9 @@ namespace shallow_water{
         using xrange=range<0,-2,0,-2>;
         using xrange_subdomain=range<1,1,1,1>;
 
-        typedef arg_type<0, range<0,0,0,0>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef arg_type<1, range<0,0,0,0>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef arg_type<2,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0, range<0,0,0,0>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef accessor<1, range<0,0,0,0>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef accessor<2,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 
@@ -297,7 +297,7 @@ namespace shallow_water{
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
-        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
+        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
         typedef storage_type::pointer_type pointer_type;
 
         gridtools::array<int, 3> dimensions(0,0,0);
@@ -347,7 +347,7 @@ namespace shallow_water{
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-        domain_type<arg_type_list> domain
+        domain_type<accessor_list> domain
             (boost::fusion::make_vector(&sol));
 
         // Definition of the physical dimensions of the problem.

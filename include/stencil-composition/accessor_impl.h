@@ -125,7 +125,7 @@ namespace gridtools {
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
      *
-     One arg_type consists substantially of an array of offsets (runtime values), a range and an index (copmpile-time constants). The latter is used to distinguish the types of two different arg_types,
+     One accessor consists substantially of an array of offsets (runtime values), a range and an index (copmpile-time constants). The latter is used to distinguish the types of two different accessors,
      while the offsets are used to calculate the final memory address to be accessed by the stencil in \ref gridtools::iterate_domain.
      * The class also provides the interface for accessing data in the function body.
      The interfaces available to specify the offset in each dimension are covered in the following example, supposing that we have to specify the offsets of a 3D field V:
@@ -142,11 +142,11 @@ namespace gridtools {
      * @tparam Range Bounds over which the function access the argument
      */
     template <uint_t I, typename Range, ushort_t Dim >
-    struct arg_type_base  {
+    struct accessor_base  {
 
         template <uint_t II, typename R, ushort_t D>
-        friend std::ostream& operator<<(std::ostream& s, arg_type_base<II,R,D> const& x);
-        typedef arg_type_base<I,Range,Dim> base_t;
+        friend std::ostream& operator<<(std::ostream& s, accessor_base<II,R,D> const& x);
+        typedef accessor_base<I,Range,Dim> base_t;
         static const ushort_t n_args=0;
         static const ushort_t n_dim=Dim;
 
@@ -157,7 +157,7 @@ namespace gridtools {
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
-        constexpr explicit arg_type_base()
+        constexpr explicit accessor_base()
             {}
 
         /**@brief constructor taking the Dimension class as argument.
@@ -167,30 +167,30 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_type_base ( Whatever... x)
+        constexpr accessor_base ( Whatever... x)
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the arg_decorator constructor exceeds the number of space dimensions of the storage")
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
             }
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr arg_type_base ( X x, Y y, Z z, T t )
+        constexpr accessor_base ( X x, Y y, Z z, T t )
             {
             }
 
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr arg_type_base ( X x, Y y, Z z )
+        constexpr accessor_base ( X x, Y y, Z z )
             {
             }
         template <typename X>
         GT_FUNCTION
-        constexpr arg_type_base ( X x )
+        constexpr accessor_base ( X x )
             {
             }
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr arg_type_base ( X x, Y y )
+        constexpr accessor_base ( X x, Y y )
             {
             }
 #endif
@@ -203,7 +203,7 @@ namespace gridtools {
 #ifdef NDEBUG
         constexpr
 #endif
-arg_type_base ( int const& t, Whatever const& ... x) {
+accessor_base ( int const& t, Whatever const& ... x) {
             //this static check fails on GCC<4.9 even when it should not
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected")
 
@@ -217,7 +217,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
                 }
 #else
         GT_FUNCTION
-        constexpr arg_type_base ( int const& i ){
+        constexpr accessor_base ( int const& i ){
 #ifndef NDEBUG
             assert(false);
 #endif
@@ -280,7 +280,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
     */
     template< class ArgType >
-    struct arg_decorator : public ArgType{
+    struct offset_tuple : public ArgType{
 
         typedef typename ArgType::base_t base_t;
         typedef ArgType super;
@@ -293,7 +293,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_decorator ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
+        constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -302,7 +302,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         */
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
-        constexpr arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
+        constexpr offset_tuple ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
             super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
             {
                 //this constructor should be a constexpr one (waiting for future standards (C++14) for that)
@@ -313,13 +313,13 @@ arg_type_base ( int const& t, Whatever const& ... x) {
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         GT_FUNCTION
-        arg_decorator ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
+        offset_tuple ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
         }
         GT_FUNCTION
-        arg_decorator ( int const& i, int const& j): super( j ), m_offset(i) {
+        offset_tuple ( int const& i, int const& j): super( j ), m_offset(i) {
         }
         GT_FUNCTION
-        arg_decorator ( int const& i): m_offset(i) {
+        offset_tuple ( int const& i): m_offset(i) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -328,7 +328,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         */
         template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h))
+        offset_tuple ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
             }
@@ -339,7 +339,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         */
         template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v))
+        offset_tuple ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
             }
@@ -349,7 +349,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         */
         template <ushort_t Idx1, ushort_t Idx2 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u ): super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u))
+        offset_tuple ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u ): super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t, u);
             }
@@ -359,7 +359,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         */
         template <ushort_t Idx >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx> const& t ) : super(t), m_offset(initialize<super::n_dim-n_args+1>(t))
+        offset_tuple ( enumtype::Dimension<Idx> const& t ) : super(t), m_offset(initialize<super::n_dim-n_args+1>(t))
             {
                 //base_t::m_offset[n_args-1] = initialize<n_args>(t);
             }
@@ -367,7 +367,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
         //initializes recursively all the offsets to 0
         GT_FUNCTION
-        constexpr arg_decorator ( ):
+        constexpr offset_tuple ( ):
             super( ), m_offset(0)
             {
                 //base_t::m_offset[n_args-1] = 0;
@@ -375,7 +375,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
 
         // /**@brief returns the offset tuple (i.e. this instance)*/
-        // arg_decorator<ArgType> const& offset() const {return *this;}
+        // offset_tuple<ArgType> const& offset() const {return *this;}
 
         template<short_t Idx>
         constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
@@ -397,23 +397,23 @@ arg_type_base ( int const& t, Whatever const& ... x) {
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-width storage with size 'Number' (similar to currying)
-       The extra width is specified using concatenation, e.g. extending arg_decorator with 2 extra data fields is obtained by doing
+       The extra width is specified using concatenation, e.g. extending offset_tuple with 2 extra data fields is obtained by doing
        \verbatim
-       arg_decorator<arg_decorator<arg_decorator_base>>
+       offset_tuple<offset_tuple<offset_tuple_base>>
        \endverbatim
-       The same result is achieved using the arg_extend struct with
+       The same result is achieved using the accessor_list struct with
        \verbatim
-       arg_extend<arg_decorator, 2>
+       accessor_list<offset_tuple, 2>
        \endverbatim
     */
     template < ushort_t ID, typename Range, ushort_t Number, ushort_t Dimension>
-    struct arg_extend{
-        typedef arg_decorator<typename arg_extend<ID, Range, Number-1, Dimension>::type>  type;
+    struct accessor_list{
+        typedef offset_tuple<typename accessor_list<ID, Range, Number-1, Dimension>::type>  type;
     };
 
     /**@brief specialization to stop the recursion*/
     template<ushort_t ID, typename Range, ushort_t Dimension >
-    struct arg_extend<ID, Range, 0, Dimension>{typedef arg_type_base<ID, Range, Dimension> type;
+    struct accessor_list<ID, Range, 0, Dimension>{typedef accessor_base<ID, Range, Dimension> type;
     };
 
 
@@ -460,7 +460,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the dimension extension, \ref gridtools::extend_dim
+     here the decorator is the dimension extension, \ref gridtools::data_field
     */
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
@@ -477,12 +477,12 @@ arg_type_base ( int const& t, Whatever const& ... x) {
     /**
      * Printing type information for debug purposes
      * @param s The ostream
-     * @param n/a Type selector for arg_decorator
+     * @param n/a Type selector for offset_tuple
      * @return ostream
      */
     template <uint_t I, typename R, ushort_t D>
-    std::ostream& operator<<(std::ostream& s, arg_type_base<I,R,D> const& x) {
-        s << "[ arg_decorator< " << I
+    std::ostream& operator<<(std::ostream& s, accessor_base<I,R,D> const& x) {
+        s << "[ offset_tuple< " << I
                  << ", " << R()
                  << ", " << D
                  // << " (" << x.i()
@@ -500,7 +500,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
     /**
      * Printing type information for debug purposes
      * @param s The ostream
-     * @param n/a Type selector for arg_decorator
+     * @param n/a Type selector for offset_tuple
      * @return ostream
      */
     template <uint_t I, typename R>

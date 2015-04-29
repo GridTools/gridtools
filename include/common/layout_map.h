@@ -53,14 +53,14 @@ namespace gridtools {
 
     // forward declarations
     template < ushort_t ID, typename Range, ushort_t Number>
-    struct arg_type;
+    struct accessor;
 
     template < ushort_t ID, ushort_t Numbers>
-    struct arg_type0;
+    struct accessor0;
 
 #ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
-    struct arg_mixed;
+    struct accessor_mixed;
 #endif
 
     //template arguments type checking
@@ -68,14 +68,14 @@ namespace gridtools {
     struct is_arg_tuple : boost::false_type {};
 
     template < ushort_t ID, ushort_t Number>
-    struct is_arg_tuple<arg_type0<ID, Number> > : boost::true_type{};
+    struct is_arg_tuple<accessor0<ID, Number> > : boost::true_type{};
 
     template < ushort_t ID, typename Range, ushort_t Number>
-    struct is_arg_tuple<arg_type<ID, Range, Number> > : boost::true_type{};
+    struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
 
 #ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
-    struct is_arg_tuple<arg_mixed<ArgType, Pair ... > > : boost::true_type {};
+    struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
 #endif
 
     /**

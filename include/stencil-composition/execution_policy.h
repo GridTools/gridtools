@@ -48,13 +48,13 @@ namespace gridtools{
             static const ushort_t len=check_holes::len;
 
             //actual check if the user specified placeholder arguments with the same index
-            GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "You specified different placeholders with the same index. Check the indexes of the arg_type definitions.")
+            GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "You specified different placeholders with the same index. Check the indexes of the accessor definitions.")
 
             //checking if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
             typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
             //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
             GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
-The numeration of the placeholders is not contiguous. You have to define each arg_type with a unique identifier ranging from 1 to N without \"holes\".")
+The numeration of the placeholders is not contiguous. You have to define each accessor with a unique identifier ranging from 1 to N without \"holes\".")
             //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

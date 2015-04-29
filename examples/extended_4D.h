@@ -45,11 +45,11 @@ namespace assembly{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct integration {
-        typedef arg_type<0, range<-1, 1, -1, 1> , 4> const phi;
-        typedef arg_type<1, range<-1, 1, -1, 1> , 4> const psi;//how to detect when index is wrong??
-        typedef arg_type<2, range<-1, 1, -1, 1> , 4> const jac;
-        typedef arg_type<3, range<-1, 1, -1, 1> > const f;
-        typedef arg_type<4, range<-1, 1, -1, 1> > result;
+        typedef accessor<0, range<-1, 1, -1, 1> , 4> const phi;
+        typedef accessor<1, range<-1, 1, -1, 1> , 4> const psi;//how to detect when index is wrong??
+        typedef accessor<2, range<-1, 1, -1, 1> , 4> const jac;
+        typedef accessor<3, range<-1, 1, -1, 1> > const f;
+        typedef accessor<4, range<-1, 1, -1, 1> > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
         using quad=Dimension<4>;
         template <typename Evaluation>
@@ -108,7 +108,7 @@ namespace assembly{
         typedef arg<3, storage_type > p_f;
         typedef arg<4, storage_type > p_result;
 
-        typedef boost::mpl::vector<p_phi, p_psi, p_jac, p_f, p_result> arg_type_list;
+        typedef boost::mpl::vector<p_phi, p_psi, p_jac, p_f, p_result> accessor_list;
 
         uint_t nbQuadPt=2;//referenceFE_Type::nbQuadPt;
         uint_t b1=2;
@@ -146,7 +146,7 @@ namespace assembly{
 
         storage_type result(d1, d2, d3, (float_type)0., "result");
 
-        gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
            The coordinates constructor takes the horizontal plane dimensions,

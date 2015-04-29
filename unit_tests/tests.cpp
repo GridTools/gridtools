@@ -14,7 +14,7 @@
 
 #include "test-assign-placeholders.h"
 #endif
-#include "arg_type_tests.h"
+#include "accessor_tests.h"
 #include "loop_hierarchy_test.h"
 
 #include "communication/layout_map.cpp"
@@ -27,22 +27,22 @@ TEST(testsmallstorage, testindices) {
     EXPECT_EQ(test_smallstorage_indices(), true);
 }
 
-TEST(interface, arg_type1) {
+TEST(interface, accessor0) {
     EXPECT_EQ(interface::test_trivial(), true);
 }
-TEST(interface, arg_type2) {
+TEST(interface, accessor1) {
     EXPECT_EQ(interface::test_alternative1(), true);
 }
 
 #ifdef CXX11_ENABLED
 
-TEST(interface, arg_type3) {
+TEST(interface, accessor2) {
     EXPECT_EQ(interface::test_alternative2(), true);
 }
-TEST(interface, arg_type4) {
+TEST(interface, accessor3) {
     EXPECT_EQ(interface::test_static_alias(), true);
 }
-TEST(interface, arg_type5) {
+TEST(interface, accessor4) {
     EXPECT_EQ(interface::test_dynamic_alias(), true);
 }
 #endif

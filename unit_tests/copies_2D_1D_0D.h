@@ -22,7 +22,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -37,8 +37,8 @@ namespace copy_stencils_3D_2D_1D_0D {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         static const int n_args = 2;
-        typedef const arg_type<0> in;
-        typedef arg_type<1> out;
+        typedef const accessor<0> in;
+        typedef accessor<1> out;
         typedef boost::mpl::vector<in, out> arg_list;
 
         template <typename Domain>
@@ -108,12 +108,12 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+        typedef boost::mpl::vector<p_in, p_out> accessor_list;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-        gridtools::domain_type<arg_type_list> domain
+        gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.

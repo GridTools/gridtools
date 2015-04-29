@@ -22,7 +22,7 @@
 
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -53,8 +53,8 @@ struct functor_4647
     //
     // the input data fields of this functor are marked as 'const'
     //
-    typedef const arg_type<0> in_data;
-    typedef arg_type<1> out_data;
+    typedef const accessor<0> in_data;
+    typedef accessor<1> out_data;
     //
     // the ordered list of arguments of this functor
     //
@@ -112,7 +112,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     //
     // an array of placeholders to be passed to the domain
     //
-    typedef boost::mpl::vector<p_in_data, p_out_data> arg_type_list;
+    typedef boost::mpl::vector<p_in_data, p_out_data> accessor_list;
 
     //
     // construction of the domain.
@@ -123,7 +123,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // order in which they appear scanning the placeholders in order.
     // (I don't particularly like this)
     //
-    gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (&in_data, &out_data));
+    gridtools::domain_type<accessor_list> domain (boost::fusion::make_vector (&in_data, &out_data));
 
     //
     // definition of the physical dimensions of the problem.

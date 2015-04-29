@@ -1,5 +1,5 @@
 #pragma once
-#include "arg_type_impl.h"
+#include "accessor_impl.h"
 /**
    @file
    @brief File containing the definition of the placeholders used to address the storage from whithin the functors.
@@ -8,66 +8,66 @@
 
    Two different types of placeholders are considered:
    - arg represents the storage in the body of the main function, and it gets lazily assigned to a real storage.
-   - arg_type represents the storage inside the functor struct containing a Do method. It can be instantiated directly in the Do method, or it might be a constant expression instantiated outside the functor scope and with static duration.
+   - accessor represents the storage inside the functor struct containing a Do method. It can be instantiated directly in the Do method, or it might be a constant expression instantiated outside the functor scope and with static duration.
 */
 
 namespace gridtools {
 
     /**
-       @brief the definition of arg_type visible to the user
+       @brief the definition of accessor visible to the user
 
        \tparam ID the integer unic ID of the field placeholder
        \tparam Range the range of i/j indices spanned by the placeholder, in the form of <i_minus, i_plus, j_minus, j_plus>.
                The values are relative to the current position. See e.g. horizontal_diffusion::out_function as a usage example.
        \tparam Number the number of dimensions accessed by the field. Notice that we don't distinguish at this level what we call
-               "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
-               field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
+       "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
+       field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
      */
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
-    struct arg_type : public arg_extend<ID, Range, Number, Number>::type {
-        typedef typename arg_extend<ID, Range, Number, Number>::type type;
+    struct accessor : public accessor_list<ID, Range, Number, Number>::type {
+        typedef typename accessor_list<ID, Range, Number, Number>::type type;
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
-        /**inheriting all constructors from arg_decorator*/
-        using type::arg_decorator::arg_decorator;
+        /**inheriting all constructors from offset_tuple*/
+        using type::offset_tuple::offset_tuple;
 #else
         /**@brief constructor forwarding all the arguments
         */
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr arg_type ( ForwardedArgs... x): type (x...)
+        constexpr accessor ( ForwardedArgs... x): type (x...)
             {
             }
 #endif
 #else
 
         GT_FUNCTION
-        constexpr explicit arg_type(): type()
+        constexpr explicit accessor(): type()
             {}
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr arg_type ( X x, Y y, Z z, T t ): type(x, y, z, t)
+        constexpr accessor ( X x, Y y, Z z, T t ): type(x, y, z, t)
             {
             }
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr arg_type ( X x, Y y, Z z ): type(x, y, z)
+        constexpr accessor ( X x, Y y, Z z ): type(x, y, z)
             {
             }
         /** @brief constructor forwarding all the arguments*/
         template <typename X>
         GT_FUNCTION
-        constexpr arg_type ( X x ): type(x)
+        constexpr accessor ( X x ): type(x)
             {
             }
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr arg_type ( X x, Y y ): type(x, y)
+        constexpr accessor ( X x, Y y ): type(x, y)
             {
             }
 
@@ -77,46 +77,46 @@ namespace gridtools {
 
     /**
        @brief convenient interface allowing to specify an arbitrary dimensional
-       \ref gridtools::arg_type with zero range
+       \ref gridtools::accessor with zero range
     */
     template < ushort_t ID, ushort_t Number>
-    struct arg_type0 : public arg_extend<ID, range<0,0,0,0>, Number, Number>::type {
-        typedef typename arg_extend<ID, range<0,0,0,0>, Number, Number>::type super;
+    struct accessor0 : public accessor_list<ID, range<0,0,0,0>, Number, Number>::type {
+        typedef typename accessor_list<ID, range<0,0,0,0>, Number, Number>::type super;
         GT_FUNCTION
-        constexpr arg_type0(): super()
+        constexpr accessor0(): super()
             {}
 
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
-        using super::arg_decorator::arg_decorator;
+        using super::offset_tuple::offset_tuple;
 #else
 
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr arg_type0 ( ForwardedArgs... x): super (x)
+        constexpr accessor0 ( ForwardedArgs... x): super (x)
             {
             }
 #endif
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr arg_type0 ( X x, Y y, Z z, T t ): super(x, y, z, t)
+        constexpr accessor0 ( X x, Y y, Z z, T t ): super(x, y, z, t)
             {
             }
 
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr arg_type0 ( X x, Y y, Z z ): super(x, y, z)
+        constexpr accessor0 ( X x, Y y, Z z ): super(x, y, z)
             {
             }
         template <typename X>
         GT_FUNCTION
-        constexpr arg_type0 ( X x ): super(x)
+        constexpr accessor0 ( X x ): super(x)
             {
             }
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr arg_type0 ( X x, Y y ): super(x, y)
+        constexpr accessor0 ( X x, Y y ): super(x, y)
             {
             }
 #endif
@@ -173,8 +173,8 @@ namespace gridtools {
                 {val}
 #endif
                 {
-                    GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the arg_type start from 1")
-                    GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the arg_type must be positive integerts")
+                    GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1")
+                    GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the accessor must be positive integerts")
                 }
 
             /**@brief Constructor*/
@@ -220,7 +220,7 @@ namespace gridtools {
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
-    /**@brief same as arg_type but mixing run-time offsets with compile-time ones
+    /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
        When we know beforehand that the dimension which we are querying is
        a compile-time one, we can use the static method get_constexpr() to get the offset.
@@ -229,20 +229,20 @@ namespace gridtools {
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
     template <typename ArgType, typename ... Pair>
-    struct arg_mixed{
+    struct accessor_mixed{
 
         static const ushort_t n_args = ArgType::n_args;
         static const ushort_t n_dim = ArgType::n_dim;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
     private:
-        static constexpr typename arg_extend<ArgType::index_type::value
+        static constexpr typename accessor_list<ArgType::index_type::value
                                              , typename ArgType::range_type
                                              ,  ArgType::n_dim
                                              , ArgType::n_dim>::type s_args_constexpr{
             enumtype::Dimension<Pair::first>{Pair::second} ... };
 
-        typename arg_extend<ArgType::index_type::value
+        typename accessor_list<ArgType::index_type::value
                             , typename ArgType::range_type
                             , ArgType::n_dim
                             , ArgType::n_dim>::type m_args_runtime;
@@ -252,7 +252,7 @@ namespace gridtools {
         template<typename ... ArgsRuntime>
         GT_FUNCTION
         constexpr
-        arg_mixed( ArgsRuntime const& ... args ): m_args_runtime(args...) {
+        accessor_mixed( ArgsRuntime const& ... args ): m_args_runtime(args...) {
         }
 
         /**@brief returns the offset at a specific index Idx
@@ -283,13 +283,13 @@ namespace gridtools {
     };
 
     template <typename ArgType, typename ... Pair>
-    constexpr typename arg_extend<ArgType::index_type::value
+    constexpr typename accessor_list<ArgType::index_type::value
                                   , typename ArgType::range_type
                                   , ArgType::n_dim
-                                  , ArgType::n_dim>::type arg_mixed<ArgType, Pair...>::s_args_constexpr;
+                                  , ArgType::n_dim>::type accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
-/**this struct allows the specification of SOME of the arguments before instantiating the arg_decorator.
+/**this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
    It is a language keyword.
 */
     template <typename Callable, typename ... Known>
@@ -305,11 +305,11 @@ namespace gridtools {
         /**
            @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
 
-           This type alias allows to embed some of the offsets directly inside the type of the arg_type placeholder.
+           This type alias allows to embed some of the offsets directly inside the type of the accessor placeholder.
            For a usage example check the exaples folder
         */
         template<int ... Args>
-        using set=arg_mixed< Callable, pair_<Known::direction,Args> ... >;
+        using set=accessor_mixed< Callable, pair_<Known::direction,Args> ... >;
 #endif
 
         /**@brief constructor
@@ -321,10 +321,10 @@ namespace gridtools {
 
         typedef boost::mpl::vector<Known...> dim_vector;
 
-        /** @brief operator calls the constructor of the arg_decorator
+        /** @brief operator calls the constructor of the offset_tuple
             \param unknowns are the parameters which were not known beforehand. They might be instances of
             the enumtype::Dimension class. Together with the m_knowns offsets form the arguments to be
-            passed to the Callable functor (which is normally an instance of arg_decorator)
+            passed to the Callable functor (which is normally an instance of offset_tuple)
         */
     template<typename ... Unknowns>
     GT_FUNCTION
