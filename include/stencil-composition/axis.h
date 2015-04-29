@@ -50,7 +50,6 @@ namespace gridtools {
             m_direction_i(direction_i),
             m_direction_j(direction_j)
             {
-                static_int<sizeof(partitioner_t)>::fuck();
                 GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
             }
 
