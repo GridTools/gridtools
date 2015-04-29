@@ -47,6 +47,15 @@ TEST(interface, arg_type5) {
 }
 #endif
 
+
+TEST(boundaryconditions, usingvalue2) {
+    EXPECT_EQ(usingvalue_2(), true);
+}
+
+TEST(boundaryconditions, usingcopy3) {
+    EXPECT_EQ(usingcopy_3(), true);
+}
+
 #define BACKEND_BLOCK
 #define TESTCLASS stencil_block
 #include "stencil_tests.h"
