@@ -39,8 +39,8 @@ cmake \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
--DBoost_INCLUDE_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473/include \
--DBoost_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473  \
+-DBoost_INCLUDE_DIR:PATH=/apps/daint/boost/1.56.0/gnu_482/include \
+-DBoost_DIR:PATH=/apps/daint/boost/1.56.0/gnu_482  \
 -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF \
 -DUSE_PAPI:BOOL=OFF \
 -DGNU_COVERAGE:BOOL=ON \
