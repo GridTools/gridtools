@@ -107,6 +107,8 @@ bool the_same(One const& storage1, Two const& storage2) {
  */
 bool test_domain() {
 
+    using gridtools::uint_t;
+    using gridtools::int_t;
 #ifdef __CUDACC__
     typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
 #else
