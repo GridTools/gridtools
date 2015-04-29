@@ -22,13 +22,13 @@ class Symbol (object):
         #
         'temp',
         #
-        # the 'local' kind indicates a variable that is defined in the current
-        # scope, i.e., only visible to the current and inner scopes 
+        # the 'alias' kind indicates a variable or parameter which holds a
+        # different name for another known symbol
         #
-        'local',
+        'alias',
         #
         # the 'const' kind indicates a variable that may POTENTIALLY be
-        # replaced by a value. This may happen by inlining them of using 
+        # replaced by a value. This may happen by inlining them after using 
         # runtime resolution
         #
         'const')
@@ -102,7 +102,7 @@ class Symbol (object):
 
 class SymbolInspector (ast.NodeVisitor):
     """
-    Inspects the AST looking for known symbols, keeping their dependency graph.-
+    Inspects the AST looking for known symbols.-
     """
     def __init__ (self, scope):
         self.scope         = scope
@@ -114,7 +114,7 @@ class SymbolInspector (ast.NodeVisitor):
         Returns a list of the symbols belonging to the current scope that are
         found in the AST, the root of which is 'node'.-
         """
-        self.symbols_found = list ( )
+        self.symbols_found = set ( )
         self.visit (node)
         return self.symbols_found
         
@@ -126,7 +126,7 @@ class SymbolInspector (ast.NodeVisitor):
         name = "%s.%s" % (node.value.id,
                           node.attr)
         if name in self.scope:
-            self.symbols_found.append (self.scope[name])
+            self.symbols_found.add (self.scope[name])
 
 
     def visit_Name (self, node):
@@ -135,7 +135,7 @@ class SymbolInspector (ast.NodeVisitor):
         """
         name = node.id
         if name in self.scope:
-            self.symbols_found.append (self.scope[name])
+            self.symbols_found.add (self.scope[name])
 
 
     def visit_Subscript (self, node):
@@ -177,6 +177,23 @@ class Scope (object):
         return self.symbol_table[name]
 
 
+    def add_alias (self, name, known_symbol_name):
+        """
+        Adds a alias to another known symbol:
+
+            name                name of this symbol alias;
+            known_symbol_name   name of the known symbol this alias refers to.-
+        """
+        if known_symbol_name is not None:
+            self.add_symbol (Symbol (name, 
+                                     'alias',
+                                     known_symbol_name))
+            logging.debug ("Alias '%s' refers to '%s'" % (name,
+                                                          known_symbol_name))
+        else:
+            raise ValueError ("Aliases should point to known symbols")
+
+
     def add_constant (self, name, value=None):
         """
         Adds a constant this scope:
@@ -215,10 +232,22 @@ class Scope (object):
     def add_dependencies (self, deps):
         """
         Adds a sequence of data dependencies, each of which must be given
-        as a 2-tuples (u,v).-
+        as a 2-tuples of Symbols (u,v).-
         """
         for d in deps:
-            self.add_dependency (d[0], d[1])
+            try:
+                self.add_dependency (d[0], d[1])
+            except ValueError:
+                #
+                # aliases should be dereferenced
+                #
+                new_dep = [None, None]
+                for i in range (2):
+                    if isinstance (d[i].value, str) and d[i].value in self:
+                        new_dep[i] = self[d[i].value]
+                    else:
+                        new_dep[i] = d[i]
+                self.add_dependency (new_dep[0], new_dep[1])
 
 
     def add_parameter (self, name, value=None, read_only=True):
@@ -229,8 +258,12 @@ class Scope (object):
             value       its value;
             read_only   whether the parameter is read-only (default).-
         """
-        self.add_symbol (Symbol (name, 'param', value))
+        if name not in self:
+            self.add_symbol (Symbol (name, 'param', value))
+        self[name].kind      = 'param'
         self[name].read_only = read_only
+        if value is not None:
+            self[name].value = value
         if value is not None:
             if isinstance (value, np.ndarray):
                 logging.debug ("Parameter '%s' has dimension %s" % (name,
@@ -294,9 +327,16 @@ class Scope (object):
                                                      val))
 
 
+    def is_alias (self, name):
+        """
+        Returns True is symbol with 'name' is an alias.-
+        """
+        return name in [a.name for a in self.get_all ( ) if a.kind == 'alias']
+
+
     def is_constant (self, name):
         """ 
-        Returns True if symbol 'name' is a constant.-
+        Returns True if symbol with 'name' is a constant.-
         """
         return name in [t.name for t in self.get_constants ( )]
 
