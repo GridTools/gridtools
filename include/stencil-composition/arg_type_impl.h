@@ -229,7 +229,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         }
 
         template<short_t Idx>
-        constexpr bool end(){return true;}
+        constexpr bool end() const {return true;}
 
         template<short_t Idx>
         GT_FUNCTION
@@ -378,7 +378,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         // arg_decorator<ArgType> const& offset() const {return *this;}
 
         template<short_t Idx>
-        constexpr bool end(){return Idx==n_args-1? false : super::template end<Idx>();}
+        constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
 
         /**@brief returns the offset at a specific index Idx*/
         template<short_t Idx>

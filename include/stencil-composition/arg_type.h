@@ -29,13 +29,13 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
         /**inheriting all constructors from arg_decorator*/
-        using type::arg_decorator;
+        using type::arg_decorator::arg_decorator;
 #else
         /**@brief constructor forwarding all the arguments
         */
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr arg_type ( ForwardedArgs... x): type (x)
+        constexpr arg_type ( ForwardedArgs... x): type (x...)
             {
             }
 #endif
@@ -88,7 +88,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
-        using super::arg_decorator;
+        using super::arg_decorator::arg_decorator;
 #else
 
         template <typename... ForwardedArgs>
@@ -278,7 +278,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr
         const int_t get() const {
-            return boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::value ? m_args_runtime.get<Idx>() : s_args_constexpr.get<Idx>() ;
+            return boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::value ? m_args_runtime.template get<Idx>() : s_args_constexpr.template get<Idx>() ;
         }
     };
 

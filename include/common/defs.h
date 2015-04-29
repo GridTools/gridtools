@@ -31,7 +31,7 @@
 #define GT_ERROR_NO_TEMPS 1
 
 #if __cplusplus > 199711L
-#ifndef CXX11_DISABLED
+#ifndef CXX11_DISABLE
 #define CXX11_ENABLED
 #endif
 #define CXX11_DISABLED
