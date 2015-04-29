@@ -22,7 +22,7 @@ echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 pwd
 
 module load cmake
-module load boost
+module load boost/1.56.0
 module unload  PrgEnv-cray
 module load  PrgEnv-gnu
 module load cudatoolkit
