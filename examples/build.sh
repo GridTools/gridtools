@@ -3,14 +3,13 @@
 if [ -f "examples/build_$1.sh" ]
 then
     echo "build_$1.sh $2 $3"
-    if [ -d ../fusion ]
+    if [ -d fusion ]
     then
         echo "fusion already there, replacing it"
-	rm -rf ../fusion
-        mkdir ../fusion
-        git clone https://github.com/ericniebler/fusion.git ../fusion
+	rm -rf fusion
+        git clone https://github.com/ericniebler/fusion.git fusion
     else
-        git clone https://github.com/ericniebler/fusion.git ../fusion
+        git clone https://github.com/ericniebler/fusion.git fusion
     fi
 
     pwd
