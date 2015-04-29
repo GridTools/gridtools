@@ -7,6 +7,7 @@ then
     then
         echo "fusion already there, replacing it"
 	rm -rf ../fusion
+        mkdir ../fusion
         git clone https://github.com/ericniebler/fusion.git ../fusion
     else
         git clone https://github.com/ericniebler/fusion.git ../fusion
