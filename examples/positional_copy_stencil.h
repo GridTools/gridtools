@@ -50,7 +50,7 @@ namespace positional_copy_stencil{
             //           << " j = " << eval.j
             //           << " k = " << eval.k
             //           << std::endl;
-            eval(in()) = static_cast<float_type>(V)*(eval.i+eval.j+eval.k);
+            eval(in()) = static_cast<float_type>(V)*(eval.i()+eval.j()+eval.k());
             eval(out()) = -1.1;
         }
     };
@@ -131,18 +131,6 @@ namespace positional_copy_stencil{
         // Definition of the actual data fields that are used for input/output
         storage_type in(d1,d2,d3,-3.5,"in");
         storage_type out(d1,d2,d3,1.5,"out");
-
-//         for(uint_t i=0; i<d1; ++i)
-//             for(uint_t j=0; j<d2; ++j)
-//                 for(uint_t k=0; k<d3; ++k)
-//                     {
-// #ifdef CXX11_ENABLED
-//                         in(i, j, k)=i+j+k;
-// #else
-//                         in(i, j, k)=i+j+k;
-// #endif
-//                     }
-
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.

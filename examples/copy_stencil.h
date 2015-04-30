@@ -47,6 +47,8 @@ namespace copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+            printf("LAP at %d %d %d : %f %f \n", eval.i(), eval.j(), eval.k(),
+                    eval(in(0,0,0)), eval(out(0,0,0)));
 #ifdef CXX11_ENABLED
             eval(in(0,0,0,1))
 #else
@@ -202,7 +204,7 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-    gridtools::make_computation<gridtools::BACKEND, layout_t>
+    gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
     (
         gridtools::make_mss // mss_descriptor
         (

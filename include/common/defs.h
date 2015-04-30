@@ -42,6 +42,11 @@
 #define GT_DEFAULT_TILE 8
 #endif
 
+// macro defining empty copy constructors and assignment operators
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName&);               \
+    TypeName& operator=(const TypeName&)
+
 namespace gridtools{  namespace enumtype{
         /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};

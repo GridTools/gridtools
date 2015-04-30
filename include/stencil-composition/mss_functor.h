@@ -46,7 +46,10 @@ namespace gridtools {
             typedef typename mss_local_domain_list<mss_local_domain_t>::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map<mss_local_domain_t>::type local_domain_esf_args_map_t;
 
+            BOOST_STATIC_ASSERT((boost::mpl::size<local_domain_list_t>::value==1));
+            typedef typename boost::mpl::back<local_domain_list_t>::type local_domain_t;
             local_domain_list_t& local_domain_list = (local_domain_list_t&)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;
+            local_domain_t& local_domain = (local_domain_t&)boost::fusion::at<boost::mpl::int_<0> >(local_domain_list);
 
             typedef typename mss_components_t::execution_engine_t ExecutionEngine;
 
@@ -66,12 +69,14 @@ namespace gridtools {
 
             // compute the struct with all the type arguments for the run functor
             typedef run_functor_arguments<
+                BackendId,
+                typename backend_traits_from_id<BackendId>::block_size_t,
                 functors_list_t,
                 local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
                 FunctorsMap,
                 range_sizes,
-                local_domain_list_t,
+                local_domain_t,
                 Coords,
                 ExecutionEngine,
                 StrategyId
@@ -79,12 +84,12 @@ namespace gridtools {
 
             typedef backend_traits_from_id< BackendId > backend_traits_t;
 
-            typedef typename backend_traits_t::template execute_traits< run_functor_args_t >::run_functor_t run_functor_t;
+//            typedef typename backend_traits_t::template execute_traits< run_functor_args_t >::run_functor_t run_functor_t;
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
             //now the corresponding backend has to execute all the functors of the mss
-            backend_traits_from_id<BackendId>::template mss_loop<run_functor_args_t, StrategyId>::template run(local_domain_list, m_coords, m_block_idx, m_block_idy);
+            backend_traits_from_id<BackendId>::template mss_loop<run_functor_args_t, StrategyId>::template run(local_domain, m_coords, m_block_idx, m_block_idy);
         }
 
     private:
