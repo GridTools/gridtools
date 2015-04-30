@@ -300,5 +300,4 @@ namespace gridtools {
         typedef StoragePointers type;
     };
 
-}
-
+} // namespace gridtools

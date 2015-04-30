@@ -1,6 +1,9 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 #include "../backend_traits_fwd.h"
+#include "execute_kernel_functor_cuda.h"
+#include "run_esf_functor_cuda.h"
+#include "../block_size.h"
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -121,13 +124,14 @@ namespace gridtools{
         {
 
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
-            template<typename LocalDomainList, typename Coords>
-            static void run(LocalDomainList& local_domain_list, const Coords& coords, const uint_t bi, const uint_t bj)
+            template<typename LocalDomain, typename Coords>
+            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
-                //make sure all the local domains where fused for this backend. So there should be only one in the sequence
-                BOOST_STATIC_ASSERT((boost::mpl::size<LocalDomainList>::value == 1));
-                //each strategy executes a different high level loop for a mss
-                strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Cuda>::template run(local_domain_list, coords, bi, bj);
+                BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, coords, bi, bj)();
+
+//                //each strategy executes a different high level loop for a mss
+//                strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Cuda>::template run(local_domain_list, coords, bi, bj);
             }
         };
 
@@ -136,6 +140,11 @@ namespace gridtools{
             typedef boost::mpl::bool_<true> type;
             BOOST_STATIC_CONSTANT(bool, value=(type::value));
         };
+
+        typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
+
+        typedef block_size<32,8> block_size_t;
+
     };
 
 }//namespace gridtools

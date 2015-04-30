@@ -49,6 +49,10 @@
 #endif
 
 #include <boost/mpl/integral_c.hpp>
+// macro defining empty copy constructors and assignment operators
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName&);               \
+    TypeName& operator=(const TypeName&)
 
 namespace gridtools{  namespace enumtype{
         /**

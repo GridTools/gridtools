@@ -7,28 +7,38 @@
 
 #pragma once
 #include <boost/static_assert.hpp>
+#include "block_size.h"
 
 namespace gridtools {
 
     /** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
     template<
+        enumtype::backend BackendId,
+        typename BlockSize,
         typename FunctorList,
         typename EsfArgsMapSequence,
         typename LoopIntervals,
         typename FunctorsMap,
         typename RangeSizes,
-        typename LocalDomainList,
+        typename LocalDomain,
         typename Coords,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
     struct run_functor_arguments
     {
+        BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+        BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+        BOOST_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value));
+        BOOST_STATIC_ASSERT((is_block_size<BlockSize>::value));
+
+        typedef boost::mpl::integral_c<enumtype::backend, BackendId> backend_id_t;
+        typedef BlockSize block_size_t;
         typedef FunctorList functor_list_t;
         typedef EsfArgsMapSequence esf_args_map_sequence_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef RangeSizes range_sizes_t;
-        typedef LocalDomainList local_domain_list_t;
+        typedef LocalDomain local_domain_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=StrategyId;
@@ -37,30 +47,34 @@ namespace gridtools {
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
 
     template<
+        enumtype::backend BackendId,
+        typename BlockSize,
         typename FunctorList,
         typename EsfArgsMapSequence,
         typename LoopIntervals,
         typename FunctorsMap,
         typename RangeSizes,
-        typename LocalDomainList,
+        typename LocalDomain,
         typename Coords,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
     struct is_run_functor_arguments<
         run_functor_arguments<
+            BackendId,
+            BlockSize,
             FunctorList,
             EsfArgsMapSequence,
             LoopIntervals,
             FunctorsMap,
             RangeSizes,
-            LocalDomainList,
+            LocalDomain,
             Coords,
             ExecutionEngine,
             StrategyId
         >
     > : boost::mpl::true_{};
 
-    template<typename BackendId, typename RunFunctorArguments, typename Index>
+    template<typename RunFunctorArguments, typename Index>
     struct esf_arguments
     {
         BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
@@ -77,23 +91,12 @@ namespace gridtools {
                     >::type
                 >::type::first
             >::type first_hit_t;
-
-        typedef typename extract_local_domain_index<
-            Index,
-            BackendId
-        >::type local_domain_index_t;
-
-        typedef typename boost::mpl::at<
-            typename RunFunctorArguments::local_domain_list_t,
-            local_domain_index_t
-        >::type local_domain_t;
-        typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
     };
 
     template<typename T> struct is_esf_arguments : boost::mpl::false_{};
 
-    template<typename BackendId, typename RunFunctorArguments, typename Index>
-    struct is_esf_arguments<esf_arguments<BackendId, RunFunctorArguments, Index> > :
+    template<typename RunFunctorArguments, typename Index>
+    struct is_esf_arguments<esf_arguments<RunFunctorArguments, Index> > :
         boost::mpl::true_{};
 
 } // namespace gridtools

@@ -182,7 +182,7 @@ namespace gridtools {
     template< enumtype::backend BackendId, enumtype::strategy StrategyType >
     struct backend
     {
-        typedef backend_traits_from_id <BackendId> backend_traits_t;
+        typedef backend_traits_from_id<BackendId> backend_traits_t;
         typedef strategy_from_id <StrategyType> strategy_traits_t;
         typedef backend<BackendId, StrategyType> this_type;
         static const enumtype::strategy s_strategy_id=StrategyType;
