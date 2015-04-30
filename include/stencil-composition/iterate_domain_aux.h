@@ -205,6 +205,38 @@ namespace gridtools{
     };
 
 
+    /**@brief assigning all the storage pointers to the m_data_pointers array*/
+    template<uint_t ID, uint_t Coordinate>
+    struct advance_index {
+
+        /**@brief does the actual assignment
+           This method is responsible of computing the index for the memory access at
+           the location (i,j,k). Such index is shared among all the fields contained in the
+           same storage class instance, and it is not shared among different storage instances.
+        */
+        template<typename Storage>
+        GT_FUNCTION
+        static void advance(Storage & r, uint_t id, uint_t block, uint_t* index){
+            //if the following fails, the ID is larger than the number of storage types,
+            //or the index was not properly initialized to 0,
+            //or you know what you are doing (then comment out the assert)
+            boost::fusion::at_c<ID>(r)->template increment<Coordinate>(id, block, &index[ID]);
+            advance_index<ID-1, Coordinate>::advance(r,id,block,index);
+        }
+    };
+
+    /**usual specialization to stop the recursion*/
+    template<uint_t Coordinate>
+        struct advance_index<0, Coordinate>{
+        template<typename Storage>
+        GT_FUNCTION
+        static void advance( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
+
+            boost::fusion::at_c<0>(r)->template increment<Coordinate>(id, block, &index[0]);
+        }
+    };
+
+
     /**@brief assigning all the storage pointers to the m_data_pointers array
 
        similar to the increment_index class, but assigns the indices, and it does not depend on the storage type

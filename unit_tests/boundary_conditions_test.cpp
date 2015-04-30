@@ -1275,5 +1275,4 @@ bool usingcopy_3() {
     }
 
     return result;
-
 }

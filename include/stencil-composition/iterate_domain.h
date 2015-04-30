@@ -39,10 +39,10 @@
 
 namespace gridtools {
 
-
     /**@brief class handling the computation of the */
     template <typename LocalDomain>
     struct iterate_domain {
+        //TODOCOSUNA assert LocalDomain
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
                 typename LocalDomain::mpl_storages, 0>::type
@@ -127,8 +127,14 @@ namespace gridtools {
                 set_index_recur< N_STORAGES-1>::set( index, m_index);
             }
 
-        /**@brief method for incrementing by 1 the index when moving forward along the given direction
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void advance_ij(uint_t index, uint_t block)
+        {
+            advance_index< N_STORAGES-1, Coordinate>::advance(local_domain.local_args, index, block, &m_index[0]);
+        }
 
+        /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
          */
@@ -235,7 +241,6 @@ namespace gridtools {
                                                     , LocalDomain, typename ArgType::type >::value]);
         }
 
-
         /** @brief method called in the Do methods of the functors.
             Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
             template < typename ArgType>
@@ -319,7 +324,7 @@ namespace gridtools {
 
         typedef iterate_domain<LocalDomain> base_type;
 
-        uint_t i,j,k;
+        uint_t m_i,m_j,m_k;
 
 #ifdef CXX11_ENABLED
         using iterate_domain<LocalDomain>::iterate_domain;
@@ -332,27 +337,50 @@ namespace gridtools {
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment(uint_t steps_=1)
-            {
-                if (Coordinate==0) {
-                    i+=steps_;
-                }
-                if (Coordinate==1) {
-                    j+=steps_;
-                }
-
-                base_type::template increment<Coordinate, Execution>(steps_);
+        void increment(const uint_t steps_=1)
+        {
+            if (Coordinate==0) {
+                m_i+=steps_;
             }
+            if (Coordinate==1) {
+                m_j+=steps_;
+            }
+
+            //TODO what with the increment of k? Is it GONE?
+            base_type::template increment<Coordinate, Execution>(steps_);
+        }
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
-        void set_k_start(uint_t from_)
-            {
-                k = from_;
-                base_type::set_k_start(from_);
+        void set_k_start(const uint_t from_)
+        {
+            m_k = from_;
+            base_type::set_k_start(from_);
+        }
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void assign_ij(const uint_t index, const uint_t block)
+        {
+            if (Coordinate==0) {
+                m_i = index;
             }
+            if (Coordinate==1) {
+                m_j = index;
+        }
 
+        GT_FUNCTION
+        uint_t i() const { return m_i;}
+
+        GT_FUNCTION
+        uint_t j() const { return m_j;}
+
+        GT_FUNCTION
+        uint_t k() const {
+            return m_k;
+        }
+
+    private:
+        uint_t m_i, m_j, m_k;
     };
-
 
 //    ################## IMPLEMENTATION ##############################
 
