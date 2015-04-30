@@ -388,6 +388,11 @@ class Functor ( ):
         self.name       = name
         self.scope      = scope
         self.encl_scope = encl_scope
+
+        #
+        # whether this functor is executed independently from the rest in the stencil
+        #
+        self.independent = False
         #
         # the root AST node of the for-loop representing this functor
         #

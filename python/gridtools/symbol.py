@@ -424,8 +424,9 @@ class StencilScope (Scope):
 
             funct_name  a unique name for the functor.-
         """
-        if funct_name in self.functor_scopes.keys ( ):
-            raise NameError ("Functor '%s' already exists in symbol table.-" % funct_name)
-        else:
+        if funct_name not in self.functor_scopes.keys ( ):
             self.functor_scopes[funct_name] = Scope ( )
-            return self.functor_scopes[funct_name]
+        else:
+            logging.warning ("Functor '%s' already exists in symbol table.-" % funct_name)
+        return self.functor_scopes[funct_name]
+

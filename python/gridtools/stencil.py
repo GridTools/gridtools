@@ -303,16 +303,14 @@ class StencilInspector (ast.NodeVisitor):
                                 if isinstance (node, ast.For):
                                     self.visit_For (node,
                                                     funct_name=funct_name,
-                                                    funct_scope=funct_scope)
+                                                    funct_scope=funct_scope,
+                                                    independent=True)
 
 
-    def visit_For (self, node, funct_name=None, funct_scope=None):
+    def visit_For (self, node, funct_name=None, funct_scope=None, independent=False):
         """
         Looks for 'get_interior_points' comprehensions.-
         """
-        from random import choice
-        from string import digits
-
         #
         # the iteration should call 'get_interior_points'
         #
@@ -333,8 +331,9 @@ class StencilInspector (ast.NodeVisitor):
                              node,
                              funct_scope,
                              self.scope)
+            funct.independent = independent
             self.functors.append (funct)
-            logging.info ("Functor '%s' created" % funct.name)
+            logging.info ("Stage '%s' created" % funct.name)
 
 
     def visit_FunctionDef (self, node):
@@ -804,17 +803,24 @@ class Stencil ( ):
 
         if namespace is None:
             namespace = self.name.lower ( )
+        
+        functors             = dict ( )
+        independent_functors = dict ( )
 
+        functors[self.name]             = [f for f in self.inspector.functors if not f.independent]
+        independent_functors[self.name] = [f for f in self.inspector.functors if f.independent]
+        
         return (functor_src,
-                header.render (namespace=namespace,
-                               fun_hdr_file=self.fun_hdr_file,
-                               stencil_name=self.name,
-                               stencils=[self],
-                               scope=self.scope,
-                               params=params,
-                               temps=temps,
-                               params_temps=params + temps,
-                               functors=self.inspector.functors),
+                header.render (namespace            = namespace,
+                               fun_hdr_file         = self.fun_hdr_file,
+                               stencil_name         = self.name,
+                               stencils             = [self],
+                               scope                = self.scope,
+                               params               = params,
+                               temps                = temps,
+                               params_temps         = params + temps,
+                               functors             = functors,
+                               independent_functors = independent_functors),
                 cpp.render  (stencil=self,
                              params=params),
                 make.render (stencil=self))
@@ -1228,10 +1234,11 @@ class CombinedStencil (Stencil):
         temps     = list (self.scope.get_temporaries ( ))
 
         #
-        # the stencils and all their functors combined
+        # stencil list and functor dictionaries in execution order
         #
-        stencils = list ( )
-        functors = list ( )
+        stencils             = list ( )
+        functors             = dict ( )
+        independent_functors = dict ( )
         for st in nx.dfs_postorder_nodes (self.execution_graph,
                                           source=self.get_root ( )):
             if st in stencils:
@@ -1239,22 +1246,28 @@ class CombinedStencil (Stencil):
                                  % (st, self))
             else:
                 stencils.append (st)
+            functors[st.name]             = list ( )
+            independent_functors[st.name] = list ( )
             for f in st.inspector.functors:
-                if f in functors:
+                if f in functors[st.name] or f in independent_functors[st.name]:
                     logging.warning ("Ignoring mutiple instances of functor '%s' in stencil '%s'"
                                      % (f, st))
                 else:
-                    functors.append (f)
+                    if f.independent:
+                        independent_functors[st.name].append (f)
+                    else:
+                        functors[st.name].append (f)
 
-        return (header.render (namespace=namespace,
-                               fun_hdr_file=self.fun_hdr_file,
-                               stencil_name=self.name.lower ( ),
-                               stencils=stencils,
-                               scope=self.scope,
-                               params=params,
-                               temps=temps,
-                               params_temps=params + temps,
-                               functors=functors),
+        return (header.render (namespace            = namespace,
+                               fun_hdr_file         = self.fun_hdr_file,
+                               stencil_name         = self.name.lower ( ),
+                               stencils             = stencils,
+                               scope                = self.scope,
+                               params               = params,
+                               temps                = temps,
+                               params_temps         = params + temps,
+                               functors             = functors,
+                               independent_functors = independent_functors),
                 cpp.render  (stencil=self,
                              params=params),
                 make.render (stencil=self))
