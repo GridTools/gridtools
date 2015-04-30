@@ -288,5 +288,4 @@ bool test_domain() {
 #endif
 
     return failed;
-    return true;
 }
