@@ -154,14 +154,28 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
             gridtools::make_mss
             (
                 execute<{{ s.k_direction }}>(),
-                {% for f in s.inspector.functors -%}
-                gridtools::make_esf<{{ f.name }}>(
-                   {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
-                   {%- if not loop.last -%}
-                   ,
-                   {%- endif %}
+                {% if independent_functors[s.name]|length > 0 %}
+                gridtools::make_independent (
+                {% for f in independent_functors[s.name] -%}
+                    gridtools::make_esf<{{ f.name }}>(
+                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
+                       {%- if not loop.last -%}
+                       ,
+                       {%- endif %}
                 {% endfor -%}
-                ),
+                )
+                {% endif %}
+                {% for f in functors[s.name] -%}
+                    {%- if independent_functors[s.name]|length > 0 and loop.first -%}
+                    ,
+                    {%- endif %}
+                    gridtools::make_esf<{{ f.name }}>(
+                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
+                       {%- if not loop.last -%}
+                       ,
+                       {%- endif %}
+                {% endfor -%}
+            ),
             domain, coords_{{ loop.index0 }}
       );
     {% endfor %}

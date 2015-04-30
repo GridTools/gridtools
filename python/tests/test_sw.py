@@ -205,7 +205,7 @@ class SWTest (CopyTest):
                        'self.Vy')
 
         self.stencil = SW (self.domain)
-        self.stencil.set_halo ( (2, 2, 2, 2) )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
 
         self.out_H  = np.ones  (self.domain)
         self.out_U  = np.zeros (self.domain)
@@ -262,13 +262,6 @@ class SWTest (CopyTest):
                            'in_U'     : ([-1,1,-1,1], None),
                            'in_V'     : ([-1,1,-1,1], None)}
         super ( ).test_automatic_range_detection (ranges=expected_ranges)
-
-
-    def test_compare_python_and_native_executions (self):
-        try:
-            super ( ).test_compare_python_and_native_executions ( )
-        except AssertionError:
-            print ('known to fail')
 
 
     @attr(lang='c++')
@@ -328,11 +321,11 @@ class SWTest (CopyTest):
         anim = animation.FuncAnimation (fig,
                                         draw_frame,
                                         frames=range (10),
-                                        interval=30,
+                                        interval=10,
                                         init_func=init_frame,
                                         blit=False)
         anim.save ('/tmp/%s.mp4' % self.__class__,
-                   fps=30, 
+                   fps=48,
                    extra_args=['-vcodec', 'libx264'])
         #plt.show ( )
 
