@@ -14,74 +14,74 @@
 namespace gridtools {
 
     /** Kernel function called from the GPU */
-    namespace _impl_cuda {
-        template <typename Arguments,
-                  typename EsfArguments,
-                  typename LocalDomain>
-        __global__
-        void do_it_on_gpu(LocalDomain const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
-//             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
-//             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
-            int i = blockIdx.x * blockDim.x + threadIdx.x;
-            int j = blockIdx.y * blockDim.y + threadIdx.y;
-            uint_t z = coords->template value_at<typename EsfArguments::first_hit_t>();
+//    namespace _impl_cuda {
+//        template <typename Arguments,
+//                  typename EsfArguments,
+//                  typename LocalDomain>
+//        __global__
+//        void do_it_on_gpu(LocalDomain const * __restrict__ l_domain, typename Arguments::coords_t const* coords, uint_t const starti, uint_t const startj, uint_t const nx, uint_t const ny) {
+////             uint_t j = (blockIdx.x * blockDim.x + threadIdx.x)%ny;
+////             uint_t i = (blockIdx.x * blockDim.x + threadIdx.x - j)/ny;
+//            int i = blockIdx.x * blockDim.x + threadIdx.x;
+//            int j = blockIdx.y * blockDim.y + threadIdx.y;
+//            uint_t z = coords->template value_at<typename EsfArguments::first_hit_t>();
+//
+//            typedef typename EsfArguments::iterate_domain_t iterate_domain_t;
+//            __shared__
+//                typename iterate_domain_t::value_type* data_pointer[iterate_domain_t::N_DATA_POINTERS];
+//
+//            //Doing construction and assignment before the following 'if', so that we can
+//            //exploit parallel shared memory initialization
+//            iterate_domain_t it_domain(*l_domain);
+//            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(
+//                    (void**)(static_cast<typename iterate_domain_t::value_type**>(data_pointer))
+//            );
+//            __syncthreads();
+//
+//            if ((i < nx) && (j < ny)) {
+//
+//                it_domain.assign_ij<0>(i+starti,0);
+//                it_domain.assign_ij<1>(j+startj,0);
+//
+//                typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
+//                typedef typename index_to_level<typename interval::first>::type from;
+//                typedef typename index_to_level<typename interval::second>::type to;
+//                typedef typename Arguments::execution_type_t execution_type_t;
+//                typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
+//
+//                //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
+//                //setting the initial k level (for backward/parallel iterations it is not 0)
+//                if( !(iteration_policy::value==enumtype::forward) )
+//                    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+//
+//                for_each<typename Arguments::loop_intervals_t>
+//                    (_impl::run_f_on_interval
+//                     <
+//                         execution_type_t, EsfArguments, Arguments
+//                      >(it_domain,*coords)
+//                    );
+//            }
+//
+//        }
 
-            typedef typename EsfArguments::iterate_domain_t iterate_domain_t;
-            __shared__
-                typename iterate_domain_t::value_type* data_pointer[iterate_domain_t::N_DATA_POINTERS];
-
-            //Doing construction and assignment before the following 'if', so that we can
-            //exploit parallel shared memory initialization
-            iterate_domain_t it_domain(*l_domain);
-            it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(
-                    (void**)(static_cast<typename iterate_domain_t::value_type**>(data_pointer))
-            );
-            __syncthreads();
-
-            if ((i < nx) && (j < ny)) {
-
-                it_domain.assign_ij<0>(i+starti,0);
-                it_domain.assign_ij<1>(j+startj,0);
-
-                typedef typename boost::mpl::front<typename Arguments::loop_intervals_t>::type interval;
-                typedef typename index_to_level<typename interval::first>::type from;
-                typedef typename index_to_level<typename interval::second>::type to;
-                typedef typename Arguments::execution_type_t execution_type_t;
-                typedef _impl::iteration_policy<from, to, Arguments::execution_type_t::type::iteration> iteration_policy;
-
-                //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
-                //setting the initial k level (for backward/parallel iterations it is not 0)
-                if( !(iteration_policy::value==enumtype::forward) )
-                    it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
-
-                for_each<typename Arguments::loop_intervals_t>
-                    (_impl::run_f_on_interval
-                     <
-                         execution_type_t, EsfArguments, Arguments
-                      >(it_domain,*coords)
-                    );
-            }
-
-        }
-
-        /**
-         * \brief this struct is the core of the ESF functor
-         */
-        template < typename Arguments >
-        struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
-        {
-            typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
-            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
-                : super( domain_list, coords)
-                {}
-
-            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
-                : super(domain_list, coords, i, j, bi, bj)
-                {}
-
-        };
-
-    }//namespace _impl_cuda
+//        /**
+//         * \brief this struct is the core of the ESF functor
+//         */
+//        template < typename Arguments >
+//        struct run_functor_cuda : public _impl::run_functor < run_functor_cuda< Arguments > >
+//        {
+//            typedef _impl::run_functor < run_functor_cuda< Arguments > > super;
+//            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords)
+//                : super( domain_list, coords)
+//                {}
+//
+//            explicit run_functor_cuda(typename Arguments::local_domain_list_t& domain_list,  typename Arguments::coords_t const& coords, uint_t i, uint_t j, uint_t bi, uint_t bj)
+//                : super(domain_list, coords, i, j, bi, bj)
+//                {}
+//
+//        };
+//
+//    }//namespace _impl_cuda
 
     namespace _impl {
         template<typename Arguments>

@@ -23,8 +23,12 @@ namespace gridtools {
         {
         typedef execute_impl<parallel_impl, forward> type;
         };
-
-
     }
+
+    template<typename T>
+    struct is_execution_engine : boost::mpl::false_{};
+
+    template<enumtype::execution U>
+    struct is_execution_engine<enumtype::execute<U> > : boost::mpl::true_{};
 
 } // namespace gridtools
