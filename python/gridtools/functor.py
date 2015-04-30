@@ -180,14 +180,14 @@ class FunctorBody (ast.NodeVisitor):
         if (isinstance (exp, ast.UnaryOp)):
             exp = op.operand.n
         if ( not isinstance(exp, float) and not isinstance(exp, int)):
-            logging.warn ("This is neither a float nor an int.  type = %s", type(exp))
+            logging.warning ("This is neither a float nor an int.  type = %s", type(exp))
             exp = eval(exp)
             logging.debug ("After evaluating it, the new type of the expression is %s", type(exp))
 
         if ( not isinstance(exp, int)):
             if ( isinstance(exp, float)):
                 exp = int(exp)  # Convert float to int
-                logging.warn ("WARNING!  The evaluated exponent is a floating point.  Currently, only whole integers can be translated.  Truncating to integer.")
+                logging.warning ("WARNING!  The evaluated exponent is a floating point.  Currently, only whole integers can be translated.  Truncating to integer.")
             else:
                 logging.error ("Can not determine a number for the exponent (type = %s)", type(exp))
                 return "NaN"
