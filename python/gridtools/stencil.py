@@ -804,12 +804,19 @@ class Stencil ( ):
         if namespace is None:
             namespace = self.name.lower ( )
         
-        functors             = dict ( )
-        independent_functors = dict ( )
+        functs     = dict ( )
+        ind_functs = dict ( )
 
-        functors[self.name]             = [f for f in self.inspector.functors if not f.independent]
-        independent_functors[self.name] = [f for f in self.inspector.functors if f.independent]
-        
+        functs[self.name]     = [f for f in self.inspector.functors if not f.independent]
+        ind_functs[self.name] = [f for f in self.inspector.functors if f.independent]
+       
+        #
+        # make sure there is at least one non-independent functor
+        #
+        if len (functs[self.name]) == 0:
+            functs[self.name]     = [ self.inspector.functors[-1] ]
+            ind_functs[self.name] = ind_functs[self.name][:-1]
+
         return (functor_src,
                 header.render (namespace            = namespace,
                                fun_hdr_file         = self.fun_hdr_file,
@@ -819,8 +826,8 @@ class Stencil ( ):
                                params               = params,
                                temps                = temps,
                                params_temps         = params + temps,
-                               functors             = functors,
-                               independent_functors = independent_functors),
+                               functors             = functs,
+                               independent_functors = ind_functs),
                 cpp.render  (stencil=self,
                              params=params),
                 make.render (stencil=self))
@@ -1257,6 +1264,13 @@ class CombinedStencil (Stencil):
                         independent_functors[st.name].append (f)
                     else:
                         functors[st.name].append (f)
+        #
+        # make sure there is at least one non-independent functor in each stencil
+        #
+        for st in stencils:
+            if len (functors[st.name]) == 0:
+                functors[st.name]             = [ st.inspector.functors[-1] ]
+                independent_functors[st.name] = independent_functors[st.name][:-1]
 
         return (header.render (namespace            = namespace,
                                fun_hdr_file         = self.fun_hdr_file,
