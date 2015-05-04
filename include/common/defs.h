@@ -147,7 +147,7 @@ namespace gridtools{  namespace enumtype{
 
 #ifdef CXX11_ENABLED
     using int_t          = int;
-    using short_t        = short;
+    using short_t        = int;
     using uint_t         = unsigned int;
     using ushort_t       = unsigned short;
     template<int_t N>
@@ -160,7 +160,7 @@ namespace gridtools{  namespace enumtype{
     using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
 #else
     typedef int                     int_t;
-    typedef short                     short_t;
+    typedef int                     short_t;
     typedef unsigned int                     uint_t;
     typedef unsigned short                     ushort_t;
     template<int_t N>
