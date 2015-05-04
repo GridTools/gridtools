@@ -164,7 +164,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                        {%- endif %}
                 {% endfor -%}
                 )
-                {% endif %}
+                {%- endif -%}
                 {% for f in functors[s.name] -%}
                     {%- if independent_functors[s.name]|length > 0 and loop.first -%}
                     ,
