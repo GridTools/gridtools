@@ -95,11 +95,15 @@ class SW (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
         #
-        # constants to callibrate the system
+        # constants to callibrate the system - working with (24, 24, 0) and +0.1 droplet
         #
-        self.bl     = 0.2
-        self.dt     = 0.001
-        self.growth = 0.5
+        #self.bl     = 0.2
+        #self.dt     = 0.001
+        #self.growth = 0.5
+        self.bl      = 0.2
+        self.dt      = 0.01
+        self.growth  = 0.12
+
         #
         # temporary data fields
         #
@@ -124,6 +128,10 @@ class SW (MultiStageStencil):
             #
             out_Mx[p] = in_M[p + (1,0,0)] - in_M[p + (-1,0,0)]
             out_My[p] = in_M[p + (0,1,0)] - in_M[p + (0,-1,0)]
+            #out_Mx[p]  = in_M[p] - in_M[p + (-1,0,0)]
+            #out_Mx[p] += in_M[p + (1,0,0)] - in_M[p]
+            #out_My[p]  = in_M[p] - in_M[p + (0,-1,0)]
+            #out_My[p] += in_M[p + (0,1,0)] - in_M[p]
             #
             # diffusion
             #
@@ -191,7 +199,7 @@ class SWTest (CopyTest):
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (24, 24, 1)
+        self.domain = (32, 32, 1)
 
         self.params = ('out_H', 'out_Hd', 'in_H', 
                        'out_U', 'out_Ud', 'in_U', 
@@ -207,7 +215,7 @@ class SWTest (CopyTest):
         self.stencil = SW (self.domain)
         self.stencil.set_halo ( (1, 1, 1, 1) )
 
-        self.out_H  = np.ones  (self.domain)
+        self.out_H  = np.zeros (self.domain)
         self.out_U  = np.zeros (self.domain)
         self.out_V  = np.zeros (self.domain)
         self.out_Hd = np.zeros (self.domain)
@@ -220,9 +228,9 @@ class SWTest (CopyTest):
         self.Uy     = np.zeros (self.domain)
         self.Vy     = np.zeros (self.domain)
 
-        self.in_H  = np.ones  (self.domain)
-        self.in_U  = np.zeros (self.domain)
-        self.in_V  = np.zeros (self.domain)
+        self.in_H   = np.copy (self.out_H)
+        self.in_U   = np.copy (self.out_U)
+        self.in_V   = np.copy (self.out_V)
 
 
     def droplet (self, H):
@@ -234,8 +242,114 @@ class SWTest (CopyTest):
         x,y = np.mgrid[:self.domain[0], :self.domain[1]]
         droplet_x, droplet_y = self.domain[0]/2, self.domain[1]/2
         rr = (x-droplet_x)**2 + (y-droplet_y)**2
-        H[rr<(self.domain[0]/10.0)**2] += 0.1
+        H[rr<(self.domain[0]/10.0)**2] = 0.01
 
+
+    @attr(lang='c++')
+    def test_animation (self):
+        import time
+        from pyqtgraph.Qt import QtCore, QtGui
+        import pyqtgraph as pg
+        import pyqtgraph.opengl as gl
+
+        ## Create a GL View widget to display data
+        w = gl.GLViewWidget()
+        w.show()
+        w.setWindowTitle('pyqtgraph example: GLSurfacePlot')
+        w.setCameraPosition(distance=50)
+
+        ## Add a grid to the view
+        g = gl.GLGridItem()
+        g.scale(2,2,1)
+        g.setDepthValue(10)  # draw grid after surfaces since they may be translucent
+        w.addItem(g)
+
+        ## Animated example
+        ## compute surface vertex data
+        #x = np.linspace(-8, 8, self.domain[0]+1).reshape(self.domain[0]+1, 1)
+        x = np.linspace (0, self.domain[0], self.domain[0]).reshape (self.domain[0], 1)
+        #y = np.linspace(-8, 8, self.domain[1]+1).reshape(1, self.domain[1]+1)
+        y = np.linspace (0, self.domain[1], self.domain[1]).reshape (1, self.domain[1])
+        d = (x**2 + y**2) * 0.1
+        d2 = d ** 0.5 + 0.1
+
+        ## precompute height values for all frames
+        phi = np.arange(0, np.pi*2, np.pi/20.)
+        self.z = np.sin(d[np.newaxis,...] + phi.reshape(phi.shape[0], 1, 1)) / d2[np.newaxis,...]
+
+        ## create a surface plot, tell it to use the 'heightColor' shader
+        ## since this does not require normal vectors to render (thus we 
+        ## can set computeNormals=False to save time when the mesh updates)
+        self.p4 = gl.GLSurfacePlotItem (shader='heightColor', 
+                                        computeNormals=False, 
+                                        smooth=False)
+        self.p4.shader()['colorMap'] = np.array([0.2, 1, 0.8, 0.2, 0.1, 0.1, 0.2, 0, 2])
+        self.p4.translate (self.domain[0]/-2.0,
+                           self.domain[1]/-2.0,
+                           0)
+        w.addItem(self.p4)
+
+        self.frame = 0
+        self.droplet (self.out_H)
+        self.droplet (self.in_H)
+        self.stencil.backend = 'c++'
+
+        def update():
+            try:
+                if self.frame % 2 == 0:
+                    self.stencil.run (out_H=self.out_H,
+                                      out_U=self.out_U,
+                                      out_V=self.out_V,
+                                      out_Hd=self.out_Hd,
+                                      out_Ud=self.out_Ud,
+                                      out_Vd=self.out_Vd,
+                                      in_H=self.in_H,
+                                      in_U=self.in_U,
+                                      in_V=self.in_V)
+                else:
+                    self.stencil.run (out_H=self.in_H,
+                                      out_U=self.in_U,
+                                      out_V=self.in_V,
+                                      out_Hd=self.out_Hd,
+                                      out_Ud=self.out_Ud,
+                                      out_Vd=self.out_Vd,
+                                      in_H=self.out_H,
+                                      in_U=self.out_U,
+                                      in_V=self.out_V)
+                self.frame += 1
+                #self.p4.setData (z=self.out_H[:,:,0])
+                #self.p4.setData(z=self.z[self.frame%self.z.shape[0]])
+
+            finally:
+                QtCore.QTimer ( ).singleShot (10, update)
+            
+        update ( )
+
+        #QtGui.QApplication.instance().exec_()
+
+        tstart = time.time ( )
+        for self.frame in range (200):
+            if self.frame % 2 == 0:
+                self.stencil.run (out_H=self.out_H,
+                                  out_U=self.out_U,
+                                  out_V=self.out_V,
+                                  out_Hd=self.out_Hd,
+                                  out_Ud=self.out_Ud,
+                                  out_Vd=self.out_Vd,
+                                  in_H=self.in_H,
+                                  in_U=self.in_U,
+                                  in_V=self.in_V)
+            else:
+                self.stencil.run (out_H=self.in_H,
+                                  out_U=self.in_U,
+                                  out_V=self.in_V,
+                                  out_Hd=self.out_Hd,
+                                  out_Ud=self.out_Ud,
+                                  out_Vd=self.out_Vd,
+                                  in_H=self.out_H,
+                                  in_U=self.out_U,
+                                  in_V=self.out_V)
+        print ('FPS:' , 200/(time.time()-tstart))
 
     def test_automatic_dependency_detection (self):
         try:
@@ -264,7 +378,6 @@ class SWTest (CopyTest):
         super ( ).test_automatic_range_detection (ranges=expected_ranges)
 
 
-    @attr(lang='c++')
     def test_interactive_plot (self):
         from gridtools import plt, fig, ax
         from matplotlib import animation
