@@ -115,42 +115,67 @@ class SW (MultiStageStencil):
         self.Uy   = np.zeros (domain)
         self.Vy   = np.zeros (domain)
 
+        self.L    = np.zeros (domain)
+        self.R    = np.zeros (domain)
+        self.T    = np.zeros (domain)
+        self.B    = np.zeros (domain)
+        self.C    = np.zeros (domain)
+
+        self.Dh   = np.zeros (domain)
+        self.Du   = np.zeros (domain)
+        self.Dv   = np.zeros (domain)
+
 
     def stage_momentum (self, out_M, out_Mx, out_My, in_M):
-         for p in self.get_interior_points (out_M):
-            #
-            # temporary used later
-            #
-            self.Mavg[p] = (in_M[p + (1,0,0)] + in_M[p + (-1,0,0)] + 
-                            in_M[p + (0,1,0)] + in_M[p + (0,-1,0)]) / 4.0
-            #
-            # derivatives in 'x' and 'y' dimensions
-            #
-            out_Mx[p] = in_M[p + (1,0,0)] - in_M[p + (-1,0,0)]
-            out_My[p] = in_M[p + (0,1,0)] - in_M[p + (0,-1,0)]
-            #
-            # diffusion
-            #
-            out_M[p] = out_M[p] * (1.0 - self.bl) + self.bl * self.Mavg[p]
+        for p in self.get_interior_points (out_M):
+            self.L[p] = in_M[p + (-1,0,0)]
+            self.R[p] = in_M[p + (1,0,0)]
+            self.T[p] = in_M[p + (0,1,0)]
+            self.B[p] = in_M[p + (0,-1,0)]
+            self.C[p] = in_M[p]
+
+            out_Mx[p] = self.R[p] - self.L[p]
+            out_My[p] = self.T[p] - self.B[p]
+
+            out_M[p]  = self.C[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] + 
+                                                                         self.R[p] +
+                                                                         self.T[p] +
+                                                                         self.B[p]))
+        """
+        for p in self.get_interior_points (out_M):
+           #
+           # temporary used later
+           #
+           self.Mavg[p] = (in_M[p + (1,0,0)] + in_M[p + (-1,0,0)] + 
+                           in_M[p + (0,1,0)] + in_M[p + (0,-1,0)]) / 4.0
+           #
+           # derivatives in 'x' and 'y' dimensions
+           #
+           out_Mx[p] = in_M[p + (1,0,0)] - in_M[p + (-1,0,0)]
+           out_My[p] = in_M[p + (0,1,0)] - in_M[p + (0,-1,0)]
+           #
+           # diffusion
+           #
+           out_M[p] = out_M[p] * (1.0 - self.bl) + self.bl * self.Mavg[p]
+        """
 
 
-    def stage_dynamics (self, out_H, out_Hd, in_H, in_Hx, in_Hy,
-                        out_U, out_Ud, in_U, in_Ux, 
-                        out_V, out_Vd, in_V, in_Vy):
+    def stage_dynamics (self, out_H, in_H, in_Hx, in_Hy,
+                              out_U, in_U, in_Ux, in_Uy,
+                              out_V, in_V, in_Vx, in_Vy):
         for p in self.get_interior_points (out_H):
-            out_Ud[p] = -in_U[p] * in_Ux[p]
-            out_Vd[p] = -in_V[p] * in_Vy[p]
+            self.Dh[p] = -out_U[p] * in_Hx[p] -out_V[p] * in_Hy[p] - out_H[p] * (in_Ux[p] + in_Vy[p])
+            self.Du[p] = -out_U[p] * in_Ux[p] -out_V[p] * in_Uy[p] - self.growth * in_Hx[p]
+            self.Dv[p] = -out_U[p] * in_Vx[p] -out_V[p] * in_Vy[p] - self.growth * in_Hy[p]
 
-            out_Ud[p] = out_Ud[p] - self.growth * in_Hx[p]
-            out_Vd[p] = out_Vd[p] - self.growth * in_Hy[p]
-            out_Hd[p] = out_Hd[p] - in_H[p] * (in_Ux[p] + in_Vy[p])
+            print ("#\t%d %d\t%e" % (p[0], p[1], self.Du[p]))
 
             #
-            # take first-order Euler step
+            # take first-order Euler step (C += dt*d;)
             #
-            out_U[p] = out_U[p] + self.dt * out_Ud[p];
-            out_V[p] = out_V[p] + self.dt * out_Vd[p];
-            out_H[p] = out_H[p] + self.dt * out_Hd[p];
+            out_H[p] = out_H[p] + self.dt * self.Dh[p];
+            out_U[p] = out_U[p] + self.dt * self.Du[p];
+            out_V[p] = out_V[p] + self.dt * self.Dv[p];
 
 
     def kernel (self, out_H, out_Hd, in_H,
@@ -163,9 +188,6 @@ class SW (MultiStageStencil):
                              out_Mx = self.Ux,
                              out_My = self.Uy,
                              in_M   = in_U)
-        for p in self.get_interior_points (out_U):
-            print ("#\t%d %d\t%e" % (p[0], p[1], out_U[p]))
-
         self.stage_momentum (out_M  = out_V,
                              out_Mx = self.Vx,
                              out_My = self.Vy,
@@ -174,23 +196,20 @@ class SW (MultiStageStencil):
                              out_Mx = self.Hx,
                              out_My = self.Hy,
                              in_M   = in_H)
-
-
         #
         # dynamics with momentum combined
         #
         self.stage_dynamics (out_H  = out_H,
                              out_U  = out_U,
                              out_V  = out_V,
-                             out_Hd = out_Hd,
-                             out_Ud = out_Ud,
-                             out_Vd = out_Vd,
                              in_H   = in_H,
                              in_U   = in_U,
                              in_V   = in_V,
                              in_Hx  = self.Hx,
                              in_Ux  = self.Ux,
+                             in_Vx  = self.Vx,
                              in_Hy  = self.Hy,
+                             in_Uy  = self.Uy,
                              in_Vy  = self.Vy)
 
 
@@ -217,11 +236,11 @@ class SWTest (CopyTest):
         self.stencil.set_halo ( (1, 1, 1, 1) )
 
         self.out_H  = np.zeros (self.domain)
-        self.out_H += 0.000001
+        #self.out_H += 0.000001
         self.out_U  = np.zeros (self.domain)
-        self.out_U += 0.000001
+        #self.out_U += 0.000001
         self.out_V  = np.zeros (self.domain)
-        self.out_V += 0.000001
+        #self.out_V += 0.000001
         self.out_Hd = np.zeros (self.domain)
         self.out_Ud = np.zeros (self.domain)
         self.out_Vd = np.zeros (self.domain)
@@ -437,6 +456,7 @@ class SWTest (CopyTest):
         self.stencil.backed = 'python'
         nstep               = 10
         tstart              = time.time ( )
+        #import pudb; pu.db
         for step in range (nstep):
             #
             # print out the data
