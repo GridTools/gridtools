@@ -1,5 +1,6 @@
 #pragma once
 
+#include <time.h>
 #include <gridtools.h>
 #include <common/halo_descriptor.h>
 #include <boost/lambda/bind.hpp>
@@ -494,8 +495,10 @@ bool test(uint_t x, uint_t y, uint_t z) {
     halos[2] = halo_descriptor(0, 0, 1, d3 - 1, d3);
 
     // the following might be runtime value
-    uint_t total_time = 1;
+    clock_t tstart, tend;
+    uint_t total_time = 200;
 
+    tstart = clock ( );
     for (; final_step::current_time < total_time; ++final_step::current_time) {
 #ifdef CUDA_EXAMPLE
       // TODO: use placeholders here instead of the storage
@@ -514,8 +517,10 @@ bool test(uint_t x, uint_t y, uint_t z) {
       shallow_water_stencil2->run();
       shallow_water_stencil->run();
 
-      sol.print();
+      //sol.print();
     }
+    tend = clock ( ) - tstart;
+    printf ("It took me %d clicks (%f FPS).\n",tend,200/(((float)tend)/CLOCKS_PER_SEC));
 
     shallow_water_stencil1->finalize();
     shallow_water_stencil2->finalize();
