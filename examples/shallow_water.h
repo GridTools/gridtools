@@ -315,7 +315,7 @@ struct final_step : public functor_traits {
         sol(comp(1)) -
         (pow<2>(ux(j - 1)) / hx(j - 1) + hx(j - 1) * hx(j - 1) * ((g() / 2.)) -
          (pow<2>(ux(i - 1, j - 1)) / hx(i - 1, j - 1) +
-          pow<2>(hx(i - 1, j - 1)) * ((g() / 2.)))) *
+          pow<2>(hx(i - 1, j - 1)) * (g() / 2.))) *
             ((dt() / dx())) -
         (vy(i - 1) * uy(i - 1) / hy(i - 1) -
          vy(i - 1, j - 1) * uy(i - 1, j - 1) / hy(i - 1, j - 1)) *
