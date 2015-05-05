@@ -107,7 +107,9 @@ class SW (MultiStageStencil):
         #
         # temporary data fields
         #
-        self.Mavg = np.zeros (domain)
+        self.Hd   = np.zeros (domain)
+        self.Ud   = np.zeros (domain)
+        self.Vd   = np.zeros (domain)
         self.Hx   = np.zeros (domain)
         self.Ux   = np.zeros (domain)
         self.Vx   = np.zeros (domain)
@@ -126,7 +128,7 @@ class SW (MultiStageStencil):
         self.Dv   = np.zeros (domain)
 
 
-    def stage_momentum (self, out_M, out_Mx, out_My, in_M):
+    def stage_momentum (self, out_M, out_Md, out_Mx, out_My, in_M):
         for p in self.get_interior_points (out_M):
             self.L[p] = in_M[p + (-1,0,0)]
             self.R[p] = in_M[p + (1,0,0)]
@@ -137,45 +139,26 @@ class SW (MultiStageStencil):
             out_Mx[p] = self.R[p] - self.L[p]
             out_My[p] = self.T[p] - self.B[p]
 
-            out_M[p]  = self.C[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] + 
+            out_Md[p] = self.C[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] + 
                                                                          self.R[p] +
                                                                          self.T[p] +
                                                                          self.B[p]))
-        """
-        for p in self.get_interior_points (out_M):
-           #
-           # temporary used later
-           #
-           self.Mavg[p] = (in_M[p + (1,0,0)] + in_M[p + (-1,0,0)] + 
-                           in_M[p + (0,1,0)] + in_M[p + (0,-1,0)]) / 4.0
-           #
-           # derivatives in 'x' and 'y' dimensions
-           #
-           out_Mx[p] = in_M[p + (1,0,0)] - in_M[p + (-1,0,0)]
-           out_My[p] = in_M[p + (0,1,0)] - in_M[p + (0,-1,0)]
-           #
-           # diffusion
-           #
-           out_M[p] = out_M[p] * (1.0 - self.bl) + self.bl * self.Mavg[p]
-        """
 
 
-    def stage_dynamics (self, out_H, in_H, in_Hx, in_Hy,
-                              out_U, in_U, in_Ux, in_Uy,
-                              out_V, in_V, in_Vx, in_Vy):
+    def stage_dynamics (self, out_H, in_Hd, in_Hx, in_Hy,
+                              out_U, in_Ud, in_Ux, in_Uy,
+                              out_V, in_Vd, in_Vx, in_Vy):
         for p in self.get_interior_points (out_H):
-            self.Dh[p] = -out_U[p] * in_Hx[p] -out_V[p] * in_Hy[p] - out_H[p] * (in_Ux[p] + in_Vy[p])
-            self.Du[p] = -out_U[p] * in_Ux[p] -out_V[p] * in_Uy[p] - self.growth * in_Hx[p]
-            self.Dv[p] = -out_U[p] * in_Vx[p] -out_V[p] * in_Vy[p] - self.growth * in_Hy[p]
-
-            print ("#\t%d %d\t%e" % (p[0], p[1], self.Du[p]))
+            self.Dh[p] = -in_Ud[p] * in_Hx[p] -in_Vd[p] * in_Hy[p] - in_Hd[p] * (in_Ux[p] + in_Vy[p])
+            self.Du[p] = -in_Ud[p] * in_Ux[p] -in_Vd[p] * in_Uy[p] - self.growth * in_Hx[p]
+            self.Dv[p] = -in_Ud[p] * in_Vx[p] -in_Vd[p] * in_Vy[p] - self.growth * in_Hy[p]
 
             #
             # take first-order Euler step (C += dt*d;)
             #
-            out_H[p] = out_H[p] + self.dt * self.Dh[p];
-            out_U[p] = out_U[p] + self.dt * self.Du[p];
-            out_V[p] = out_V[p] + self.dt * self.Dv[p];
+            out_H[p] = in_Hd[p] + self.dt * self.Dh[p];
+            out_U[p] = in_Ud[p] + self.dt * self.Du[p];
+            out_V[p] = in_Vd[p] + self.dt * self.Dv[p];
 
 
     def kernel (self, out_H, out_Hd, in_H,
@@ -185,14 +168,20 @@ class SW (MultiStageStencil):
         # momentum calculation for each field
         #
         self.stage_momentum (out_M  = out_U,
+                             out_Md = self.Ud,
                              out_Mx = self.Ux,
                              out_My = self.Uy,
                              in_M   = in_U)
+        for p in self.get_interior_points (out_U):
+            print ("#\t%d %d\t%e" % (p[0], p[1], self.Uy[p]))
+
         self.stage_momentum (out_M  = out_V,
+                             out_Md = self.Vd,
                              out_Mx = self.Vx,
                              out_My = self.Vy,
                              in_M   = in_V)
         self.stage_momentum (out_M  = out_H,
+                             out_Md = self.Hd,
                              out_Mx = self.Hx,
                              out_My = self.Hy,
                              in_M   = in_H)
@@ -202,9 +191,9 @@ class SW (MultiStageStencil):
         self.stage_dynamics (out_H  = out_H,
                              out_U  = out_U,
                              out_V  = out_V,
-                             in_H   = in_H,
-                             in_U   = in_U,
-                             in_V   = in_V,
+                             in_Hd  = self.Hd,
+                             in_Ud  = self.Ud,
+                             in_Vd  = self.Vd,
                              in_Hx  = self.Hx,
                              in_Ux  = self.Ux,
                              in_Vx  = self.Vx,
