@@ -101,8 +101,8 @@ class SW (MultiStageStencil):
         #self.dt     = 0.001
         #self.growth = 0.5
         self.bl      = 0.2
-        self.dt      = 0.01
-        self.growth  = 0.12
+        self.growth  = 1.2
+        self.dt      = 0.15
 
         #
         # temporary data fields
@@ -128,10 +128,6 @@ class SW (MultiStageStencil):
             #
             out_Mx[p] = in_M[p + (1,0,0)] - in_M[p + (-1,0,0)]
             out_My[p] = in_M[p + (0,1,0)] - in_M[p + (0,-1,0)]
-            #out_Mx[p]  = in_M[p] - in_M[p + (-1,0,0)]
-            #out_Mx[p] += in_M[p + (1,0,0)] - in_M[p]
-            #out_My[p]  = in_M[p] - in_M[p + (0,-1,0)]
-            #out_My[p] += in_M[p + (0,1,0)] - in_M[p]
             #
             # diffusion
             #
@@ -167,6 +163,9 @@ class SW (MultiStageStencil):
                              out_Mx = self.Ux,
                              out_My = self.Uy,
                              in_M   = in_U)
+        for p in self.get_interior_points (out_U):
+            print ("#\t%d %d\t%e" % (p[0], p[1], out_U[p]))
+
         self.stage_momentum (out_M  = out_V,
                              out_Mx = self.Vx,
                              out_My = self.Vy,
@@ -175,6 +174,8 @@ class SW (MultiStageStencil):
                              out_Mx = self.Hx,
                              out_My = self.Hy,
                              in_M   = in_H)
+
+
         #
         # dynamics with momentum combined
         #
@@ -199,7 +200,7 @@ class SWTest (CopyTest):
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (32, 32, 1)
+        self.domain = (8, 8, 1)
 
         self.params = ('out_H', 'out_Hd', 'in_H', 
                        'out_U', 'out_Ud', 'in_U', 
@@ -216,17 +217,16 @@ class SWTest (CopyTest):
         self.stencil.set_halo ( (1, 1, 1, 1) )
 
         self.out_H  = np.zeros (self.domain)
+        self.out_H += 0.000001
         self.out_U  = np.zeros (self.domain)
+        self.out_U += 0.000001
         self.out_V  = np.zeros (self.domain)
+        self.out_V += 0.000001
         self.out_Hd = np.zeros (self.domain)
         self.out_Ud = np.zeros (self.domain)
         self.out_Vd = np.zeros (self.domain)
-        self.Hx     = np.zeros (self.domain)
-        self.Ux     = np.zeros (self.domain)
-        self.Vx     = np.zeros (self.domain)
-        self.Hy     = np.zeros (self.domain)
-        self.Uy     = np.zeros (self.domain)
-        self.Vy     = np.zeros (self.domain)
+
+        self.droplet (self.out_H)
 
         self.in_H   = np.copy (self.out_H)
         self.in_U   = np.copy (self.out_U)
@@ -242,10 +242,9 @@ class SWTest (CopyTest):
         x,y = np.mgrid[:self.domain[0], :self.domain[1]]
         droplet_x, droplet_y = self.domain[0]/2, self.domain[1]/2
         rr = (x-droplet_x)**2 + (y-droplet_y)**2
-        H[rr<(self.domain[0]/10.0)**2] = 0.01
+        H[rr<(self.domain[0]/10.0)**2] = 1.0
 
 
-    @attr(lang='c++')
     def test_animation (self):
         import time
         from pyqtgraph.Qt import QtCore, QtGui
@@ -290,8 +289,6 @@ class SWTest (CopyTest):
         w.addItem(self.p4)
 
         self.frame = 0
-        self.droplet (self.out_H)
-        self.droplet (self.in_H)
         self.stencil.backend = 'c++'
 
         def update():
@@ -324,32 +321,8 @@ class SWTest (CopyTest):
                 QtCore.QTimer ( ).singleShot (10, update)
             
         update ( )
-
         #QtGui.QApplication.instance().exec_()
 
-        tstart = time.time ( )
-        for self.frame in range (200):
-            if self.frame % 2 == 0:
-                self.stencil.run (out_H=self.out_H,
-                                  out_U=self.out_U,
-                                  out_V=self.out_V,
-                                  out_Hd=self.out_Hd,
-                                  out_Ud=self.out_Ud,
-                                  out_Vd=self.out_Vd,
-                                  in_H=self.in_H,
-                                  in_U=self.in_U,
-                                  in_V=self.in_V)
-            else:
-                self.stencil.run (out_H=self.in_H,
-                                  out_U=self.in_U,
-                                  out_V=self.in_V,
-                                  out_Hd=self.out_Hd,
-                                  out_Ud=self.out_Ud,
-                                  out_Vd=self.out_Vd,
-                                  in_H=self.out_H,
-                                  in_U=self.out_U,
-                                  in_V=self.out_V)
-        print ('FPS:' , 200/(time.time()-tstart))
 
     def test_automatic_dependency_detection (self):
         try:
@@ -455,6 +428,48 @@ class SWTest (CopyTest):
                           in_H=self.in_H,
                           in_U=self.in_U,
                           in_V=self.in_V)
+
+
+    @attr(lang='c++')
+    def test_compare_with_reference_implementation (self):
+        import time
+       
+        self.stencil.backed = 'python'
+        nstep               = 10
+        tstart              = time.time ( )
+        for step in range (nstep):
+            #
+            # print out the data
+            #
+            for i in range (1, self.domain[0] - 1):
+                for j in range (1, self.domain[1] - 1):
+                    print ("%d\t%d %d\t%e" % (step, 
+                                              i, 
+                                              j, 
+                                              self.out_H[i,j,0]))
+            if step % 2 == 0:
+                self.stencil.run (out_H=self.out_H,
+                                  out_U=self.out_U,
+                                  out_V=self.out_V,
+                                  out_Hd=self.out_Hd,
+                                  out_Ud=self.out_Ud,
+                                  out_Vd=self.out_Vd,
+                                  in_H=self.in_H,
+                                  in_U=self.in_U,
+                                  in_V=self.in_V)
+            else:
+                self.stencil.run (out_H=self.in_H,
+                                  out_U=self.in_U,
+                                  out_V=self.in_V,
+                                  out_Hd=self.out_Hd,
+                                  out_Ud=self.out_Ud,
+                                  out_Vd=self.out_Vd,
+                                  in_H=self.out_H,
+                                  in_U=self.out_U,
+                                  in_V=self.out_V)
+
+        print ('FPS:' , nstep / (time.time()-tstart))
+
 
 
 
@@ -638,17 +653,16 @@ class ShallowWater2D (MultiStageStencil):
 
 
 
-class ShallowWater2DTest (SwTest):
+class ShallowWater2DTest (SWTest):
     def setUp (self):
         logging.basicConfig (level=logging.DEBUG)
 
-        self.domain = (24, 24, 1)
+        self.domain = (64, 64, 1)
 
-        self.params = ('out_H', 'out_Hd', 'in_H', 
-                       'out_U', 'out_Ud', 'in_U', 
-                       'out_V', 'out_Vd', 'in_V')
-        self.temps  = ('self.Mavg',
-                       'self.Hx',
+        self.params = ('out_H',  
+                       'out_U',  
+                       'out_V')
+        self.temps  = ('self.Hx',
                        'self.Ux',
                        'self.Vx',
                        'self.Hy',
@@ -694,5 +708,4 @@ class ShallowWater2DTest (SwTest):
             super ( ).test_automatic_range_detection (ranges=expected_ranges)
         except Exception:
             print ('known to fail')
-
 
