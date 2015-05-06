@@ -230,7 +230,7 @@ if (ENABLE_PYTHON)
         
         #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
         set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
-        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python_install.log")
+        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
         message ("Log file is " ${OUTPUT} )
         add_subdirectory( python )
      endif(${PYTHON_VERSION_MAJOR} GREATER 2)

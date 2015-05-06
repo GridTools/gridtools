@@ -348,7 +348,6 @@ class HorizontalDiffusion (MultiStageStencil):
             self.lap[p] = -4.0 * in_data[p] +  (
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
-        np.save ('tests/lap_result.npy', self.lap)
         #
         # Flux over 'i'
         #
