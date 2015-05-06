@@ -250,21 +250,29 @@ class FloatPrecisionTest (CopyTest):
 
 
 
-    def test_float_input_type_validation_1 (self):
+    def test_float_input_type_validation_wrong_data_size (self):
         with self.assertRaises (TypeError):
             class DoesNotExtendAndShouldFail (object):
                 self.stencil.backend = 'c++'
                 self.in_cpy = self.in_cpy.astype(np.float16)
                 self._run ( )
 
-    def test_float_input_type_validation_2 (self):
+    def test_float_input_type_validation_wrong_data_type (self):
+        """
+        Tests if input is of correct size but of wrong type.
+        """
         with self.assertRaises (TypeError):
             class DoesNotExtendAndShouldFail (object):
                 self.stencil.backend = 'c++'
                 self.in_cpy = self.in_cpy.astype(np.int64)
                 self._run ( )
 
-    def test_float_input_type_validation_3 (self):
+    def test_float_input_type_validation_potentially_correct_type_but_not_the_correct_size (self):
+        """
+        Unlike test_float_input_type_validation_wrong_data_size which tests a size that is not
+        supported at all, this test uses a type that is potentially accepted but in this case
+        does not match the backend.
+        """
         with self.assertRaises (TypeError):
             self.stencil.backend = 'c++'
             self.in_cpy = self.in_cpy.astype(np.float32)
