@@ -4,6 +4,7 @@
 #include "strategy_host.h"
 #include "run_esf_functor_host.h"
 #include "../block_size.h"
+#include "iterate_domain_host.h"
 
 /**@file
 @brief type definitions and structures specific for the Host backend
@@ -156,6 +157,33 @@ namespace gridtools{
 
         typedef block_size<8,8> block_size_t;
 
+        /**
+         * @brief metafunction that derives that returns the right iterate domain
+         * (depending on whether the local domain is positional or not)
+         * @param LocalDomain the local domain
+         */
+        template <typename LocalDomain>
+        struct select_iterate_domain {
+            BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+            //indirection in order to avoid instantiation of both types of the eval_if
+            template<typename _LocalDomain>
+            struct select_positional_iterate_domain
+            {
+                typedef iterate_domain_host<positional_iterate_domain, _LocalDomain> type;
+            };
+
+            template<typename _LocalDomain>
+            struct select_basic_iterate_domain
+            {
+                typedef iterate_domain_host<iterate_domain, _LocalDomain> type;
+            };
+
+            typedef typename boost::mpl::eval_if<
+                local_domain_is_stateful<LocalDomain>,
+                select_positional_iterate_domain<LocalDomain>,
+                select_basic_iterate_domain<LocalDomain>
+            >::type type;
+        };
     };
 
 }//namespace gridtools

@@ -1,5 +1,13 @@
 #pragma once
 #include "iterate_domain_aux.h"
+#include <boost/fusion/include/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/vector.hpp>
+#include "expressions.h"
+#ifndef CXX11_ENABLED
+#include <boost/typeof/typeof.hpp>
+#endif
+#include "local_domain.h"
 
 /**@file
    @brief file handling the access to the storage.
@@ -39,23 +47,37 @@
 
 namespace gridtools {
 
+    template< typename Impl>
+    struct iterate_domain_impl_local_domain;
+
+    template< typename LocalDomain,
+        template<typename> class IterateDomainBase,
+        template<template<typename> class, typename> class IterateDomainImpl >
+    struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
+    {
+        BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+        typedef LocalDomain type;
+    };
+
     /**@brief class handling the computation of the */
-    template <typename LocalDomain>
+    template <typename IterateDomainImpl>
     struct iterate_domain {
+        typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
+
         //TODOCOSUNA assert LocalDomain
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
-                typename LocalDomain::mpl_storages, 0>::type
+                typename local_domain_t::mpl_storages, 0>::type
             >::type::value_type value_type;
 
-        //typedef typename LocalDomain::local_args_type local_args_type;
-        typedef typename LocalDomain::actual_args_type actual_args_type;
+        //typedef typename local_domain_t::local_args_type local_args_type;
+        typedef typename local_domain_t::actual_args_type actual_args_type;
         //the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
         //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages<
             actual_args_type,
-            boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
+            boost::mpl::size<typename local_domain_t::mpl_storages>::type::value-1 >::count;
 
     private:
         // iterate_domain remembers the state. This is necessary when
@@ -63,9 +85,8 @@ namespace gridtools {
         // the iterators (but simply use the ones available for the
         // current iteration storage for all the other storages)
 
-        LocalDomain const& local_domain;
+        local_domain_t const& local_domain;
         array<uint_t,N_STORAGES> m_index;
-
         array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT m_data_pointer;
 
         strides_cached<N_STORAGES-1, typename LocalDomain::esf_args>* RESTRICT m_strides;
@@ -80,7 +101,7 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(LocalDomain const& local_domain)
+        iterate_domain(local_domain_t const& local_domain)
             : local_domain(local_domain)
             ,m_data_pointer(0)
             ,m_strides(0)
@@ -191,9 +212,8 @@ namespace gridtools {
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
         get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const;
-
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
         template <bool condition, typename LocalD, typename ArgType>
@@ -209,14 +229,13 @@ namespace gridtools {
             static const uint_t value=(total_storages< typename LocalD::local_args_type, ArgType::index_type::value-1 >::count);
         };
 
-
 #ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors.
             specialization for the expr_direct_access<arg_type> placeholders
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type& RESTRICT
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::type::index_type>::type::value_type& RESTRICT
         operator()(expr_direct_access<ArgType > const& arg) const {
             return get_value(arg, (*m_data_pointer)[current_storage<(ArgType::type::index_type::value==0), LocalDomain, typename ArgType::type >::value]);
         }
@@ -230,9 +249,9 @@ namespace gridtools {
         typename boost::enable_if<
             typename boost::mpl::bool_< (ArgType::type::n_args <=
                                          boost::mpl::at<
-                                         typename LocalDomain::esf_args
+                                         typename local_domain_t::esf_args
                                          , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
-                                        , typename boost::mpl::at<typename LocalDomain::esf_args
+                                        , typename boost::mpl::at<typename local_domain_t::esf_args
                                                                   , typename ArgType::type::index_type>::type::value_type
                                         >::type& RESTRICT
         operator()(ArgType const& arg) const {
@@ -248,16 +267,14 @@ namespace gridtools {
             typename boost::enable_if<
                 typename boost::mpl::bool_<(ArgType::type::n_args >
                                             boost::mpl::at<
-                                            typename LocalDomain::esf_args
+                                            typename local_domain_t::esf_args
                                             , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
-                                            , typename boost::mpl::at<typename LocalDomain::esf_args
+                                            , typename boost::mpl::at<typename local_domain_t::esf_args
                                                                       , typename ArgType::type::index_type>::type::value_type
                                            >::type&  RESTRICT
             operator()(ArgType const& arg) const ;
 
-
 #if defined(CXX11_ENABLED)
-
 #if !defined(__CUDACC__)
         /** @brief method called in the Do methods of the functors.
 
@@ -276,7 +293,7 @@ namespace gridtools {
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const ;
 
         /** @brief method called in the Do methods of the functors. */
@@ -319,21 +336,23 @@ namespace gridtools {
     };
 
     /**@brief class handling the computation of the */
-    template <typename LocalDomain>
-    struct stateful_iterate_domain: public iterate_domain<LocalDomain> {
+    template<typename IterateDomainImpl>
+    struct positional_iterate_domain : public iterate_domain<IterateDomainImpl>
+    {
+        typedef iterate_domain<IterateDomainImpl> base_type_t;
+        typedef typename base_type_t::local_domain_t local_domain_t;
 
         typedef iterate_domain<LocalDomain> base_type;
 
         uint_t m_i,m_j,m_k;
 
 #ifdef CXX11_ENABLED
-        using iterate_domain<LocalDomain>::iterate_domain;
+        using iterate_domain<IterateDomainImpl>::iterate_domain;
 #else
         GT_FUNCTION
-        stateful_iterate_domain(LocalDomain const& local_domain)
-            : iterate_domain<LocalDomain>(local_domain)
-            {}
+        positional_iterate_domain(local_domain_t const& local_domain) : base_type_t(local_domain) {}
 #endif
+
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
@@ -345,7 +364,6 @@ namespace gridtools {
             if (Coordinate==1) {
                 m_j+=steps_;
             }
-
             //TODO what with the increment of k? Is it GONE?
             base_type::template increment<Coordinate, Execution>(steps_);
         }

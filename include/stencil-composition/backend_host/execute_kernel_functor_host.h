@@ -60,7 +60,7 @@ struct execute_kernel_functor_host
         typedef typename boost::mpl::back<typename RunFunctorArguments::range_sizes_t>::type range_t;
         BOOST_STATIC_ASSERT((is_range<range_t>::value));
 
-        typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG

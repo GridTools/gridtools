@@ -4,7 +4,6 @@
 #include "backend_traits_cuda.h"
 
 
-template<typename T> struct printo{BOOST_MPL_ASSERT_MSG((false), OOOOOOOOOOO, (T));};
 namespace gridtools {
 
 
@@ -15,7 +14,7 @@ namespace _impl_cuda {
     void do_it_on_gpu(LocalDomain const * __restrict__ l_domain, typename RunFunctorArguments::coords_t const* coords,
             const int starti, const int startj, const uint_t nx, const uint_t ny) {
 
-        typedef typename LocalDomain::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
         typedef typename gridtools::backend_traits_from_id<
@@ -25,8 +24,8 @@ namespace _impl_cuda {
         int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
         int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
 
-        typedef typename LocalDomain::iterate_domain_t iterate_domain_t;
-        __shared__  array<void* RESTRICT,Traits::iterate_domain_t::N_DATA_POINTERS> data_pointer;
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        __shared__  array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
 
         __shared__ strides_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
 
@@ -35,30 +34,29 @@ namespace _impl_cuda {
         iterate_domain_t it_domain(*l_domain);
         it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
         it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
+        
+        const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
+                block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;
+        const uint_t block_size_j = (blockIdx.y+1) * block_size_t::j_size_t::value < ny ?
+                block_size_t::j_size_t::value : ny - blockIdx.y * block_size_t::j_size_t::value ;
+
         __syncthreads();
 
-//        if ((i < nx) && (j < ny)) {
-        if(true){
-            it_domain.assign_ij<0>(i+starti,0);
-            it_domain.assign_ij<1>(j+startj,0);
+        it_domain.assign_ij<0>(i+starti);
+        it_domain.assign_ij<1>(j+startj);
 
-            typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
-            typedef typename index_to_level<typename interval::first>::type from;
-            typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
+        typedef typename index_to_level<typename interval::first>::type from;
+        typedef typename index_to_level<typename interval::second>::type to;
+        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-            //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
-            //setting the initial k level (for backward/parallel iterations it is not 0)
-            if( !(iteration_policy::value==enumtype::forward) )
-                it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+        //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
+        //setting the initial k level (for backward/parallel iterations it is not 0)
+        if( !(iteration_policy::value==enumtype::forward) )
+            it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
-            for_each<typename RunFunctorArguments::loop_intervals_t>
-                (_impl::run_f_on_interval
-                 <
-                     execution_type_t, RunFunctorArguments
-                  >(it_domain,*coords)
-                );
-        }
+        for_each<typename RunFunctorArguments::loop_intervals_t>
+            (_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain,*coords) );
     }
 } // namespace _impl_cuda
 
@@ -126,37 +124,44 @@ struct execute_kernel_functor_cuda
 
 //        int ntx = 32, nty = 8, ntz = 1;
 
-        typedef typename RunFunctorArguments::block_size_t block_size_t;
+        typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
+        //compute the union (or enclosing) range for the ranges of all ESFs.
         typedef typename boost::mpl::fold<
             typename RunFunctorArguments::range_sizes_t,
             range<0,0,0,0>,
             enclosing_range<boost::mpl::_1, boost::mpl::_2>
         >::type maximum_range_t;
 
+        // the cuda block size does not necessarily match the size of the physical domain block
+        // if there are redundant computations at halos, each warp computes 2 grid positions, therefore
+        // the cuda block size is smaller, depending on the number of halo lines required.
         typedef block_size<
             block_size_t::i_size_t::value,
             (block_size_t::j_size_t::value - maximum_range_t::jminus::value + maximum_range_t::jplus::value +
                     (maximum_range_t::iminus::value != 0 ? 1 : 0) + (maximum_range_t::iplus::value != 0 ? 1 : 0)
             )/ ((maximum_range_t::iminus::value != 0  || maximum_range_t::iplus::value != 0 ) ? 2 : 1)
         > cuda_block_size_t;
-printf("PEPE %d %d %d %d %d %d \n", block_size_t::j_size_t::value, maximum_range_t::jminus::value,
-        maximum_range_t::jplus::value, maximum_range_t::iminus::value, maximum_range_t::iplus::value,
-        cuda_block_size_t::j_size_t::value);
 
         dim3 threads(cuda_block_size_t::i_size_t::value, cuda_block_size_t::j_size_t::value, 1);
 
-        const int ntx = cuda_block_size_t::i_size_t::value;
-        const int nty = cuda_block_size_t::j_size_t::value;
+        //number of grid points that a cuda block covers
+        const int ntx = block_size_t::i_size_t::value;
+        const int nty = block_size_t::j_size_t::value;
         const int ntz = 1;
+        //number of blocks required
         const int nbx = (nx + ntx - 1) / ntx;
         const int nby = (ny + nty - 1) / nty;
         const int nbz = 1;
+
         dim3 blocks(nbx, nby, nbz);
 
+        //recreate the run functor arguments, replacing the processing elements block size elements
+        // (recently computed)
         typedef run_functor_arguments<
             RunFunctorArguments::backend_id_t::value,
             cuda_block_size_t,
+            typename RunFunctorArguments::physical_domain_block_size_t,
             typename RunFunctorArguments::functor_list_t,
             typename RunFunctorArguments::esf_args_map_sequence_t,
             typename RunFunctorArguments::loop_intervals_t,
@@ -167,6 +172,7 @@ printf("PEPE %d %d %d %d %d %d \n", block_size_t::j_size_t::value, maximum_range
             typename RunFunctorArguments::execution_type_t,
             RunFunctorArguments::s_strategy_id
         > run_functor_arguments_cuda_t;
+
 #ifndef NDEBUG
             printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
             printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
@@ -180,6 +186,8 @@ printf("PEPE %d %d %d %d %d %d \n", block_size_t::j_size_t::value, maximum_range
                  (nx),
                  (ny)
             );
+
+        //TODO we do not need this. It will block the host, and we want to continue doing other stuff
         cudaDeviceSynchronize();
 
     }

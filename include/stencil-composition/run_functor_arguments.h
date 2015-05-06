@@ -14,7 +14,8 @@ namespace gridtools {
     /** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
     template<
         enumtype::backend BackendId,
-        typename BlockSize,
+        typename ProcessingElementsBlockSize,
+        typename PhysicalDomainBlockSize,
         typename FunctorList,
         typename EsfArgsMapSequence,
         typename LoopIntervals,
@@ -29,16 +30,20 @@ namespace gridtools {
         BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
         BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
         BOOST_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value));
-        BOOST_STATIC_ASSERT((is_block_size<BlockSize>::value));
+        BOOST_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value));
+        BOOST_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value));
 
         typedef boost::mpl::integral_c<enumtype::backend, BackendId> backend_id_t;
-        typedef BlockSize block_size_t;
+        typedef ProcessingElementsBlockSize processing_elements_block_size_t;
+        typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef FunctorList functor_list_t;
         typedef EsfArgsMapSequence esf_args_map_sequence_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef RangeSizes range_sizes_t;
         typedef LocalDomain local_domain_t;
+        typedef typename backend_traits_from_id<backend_id_t::value>::
+                template select_iterate_domain<local_domain_t>::type iterate_domain_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=StrategyId;
@@ -48,7 +53,8 @@ namespace gridtools {
 
     template<
         enumtype::backend BackendId,
-        typename BlockSize,
+        typename ProcessingElementsBlockSize,
+        typename PhysicalDomainBlockSize,
         typename FunctorList,
         typename EsfArgsMapSequence,
         typename LoopIntervals,
@@ -61,7 +67,8 @@ namespace gridtools {
     struct is_run_functor_arguments<
         run_functor_arguments<
             BackendId,
-            BlockSize,
+            ProcessingElementsBlockSize,
+            PhysicalDomainBlockSize,
             FunctorList,
             EsfArgsMapSequence,
             LoopIntervals,
