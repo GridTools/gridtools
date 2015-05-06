@@ -39,7 +39,7 @@ namespace gridtools {
         typedef typename _impl::run_esf_functor_interval<RunEsfFunctorImpl>::type interval_t;
 
         BOOST_STATIC_ASSERT((is_run_functor_arguments<run_functor_arguments_t>::value));
-        typedef typename run_functor_arguments_t::local_domain_t::iterate_domain_t iterate_domain_t;
+        typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
         typedef typename run_functor_arguments_t::functor_list_t run_functor_list_t;
 
         GT_FUNCTION

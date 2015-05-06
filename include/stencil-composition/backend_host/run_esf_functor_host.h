@@ -13,7 +13,7 @@ namespace gridtools {
         run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > //CRTP
     {
         typedef run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > super;
-        typedef typename RunFunctorArguments::local_domain_t::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         GT_FUNCTION
         explicit run_esf_functor_host(iterate_domain_t& iterate_domain) : super(iterate_domain) {}

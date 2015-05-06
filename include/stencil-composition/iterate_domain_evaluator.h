@@ -1,3 +1,10 @@
+/*
+  @file
+  This file provides functionality for a iterate domain evaluator that intercepts calls to iterate domain
+  and remap the arguments to the actual positions in the iterate domain
+*/
+
+
 #pragma once
 #include "iterate_domain_metafunctions.h"
 
@@ -25,23 +32,21 @@ namespace _impl {
     {
         typedef EsfArgsMap type;
     };
-
 }
 
+/**
+ * @brief metafunction that given an arg and a map, it will remap the index of the arg according
+ * to the corresponding entry in ArgsMap
+ */
 template<typename Arg, typename ArgsMap>
 struct remap_arg_type;
-
-template< class ArgType, typename ArgsMap >
-struct remap_arg_type<arg_decorator<ArgType>, ArgsMap >
-{
-    typedef arg_decorator<typename remap_arg_type<ArgType, ArgsMap>::type > type;
-};
 
 template<uint_t I, typename Range, ushort_t Dim, typename ArgsMap >
 struct remap_arg_type<arg_type_base<I, Range, Dim>, ArgsMap >
 {
     typedef arg_type_base<I, Range, Dim> base_arg_t;
     BOOST_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0));
+    //check that the key type is an int (otherwise the later has_key would never find the key)
     BOOST_STATIC_ASSERT((boost::is_same<
         typename boost::mpl::first<typename boost::mpl::front<ArgsMap>::type>::type::value_type,
         int
@@ -58,7 +63,19 @@ struct remap_arg_type<arg_type_base<I, Range, Dim>, ArgsMap >
     > type;
 };
 
+template< class ArgType, typename ArgsMap >
+struct remap_arg_type<arg_decorator<ArgType>, ArgsMap >
+{
+    typedef arg_decorator<typename remap_arg_type<ArgType, ArgsMap>::type > type;
+};
 
+/**
+ * @class iterate_domain_evaluator_base
+ * base class of an iterate_domain_evaluator that intercepts the calls to evaluate the value of an arguments
+ * from the iterate domain, and redirect the arg specified by user to the actual position of the arg in the
+ * iterate domain
+ * @param IterateDomainEvaluatorImpl implementer class of the CRTP
+ */
 template<typename IterateDomainEvaluatorImpl>
 class iterate_domain_evaluator_base
 {
@@ -81,8 +98,7 @@ public:
     >::type
     operator()(arg_decorator<ArgType> const& arg) const {
         typedef typename remap_arg_type<ArgType, esf_args_map_t>::type remap_arg_t;
-//        printf( "From ArgTyp : %d %d \n " , ArgType::index_type::value ,  remap_arg_t::index_type::value );
-        return m_iterate_domain.access(remap_arg_t());
+        return m_iterate_domain.access(remap_arg_t(arg));
     }
 
 #ifdef CXX11_ENABLED
@@ -93,8 +109,21 @@ public:
     GT_FUNCTION
     typename boost::mpl::at<typename local_domain_t::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
     operator()(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
-        return m_iterate_domain.template access<ArgType>(arg);
+        typedef typename remap_arg_type<ArgType, esf_args_map_t>::type remap_arg_t;
+        return m_iterate_domain.access(remap_arg_t(arg));
     }
+
+    /** @brief method called in the Do methods of the functors.
+        Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+    template < typename ArgType>
+    GT_FUNCTION
+    typename boost::enable_if<
+        typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& >::type
+    operator()(gridtools::arg_decorator<ArgType> const&& arg) const {
+        return m_iterate_domain.access(remap_arg_t(std::forward<gridtools::arg_decorator<ArgType> const> arg));
+    }
+
 #endif
 
     /** @brief method called in the Do methods of the functors.
@@ -105,14 +134,19 @@ public:
         typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
         typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& >::type
     operator()(gridtools::arg_decorator<ArgType> const& arg) const {
-        return m_iterate_domain.template access<ArgType>(arg);
+        return m_iterate_domain.access(remap_arg_t(arg));
     }
 
 protected:
     const iterate_domain_t& m_iterate_domain;
 };
 
-
+/**
+ * @class iterate_domain_evaluator
+ * default iterate domain evaluator when positional information is not required
+ * @param IterateDomain iterate domain
+ * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
+ */
 template<typename IterateDomain, typename EsfArgsMap>
 class iterate_domain_evaluator : public
     iterate_domain_evaluator_base<iterate_domain_evaluator<IterateDomain, EsfArgsMap> > //CRTP
@@ -127,6 +161,12 @@ public:
 
 };
 
+/**
+ * @class positional_iterate_domain_evaluator
+ * iterate domain evaluator when positional information is required
+ * @param IterateDomain iterate domain
+ * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
+ */
 template<typename IterateDomain, typename EsfArgsMap>
 class positional_iterate_domain_evaluator : public
     iterate_domain_evaluator_base<positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap> > //CRTP
@@ -155,16 +195,31 @@ public:
     }
 };
 
+/**
+ * @struct get_iterate_domain_evaluator
+ * metafunctions that computes the iterate_domain_evaluator from the iterate domain type
+ */
 template<typename IterateDomain, typename EsfArgsMap>
 struct get_iterate_domain_evaluator
 {
+    BOOST_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value));
+    template<typename _IterateDomain, typename _EsfArgsMap>
+    struct select_basic_iterate_domain_evaluator
+    {
+        typedef iterate_domain_evaluator<_IterateDomain, _EsfArgsMap> type;
+    };
+    template<typename _IterateDomain, typename _EsfArgsMap>
+    struct select_positional_iterate_domain_evaluator
+    {
+        typedef positional_iterate_domain_evaluator<_IterateDomain, _EsfArgsMap> type;
+    };
+
     typedef typename boost::mpl::eval_if<
         is_positional_iterate_domain<IterateDomain>,
-        boost::mpl::identity<positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap> >,
-        boost::mpl::identity<iterate_domain_evaluator<IterateDomain, EsfArgsMap> >
+        select_positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap>,
+        select_basic_iterate_domain_evaluator<IterateDomain, EsfArgsMap>
     >::type type;
 
 };
-
 
 } // namespace gridtools

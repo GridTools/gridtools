@@ -76,6 +76,7 @@ namespace gridtools {
             typedef run_functor_arguments<
                 BackendId,
                 typename backend_traits_from_id<BackendId>::block_size_t,
+                typename backend_traits_from_id<BackendId>::block_size_t,
                 functors_list_t,
                 local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
