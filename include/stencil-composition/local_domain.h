@@ -9,8 +9,6 @@
 #include <boost/fusion/view/zip_view.hpp>
 #include <boost/utility.hpp>
 
-#include "iterate_domain.h"
-
 namespace gridtools {
 
     namespace local_domain_aux {
@@ -101,20 +99,6 @@ namespace gridtools {
 
     } // namespace gt_aux
 
-
-    template <bool IsStateful, typename T>
-    struct select_iterate_domain;
-
-    template <typename T>
-    struct select_iterate_domain<true, T> {
-        typedef stateful_iterate_domain<T> type;
-    };
-
-    template <typename T>
-    struct select_iterate_domain<false, T> {
-        typedef iterate_domain<T> type;
-    };
-
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. There is one version which provide coordinates to the functor
@@ -162,9 +146,6 @@ namespace gridtools {
 
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
-
-
-        typedef typename select_iterate_domain<IsStateful, this_type>::type iterate_domain_t;
 
         local_args_type local_args;
 

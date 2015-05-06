@@ -6,6 +6,7 @@
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
+#include "local_domain.h"
 
 /**@file
    @brief file handling the access to the storage.
@@ -322,23 +323,37 @@ namespace gridtools {
         };
     } //namespace
 
+    template< typename Impl>
+    struct iterate_domain_impl_local_domain;
+
+    template< typename LocalDomain,
+        template<typename> class IterateDomainBase,
+        template<template<typename> class, typename> class IterateDomainImpl >
+    struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
+    {
+        BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+        typedef LocalDomain type;
+    };
+
     /**@brief class handling the computation of the */
-    template <typename LocalDomain>
+    template <typename IterateDomainImpl>
     struct iterate_domain {
+        typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
+
         //TODOCOSUNA assert LocalDomain
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
-                typename LocalDomain::mpl_storages, 0>::type
+                typename local_domain_t::mpl_storages, 0>::type
             >::type::value_type value_type;
 
-        //typedef typename LocalDomain::local_args_type local_args_type;
-        typedef typename LocalDomain::actual_args_type actual_args_type;
+        //typedef typename local_domain_t::local_args_type local_args_type;
+        typedef typename local_domain_t::actual_args_type actual_args_type;
         //the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
         //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages< 
             actual_args_type,
-            boost::mpl::size<typename LocalDomain::mpl_storages>::type::value-1 >::count;
+            boost::mpl::size<typename local_domain_t::mpl_storages>::type::value-1 >::count;
 
 private:
         // iterate_domain remembers the state. This is necessary when
@@ -346,7 +361,7 @@ private:
         // the iterators (but simply use the ones available for the
         // current iteration storage for all the other storages)
 
-        LocalDomain const& local_domain;
+        local_domain_t const& local_domain;
         uint_t m_index[N_STORAGES];
 
         void** m_data_pointer;//[N_DATA_POINTERS];//the storages could have different types(?)
@@ -362,7 +377,7 @@ public:
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(LocalDomain const& local_domain)
+        iterate_domain(local_domain_t const& local_domain)
             : local_domain(local_domain)
 #ifdef CXX11_ENABLED
             , m_index{0}/* , m_lru{0} */
@@ -461,7 +476,7 @@ public:
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type&
         get_value(ArgType const& arg , StoragePointer & storage_pointer) const
         {
             //the following assert fails when an out of bound access is observed, i.e. either one of
@@ -486,7 +501,7 @@ public:
                              arg.offset()) >= 0);
 
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
+            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
 #endif
 
 #ifdef CXX11_ENABLED
@@ -523,12 +538,12 @@ public:
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::enable_if<typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
-                                                             typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        typename boost::enable_if<typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
+                                                             typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type&
                                                              >::type
         operator()(arg_decorator<ArgType> const& arg) const {
             
-            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
+            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value]);
         }
 
 #ifdef CXX11_ENABLED
@@ -537,9 +552,9 @@ public:
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
         operator()(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
-            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
+            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value]);
         }
 #endif
 
@@ -548,8 +563,8 @@ public:
         template < typename ArgType>
         GT_FUNCTION
         typename boost::enable_if<
-            typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type
-                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& >::type
+            typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type
+                                  , typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& >::type
         operator()(gridtools::arg_decorator<ArgType> const& arg) const {
 
 #ifdef CXX11_ENABLED
@@ -570,7 +585,7 @@ public:
                 return get_value
                 (arg,
                  m_data_pointer[ //static if
-                                //current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value
+                                //current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value
                                 //              :
                                 storage_type::get_index
                                 (
@@ -582,7 +597,7 @@ public:
                                   + arg.offset()[gridtools::arg_decorator<ArgType>::n_args-2]
                                   *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
                                   ))//+ the offset of the other extra dimension
-                                + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+                                + current_storage<(ArgType::index_type::value==0), local_domain_t, ArgType>::value]);
         }
 
 
@@ -591,15 +606,15 @@ public:
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::enable_if<typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
-                                                             typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        typename boost::enable_if<typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
+                                                             typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type&
                                                              >::type
         access(arg_decorator<ArgType> const& arg) const {
 
             return get_value
             (arg, m_data_pointer[current_storage<
                     (ArgType::index_type::value==0),
-                    LocalDomain, arg_decorator<ArgType> >::value
+                    local_domain_t, arg_decorator<ArgType> >::value
                  ]
             );
         }
@@ -610,9 +625,9 @@ public:
         */
         template <typename ArgType>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
         access(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
-            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value]);
+            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value]);
         }
 #endif
 
@@ -621,8 +636,8 @@ public:
         template <typename ArgType>
         GT_FUNCTION
         typename boost::enable_if<
-            typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type
-                                  , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type& >::type
+            typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type
+                                  , typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& >::type
         access(gridtools::arg_decorator<ArgType> const& arg) const {
 
 #ifdef CXX11_ENABLED
@@ -643,7 +658,7 @@ public:
                 return get_value
                 (arg,
                  m_data_pointer[ //static if
-                                //current_storage<(arg_decorator<ArgType>::index_type::value==0), LocalDomain, arg_decorator<ArgType> >::value
+                                //current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value
                                 //              :
                                 storage_type::get_index
                                 (
@@ -655,7 +670,7 @@ public:
                                   + arg.offset()[gridtools::arg_decorator<ArgType>::n_args-2]
                                   *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
                                   ))//+ the offset of the other extra dimension
-                                + current_storage<(ArgType::index_type::value==0), LocalDomain, ArgType>::value]);
+                                + current_storage<(ArgType::index_type::value==0), local_domain_t, ArgType>::value]);
         }
 
 
@@ -667,7 +682,7 @@ public:
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type&
         get_value (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
@@ -676,7 +691,7 @@ public:
             assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->_index(arg.first_operand.offset()) >= 0);
 
-            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
+            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
 
 #ifdef CXX11_ENABLED
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
@@ -693,7 +708,7 @@ public:
 
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::value_type&
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type&
         get_value_int (expr_direct_access<ArgType> const& arg, StoragePointer & storage_pointer) const {
 
             assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
@@ -702,7 +717,7 @@ public:
             assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                    ->_index(arg.first_operand.offset()) >= 0);
 
-            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
+            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
 
 #ifdef CXX11_ENABLED
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
@@ -849,19 +864,19 @@ public:
     };
 
     /**@brief class handling the computation of the */
-    template <typename LocalDomain>
-    struct stateful_iterate_domain: public iterate_domain<LocalDomain> {
+    template<typename IterateDomainImpl>
+    struct positional_iterate_domain : public iterate_domain<IterateDomainImpl>
+    {
+        typedef iterate_domain<IterateDomainImpl> base_type_t;
+        typedef typename base_type_t::local_domain_t local_domain_t;
 
-        typedef iterate_domain<LocalDomain> base_type;
-        
 #ifdef CXX11_ENABLED
-        using iterate_domain<LocalDomain>::iterate_domain;
+        using iterate_domain<IterateDomainImpl>::iterate_domain;
 #else
         GT_FUNCTION
-        stateful_iterate_domain(LocalDomain const& local_domain)
-            : iterate_domain<LocalDomain>(local_domain)
-        {}
+        positional_iterate_domain(local_domain_t const& local_domain) : base_type_t(local_domain) {}
 #endif
+
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate>
         GT_FUNCTION
@@ -873,36 +888,31 @@ public:
             if (Coordinate==1) {
                 m_j = index;
             }
-
-            base_type::template assign_ij<Coordinate>(index, block);
+            base_type_t::template assign_ij<Coordinate>(index, block);
         }
 
             /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from)
         {
-            printf("SETTING %d \n", m_k);
             m_k = from;
-            base_type::set_k_start(from);
+            base_type_t::set_k_start(from);
         }
 
             /**@brief method for incrementing the index when moving forward along the k direction */
         GT_FUNCTION
         void increment()
         {
-            printf("INCREM %d \n", m_k);
             ++m_k;
-            base_type::increment();
+            base_type_t::increment();
         }
 
         /**@brief method for decrementing the index when moving backward along the k direction*/
         GT_FUNCTION
         void decrement()
         {
-            printf("DECREM %d \n", m_k);
-
             --m_k;
-            base_type::decrement();
+            base_type_t::decrement();
         }
 
         GT_FUNCTION
@@ -913,12 +923,11 @@ public:
 
         GT_FUNCTION
         uint_t k() const {
-            printf("ACCC %d \n", m_k);
-
             return m_k;
         }
 
     private:
         uint_t m_i, m_j, m_k;
     };
+
 } // namespace gridtools
