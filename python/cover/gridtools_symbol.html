@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for gridtools.symbol: 94%</title>
+    <title>Coverage for gridtools.symbol: 92%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     
     <script type='text/javascript' src='jquery.min.js'></script>
@@ -21,13 +21,13 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>gridtools.symbol</b> :
-            <span class='pc_cov'>94%</span>
+            <span class='pc_cov'>92%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
             158 statements &nbsp;
-            <span class='run hide_run shortkey_r button_toggle_run'>149 run</span>
-            <span class='mis shortkey_m button_toggle_mis'>9 missing</span>
+            <span class='run hide_run shortkey_r button_toggle_run'>146 run</span>
+            <span class='mis shortkey_m button_toggle_mis'>12 missing</span>
             <span class='exc shortkey_x button_toggle_exc'>0 excluded</span>
             
         </h2>
@@ -269,12 +269,12 @@
 <p id='n206' class='stm run hide_run'><a href='#n206'>206</a></p>
 <p id='n207' class='stm run hide_run'><a href='#n207'>207</a></p>
 <p id='n208' class='pln'><a href='#n208'>208</a></p>
-<p id='n209' class='stm run hide_run'><a href='#n209'>209</a></p>
-<p id='n210' class='stm run hide_run'><a href='#n210'>210</a></p>
+<p id='n209' class='stm mis'><a href='#n209'>209</a></p>
+<p id='n210' class='stm mis'><a href='#n210'>210</a></p>
 <p id='n211' class='stm mis'><a href='#n211'>211</a></p>
 <p id='n212' class='pln'><a href='#n212'>212</a></p>
 <p id='n213' class='pln'><a href='#n213'>213</a></p>
-<p id='n214' class='stm run hide_run'><a href='#n214'>214</a></p>
+<p id='n214' class='stm mis'><a href='#n214'>214</a></p>
 <p id='n215' class='pln'><a href='#n215'>215</a></p>
 <p id='n216' class='pln'><a href='#n216'>216</a></p>
 <p id='n217' class='stm run hide_run'><a href='#n217'>217</a></p>
@@ -704,12 +704,12 @@
 <p id='t206' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>value</span> <span class='op'>=</span> <span class='nam'>float</span> <span class='op'>(</span><span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t207' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>logging</span><span class='op'>.</span><span class='nam'>debug</span> <span class='op'>(</span><span class='str'>&quot;Constant &#39;%s&#39; has value %.3f&quot;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t208' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>value</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t209' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>except</span> <span class='nam'>TypeError</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t210' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>isinstance</span> <span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>np</span><span class='op'>.</span><span class='nam'>ndarray</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t209' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>except</span> <span class='nam'>TypeError</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t210' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>isinstance</span> <span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>np</span><span class='op'>.</span><span class='nam'>ndarray</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t211' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>logging</span><span class='op'>.</span><span class='nam'>debug</span> <span class='op'>(</span><span class='str'>&quot;Constant &#39;%s&#39; is a NumPy array %s&quot;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t212' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class='nam'>value</span><span class='op'>.</span><span class='nam'>shape</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t213' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>else</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t214' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>logging</span><span class='op'>.</span><span class='nam'>debug</span> <span class='op'>(</span><span class='str'>&quot;Constant &#39;%s&#39; has value %s&quot;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t214' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>logging</span><span class='op'>.</span><span class='nam'>debug</span> <span class='op'>(</span><span class='str'>&quot;Constant &#39;%s&#39; has value %s&quot;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t215' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>value</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t216' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>else</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t217' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>logging</span><span class='op'>.</span><span class='nam'>debug</span> <span class='op'>(</span><span class='str'>&quot;Constant &#39;%s&#39; is None&quot;</span> <span class='op'>%</span> <span class='nam'>name</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>

@@ -43,7 +43,7 @@ class CopyTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.domain = (128, 128, 64)
+        self.domain = (64, 64, 32)
         self.params = ('out_cpy', 'in_cpy')
         self.temps  = ( )
 
@@ -79,14 +79,12 @@ class CopyTest (unittest.TestCase):
                 if d[0] == sd[0].name and d[1] == sd[1].name:
                     found = True
                     break
+            if not found:
+                logging.error ("Dependency %s not found in %s" % (sd, stencil_deps))
             self.assertTrue (found)
 
 
     def test_automatic_range_detection (self, ranges=None):
-        """ 
-        Parameter 'ranges' is a dictionary where the key is the name of a
-        data field and its value the expected range.-
-        """
         self.stencil.backend = 'c++'
         self._run ( )
 
@@ -198,16 +196,27 @@ class CopyTest (unittest.TestCase):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
 
 
-    def test_python_execution (self):
+    def test_python_execution (self, out_param=None, result_file=None):
+        import os
+
+        cur_dir = os.path.dirname (os.path.abspath (__file__))
+
+        self.stencil.backend = 'python'
         self._run ( )
 
-        beg_i = self.stencil.halo[0]
-        end_i = self.domain[0] - self.stencil.halo[1]
-        beg_j = self.stencil.halo[2]
-        end_j = self.domain[1] - self.stencil.halo[3]
+        if result_file is None:
+            beg_i = self.stencil.halo[0]
+            end_i = self.domain[0] - self.stencil.halo[1]
+            beg_j = self.stencil.halo[2]
+            end_j = self.domain[1] - self.stencil.halo[3]
 
-        self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
-                                         self.out_cpy[beg_i:end_i, beg_j:end_j]))
+            self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
+                                             self.out_cpy[beg_i:end_i, beg_j:end_j]))
+        else:
+            expected = np.load ('%s/%s' % (cur_dir,
+                                           result_file)) 
+            self.assertTrue (np.array_equal (getattr (self, out_param),
+                                             expected))
 
 
     def test_native_execution_performance (self):
@@ -217,17 +226,15 @@ class CopyTest (unittest.TestCase):
         self._run ( )
         self.assertTrue ('_FuncPtr' in dir (self.stencil.lib_obj))
 
-        avg_time = 0.0
-        for i in range (30):
-            start = time.time ( )
+        nstep  = 100
+        tstart = time.time ( )
+        for i in range (nstep):
             self._run ( )
-            avg_time += time.time ( ) - start
-        print ("AVG execution time %.3f s" % avg_time)
+        print ('FPS:', nstep / (time.time()-tstart))
 
 
     def test_k_directions (self):
         self.stencil.backend = 'c++'
-
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
@@ -324,16 +331,8 @@ class LaplaceTest (CopyTest):
 
 
     def test_python_execution (self):
-        import os
-
-        self.stencil.backend = 'python'
-        self._run ( )
-
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/laplace_result.npy' % cur_dir)
-
-        self.assertTrue (np.array_equal (self.out_data,
-                                         expected))
+        super ( ).test_python_execution (out_param='out_data',
+                                         result_file='laplace_result.npy')
 
 
 
@@ -357,7 +356,6 @@ class HorizontalDiffusion (MultiStageStencil):
             self.lap[p] = -4.0 * in_data[p] +  (
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
-        np.save ('tests/lap_result.npy', self.lap)
         #
         # Flux over 'i'
         #
@@ -427,339 +425,7 @@ class HorizontalDiffusionTest (CopyTest):
         super ( ).test_automatic_range_detection (ranges=expected_ranges)
 
 
-    @attr(lang='python')
     def test_python_execution (self):
-        import os
+        super ( ).test_python_execution (out_param='out_data',
+                                         result_file='horizontaldiffusion_result.npy')
 
-        self.stencil.backend = 'python'
-        self._run ( )
-        
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/horizontaldiffusion_result.npy' % cur_dir)
-        self.assertTrue (np.array_equal (self.out_data,
-                                         expected))
-
-
-
-class Moving (MultiStageStencil):
-    """
-    Definition a stencil that should move the data over the domain.-
-    """
-    def __init__ (self, domain):
-        """
-        A comment to make AST parsing more difficult.-
-        """
-        super (Moving, self).__init__ ( )
-        self.domain = domain
-        #
-        # grid size with a halo of one
-        #
-        self.n = domain[0] - 2
-
-        #
-        # gravity-accelleration constant
-        #
-        self.g = 9.8
-
-        #
-        # timestep
-        #
-        self.dt = 0.02
-
-        #
-        # space step size (for u, v)
-        #
-        self.dx = 1.0
-        self.dy = 1.0
-
-        #
-        # temporary data fields
-        #
-        self.Hx = np.zeros ((self.n+1, self.n+1, 1))
-        self.Ux = np.zeros ((self.n+1, self.n+1, 1))
-        self.Vx = np.zeros ((self.n+1, self.n+1, 1))
-
-        self.Hy = np.zeros ((self.n+1, self.n+1, 1))
-        self.Uy = np.zeros ((self.n+1, self.n+1, 1))
-        self.Vy = np.zeros ((self.n+1, self.n+1, 1))
-
-
-    def droplet (self, height, width):
-        """
-        A two-dimensional Gaussian of the falling drop into the water:
-
-            height  height of the generated drop;
-            width   width of the generated drop.-
-        """
-        x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
-        y = np.copy (x)
-        drop = height * np.exp (-5*(x*x + y*y))
-        #
-        # pad the resulting array with zeros
-        #
-        #zeros = np.zeros (shape[:-1])
-        #zeros[:drop.shape[0], :drop.shape[1]] = drop
-        #return zeros.reshape (zeros.shape[0],
-        #                      zeros.shape[1],
-        #                      1)
-        return drop.reshape ((drop.shape[0],
-                              drop.shape[1],
-                              1))
-
-
-    def create_random_drop (self, H):
-        """
-        Disturbs the water surface with a drop.-
-        """
-        drop = self.droplet (5, 11)
-        w = drop.shape[0]
-
-        rand0 = np.random.rand ( )
-        rand1 = np.random.rand ( )
-        rand2 = np.random.rand ( )
-
-        for i in range (w):
-            i_idx = int (i + np.ceil (rand0 * (self.n - w)))
-            for j in range (w):
-                j_idx = int (j + np.ceil (rand1 * (self.n - w)))
-                H[i_idx, j_idx] += rand2 * drop[i, j]
-
-
-    def reflect_borders (self, H, U, V):
-        """
-        Implements the reflective boundary conditions in NumPy.-
-        """
-        H[:,0] =  H[:,1]
-        U[:,0] =  U[:,1]
-        V[:,0] = -V[:,1]
-
-        H[:,self.n+1] =  H[:,self.n]
-        U[:,self.n+1] =  U[:,self.n]
-        V[:,self.n+1] = -V[:,self.n]
-
-        H[0,:] =  H[1,:]
-        U[0,:] = -U[1,:]
-        V[0,:] =  V[1,:]
-
-        H[self.n+1,:] =  H[self.n,:]
-        U[self.n+1,:] = -U[self.n,:]
-        V[self.n+1,:] =  V[self.n,:]
-
-
-    def kernel (self, out_H, out_U, out_V):
-        """
-        This stencil comprises multiple stages.-
-        """
-        #
-        # first half step (stage X direction)
-        #
-        for p in self.get_interior_points (self.Hx):
-            # height
-            self.Hx[p]  = out_H[p + (-1,-1,0)]
-
-            # X momentum
-            self.Ux[p]  = out_U[p + (-1,-1,0)]
-
-            # Y momentum
-            self.Vx[p]  = out_V[p + (-1,-1,0)]
-
-        #
-        # frst half step (stage Y direction)
-        #
-        for p in self.get_interior_points (self.Hy):
-            # height
-            self.Hy[p]  = out_H[p + (1,1,0)]
-
-            # X momentum
-            self.Uy[p]  = out_U[p + (1,1,0)]
-
-            # Y momentum
-            self.Vy[p]  = out_V[p + (1,1,0)]
-
-        #
-        # second half step (stage)
-        #
-        for p in self.get_interior_points (self.Hx):
-            # height
-            out_H[p] = self.Hx[p]
-
-            # X momentum
-            out_U[p] = self.Ux[p]
-
-            # Y momentum
-            out_V[p] = self.Vx[p]
-
-
-
-class MovingTest (CopyTest):
-    """
-    A test case for the Moving stencil defined above.-
-    """
-    def setUp (self):
-        logging.basicConfig (level=logging.INFO)
-
-        self.domain = (64, 64, 1)
-        self.params = ('out_H', 
-                       'out_U',
-                       'out_V')
-        self.temps  = ('self.Hx', 
-                       'self.Hy',
-                       'self.Ux',
-                       'self.Uy',
-                       'self.Vx',
-                       'self.Vy')
-
-        self.out_H = np.ones  (self.domain)
-        self.out_U = np.zeros (self.domain)
-        self.out_V = np.zeros (self.domain)
-
-        self.stencil = Moving (self.domain)
-        self.stencil.set_halo ( (1, 1, 1, 1) )
-        self.stencil.set_k_direction ("forward")
-
-
-    def test_automatic_dependency_detection (self):
-        expected_deps = [('out_U', 'self.Ux'),
-                         ('out_V', 'self.Vx'),
-                         ('out_H', 'self.Hx'),
-                         ('self.Ux', 'out_U'),
-                         ('self.Uy', 'out_U'),
-                         ('self.Vx', 'out_V'),
-                         ('self.Vy', 'out_V'),
-                         ('self.Hx', 'out_H'),
-                         ('self.Hy', 'out_H')]
-        super ( ).test_automatic_dependency_detection (deps=expected_deps)
-
-
-    def test_compare_python_and_native_executions (self):
-        pass
-
-
-    def test_automatic_range_detection (self):
-        self.stencil.backend = 'c++'
-        self._run ( )
-
-        exp_rng = [-1, 0, -1, 0]
-        scope   = self.stencil.inspector.functors[0].scope
-        self.assertEqual (scope['self.Hx'].range, None)
-        self.assertEqual (scope['self.Ux'].range, None)
-        self.assertEqual (scope['self.Vx'].range, None)
-        self.assertEqual (scope['out_H'].range, exp_rng)
-        self.assertEqual (scope['out_U'].range, exp_rng)
-        self.assertEqual (scope['out_V'].range, exp_rng)
-
-        exp_rng = [0, 1, 0, 1]
-        scope   = self.stencil.inspector.functors[1].scope
-        self.assertEqual (scope['self.Hy'].range, None)
-        self.assertEqual (scope['self.Uy'].range, None)
-        self.assertEqual (scope['self.Vy'].range, None)
-        self.assertEqual (scope['out_H'].range, exp_rng)
-        self.assertEqual (scope['out_U'].range, exp_rng)
-        self.assertEqual (scope['out_V'].range, exp_rng)
-        
-        exp_rng = None
-        scope   = self.stencil.inspector.functors[2].scope
-        self.assertEqual (scope['self.Hx'].range, exp_rng)
-        self.assertEqual (scope['self.Ux'].range, exp_rng)
-        self.assertEqual (scope['self.Vx'].range, exp_rng)
-        self.assertEqual (scope['out_H'].range, exp_rng)
-        self.assertEqual (scope['out_U'].range, exp_rng)
-        self.assertEqual (scope['out_V'].range, exp_rng)
-
-
-    def test_python_execution (self):
-        import os
-
-        self.stencil.backend = 'python'
-        self._run ( )
-
-        #cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        #expected = np.load ('%s/laplace_result.npy' % cur_dir)
-
-        #self.assertTrue (np.array_equal (self.out_data,
-        #                                 expected))
-
-        
-    def test_interactive_plot (self):
-        try:
-            import matplotlib.pyplot as plt
-            from matplotlib import animation, cm
-            from mpl_toolkits.mplot3d import axes3d
-
-            #
-            # enable native execution for the stencil
-            #
-            self.stencil.backend = 'c++'
-
-            #
-            # disturb the water surface
-            #
-            self.stencil.create_random_drop (self.out_H)
-
-            #
-            # initialize 3D plot
-            #
-            fig = plt.figure ( )
-            ax = axes3d.Axes3D (fig)
-
-            rng  = np.arange (self.domain[0])
-            X, Y = np.meshgrid (rng, rng)
-            surf = ax.plot_wireframe (X, Y,
-                                    np.squeeze (self.out_H, axis=(2,)),
-                                    rstride=1,
-                                    cstride=1,
-                                    cmap=cm.jet,
-                                    linewidth=1,
-                                    antialiased=False)
-            #
-            # animation update function
-            #
-            def draw_frame (framenumber, swobj):
-                #
-                # a random drop
-                #
-                if framenumber == 0:
-                    self.stencil.create_random_drop (self.out_H)
-
-                #
-                # reflective boundary conditions
-                #
-                swobj.reflect_borders (self.out_H,
-                                       self.out_U,
-                                       self.out_V)
-                #
-                # run the stencil
-                #
-                swobj.run (out_H=self.out_H,
-                           out_U=self.out_U,
-                           out_V=self.out_V)
-
-                ax.cla ( )
-                surf = ax.plot_wireframe (X, Y,
-                                    np.squeeze (self.out_H, axis=(2,)),
-                                    rstride=1,
-                                    cstride=1,
-                                    cmap=cm.jet,
-                                    linewidth=1,
-                                    antialiased=False)
-                return surf,
-
-            anim = animation.FuncAnimation (fig,
-                                            draw_frame,
-                                            fargs=(self.stencil,),
-                                            frames=range (10),
-                                            interval=20,
-                                            blit=False)
-        except ImportError:
-            #
-            # don't run this test if matplotlib is not available
-            #
-            pass
-
-
-    def test_k_directions (self):
-        self.stencil.backend = 'c++'
-
-        for dir in ('forward'):
-            self.stencil.set_k_direction (dir)
-            self._run ( )
