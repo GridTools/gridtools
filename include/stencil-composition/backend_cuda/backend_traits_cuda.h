@@ -4,6 +4,7 @@
 #include "execute_kernel_functor_cuda.h"
 #include "run_esf_functor_cuda.h"
 #include "../block_size.h"
+#include "iterate_domain_cuda.h"
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -112,16 +113,12 @@ namespace gridtools{
         template<typename RunFunctorArgs, enumtype::strategy StrategyId>
         struct mss_loop
         {
-
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomain, typename Coords>
             static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
                 execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, coords, bi, bj)();
-
-//                //each strategy executes a different high level loop for a mss
-//                strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Cuda>::template run(local_domain_list, coords, bi, bj);
             }
         };
 
@@ -134,6 +131,34 @@ namespace gridtools{
         typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
 
         typedef block_size<32,8> block_size_t;
+
+        /**
+         * @brief metafunction that derives that returns the right iterate domain
+         * (depending on whether the local domain is positional or not)
+         * @param LocalDomain the local domain
+         */
+        template <typename LocalDomain>
+        struct select_iterate_domain {
+            BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+            //indirection in order to avoid instantiation of both types of the eval_if
+            template<typename _LocalDomain>
+            struct select_positional_iterate_domain
+            {
+                typedef iterate_domain_cuda<positional_iterate_domain, _LocalDomain> type;
+            };
+
+            template<typename _LocalDomain>
+            struct select_basic_iterate_domain
+            {
+                typedef iterate_domain_cuda<iterate_domain, _LocalDomain> type;
+            };
+
+            typedef typename boost::mpl::eval_if<
+                local_domain_is_stateful<LocalDomain>,
+                select_positional_iterate_domain<LocalDomain>,
+                select_basic_iterate_domain<LocalDomain>
+            >::type type;
+        };
 
     };
 

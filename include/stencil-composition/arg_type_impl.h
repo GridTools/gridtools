@@ -292,7 +292,18 @@ namespace gridtools {
         static const ushort_t n_args=super::n_args+1;
         typedef typename super::index_type index_type;
 
+        template <typename OtherArgDecorator>
+        GT_FUNCTION
+        arg_decorator ( OtherArgDecorator other)
+        {
+            for(uint_t i = 0; i < n_args; ++i)
+            {
+                base_t::m_offset[i] = other.offset()[i];
+            }
+        }
+
 #ifdef CXX11_ENABLED
+
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
@@ -360,7 +371,6 @@ namespace gridtools {
             {
                 base_t::m_offset[n_args-1] = 0;
             }
-
 
         /**@brief returns the offset array*/
         GT_FUNCTION

@@ -49,7 +49,7 @@ namespace gridtools {
             typedef typename run_f_on_interval_execution_engine<RunFOnIntervalImpl>::type execution_engine;
 
             typedef typename run_functor_arguments_t::local_domain_t local_domain_t;
-            typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
+            typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
             typedef typename run_functor_arguments_t::coords_t coords_t;
 //            typedef typename esf_arguments_t::interval_map_t interval_map_t;
 
