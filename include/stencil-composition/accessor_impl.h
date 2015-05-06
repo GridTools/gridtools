@@ -122,6 +122,10 @@ namespace gridtools {
     }
 #endif
 
+    //forward declaration
+    template< int_t Index, int_t Dimension >
+    struct offset_tuple;
+
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
      *
@@ -144,10 +148,11 @@ namespace gridtools {
     template <uint_t I, typename Range, ushort_t Dim >
     struct accessor_base  {
 
+        //typedef useful when unnecessary indirections are used
+        typedef accessor_base<I, Range, Dim> type;
         template <uint_t II, typename R, ushort_t D>
         friend std::ostream& operator<<(std::ostream& s, accessor_base<II,R,D> const& x);
         typedef accessor_base<I,Range,Dim> base_t;
-        static const ushort_t n_args=0;
         static const ushort_t n_dim=Dim;
 
         typedef static_uint<I> index_type;
@@ -157,8 +162,9 @@ namespace gridtools {
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
-        constexpr explicit accessor_base()
-            {}
+        constexpr explicit accessor_base():m_offsets()
+            {
+            }
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
@@ -167,61 +173,32 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr accessor_base ( Whatever... x)
+        constexpr accessor_base ( Whatever... x) : m_offsets(x...)
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
             }
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr accessor_base ( X x, Y y, Z z, T t )
+        constexpr accessor_base ( X x, Y y, Z z, T t ): m_offsets(x,y,z,y)
             {
             }
 
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr accessor_base ( X x, Y y, Z z )
+        constexpr accessor_base ( X x, Y y, Z z ): m_offsets(x,y,z)
             {
             }
         template <typename X>
         GT_FUNCTION
-        constexpr accessor_base ( X x )
+        constexpr accessor_base ( X x ): m_offsets(x)
             {
             }
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr accessor_base ( X x, Y y )
+        constexpr accessor_base ( X x, Y y ): m_offsets(x,y)
             {
             }
-#endif
-        /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
-           When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-#ifdef CXX11_ENABLED
-        template <typename... Whatever>
-        GT_FUNCTION
-#ifdef NDEBUG
-        constexpr
-#endif
-accessor_base ( int const& t, Whatever const& ... x) {
-            //this static check fails on GCC<4.9 even when it should not
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected")
-
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(Whatever)+1)>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.")
-
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.")
-#ifndef NDEBUG
-                assert(false);
-#endif
-
-                }
-#else
-        GT_FUNCTION
-        constexpr accessor_base ( int const& i ){
-#ifndef NDEBUG
-            assert(false);
-#endif
-        }
 #endif
 
         static  void info() {
@@ -235,10 +212,15 @@ accessor_base ( int const& t, Whatever const& ... x) {
         GT_FUNCTION
         constexpr
         int_t get() const {
-            return 0;
+            GRIDTOOLS_STATIC_ASSERT(Idx<=n_dim, "requested accessor index larger than the available dimensions")
+            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "requested accessor index lower than zero")
+            return m_offsets.template get<Idx>();
         }
 
 
+    private:
+
+        offset_tuple<n_dim, n_dim> m_offsets;
 
 // #ifdef CXX11_ENABLED
 // #ifndef __CUDACC__
@@ -279,13 +261,13 @@ accessor_base ( int const& t, Whatever const& ... x) {
 
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
     */
-    template< class ArgType >
-    struct offset_tuple : public ArgType{
+    template< int_t Index, int_t Dimension >
+    struct offset_tuple : public offset_tuple<Index-1, Dimension>
+    {
+        static const int_t n_dim=Dimension;
 
-        typedef typename ArgType::base_t base_t;
-        typedef ArgType super;
+        typedef offset_tuple<Index-1, Dimension> super;
         static const ushort_t n_args=super::n_args+1;
-        typedef typename super::index_type index_type;
 
 #ifdef CXX11_ENABLED
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -293,7 +275,7 @@ accessor_base ( int const& t, Whatever const& ... x) {
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
+            constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -396,26 +378,41 @@ accessor_base ( int const& t, Whatever const& ... x) {
         int_t m_offset;
     };
 
-    /**@brief Convenient syntactic sugar for specifying an extended-width storage with size 'Number' (similar to currying)
-       The extra width is specified using concatenation, e.g. extending offset_tuple with 2 extra data fields is obtained by doing
-       \verbatim
-       offset_tuple<offset_tuple<offset_tuple_base>>
-       \endverbatim
-       The same result is achieved using the accessor_list struct with
-       \verbatim
-       accessor_list<offset_tuple, 2>
-       \endverbatim
-    */
-    template < ushort_t ID, typename Range, ushort_t Number, ushort_t Dimension>
-    struct accessor_list{
-        typedef offset_tuple<typename accessor_list<ID, Range, Number-1, Dimension>::type>  type;
-    };
+    //specialization
+    template< int_t Dimension >
+    struct offset_tuple<0, Dimension>
+    {
+        static const int_t n_dim=Dimension;
+        #ifdef CXX11_ENABLED
+        template <typename... Whatever>
+        GT_FUNCTION
+        constexpr offset_tuple ( Whatever... x) {}
+#else
+        template <typename X, typename Y, typename Z,  typename T>
+        GT_FUNCTION
+        constexpr offset_tuple ( X x, Y y, Z z, T t ){}
 
-    /**@brief specialization to stop the recursion*/
-    template<ushort_t ID, typename Range, ushort_t Dimension >
-    struct accessor_list<ID, Range, 0, Dimension>{typedef accessor_base<ID, Range, Dimension> type;
-    };
+        template <typename X, typename Y, typename Z>
+        GT_FUNCTION
+        constexpr offset_tuple ( X x, Y y, Z z ){}
 
+        template <typename X>
+        GT_FUNCTION
+        constexpr offset_tuple ( X x ){}
+
+        template <typename X, typename Y>
+        GT_FUNCTION
+        constexpr offset_tuple ( X x, Y y ){}
+#endif
+
+        GT_FUNCTION
+        constexpr offset_tuple(){}
+        static const ushort_t n_args=0;
+
+        template<short_t Idx>
+        GT_FUNCTION
+        constexpr int_t get() const { return 0;}
+    };
 
 //################################################################################
 //                              Compile time checks

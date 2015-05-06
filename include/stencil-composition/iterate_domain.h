@@ -218,11 +218,14 @@ namespace gridtools {
 
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders
+
+            this method is enabled only if the current placeholder dimension does not exceed the number of space dimensions of the storage class.
+            I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for definitions)
         */
         template <typename ArgType>
         GT_FUNCTION
         typename boost::enable_if<
-            typename boost::mpl::bool_< (ArgType::type::n_args <=
+            typename boost::mpl::bool_< (ArgType::type::n_dim <=
                                          boost::mpl::at<
                                          typename LocalDomain::esf_args
                                          , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
@@ -237,11 +240,16 @@ namespace gridtools {
 
 
         /** @brief method called in the Do methods of the functors.
-            Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+            Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)
+
+            this method is enabled only if the current placeholder dimension exceeds the number of space dimensions of the storage class.
+            I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
+            TODO: This and the above version will be eventually merged.
+        */
             template < typename ArgType>
             GT_FUNCTION
             typename boost::enable_if<
-                typename boost::mpl::bool_<(ArgType::type::n_args >
+                typename boost::mpl::bool_<(ArgType::type::n_dim >
                                             boost::mpl::at<
                                             typename LocalDomain::esf_args
                                             , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
@@ -393,21 +401,18 @@ namespace gridtools {
         //in the placehoders definition.
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
-        // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_args>())<<std::endl;
+        // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_dim>())<<std::endl;
         assert( (int_t)(m_index[ArgType::index_type::value])
                 +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                 ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
                 >= 0);
 
-#ifdef CXX11_ENABLED
-        GRIDTOOLS_STATIC_ASSERT((gridtools::offset_tuple<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::offset_tuple<ArgType>::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
-#endif
-            return *(real_storage_pointer
-                     +(m_index[ArgType::index_type::value])
-                     +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                     //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                     ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
-                );
+        return *(real_storage_pointer
+                 +(m_index[ArgType::index_type::value])
+                 +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
+                 //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
+                 ->_index(m_strides->template get<ArgType::index_type::value>(), arg)
+            );
     }
 
 
@@ -417,7 +422,7 @@ namespace gridtools {
     template < typename ArgType>
     GT_FUNCTION
     typename boost::enable_if<
-        typename boost::mpl::bool_<(ArgType::type::n_args > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+        typename boost::mpl::bool_<(ArgType::type::n_dim > boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
         , typename boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  RESTRICT
     iterate_domain<LocalDomain>::operator()(ArgType const& arg) const {
 
@@ -428,12 +433,12 @@ namespace gridtools {
 #endif
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
-        /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::type::n_args); */
+        GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions+2/*max. extra dimensions*/>=ArgType::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
 
         //for the moment the extra dimensionality of the storage is limited to max 2
-        //(3 space dim + 2 extra= 5, which gives n_args==4)
+        //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
 
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
@@ -445,7 +450,7 @@ namespace gridtools {
                                  storage_type::get_index
                                  (
                                      (
-                                         ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
+                                         ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
                                          arg.template get<0>() //offset for the current dimension
                                          :
                                          arg.template get<0>() //offset for the current dimension
@@ -473,12 +478,12 @@ namespace gridtools {
 
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
-        /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_args); */
+        /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_dim); */
 
         //for the moment the extra dimensionality of the storage is limited to max 2
-        //(3 space dim + 2 extra= 5, which gives n_args==4)
+        //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
 
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
@@ -488,7 +493,7 @@ namespace gridtools {
                                  //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
                                  storage_type::get_index(
                                      (
-                                         ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
+                                         ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
                                          accessor_mixed_t::template get_constexpr<0>() //offset for the current dimension
                                          :
                                          accessor_mixed_t::template get_constexpr<0>() //offset for the current dimension
@@ -517,7 +522,7 @@ namespace gridtools {
 
         assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
-        GRIDTOOLS_STATIC_ASSERT((gridtools::offset_tuple<ArgType>::n_args <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::offset_tuple<ArgType>::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+        GRIDTOOLS_STATIC_ASSERT((ArgType::n_dim <= boost::mpl::at<typename LocalDomain::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions), "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
 
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
 

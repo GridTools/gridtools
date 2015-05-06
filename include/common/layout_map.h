@@ -247,8 +247,9 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr T find_val(First first, Indices ... indices) {
             static_assert(sizeof...(Indices)<length, "Too many arguments");
-            // GRIDTOOLS_STATIC_ASSERT( pos_<I>::value != ~ushort_t(), "index not present in the layout vector" );
-            typedef typename boost::mpl::eval_if_c< (pos_<I>::value > sizeof...(Indices)),
+
+            //lazy template instantiation
+            typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= length ),
                 identity<T, DefaultVal>
                 ,
                 tied_type<I, T> >::type type;
@@ -258,13 +259,13 @@ namespace gridtools {
 
 
 
-/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
-    \tparam I dimension (0->i, 1->j, 2->k, ...)
-    \tparam T type of the return value
-    \tparam DefaultVal default value return when the dimension I does not exist
-    \tparam Indices type of the indices passed as argument
-    \param indices argument vector of indices
-*/
+        /** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
+            \tparam I dimension (0->i, 1->j, 2->k, ...)
+            \tparam T type of the return value
+            \tparam DefaultVal default value return when the dimension I does not exist
+            \tparam Indices type of the indices passed as argument
+            \param indices argument vector of indices
+        */
         template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
         static constexpr Indices
@@ -297,10 +298,10 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
             GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
-            return (pos_<I>::value >= length ) ?
+                return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Tuple::n_args-pos_<I>::value-1>();
+                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 
@@ -844,11 +845,14 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
             GT_FUNCTION
             static T find_val(Tuple const& indices) {
-            if (pos_<I>::value >= length ) {
+            if ((pos_<I>::value >= length))
+            {
                 return DefaultVal;
             } else {
-                //this calls arg_decorator::get
-                return indices.template get<Tuple::n_args-pos_<I>::value-1>();
+                assert( Tuple::n_dim-pos_<I>::value-1 >=0 );
+                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a negative index")
+                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets out of bounds")
+                return indices.template get<Tuple::n_dim-pos_<I>::value-1>();
             }
         }
 
