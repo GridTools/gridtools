@@ -7,6 +7,7 @@ namespace interface{
  */
     bool test_trivial() {
         accessor0<0, 3> first(3,2,-1);
+        std::cout<<first.get<2>()<<" "<<first.get<1>()<<" "<<first.get<0>()<<std::endl;
         return first.get<2>()==3 && first.get<1>()==2 && first.get<0>()==-1 ;
 
     }
@@ -72,4 +73,4 @@ namespace interface{
     }
 
 #endif
-}//namespace interface
+} //namespace interface

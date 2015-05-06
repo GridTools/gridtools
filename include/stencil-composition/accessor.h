@@ -24,50 +24,50 @@ namespace gridtools {
        field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
      */
     template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
-    struct accessor : public accessor_list<ID, Range, Number, Number>::type {
-        typedef typename accessor_list<ID, Range, Number, Number>::type type;
+    struct accessor : public accessor_base<ID, Range, Number> {
+        typedef accessor_base<ID, Range, Number> super;
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
         /**inheriting all constructors from offset_tuple*/
-        using type::offset_tuple::offset_tuple;
+        using super::accessor_base;
 #else
         /**@brief constructor forwarding all the arguments
         */
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr accessor ( ForwardedArgs... x): type (x...)
+        constexpr accessor ( ForwardedArgs... x): super (x...)
             {
             }
 #endif
 #else
 
         GT_FUNCTION
-        constexpr explicit accessor(): type()
+        constexpr explicit accessor(): super()
             {}
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y, Z z, T t ): type(x, y, z, t)
+        constexpr accessor ( X x, Y y, Z z, T t ): super(x, y, z, t)
             {
             }
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y, Z z ): type(x, y, z)
+        constexpr accessor ( X x, Y y, Z z ): super(x, y, z)
             {
             }
         /** @brief constructor forwarding all the arguments*/
         template <typename X>
         GT_FUNCTION
-        constexpr accessor ( X x ): type(x)
+        constexpr accessor ( X x ): super(x)
             {
             }
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y ): type(x, y)
+        constexpr accessor ( X x, Y y ): super(x, y)
             {
             }
 
@@ -80,23 +80,23 @@ namespace gridtools {
        \ref gridtools::accessor with zero range
     */
     template < ushort_t ID, ushort_t Number>
-    struct accessor0 : public accessor_list<ID, range<0,0,0,0>, Number, Number>::type {
-        typedef typename accessor_list<ID, range<0,0,0,0>, Number, Number>::type super;
+    struct accessor0 : public accessor_base<ID, range<0,0,0,0>, Number> {
+        typedef accessor_base<ID, range<0,0,0,0>, Number> super;
         GT_FUNCTION
         constexpr accessor0(): super()
             {}
 
 #ifdef CXX11_ENABLED
-#ifndef __CUDACC__
-        using super::offset_tuple::offset_tuple;
-#else
+// #ifndef __CUDACC__
+//         using super::accessor_base::accessor_base;
+// #else
 
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr accessor0 ( ForwardedArgs... x): super (x)
+        constexpr accessor0 ( ForwardedArgs... x): super (x ...)
             {
             }
-#endif
+// #endif
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
@@ -236,16 +236,14 @@ namespace gridtools {
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
     private:
-        static constexpr typename accessor_list<ArgType::index_type::value
+        static constexpr accessor_base<ArgType::index_type::value
                                              , typename ArgType::range_type
-                                             ,  ArgType::n_dim
-                                             , ArgType::n_dim>::type s_args_constexpr{
+                                             , ArgType::n_dim> s_args_constexpr{
             enumtype::Dimension<Pair::first>{Pair::second} ... };
 
-        typename accessor_list<ArgType::index_type::value
-                            , typename ArgType::range_type
-                            , ArgType::n_dim
-                            , ArgType::n_dim>::type m_args_runtime;
+        accessor_base<ArgType::index_type::value
+                      , typename ArgType::range_type
+                      , ArgType::n_dim> m_args_runtime;
         typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
     public:
 
@@ -283,10 +281,9 @@ namespace gridtools {
     };
 
     template <typename ArgType, typename ... Pair>
-    constexpr typename accessor_list<ArgType::index_type::value
+    constexpr accessor_base<ArgType::index_type::value
                                   , typename ArgType::range_type
-                                  , ArgType::n_dim
-                                  , ArgType::n_dim>::type accessor_mixed<ArgType, Pair...>::s_args_constexpr;
+                                  , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
 /**this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
