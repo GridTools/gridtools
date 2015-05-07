@@ -36,11 +36,11 @@ bool test(){
     iterate_domain_ it_domain;
     functor fun;
 
-    loop_hierarchy<array_t, loop_item<1, enumtype::forward, uint_t>, loop_item<5, enumtype::forward, short_t>
+    loop_hierarchy<array_t, loop_item<1, enumtype::forward, int_t>, loop_item<5, enumtype::forward, short_t>
 #ifdef CXX11_ENABLED
-                   , static_loop_item<0, enumtype::forward, 0ul, 10ul, uint_t>
+                   , static_loop_item<0, enumtype::forward, 0u, 10u, uint_t>
 #endif
-        > h(2ul, 5ul, 6, 8);
+        > h(2, 5, 6, 8);
     h.apply(it_domain, fun);
 
     return fun.m_iterations == 4*3
