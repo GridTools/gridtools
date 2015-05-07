@@ -9,8 +9,8 @@ BOOST ?= ${BOOST_ROOT}
 # 
 CC := g++
 #CCFLAGS  := -O0 -g -fPIC -fopenmp -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE
-CCFLAGS   := -O3 -fPIC -fopenmp -DNDEBUG -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE
-LIBRARIES := -fopenmp -lc
+CCFLAGS   := -O3 -w -fPIC -fopenmp -DNDEBUG -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE
+LIBRARIES := -fopenmp -lpthread -lboost_timer -lboost_system -lboost_chrono
 INCLUDES  := -I. -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
 GENCODE   := -shared -Wl,-soname,lib{{ stencil.name|lower }}.so
 OBJS      := {{ stencil.name }}.o $(GRIDTOOLS)/src/gridtools.o 
