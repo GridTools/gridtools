@@ -118,10 +118,10 @@ namespace gridtools {
 
                 const typename backend_t::coords_t::partitioner_t::Flag UP=backend_t::coords_t::partitioner_t::UP;
                 const typename backend_t::coords_t::partitioner_t::Flag LOW=backend_t::coords_t::partitioner_t::LOW;
-                const int_t jminus=(int_t) (xrange_subdomain_t::jminus::value + (func_->m_coords.at_boundary(1,LOW) ? xrange_t::jminus::value : 0) ) ;//j-low
-                const int_t iminus=(int_t) (xrange_subdomain_t::iminus::value + (func_->m_coords.at_boundary(0,LOW) ? xrange_t::iminus::value : 0) ) ;//i-low
-                const int_t jplus=(int_t)  (xrange_subdomain_t::jplus::value + (func_->m_coords.at_boundary(1,UP) ? xrange_t::jplus::value : 0) ) ;//j-high
-                const int_t iplus=(int_t)  (xrange_subdomain_t::iplus::value + (func_->m_coords.at_boundary(0,UP) ? xrange_t::iplus::value : 0) ) ;//i-high
+                const int_t jminus=(int_t) xrange_t::jminus::value;
+                const int_t iminus=(int_t) xrange_t::iminus::value;
+                const int_t jplus=(int_t) xrange_t::jplus::value;
+                const int_t iplus=(int_t) xrange_t::iplus::value;
 
 
                 typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
