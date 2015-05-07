@@ -25,6 +25,9 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 struct out_value {
     template <typename T>
     __host__ __device__
@@ -102,8 +105,8 @@ bool the_same(One const& storage1, Two const& storage2) {
     return same;
 }
 
-/*
- *
+
+/**
  */
 bool test_domain() {
 
@@ -170,9 +173,9 @@ bool test_domain() {
 // #endif
 
     typedef boost::mpl::vector<
-  gridtools::_impl::select_storage<accessor_list>::template apply<static_int<0> >::type,
-    gridtools::_impl::select_storage<accessor_list>::template apply<static_int<1> >::type,
-    gridtools::_impl::select_storage<accessor_list>::template apply<static_int<2> >::type
+        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<0> >::type,
+        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<1> >::type,
+        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<2> >::type
     > mpl_accessor_list;
 
     typedef typename boost::fusion::result_of::as_vector<mpl_accessor_list>::type actual_arg_list_type;

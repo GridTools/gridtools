@@ -46,9 +46,9 @@ namespace gridtools{
     struct multiplies {
         GT_FUNCTION
         constexpr multiplies(){}
-        template <typename  T>
+        template <typename  T1, typename T2>
         GT_FUNCTION
-        constexpr T operator() (const T& x, const T& y) const {return x*y;}
+        constexpr T1 operator() (const T1& x, const T2& y) const {return x*y;}
     };
 
 

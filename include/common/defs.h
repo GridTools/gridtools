@@ -25,6 +25,10 @@
 #define DEPRECATED(func) func
 #endif
 
+/** Macro do enable additional checks that may catch some errors in user code
+ */
+#define PEDANTIC
+
 #define RESTRICT __restrict__
 
 #define GT_NO_ERRORS 0
@@ -155,7 +159,7 @@ namespace gridtools{  namespace enumtype{
     template<ushort_t N>
     using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
 #else
-    typedef long int                     int_t;
+    typedef int                     int_t;
     typedef int                     short_t;
     typedef unsigned int                     uint_t;
     typedef unsigned int                     ushort_t;
