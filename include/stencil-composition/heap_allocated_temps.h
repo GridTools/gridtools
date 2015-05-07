@@ -54,18 +54,7 @@ namespace gridtools {
                                      m_tile_j,
                                      m_tile_k);
                     e->set_name("default tmp storage");
-                    e->allocate();
-                }
-            };
-            // noone calls this!!!
-            // I know! we should try to put this back, I had issues with double frees at some point
-            struct delete_tmps {
-                template <typename Elem>
-                GT_FUNCTION
-                void operator()(Elem & elem) const {
-#ifndef __CUDA_ARCH__
-                    delete elem;
-#endif
+                    //e->allocate();
                 }
             };
 
@@ -87,6 +76,18 @@ namespace gridtools {
 
             }
 
+        };
+
+        // noone calls this!!!
+        // I know! we should try to put this back, I had issues with double frees at some point
+        struct delete_tmps {
+            template <typename Elem>
+            GT_FUNCTION
+                void operator()(Elem & elem) const {
+#ifndef __CUDA_ARCH__
+                delete elem;
+#endif
+            }
         };
 
         /**
@@ -135,7 +136,7 @@ namespace gridtools {
                                      m_offset_k,
                                      m_n_i_threads,
                                      m_n_j_threads);
-                    e->allocate();
+                    //e->allocate();
                 }
             };
 
