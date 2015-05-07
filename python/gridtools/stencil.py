@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-import sys
 import ast
 import logging
-import warnings
 
 import numpy as np
 import networkx as nx
 
-from gridtools.symbol  import StencilScope, Scope
+from gridtools.utils   import Utilities
+from gridtools.symbol  import StencilScope
 from gridtools.functor import Functor
 
 
@@ -401,145 +400,15 @@ class StencilInspector (ast.NodeVisitor):
 
 
 
-
-class Utilities ( ):
-    """
-    Class to contain various helpful functions.
-    Currently contains floating point precision validation.-
-    """
-    def __init__ (self):
-        #
-        # a unique name for the stencil object
-        #
-        self.name = self.__class__.__name__.capitalize ( )
-
-        #
-        # these entities are automatically generated at compile time
-        #
-        self.ulib_file    = None
-        self.ucpp_file    = None
-        self.umake_file   = None
-
-        #
-        # a reference to the compiled dynamic library
-        #
-        self.ulib_obj = None
-
-    def validate_translate (self, namespace=None):
-        """
-        Creates the C++ source file containing utilities to be used by Python.
-        Currently only consists of the function for checking the size of the floating
-        point type used in the backend.
-        """
-        from gridtools import JinjaEnv
-
-        #
-        # instantiate each of the templates and render them
-        #
-        cpp      = JinjaEnv.get_template ("utilities.cpp")
-        make     = JinjaEnv.get_template ("Makefile.utilities")
-
-        if namespace is None:
-            namespace = self.name.lower ( )
-
-        return (cpp.render  (stencil=self),
-                make.render (stencil=self))
-
-
-    def generate_validate_code (self, src_dir=None):
-        """
-        Generates native code for validating the precision of the floating
-        point type.
-            src_dir     directory where the files should be saved (optional).-
-        """
-        from os        import write, path, makedirs
-        from tempfile  import mkdtemp
-        from gridtools import JinjaEnv
-        #
-        # create directory and files for the generated code
-        #
-        if src_dir is None:
-            self.src_dir = mkdtemp (prefix="__gridtools_")
-        else:
-            if not path.exists (src_dir):
-                makedirs (src_dir)
-            self.src_dir = src_dir
-
-        namespace         = self.name.lower ( )
-        self.ulib_file     = 'libutilities.so'
-        self.ucpp_file     = 'utilities.cpp'
-        self.umake_file    = 'Makefile.utilities'
-
-        logging.info ("Generating backend float type check code (C++) in '%s'" % self.src_dir)
-
-        #
-        # code for the stencil, the library entry point and makefile
-        #
-        cpp_src, make_src = self.validate_translate ( )
-        with open (path.join (self.src_dir, self.ucpp_file), 'w') as cpp_hdl:
-            cpp_hdl.write (cpp_src)
-        with open (path.join (self.src_dir, self.umake_file), 'w') as make_hdl:
-            make_hdl.write (make_src)
-
-
-    def ucompile (self):
-        """
-        Compiles the translated code to a shared library, ready to be used.-
-        """
-        from os         import path, getcwd, chdir
-        from ctypes     import cdll
-        from subprocess import check_call
-
-        try:
-            #
-            # start the compilation of the dynamic library
-            #
-            current_dir = getcwd ( )
-            chdir (self.src_dir)
-            check_call (["make", 
-                         "--silent", 
-                         "--file=%s" % self.umake_file])
-            chdir (current_dir)
-            #
-            # attach the library object
-            #
-            self.ulib_obj = cdll.LoadLibrary ("%s" % path.join (self.src_dir, 
-                                                               self.ulib_file))
-        except Exception as e:
-            logging.error ("Compilation error")
-            self.ulib_obj = None
-            raise e
-
-
-    def is_valid_float_type_size(self, npfloat):
-        if (self.ulib_obj == None):
-            self.generate_validate_code()
-            self.ucompile ( )
-
-        rv = True
-
-        backendSize = self.ulib_obj.getFloatSize()
-        nptype      = npfloat.dtype
-
-        logging.debug ("Backend Float Size: %d" % backendSize)
-        logging.debug ("Frontend NumPy Float Type: %s" % nptype)
-    
-        if (nptype == np.float64):
-            if (backendSize != 64):
-                rv = False                  # Floating point type precision mismatch!!!
-        elif (nptype == np.float32): 
-            if (backendSize != 32):
-                rv = False                  # Floating point type precision mismatch!!!
-        else:
-            raise TypeError ("NumPy array element type (%s) does not match backend" % nptype)
-
-        return rv
-
-
 class Stencil ( ):
     """
     A base stencil class.-
     """
+    #
+    # a utilities class shared by all stencils
+    #
+    utils = Utilities ( )
+
     def __init__ (self):
         #
         # a unique name for the stencil object
@@ -575,7 +444,6 @@ class Stencil ( ):
         self.cpp_file     = None
         self.make_file    = None
         self.fun_hdr_file = None
-        self.utils        = Utilities()
 
         #
         # a reference to the compiled dynamic library
@@ -739,6 +607,7 @@ class Stencil ( ):
                     for k in range (start_k, end_k, inc_k):
                         yield InteriorPoint ((i, j, k))
 
+
     @property
     def scope (self):
         return self.inspector.scope
@@ -838,9 +707,10 @@ class Stencil ( ):
 
             # Floating point precision validation
             for key in kwargs:
-                  if (isinstance(kwargs[key], np.ndarray)):
-                      if (not self.utils.is_valid_float_type_size(kwargs[key])):
-                          raise TypeError("The floating point precision in Python does not match that of the C++ backend.")
+                  if isinstance(kwargs[key], np.ndarray):
+                      if not Stencil.utils.is_valid_float_type_size(kwargs[key]):
+                          raise TypeError ("Element size of '%s' does not match that of the C++ backend."
+                                           % key)
             #
             # automatic compilation only if the library is not available
             #
