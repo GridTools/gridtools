@@ -170,14 +170,16 @@ namespace gridtools {
         void setup(UInt const& ... dims)
             {
                 assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
-      BOOST_STATIC_ASSERT(sizeof...(UInt)==space_dimensions);
-      BOOST_STATIC_ASSERT(field_dimensions>0);
-      m_strides[0] = accumulate( multiplies(), dims...) ;
-      _impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
+                BOOST_STATIC_ASSERT(sizeof...(UInt)==space_dimensions);
+                BOOST_STATIC_ASSERT(field_dimensions>0);
+                m_strides[0] = accumulate( multiplies(), dims...) ;
+                _impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
 
-      //the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
-      //You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
-      BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ) );
+#ifdef PEDANTIC
+                //the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
+                //You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
+                BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ) );
+#endif
             }
 
 #else //CXX11_ENABLED

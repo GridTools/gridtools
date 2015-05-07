@@ -589,7 +589,7 @@ namespace gridtools {
        etc.
        \endcode
     */
-    template <int I1, short_t I2, short_t I3>
+    template <short_t I1, short_t I2, short_t I3>
     struct layout_map<I1, I2, I3, -2> {
         static  const short_t length=3;
         typedef boost::mpl::vector4_c<short_t, I1, I2, I3, -2> layout_vector_t;
@@ -784,7 +784,7 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <short_t I, typename T, T DefaultVal>
+        template <ushort_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const& a, T const& b, T const& c) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
@@ -817,7 +817,7 @@ namespace gridtools {
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <short_t I, typename T, T DefaultVal>
+        template <ushort_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
@@ -922,29 +922,29 @@ namespace gridtools {
     template <typename LM>
     struct reverse_map;
 
-    template <int I1, int I2>
+    template <short_t I1, short_t I2>
     struct reverse_map<layout_map<I1, I2> > {
         typedef layout_map<I2,I1> type;
     };
 
-    template <int I1, int I2, int I3>
+    template <short_t I1, short_t I2, short_t I3>
     struct reverse_map<layout_map<I1, I2,I3> > {
-        template <int I, int Dummy>
+        template <short_t I, short_t Dummy>
         struct new_value;
 
-        template <int Dummy>
+        template <short_t Dummy>
         struct new_value<0, Dummy> {
-            static const int value = 2;
+            static const short_t value = 2;
         };
 
-        template <int Dummy>
+        template <short_t Dummy>
         struct new_value<1, Dummy> {
-            static const int value = 1;
+            static const short_t value = 1;
         };
 
-        template <int Dummy>
+        template <short_t Dummy>
         struct new_value<2, Dummy> {
-            static const int value = 0;
+            static const short_t value = 0;
         };
 
         typedef layout_map<new_value<I1,0>::value, new_value<I2,0>::value, new_value<I3,0>::value > type;

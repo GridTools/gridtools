@@ -16,9 +16,9 @@ endif()
 
 if (GTEST_FOUND)
     if ( ENABLE_CXX11 )
-        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp)
+        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
     else()
-        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp)
+        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
     endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
@@ -38,7 +38,7 @@ if (GTEST_FOUND)
   if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
       tests.cu
-      #test_domain.cu
+      test_domain.cu
       test_cuda_storage.cu
       test_hybrid_pointer.cu
       gpu_clone.cu

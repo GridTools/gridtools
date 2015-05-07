@@ -15,9 +15,9 @@
 
 #include "boundary_conditions_test.h"
 
-// TEST(testdomain, testallocationongpu) {
-//     EXPECT_EQ(test_domain(), false);
-// }
+TEST(testdomain, testallocationongpu) {
+    EXPECT_EQ(test_domain(), false);
+}
 
 TEST(testhybridpointer, testhybridpointerongpu) {
     EXPECT_EQ(test_hybrid_pointer(), true);

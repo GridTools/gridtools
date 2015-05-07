@@ -533,4 +533,5 @@ namespace gridtools {
                  ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
     }
 #endif //ifndef CXX11_ENABLED
+
 } // namespace gridtools
