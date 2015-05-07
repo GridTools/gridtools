@@ -63,8 +63,8 @@ namespace gridtools{
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
         */
         partitioner_trivial(// communicator_t const& comm,
-            const communicator_t& comm, const gridtools::array<ushort_t, space_dimensions>& halo )
-            : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_comm(comm){
+            const communicator_t& comm, const gridtools::array<ushort_t, space_dimensions>& halo, const gridtools::array<ushort_t, space_dimensions>& padding )
+        : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
 
             m_boundary=0;//bitmap
 
@@ -72,6 +72,56 @@ namespace gridtools{
                 if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
             for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
                 if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
+        }
+
+        partitioner_trivial(const communicator_t& comm)
+        : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_comm(comm){
+
+            m_boundary=0;//bitmap
+
+            for (ushort_t i=0; i<communicator_t::ndims; ++i)
+                if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
+            for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
+                if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
+        }
+
+        void low_up_bounds(int_t& low_bound, int_t& up_bound, ushort_t component, uint_t const* sizes_) const
+            {
+                if ( component >= communicator_t::ndims || m_pid[component]==0 )
+                    low_bound = 0;
+                else
+                {
+                    div_t value=std::div(sizes_[component],m_ntasks[component]);
+                    low_bound = ((int)(value.quot*(m_pid[component])) + (int)((value.rem>=m_pid[component]) ? (m_pid[component]) : value.rem));
+                    /*error in the partitioner*/
+                    //assert(low_bound[component]>=0);
+#ifndef NDEBUG
+                    if(low_bound<0){
+                        printf("\n\n\n ERROR[%d]: low bound for component %d is %d<0\n\n\n", PID,  component, low_bound );
+                    }
+#endif
+                }
+
+                if (component >= communicator_t::ndims || m_pid[component]==m_ntasks[component]-1 )
+                    up_bound = sizes_[component];
+                else
+                {
+                    div_t value=std::div(sizes_[component],m_ntasks[component]);
+                    up_bound = ((int)(value.quot*(m_pid[component]+1)) + (int)((value.rem>m_pid[component]) ? (m_pid[component]+1) : value.rem));
+                    /*error in the partitioner*/
+                    //assert(up_bound[component]<size);
+                    if(up_bound>sizes_[component]){
+                        printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", PID,  component, up_bound, sizes_[component] );
+                    }
+
+                }
+            }
+
+        uint_t compute_tile(ushort_t component, uint_t const* sizes_ ) const {
+            int_t low;
+            int_t high;
+            low_up_bounds(low, high, component, sizes_);
+            return high-low;
         }
 
 
@@ -99,42 +149,16 @@ namespace gridtools{
                 uint_t sizes[3]={d1, d2, d3};
 #endif
                 for(uint_t component=0; component<space_dimensions; ++component){
-                    if ( component >= communicator_t::ndims || m_pid[component]==0 )
-                        low_bound[component] = 0;
-                    else
-                    {
-                        div_t value=std::div(sizes[component],m_ntasks[component]);
-                        low_bound[component] = ((int)(value.quot*(m_pid[component])) + (int)((value.rem>=m_pid[component]) ? (m_pid[component]) : value.rem));
-                        /*error in the partitioner*/
-                        //assert(low_bound[component]>=0);
-#ifndef NDEBUG
-                        if(low_bound[component]<0){
-                            printf("\n\n\n ERROR[%d]: low bound for component %d is %d<0\n\n\n", PID,  component, low_bound[component] );
-                        }
-#endif
-                    }
 
-                    if (component >= communicator_t::ndims || m_pid[component]==m_ntasks[component]-1 )
-                        up_bound[component] = sizes[component];
-                    else
-                    {
-                        div_t value=std::div(sizes[component],m_ntasks[component]);
-                        up_bound[component] = ((int)(value.quot*(m_pid[component]+1)) + (int)((value.rem>m_pid[component]) ? (m_pid[component]+1) : value.rem));
-                        /*error in the partitioner*/
-                        //assert(up_bound[component]<size);
-                        if(up_bound[component]>sizes[component]){
-                            printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", PID,  component, up_bound[component], sizes[component] );
-                        }
-
-                    }
+                    low_up_bounds(low_bound[component], up_bound[component], component, sizes);
 
                     uint_t tile_dimension = up_bound[component]-low_bound[component];
 
-                    coordinates[component] = halo_descriptor( compute_halo(component,LOW),
-                                                              compute_halo(component,UP),
-                                                              compute_halo(component,LOW),
+                    coordinates[component] = halo_descriptor( compute_halo(component,LOW) ,
+                                                              compute_halo(component,UP) ,
+                                                              compute_halo(component,LOW) ,
                                                               tile_dimension + ( compute_halo(component,LOW)) - 1,
-                                                                tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
+                                                              tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
 
                     coordinates_gcl[component] = halo_descriptor( m_halo[component],
                                                                   m_halo[component],
@@ -156,7 +180,7 @@ namespace gridtools{
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
                          <<"component, size: "<<component<<" "<<sizes[component]<<std::endl;
 #endif
-                dims[component]=up_bound[component]-low_bound[component]+ compute_halo(component,UP)+compute_halo(component,LOW);
+                dims[component]=tile_dimension+ compute_halo(component,UP)+compute_halo(component,LOW);
                 }
             }
 
@@ -204,7 +228,7 @@ namespace gridtools{
             \endverbatim
         */
         int_t compute_halo(ushort_t const& component_, typename super::Flag const& flag_) const {
-            return (  m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]:0;
+            return (  m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]:m_pad[component_];
         }
 
         bool at_boundary(ushort_t const& component_, typename super::Flag const& flag_) const {
@@ -224,10 +248,13 @@ namespace gridtools{
         template<int_t Component>
         int_t pid() const {return m_pid[Component];}
 
+        void set_boundary(uint_t boundary_){m_boundary=boundary_;}
+
     private:
         const int* m_pid;
         const int* m_ntasks;
         const ushort_t* m_halo;
+        const ushort_t* m_pad;
         communicator_t const& m_comm;
         uint_t m_boundary;
     };

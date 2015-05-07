@@ -144,7 +144,7 @@ namespace gridtools{  namespace enumtype{
 #ifdef CXX11_ENABLED
     using int_t          = int;
     using short_t        = int;
-    using uint_t         = long unsigned int;
+    using uint_t         = unsigned int;
     using ushort_t       = unsigned int;
     template<int_t N>
     using  static_int=boost::mpl::integral_c<int_t,N>;
