@@ -41,9 +41,9 @@ int main(int argc, char** argv) {
 
   typedef gridtools::array<gridtools::halo_descriptor, 3> halo_block;;
 
-  typedef gridtools::_3D_process_grid_t<gridtools::boollist<3> > grid_type;
+  typedef gridtools::MPI_3D_process_grid_t< 3 > grid_type;
 
-  grid_type pgrid(gridtools::boollist<3>(true,true,true), gridtools::PROCS, gridtools::PID);
+  grid_type pgrid(gridtools::boollist<3>(true,true,true), MPI_COMM_WORLD);
 
   gridtools::all_to_all_halo<int, grid_type> a2a(pgrid, gridtools::GCL_WORLD);
 

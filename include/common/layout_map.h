@@ -1,6 +1,7 @@
 #ifndef _LAYOUT_MAP_H_
 #define _LAYOUT_MAP_H_
 
+#include <gridtools.h>
 #include <boost/static_assert.hpp>
 #include <boost/mpl/vector_c.hpp>
 #include <boost/mpl/int.hpp>
@@ -13,10 +14,10 @@
 #endif
 
 /**
-@file
-@brief definifion of the data layout
-Here are defined the classes select_s and layout_map.
- */
+   @file
+   @brief definifion of the data layout
+   Here are defined the classes select_s and layout_map.
+*/
 namespace gridtools {
 
 /**
@@ -49,6 +50,34 @@ namespace gridtools {
 
     }//namespace _impl
 
+
+    // forward declarations
+    template < ushort_t ID, typename Range, ushort_t Number>
+    struct arg_type;
+
+    template < ushort_t ID, ushort_t Numbers>
+    struct arg_type0;
+
+#ifdef CXX11_ENABLED
+    template <typename ArgType, typename ... Pair>
+    struct arg_mixed;
+#endif
+
+    //template arguments type checking
+    template <typename T>
+    struct is_arg_tuple : boost::false_type {};
+
+    template < ushort_t ID, ushort_t Number>
+    struct is_arg_tuple<arg_type0<ID, Number> > : boost::true_type{};
+
+    template < ushort_t ID, typename Range, ushort_t Number>
+    struct is_arg_tuple<arg_type<ID, Range, Number> > : boost::true_type{};
+
+#ifdef CXX11_ENABLED
+    template <typename ArgType, typename ... Pair>
+    struct is_arg_tuple<arg_mixed<ArgType, Pair ... > > : boost::true_type {};
+#endif
+
     /**
        Layout maps are simple sequences of integers specified
        statically. The specification happens as
@@ -76,7 +105,6 @@ namespace gridtools {
         static constexpr ushort_t length=sizeof...(Args);
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
         typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
-        /* static const int s=t::fuck(); */
         /* BOOST_STATIC_ASSERT(s); */
 
         /** This function returns the value in the map that is stored at
@@ -101,7 +129,7 @@ namespace gridtools {
             using type=T;
         };
 
-        /** Given a tuple of values and a static index, the function
+        /** Given a parameter pack of values and a static index, the function
             returns the reference to the value in the position indicated
             at position 'I' in the map.
 
@@ -115,10 +143,8 @@ namespace gridtools {
         */
         template <ushort_t I, typename ... T>
         GT_FUNCTION
-        static auto select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
-            auto thetuple = std::make_tuple(args ...);
-            int x = std::template get<layout_vector[I]>(thetuple );
-            return x;
+        static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
+            return  std::template get<layout_vector[I]>( std::tie(args...) );
         }
 
         //returns the dimension corresponding to the given strides (get<0> for stride 1)
@@ -129,8 +155,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        short_t operator[](ushort_t i) {
-            assert( i<length );
+        short_t constexpr operator[](ushort_t i) const {
             return _impl::__get<0, Args...>(i);
         }
 
@@ -147,7 +172,7 @@ namespace gridtools {
         };
 
 
-        /** Given a tuple of values and a static index I, the function
+        /** Given a parameter pack of values and a static index I, the function
             returns the reference to the element whose position
             corresponds to the position of 'I' in the map.
 
@@ -161,13 +186,46 @@ namespace gridtools {
         */
         template <ushort_t I, typename... Indices>
         GT_FUNCTION
-        static /* constexpr */ typename _impl::first_type<Indices...>::type
+        static constexpr typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
-            static_assert(sizeof...(Indices)<=length, "Too many arguments");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)<=length, "Too many arguments");
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 
-        /** Given a tuple of values and a static index I, the function
+
+        /* forward declaration*/
+        template <ushort_t I>
+        struct pos_;
+
+        /**@brief traits class allowing the lazy static analysis
+
+           hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
+           The following class defines a subclass with a templated method which returns a given element in a tuple.
+        */
+        template<ushort_t I, typename Int>
+        struct tied_type
+        {
+            struct type{
+                template<typename ... Indeces>
+                static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::tie(indices...));}
+            };
+        };
+
+        /**@brief traits class allowing the lazy static analysis
+
+           hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
+           The following struct implements a fallback case, when the index we are looking for in the layout_map is not present. It simply returns the default parameter passed in as template argument.
+        */
+        template<typename Int, Int Default>
+        struct identity
+        {
+            struct type{
+                template<typename ... Indeces>
+                static constexpr Int value(Indeces ... /*indices*/){return Default;}
+            };
+        };
+
+        /** Given a parameter pack of values and a static index I, the function
             returns the value of the element whose position
             corresponds to the position of 'I' in the map. If the
             value is not found a default value is returned, which is
@@ -185,35 +243,65 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename... Indices>
+        template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
         GT_FUNCTION
-        static typename _impl::first_type<Indices...>::type
-        find_val(Indices const& ... indices) {
-            static_assert(sizeof...(Indices)<=length, "Too many arguments");
-            typename _impl::first_type<Indices...>::type vec[sizeof...(indices)] = {indices...};
-            if (pos_<I>::value >= sizeof...(Indices) ) {
-                return DefaultVal;
-            } else {
-                return vec[pos_<I>::value];
-            }
+        static constexpr T find_val(First first, Indices ... indices) {
+            static_assert(sizeof...(Indices)<length, "Too many arguments");
+            // GRIDTOOLS_STATIC_ASSERT( pos_<I>::value != ~ushort_t(), "index not present in the layout vector" );
+            typedef typename boost::mpl::eval_if_c< (pos_<I>::value > sizeof...(Indices)),
+                identity<T, DefaultVal>
+                ,
+                tied_type<I, T> >::type type;
+
+            return type::value(first, indices...);
         }
 
-	/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
-	 \tparam I dimension (0->i, 1->j, 2->k, ...)
-	 \tparam T type of the return value
-	 \tparam DefaultVal default value return when the dimension I does not exist
-	 \tparam Indices type of the indices passed as argument
-	 \param indices argument vector of indices
-	*/
-	template <ushort_t I, typename T, T DefaultVal, typename Indices>
+
+
+/** @brief finds the value of the argument vector in correspondance of dimension I according to this layout
+    \tparam I dimension (0->i, 1->j, 2->k, ...)
+    \tparam T type of the return value
+    \tparam DefaultVal default value return when the dimension I does not exist
+    \tparam Indices type of the indices passed as argument
+    \param indices argument vector of indices
+*/
+        template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
-        static Indices
+        static constexpr Indices
         find_val(Indices const * indices) {
-            if (pos_<I>::value >= length ) {
-                return DefaultVal;
-            } else {
-                return indices[pos_<I>::value];
-            }
+            return (pos_<I>::value >= length ) ?
+                DefaultVal
+                :
+                indices[pos_<I>::value];
+        }
+
+
+
+        /** Given a tuple and a static index I, the function
+            returns the value of the element in the tuple whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            \code
+            tuple=arg_type(a,b,c);
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(tuple) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \tparam[in] Indices List of argument where to return the found value
+            \param[in] indices List of values (length must be equal to the length of the layout_map length)
+        */
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        GT_FUNCTION
+        static constexpr T find_val(Tuple const& indices) {
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
+            return (pos_<I>::value >= length ) ?
+                DefaultVal
+                :
+                indices.template get<Tuple::n_args-pos_<I>::value-1>();
+            //this calls arg_decorator::get
         }
 
         template <ushort_t I, typename MplVector>
@@ -292,6 +380,9 @@ namespace gridtools {
         };
 
     };
+
+    template <short_t ... Args>
+    constexpr const short_t layout_map<Args ... >::layout_vector[sizeof...(Args)];
 
 
     template <typename layout> struct is_layout_map : boost::mpl::false_{};
@@ -374,12 +465,13 @@ namespace gridtools {
                 return d;
             }
         };
+
     }
 
 /**
-@struct
-@brief Used as template argument in the storage.
-In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
+   @struct
+   @brief Used as template argument in the storage.
+   In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
     template <short_t, short_t=-2, short_t=-2, short_t=-2>
         struct layout_map;
@@ -393,14 +485,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         typedef boost::mpl::vector4_c<short_t, I1, -2, -2, -2> layout_vector_t;
 
         template <ushort_t I>
-        GT_FUNCTION
-        static short_t at() {
+            GT_FUNCTION
+            static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
-        short_t operator[](short_t i) {
+            short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -410,14 +502,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         }
 
         template <ushort_t I, typename T>
-        GT_FUNCTION
-        static T select(T & a, T & b) {
+            GT_FUNCTION
+            static T select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b);
         }
 
         template <ushort_t I, typename T>
-        GT_FUNCTION
-        static T& find(T & a) {
+            GT_FUNCTION
+            static T& find(T & a) {
             return a;
         }
 
@@ -429,14 +521,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         typedef boost::mpl::vector4_c<short_t, I1, I2, -2, -2> layout_vector_t;
 
         template <ushort_t I>
-        GT_FUNCTION
-        static short_t at() {
+            GT_FUNCTION
+            static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
-        short_t operator[](short_t i) {
+            short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -448,14 +540,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         }
 
         template <ushort_t I, typename T>
-        GT_FUNCTION
-        static T& select(T & a, T & b) {
+            GT_FUNCTION
+            static T& select(T & a, T & b) {
             return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b);
         }
 
         template <ushort_t I, typename T>
-        GT_FUNCTION
-        static T& find(T & a, T & b) {
+            GT_FUNCTION
+            static T const& find(T const& a, T const& b) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -464,6 +556,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
                 }
             }
         }
+
+        template <ushort_t I, typename T>
+            GT_FUNCTION
+            static uint_t find(const T* indices) {
+            BOOST_STATIC_ASSERT(I<length);
+            return find<I, T>(indices[0], indices[1]);
+        }
+
     };
 
     /**
@@ -488,18 +588,18 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
        etc.
        \endcode
     */
-    template <int I1, short_t I2, short_t I3>
+    template <short_t I1, short_t I2, short_t I3>
     struct layout_map<I1, I2, I3, -2> {
         static  const short_t length=3;
         typedef boost::mpl::vector4_c<short_t, I1, I2, I3, -2> layout_vector_t;
 
         template <short_t I>
-        struct at_ {
+            struct at_ {
             static const short_t value = boost::mpl::at_c<layout_vector_t, I >::type::value;
         };
 
         template <short_t I, short_t DefaultVal>
-        struct at_default {
+            struct at_default {
             static const short_t _value = boost::mpl::at_c<layout_vector_t, I >::type::value;
             static const short_t value = (_value<0)?DefaultVal:_value;
         };
@@ -507,7 +607,7 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
         // Gives the position at which I is. e.g., I want to know which is the stride of i (0)?
         //then if pos_<0> is 0, then the index i has stride 1, and so on ...
         template <short_t I>
-        struct pos_ {
+            struct pos_ {
 
             template <short_t X, bool IsHere>
             struct _find_pos
@@ -541,14 +641,14 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \tparam I The index to be queried
         */
         template <short_t I>
-        GT_FUNCTION
-        static short_t at() {
+            GT_FUNCTION
+            static short_t at() {
             BOOST_STATIC_ASSERT( I<length );
             return boost::mpl::at_c<layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
-        short_t operator[](short_t i) {
+            short_t operator[](short_t i) {
             assert( i<length );
             switch (i) {
             case 0:
@@ -575,8 +675,8 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] c Reference to the third value
         */
         template <short_t I, typename T>
-        GT_FUNCTION
-        static T& select(T & a, T & b, T & c) {
+            GT_FUNCTION
+            static T& select(T & a, T & b, T & c) {
             return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b,c);
         }
 
@@ -594,8 +694,8 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] c Reference to the third value
         */
         template <short_t I, typename T>
-        GT_FUNCTION
-        static T& find(T & a, T & b, T & c) {
+            GT_FUNCTION
+            static T& find(T & a, T & b, T & c) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -628,8 +728,8 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] c Reference to the third value
         */
         template <short_t I, typename T>
-        GT_FUNCTION
-        static T const& find(T const& a, T const& b, T const& c) {
+            GT_FUNCTION
+            static T const& find(T const& a, T const& b, T const& c) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -658,8 +758,8 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] a Pointer to a region with the elements to match
         */
         template <short_t I, typename T>
-        GT_FUNCTION
-        static T& find(T* a) {
+            GT_FUNCTION
+            static T& find(T* a) {
             return find<I>(a[0], a[1], a[2]);
         }
 
@@ -683,9 +783,9 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <short_t I, typename T, T DefaultVal>
-        GT_FUNCTION
-        static T find_val(T const& a, T const& b, T const& c) {
+        template <ushort_t I, typename T, T DefaultVal>
+            GT_FUNCTION
+            static T find_val(T const& a, T const& b, T const& c) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
@@ -716,11 +816,43 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <short_t I, typename T, T DefaultVal>
-        GT_FUNCTION
-        static T find_val(T const* a) {
+        template <ushort_t I, typename T, T DefaultVal>
+            GT_FUNCTION
+            static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
         }
+
+
+        /** Given a tuple of values and a static index I, the function
+            returns the value of the element whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            Default value is picked by default if C++11 is anabled,
+            otherwise it has to be provided.
+
+            \code
+            gridtools::layout_map<2,0,1>::find_val<1,type,default>(a,b,c) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \tparam[in] Indices List of argument where to return the found value
+            \param[in] indices List of values (length must be equal to the length of the layout_map length)
+        */
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+            GT_FUNCTION
+            static T find_val(Tuple const& indices) {
+            if (pos_<I>::value >= length ) {
+                return DefaultVal;
+            } else {
+                //this calls arg_decorator::get
+                return indices.template get<Tuple::n_args-pos_<I>::value-1>();
+            }
+        }
+
+
     };
 
     template <short_t I1, short_t I2, short_t I3, short_t I4>
@@ -782,32 +914,33 @@ In particular in the \ref gridtools::base_storage class it regulate memory acces
 
 #endif // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
+
     template <typename LM>
     struct reverse_map;
 
-    template <int I1, int I2>
+    template <short_t I1, short_t I2>
     struct reverse_map<layout_map<I1, I2> > {
         typedef layout_map<I2,I1> type;
     };
 
-    template <int I1, int I2, int I3>
+    template <short_t I1, short_t I2, short_t I3>
     struct reverse_map<layout_map<I1, I2,I3> > {
-        template <int I, int Dummy>
+        template <short_t I, short_t Dummy>
         struct new_value;
 
-        template <int Dummy>
+        template <short_t Dummy>
         struct new_value<0, Dummy> {
-            static const int value = 2;
+            static const short_t value = 2;
         };
 
-        template <int Dummy>
+        template <short_t Dummy>
         struct new_value<1, Dummy> {
-            static const int value = 1;
+            static const short_t value = 1;
         };
 
-        template <int Dummy>
+        template <short_t Dummy>
         struct new_value<2, Dummy> {
-            static const int value = 0;
+            static const short_t value = 0;
         };
 
         typedef layout_map<new_value<I1,0>::value, new_value<I2,0>::value, new_value<I3,0>::value > type;

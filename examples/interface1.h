@@ -1,12 +1,9 @@
-
 #pragma once
 
 #include <gridtools.h>
-
 #include <stencil-composition/backend.h>
-
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include "stencil-composition/make_computation.h"
+#include <stencil-composition/interval.h>
 #include "horizontal_diffusion_repository.h"
 #include "verifier.h"
 
@@ -40,13 +37,8 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<-1, 1, -1, 1>  >::type in;
-#endif
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -59,16 +51,10 @@ struct lap_function {
 };
 
 struct flx_function {
-#ifdef CXX11_ENABLED
+
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
-
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
-    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
-#endif
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -84,15 +70,10 @@ struct flx_function {
 };
 
 struct fly_function {
-#ifdef CXX11_ENABLED
+
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
-    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
-#endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -107,20 +88,13 @@ struct fly_function {
 };
 
 struct out_function {
-#ifdef CXX11_ENABLED
+
     typedef arg_type<0> out;
     typedef const arg_type<1> in;
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
 
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1>::type in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
-    typedef const arg_type<4>::type coeff;
-#endif
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Domain>
@@ -132,7 +106,7 @@ struct out_function {
              fly() - fly( 0,-1,0))
              );
 #else
-        dom(out()) = dom(in()) - dom(coeff()) *
+        dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );

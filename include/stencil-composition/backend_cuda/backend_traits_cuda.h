@@ -44,6 +44,7 @@ namespace gridtools{
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
+        GT_FUNCTION
         static uint_t n_i_pes(int = 0) {
             return gridDim.x;
        }
@@ -53,6 +54,7 @@ namespace gridtools{
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
+        GT_FUNCTION
         static uint_t n_j_pes(int = 0) {
             return gridDim.y;
         }
@@ -61,6 +63,7 @@ namespace gridtools{
          *  that determines the i coordinate of a processing element.
          *  In the case of CUDA, a processing element is equivalent to a CUDA block
          */
+        GT_FUNCTION
         static uint_t processing_element_i() {
             return blockIdx.x;
         }
@@ -69,21 +72,29 @@ namespace gridtools{
          *  that determines the j coordinate of a processing element.
          *  In the case of CUDA, a processing element is equivalent to a CUDA block
          */
+        GT_FUNCTION
         static uint_t processing_element_j() {
             return blockIdx.y;
         }
 
+#ifdef CXX11_ENABLED
         //function alias (pre C++11)
-        template<
-            typename Sequence
-            , typename F
-            >
-        inline static void for_each(F f)
+        template<typename Sequence, typename F>
+        GT_FUNCTION
+        static void for_each(F&& f)
+            {
+                boost::mpl::for_each<Sequence>(std::forward<F>(f));
+            }
+#else
+        //function alias (pre C++11)
+        template<typename Sequence, typename F>
+        GT_FUNCTION
+        static void for_each(F f)
             {
                 boost::mpl::for_each<Sequence>(f);
             }
+#endif
 
-#ifdef __CUDACC__
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
@@ -98,7 +109,6 @@ namespace gridtools{
                     }
             }
         };
-#endif
 
     };
 

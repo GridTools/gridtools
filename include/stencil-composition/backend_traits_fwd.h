@@ -47,4 +47,5 @@ namespace gridtools {
     */
     template <class Subclass>
     struct run_functor_traits;
+
 }

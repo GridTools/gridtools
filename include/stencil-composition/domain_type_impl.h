@@ -1,10 +1,16 @@
 #pragma once
 
+#include <gridtools.h>
 #include <stdio.h>
-#ifndef __CUDACC__
-#endif
+#include <boost/type_traits/remove_pointer.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/insert.hpp>
+#include <gt_for_each/for_each.hpp>
 
-#include "arg_type.h"
+    template <typename RegularStorageType>
+    struct no_storage_type_yet;
 
 namespace gridtools {
     namespace _debug {
@@ -116,6 +122,7 @@ type;
             };
         };
 
+        //TODO : This struct is never used
         struct call_h2d {
             template <typename Arg>
             GT_FUNCTION
@@ -260,12 +267,12 @@ type;
             static const uint_t len=boost::mpl::size<raw_index_list>::value;
 
             /**
-	           @brief filter out duplicates
-	           check if the indexes are repeated (a common error is to define 2 types with the same index)
+               @brief filter out duplicates
+               check if the indexes are repeated (a common error is to define 2 types with the same index)
              */
             typedef typename boost::mpl::fold<raw_index_list,
-                boost::mpl::set<>,
-			    boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+                                              boost::mpl::set<>,
+                                              boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
             >::type index_set;
         };
     } // namespace _impl

@@ -51,14 +51,6 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
-if ( ENABLE_CXX11 )
-message ("CXX11 enabled: " "${ENABLE_CXX11}")
-
-   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
-else()
-   set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
-endif()
-
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 # compile to PTX assembly format
@@ -73,7 +65,9 @@ if( USE_GPU )
           set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       endif()
   else()
+      message("CUDA 6.0 or lower does not support C++11 (disabling)")
       set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
+      set( ENABLE_CXX11 "OFF" )
   endif()
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
@@ -87,6 +81,14 @@ if( USE_GPU )
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
+endif()
+
+if ( ENABLE_CXX11 )
+   message ("CXX11 enabled: " "${ENABLE_CXX11}")
+
+   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
+else()
+   set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
 endif()
 
 include(FindOpenMP)
@@ -148,6 +150,7 @@ endif()
 ##################################################################
 
 ######################### set the type of floats #################
+set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.h for configuration)" )
 if(SINGLE_PRECISION)
   add_definitions(-DFLOAT_PRECISION=4)
   message("-- computations in single precision")
@@ -184,6 +187,9 @@ endif()
 
 ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h )
 ADD_LIBRARY( gridtools src/gridtools.cpp )
+
+set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXX_FLAGS}" )
+set_target_properties(gridtools PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXX_FLAGS}" )
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)

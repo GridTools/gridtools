@@ -10,8 +10,6 @@
 #include <common/gt_assert.h>
 #include <stencil-composition/make_stencils.h>
 #include <stencil-composition/arg_type.h>
-#include <storage/storage.h>
-#include <stencil-composition/execution_types.h>
 #include <stencil-composition/range.h>
 #include <stencil-composition/intermediate.h>
 

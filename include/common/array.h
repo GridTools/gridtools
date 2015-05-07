@@ -33,11 +33,50 @@ namespace gridtools {
         array() {}
 
 #ifdef CXX11_ENABLED
+        template<typename ... ElTypes>
+        GT_FUNCTION
+        constexpr array(ElTypes const& ... types): _array{types ... } {
+        }
+
+        GT_FUNCTION
         array(std::initializer_list<T> c) {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
         }
+#else
+#ifndef __CUDACC__ //this generates a warning
+        GT_FUNCTION
+        array(T const& i): _array{i} {
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j): _array{i, j} {
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k): _array{i, j, k} {
+        }
+#else
+        GT_FUNCTION
+        array(T const& i): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+        }
 #endif
+#endif
+
+        GT_FUNCTION
+        T * data() const {
+            return _array;
+        }
 
         GT_FUNCTION
         T const & operator[](size_t i) const {

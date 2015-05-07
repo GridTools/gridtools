@@ -7,34 +7,34 @@
    templates.*/
 namespace gridtools{
 
-#ifdef __CUDACC__
+//#ifdef __CUDACC__
     /**@brief Class in substitution of std::pow, not available in CUDA*/
-	template <uint_t Number>
-	struct products{
-	    template<typename Value>
-	    GT_FUNCTION
-	    static Value constexpr apply(Value& v)
-		{
-		    return v*products<Number-1>::apply(v);
-		}
-	};
+    template <uint_t Number>
+    struct products{
+        template<typename Value>
+        GT_FUNCTION
+        static Value constexpr apply(Value const& v)
+            {
+                return v*products<Number-1>::apply(v);
+            }
+    };
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
-	template <>
-	struct products<0>{
-	    template<typename Value>
-	    GT_FUNCTION
-	    static Value constexpr apply(Value& v)
-		{
-		    return 1.;
-		}
-	};
-#endif
+    template <>
+    struct products<0>{
+        template<typename Value>
+        GT_FUNCTION
+        static Value constexpr apply(Value const& v)
+            {
+                return 1.;
+            }
+    };
+//#endif
 
 
 #ifdef CXX11_ENABLED
 
-    /** \section expressions (Expressions Definition)
+    /** \section expressions Expressions Definition
         @{
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
@@ -50,14 +50,14 @@ namespace gridtools{
             second_operand{second_operand}
             {}
 
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr expr(expr const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
 
         ArgType1 const first_operand;
         ArgType2 const second_operand;
     private:
         /**@brief default empty constructor*/
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr expr(){}
     };
 
@@ -71,15 +71,15 @@ namespace gridtools{
             first_operand{first_operand}
             {}
 
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr unary_expr( unary_expr const& other): first_operand(other.first_operand){}
 
         ArgType1 const first_operand;
 
     private:
         /**@brief default empty constructor*/
-	GT_FUNCTION
-	constexpr unary_expr(){}
+        GT_FUNCTION
+        constexpr unary_expr(){}
     };
 
     /**@brief Expression summing two arguments*/
@@ -89,17 +89,17 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
-	GT_FUNCTION
+        GT_FUNCTION
         constexpr expr_plus(expr_plus const& other):super(other){};
 
     private:
         constexpr expr_plus(){};
 #ifndef __CUDACC__
-	static char constexpr op[]="+";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="+";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
 
@@ -117,11 +117,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(){}
 #ifndef __CUDACC__
-	static char constexpr op[]="-";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="-";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
 
@@ -138,10 +138,10 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_times(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="*";
+        static char constexpr op[]="*";
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
 };
 
@@ -159,11 +159,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="/";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="/";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
 };
 
@@ -183,11 +183,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(){}
 #ifndef __CUDACC__
-	static char constexpr op[]="^";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="^";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
 
@@ -203,7 +203,7 @@ namespace gridtools{
         typedef unary_expr<ArgType1> super;
         GT_FUNCTION
         constexpr expr_pow(ArgType1 const& first_operand):super(first_operand){}
-	static const int exponent=Exponent;
+        static const int exponent=Exponent;
 
         GT_FUNCTION
         constexpr expr_pow(expr_pow const& other):super(other) {}
@@ -212,11 +212,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_pow(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="^2";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="^2";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<  ArgType1, operation >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<  ArgType1, operation >;
 #endif
 };
 
@@ -239,11 +239,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(){}
 #ifndef __CUDACC__
-    	static char constexpr op[]="!x";
-	typedef string_c<print, op> operation;
+        static char constexpr op[]="!x";
+        typedef string_c<print, op> operation;
     public:
-	//currying and recursion (this gets inherited)
-	using to_string = concatenate<  ArgType1, operation >;
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<  ArgType1, operation >;
 #endif
 };
 
@@ -258,60 +258,233 @@ namespace gridtools{
         /** sum expression*/
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){
+            return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** minus expression*/
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){
+            return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** multiply expression*/
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        constexpr expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){
+            return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** divide expression*/
         template<typename ArgType1, typename ArgType2>
         GT_FUNCTION
-        constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
+        constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){
+            return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** power expression*/
         template<int exponent, typename ArgType1, typename boost::disable_if<typename boost::is_floating_point<ArgType1>::type, int >::type=0>
         GT_FUNCTION
-        constexpr expr_pow<ArgType1, exponent >    pow (ArgType1 arg1){return expr_pow<ArgType1, exponent >(arg1);}
+        constexpr expr_pow<ArgType1, exponent >    pow (ArgType1 arg1){
+            return expr_pow<ArgType1, exponent >(arg1);}
 
         /** power expression*/
         template<typename ArgType1>
         GT_FUNCTION
-        constexpr expr_exp<ArgType1, int >    pow (ArgType1 arg1, int arg2){return expr_exp<ArgType1, int >(arg1, arg2);}
+        constexpr expr_exp<ArgType1, int >    pow (ArgType1 arg1, int arg2){
+            return expr_exp<ArgType1, int >(arg1, arg2);}
 
-	/** direct access expression*/
+        /** direct access expression*/
         template<typename ArgType1>
         GT_FUNCTION
-        constexpr expr_direct_access<ArgType1>    operator ! (ArgType1 arg1){return expr_direct_access<ArgType1>(arg1);}
+        constexpr expr_direct_access<ArgType1>    operator ! (ArgType1 arg1){
+            return expr_direct_access<ArgType1>(arg1);}
 
-	template <int Exponent, typename FloatType, typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0>
+        template <int Exponent, typename FloatType,
+                  typename boost::enable_if<
+                      typename boost::is_floating_point<FloatType>::type, int >::type=0
+                  >
         GT_FUNCTION
         constexpr FloatType  pow (FloatType arg1)
 #ifdef __CUDACC__
-	{return products<Exponent>::apply(arg1);}
+        {return products<Exponent>::apply(arg1);}
 #else
         {return std::pow(arg1, Exponent);}
 #endif
+    }
+#endif
+    namespace expressions{
+        /**Expressions defining the interface for specifiyng a given offset for a specified dimension
+           \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
+        template<typename Left>
+        GT_FUNCTION
+        constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
 
-	/**Expressions defining the interface for specifiyng a given offset for a specified dimension
-	   \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
-	template<typename Left>
-	GT_FUNCTION
-	constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
-
-	template<typename Left>
-	GT_FUNCTION
-	constexpr typename Left::super operator -(Left d1, int const&  offset) {return typename Left::super(-offset);}
+        template<typename Left>
+        GT_FUNCTION
+        constexpr typename Left::super operator -(Left d1, int const&  offset) {return typename Left::super(-offset);}
 
 /**@}*/
     }//namespace expressions
 
-#endif
 
+#ifdef CXX11_ENABLED
+    namespace evaluation{
+
+        /**\section binding_expressions (Expressions Bindings)
+           @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
+           They evalueate the operator passed as argument, by recursively evaluating its arguments
+           @{
+        */
+
+        /** plus evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto static constexpr value(IterateDomain const& it_domain
+                                    , expr_plus<ArgType1, ArgType2> const& arg)
+            -> decltype(it_domain(arg.first_operand) + it_domain(arg.second_operand)) {
+            return it_domain(arg.first_operand) + it_domain(arg.second_operand);}
+
+        /** minus evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto static constexpr value(IterateDomain const& it_domain
+                                    , expr_minus<ArgType1, ArgType2> const& arg)
+            -> decltype(it_domain(arg.first_operand) - it_domain(arg.second_operand)) {
+            return it_domain(arg.first_operand) - it_domain(arg.second_operand);}
+
+        /** multiplication evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto static constexpr value(IterateDomain const& it_domain
+                                    , expr_times<ArgType1, ArgType2> const& arg)
+            -> decltype(it_domain(arg.first_operand) * it_domain(arg.second_operand)) {
+            return it_domain(arg.first_operand) * it_domain(arg.second_operand);}
+
+        /** division evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        auto static constexpr value(IterateDomain const& it_domain
+                                    , expr_divide<ArgType1, ArgType2> const& arg)
+            -> decltype(it_domain(arg.first_operand) / it_domain(arg.second_operand)) {
+            return it_domain(arg.first_operand) / it_domain(arg.second_operand);}
+
+        /**\subsection specialization (Partial Specializations)
+           partial specializations for double (or float)
+           @{*/
+        /** sum with scalar evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename FloatType
+                  , typename boost::enable_if<
+                        typename boost::is_floating_point<FloatType>::type
+                        , int >::type=0
+                  >
+        GT_FUNCTION
+        auto static constexpr value_scalar(IterateDomain const& it_domain
+                                           , expr_plus<ArgType1, FloatType> const& arg)
+            -> decltype(it_domain(arg.first_operand) + arg.second_operand) {
+            return it_domain(arg.first_operand) + arg.second_operand;}
+
+        /** subtract with scalar evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename FloatType
+                  , typename boost::enable_if<
+                        typename boost::is_floating_point<FloatType>::type
+                        , int >::type=0
+                  >
+        GT_FUNCTION
+        auto static constexpr value_scalar(IterateDomain const& it_domain
+                                           , expr_minus<ArgType1, FloatType> const& arg)
+            -> decltype(it_domain(arg.first_operand) - arg.second_operand) {
+            return it_domain(arg.first_operand) - arg.second_operand;}
+
+        /** multiply with scalar evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename FloatType
+                  , typename boost::enable_if<
+                        typename boost::is_floating_point<FloatType>::type
+                        , int >::type=0
+                  >
+        GT_FUNCTION
+        auto static constexpr value_scalar(IterateDomain const& it_domain
+                                           , expr_times<ArgType1, FloatType> const& arg)
+            -> decltype(it_domain(arg.first_operand) * arg.second_operand) {
+            return it_domain(arg.first_operand) * arg.second_operand;}
+
+        /** divide with scalar evaluation*/
+        template <typename IterateDomain
+                  , typename ArgType1
+                  , typename FloatType
+                  , typename boost::enable_if<
+                        typename boost::is_floating_point<FloatType>::type
+                        , int >::type=0
+                  >
+        GT_FUNCTION
+        auto static constexpr value_scalar(IterateDomain const& it_domain
+                                           , expr_divide<ArgType1, FloatType> const& arg)
+            -> decltype(it_domain(arg.first_operand) / arg.second_operand) {
+            return it_domain(arg.first_operand) / arg.second_operand;}
+
+#ifndef __CUDACC__
+        /** power of scalar evaluation*/
+        template < typename IterateDomain
+                   , typename FloatType
+                   , typename IntType
+                   , typename boost::enable_if<
+                         typename boost::is_floating_point<FloatType>::type
+                         , int >::type=0
+                   , typename boost::enable_if<
+                         typename boost::is_integral<IntType>::type
+                         , int >::type=0
+                   >
+        GT_FUNCTION
+        static auto constexpr value_scalar(IterateDomain const& /*it_domain*/
+                                           , expr_exp<FloatType, IntType> const& arg)
+            -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
+            return std::pow(arg.first_operand, arg.second_operand);}
+
+#else //ifndef __CUDACC__
+        /** power of scalar evaluation of CUDA*/
+        template <typename FloatType
+                  , typename IntType
+                  , typename boost::enable_if<
+                        typename boost::is_floating_point<FloatType>::type
+                        , int >::type=0
+                  , typename boost::enable_if<
+                        typename boost::is_integral<IntType>::type
+                        , int >::type=0
+                  >
+        GT_FUNCTION
+        auto static constexpr value_scalar(IterateDomain const& it_domain
+                                           , expr_exp<FloatType, IntType> const& arg)
+            -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
+            return products<2>::apply(arg.first_operand);}
+
+#endif //ifndef __CUDACC__
+
+        /**
+           @}
+           \subsection specialization2 (Partial Specializations)
+           @brief partial specializations for integer
+           Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
+           (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)
+           @{*/
+
+        template <typename IterateDomain, typename ArgType1, typename IntType
+                  , typename boost::enable_if<
+                        typename boost::is_integral<IntType>::type, int >::type=0
+                  >
+        GT_FUNCTION
+        auto static constexpr value_int(IterateDomain const& it_domain
+                                        , expr_exp<ArgType1, IntType> const& arg)
+            -> decltype(products<2>::apply(it_domain(arg.first_operand))) {
+            return products<2>::apply(it_domain(arg.first_operand));
+        }
+
+        template <typename IterateDomain, typename ArgType1 /*typename IntType, IntType*/
+                  , int exponent/*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */>
+        GT_FUNCTION
+        auto static constexpr value_int(IterateDomain const& it_domain
+                                        , expr_pow<ArgType1, exponent> const& arg)
+            -> decltype(products<exponent>::apply(it_domain(arg.first_operand))) {
+            return products<exponent>::apply(it_domain(arg.first_operand));}
+
+        /**@}@}*/
+
+    }//namespace evaluation
+#endif
 }//namespace gridtools
