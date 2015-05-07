@@ -7,7 +7,8 @@
 
 #include <gridtools.h>
 #include <stencil-composition/backend.h>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/make_computation.h>
+#include <stencil-composition/interval.h>
 #include "{{ fun_hdr_file }}"
 
 

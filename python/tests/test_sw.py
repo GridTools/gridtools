@@ -195,6 +195,7 @@ class SWTest (CopyTest):
         H[rr<(self.domain[0]/10.0)**2] = 1.0
 
 
+    @attr (lang='c++')
     def test_animation (self):
         from pyqtgraph.Qt import QtCore, QtGui
         import pyqtgraph as pg
@@ -236,6 +237,8 @@ class SWTest (CopyTest):
         def update ( ):
             try:
                 if (self.stencil.dt * self.frame) % 5 == 0:
+                    self.droplet (self.out_H)
+                    self.droplet (self.out_H)
                     self.droplet (self.out_H)
 
                 self.stencil.run (out_H=self.out_H,

@@ -15,7 +15,7 @@ struct {{ functor.name }}
                 const
             {%- endif %} arg_type<{{ loop.index0 }} {%- if p.range -%}
                                                         , range<{{ p.range|join(',') }}>
-                                                    {%- endif %} >::type {{ p.name|replace('.', '_') }};
+                                                    {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //
     // the ordered list of arguments of this functor
