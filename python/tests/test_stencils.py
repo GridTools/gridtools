@@ -56,6 +56,7 @@ class CopyTest (unittest.TestCase):
         #
         self.in_cpy = np.random.random_integers (10, 
                                                  size=self.domain)
+        self.in_cpy = self.in_cpy.astype(np.float64)
 
         self.stencil = Copy ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
@@ -238,6 +239,55 @@ class CopyTest (unittest.TestCase):
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
+
+
+
+class FloatPrecisionTest (CopyTest):
+    """
+    Tests for the exceptions raised by the floating point precision validation.
+    """
+    def setUp (self):
+        logging.basicConfig (level=logging.INFO)
+
+        self.domain = (64, 64, 32)
+        self.params = ('out_cpy', 'in_cpy')
+        self.temps  = ( )
+
+        self.out_cpy = np.zeros (self.domain,
+                                 dtype=np.float64)
+        self.in_cpy  = np.zeros (self.domain,
+                                 dtype=np.float64)
+        self.stencil = Copy ( )
+
+
+    def test_float_input_type_validation_wrong_data_size (self):
+        with self.assertRaises (TypeError):
+            self.stencil.backend = 'c++'
+            self.in_cpy = self.in_cpy.astype(np.float16)
+            self._run ( )
+
+
+    def test_float_input_type_validation_wrong_data_type (self):
+        """
+        Tests if input is of correct size but of wrong type.
+        """
+        with self.assertRaises (TypeError):
+            self.stencil.backend = 'c++'
+            self.in_cpy = self.in_cpy.astype(np.int64)
+            self._run ( )
+
+
+    def test_float_input_type_validation_potentially_correct_type_but_not_the_correct_size (self):
+        """
+        Unlike test_float_input_type_validation_wrong_data_size which tests a size that is not
+        supported at all, this test uses a type that is potentially accepted but in this case
+        does not match the backend.
+        """
+        with self.assertRaises (TypeError):
+            self.stencil.backend = 'c++'
+            self.in_cpy = self.in_cpy.astype(np.float32)
+            self._run ( )
+
 
 
 
