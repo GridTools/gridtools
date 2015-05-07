@@ -473,11 +473,11 @@ namespace gridtools {
             finalize_computation<Backend::s_backend_id>::apply(m_domain);
 
             // The code below segfaults with CUDA
-            // //DELETE the TEMPORARIES (a shared_ptr would be way better)
-            // typedef boost::fusion::filter_view<actual_arg_list_type,
-            //     is_temporary_storage<boost::mpl::_1> > view_type;
-            // view_type fview(actual_arg_list);
-            // boost::fusion::for_each(fview, _impl::delete_tmps());
+            //DELETE the TEMPORARIES (a shared_ptr would be way better)
+            typedef boost::fusion::filter_view<actual_arg_list_type,
+                                               is_temporary_storage<boost::mpl::_1> > view_type;
+            view_type fview(actual_arg_list);
+            boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
         template<
