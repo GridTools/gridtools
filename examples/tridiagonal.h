@@ -4,8 +4,8 @@
 
 #include <stencil-composition/backend.h>
 
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
@@ -46,7 +46,7 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-#if (defined(CXX11_ENABLED)  && !defined(__CUDACC__ ))
+#if (defined(CXX11_ENABLED))
     namespace ex{
         typedef arg_type<0> out;
         typedef arg_type<1> inf; //a
@@ -64,27 +64,19 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b
     typedef arg_type<3> sup; //c
     typedef arg_type<4> rhs; //d
-#else
-    typedef arg_type<0>::type out;
-    typedef arg_type<1>::type inf; //a
-    typedef arg_type<2>::type diag; //b
-    typedef arg_type<3>::type sup; //c
-    typedef arg_type<4>::type rhs; //d
-#endif
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
-#if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
-	dom(sup()) =  dom(ex::expr_sup);
-	dom(rhs()) =  dom(ex::expr_rhs);
+#if (defined(CXX11_ENABLED))
+        dom(sup()) =  dom(ex::expr_sup);
+        dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -113,26 +105,18 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
-#ifdef CXX11_ENABLED
     typedef arg_type<0> out;
     typedef arg_type<1> inf; //a
     typedef arg_type<2> diag; //b
     typedef arg_type<3> sup; //c
     typedef arg_type<4> rhs; //d
-#else
-    typedef arg_type<0>::type out;
-    typedef arg_type<1>::type inf; //a
-    typedef arg_type<2>::type diag; //b
-    typedef arg_type<3>::type sup; //c
-    typedef arg_type<4>::type rhs; //d
-#endif
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
 
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
+#if (defined(CXX11_ENABLED))
         dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
@@ -273,9 +257,9 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-	gridtools::computation* backward_step =
+    gridtools::computation* backward_step =
 #else
-	       boost::shared_ptr<gridtools::computation> backward_step =
+        boost::shared_ptr<gridtools::computation> backward_step =
 #endif
       gridtools::make_computation<gridtools::BACKEND, layout_t>
       (
@@ -285,7 +269,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
                 gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ),
             domain, coords
-	  ) ;
+          ) ;
 
     forward_step->ready();
     forward_step->steady();

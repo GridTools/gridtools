@@ -1,11 +1,8 @@
 #ifndef _HALO_EXCHANGE_H_
 #define _HALO_EXCHANGE_H_
 
-#include "low-level/Halo_Exchange_2D.h"
-#include "low-level/Halo_Exchange_2D_DT.h"
 #include "low-level/Halo_Exchange_3D.h"
 #include "low-level/Halo_Exchange_3D_DT.h"
-#include "low-level/proc_grids_2D.h"
 #include "low-level/proc_grids_3D.h"
 #include "../common/boollist.h"
 
@@ -13,13 +10,11 @@
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
-//#else
 #include "high-level/descriptors_dt.h"
 #include "high-level/descriptors_dt_whole.h"
 #include "high-level/descriptors.h"
 #include "high-level/descriptors_manual_gpu.h"
 #include "high-level/descriptor_generic_manual.h"
-//#endif
 
 #include "low-level/translate.h"
 #include "high-level/field_on_the_fly.h"
@@ -29,21 +24,6 @@ namespace gridtools {
     namespace _impl {
         template <int D, typename GT, int version>
         struct get_pattern;
-
-        template <typename GT>
-        struct get_pattern<2,GT,0> {
-            typedef Halo_Exchange_2D<GT> type;
-        };
-
-        template <typename GT>
-        struct get_pattern<2,GT,1> {
-            typedef Halo_Exchange_2D_DT<GT> type;
-        };
-
-        template <typename GT>
-        struct get_pattern<2,GT,2> {
-            typedef Halo_Exchange_2D<GT> type;
-        };
 
         template <typename GT>
         struct get_pattern<3,GT,0> {
@@ -65,12 +45,12 @@ namespace gridtools {
 
         template <>
         struct get_grid<2> {
-            typedef MPI_2D_process_grid_t<boollist<2> > type;
+            typedef MPI_3D_process_grid_t< 2 > type;
         };
 
         template <>
         struct get_grid<3> {
-            typedef MPI_3D_process_grid_t<boollist<3> > type;
+            typedef MPI_3D_process_grid_t< 3 > type;
         };
 
     }
@@ -208,7 +188,7 @@ namespace gridtools {
     template <typename T_layout_map,
               typename layout2proc_map_abs,
               typename DataType,
-              int DIMS,
+              typename GridType,
               typename Gcl_Arch = gcl_cpu,
               int version=0>
     class halo_exchange_dynamic_ut {
@@ -221,8 +201,9 @@ namespace gridtools {
         /**
            Type of the computin grid associated to the pattern
         */
-        typedef typename _impl::get_grid<DIMS>::type grid_type;
-
+        /*typedef typename _impl::get_grid<DIMS>::type grid_type;*/
+        typedef GridType grid_type;
+        static const uint_t DIMS=GridType::ndims;
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
@@ -230,12 +211,14 @@ namespace gridtools {
         typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
 
     private:
-        hndlr_dynamic_ut<DataType,
-                         DIMS,
-                         pattern_type,
-                         layout2proc_map,
-                         Gcl_Arch,
-                         version> hd;
+        typedef hndlr_dynamic_ut<DataType,
+                                 GridType,
+                                 pattern_type,
+                                 layout2proc_map,
+                                 Gcl_Arch,
+                                 version> hd_t;
+
+        hd_t hd;
 
         halo_exchange_dynamic_ut(halo_exchange_dynamic_ut const &) {}
 
@@ -283,8 +266,8 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm)
-            : hd(c.template permute<layout2proc_map_abs>(), comm)//, periodicity(c)
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const& comm, gridtools::array<int, grid_type::ndims> const* dimensions=NULL)
+            : hd(c.template permute<layout2proc_map_abs>(), comm, dimensions)//, periodicity(c)
         { }
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
@@ -339,6 +322,13 @@ namespace gridtools {
 
             hd.halo.add_halo(layout_map::template at<DI>(), minus, plus, begin, end, t_len);
         }
+
+        template <int DI>
+        void add_halo(halo_descriptor const& halo) {
+
+            hd.halo.add_halo(layout_map::template at<DI>(), halo);
+        }
+
 
         /**
            Function to pack data to be sent
@@ -490,6 +480,7 @@ namespace gridtools {
 #endif
         }
 
+        grid_type const& comm () const {return hd.comm();}
     };
 
 

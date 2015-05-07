@@ -85,20 +85,20 @@ namespace gridtools {
       m_total_length = hh.total_length();
     }
 
-    /**
-       Begin index for the loop on the outside region.
-       \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
-     */
-    GT_FUNCTION int_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
-      if (I==0)
+      /**
+         Begin index for the loop on the outside region.
+         \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
+      */
+      GT_FUNCTION int_t loop_low_bound_outside(short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+        if (I==0)
         return m_begin;
-      if (I==1)
-        return m_end+1;
-      if (I==-1)
-	{
-	    assert((int_t)(m_begin-m_minus)>=0);
-	    return (m_begin-m_minus);
-	}
+        if (I==1)
+            return m_end+1;
+        if (I==-1)
+          {
+            assert((int_t)(m_begin-m_minus)>=0);
+            return (m_begin-m_minus);
+          }
 
       assert(false);
       return 1;
@@ -114,10 +114,10 @@ namespace gridtools {
       if (I==1)
         return m_end+m_plus;
       if (I==-1)
-	{
-        //	  assert(m_begin-1>=0);
-	  return m_begin-1;
-	}
+      {
+          //  assert(m_begin-1>=0);
+          return m_begin-1;
+      }
 
       assert(false);
       return 1;
@@ -149,10 +149,10 @@ namespace gridtools {
       if (I==1)
         return m_end;
       if (I==-1)
-	{
-        //	  assert(m_begin+m_plus-1>=0);
-	  return m_begin+m_plus-1;
-	}
+      {
+          //  assert(m_begin+m_plus-1>=0);
+          return m_begin+m_plus-1;
+      }
 
       assert(false);
       return 1;

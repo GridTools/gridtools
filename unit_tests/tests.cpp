@@ -8,9 +8,14 @@
 #include "../examples/positional_copy_stencil.h"
 #include "copies_2D_1D_0D.h"
 #include "../examples/tridiagonal.h"
+#include "../examples/extended_4D.h"
+#include "external_ptr_test/CopyStencil.h"
 #ifdef CXX11_ENABLED
+
 #include "test-assign-placeholders.h"
 #endif
+#include "arg_type_tests.h"
+#include "loop_hierarchy_test.h"
 
 #include "communication/layout_map.cpp"
 
@@ -22,25 +27,26 @@ TEST(testsmallstorage, testindices) {
     EXPECT_EQ(test_smallstorage_indices(), true);
 }
 
-TEST(boundaryconditions, basic) {
-    EXPECT_EQ(basic(), true);
+TEST(interface, arg_type1) {
+    EXPECT_EQ(interface::test_trivial(), true);
+}
+TEST(interface, arg_type2) {
+    EXPECT_EQ(interface::test_alternative1(), true);
 }
 
-TEST(boundaryconditions, predicate) {
-    EXPECT_EQ(predicate(), true);
-}
+#ifdef CXX11_ENABLED
 
-TEST(boundaryconditions, twosurfaces) {
-    EXPECT_EQ(twosurfaces(), true);
+TEST(interface, arg_type3) {
+    EXPECT_EQ(interface::test_alternative2(), true);
 }
+TEST(interface, arg_type4) {
+    EXPECT_EQ(interface::test_static_alias(), true);
+}
+TEST(interface, arg_type5) {
+    EXPECT_EQ(interface::test_dynamic_alias(), true);
+}
+#endif
 
-TEST(boundaryconditions, usingzero1) {
-    EXPECT_EQ(usingzero_1(), true);
-}
-
-TEST(boundaryconditions, usingzero2) {
-    EXPECT_EQ(usingzero_2(), true);
-}
 
 TEST(boundaryconditions, usingvalue2) {
     EXPECT_EQ(usingvalue_2(), true);
@@ -59,6 +65,17 @@ TEST(boundaryconditions, usingcopy3) {
 #include "stencil_tests.h"
 
 #ifdef CXX11_ENABLED
+TEST(stencil, extended_4D) {
+    EXPECT_EQ(assembly::test(5, 5, 6), true);
+}
+#endif
+
+TEST(stencil, loop_hierarchy) {
+    EXPECT_EQ(loop_test::test(), true);
+}
+
+#ifdef CXX11_ENABLED
+
 TEST(testdomain, assignplchdrs) {
     EXPECT_EQ(assign_placeholders(), true);
 }
@@ -66,6 +83,10 @@ TEST(testdomain, assignplchdrs) {
 
 TEST(testcommon, layoutmap) {
     EXPECT_EQ(test_layout_map(), true);
+}
+
+TEST(python, copy) {
+    EXPECT_EQ(test_copystencil_python(), false);
 }
 
 int main(int argc, char** argv)

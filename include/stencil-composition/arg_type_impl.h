@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../storage/storage.h"
-#include "../storage/host_tmp_storage.h"
 #include "../common/layout_map.h"
 #include "range.h"
 #include <boost/type_traits/integral_constant.hpp>
@@ -17,31 +16,6 @@
 
 namespace gridtools {
 
-    /**
-     * @brief Type to indicate that the type is not decided yet
-     */
-    template <typename RegularStorageType>
-    struct no_storage_type_yet {
-        typedef void storage_type;
-        typedef typename RegularStorageType::iterator_type iterator_type;
-        typedef typename RegularStorageType::value_type value_type;
-        static const ushort_t space_dimensions=RegularStorageType::space_dimensions;
-        static void text() {
-            std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
-        }
-        //std::string name() {return std::string("no_storage_yet NAMEname");}
-        void info() const {
-            std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl;
-        }
-    };
-
-    /**
-       @brief stream operator, for debugging purpose
-    */
-    template <typename RST>
-    std::ostream& operator<<(std::ostream& s, no_storage_type_yet<RST>) {
-        return s << "no_storage_type_yet<" << RST() << ">" ;
-    }
 
     /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
     template<typename ArgType, typename Storage>
@@ -87,7 +61,9 @@ namespace gridtools {
 
     template<ushort_t ID>
     struct initialize_all{
+
         template <typename ... X>
+        GT_FUNCTION
         static void apply(int_t* offset, X ... x)
             {
                 offset[ID]=initialize<ID>(x...);
@@ -97,7 +73,9 @@ namespace gridtools {
 
     template<>
     struct initialize_all<0>{
+
         template <typename ... X>
+        GT_FUNCTION
         static void apply(int_t* offset, X ... x)
             {
                 offset[0]=initialize<0>(x...);
@@ -128,6 +106,19 @@ namespace gridtools {
     constexpr int_t initialize(X x, Y y, Z z)
     {
         return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
+    }
+
+    /**@brief method for initializing the offsets in the placeholder
+       Version valid for three dimension
+       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
+       \param y is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (y.value) and the dimension index (Y::direction)
+       \param z is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (z.value) and the dimension index (Z::direction)
+    */
+    template <ushort_t N, typename X, typename Y, typename Z, typename T>
+    GT_FUNCTION
+    constexpr int_t initialize(X x, Y y, Z z, T t)
+    {
+        return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : T::direction==N? t.value : 0;
     }
 #endif
 
@@ -166,17 +157,8 @@ namespace gridtools {
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
-#if( (!defined(CXX11_ENABLED)) || (defined(__CUDACC__ )))
-        explicit arg_type_base()
-            {
-                m_offset[0]=0;
-                m_offset[1]=0;
-                m_offset[2]=0;
-            }
-#else
         constexpr explicit arg_type_base()
-            : m_offset{0}  {}
-#endif
+            {}
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
@@ -187,7 +169,29 @@ namespace gridtools {
         GT_FUNCTION
         constexpr arg_type_base ( Whatever... x)
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the arg_decorator constructor exceeds the number of space dimensions of the storage");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the arg_decorator constructor exceeds the number of space dimensions of the storage")
+            }
+#else
+        template <typename X, typename Y, typename Z,  typename T>
+        GT_FUNCTION
+        constexpr arg_type_base ( X x, Y y, Z z, T t )
+            {
+            }
+
+        template <typename X, typename Y, typename Z>
+        GT_FUNCTION
+        constexpr arg_type_base ( X x, Y y, Z z )
+            {
+            }
+        template <typename X>
+        GT_FUNCTION
+        constexpr arg_type_base ( X x )
+            {
+            }
+        template <typename X, typename Y>
+        GT_FUNCTION
+        constexpr arg_type_base ( X x, Y y )
+            {
             }
 #endif
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -196,19 +200,27 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_type_base ( int const& t, Whatever const& ... x): m_offset{ t, x... } {
-            //this static check fails on GCC<4.9 even when it should not
-#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.");
+#ifdef NDEBUG
+        constexpr
 #endif
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.");
-        }
+arg_type_base ( int const& t, Whatever const& ... x) {
+            //this static check fails on GCC<4.9 even when it should not
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1>0, "Library error: the wrong constructor was selected")
+
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Whatever)+1)>=n_dim, "\n If you use the numeric (int) arguments to specify the arg_type\n offsets, then you must specify all of them, also when they are zero,\n and in the order from the lowest dimension to the highest one.")
+
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Whatever)+1<=n_dim, "\n You specified more arg_type argument than the number of dimensions defined.")
+#ifndef NDEBUG
+                assert(false);
+#endif
+
+                }
 #else
         GT_FUNCTION
-        constexpr arg_type_base ( int const& i, int const& j,int const& k) {
-            m_offset[0]=i;
-            m_offset[1]=j;
-            m_offset[2]=k;
+        constexpr arg_type_base ( int const& i ){
+#ifndef NDEBUG
+            assert(false);
+#endif
         }
 #endif
 
@@ -216,39 +228,22 @@ namespace gridtools {
             std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
         }
 
-    protected:
-        int_t m_offset[n_dim];
+        template<short_t Idx>
+        constexpr bool end() const {return true;}
 
+        template<short_t Idx>
+        GT_FUNCTION
+        constexpr
+        int_t get() const {
+            return 0;
+        }
 
-//         /**@brief returns a copy of the arg_type with all offsets set to zero*/
-//         GT_FUNCTION
-// #ifdef CXX11_ENABLED
-//         static constexpr  arg_type_base<I>&& center() {
-//             return std::move(arg_type_base<I>());
-//         }
-// #else
-//         static constexpr  arg_type_base<I> center() {
-//             return arg_type_base<I>();
-//         }
-// #endif
-
-//         /**returns a new arg_type where the offsets are the sum of the current offsets plus the values specified via the argument*/
-//         GT_FUNCTION
-// #ifdef CXX11_ENABLED
-//         constexpr arg_type_base<I>&& plus(int_t _i, int_t _j, int_t _k) const {
-//             return std::move(arg_type_base<I>(i()+_i, j()+_j, k()+_k));
-//         }
-// #else
-//         constexpr arg_type_base<I> plus(int_t _i, int_t _j, int_t _k) const {
-//             return arg_type_base<I>(i()+_i, j()+_j, k()+_k);
-//         }
-// #endif
 
 
 // #ifdef CXX11_ENABLED
 // #ifndef __CUDACC__
-// 	static const constexpr char a[]={"arg "};
-// 	typedef string<print, static_string<a>, static_int<I> > to_string;
+// static const constexpr char a[]={"arg "};
+// typedef string<print, static_string<a>, static_int<I> > to_string;
 // #endif
 // #endif
     };
@@ -298,7 +293,7 @@ namespace gridtools {
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr arg_decorator ( int const& t, Whatever const& ... x): super( t, x... ) {
+        constexpr arg_decorator ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
         }
 
         /**@brief constructor taking the Dimension class as argument.
@@ -307,19 +302,36 @@ namespace gridtools {
         */
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
-        /*constexpr*/ arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
-            super( t, x... )
+        constexpr arg_decorator ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
+            super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
             {
                 //this constructor should be a constexpr one (waiting for future standards (C++14) for that)
-                base_t::m_offset[n_args-1] = initialize<n_args>(t, x...);
+                //m_offset[n_args-1] = initialize<n_args>(t, x...);
             }
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
         GT_FUNCTION
-        arg_decorator ( int const& i, int const& j, int const& k): super( i, j, k ) {
+        arg_decorator ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
         }
+        GT_FUNCTION
+        arg_decorator ( int const& i, int const& j): super( j ), m_offset(i) {
+        }
+        GT_FUNCTION
+        arg_decorator ( int const& i): m_offset(i) {
+        }
+
+        /**@brief constructor taking the Dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+           language keyword used at the interface level.
+        */
+        template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
+        GT_FUNCTION
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h))
+            {
+                //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
+            }
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
@@ -327,9 +339,9 @@ namespace gridtools {
         */
         template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v )
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v))
             {
-                base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
+                //base_t::m_offset[n_args-1] = initialize<n_args>(t, u, v);
             }
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
@@ -337,9 +349,9 @@ namespace gridtools {
         */
         template <ushort_t Idx1, ushort_t Idx2 >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u )
+        arg_decorator ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u ): super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u))
             {
-                base_t::m_offset[n_args-1] = initialize<n_args>(t, u);
+                //base_t::m_offset[n_args-1] = initialize<n_args>(t, u);
             }
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
@@ -347,27 +359,41 @@ namespace gridtools {
         */
         template <ushort_t Idx >
         GT_FUNCTION
-        arg_decorator ( enumtype::Dimension<Idx> const& t )
+        arg_decorator ( enumtype::Dimension<Idx> const& t ) : super(t), m_offset(initialize<super::n_dim-n_args+1>(t))
             {
-                base_t::m_offset[n_args-1] = initialize<n_args>(t);
+                //base_t::m_offset[n_args-1] = initialize<n_args>(t);
             }
 #endif
 
         //initializes recursively all the offsets to 0
         GT_FUNCTION
-        /*constexpr*/ arg_decorator ( ):
-            super( )
+        constexpr arg_decorator ( ):
+            super( ), m_offset(0)
             {
-                base_t::m_offset[n_args-1] = 0;
+                //base_t::m_offset[n_args-1] = 0;
             }
 
 
-        /**@brief returns the offset array*/
+        // /**@brief returns the offset tuple (i.e. this instance)*/
+        // arg_decorator<ArgType> const& offset() const {return *this;}
+
+        template<short_t Idx>
+        constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
+
+        /**@brief returns the offset at a specific index Idx*/
+        template<short_t Idx>
         GT_FUNCTION
-        constexpr int_t const* offset() const {
-            return base_t::m_offset;
+        constexpr
+        int_t get() const {
+            //NOTE: this should be a constexpr whenever m_offset is a static const
+            //this might not be compile-time efficient for large indexes,
+            //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
+            return Idx==n_args-1? m_offset : super::template get<Idx>();
+
         }
 
+    protected:
+        int_t m_offset;
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-width storage with size 'Number' (similar to currying)
@@ -439,6 +465,13 @@ namespace gridtools {
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
     {};
+
+#else
+
+    template <uint_t I, typename First, typename B2, typename B3, template <typename  T1, typename  T2, typename  T3> class Decorator>
+    struct is_plchldr_to_temp<arg<I, Decorator<First, B2, B3> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
+    {};
+
 #endif
 
     /**
@@ -456,7 +489,7 @@ namespace gridtools {
                  // << ", " << x.j()
                  // << ", " << x.k()
                  <<" ) > m_offset: {";
-              
+
         for (int i=0; i<x.n_dim-1; ++i) {
             s << x.m_offset[i] << ", ";
         }
@@ -478,7 +511,7 @@ namespace gridtools {
 
     /**
      * Printing type information for debug purposes
-     * @param s The ostream
+<     * @param s The ostream
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
@@ -527,6 +560,13 @@ namespace gridtools {
     template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
     struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
     { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+#else
+
+    //Decorator is the integrator
+    template <typename First, typename B2, typename  B3 , template <typename T1, typename T2, typename T3> class Decorator >
+    struct is_storage<Decorator<First, B2, B3>  *  > : public is_storage<typename First::basic_type*>
+    { /*BOOST_MPL_ASSERT( (boost::mpl::bool_<false>) );*/};
+
 #endif
 
     //Decorator is the integrator

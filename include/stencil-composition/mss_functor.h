@@ -7,7 +7,11 @@
 
 #pragma once
 
+#include <common/meta_array.h>
 #include "mss_metafunctions.h"
+#include "mss_local_domain.h"
+#include "mss.h"
+#include "axis.h"
 
 namespace gridtools {
 

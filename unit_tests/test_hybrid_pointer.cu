@@ -4,6 +4,9 @@
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 struct A: gridtools::clonable_to_gpu<A> {
     gridtools::hybrid_pointer<int> p;
 

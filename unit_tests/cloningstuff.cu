@@ -9,6 +9,9 @@
 #define __device__
 #endif
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 namespace cloningstuff_test {
     struct B: public gridtools::clonable_to_gpu<B> {
         gridtools::hybrid_pointer<char> pointer_to_use;

@@ -1,11 +1,10 @@
 #pragma once
 
 #include <gridtools.h>
-
 #include <stencil-composition/backend.h>
+#include <stencil-composition/make_computation.h>
+#include <stencil-composition/interval.h>
 
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
@@ -33,16 +32,16 @@ namespace copy_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
+
 #ifdef CXX11_ENABLED
         typedef arg_type<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
         typedef Dimension<4> time;
 #else
-        typedef const arg_type<0, range<0,0,0,0>, 3>::type in;
-        typedef arg_type<1, range<0,0,0,0>, 3>::type out;
+        typedef const arg_type<0, range<0,0,0,0>, 3> in;
+        typedef arg_type<1, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
-    /* static const auto expression=in(1,0,0)-out(); */
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -88,18 +87,23 @@ namespace copy_stencil{
 #endif
         //                   strides  1 x xy
         //                      dims  x y z
-        typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-#ifdef CXX11_ENABLED                            \
-    /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-        //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-        typedef backend_traits_from_id<Cuda>::storage_traits< float_type, layout_t, false, 2>::storage_t::basic_type basic_type_t;
-        typedef extend_width<basic_type_t, 0>  extended_type;
-        typedef extend_dim<extended_type, extended_type>  vec_field_type;
+        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
+        typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
+#endif
+        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+
+#if !defined(__CUDACC__) && defined(CXX11_ENABLED)
         //vector field of dimension 2
         typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
+#else
+#if defined(__CUDACC__) && defined(CXX11_ENABLED)
+        /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+        //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
+        typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
+        typedef extend_width<base_type1, 0>  extended_type;
+        typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
 #endif
 #endif
         //out.print();
@@ -133,13 +137,13 @@ namespace copy_stencil{
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
-                    {
+                {
 #ifdef CXX11_ENABLED
-                        in(i, j, k)=i+j+k;
+                    in(i, j, k)=i+j+k;
 #else
-                        in(i, j, k)=i+j+k;
+                    in(i, j, k)=i+j+k;
 #endif
-                    }
+                }
 
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -202,20 +206,20 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-    gridtools::make_computation<gridtools::BACKEND, layout_t>
-    (
-        gridtools::make_mss // mss_descriptor
-        (
-            execute<forward>(),
-            gridtools::make_esf<copy_functor>(
-                p_in() // esf_descriptor
+            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            (
+                gridtools::make_mss // mss_descriptor
+                (
+                    execute<forward>(),
+                    gridtools::make_esf<copy_functor>(
+                        p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                ,p_out()
+                        ,p_out()
 #endif
-            )
-        ),
-        domain, coords
-    );
+                        )
+                    ),
+                domain, coords
+                );
 
         copy->ready();
 
@@ -226,7 +230,6 @@ namespace copy_stencil{
         pw_stop_collector(collector_init);
 #endif
 
-        /* boost::timer::cpu_timer time; */
 #ifdef USE_PAPI
         if( PAPI_start(event_set) != PAPI_OK)
             handle_error(1);
@@ -234,7 +237,7 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
-    boost::timer::cpu_timer time;
+        boost::timer::cpu_timer time;
         copy->run();
 
 #ifdef USE_PAPI
@@ -248,33 +251,30 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_execute);
 #endif
-        /* boost::timer::cpu_times lapse_time = time.elapsed(); */
+        boost::timer::cpu_times lapse_time = time.elapsed();
 
         copy->finalize();
 
-        boost::timer::cpu_times lapse_time = time.elapsed();
         std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif
-#define NX 5
-#define NY 5
-#define NZ 5
 
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
-
+        printf("dimensions are: %d, %d, %d\n", d1, d2, d3);
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
-                    {
+                {
 #ifdef CXX11_ENABLED
-                        if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) {
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k))
 #else
-                        if (in(i, j, k)!=out(i,j,k)) {
+                        if (in(i, j, k)!=out(i,j,k))
 #endif
+                        {
                             std::cout << "error in "
                                       << i << ", "
                                       << j << ", "
@@ -289,10 +289,8 @@ namespace copy_stencil{
                                       << std::endl;
                             success = false;
                         }
-                    }
-                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+                }
+        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
         return success;
-
     }
-
 }//namespace copy_stencil

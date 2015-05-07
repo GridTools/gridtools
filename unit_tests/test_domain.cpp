@@ -15,7 +15,6 @@
 #include <iostream>
 #include <common/gpu_clone.h>
 #include <storage/hybrid_pointer.h>
-#include <storage/storage.h>
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/intermediate.h>
@@ -25,6 +24,9 @@
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
+
+using gridtools::uint_t;
+using gridtools::int_t;
 
 struct out_value {
     template <typename T>
@@ -103,8 +105,8 @@ bool the_same(One const& storage1, Two const& storage2) {
     return same;
 }
 
-/*
- *
+
+/**
  */
 bool test_domain() {
 
@@ -171,10 +173,10 @@ bool test_domain() {
 // #endif
 
     typedef boost::mpl::vector<
-  gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<0> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<1> >::type,
-    gridtools::_impl::select_storage<arg_type_list>::template apply<static_int<2> >::type
-    > mpl_arg_type_list;
+        gridtools::_impl::select_storage<arg_type_list>::template apply<gridtools::static_int<0> >::type,
+        gridtools::_impl::select_storage<arg_type_list>::template apply<gridtools::static_int<1> >::type,
+        gridtools::_impl::select_storage<arg_type_list>::template apply<gridtools::static_int<2> >::type
+        > mpl_arg_type_list;
 
     typedef typename boost::fusion::result_of::as_vector<mpl_arg_type_list>::type actual_arg_list_type;
 
@@ -196,7 +198,10 @@ bool test_domain() {
     printf("\n\nFROM GPU\n\n");
 #endif
     print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
+
+#ifdef __CUDACC__
     cudaDeviceSynchronize();
+#endif
 #ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
 #endif
@@ -233,7 +238,9 @@ bool test_domain() {
     printf("\n\nFROM GPU\n\n");
 #endif
     print_values<<<1,1>>>(arg_list_device_ptr);
+#ifdef __CUDACC__
     cudaDeviceSynchronize();
+#endif
 #ifndef NDEBUG
     printf("\n\nDONE WITH GPU\n\n");
 #endif

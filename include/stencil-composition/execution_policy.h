@@ -1,9 +1,9 @@
 #pragma once
 #include "basic_token_execution.h"
+#include "domain_type_impl.h"
 #ifdef __CUDACC__
 #include "cuda_profiler_api.h"
 #endif
-
 /**
 @file Implementation of the k loop execution policy
 The policies which are currently considered are
@@ -61,13 +61,14 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             GT_FUNCTION
             explicit run_f_on_interval(typename traits::local_domain_t & domain, typename traits::coords_t const& coords):super(domain, coords){}
 
-
             template<typename IterationPolicy, typename IntervalType>
             GT_FUNCTION
-            void loop(uint_t from, uint_t to) const {
+            void do_loop(int_t const& bound) const {
 
-                for ( uint_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
+                //auto const bound=to-from;
+                for (int_t k=0 ; k<=bound; ++k) {
                     traits::functor_t::Do(this->m_domain, IntervalType());
+                    IterationPolicy::increment(this->m_domain);
                     /* printf("k=%d\n", k); */
                 }
 
@@ -75,10 +76,10 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         };
 
-/**
-   @brief partial specialization for the parallel case (to be implemented)
-   stub
-*/
+        /**
+           @brief partial specialization for the parallel case (to be implemented)
+           stub
+        */
         template<
             typename ExtraArguments>
         struct run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > : public run_f_on_interval_base< run_f_on_interval<typename enumtype::execute<enumtype::parallel>, ExtraArguments > >

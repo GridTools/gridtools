@@ -3,7 +3,8 @@
 
 #include <stencil-composition/backend.h>
 
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO

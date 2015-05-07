@@ -1,6 +1,5 @@
 #pragma once
 #include <boost/mpl/transform.hpp>
-#include "execution_types.h"
 #include "functor_do_methods.h"
 #include "esf.h"
 #include "../common/meta_array.h"
@@ -178,12 +177,12 @@ namespace gridtools {
 
         template <typename Array>
         struct linearize_esf_array : boost::mpl::fold<
-	          Array,
-	          boost::mpl::vector<>,
-	          boost::mpl::if_<
-	              is_independent<boost::mpl::_2>,
-	              keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-	              boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+            Array,
+            boost::mpl::vector<>,
+            boost::mpl::if_<
+                is_independent<boost::mpl::_2>,
+                keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
               >
         >{};
 

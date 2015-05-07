@@ -3,6 +3,9 @@
 #include <gridtools.h>
 #include "vertical_advection_defs.h"
 
+using gridtools::uint_t;
+using gridtools::int_t;
+
 namespace vertical_advection {
 
 class repository
@@ -19,18 +22,18 @@ public:
     typedef va_backend::temporary_storage_type<gridtools::float_type, layout_ijk >::type tmp_storage_type;
     typedef va_backend::temporary_storage_type<gridtools::float_type, layout_scalar>::type tmp_scalar_storage_type;
 
-    repository(const int idim, const int jdim, const int kdim, const int halo_size) :
-        utens_stage_(idim, jdim, kdim, -1, "utens_stage"),
-        utens_stage_ref_(idim, jdim, kdim, -1, "utens_stage_ref"),
-        u_stage_(idim, jdim, kdim, -1, "u_stage"),
-        wcon_(idim, jdim, kdim, -1, "wcon"),
-        u_pos_(idim, jdim, kdim, -1, "u_pos"),
-        utens_(idim, jdim, kdim, -1, "utens"),
-        ipos_(idim, jdim, kdim, -1, "ipos"),
-        jpos_(idim, jdim, kdim, -1, "jpos"),
-        kpos_(idim, jdim, kdim, -1, "kpos"),
+    repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size) :
+        utens_stage_(idim, jdim, kdim, -1., "utens_stage"),
+        utens_stage_ref_(idim, jdim, kdim, -1., "utens_stage_ref"),
+        u_stage_(idim, jdim, kdim, -1., "u_stage"),
+        wcon_(idim, jdim, kdim, -1., "wcon"),
+        u_pos_(idim, jdim, kdim, -1., "u_pos"),
+        utens_(idim, jdim, kdim, -1., "utens"),
+        ipos_(idim, jdim, kdim, -1., "ipos"),
+        jpos_(idim, jdim, kdim, -1., "jpos"),
+        kpos_(idim, jdim, kdim, -1., "kpos"),
         //dtr_stage_(0,0,0, -1, "dtr_stage"),
-        dtr_stage_(idim,jdim,kdim, -1, "dtr_stage"),
+        dtr_stage_(idim,jdim,kdim, -1., "dtr_stage"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
     {}
@@ -40,12 +43,12 @@ public:
         // set the fields to advect
         const double PI = std::atan(1.)*4.;
 
-        const int i_begin = 0;
-        const int i_end=  idim_;
-        const int j_begin = 0;
-        const int j_end=  jdim_;
-        const int k_begin = 0;
-        const int k_end=  kdim_;
+        const uint_t i_begin = 0;
+        const uint_t i_end=  idim_;
+        const uint_t j_begin = 0;
+        const uint_t j_end=  jdim_;
+        const uint_t k_begin = 0;
+        const uint_t k_end=  kdim_;
 
         double dtadv = (double)20./3.;
         dtr_stage_(0,0,0) = (double)1.0 / dtadv;
@@ -67,9 +70,9 @@ public:
                     u_stage_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
                     u_pos_(i,j,k) = 5. + 4*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4.;
                     // utens values between -3e-6 and 3e-6 (with zero at k=0)
-                    utens_(i,j,k) = 3e-6*(-1 + 2*(2.+cos(PI*(x+y)) + cos(PI*y*z))/4.+ 0.05*(0.5-24.0/50.));
+                    utens_(i,j,k) = 3e-6*(-1 + 2*(2.+cos(PI*(x+y)) + cos(PI*y*z))/4.+ 0.05*(0.5-24.0)/50.);
                     // wcon values between -2e-4 and 2e-4 (with zero at k=0)
-                    wcon_(i,j,k) = 2e-4*(-1 + 2*(2.+cos(PI*(x+z)) + cos(PI*y))/4. + 0.1*(0.5-35.5/50.));
+                    wcon_(i,j,k) = 2e-4*(-1 + 2*(2.+cos(PI*(x+z)) + cos(PI*y))/4. + 0.1*(0.5-35.5)/50.);
 
                     utens_stage_(i,j,k) = 7. + 5*(2.+cos(PI*(x+y)) + sin(2*PI*(x+y)))/4. + k*0.1;
                     utens_stage_ref_(i,j,k) = utens_stage_(i,j,k);
@@ -105,8 +108,8 @@ public:
     {
         double dtr_stage = dtr_stage_(0,0,0);
 
-        ij_storage_type datacol(idim_, jdim_, 1, -1, "datacol");
-        storage_type ccol(idim_, jdim_, kdim_, -1, "ccol"), dcol(idim_, jdim_, kdim_, -1, "dcol");
+        ij_storage_type datacol(idim_, jdim_, (uint_t)1, -1., "datacol");
+        storage_type ccol(idim_, jdim_, kdim_, -1., "ccol"), dcol(idim_, jdim_, kdim_, -1., "dcol");
 
         init_field_to_value(ccol, 0.0);
         init_field_to_value(dcol, 0.0);
@@ -247,7 +250,7 @@ public:
     storage_type& jpos() {return jpos_;}
     storage_type& kpos() {return kpos_;}
     //TODO fix this, with a scalar storage the GPU version does not work
-    //scalar_storage_type& dtr_stage() 
+    //scalar_storage_type& dtr_stage()
     storage_type& dtr_stage() {return dtr_stage_;}
 
     //output fields

@@ -21,8 +21,8 @@
 #include "heap_allocated_temps.h"
 #include "arg_type.h"
 #include "domain_type.h"
-#include "execution_types.h"
 #include "mss_metafunctions.h"
+#include "mss_local_domain.h"
 #include "mss.h"
 #include "axis.h"
 #include "../common/meta_array.h"
@@ -34,6 +34,7 @@
 */
 
 namespace gridtools {
+
     namespace _impl {
 
         /**
@@ -54,11 +55,10 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::second<MapElem>::type range_type;
                 typedef typename boost::mpl::first<MapElem>::type temporary;
+
                 typedef pair<
                     typename StrategyTraits::template get_tmp_storage<
-                    BackendID,
-                    ValueType,
-                    LayoutType,
+                    typename temporary::storage_type::type,
                     BI, BJ,
                     -range_type::iminus::value,
                     -range_type::jminus::value,
@@ -128,7 +128,7 @@ namespace gridtools {
     };
 
 
-    /** 
+    /**
         this struct contains the 'run' method for all backends, with a
         policy determining the specific type. Each backend contains a
         traits class for the specific case.
@@ -185,7 +185,7 @@ namespace gridtools {
         */
         typedef uint_t (*query_i_threads_f)(int);
         typedef uint_t (*query_j_threads_f)(int);
-        
+
         template <typename ValueType, typename Layout>
         struct storage_type {
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
@@ -207,7 +207,7 @@ namespace gridtools {
 
 
         /**
-           
+
          */
         template <typename Domain
                   , typename MssType>
@@ -305,7 +305,7 @@ namespace gridtools {
 
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
-            
+
             typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssArray>::type map_of_ranges;
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
@@ -364,7 +364,7 @@ namespace gridtools {
 
         /** Initial interface
 
-            Threads are oganized in a 2D grid. These two functions 
+            Threads are oganized in a 2D grid. These two functions
             n_i_pes() and n_j_pes() retrieve the
             information about how to compute those sizes.
 
@@ -379,7 +379,7 @@ namespace gridtools {
 
         /** Initial interface
 
-            Threads are oganized in a 2D grid. These two functions 
+            Threads are oganized in a 2D grid. These two functions
             n_i_pes() and n_j_pes() retrieve the
             information about how to compute those sizes.
 

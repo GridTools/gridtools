@@ -10,6 +10,7 @@ add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 if ( ENABLE_CXX11 )
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test-independent ${exe_LIBS})
     add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
 endif()
 
@@ -26,9 +27,9 @@ if (GTEST_FOUND)
   set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
   else()
-    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
   endif()
 
 
@@ -47,7 +48,7 @@ if (GTEST_FOUND)
 
     add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
-    target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+    target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})

@@ -19,9 +19,6 @@ using gridtools::plus_;
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
 
-#include <stdlib.h>
-#include <stdio.h>
-
 using namespace gridtools;
 using namespace enumtype;
 

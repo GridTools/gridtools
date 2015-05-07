@@ -70,7 +70,7 @@ namespace gridtools {
             for how to deal with temporaries.
 
             Since certain modifications happend this metafunction is actually
-            identical, in behavior, with extract_types. 
+            identical, in behavior, with extract_types.
         */
         template <typename StorageList>
         struct extract_actual_types {
@@ -307,4 +307,4 @@ namespace gridtools {
     template <typename StoragePointers, typename EsfDescriptor, bool IsStateful>
     struct is_local_domain<local_domain<StoragePointers, EsfDescriptor, IsStateful> > : boost::mpl::true_{};
 
-}
+}//namespace gridtools

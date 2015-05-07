@@ -2,7 +2,6 @@
 
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/domain_type.h>
-#include <storage/storage.h>
 #include <stencil-composition/backend.h>
 
 #include <stdio.h>

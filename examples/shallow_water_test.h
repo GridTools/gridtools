@@ -6,11 +6,7 @@
 #include <boost/lambda/construct.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda.h>
-#else
-#include <stencil-composition/backend_host.h>
-#endif
+#include <stencil-composition/backend.h>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.h>
@@ -102,7 +98,7 @@ namespace shallow_water{
         static float_type /*&&*/ half_step(Evaluation const& eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const& delta)
             {
                 return /*std::move*/(eval(sol(d1,d2) +sol(d2)/2. -
-					 (sol(U,d2,d1) - sol(U,d2))*(dt()/(2*delta))));
+                                          (sol(U,d2,d1) - sol(U,d2))*(dt()/(2*delta))));
             }
 
         template<typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY>
@@ -111,9 +107,9 @@ namespace shallow_water{
             {
                 return /*std::move*/(eval((sol(U, d1, d2) +
                                        sol(U, d2)/2. -
-					   (pow<2>(sol(U,d1,d2))/sol(d1,d2)+pow<2>(sol(d1,d2))*g()/2.)*(dt()/(2.*delta)) -
-					   pow<2>(sol(U, d2))/sol(d2) -
-					   pow<2>(sol(d2))*pow<2>(g()/2.))) );
+                                           (pow<2>(sol(U,d1,d2))/sol(d1,d2)+pow<2>(sol(d1,d2))*g()/2.)*(dt()/(2.*delta)) -
+                                           pow<2>(sol(U, d2))/sol(d2) -
+                                           pow<2>(sol(d2))*pow<2>(g()/2.))) );
             }
 
         template<typename Evaluation, typename ComponentU, typename ComponentV, typename DimensionX, typename DimensionY>
@@ -167,16 +163,16 @@ namespace shallow_water{
 
             // eval(sol()) = eval(sol()-
             //                    (tmp(c+1, i-1) - tmp(c+1, i-1, j-1))*(dt()/dx())-
-	    // 		       tmp(c+2, s+1, j-1) - tmp(c+2, s+1, i-1, j-1)*(dt()/dy()));
+            //          tmp(c+2, s+1, j-1) - tmp(c+2, s+1, i-1, j-1)*(dt()/dy()));
 
             // eval(sol(comp(1))) =  eval(sol(comp(1)) -
             //                            (pow<2>(tmp(c+1, j-1))                / tmp(j-1)      + tmp(j-1)*tmp(j-1)*((g()/2.))                 -
-	    // 				(pow<2>(tmp(c+1,i-1,j-1))            / tmp(i-1, j-1) +pow<2>(tmp(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-	    // 			       (tmp(c+2,s+1,i-1)*tmp(c+1,s+1,i-1)          / tmp(s+1,i-1)                                                   -
-	    // 				tmp(c+2,s+1,i-1, j-1)*tmp(c+1,s+1,i-1,j-1) / tmp(s+1,i-1, j-1) + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
+            //     (pow<2>(tmp(c+1,i-1,j-1))            / tmp(i-1, j-1) +pow<2>(tmp(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+            //           (tmp(c+2,s+1,i-1)*tmp(c+1,s+1,i-1)          / tmp(s+1,i-1)                                                   -
+            //     tmp(c+2,s+1,i-1, j-1)*tmp(c+1,s+1,i-1,j-1) / tmp(s+1,i-1, j-1) + tmp(s+1,i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
             // eval(sol(comp(2))) = eval(sol(comp(2)) -
-	    // 			      (tmp(c+1,j-1)    *tmp(c+1,j-1)       /tmp(s+1,j-1) -
+            //          (tmp(c+1,j-1)    *tmp(c+1,j-1)       /tmp(s+1,j-1) -
             //                            (tmp(c+1,i-1,j-1)*tmp(c+2,i-1, j-1)) /tmp(i-1, j-1))*((dt()/dx()))-
             //                           (pow<2>(tmp(c+2,s+1,i-1))                /tmp(s+1,i-1)      +pow<2>(tmp(s+1,i-1)     )*((g()/2.)) -
             //                            pow<2>(tmp(c+2,s+1,i-1,j-1))           /tmp(s+1,i-1,j-1) +pow<2>(tmp(s+1,i-1, j-1))*((g()/2.))   )*((dt()/dy())));
@@ -187,18 +183,18 @@ namespace shallow_water{
             //                     vy(y(-1)) - vy(x(-1), y(-1))*(dt()/dy()));
 
             // eval(sol(comp(1))) =  eval(sol(comp(1)) -
-            // 			       ((ux(y(-1))^2)               / hx(y(-1))      + hx(y(-1))*hx(y(-1))*((g()/2.))                 -
-            // 			       ((ux(x(-1),y(-1))^2)           / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((g()/2.))))*((dt()/dx())) -
-            // 			        (vy(x(-1))*uy(x(-1))          / hy(x(-1))                                                   -
-            // 				 vy(x(-1), y(-1))*uy(x(-1),y(-1)) / hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((g()/2.)))    *((dt()/dy())));
+            //           ((ux(y(-1))^2)               / hx(y(-1))      + hx(y(-1))*hx(y(-1))*((g()/2.))                 -
+            //           ((ux(x(-1),y(-1))^2)           / hx(x(-1), y(-1)) +(hx(x(-1),y(-1)) ^2)*((g()/2.))))*((dt()/dx())) -
+            //            (vy(x(-1))*uy(x(-1))          / hy(x(-1))                                                   -
+            //      vy(x(-1), y(-1))*uy(x(-1),y(-1)) / hy(x(-1), y(-1)) + hy(x(-1), y(-1))*((g()/2.)))    *((dt()/dy())));
 
             // eval(sol(comp(2))) = eval(sol(comp(2)) -
-            // 			      (ux(y(-1))    *vx(y(-1))       /hy(y(-1)) -
+            //          (ux(y(-1))    *vx(y(-1))       /hy(y(-1)) -
             //                           (ux(x(-1),y(-1))*vx(x(-1), y(-1))) /hx(x(-1), y(-1)))*((dt()/dx()))-
             //                          ((vy(x(-1))^2)                /hy(x(-1))      +(hy(x(-1))     ^2)*((g()/2.)) -
             //                           (vy(x(-1), y(-1))^2)           /hy(x(-1), y(-1)) +(hy(x(-1), y(-1))^2)*((g()/2.))   )*((dt()/dy())));
 
-	    auto hx=alias<tmp, comp, step>(0, 0); auto hy=alias<tmp, comp, step>(0, 1);
+            auto hx=alias<tmp, comp, step>(0, 0); auto hy=alias<tmp, comp, step>(0, 1);
             auto ux=alias<tmp, comp, step>(1, 0); auto uy=alias<tmp, comp, step>(1, 1);
             auto vx=alias<tmp, comp, step>(2, 0); auto vy=alias<tmp, comp, step>(2, 1);
 
@@ -208,7 +204,7 @@ namespace shallow_water{
 
             eval(sol(comp(1))) =  eval(sol(comp(1)) -
                                        (pow<2>(ux(j-1))                / hx(j-1)      + hx(j-1)*hx(j-1)*((g()/2.))                 -
-	    			       (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+                                        (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
                                               (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
                                                vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1) + hy(i-1, j-1)*((g()/2.)))    *((dt()/dy())));
 
@@ -219,7 +215,7 @@ namespace shallow_water{
                                        pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   )*((dt()/dy())));
 #endif
 
-    	}
+        }
 
     };
 
@@ -265,18 +261,18 @@ namespace shallow_water{
 
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
-	    typedef base_storage<Cuda, float_type, layout_t, false ,3> base_type1;
-	    typedef extend_width<base_type1, 1>  extended_type;
-	    typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
+            typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type1;
+            typedef extend_width<base_type1, 1>  extended_type;
+            typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
 
-	    typedef base_storage<Cuda, float_type, layout_t, false ,6> base_type2;
-	    typedef extend_width<base_type2, 0>  extended_type2;
-	    typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
+            typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type2;
+            typedef extend_width<base_type2, 0>  extended_type2;
+            typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
 #else
-	    typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
+            typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
 #endif
-	    typedef tmp_type::original_storage::pointer_type ptr;
+            typedef tmp_type::original_storage::pointer_type ptr;
 
             // Definition of placeholders. The order of them reflect the order the user will deal with them
             // especially the non-temporary ones, in the construction of the domain
@@ -292,12 +288,12 @@ namespace shallow_water{
             sol_type sol(d1,d2,d3);
             ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
 
-	    tmp.set<0,0>(out1);
-	    tmp.set<1,0>(out2);
-	    tmp.set<2,0>(out3);
-	    tmp.set<0,1>(out4);
-	    tmp.set<1,1>(out5);
-	    tmp.set<2,1>(out6);
+            tmp.set<0,0>(out1);
+            tmp.set<1,0>(out2);
+            tmp.set<2,0>(out3);
+            tmp.set<0,1>(out4);
+            tmp.set<1,1>(out5);
+            tmp.set<2,1>(out6);
 
             sol.push_front<0>(out7, 1.);//h
             sol.push_front<1>(out8, 1.);//u
