@@ -85,7 +85,6 @@ struct remap_arg_type<arg_type<I, Range, Dim>, ArgsMap >
     > type;
 };
 
-
 template< class ArgType, typename ArgsMap >
 struct remap_arg_type<arg_decorator<ArgType>, ArgsMap >
 {
