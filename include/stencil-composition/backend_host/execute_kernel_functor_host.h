@@ -55,12 +55,12 @@ struct execute_kernel_functor_host
        \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
     */
     explicit execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords,
-            const uint_t starti, const uint_t startj, const uint_t block_size_i, const uint_t block_size_j,
+            const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
             const uint_t block_idx_i, const uint_t block_idx_j)
     : m_local_domain(local_domain)
     , m_coords(coords)
-    , m_start(starti, startj)
-    , m_block_size(block_size_i, block_size_j)
+    , m_first_pos(first_i, first_j)
+    , m_last_pos(last_i, last_j)
     , m_block_id(block_idx_i, block_idx_j)
     {}
 
@@ -68,8 +68,8 @@ struct execute_kernel_functor_host
     explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords)
         : m_local_domain(local_domain)
     , m_coords(coords)
-    , m_start(coords.i_low_bound(), coords.j_low_bound())
-    , m_block_size(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
+    , m_first_pos(coords.i_low_bound(), coords.j_low_bound())
+    , m_last_pos(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
     , m_block_id(0, 0)
 
     {}
@@ -87,11 +87,17 @@ struct execute_kernel_functor_host
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifndef NDEBUG
-        std::cout << "I loop " << m_start[0] <<"+"<< range_t::iminus::value << " -> "
-                  << m_start[0] <<"+"<< m_block_size[0] <<"+"<< range_t::iplus::value << "\n";
-        std::cout << "J loop " << m_start[1] <<"+"<< range_t::jminus::value << " -> "
-                  << m_start[1] <<"+"<< m_block_size[1] <<"+"<< range_t::jplus::value << "\n";
+        #pragma omp critical
+        {
+        std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "
+                  << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< range_t::iplus::value << "\n";
+        std::cout << "J loop " << m_first_pos[1] <<"+"<< range_t::jminus::value << " -> "
+                  << m_first_pos[1] <<"+"<< m_last_pos[1] <<"+"<< range_t::jplus::value << "\n";
         std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;
+        std::cout<<"iplus::value: "<<range_t::iplus::value<<std::endl;
+        std::cout<<"jminus::value: "<<range_t::jminus::value<<std::endl;
+        std::cout<<"jplus::value: "<<range_t::jplus::value<<std::endl;
+        }
 #endif
 
         array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
@@ -112,10 +118,10 @@ struct execute_kernel_functor_host
             array_t, loop_item<0, enumtype::forward, int_t>,
             loop_item<1, enumtype::forward, int_t>
         > ij_loop(
-                (int_t) (m_start[0] + range_t::iminus::value),
-                (int_t) (m_start[0] + m_block_size[0] + range_t::iplus::value),
-                (int_t) (m_start[1] + range_t::jminus::value),
-                (int_t) (m_start[1] + m_block_size[1] + range_t::jplus::value)
+                (int_t) (m_first_pos[0] + range_t::iminus::value),
+                (int_t) (m_first_pos[0] + m_last_pos[0] + range_t::iplus::value),
+                (int_t) (m_first_pos[1] + range_t::jminus::value),
+                (int_t) (m_first_pos[1] + m_last_pos[1] + range_t::jplus::value)
         );
 
         //reset the index
@@ -181,8 +187,8 @@ struct execute_kernel_functor_host
 private:
     const local_domain_t& m_local_domain;
     const coords_t& m_coords;
-    gridtools::array<const uint_t, 2> m_start;
-    gridtools::array<const uint_t, 2> m_block_size;
+    gridtools::array<const uint_t, 2> m_first_pos;
+    gridtools::array<const uint_t, 2> m_last_pos;
     gridtools::array<const uint_t, 2> m_block_id;
 
 //    const uint_t m_starti;

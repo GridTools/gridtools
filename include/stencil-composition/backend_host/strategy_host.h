@@ -152,38 +152,33 @@ namespace gridtools{
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 BOOST_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1));
 
-                typedef typename boost::mpl::back<typename RunFunctorArgs::range_sizes_t>::type range_t;
-
-                uint_t n = coords.i_high_bound() + range_t::iplus::value - coords.i_low_bound() + range_t::iminus::value;
-                uint_t m = coords.j_high_bound() + range_t::jplus::value - coords.j_low_bound() + range_t::jminus::value;
+                uint_t n = coords.i_high_bound() - coords.i_low_bound() ;
+                uint_t m = coords.j_high_bound() - coords.j_low_bound() ;
 
                 uint_t NBI = n/BI;
                 uint_t NBJ = m/BJ;
 
-                uint_t _starti = bi*BI+coords.i_low_bound();
-                uint_t _startj = bj*BJ+coords.j_low_bound();
+                uint_t first_i = bi*BI+coords.i_low_bound();
+                uint_t first_j = bj*BJ+coords.j_low_bound();
 
-                uint_t block_size_i = BI-1;
-                uint_t block_size_j = BJ-1;
-
+                uint_t last_i = BI-1;
+                uint_t last_j = BJ-1;
 
                 if(bi == NBI && bj == NBJ)
                 {
-                    block_size_i = n-NBI*BI;
-                    block_size_j = m-NBJ*BJ;
+                    last_i = n-NBI*BI;
+                    last_j = m-NBJ*BJ;
                 }
                 else if(bi == NBI)
                 {
-                    block_size_i = n-NBI*BI;
+                    last_i = n-NBI*BI;
                 }
                 else if(bj == NBJ)
                 {
-                    block_size_j = m-NBJ*BJ;
+                    last_j = m-NBJ*BJ;
                 }
 
-                execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords, _starti, _startj, block_size_i, block_size_j, bi, bj)();
-//                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj));
-//                run_functor_t(local_domain_list, coords, _starti, _startj, block_size_i, block_size_j, bi, bj)();
+                execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords, first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
 
