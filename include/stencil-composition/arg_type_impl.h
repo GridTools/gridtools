@@ -287,14 +287,19 @@ arg_type_base ( int const& t, Whatever const& ... x) {
         static const ushort_t n_args=super::n_args+1;
         typedef typename super::index_type index_type;
 
-        template <typename OtherArgDecorator>
+//        template <typename ArgType>
+//        GT_FUNCTION
+//        arg_decorator (const arg_decorator<ArgType>& other)
+//        {
+//            m_offset = other.template get<n_args-1>();
+//            base_t(*static_cast<typename arg_decorator<ArgType>::base_t*>(&other));
+//        }
+        template <typename ArgTypeDecorator>
         GT_FUNCTION
-        arg_decorator ( OtherArgDecorator other)
+        arg_decorator (const ArgTypeDecorator& other)
         {
-            for(uint_t i = 0; i < n_args; ++i)
-            {
-                base_t::m_offset[i] = other.offset()[i];
-            }
+            m_offset = other.template get<n_args-1>();
+            base_t(*static_cast<const typename ArgTypeDecorator::base_t*>(&other));
         }
 
 #ifdef CXX11_ENABLED

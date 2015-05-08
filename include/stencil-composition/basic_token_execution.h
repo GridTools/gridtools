@@ -53,7 +53,6 @@ namespace gridtools {
             typedef typename run_functor_arguments_t::local_domain_t local_domain_t;
             typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
             typedef typename run_functor_arguments_t::coords_t coords_t;
-//            typedef typename esf_arguments_t::interval_map_t interval_map_t;
 
             GT_FUNCTION
             explicit run_f_on_interval_base(iterate_domain_t & domain, coords_t const& coords)
@@ -75,21 +74,11 @@ namespace gridtools {
 
                 typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
 
-//                if (boost::mpl::has_key<interval_map_t, Interval>::type::value) {
-//                    typedef typename boost::mpl::at<interval_map_t, Interval>::type interval_type;
+                uint_t const from=m_coords.template value_at<from_t>();
+                uint_t const to=m_coords.template value_at<to_t>();
 
-                    uint_t const from=m_coords.template value_at<from_t>();
-                    uint_t const to=m_coords.template value_at<to_t>();
-                    static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template do_loop<iteration_policy, interval_type>(to-from);
-                    uint_t const from=m_coords.template value_at<from_t>();
-                    //m_coords.template value_at<typename iteration_policy::from>();
-                    uint_t const to=m_coords.template value_at<to_t>();
-                    /* uint_t to=m_coords.template value_at<typename iteration_policy::to>(); */
-                    // std::cout<<"from==> "<<from<<std::endl;
-                    // std::cout<<"to==> "<<to<<std::endl;
-                    static_cast<RunFOnIntervalImpl*>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl>* >(this))->
-                            template loop<iteration_policy, Interval>(from, to);
-//                }
+                static_cast<RunFOnIntervalImpl*>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl>* >(this))->
+                        template loop<iteration_policy, Interval>(from, to);
             }
 
         protected:

@@ -18,7 +18,7 @@
 #include <stencil-composition/domain_type.h>
 #include <stencil-composition/arg_type.h>
 #include <stencil-composition/backend.h>
-
+#include <stencil-composition/intermediate.h>
 #include <boost/current_function.hpp>
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>

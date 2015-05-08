@@ -2,11 +2,13 @@
 
 #include "../common/host_device.h"
 #include "../common/gpu_clone.h"
+#include "../common/is_temporary_storage.h"
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/fusion/view/zip_view.hpp>
+#include <boost/fusion/include/for_each.hpp>
 #include <boost/utility.hpp>
 
 namespace gridtools {

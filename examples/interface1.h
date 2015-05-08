@@ -39,14 +39,23 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 struct lap_function {
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef const arg_type<2> ipos;
+    typedef const arg_type<3> jpos;
+    typedef const arg_type<4> kpos;
+
+    typedef boost::mpl::vector<out, in, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
 #ifdef __CUDACC__
-        printf("TT LAP %d %d %d : %f %f ; %d %d %d %d \n", (int)dom(ipos()), (int)dom(jpos()), (int)dom(kpos()), dom(out()), dom(in()),
-                threadIdx.x, threadIdx.y, blockIdx.x, blockIdx.y);
+        if((int)dom(kpos()) == 0) {
+        printf("LAP %d %d : %d %d %f \n",
+                threadIdx.x, threadIdx.y,
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(in())
+        );
+        }
 #endif
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
@@ -59,13 +68,24 @@ struct flx_function {
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 1, 0, 0> > in;
     typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+    typedef const arg_type<3> ipos;
+    typedef const arg_type<4> jpos;
+    typedef const arg_type<5> kpos;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, in, lap, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-
+#ifdef __CUDACC__
+        if((int)dom(kpos()) == 0) {
+        printf("FLX %d %d : %d %d %f \n",
+                threadIdx.x, threadIdx.y,
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(lap())
+        );
+        }
+#endif
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
@@ -78,16 +98,30 @@ struct fly_function {
     typedef arg_type<0> out;
     typedef const arg_type<1, range<0, 0, 0, 1> > in;
     typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef const arg_type<3> ipos;
+    typedef const arg_type<4> jpos;
+    typedef const arg_type<5> kpos;
+
+    typedef boost::mpl::vector<out, in, lap, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
         }
+#ifdef __CUDACC__
+        if((int)dom(kpos()) == 0) {
+        printf("FLY %d %d : %d %d %d %d %f %f %f \n",
+                threadIdx.x, threadIdx.y,
+                (int)dom(ipos()), (int)dom(jpos()),
+                (int)dom(ipos(1,0,0)), (int)dom(jpos(0,1,0)),
+                dom(out()), dom(lap(0,1,0)), dom(lap(0,0,0))
+        );
+        }
+#endif
+
     }
 };
 
@@ -98,8 +132,11 @@ struct out_function {
     typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
     typedef const arg_type<3, range<0, 0, -1, 0> > fly;
     typedef const arg_type<4> coeff;
+    typedef const arg_type<5> ipos;
+    typedef const arg_type<6> jpos;
+    typedef const arg_type<7> kpos;
 
-    typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
+    typedef boost::mpl::vector<out,in,flx,fly,coeff, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -114,6 +151,16 @@ struct out_function {
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
+#ifdef CUDACC
+        if((int)dom(kpos()) == 0) {
+        printf("OUT %d %d : %d %d %f %f %f %f %f \n",
+                threadIdx.x, threadIdx.y,
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(out()), dom(flx()), dom(fly()), dom(flx(-1,0,0)), dom(fly(0,-1,0))
+        );
+        }
+#endif
+
 #endif
         // printf("final dom(out()) => %e\n", dom(out()));
     }
@@ -294,10 +341,10 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 gridtools::make_esf<lap_function>(p_lap(), p_in(), p_ipos(), p_jpos(), p_kpos()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
-                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap(), p_ipos(), p_jpos(), p_kpos()),
+                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap(), p_ipos(), p_jpos(), p_kpos())
                 ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff(), p_ipos(), p_jpos(), p_kpos())
             ),
             domain, coords
         );

@@ -216,12 +216,12 @@ namespace gridtools{
         */
         template<typename Storage>
         GT_FUNCTION
-        static void advance(Storage & r, uint_t id, uint_t block, uint_t* index){
+        static void advance(Storage & r, uint_t offset, uint_t block, uint_t* index){
             //if the following fails, the ID is larger than the number of storage types,
             //or the index was not properly initialized to 0,
             //or you know what you are doing (then comment out the assert)
-            boost::fusion::at_c<ID>(r)->template increment<Coordinate>(id, block, &index[ID]);
-            advance_index<ID-1, Coordinate>::advance(r,id,block,index);
+            boost::fusion::at_c<ID>(r)->template increment<Coordinate>(offset, block, &index[ID]);
+            advance_index<ID-1, Coordinate>::advance(r,offset,block,index);
         }
     };
 

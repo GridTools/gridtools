@@ -47,7 +47,7 @@ namespace positional_copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(one()) = static_cast<float_type>(V)*(eval.i+eval.j+eval.k);
+            eval(one()) = static_cast<float_type>(V)*(eval.i()+eval.j()+eval.k());
             eval(two()) = -1.1;
         }
     };
