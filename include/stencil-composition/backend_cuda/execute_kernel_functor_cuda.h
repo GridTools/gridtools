@@ -22,8 +22,6 @@ namespace _impl_cuda {
         >::block_size_t block_size_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-        int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-        int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
 
         const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
                 block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;
