@@ -56,6 +56,13 @@ struct lap_function {
                 dom(in())
         );
         }
+#else
+        if((int)dom(kpos()) == 0) {
+        printf("LAP %d %d %f \n",
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(in())
+        );
+        }
 #endif
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
@@ -85,6 +92,14 @@ struct flx_function {
                 dom(lap())
         );
         }
+#else
+        if((int)dom(kpos()) == 0) {
+        printf("FLX %d %d %f \n",
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(lap())
+        );
+        }
+
 #endif
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
@@ -120,6 +135,15 @@ struct fly_function {
                 dom(out()), dom(lap(0,1,0)), dom(lap(0,0,0))
         );
         }
+#else
+        if((int)dom(kpos()) == 0) {
+        printf("FLY %d %d %d %d %f %f %f \n",
+                (int)dom(ipos()), (int)dom(jpos()),
+                (int)dom(ipos(1,0,0)), (int)dom(jpos(0,1,0)),
+                dom(out()), dom(lap(0,1,0)), dom(lap(0,0,0))
+        );
+        }
+
 #endif
 
     }
@@ -159,6 +183,14 @@ struct out_function {
                 dom(out()), dom(flx()), dom(fly()), dom(flx(-1,0,0)), dom(fly(0,-1,0))
         );
         }
+#else
+        if((int)dom(kpos()) == 0) {
+        printf("OUT %d %d %f %f %f %f %f \n",
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(out()), dom(flx()), dom(fly()), dom(flx(-1,0,0)), dom(fly(0,-1,0))
+        );
+        }
+
 #endif
 
 #endif

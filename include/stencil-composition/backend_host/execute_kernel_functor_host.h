@@ -112,10 +112,10 @@ struct execute_kernel_functor_host
             array_t, loop_item<0, enumtype::forward, int_t>,
             loop_item<1, enumtype::forward, int_t>
         > ij_loop(
-                (int_t) (m_start[0]),
-                (int_t) (m_start[0] + m_block_size[0]),
-                (int_t) (m_start[1]),
-                (int_t) (m_start[1] + m_block_size[1])
+                (int_t) (m_start[0] + range_t::iminus::value),
+                (int_t) (m_start[0] + m_block_size[0] + range_t::iplus::value),
+                (int_t) (m_start[1] + range_t::jminus::value),
+                (int_t) (m_start[1] + m_block_size[1] + range_t::jplus::value)
         );
 
         //reset the index
