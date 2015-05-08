@@ -97,6 +97,9 @@ struct execute_kernel_functor_host
         std::cout<<"iplus::value: "<<range_t::iplus::value<<std::endl;
         std::cout<<"jminus::value: "<<range_t::jminus::value<<std::endl;
         std::cout<<"jplus::value: "<<range_t::jplus::value<<std::endl;
+        std::cout<<"block_id_i: "<<m_block_id[0]<<std::endl;
+        std::cout<<"block_id_j: "<<m_block_id[1]<<std::endl;
+
         }
 #endif
 
@@ -187,9 +190,9 @@ struct execute_kernel_functor_host
 private:
     const local_domain_t& m_local_domain;
     const coords_t& m_coords;
-    gridtools::array<const uint_t, 2> m_first_pos;
-    gridtools::array<const uint_t, 2> m_last_pos;
-    gridtools::array<const uint_t, 2> m_block_id;
+    const gridtools::array<const uint_t, 2> m_first_pos;
+    const gridtools::array<const uint_t, 2> m_last_pos;
+    const gridtools::array<const uint_t, 2> m_block_id;
 
 //    const uint_t m_starti;
 //    const uint_t m_startj;
