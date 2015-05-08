@@ -1,10 +1,10 @@
 #pragma once
 #include <gt_for_each/for_each.hpp>
 #include "../backend_traits_fwd.h"
-#include "strategy_host.h"
 #include "run_esf_functor_host.h"
 #include "../block_size.h"
 #include "iterate_domain_host.h"
+#include "strategy_host.h"
 
 /**@file
 @brief type definitions and structures specific for the Host backend

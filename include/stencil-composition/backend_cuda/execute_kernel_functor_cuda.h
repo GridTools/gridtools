@@ -147,16 +147,16 @@ struct execute_kernel_functor_cuda
             )/ ((maximum_range_t::iminus::value != 0  || maximum_range_t::iplus::value != 0 ) ? 2 : 1)
         > cuda_block_size_t;
 
-        dim3 threads(cuda_block_size_t::i_size_t::value, cuda_block_size_t::j_size_t::value, 1);
-
         //number of grid points that a cuda block covers
-        const int ntx = block_size_t::i_size_t::value;
-        const int nty = block_size_t::j_size_t::value;
-        const int ntz = 1;
+        const uint_t ntx = block_size_t::i_size_t::value;
+        const uint_t nty = block_size_t::j_size_t::value;
+        const uint_t ntz = 1;
+        dim3 threads(cuda_block_size_t::i_size_t::value, cuda_block_size_t::j_size_t::value, ntz);
+
         //number of blocks required
-        const int nbx = (nx + ntx - 1) / ntx;
-        const int nby = (ny + nty - 1) / nty;
-        const int nbz = 1;
+        const uint_t nbx = (nx + ntx - 1) / ntx;
+        const uint_t nby = (ny + nty - 1) / nty;
+        const uint_t nbz = 1;
 
         dim3 blocks(nbx, nby, nbz);
 
