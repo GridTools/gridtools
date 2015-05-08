@@ -2,7 +2,7 @@
 #include "../iteration_policy.h"
 #include "../backend_traits_fwd.h"
 #include "backend_traits_cuda.h"
-
+#include "../iterate_domain_aux.h"
 
 namespace gridtools {
 
@@ -21,36 +21,40 @@ namespace _impl_cuda {
             RunFunctorArguments::backend_id_t::value
         >::block_size_t block_size_t;
 
-        int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-        int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
-
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-        __shared__  array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
 
-        __shared__ strides_cached<iterate_domain_t::N_STORAGES-1, typename Traits::local_domain_t::esf_args> strides;
-
-        //Doing construction and assignment before the following 'if', so that we can
-        //exploit parallel shared memory initialization
-        iterate_domain_t it_domain(*l_domain);
-        it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
-        it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
-        
         const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
                 block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;
         const uint_t block_size_j = (blockIdx.y+1) * block_size_t::j_size_t::value < ny ?
                 block_size_t::j_size_t::value : ny - blockIdx.y * block_size_t::j_size_t::value ;
 
+        __shared__  array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
+        __shared__ strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides;
+
+        //Doing construction and assignment before the following 'if', so that we can
+        //exploit parallel shared memory initialization
+        iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
+        it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
+        it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
+        
         __syncthreads();
 
-        it_domain.assign_ij<0>(i+starti);
-        it_domain.assign_ij<1>(j+startj);
+        const int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
+        const int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
+
+        it_domain.set_index(0);
+        it_domain.template increment<0, enumtype::forward>(i+starti);
+        it_domain.template increment<1, enumtype::forward>(j+startj);
+
+        //TODOCOSUNA Why this initialize is not working anymore?
+//        it_domain.initialize<0>(i+starti);
+//        it_domain.initialize<1>(j+startj);
 
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        //printf("setting the start to: %d \n",coords->template value_at< iteration_policy::from >() );
         //setting the initial k level (for backward/parallel iterations it is not 0)
         if( !(iteration_policy::value==enumtype::forward) )
             it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );

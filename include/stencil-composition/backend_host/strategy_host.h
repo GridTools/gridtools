@@ -64,21 +64,23 @@ namespace gridtools{
         };
 
         //with the naive algorithms, the temporary storages are like the non temporary ones
-        template <enumtype::backend Backend,
-                  typename ValueType,
-                  typename LayoutType,
-                  uint_t BI, uint_t BJ,
-                  uint_t IMinus, uint_t JMinus,
-                  uint_t IPlus, uint_t JPlus>
-        struct get_tmp_storage
-        {
-            typedef storage<base_storage<typename backend_traits_from_id<Backend>::template pointer<ValueType>::type, LayoutType, true> > type;
-        };
+         template <typename StorageType,
+                   uint_t BI,
+                   uint_t BJ,
+                   uint_t IMinus,
+                   uint_t JMinus,
+                   uint_t IPlus,
+                   uint_t JPlus>
+         struct get_tmp_storage
+         {
+ //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
+             typedef storage< StorageType > type;
+         };
 
     };
 
     //forward declaration
-    template<typename B,typename C,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
+    template<typename StorageBase,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
     struct host_tmp_storage;
 
     /**
@@ -185,18 +187,17 @@ namespace gridtools{
             }
         };
 
-        template <
-            enumtype::backend Backend,
-            typename ValueType,
-            typename LayoutType,
-            uint_t BI, uint_t BJ,
-            uint_t IMinus, uint_t JMinus,
-            uint_t IPlus, uint_t JPlus>
+        template <typename StorageBase ,
+                  uint_t BI,
+                  uint_t BJ,
+                  uint_t IMinus,
+                  uint_t JMinus,
+                  uint_t IPlus,
+                  uint_t JPlus>
         struct get_tmp_storage
         {
-            typedef host_tmp_storage <typename backend_traits_from_id<Backend>::template pointer<ValueType>::type, LayoutType, BI, BJ, IMinus, JMinus, IPlus, JPlus> type;
+            typedef host_tmp_storage < StorageBase, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
         };
-
     };
 
     template <enumtype::backend, uint_t Id>

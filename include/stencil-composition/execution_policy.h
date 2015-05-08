@@ -3,6 +3,7 @@
 #include "basic_token_execution.h"
 #include "backend_traits_fwd.h"
 #include "run_esf_functor.h"
+#include "../gt_for_each/for_each.hpp"
 
 /**
 @file Implementation of the k loop execution policy

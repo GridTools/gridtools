@@ -3,6 +3,7 @@
    @file
    @brief global definitions
 */
+#include <boost/mpl/bool.hpp>
 
 #ifdef FUSION_MAX_VECTOR_SIZE
 #undef FUSION_MAX_VECTOR_SIZE
@@ -104,6 +105,13 @@ namespace gridtools{  namespace enumtype{
            @}
          */
     }//namespace enumtype
+
+    template<typename T>
+    struct is_execution_engine : boost::mpl::false_{};
+
+    template<enumtype::execution U>
+    struct is_execution_engine<enumtype::execute<U> > : boost::mpl::true_{};
+
 
 #ifndef CXX11_ENABLED
 #define constexpr

@@ -128,6 +128,14 @@ public:
                     fly(i,j,0) = lap(i,j+1,0) - lap(i,j,0);
                     if (fly(i,j,0)*(in_(i,j+1,k)-in_(i,j,k)) > 0)
                         fly(i,j,0) = 0.;
+
+                    if(k == 0) {
+                    printf("REF FLY %d %d %f %f %f  \n",
+                            i, j,
+                            fly(i,j,0), lap(i,j+1,0), lap(i,j,0)
+                    );
+                    }
+
                 }
             }
             for (int i = halo_size_; i < idim_-halo_size_; ++i)
@@ -136,6 +144,13 @@ public:
                 {
                     out_ref_(i,j,k) = in_(i,j,k) - coeff_(i,j,k) *
                             (flx(i,j,0) - flx(i-1,j,0) + fly(i,j,0) - fly(i,j-1,0));
+                    if(k == 0) {
+                    printf("REF OUT %d %d %f %f %f %f %f \n",
+                            i, j,
+                            out_ref_(i,j,k), flx(i,j,0), fly(i,j,0), flx(i-1,j,0), fly(i,j-1,0)
+                    );
+                    }
+
                 }
             }
         }

@@ -10,6 +10,7 @@
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/has_key.hpp>
 
+#include "domain_type.h"
 #include "local_domain.h"
 #include "backend_traits_fwd.h"
 #include "mss_components.h"

@@ -7,7 +7,10 @@
 
 #pragma once
 #include <boost/static_assert.hpp>
+#include "../common/defs.h"
 #include "block_size.h"
+#include "local_domain.h"
+#include "axis.h"
 
 namespace gridtools {
 

@@ -46,8 +46,6 @@ namespace copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            printf("LAP at %d %d %d : %f %f \n", eval.i(), eval.j(), eval.k(),
-                    eval(in(0,0,0)), eval(out(0,0,0)));
 #ifdef CXX11_ENABLED
             eval(in(0,0,0,1))
 #else
