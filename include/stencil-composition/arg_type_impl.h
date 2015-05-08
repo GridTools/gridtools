@@ -397,6 +397,7 @@ arg_type_base ( int const& t, Whatever const& ... x) {
 
         /**@brief returns the offset at a specific index Idx*/
         template<short_t Idx>
+        /**@brief returns the offset array*/
         GT_FUNCTION
         constexpr
         int_t get() const {

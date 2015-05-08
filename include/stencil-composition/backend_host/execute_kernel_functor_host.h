@@ -191,7 +191,6 @@ private:
 //    const uint_t m_block_size_j;
 //    const uint_t m_block_idx_i;
 //    const uint_t m_block_idx_j;
-
 };
 
 }

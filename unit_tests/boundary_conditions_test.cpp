@@ -264,7 +264,6 @@ bool basic() {
     }
 
     return result;
-
 }
 
 bool predicate() {

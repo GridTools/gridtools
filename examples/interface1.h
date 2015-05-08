@@ -39,31 +39,11 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 struct lap_function {
     typedef arg_type<0> out;
     typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
-    typedef const arg_type<2> ipos;
-    typedef const arg_type<3> jpos;
-    typedef const arg_type<4> kpos;
-
     typedef boost::mpl::vector<out, in, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
-#ifdef __CUDACC__
-        if((int)dom(kpos()) == 0) {
-        printf("LAP %d %d : %d %d %f \n",
-                threadIdx.x, threadIdx.y,
-                (int)dom(ipos()), (int)dom(jpos()),
-                dom(in())
-        );
-        }
-#else
-        if((int)dom(kpos()) == 0) {
-        printf("LAP %d %d %f \n",
-                (int)dom(ipos()), (int)dom(jpos()),
-                dom(in())
-        );
-        }
-#endif
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
@@ -373,10 +353,10 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 gridtools::make_esf<lap_function>(p_lap(), p_in(), p_ipos(), p_jpos(), p_kpos()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
-                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap(), p_ipos(), p_jpos(), p_kpos()),
-                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap(), p_ipos(), p_jpos(), p_kpos())
+                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
+                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
                 ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff(), p_ipos(), p_jpos(), p_kpos())
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
             ),
             domain, coords
         );

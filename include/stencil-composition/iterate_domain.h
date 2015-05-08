@@ -59,6 +59,216 @@ namespace gridtools {
         typedef LocalDomain type;
     };
 
+<<<<<<< HEAD
+=======
+    /**@brief stopping the recursion*/
+    template<uint_t Offset, typename BackendType>
+    struct assign_raw_data<0, Offset, BackendType>{
+        static const uint_t Id=(Offset)%BLOCK_SIZE;
+
+        template<typename Left , typename Right >
+        GT_FUNCTION
+        static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
+                           typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
+        {
+            //l[0]=r[0].get();
+            BackendType:: template once_per_block<Id>::assign(l[0],r->fields_offset(0,EU_id_i, EU_id_j));
+        }
+
+        template<typename Left , typename Right >
+        GT_FUNCTION
+        static void assign(Left* l, Right const& r, int EU_id_i, int EU_id_j,
+                           typename boost::disable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
+        {
+            //l[0]=r[0].get();
+            BackendType:: template once_per_block<Id>::assign(l[0],r->fields()[0].get());
+        }
+    };
+
+    /**@brief this struct counts the total number of data fields are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
+       TODO code repetition in the _traits class
+    */
+    template <typename StoragesVector, int_t index>
+    struct total_storages{
+        //the index must not exceed the number of storages
+        GRIDTOOLS_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value, "the index must not exceed the number of storages")
+        static const uint_t count=total_storages<StoragesVector, index-1>::count+
+            boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<StoragesVector, index >::type>::type>
+            ::type::field_dimensions;
+    };
+
+    /**@brief partial specialization to stop the recursion*/
+    template <typename StoragesVector>
+    struct total_storages<StoragesVector, 0 >{
+        static const uint_t count=boost::remove_pointer<typename boost::remove_reference<typename  boost::mpl::at_c<StoragesVector, 0 >::type>::type>::type::field_dimensions;
+    };
+
+    namespace {
+
+        /**@brief assigning all the storage pointers to the m_data_pointers array*/
+        template<uint_t ID, uint_t Coordinate>
+        struct assign_index {
+
+            /**@brief does the actual assignment
+               This method is responsible of computing the index for the memory access at
+               the location (i,j,k). Such index is shared among all the fields contained in the
+               same storage class instance, and it is not shared among different storage instances.
+            */
+            template<typename Storage>
+            GT_FUNCTION
+            static void assign(Storage & r, uint_t id, uint_t block, uint_t* index){
+                //if the following fails, the ID is larger than the number of storage types,
+                //or the index was not properly initialized to 0,
+                //or you know what you are doing (then comment out the assert)
+                boost::fusion::at_c<ID>(r)->template increment<Coordinate>(id, block, &index[ID]);
+                assign_index<ID-1, Coordinate>::assign(r,id,block,index);
+            }
+        };
+
+        /**usual specialization to stop the recursion*/
+        template<uint_t Coordinate>
+            struct assign_index<0, Coordinate>{
+            template<typename Storage>
+            GT_FUNCTION
+            static void assign( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
+
+                boost::fusion::at_c<0>(r)->template increment<Coordinate>(id, block, &index[0]);
+            }
+        };
+
+        /**@brief assigning all the storage pointers to the m_data_pointers array*/
+        template<uint_t ID, uint_t Coordinate>
+        struct advance_index {
+
+            /**@brief does the actual assignment
+               This method is responsible of computing the index for the memory access at
+               the location (i,j,k). Such index is shared among all the fields contained in the
+               same storage class instance, and it is not shared among different storage instances.
+            */
+            template<typename Storage>
+            GT_FUNCTION
+            static void advance(Storage & r, uint_t id, uint_t block, uint_t* index){
+                //if the following fails, the ID is larger than the number of storage types,
+                //or the index was not properly initialized to 0,
+                //or you know what you are doing (then comment out the assert)
+                boost::fusion::at_c<ID>(r)->template increment<Coordinate>(id, block, &index[ID]);
+                advance_index<ID-1, Coordinate>::advance(r,id,block,index);
+            }
+        };
+
+        /**usual specialization to stop the recursion*/
+        template<uint_t Coordinate>
+            struct advance_index<0, Coordinate>{
+            template<typename Storage>
+            GT_FUNCTION
+            static void advance( Storage & r, uint_t id, uint_t block, uint_t* index/* , ushort_t* lru */){
+
+                boost::fusion::at_c<0>(r)->template increment<Coordinate>(id, block, &index[0]);
+            }
+        };
+
+        /**@brief assigning all the storage pointers to the m_data_pointers array*/
+        template<uint_t ID>
+        struct set_index_recur{
+            template<typename Storage>
+            /**@brief does the actual assignment
+               This method is responsible of computing the index for the memory access at
+               the location (i,j,k). Such index is shared among all the fields contained in the
+               same storage class instance, and it is not shared among different storage instances.
+            */
+            GT_FUNCTION
+            static void set(Storage & r, uint_t id, uint_t* index){
+                //if the following fails, the ID is larger than the number of storage types,
+                //or the index was not properly initialized to 0,
+                //or you know what you are doing (then comment out the assert)
+                boost::fusion::at_c<ID>(r)->set_index(id, &index[ID]);
+                set_index_recur<ID-1>::set(r,id,index);
+            }
+        };
+
+        /**usual specialization to stop the recursion*/
+        template<>
+        struct set_index_recur<0>{
+            template<typename Storage>
+            GT_FUNCTION
+            static void set( Storage & r, uint_t id, uint_t* index/* , ushort_t* lru */){
+                boost::fusion::at_c<0>(r)->set_index(id, &index[0]);
+            }
+        };
+
+        /**@brief assigning all the storage pointers to the m_data_pointers array*/
+
+        template<uint_t ID, typename BackendType>
+        struct assign_storage{
+
+            template<typename Left, typename Right>
+            GT_FUNCTION
+            /**@brief does the actual assignment
+               This method is also responsible of computing the index for the memory access at
+               the location (i,j,k). Such index is shared among all the fields contained in the
+               same storage class instance, and it is not shared among different storage instances.
+
+               The EU stands for ExecutionUnit (thich may be a thread or a group of
+               threasd. There are potentially two ids, one over i and one over j, since
+               our execution model is parallel on (i,j). Defaulted to 1.
+            */
+            static void assign(Left& l, Right & r, int EU_id_i, int EU_id_j){
+#ifdef CXX11_ENABLED
+                typedef typename std::remove_pointer
+                    <typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
+#else
+                typedef typename boost::remove_pointer
+                    <typename boost::remove_reference
+                    <BOOST_TYPEOF(boost::fusion::at_c<ID>(r))
+                    >::type
+                    >::type storage_type;
+#endif
+                //if the following fails, the ID is larger than the number of storage types
+                GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
+
+                    // std::cout<<"ID is: "<<ID-1<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< total_storages<LocalArgTypes, ID-1>::count <<std::endl;
+                    assign_raw_data<storage_type::field_dimensions-1,
+                                    total_storages<Right, ID-1>::count,
+                    BackendType>::
+                    assign(&l[total_storages<Right, ID-1>::count], boost::fusion::at_c<ID>(r),
+                           EU_id_i, EU_id_j);
+
+                assign_storage<ID-1, BackendType>::assign(l, r, EU_id_i, EU_id_j); //tail recursion
+            }
+        };
+
+        /**usual specialization to stop the recursion*/
+        template<typename BackendType>
+        struct assign_storage<0, BackendType>{
+
+            template<typename Left, typename Right>
+            GT_FUNCTION
+            static void assign(Left & l, Right & r, int EU_id_i, int EU_id_j){
+#ifdef CXX11_ENABLED
+                typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
+#else
+                typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
+#endif
+                // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
+                assign_raw_data<storage_type::field_dimensions-1, 0, BackendType>::
+                    assign(&l[0], boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
+            }
+        };
+    } //namespace
+
+    template< typename Impl>
+    struct iterate_domain_impl_local_domain;
+
+    template< typename LocalDomain,
+        template<typename> class IterateDomainBase,
+        template<template<typename> class, typename> class IterateDomainImpl >
+    struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
+    {
+        BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+        typedef LocalDomain type;
+    };
+
+>>>>>>> d338e33f89db857aae00b19283cf024034797244
     /**@brief class handling the computation of the */
     template <typename IterateDomainImpl>
     struct iterate_domain {
@@ -86,8 +296,12 @@ namespace gridtools {
         // current iteration storage for all the other storages)
 
         local_domain_t const& local_domain;
+<<<<<<< HEAD
         array<uint_t,N_STORAGES> m_index;
         array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT m_data_pointer;
+=======
+        uint_t m_index[N_STORAGES];
+>>>>>>> d338e33f89db857aae00b19283cf024034797244
 
         strides_cached<N_STORAGES-1, typename local_domain_t::esf_args>* RESTRICT m_strides;
 
@@ -155,11 +369,22 @@ namespace gridtools {
             increment_index<N_STORAGES-1, Coordinate, enumtype::forward>::assign(local_domain.local_args, offset, &m_index[0], *m_strides);
         }
 
+<<<<<<< HEAD
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
          */
         template <ushort_t Coordinate, enumtype::execution Execution>
+=======
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void advance_ij(uint_t index, uint_t block)
+        {
+            advance_index< N_STORAGES-1, Coordinate>::advance(local_domain.local_args, index, block, &m_index[0]);
+        }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+>>>>>>> d338e33f89db857aae00b19283cf024034797244
         GT_FUNCTION
         void increment()
             {
@@ -212,15 +437,24 @@ namespace gridtools {
         */
         template <typename ArgType, typename StoragePointer>
         GT_FUNCTION
+<<<<<<< HEAD
         typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
         get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const
+=======
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type&
+        get_value(ArgType const& arg , StoragePointer & storage_pointer) const
+>>>>>>> d338e33f89db857aae00b19283cf024034797244
         {
 
 
 #ifdef CXX11_ENABLED
+<<<<<<< HEAD
         using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
 #else
         typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+=======
+            GRIDTOOLS_STATIC_ASSERT((gridtools::arg_decorator<ArgType>::n_args <= boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.");
+>>>>>>> d338e33f89db857aae00b19283cf024034797244
 #endif
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
@@ -350,7 +584,6 @@ namespace gridtools {
                                          ))//+ the offset of the other extra dimension
                                          + current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type>::value
                 ]);
-
         }
 
 #if defined(CXX11_ENABLED)
@@ -400,6 +633,61 @@ namespace gridtools {
 #endif //ifndef __CUDACC__
 
         /** @brief method called in the Do methods of the functors.
+            specialization for the expr_direct_access<arg_type> placeholders
+        */
+        template <typename ArgType>
+        GT_FUNCTION
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
+        access(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
+            return get_value(arg, m_data_pointer[current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value]);
+        }
+#endif
+
+        /** @brief method called in the Do methods of the functors.
+            Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+        template <typename ArgType>
+        GT_FUNCTION
+        typename boost::enable_if<
+            typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type
+                                  , typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& >::type
+        access(gridtools::arg_decorator<ArgType> const& arg) const {
+
+#ifdef CXX11_ENABLED
+            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+#else
+            typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+#endif
+
+            //if the following assertion fails you have specified a dimension for the extended storage
+            //which does not correspond to the size of the extended placeholder for that storage
+            /* BOOST_STATIC_ASSERT(storage_type::n_dimensions==ArgType::n_args); */
+
+            //for the moment the extra dimensionality of the storage is limited to max 2
+            //(3 space dim + 2 extra= 5, which gives n_args==4)
+            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
+                GRIDTOOLS_STATIC_ASSERT(gridtools::arg_decorator<ArgType>::n_args <= gridtools::arg_decorator<ArgType>::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+
+                return get_value
+                (arg,
+                 m_data_pointer[ //static if
+                                //current_storage<(arg_decorator<ArgType>::index_type::value==0), local_domain_t, arg_decorator<ArgType> >::value
+                                //              :
+                                storage_type::get_index
+                                (
+                                 (
+                                  gridtools::arg_decorator<ArgType>::n_args <= storage_type::space_dimensions+1 ? // static if
+                                  arg.offset()[gridtools::arg_decorator<ArgType>::n_args-1] //offset for the current dimension
+                                  :
+                                  arg.offset()[gridtools::arg_decorator<ArgType>::n_args-1] //offset for the current dimension
+                                  + arg.offset()[gridtools::arg_decorator<ArgType>::n_args-2]
+                                  *storage_type::super::super::n_width //stride of the current dimension inside the vector of storages
+                                  ))//+ the offset of the other extra dimension
+                                + current_storage<(ArgType::index_type::value==0), local_domain_t, ArgType>::value]);
+        }
+
+
+#ifdef CXX11_ENABLED
+        /** @brief method called in the Do methods of the functors.
 
             specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
             Allows direct access to the storage by only using the offsets
@@ -424,7 +712,6 @@ namespace gridtools {
             return *(real_storage_pointer
                      +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                      ->_index(m_strides->template get<ArgType::index_type::value>(), arg.first_operand));
-
         }
 
         /** @brief method called in the Do methods of the functors. */
