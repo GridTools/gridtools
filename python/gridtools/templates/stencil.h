@@ -13,10 +13,14 @@
 
 
 
+#ifdef __CUDACC__
+#define BACKEND backend<Cuda, Naive >
+#else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
 #else
 #define BACKEND backend<Host, Naive >
+#endif
 #endif
 
 
@@ -48,15 +52,17 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                {%- endif -%}
            {% endfor -%})
 {
+#ifdef __CUDACC__
     //
     // Fortran-like memory layout
     //
-    //typedef gridtools::layout_map<2,1,0> layout_t;
-
+    typedef gridtools::layout_map<2,1,0> layout_t;
+#else
     //
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
+#endif
 
     //
     // define the storage unit used by the backend
@@ -149,7 +155,12 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
-    boost::shared_ptr<gridtools::computation> comp_{{ s.name|lower }} =
+#ifdef __CUDACC__
+    gridtools::computation* 
+#else
+    boost::shared_ptr<gridtools::computation> 
+#endif
+    comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
       (
             gridtools::make_mss
@@ -190,6 +201,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     {% for s in stencils -%}
     comp_{{ s.name|lower }}->steady();
     {% endfor %}
+    domain.clone_to_gpu ( );
     //
     // ... and execution
     //

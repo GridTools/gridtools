@@ -43,28 +43,29 @@ class CopyTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.domain = (64, 64, 32)
+        #self.domain = (64, 64, 32)
+        self.domain = (6, 6, 1)
         self.params = ('out_cpy', 'in_cpy')
         self.temps  = ( )
 
         self.out_cpy = np.zeros (self.domain,
-                                  dtype=np.float64)
-        self.in_cpy  = np.zeros (self.domain,
-                                  dtype=np.float64)
+                                 dtype=np.float64,
+                                 order='F')
         #
         # workaround because of a bug in the power (**) implemention of NumPy
         #
         self.in_cpy = np.random.random_integers (10, 
                                                  size=self.domain)
-        self.in_cpy = self.in_cpy.astype(np.float64)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.in_cpy = np.asfortranarray (self.in_cpy)
 
         self.stencil = Copy ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_dependency_detection (self, deps=None):
-        self.stencil.backend = 'c++'
+    def test_automatic_dependency_detection (self, deps=None, backend='c++'):
+        self.stencil.backend = backend
         self._run ( )
 
         if deps is None:
@@ -85,8 +86,13 @@ class CopyTest (unittest.TestCase):
             self.assertTrue (found)
 
 
-    def test_automatic_range_detection (self, ranges=None):
-        self.stencil.backend = 'c++'
+    def test_automatic_dependency_detection_cuda (self):
+        self.test_automatic_dependency_detection (deps=None,
+                                                  backend='cuda')
+
+
+    def test_automatic_range_detection (self, ranges=None, backend='c++'):
+        self.stencil.backend = backend
         self._run ( )
 
         #
@@ -112,38 +118,43 @@ class CopyTest (unittest.TestCase):
                                          % p.name)
 
 
-    def test_compare_python_and_native_executions (self):
+    def test_automatic_range_detection_cuda (self):
+        self.test_automatic_range_detection (ranges=None,
+                                             backend='cuda')
+
+
+    @attr(lang='cuda')
+    def test_compare_python_cpp_and_cuda_results (self):
         import copy
 
-        stencil_native         = copy.deepcopy (self.stencil)
-        stencil_native.backend = 'c++'
-
-        #
-        # data fields - Py and C++ sets
-        #
-        params_py  = dict ( )
-        params_cxx = dict ( )
-        for p in self.params:
-            params_py[p]  = np.random.rand (*self.domain)
-            params_cxx[p] = np.copy (params_py[p])
-
-        #
-        # apply both stencils 10 times
-        #
-        for i in range (10):
-            self.stencil.run   (**params_py)
-            stencil_native.run (**params_cxx)
+        for backend in [ 'cuda', 'c++' ]:
+            stencil_native         = copy.deepcopy (self.stencil)
+            stencil_native.backend = backend
 
             #
-            # compare the field contents
+            # data fields - Py and C++ sets
             #
-            for k in params_py.keys ( ):
-                self.assertTrue (np.array_equal (params_py[k],
-                                                 params_cxx[k]))
+            params_py  = dict ( )
+            params_cxx = dict ( )
+            for p in self.params:
+                params_py[p]  = np.random.rand (*self.domain)
+                params_cxx[p] = np.copy (params_py[p])
+            #
+            # apply both stencils 10 times
+            #
+            for i in range (10):
+                self.stencil.run   (**params_py)
+                stencil_native.run (**params_cxx)
+                #
+                # compare field contents
+                #
+                for k in params_py.keys ( ):
+                    self.assertTrue (np.array_equal (params_py[k],
+                                                     params_cxx[k]))
 
 
-    def test_symbol_discovery (self):
-        self.stencil.backend = 'c++'
+    def test_symbol_discovery (self, backend='c++'):
+        self.stencil.backend = backend
         self._run ( )
         #
         # check fields were correctly discovered
@@ -153,6 +164,10 @@ class CopyTest (unittest.TestCase):
             self.assertTrue (scope.is_parameter (p))
         for t in self.temps:
             self.assertTrue (scope.is_temporary (t))
+
+
+    def test_symbol_discovery_cuda (self):
+        self.test_symbol_discovery (backend='cuda')
 
 
     def test_user_stencil_extends_multistagestencil (self):
@@ -197,7 +212,7 @@ class CopyTest (unittest.TestCase):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
 
 
-    def test_python_execution (self, out_param=None, result_file=None):
+    def test_python_results (self, out_param=None, result_file=None):
         import os
 
         cur_dir = os.path.dirname (os.path.abspath (__file__))
@@ -220,10 +235,10 @@ class CopyTest (unittest.TestCase):
                                              expected))
 
 
-    def test_native_execution_performance (self):
+    def test_execution_performance_cpp (self, backend='c++'):
         import time
 
-        self.stencil.backend = 'c++'
+        self.stencil.backend = backend
         self._run ( )
         self.assertTrue ('_FuncPtr' in dir (self.stencil.lib_obj))
 
@@ -234,11 +249,19 @@ class CopyTest (unittest.TestCase):
         print ('FPS:', nstep / (time.time()-tstart))
 
 
-    def test_k_directions (self):
-        self.stencil.backend = 'c++'
+    def test_execution_performance_cuda (self):
+        self.test_execution_performance_cpp (backend='cuda')
+
+
+    def test_k_directions (self, backend='c++'):
+        self.stencil.backend = backend
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
+
+
+    def test_k_directions_cuda (self):
+        self.test_k_directions (backend='cuda')
 
 
 
