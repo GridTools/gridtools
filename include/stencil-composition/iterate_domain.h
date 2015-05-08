@@ -182,13 +182,14 @@ namespace gridtools {
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate>
         GT_FUNCTION
-        void initialize(uint_t const& index=0, uint_t const& block=0)
+        void initialize(uint_t const& initial_pos=0, uint_t const& block=0)
             {
                 initialize_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args
-                                                                    , index
+                                                                    , initial_pos
                                                                     , block
+                                                                    , *m_strides
                                                                     , &m_index[0]
-                                                                    , *m_strides);
+                                                                    );
             }
 
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/

@@ -7,6 +7,7 @@
 #include "horizontal_diffusion_repository.h"
 #include "verifier.h"
 
+#include <omp.h>
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
 #include <papi.h>
@@ -50,6 +51,25 @@ struct lap_function {
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+
+#ifdef __CUDACC__
+        if((int)dom(kpos()) == 0) {
+        printf("FLX %d %d : %d %d %f \n",
+                threadIdx.x, threadIdx.y,
+                (int)dom(ipos()), (int)dom(jpos()),
+                dom(lap())
+        );
+        }
+#else
+        if((int)dom(kpos()) == 0) {
+        printf("LAP %d %d %d %f %p %p\n",
+                omp_get_thread_num(), (int)dom(ipos()), (int)dom(jpos()),
+                dom(out()), &(dom(out())), &(dom(in()))
+        );
+        }
+
+#endif
+
     }
 };
 
