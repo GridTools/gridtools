@@ -555,7 +555,7 @@ namespace gridtools {
 
         template <uint_t Coordinate, typename StridesVector >
         GT_FUNCTION
-        void initialize(uint_t const& steps_, uint_t const& /*block*/, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
+        void initialize(uint_t const& steps_, uint_t const& /*block*/, StridesVector const& RESTRICT strides_, uint_t* RESTRICT index_){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
