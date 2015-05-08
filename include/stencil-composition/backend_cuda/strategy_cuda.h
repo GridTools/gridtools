@@ -71,9 +71,7 @@ namespace gridtools{
     */
     template<>
     struct strategy_from_id <enumtype::Block>
-    {
-
-    };
+    {};
 
     template <enumtype::backend, uint_t Id>
     struct once_per_block;

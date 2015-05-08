@@ -90,8 +90,6 @@ namespace gridtools {
 
             typedef backend_traits_from_id< BackendId > backend_traits_t;
 
-//            typedef typename backend_traits_t::template execute_traits< run_functor_args_t >::run_functor_t run_functor_t;
-
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
             //now the corresponding backend has to execute all the functors of the mss
