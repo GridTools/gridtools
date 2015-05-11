@@ -142,7 +142,7 @@ namespace gridtools {
                     setup(dim1, dim2, dim3);
                     // std::cout<< "striDES::::  "<<m_strides[0]<<" "<<m_strides[1]<<" "<<m_strides[2]<<std::endl;
                     // std::cout<< "dims::::  "<<m_dims[0]<<" "<<m_dims[1]<<" "<<m_dims[2]<<std::endl;
-                allocate(1);
+                allocate();
                 initialize(init, 1);
             }
 
@@ -193,7 +193,7 @@ namespace gridtools {
        , m_name(s)
             {
                 setup(dim1, dim2, dim3);
-                allocate(1);
+                allocate();
                 initialize(init, 1);
                 set_name(s);
             }
@@ -208,7 +208,7 @@ namespace gridtools {
        , m_name(s)
             {
                 setup(dim1, dim2, dim3);
-                allocate(1);
+                allocate();
                 initialize(lambda, 1);
                 set_name(s);
             }

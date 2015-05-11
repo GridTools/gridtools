@@ -20,7 +20,9 @@
 #include <boundary-conditions/apply.h>
 #endif
 
-//#define BACKEND_BLOCK 1
+#include <communication/halo_exchange.h>
+
+#define BACKEND_BLOCK 1
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil using the CXX03 interfaces, with periodic boundary conditions.
@@ -86,21 +88,14 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-#define height 2.
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            //if(i<3 && j<3)
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
-            //else
-            //return 1.;
         }
 
         GT_FUNCTION
-        static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-//             if(i>1 && j>1 && i<5 && j<5)
-            return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
-//             else
-//                 return 1.;
+        static float_type droplet_higher(uint_t const& i, uint_t const& j, uint_t const& k){
+            return 1.+4. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
         }
 
     };
@@ -256,10 +251,8 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
 
-        typedef range<0,-2,0,-2> xrange;
-//         last one: typedef range<0,0,0,-2> xrange;
-//         typedef range<0,1,0,-1> xrange_subdomain;
-        typedef range<0,1,0,0> xrange_subdomain;
+        // using xrange=range<0,-2,0,-2>;
+        // using xrange_subdomain=range<0,1,0,0>;
 
         typedef Dimension<5> comp;
         /**@brief space discretization step in direction i */
@@ -333,11 +326,11 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef range<0,-2,0,-2> xrange;
-//         typedef range<0,0,0,0>   xrange_subdomain;
-        typedef range<0,0,0,1>   xrange_subdomain;
+/*         typedef range<0,-2,0,-2> xrange; */
+/* //         typedef range<0,0,0,0>   xrange_subdomain; */
+/*         typedef range<0,0,0,1>   xrange_subdomain; */
 
-        typedef accessor<0, range<0, 0, 0, 0>, 3> hy;
+        typedef accessor<0, range<0, 1, 0, 1>, 3> hy;
         typedef accessor<1, range<0, 0, 0, 0>, 3> uy;
         typedef accessor<2, range<0, 0, 0, 0>, 3> vy;
         typedef accessor<3, range<0, 0, 0, 0>, 3> h;
@@ -373,9 +366,8 @@ namespace shallow_water{
 
     struct final_step {
 
-//         typedef range<0,-3,0,-2> xrange;
-        typedef range<0,-3,0,-3> xrange;
-        typedef range<1,1,1,1> xrange_subdomain;
+        /* typedef range<0,-3,0,-3> xrange; */
+        /* typedef range<1,1,1,1> xrange_subdomain; */
 
         typedef Dimension<5> comp;
         /**@brief space discretization step in direction i */
@@ -395,7 +387,7 @@ namespace shallow_water{
         static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
-        typedef accessor<0, range<0, 0, 0, 0>, 3> hx;
+        typedef accessor<0, range<-1, 0, -1, 0>, 3> hx;
         typedef accessor<1, range<0, 0, 0, 0>, 3> ux;
         typedef accessor<2, range<0, 0, 0, 0>, 3> vx;
         typedef accessor<3, range<0, 0, 0, 0>, 3> hy;
@@ -518,10 +510,15 @@ namespace shallow_water{
         typedef arg<8, storage_type > p_v;
         typedef boost::mpl::vector<p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v> accessor_list;
 
-        {// block for RAII
-            typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
+        {//scope for RAII
+            gridtools::array<int, 3> dimensions(0,0,0);
+            MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+            dimensions[2]=1;
+
+            typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                         gridtools::layout_map<0, 1, 2>,
-                                                        pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
+                                                        pointer_type::pointee_t,
+                                                        MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
                                                         gridtools::gcl_gpu,
 #else
@@ -529,15 +526,13 @@ namespace shallow_water{
 #endif
                                                         gridtools::version_manual> pattern_type;
 
-            gridtools::array<int, 3> dimensions(0,0,0);
-            MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
-            dimensions[2]=1;
 
             pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-            array<ushort_t, 3> halo(2,2,0);
+	    array<ushort_t, 3> padding(1,1,0);
+	    array<ushort_t, 3> halo(1,1,0);
             typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
-            partitioner_t part(he.comm(), halo);
+            partitioner_t part(he.comm(), halo, padding);
 
             parallel_storage<storage_type, partitioner_t> hx(part); hx.setup( d1, d2, d3);
             parallel_storage<storage_type, partitioner_t> ux(part); ux.setup( d1, d2, d3);
@@ -558,7 +553,7 @@ namespace shallow_water{
             if(!he.comm().pid())
                 h.initialize(&bc_periodic<0,0>::droplet);
             else
-                h.initialize(&bc_periodic<0,0>::droplet2);
+                h.initialize(&bc_periodic<0,0>::droplet_higher);
 
 #ifndef NDEBUG
             std::cout<<"INITIALIZED VALUES"<<std::endl;
@@ -630,11 +625,23 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
-//             if(!he.comm().pid()==target_process)
-//                 cudaProfilerStart();
+#ifdef __CUDACC__
+                if(!he.comm().pid()==target_process)
+                    cudaProfilerStart();
+#endif
+#ifndef CUDA_EXAMPLE
+                boost::timer::cpu_timer time;
+#endif
                 shallow_water_stencil->run();
-//             if(!he.comm().pid())
-//                 cudaProfilerStop();
+#ifdef __CUDACC__
+                if(!he.comm().pid())
+                    cudaProfilerStop();
+#endif
+#ifndef CUDA_EXAMPLE
+                boost::timer::cpu_times lapse_time = time.elapsed();
+                if(PID==0)
+                    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
 
                 std::vector<pointer_type::pointee_t*> vec(3);
                 vec[0]=h.data().get();
@@ -661,7 +668,6 @@ namespace shallow_water{
 #endif
         }
 
-        // cudaDeviceReset();
         // hdf5_driver<decltype(sol)> out("out.h5", "h", sol);
         // out.write(sol.get<0,0>());
 

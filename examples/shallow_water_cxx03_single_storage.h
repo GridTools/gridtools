@@ -9,9 +9,7 @@
 #include <storage/parallel_storage.h>
 #include <storage/partitioner_trivial.h>
 
-#ifdef HDF5_ENABLED
-#include <storage/io.h>
-#endif
+#include <communication/halo_exchange.h>
 
 #include <stencil-composition/backend.h>
 
@@ -23,7 +21,7 @@
 
 #include <communication/halo_exchange.h>
 
-//#define BACKEND_BLOCK 1
+#define BACKEND_BLOCK 1
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil using the CXX03 interfaces, with periodic boundary conditions.
@@ -90,16 +88,14 @@ namespace shallow_water{
                         uint_t i, uint_t j, uint_t k) const {
         }
 
-#define height 2.
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             return 1.+2. * std::exp(-5*((((int)i-4)*dx())*((((int)i-4)*dx()))+(((int)j-9)*dy())*(((int)j-9)*dy())));
         }
 
         GT_FUNCTION
-        static float_type droplet2(uint_t const& i, uint_t const& j, uint_t const& k){
-
-            return 1.+2. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
+        static float_type droplet_higher(uint_t const& i, uint_t const& j, uint_t const& k){
+            return 1.+4. * std::exp(-5*((((int)i-3)*dx())*((((int)i-3)*dx()))+(((int)j-3)*dy())*(((int)j-3)*dy())));
         }
 
     };
@@ -255,10 +251,10 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x {
 
-        typedef range<0,-2,0,-2> xrange;
-//         last one: typedef range<0,0,0,-2> xrange;
-//         typedef range<0,1,0,-1> xrange_subdomain;
-        typedef range<0,1,0,0> xrange_subdomain;
+        // using xrange=range<0,-2,0,-2>;
+        // using xrange_subdomain=range<0,1,0,0>;
+        typedef accessor<0, range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef boost::mpl::vector<sol> arg_list;
 
         typedef Dimension<4> step;
         typedef Dimension<5> comp;
@@ -275,9 +271,8 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        //typedef accessor<0, range<0, 0, 0, 0>, 5>::type tmpx;
-        typedef accessor<0, range<0, 0, 0, 0>, 5> sol;
-        typedef boost::mpl::vector<sol> arg_list;
+        // static const x::Index i;
+        // static const y::Index j;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -325,11 +320,10 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type g(){return 9.81;}
 
-        typedef range<0,-2,0,-2> xrange;
-//         typedef range<0,0,0,0>   xrange_subdomain;
-        typedef range<0,0,0,1>   xrange_subdomain;
+        // using xrange=range<0,-2,0,-2>;
+        // using xrange_subdomain=range<0,0,0,1>;
 
-        typedef accessor<0,range<0, 0, 0, 0>, 5> sol;
+        typedef accessor<0,range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<sol> arg_list;
 
         template <typename Evaluation>
@@ -362,8 +356,8 @@ namespace shallow_water{
 
     struct final_step {
 
-        typedef range<0,-3,0,-3> xrange;
-        typedef range<1,1,1,1> xrange_subdomain;
+        /* typedef range<0,-3,0,-3> xrange; */
+        /* typedef range<1,1,1,1> xrange_subdomain; */
 
         typedef Dimension<4> step;
         typedef Dimension<5> comp;
@@ -383,7 +377,7 @@ namespace shallow_water{
         static const x::Index i;
         static const y::Index j;
 
-        typedef accessor<0,range<0,0,0,0>, 5> sol;
+        typedef accessor<0,range<-1,0,-1,0>, 5> sol;
         typedef boost::mpl::vector<sol>  arg_list;
         static uint_t current_time;
 
@@ -414,7 +408,7 @@ namespace shallow_water{
                 //(     ux(j-1)*ux(j-1)                                           / hx(j-1) )                    +      hx(j-1)           *     hx(j-1)          *(g/2)                       -
                 ((eval(sol(step(0),comp(1),j-1))*eval(sol(step(0),comp(1),j-1)))                / eval(sol(step(0),comp(0),j-1))      + eval(sol(step(0),comp(0),j-1))*eval(sol(step(0),comp(0),j-1))*((g()/2.))                 -
                  //     ux(i-1, j-1)              ux(i-1,j-1)                         /hx(i-1, j-1)                   +     h(i-1,j-1)             *    h(i-1, j-1)*(g/2)
-                 ((eval(sol(step(0),comp(1),i-1,j-1))*eval(sol(step(0),comp(1),i-1,j-1)))            / eval(sol(step(0),comp(0),i-1, j-1)) +(eval(sol(step(0),comp(0),i-1,j-1))*eval(sol(step(0),comp(0),i-1,j-1)) )*((g()/2.))))*((dt()/dx()));// -
+                 ((eval(sol(step(0),comp(1),i-1,j-1))*eval(sol(step(0),comp(1),i-1,j-1)))            / eval(sol(step(0),comp(0),i-1, j-1)) +(eval(sol(step(0),comp(0),i-1,j-1))*eval(sol(step(0),comp(0),i-1,j-1)) )*((g()/2.))))*((dt()/dx())) -
             //(    vy(i-1)          *     uy(i-1)                     /      hy(i-1)
             (eval(sol(step(1),comp(2),i-1))*eval(sol(step(1),comp(1),i-1))          / eval(sol(step(1),comp(0),i-1))                                                   -
              //    vy(i-1, j-1)          *      uy(i-1, j-1)          /       hy(i-1, j-1))dt/dy
@@ -495,7 +489,7 @@ namespace shallow_water{
             MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
             dimensions[2]=1;
 
-            typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
+            typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                         gridtools::layout_map<0, 1, 2>,
                                                         pointer_type::pointee_t,
                                                         MPI_3D_process_grid_t<3>,
@@ -508,9 +502,10 @@ namespace shallow_water{
 
             pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-            array<ushort_t, 3> halo(2,2,0);
+	    array<ushort_t, 3> padding(1,1,0);
+	    array<ushort_t, 3> halo(1,1,0);
             typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
-            partitioner_t part(he.comm(), halo);
+            partitioner_t part(he.comm(), halo, padding);
             parallel_storage<sol_type, partitioner_t> sol(part);
             sol.setup(d1, d2, d3);
 
@@ -533,7 +528,7 @@ namespace shallow_water{
             if(!he.comm().pid())
                 sol.set<2,0>(out7, &bc_periodic<0,0>::droplet);//h
             else
-                sol.set<2,0>(out7, &bc_periodic<0,0>::droplet2);//h
+                sol.set<2,0>(out7, &bc_periodic<0,0>::droplet_higher);//h
             //sol.set<0,0>(out7, 1.);//h
             sol.set<2,1>(out8, 0.);//u
             sol.set<2,2>(out9, 0.);//v
@@ -616,10 +611,18 @@ namespace shallow_water{
                 if(!he.comm().pid()==target_process)
                     cudaProfilerStart();
 #endif
+#ifndef CUDA_EXAMPLE
+                boost::timer::cpu_timer time;
+#endif
                 shallow_water_stencil->run();
 #ifdef __CUDACC__
                 if(!he.comm().pid())
                     cudaProfilerStop();
+#endif
+#ifndef CUDA_EXAMPLE
+                boost::timer::cpu_times lapse_time = time.elapsed();
+                if(PID==0)
+                    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
 
                 std::vector<pointer_type::pointee_t*> vec(3);

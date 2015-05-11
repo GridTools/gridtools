@@ -126,9 +126,10 @@ namespace gridtools {
             // info();
         }
 
-
+    private:
         host_tmp_storage() {}
 
+    public:
         virtual ~host_tmp_storage() {}
 
 

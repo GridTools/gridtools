@@ -48,7 +48,7 @@ namespace shallow_water{
 
 /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
-        using comp=Dimension<5>;
+        typedef Dimension<5> comp;
 
         /**@brief space discretization step in direction i */
         GT_FUNCTION
@@ -109,12 +109,10 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
-        // using xrange=range<0,-2,0,-2>;
-        // using xrange_subdomain=range<0,1,0,0>;
-        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+      typedef accessor<1, range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+      typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+      using arg_list=boost::mpl::vector<tmpx, sol> ;
 
-        typedef accessor<1, range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
-        using arg_list=boost::mpl::vector<tmpx, sol> ;
 
         template <typename Evaluation>
         GT_FUNCTION
