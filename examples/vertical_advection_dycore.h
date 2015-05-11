@@ -3,8 +3,6 @@
 #include <gridtools.h>
 
 #include <stencil-composition/backend.h>
-
-#include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "vertical_advection_repository.h"

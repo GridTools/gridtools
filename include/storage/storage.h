@@ -91,8 +91,8 @@ namespace gridtools{
                ,typename Layout
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field<no_storage_type_yet<base_storage<PointerType, Layout, true, FieldDimension> >, Number... >{
-        typedef no_storage_type_yet<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > type;
+    struct field<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
+        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
     };
 
 #else//CXX11_ENABLED
@@ -143,8 +143,8 @@ namespace gridtools{
                ,typename Layout
                ,short_t FieldDimension
                ,uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<no_storage_type_yet<base_storage<PointerType, Layout, true, FieldDimension> >, Number1, Number2, Number3 >{
-        typedef no_storage_type_yet<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number3-1> > > type;
+    struct field<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number1, Number2, Number3 >{
+        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number3-1> > > > type;
     };
 #endif
 
