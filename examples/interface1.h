@@ -57,7 +57,7 @@ struct flx_function {
     typedef const accessor<1, range<0, 1, 0, 0> > in;
     typedef const accessor<2, range<0, 1, 0, 0> > lap;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, in, lap, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -94,7 +94,7 @@ struct out_function {
     typedef const accessor<3, range<0, 0, -1, 0> > fly;
     typedef const accessor<4> coeff;
 
-    typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
+    typedef boost::mpl::vector<out,in,flx,fly,coeff, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
