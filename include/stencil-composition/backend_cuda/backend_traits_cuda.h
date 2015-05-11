@@ -86,17 +86,17 @@ namespace gridtools{
         template<typename Sequence, typename F>
         GT_FUNCTION
         static void for_each(F&& f)
-            {
-                boost::mpl::for_each<Sequence>(std::forward<F>(f));
-            }
+        {
+            boost::mpl::for_each<Sequence>(std::forward<F>(f));
+        }
 #else
         //function alias (pre C++11)
         template<typename Sequence, typename F>
         GT_FUNCTION
         static void for_each(F f)
-            {
-                boost::mpl::for_each<Sequence>(f);
-            }
+        {
+            boost::mpl::for_each<Sequence>(f);
+        }
 #endif
 
         /**
@@ -132,20 +132,26 @@ namespace gridtools{
             }
         };
 
+        /**
+         * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+         */
         struct mss_fuse_esfs_strategy
         {
             typedef boost::mpl::bool_<true> type;
             BOOST_STATIC_CONSTANT(bool, value=(type::value));
         };
 
+        // high level metafunction that contains the run_esf_functor corresponding to this backend
         typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
 
+        // default block size for this backend
         typedef block_size<32,8> block_size_t;
 
         /**
-         * @brief metafunction that derives that returns the right iterate domain
+         * @brief metafunction that returns the right iterate domain for this backend
          * (depending on whether the local domain is positional or not)
-         * @param LocalDomain the local domain
+         * @tparam LocalDomain the local domain
+         * @return the iterate domain type for this backend
          */
         template <typename LocalDomain>
         struct select_iterate_domain {
