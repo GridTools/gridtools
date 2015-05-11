@@ -29,6 +29,15 @@ endif()
 
 include_directories( include/ include/communication/high-level ) ## Library header files
 
+# Find boost
+if(WIN32)
+  # Auto-linking happens on Windows, so we don't need to specify specific components
+  find_package( Boost REQUIRED )
+else()
+  # On other platforms, me must be specific about which libs are required
+  find_package( Boost COMPONENTS timer system chrono REQUIRED )
+endif()
+
 # If the version is less than 1.56, we need a special version of Fusion
 if (Boost_VERSION LESS 105600)
   set( GPU_ENABLED_FUSION "../fusion/include" CACHE STRING "Path to...")
@@ -72,16 +81,6 @@ if( USE_GPU )
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
-endif()
-
-
-# Find boost
-if(WIN32)
-  # Auto-linking happens on Windows, so we don't need to specify specific components
-  find_package( Boost REQUIRED )
-else()
-  # On other platforms, me must be specific about which libs are required
-  find_package( Boost COMPONENTS  timer system chrono REQUIRED )
 endif()
 
 if ( ENABLE_CXX11 )
