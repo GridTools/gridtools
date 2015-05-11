@@ -111,7 +111,6 @@ namespace gridtools{
                 BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
                 typedef backend_traits_from_id<BackendId> backend_traits;
 
-                //TODO consider the largest ij range of all mss to compute number of blocks?
                 uint_t n = coords.i_high_bound() - coords.i_low_bound();
                 uint_t m = coords.j_high_bound() - coords.j_low_bound();
 
@@ -120,6 +119,7 @@ namespace gridtools{
 
                 #pragma omp parallel
                 {
+                    backend_traits::set_thread_id();
                 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
