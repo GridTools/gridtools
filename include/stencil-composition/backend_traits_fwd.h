@@ -39,15 +39,4 @@ namespace gridtools {
     template< typename Backend >
     struct execute_kernel_functor;
 
-
-    /**
-       @brief traits struct for the run_functor
-
-       empty declaration
-    */
-    template <class Subclass>
-    struct run_functor_traits;
-
-    template<class Impl>
-    struct run_functor_impl_arguments;
 }
