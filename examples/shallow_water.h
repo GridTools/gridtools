@@ -183,8 +183,8 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
-        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx;
-        typedef accessor<1, range<0, 0, 0, 0>, 5> tmpy;
+        typedef accessor<0, range<-1, 0, 0, 0>, 5> tmpx;
+        typedef accessor<1, range<0, 0, -1, 0>, 5> tmpy;
         typedef accessor<2, range<0, 0, 0, 0>, 5> sol;
         // typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
         // typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;

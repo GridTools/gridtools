@@ -515,23 +515,12 @@ namespace shallow_water{
 
             he.setup(3);
 
-            ptr out1(sol.size()), out2(sol.size()), out3(sol.size());
-            sol.set<0,0>(out1, 0.);
-            sol.set<0,1>(out2, 0.);
-            sol.set<0,2>(out3, 0.);
-            ptr out4(sol.size()), out5(sol.size()), out6(sol.size());
-            sol.set<1,0>(out4, 0.);
-            sol.set<1,1>(out5, 0.);
-            sol.set<1,2>(out6, 0.);
-
-            ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
             if(!he.comm().pid())
-                sol.set<2,0>(out7, &bc_periodic<0,0>::droplet);//h
+                sol.set<2,0>( &bc_periodic<0,0>::droplet);//h
             else
-                sol.set<2,0>(out7, &bc_periodic<0,0>::droplet_higher);//h
-            //sol.set<0,0>(out7, 1.);//h
-            sol.set<2,1>(out8, 0.);//u
-            sol.set<2,2>(out9, 0.);//v
+                sol.set<2,0>( &bc_periodic<0,0>::droplet_higher);//h
+            sol.set<2,1>( 0.);//u
+            sol.set<2,2>( 0.);//v
 
 #ifndef NDEBUG
             std::ofstream myfile;

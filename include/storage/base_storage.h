@@ -127,21 +127,19 @@ namespace gridtools {
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
 
-   /**
-      @brief 3D storage constructor
-      \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
+        /**
+           @brief 3D storage constructor
+           \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
         */
-   template<typename FloatType=float_type, typename boost::enable_if<boost::is_float<FloatType>, int>::type=0>
-   base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType const& init=float_type(), char const* s="default storage") :
-       is_set( true ),
-       m_name(s),
-       m_dims(),
-       m_strides()
-       {
-      GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
+        template<typename FloatType=float_type, typename boost::enable_if<boost::is_float<FloatType>, int>::type=0>
+        base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, FloatType const& init=float_type(), char const* s="default storage") :
+            is_set( true ),
+            m_name(s),
+            m_dims(),
+            m_strides()
+            {
+                GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
                     setup(dim1, dim2, dim3);
-                    // std::cout<< "striDES::::  "<<m_strides[0]<<" "<<m_strides[1]<<" "<<m_strides[2]<<std::endl;
-                    // std::cout<< "dims::::  "<<m_dims[0]<<" "<<m_dims[1]<<" "<<m_dims[2]<<std::endl;
                 allocate();
                 initialize(init, 1);
             }
@@ -156,15 +154,15 @@ namespace gridtools {
 
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
-   template <class ... UIntTypes, typename Dummy = typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<UIntTypes>::type::value ... ), bool >::type >
-   base_storage(  UIntTypes const& ... args  ) :
-       is_set( false ),
-       m_name("default_storage"),
-       m_dims(),
+        template <class ... UIntTypes, typename Dummy = typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<UIntTypes>::type::value ... ), bool >::type >
+        base_storage(  UIntTypes const& ... args  ) :
+            is_set( false ),
+            m_name("default_storage"),
+            m_dims(),
             m_strides()
             {
                 setup(args ...);
-       }
+            }
 
         template<typename ... UInt>
         void setup(UInt const& ... dims)
@@ -216,12 +214,12 @@ namespace gridtools {
         void setup(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3)
             {
                 m_dims[0]=dim1;
-      m_dims[1]=dim2;
-      m_dims[2]=dim3;
+                m_dims[1]=dim2;
+                m_dims[2]=dim3;
 
-      m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
-      m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
-      m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
+                m_strides[0]=( ((layout::template at_<0>::value < 0)?1:dim1) * ((layout::template at_<1>::value < 0)?1:dim2) * ((layout::template at_<2>::value < 0)?1:dim3) );
+                m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3)*layout::template find_val<1,short_t,1>(dim1,dim2,dim3) );
+                m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(dim1,dim2,dim3) );
             }
 
 #endif //CXX11_ENABLED
@@ -976,7 +974,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #endif
    void set( pointer_type& field)
        {
-      super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
+           super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
        }
 
    /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input constant value
@@ -991,11 +989,10 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #else
    template<short_t field_dim, short_t snapshot>
 #endif
-   void set( pointer_type& field, typename super::value_type const& val)
+   void set(/* pointer_type& field,*/ typename super::value_type const& val)
        {
-      for (uint_t i=0; i<super::size(); ++i)
-          field[i]=val;
-      set<field_dim, snapshot>(field);
+           for (uint_t i=0; i<super::size(); ++i)
+               (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])[i]=val;
        }
 
    /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input lambda function
@@ -1011,13 +1008,15 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #else
    template<short_t field_dim, short_t snapshot  >
 #endif
-   void set( pointer_type& field, typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
+   void set( typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
        {
       for (uint_t i=0; i<this->m_dims[0]; ++i)
           for (uint_t j=0; j<this->m_dims[1]; ++j)
          for (uint_t k=0; k<this->m_dims[2]; ++k)
-             (field)[super::_index(super::strides(), i,j,k)]=lambda(i, j, k);
-      set<field_dim, snapshot>(field);
+             for (uint_t i=0; i<super::size(); ++i)
+               (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
+                   [super::_index(super::strides(), i,j,k)]=
+                   lambda(i, j, k);
        }
 
 
