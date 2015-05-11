@@ -11,7 +11,10 @@
 
 namespace gridtools {
 
-/** @brief Partial specialization: naive and block implementation for the host backend */
+/**
+ * @brief main functor that setups the CUDA kernel for a MSS and launchs it
+ * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
+ */
 template <typename RunFunctorArguments >
 struct execute_kernel_functor_host
 {
@@ -52,7 +55,7 @@ struct execute_kernel_functor_host
 
     /**
        @brief core of the kernel execution
-       \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
+       @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
     */
     explicit execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords,
             const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
@@ -148,44 +151,6 @@ struct execute_kernel_functor_host
 
         //run the nested ij loop
         ij_loop.apply(it_domain, f);
-
-
-//        void* data_pointer[iterate_domain_t::N_DATA_POINTERS];
-//        iterate_domain_t it_domain(m_local_domain);
-//
-//        it_domain.template assign_storage_pointers<backend_traits_t >(data_pointer);
-//
-//        for (int_t i = m_starti + range_t::iminus::value;
-//             i <= m_starti + m_block_size_i + range_t::iplus::value; ++i)
-//        {
-//            for (int_t j = m_startj + range_t::jminus::value;
-//                j <= m_startj + m_block_size_j + range_t::jplus::value; ++j)
-//            {
-//                //reset the index
-//                it_domain.set_index(0);
-//                it_domain.template assign_ij<0>(i, m_block_idx_i);
-//                it_domain.template assign_ij<1>(j, m_block_idx_j);
-//                /** setting an iterator to the address of the current i,j entry to be accessed */
-//                typedef typename boost::mpl::front<loop_intervals_t>::type interval;
-//                typedef typename index_to_level<typename interval::first>::type from;
-//                typedef typename index_to_level<typename interval::second>::type to;
-//                typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
-//                assert(i>=0);
-//                assert(j>=0);
-//
-//                //setting the initial k level (for backward/parallel iterations it is not 0)
-//                it_domain.set_k_start( m_coords.template value_at< typename iteration_policy::from >() );
-//
-//            //local structs can be passed as template arguments in C++11 (would improve readability)
-//
-//                /** run the iteration on the k dimension */
-//                gridtools::for_each< loop_intervals_t > (
-//                    _impl::run_f_on_interval<
-//                            execution_type_t, RunFunctorArguments
-//                         >(it_domain, m_coords) );
-//
-//            }
-//        }
     }
 private:
     const local_domain_t& m_local_domain;
@@ -193,13 +158,6 @@ private:
     const gridtools::array<const uint_t, 2> m_first_pos;
     const gridtools::array<const uint_t, 2> m_last_pos;
     const gridtools::array<const uint_t, 2> m_block_id;
-
-//    const uint_t m_starti;
-//    const uint_t m_startj;
-//    const uint_t m_block_size_i;
-//    const uint_t m_block_size_j;
-//    const uint_t m_block_idx_i;
-//    const uint_t m_block_idx_j;
 };
 
 }

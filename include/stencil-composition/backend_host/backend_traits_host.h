@@ -20,19 +20,8 @@ namespace gridtools{
         /**
            Global variable storing the current thread id
         */
-        int __attribute__((weak)) m_gt_thread_id = -1;
-#pragma omp threadprivate(m_gt_thread_id)
-
-        void set_gt_thread_id(const int lthread_id)
-        {
-            assert(lthread_id>=0);
-            m_gt_thread_id = lthread_id;
-        }
-        int gt_thread_id()
-        {
-            assert(m_gt_thread_id>=0);
-            return m_gt_thread_id;
-        }
+        int __attribute__((weak)) gt_thread_id;
+#pragma omp threadprivate(gt_thread_id)
 
     }//namespace multithreading
 
@@ -89,7 +78,7 @@ namespace gridtools{
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
         static uint_t processing_element_i()  {
-            return multithreading::gt_thread_id();
+            return multithreading::gt_thread_id;
         }
 
         /**@brief set the thread id
@@ -101,7 +90,7 @@ namespace gridtools{
            region is encountered.
          */
         static void set_thread_id(){
-            multithreading::set_gt_thread_id(thread_id());
+            multithreading::gt_thread_id = thread_id();
         }
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.

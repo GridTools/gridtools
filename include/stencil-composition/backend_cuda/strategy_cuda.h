@@ -9,17 +9,10 @@
 #include "../mss_functor.h"
 #include "../sfinae.h"
 
-/**
-   @file
-
-   \brief This class contains the traits which are used in backand.h
-*/
-
 namespace gridtools{
 
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
-       A single loop spans all three directions, i, j and k
     */
     template<>
     struct strategy_from_id< enumtype::Naive>
@@ -30,7 +23,7 @@ namespace gridtools{
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam TMssArray a meta array with all the mss descriptors
+         * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
         template<typename MssComponentsArray, enumtype::backend BackendId>
@@ -49,7 +42,10 @@ namespace gridtools{
             }
         };
 
-        //with the naive algorithms, the temporary storages are like the non temporary ones
+        /**
+         * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
+         * with the naive algorithms, the temporary storages are like the non temporary ones
+         */
         template <typename StorageType,
                   uint_t BI,
                   uint_t BJ,
@@ -67,7 +63,7 @@ namespace gridtools{
 
     /**
        @brief specialization for the \ref gridtools::_impl::Block strategy
-       The loops over i and j are split according to the values of BI and BJ
+       Empty as not used in the CUDA backend
     */
     template<>
     struct strategy_from_id <enumtype::Block>
