@@ -8,6 +8,7 @@
 #include <boost/typeof/typeof.hpp>
 #endif
 #include "local_domain.h"
+#include "../common/gt_assert.h"
 
 /**@file
    @brief file handling the access to the storage.
@@ -495,6 +496,8 @@ namespace gridtools {
         GT_FUNCTION
         void increment(const uint_t steps_=1)
         {
+            //TODOCOSUNA recover
+            //            assert(Execution == enumtype::forward || Execution == enumtype::backward);
             if (Coordinate==0) {
                 m_i+=steps_;
             }
@@ -503,6 +506,7 @@ namespace gridtools {
             }
             //TODOCOSUNA what with the increment of k? Is it GONE?
             base_t::template increment<Coordinate, Execution>(steps_);
+            (Execution == enumtype::backward) ? --m_k : ++m_k;
         }
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
@@ -536,7 +540,5 @@ namespace gridtools {
 
     private:
         uint_t m_i, m_j, m_k;
-
-
     };
 } // namespace gridtools
