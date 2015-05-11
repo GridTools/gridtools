@@ -197,32 +197,8 @@ namespace gridtools {
             }
         };
 
-
-        struct _print_the_storages {
-            template <typename T>
-            void operator()(T const& x) const {
-                //                int a =x;
-                std::cout << "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA  " << x << std::endl;
-            }
-        };
     } // namespace _debug
 
-
-    struct _print_____ {
-        template <typename T>
-        void operator()(T) const {
-            //int x = T();
-            std::cout << "ciccia e brufoli " << T() << std::endl;
-        }
-    };
-
-    struct _print______ {
-        template <typename T>
-        void operator()(T) const {
-            std::cout << "   ==== == == ===  = == == = " << std::endl;
-            gridtools::for_each<T>(_print_____());
-        }
-    };
 
     struct printthose {
         template <typename E>
@@ -482,11 +458,8 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
         */
         virtual void ready () {
-            // boost::fusion::for_each(actual_arg_list, printthose());
             Backend::template prepare_temporaries( actual_arg_list, m_coords);
             is_storage_ready=true;
-            // std::cout << "\n(3) These are the view values" << std::endl;
-            // boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
         /**
            @brief calls setup_computation and creates the local domains.
@@ -556,16 +529,6 @@ namespace gridtools {
          *
          */
         virtual void run () {
-            // gridtools::for_each<typename DomainType::placeholders>(_print_____());
-            // gridtools::for_each<temp_list>(_print______());
-            // std::cout << "---" << std::endl;
-            // gridtools::for_each<tomp_list>(_print_____());
-            // std::cout << "--- ---" << std::endl;
-            // gridtools::for_each<mpl_local_domain_list>(_print_____());
-
-#ifndef NDEBUG
-            boost::fusion::for_each(actual_arg_list, _debug::_print_the_storages());
-#endif
 
             BOOST_STATIC_ASSERT((boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value));
 
