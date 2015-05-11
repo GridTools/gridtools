@@ -19,7 +19,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -40,8 +40,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef arg_type<0, range<0,0,0,0> > POSTFIX one;
-        typedef arg_type<1, range<0,0,0,0> > POSTFIX two;
+        typedef accessor<0, range<0,0,0,0> > POSTFIX one;
+        typedef accessor<1, range<0,0,0,0> > POSTFIX two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
@@ -55,8 +55,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const arg_type<0, range<0,0,0,0>, 3> POSTFIX in;
-        typedef arg_type<1, range<0,0,0,0>, 3> POSTFIX out;
+        typedef const accessor<0, range<0,0,0,0>, 3> POSTFIX in;
+        typedef accessor<1, range<0,0,0,0>, 3> POSTFIX out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */
@@ -121,7 +121,7 @@ namespace positional_copy_stencil{
         typedef arg<1, storage_type> p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+        typedef boost::mpl::vector<p_in, p_out> accessor_list;
 
         /* typedef arg<1, vec_field_type > p_out; */
 
@@ -133,7 +133,7 @@ namespace positional_copy_stencil{
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 
-        gridtools::domain_type<arg_type_list> domain
+        gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.

@@ -1,8 +1,9 @@
+<<<<<<< HEAD
 #pragma once
 
 #include <boost/type_traits/is_const.hpp>
 
-#include "stencil-composition/arg_type.h"
+#include "stencil-composition/accessor.h"
 #include "domain_type.h"
 
 /**

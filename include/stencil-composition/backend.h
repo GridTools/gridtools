@@ -19,7 +19,7 @@
 #include "../common/pair.h"
 #include "../common/gridtools_runtime.h"
 #include "heap_allocated_temps.h"
-#include "arg_type.h"
+#include "accessor.h"
 #include "domain_type.h"
 #include "mss_metafunctions.h"
 #include "mss_local_domain.h"

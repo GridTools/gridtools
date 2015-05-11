@@ -16,7 +16,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -39,16 +39,16 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 template<typename T>
 struct u_forward_function {
-    typedef const arg_type<0> POSTFIX utens_stage;
-    typedef const arg_type<1, range<0,1, 0, 0> > POSTFIX wcon;
-    typedef const arg_type<2> POSTFIX u_stage;
-    typedef const arg_type<3> POSTFIX u_pos;
-    typedef const arg_type<4> POSTFIX utens;
-    typedef const arg_type<5> POSTFIX dtr_stage;
-    typedef arg_type<6> POSTFIX acol;
-    typedef arg_type<7> POSTFIX bcol;
-    typedef arg_type<8> POSTFIX ccol;
-    typedef arg_type<9> POSTFIX dcol;
+    typedef const accessor<0> POSTFIX utens_stage;
+    typedef const accessor<1, range<0,1, 0, 0> > POSTFIX wcon;
+    typedef const accessor<2> POSTFIX u_stage;
+    typedef const accessor<3> POSTFIX u_pos;
+    typedef const accessor<4> POSTFIX utens;
+    typedef const accessor<5> POSTFIX dtr_stage;
+    typedef accessor<6> POSTFIX acol;
+    typedef accessor<7> POSTFIX bcol;
+    typedef accessor<8> POSTFIX ccol;
+    typedef accessor<9> POSTFIX dcol;
 
     typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
@@ -144,12 +144,12 @@ private:
 
 template<typename T>
 struct u_backward_function {
-    typedef arg_type<0> POSTFIX utens_stage;
-    typedef const arg_type<1> POSTFIX u_pos;
-    typedef const arg_type<2> POSTFIX dtr_stage;
-    typedef const arg_type<3> POSTFIX ccol;
-    typedef const arg_type<4> POSTFIX dcol;
-    typedef arg_type<5> POSTFIX data_col;
+    typedef accessor<0> POSTFIX utens_stage;
+    typedef const accessor<1> POSTFIX u_pos;
+    typedef const accessor<2> POSTFIX dtr_stage;
+    typedef const accessor<3> POSTFIX ccol;
+    typedef const accessor<4> POSTFIX dcol;
+    typedef accessor<5> POSTFIX data_col;
 
     typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
@@ -235,15 +235,15 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-//    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+//    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
     typedef boost::mpl::vector<p_utens_stage, p_u_stage, p_wcon, p_u_pos, p_utens, p_dtr_stage,
-            p_acol, p_bcol, p_ccol, p_dcol, p_data_col> arg_type_list;
+            p_acol, p_bcol, p_ccol, p_dcol, p_data_col> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLE
-    gridtools::domain_type<arg_type_list> domain(
+    gridtools::domain_type<accessor_list> domain(
             (p_utens_stage() = repository.utens_stage()),
             (p_u_stage() = repository.u_stage()),
             (p_wcon() = repository.wcon()),
@@ -252,7 +252,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
             (p_dtr_stage() = repository.dtr_stage())
     );
 #else
-    gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(
             &repository.utens_stage(), &repository.u_stage(), &repository.wcon(),
             &repository.u_pos(), &repository.utens(), &repository.dtr_stage()));
 #endif

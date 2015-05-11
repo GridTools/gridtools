@@ -618,13 +618,13 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
     /** @brief storage class containing a buffer of data snapshots
 
-        the goal of this struct is to  implement a cash for the solutions, in order e.g. to ease the finite differencing between the different scalar fields.
+
     */
     template < typename Storage, short_t ExtraWidth>
-    struct extend_width : public Storage//, clonable_to_gpu<extend_width<Storage, ExtraWidth> >
+    struct storage_list : public Storage
     {
 
-        typedef extend_width<Storage, ExtraWidth> type;
+        typedef storage_list<Storage, ExtraWidth> type;
    /*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
    GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.")
         typedef Storage super;
@@ -635,28 +635,28 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         typedef typename super::value_type value_type;
 
         //default constructor
-        extend_width(): super(){}
+        storage_list(): super(){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
         template<typename ... UIntTypes>
-        explicit extend_width(UIntTypes const& ... args ): super( args ... ) {
+        explicit storage_list(UIntTypes const& ... args ): super( args ... ) {
         }
 #else
         /**@brief default constructor*/
-        explicit extend_width(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): super( d1, d2, d3 ) {
+        explicit storage_list(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): super( d1, d2, d3 ) {
         }
 #endif
 
 
         /**@brief destructor: frees the pointers to the data fields */
-        virtual ~extend_width(){
+        virtual ~storage_list(){
         }
 
         /**@brief device copy constructor*/
         template <typename T>
         __device__
-        extend_width(T const& other)
+        storage_list(T const& other)
             : super(other)
             {
                 //GRIDTOOLS_STATIC_ASSERT(n_width==T::n_width, "Dimension analysis error: copying two vectors with different dimensions");
@@ -731,28 +731,28 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
     /**@brief specialization: if the width extension is 0 we fall back on the base storage*/
     template < typename Storage>
-    struct extend_width<Storage, 0> : public Storage
+    struct storage_list<Storage, 0> : public Storage
     {
         typedef typename Storage::basic_type basic_type;
         typedef Storage super;
         typedef typename Storage::original_storage original_storage;
 
         //default constructor
-        extend_width(): super(){}
+        storage_list(): super(){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
         template<typename ... UIntTypes>
-        explicit extend_width(UIntTypes const& ... args ): Storage( args ... ) {
+        explicit storage_list(UIntTypes const& ... args ): Storage( args ... ) {
         }
 #else
         /**@brief default constructor*/
-        explicit extend_width(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( d1, d2, d3 ) {
+        explicit storage_list(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( d1, d2, d3 ) {
         }
 #endif
 
         /**@brief destructor: frees the pointers to the data fields */
-        virtual ~extend_width(){
+        virtual ~storage_list(){
         }
 
         using super::setup;
@@ -763,7 +763,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         /**@brief device copy constructor*/
         template<typename T>
         __device__
-        extend_width(T const& other)
+        storage_list(T const& other)
             : Storage(other)
             {}
     };
@@ -781,8 +781,8 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         //the number of dimensions (i.e. the number of different fields)
         static const ushort_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
         //the current field extension
-        //n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
-        typedef extend_width<First, n_fields-1>  type;
+        //n_fields-1 because the storage_list takes the EXTRA width as argument, not the total width.
+        typedef storage_list<First, n_fields-1>  type;
         // typedef First type;
         typedef dimension_extension_traits<StorageExtended ... > super;
     };
@@ -845,8 +845,8 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         //the number of dimensions (i.e. the number of different fields)
         static const ushort_t n_dimensions=  dimension_extension_traits< Second>::n_dimensions  +1 ;
         //the current field extension
-   //n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
-   typedef extend_width<First, n_fields-1>  type;
+   //n_fields-1 because the storage_list takes the EXTRA width as argument, not the total width.
+   typedef storage_list<First, n_fields-1>  type;
    // typedef First type;
    typedef dimension_extension_traits< Second> super;
     };
@@ -861,8 +861,8 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         //the number of dimensions (i.e. the number of different fields)
         static const ushort_t n_dimensions=  dimension_extension_traits2< Second, Third >::n_dimensions  +1 ;
         //the current field extension
-   //n_fields-1 because the extend_width takes the EXTRA width as argument, not the total width.
-   typedef extend_width<First, n_fields-1>  type;
+   //n_fields-1 because the storage_list takes the EXTRA width as argument, not the total width.
+   typedef storage_list<First, n_fields-1>  type;
    // typedef First type;
    typedef dimension_extension_traits2< Second, Third > super;
     };
@@ -875,9 +875,9 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
        It is a collection of arbitrary length discretized scalar fields.
     */
     template <typename First,  typename  ...  StorageExtended>
-    struct extend_dim : public dimension_extension_traits<First, StorageExtended ... >::type/*, clonable_to_gpu<extend_dim<First, StorageExtended ... > >*/
+    struct data_field : public dimension_extension_traits<First, StorageExtended ... >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
     {
-        typedef extend_dim<First, StorageExtended...> type;
+        typedef data_field<First, StorageExtended...> type;
         typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;
         typedef dimension_extension_traits<First, StorageExtended ...  > traits;
         typedef typename super::pointer_type pointer_type;
@@ -887,16 +887,16 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
         /**@brief constructor given the space boundaries*/
         template<typename ... UIntTypes>
-        extend_dim(  UIntTypes const& ... args )
+        data_field(  UIntTypes const& ... args )
             : super(args...)
             {
        }
 #else
 
         template <typename First, typename Second, typename Third>
-        struct extend_dim : public dimension_extension_traits3<First, Second, Third >::type/*, clonable_to_gpu<extend_dim<First, StorageExtended ... > >*/
+        struct data_field : public dimension_extension_traits3<First, Second, Third >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
         {
-            typedef extend_dim<First, Second, Third> type;
+            typedef data_field<First, Second, Third> type;
             typedef typename dimension_extension_traits3<First, Second, Third >::type super;
             typedef dimension_extension_traits3<First, Second, Third > traits;
             typedef typename super::pointer_type pointer_type;
@@ -905,7 +905,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
             static const short_t n_width=2+1;
 
             /**@brief constructor given the space boundaries*/
-            extend_dim(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
+            data_field(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
                 : super(d1, d2, d3)
             {
        }
@@ -913,17 +913,17 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #endif
 
    /**@brief default constructor*/
-        extend_dim(): super(){}
+        data_field(): super(){}
 
    /**@brief device copy constructor*/
         template <typename T>
         __device__
-        extend_dim( T const& other )
+        data_field( T const& other )
             : super(other)
             {}
 
         /**@brief destructor: frees the pointers to the data fields */
-        virtual ~extend_dim(){
+        virtual ~data_field(){
         }
 
         using super::setup;
@@ -1111,16 +1111,16 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         */
         GT_FUNCTION
         void advance_all(){
-            _impl::advance_recursive<n_width>::apply(const_cast<extend_dim*>(this));
+            _impl::advance_recursive<n_width>::apply(const_cast<data_field*>(this));
         }
 
     };
 
 #if !defined( CXX11_ENABLED ) || defined ( __CUDACC__ )
         template <typename First>
-        struct extend_dim1 : public dimension_extension_traits<First >::type/*, clonable_to_gpu<extend_dim<First, StorageExtended ... > >*/
+        struct data_field1 : public dimension_extension_traits<First >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
         {
-            typedef extend_dim1<First> type;
+            typedef data_field1<First> type;
             typedef typename dimension_extension_traits<First >::type super;
             typedef dimension_extension_traits<First > traits;
             typedef typename super::pointer_type pointer_type;
@@ -1129,7 +1129,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
             static const short_t n_width=2+1;
 
             /**@brief constructor given the space boundaries*/
-            extend_dim1(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
+            data_field1(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
                 : super(d1, d2, d3)
             {
        }
@@ -1137,12 +1137,12 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
    /**@brief device copy constructor*/
         template <typename T>
         __device__
-        extend_dim1( T const& other )
+        data_field1( T const& other )
             : super(other)
             {}
 
         /**@brief destructor: frees the pointers to the data fields */
-        virtual ~extend_dim1(){
+        virtual ~data_field1(){
    }
 
         /**@brief pushes a given data field at the front of the buffer for a specific dimension
@@ -1282,15 +1282,15 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         */
         GT_FUNCTION
         void advance_all(){
-       _impl::advance_recursive<n_width>::apply(const_cast<extend_dim1*>(this));
+       _impl::advance_recursive<n_width>::apply(const_cast<data_field1*>(this));
         }
 
 #ifdef NDEBUG
     private:
         //for stdcout purposes
-   extend_dim1();
+   data_field1();
 #else
-        extend_dim1(){}
+        data_field1(){}
 #endif
     };
 #endif
@@ -1400,7 +1400,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__ )
     template <typename F, typename ... T>
-    std::ostream& operator<<(std::ostream &s, extend_dim< F, T... > const &) {
+    std::ostream& operator<<(std::ostream &s, data_field< F, T... > const &) {
         return s << "field storage" ;
     }
 #endif
