@@ -249,7 +249,7 @@ namespace gridtools {
             static_assert(sizeof...(Indices)<length, "Too many arguments");
 
             //lazy template instantiation
-            typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= length ),
+            typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) ),
                 identity<T, DefaultVal>
                 ,
                 tied_type<I, T> >::type type;
