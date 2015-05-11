@@ -66,6 +66,7 @@ namespace gridtools{
 
 
     //defines how many threads participate to the (shared) memory initialization
+    //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
 
     /**@brief recursively assigning the 'raw' data pointers to an input data pointers array (i.e. the m_data_pointers array).

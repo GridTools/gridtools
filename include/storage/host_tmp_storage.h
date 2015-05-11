@@ -213,6 +213,7 @@ namespace gridtools {
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         void initialize(const uint_t steps_, const uint_t block_, StridesVector const& strides_, uint_t* index_){
+
             // no blocking along k
             if(Coordinate != 2)
             {

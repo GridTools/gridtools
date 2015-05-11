@@ -54,10 +54,10 @@ struct lap_function {
 
 #ifdef __CUDACC__
         if((int)dom(kpos()) == 0) {
-        printf("FLX %d %d : %d %d %f \n",
+        printf("LAP %d %d : %d %d %f \n",
                 threadIdx.x, threadIdx.y,
                 (int)dom(ipos()), (int)dom(jpos()),
-                dom(lap())
+                dom(out())
         );
         }
 #else
