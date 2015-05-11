@@ -41,41 +41,35 @@ namespace gridtools {
 #endif
 #else
 
-        //copy ctor from an accessor with different ID
-        template<ushort_t OtherID>
         GT_FUNCTION
-        constexpr accessor(const accessor<OtherID, Range, Number>& other) :
-            super(other) {}
-
-#ifdef CXX11_ENABLED
-        template<ushort_t OtherID>
-        GT_FUNCTION
-        constexpr accessor(accessor<OtherID, Range, Number>&& other) :
-            super(std::move(other)) {}
-#endif
-
-        GT_FUNCTION
-        constexpr explicit accessor(): super() {}
+        constexpr explicit accessor(): super()
+            {}
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y, Z z, T t ): super(x, y, z, t) {}
+        constexpr accessor ( X x, Y y, Z z, T t ): super(x, y, z, t)
+            {
+            }
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y, Z z ): super(x, y, z) {}
-
+        constexpr accessor ( X x, Y y, Z z ): super(x, y, z)
+            {
+            }
         /** @brief constructor forwarding all the arguments*/
         template <typename X>
         GT_FUNCTION
-        constexpr accessor ( X x ): super(x) {}
-
+        constexpr accessor ( X x ): super(x)
+            {
+            }
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y ): super(x, y) {}
+        constexpr accessor ( X x, Y y ): super(x, y)
+            {
+            }
 
 #endif
     };
@@ -92,19 +86,6 @@ namespace gridtools {
         constexpr accessor0(): super()
             {}
 
-        //copy ctor from an accessor with different ID
-        template<ushort_t OtherID>
-        GT_FUNCTION
-        constexpr accessor0(const accessor0<OtherID, Number>& other) :
-            super(other) {}
-
-#ifdef CXX11_ENABLED
-        template<ushort_t OtherID>
-        GT_FUNCTION
-        constexpr accessor0(accessor0<OtherID, Number>&& other) :
-            super(std::move(other)) {}
-#endif
-
 #ifdef CXX11_ENABLED
 // #ifndef __CUDACC__
 //         using super::accessor_base::accessor_base;
@@ -112,24 +93,32 @@ namespace gridtools {
 
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr accessor0 ( ForwardedArgs... x): super (x ...) {}
+        constexpr accessor0 ( ForwardedArgs... x): super (x ...)
+            {
+            }
 // #endif
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr accessor0 ( X x, Y y, Z z, T t ): super(x, y, z, t) {}
+        constexpr accessor0 ( X x, Y y, Z z, T t ): super(x, y, z, t)
+            {
+            }
 
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr accessor0 ( X x, Y y, Z z ): super(x, y, z) {}
-
+        constexpr accessor0 ( X x, Y y, Z z ): super(x, y, z)
+            {
+            }
         template <typename X>
         GT_FUNCTION
-        constexpr accessor0 ( X x ): super(x) {}
-
+        constexpr accessor0 ( X x ): super(x)
+            {
+            }
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr accessor0 ( X x, Y y ): super(x, y) {}
+        constexpr accessor0 ( X x, Y y ): super(x, y)
+            {
+            }
 #endif
 
     };

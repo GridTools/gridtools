@@ -34,9 +34,6 @@ namespace _impl {
     };
 }
 
-template<typename T> struct printpp { BOOST_MPL_ASSERT_MSG((false), PPPPPPP, (T));};
-
-
 /**
  * @brief metafunction that given an arg and a map, it will remap the index of the arg according
  * to the corresponding entry in ArgsMap
@@ -44,10 +41,32 @@ template<typename T> struct printpp { BOOST_MPL_ASSERT_MSG((false), PPPPPPP, (T)
 template<typename Arg, typename ArgsMap>
 struct remap_arg_type;
 
-template < ushort_t ID, typename Range, ushort_t Number, typename ArgsMap>
-struct remap_arg_type<accessor<ID, Range, Number>, ArgsMap >
+//template<uint_t I, typename Range, ushort_t Dim, typename ArgsMap >
+//struct remap_arg_type<arg_type_base<I, Range, Dim>, ArgsMap >
+//{
+//    typedef arg_type_base<I, Range, Dim> base_arg_t;
+//    BOOST_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0));
+//    //check that the key type is an int (otherwise the later has_key would never find the key)
+//    BOOST_STATIC_ASSERT((boost::is_same<
+//        typename boost::mpl::first<typename boost::mpl::front<ArgsMap>::type>::type::value_type,
+//        int
+//    >::value));
+//
+//    typedef typename boost::mpl::integral_c<int, base_arg_t::index_type::value> index_type_t;
+//
+//    BOOST_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_type_t>::value));
+//
+//    typedef arg_type_base<
+//        boost::mpl::at<ArgsMap, index_type_t >::type::value,
+//        typename base_arg_t::range_type,
+//        base_arg_t::n_dim
+//    > type;
+//};
+
+template<ushort_t I, typename Range, ushort_t Dim, typename ArgsMap >
+struct remap_arg_type<arg_type<I, Range, Dim>, ArgsMap >
 {
-    typedef accessor<ID, Range, Number> accessor_t;
+    typedef arg_type<I, Range, Dim> base_arg_t;
     BOOST_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0));
     //check that the key type is an int (otherwise the later has_key would never find the key)
     BOOST_STATIC_ASSERT((boost::is_same<
@@ -55,15 +74,21 @@ struct remap_arg_type<accessor<ID, Range, Number>, ArgsMap >
         int
     >::value));
 
-    typedef typename boost::mpl::integral_c<int, (int)ID> index_type_t;
+    typedef typename boost::mpl::integral_c<int, base_arg_t::index_type::value> index_type_t;
 
     BOOST_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_type_t>::value));
 
-    typedef accessor<
+    typedef arg_type<
         boost::mpl::at<ArgsMap, index_type_t >::type::value,
-        Range,
-        Number
+        typename base_arg_t::range_type,
+        base_arg_t::n_dim
     > type;
+};
+
+template< class ArgType, typename ArgsMap >
+struct remap_arg_type<arg_decorator<ArgType>, ArgsMap >
+{
+    typedef arg_decorator<typename remap_arg_type<ArgType, ArgsMap>::type > type;
 };
 
 /**
@@ -89,15 +114,102 @@ public:
 
     template <typename ArgType>
     GT_FUNCTION
-    typename boost::mpl::at<
-        typename local_domain_t::esf_args,
-        typename ArgType::type::index_type
-    >::type::value_type& RESTRICT
+    typename boost::enable_if<
+        typename boost::mpl::bool_< (ArgType::type::n_args <=
+                                     boost::mpl::at<
+                                     typename local_domain_t::esf_args
+                                     , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+                                    , typename boost::mpl::at<typename local_domain_t::esf_args
+                                                              , typename ArgType::type::index_type>::type::value_type
+                                    >::type& RESTRICT
     operator()(ArgType const& arg) const {
         typedef typename remap_arg_type<ArgType, esf_args_map_t>::type remap_arg_t;
         return m_iterate_domain(remap_arg_t(arg));
     }
 
+    template < typename ArgType>
+    GT_FUNCTION
+    typename boost::enable_if<
+        typename boost::mpl::bool_<(ArgType::type::n_args >
+        boost::mpl::at<
+        typename local_domain_t::esf_args
+        , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+        , typename boost::mpl::at<typename local_domain_t::esf_args
+        , typename ArgType::type::index_type>::type::value_type
+    >::type&  RESTRICT
+    operator()(ArgType const& arg) const {
+        typedef typename remap_arg_type<ArgType, esf_args_map_t>::type remap_arg_t;
+        return m_iterate_domain(remap_arg_t(arg));
+    }
+
+#ifdef CXX11_ENABLED
+    /** @brief method called in the Do methods of the functors.
+        specialization for the expr_direct_access<arg_type> placeholders
+    */
+    template <typename ArgType>
+    GT_FUNCTION
+    typename boost::mpl::at<typename local_domain_t::esf_args, typename arg_decorator<ArgType>::index_type>::type::value_type&
+    operator()(expr_direct_access<arg_decorator<ArgType> > const& arg) const {
+        typedef typename remap_arg_type<ArgType, esf_args_map_t>::type remap_arg_t;
+        return m_iterate_domain(remap_arg_t(arg));
+    }
+
+    /** @brief method called in the Do methods of the functors.
+        Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+    template < typename ArgType>
+    GT_FUNCTION
+    typename boost::enable_if<
+        typename boost::mpl::bool_<(gridtools::arg_decorator<ArgType>::n_args > boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::storage_type::space_dimensions)>::type,
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& >::type
+    operator()(gridtools::arg_decorator<ArgType> const&& arg) const {
+        return m_iterate_domain(remap_arg_t(std::forward<gridtools::arg_decorator<ArgType> const> arg));
+    }
+
+#if !defined(__CUDACC__)
+        /** @brief method called in the Do methods of the functors.
+
+            Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+        template < typename ArgType, typename ... Pairs>
+        GT_FUNCTION
+        typename boost::mpl::at<typename local_domain_t::esf_args
+                                , typename ArgType::index_type>::type::value_type& RESTRICT
+        operator()(arg_mixed<ArgType, Pairs ... > const& arg) const
+        {
+//TODOCOSUNA implement
+        }
+        template <typename ... Arguments, template<typename ... Args> class Expression >
+        GT_FUNCTION
+        auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) {
+            //arg.to_string();
+            return evaluation::value((*this), arg);
+        }
+
+        /** @brief method called in the Do methods of the functors.
+            partial specializations for double (or float)*/
+        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+                  , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto operator() (Expression<Arg, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+        }
+
+        /** @brief method called in the Do methods of the functors.
+            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
+            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
+        // template <typename Arg, int Arg2, template<typename Arg1, int a> class Expression >
+        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType
+                  , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto operator() (Expression<Arg, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+        }
+
+        template <typename Arg, template<typename Arg1, int Arg2> class Expression
+                  , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
+        GT_FUNCTION
+        auto operator() (Expression<Arg, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+        }
+#endif
+
+#endif
 protected:
     const iterate_domain_t& m_iterate_domain;
 };

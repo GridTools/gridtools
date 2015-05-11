@@ -126,14 +126,6 @@ namespace gridtools {
     template< int_t Index, int_t Dimension >
     struct offset_tuple;
 
-    namespace enumtype{
-        template <ushort_t>
-        struct Dimension;
-    }
-
-    template <uint_t I, typename T>
-    struct arg;
-
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
      *
@@ -170,32 +162,9 @@ namespace gridtools {
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
-        constexpr explicit accessor_base():m_offsets() {}
-
-        //copy ctor from another accessor_base with different index
-        template<uint_t OtherIndex>
-        GT_FUNCTION
-        constexpr accessor_base(const accessor_base<OtherIndex, Range, Dim> & other) :
-            m_offsets(other.offsets()){}
-
-#ifdef CXX11_ENABLED
-        template<ushort_t OtherIndex>
-        GT_FUNCTION
-        constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
-            m_offsets(other.offsets()) {}
-#endif
-
-
-        //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
-        // by the compiler
-        template<ushort_t Idx>
-        GT_FUNCTION
-        constexpr accessor_base (enumtype::Dimension<Idx> const& x ): m_offsets(x) {}
-
-        GT_FUNCTION
-        constexpr accessor_base (const int_t x ): m_offsets(x) {}
-
-
+        constexpr explicit accessor_base():m_offsets()
+            {
+            }
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
@@ -209,21 +178,27 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
             }
 #else
-        template<typename X, typename Y, typename Z, typename T>
+        template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr accessor_base (X x, Y y, Z z, T t ): m_offsets(x,y,z,y)
+        constexpr accessor_base ( X x, Y y, Z z, T t ): m_offsets(x,y,z,y)
             {
             }
 
-        template<typename X, typename Y, typename Z>
+        template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr accessor_base (X x, Y y, Z z ): m_offsets(x,y,z)
+        constexpr accessor_base ( X x, Y y, Z z ): m_offsets(x,y,z)
             {
             }
-
-        template<typename X, typename Y>
+        template <typename X>
         GT_FUNCTION
-        constexpr accessor_base (X x, Y y ): m_offsets(x,y) {}
+        constexpr accessor_base ( X x ): m_offsets(x)
+            {
+            }
+        template <typename X, typename Y>
+        GT_FUNCTION
+        constexpr accessor_base ( X x, Y y ): m_offsets(x,y)
+            {
+            }
 #endif
 
         static  void info() {
@@ -242,8 +217,6 @@ namespace gridtools {
             return m_offsets.template get<Idx>();
         }
 
-        GT_FUNCTION
-        constexpr const offset_tuple<n_dim, n_dim>& offsets() const { return m_offsets;}
 
     private:
 
@@ -257,6 +230,14 @@ namespace gridtools {
 // #endif
     };
 
+
+    namespace enumtype{
+        template <ushort_t>
+        struct Dimension;
+    }
+
+    template <uint_t I, typename T>
+    struct arg;
 //################################################################################
 //                              Multidimensional Fields
 //################################################################################
@@ -288,10 +269,20 @@ namespace gridtools {
         typedef offset_tuple<Index-1, Dimension> super;
         static const ushort_t n_args=super::n_args+1;
 
-        //copy ctor
+//        template <typename ArgType>
+//        GT_FUNCTION
+//        arg_decorator (const arg_decorator<ArgType>& other)
+//        {
+//            m_offset = other.template get<n_args-1>();
+//            base_t(*static_cast<typename arg_decorator<ArgType>::base_t*>(&other));
+//        }
+        template <typename ArgTypeDecorator>
         GT_FUNCTION
-        constexpr offset_tuple (const offset_tuple<Index, Dimension> & other) :
-            m_offset(other.m_offset), super(other) {}
+        arg_decorator (const ArgTypeDecorator& other)
+        {
+            m_offset = other.template get<n_args-1>();
+            base_t(*static_cast<const typename ArgTypeDecorator::base_t*>(&other));
+        }
 
 #ifdef CXX11_ENABLED
 
