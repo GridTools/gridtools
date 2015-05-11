@@ -91,7 +91,7 @@ namespace gridtools{
         static void assign(Left& RESTRICT l, Right const& RESTRICT r, int EU_id_i, int EU_id_j,
                            typename boost::enable_if_c<is_host_tmp_storage<Right>::value>::type* = 0)
             {
-                BackendType::template once_per_block<Id>::assign(l[Offset+Number],r->field_offset(Number,EU_id_i, EU_id_j));
+                BackendType::template once_per_block<Id>::assign(l[Offset+Number],r->fields_offset(Number,EU_id_i, EU_id_j));
                 assign_raw_data<Number-1, Offset, BackendType, storage_type>::assign(l, r, EU_id_i, EU_id_j);
             }
 
