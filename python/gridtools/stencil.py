@@ -51,16 +51,25 @@ class StencilInspector (ast.NodeVisitor):
             #
             self.domain  = None
             #
-            # the user's stencil code is kept here
+            # retrieve the user's stencil code
             #
-            try:
-                self.src = inspect.getsource (obj.__class__)
-            except TypeError:
-                #
-                # the code will not be available if it has been written
-                # in an interactive interpreter
-                #
-                self.src = None
+            self.src = 'class %s (MultiStageStencil):\n' % str (self.stencil.__class__.__name__)
+            for (name,fun) in inspect.getmembers (self.stencil,
+                                                  predicate=inspect.ismethod):
+                try:
+                    if (name in ('__init__', 'kernel') or
+                        name.startswith ('stage_')):
+                        self.src += inspect.getsource (fun)
+                except OSError:
+                    try:
+                        #
+                        # is it maybe a notebook session?
+                        #
+                        from IPython.code import oinspect
+                        self.src += oinspect.getsource (fun)
+                    except Exception:
+                        raise RuntimeError ("Could not extract source code from '%s'" 
+                                            % self.stencil.__class__)
             #
             # symbols gathered after analyzing the user's stencil are kept here
             #
@@ -93,7 +102,7 @@ class StencilInspector (ast.NodeVisitor):
             self.ast_root = ast.parse (self.src)
             self.visit (self.ast_root)
             if len (self.functors) == 0:
-                raise NameError ("Could extract any stencil stage")
+                raise NameError ("Could not extract any stencil stage")
         else:
             #
             # if the source code is not available, we may infer the user is
