@@ -27,7 +27,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -48,11 +48,11 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 #if (defined(CXX11_ENABLED))
     namespace ex{
-        typedef arg_type<0> out;
-        typedef arg_type<1> inf; //a
-        typedef arg_type<2> diag; //b
-        typedef arg_type<3> sup; //c
-        typedef arg_type<4> rhs; //d
+        typedef accessor<0> out;
+        typedef accessor<1> inf; //a
+        typedef accessor<2> diag; //b
+        typedef accessor<3> sup; //c
+        typedef accessor<4> rhs; //d
 
         static  auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
 
@@ -64,11 +64,11 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
-    typedef arg_type<0> out;
-    typedef arg_type<1> inf; //a
-    typedef arg_type<2> diag; //b
-    typedef arg_type<3> sup; //c
-    typedef arg_type<4> rhs; //d
+    typedef accessor<0> out;
+    typedef accessor<1> inf; //a
+    typedef accessor<2> diag; //b
+    typedef accessor<3> sup; //c
+    typedef accessor<4> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
     template <typename Domain>
@@ -105,11 +105,11 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
-    typedef arg_type<0> out;
-    typedef arg_type<1> inf; //a
-    typedef arg_type<2> diag; //b
-    typedef arg_type<3> sup; //c
-    typedef arg_type<4> rhs; //d
+    typedef accessor<0> out;
+    typedef accessor<1> inf; //a
+    typedef accessor<2> diag; //b
+    typedef accessor<3> sup; //c
+    typedef accessor<4> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
 
@@ -208,12 +208,12 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_inf, p_diag, p_sup, p_rhs, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_inf, p_diag, p_sup, p_rhs, p_out> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<arg_type_list> domain
+    gridtools::domain_type<accessor_list> domain
         (boost::fusion::make_vector(&inf, &diag, &sup, &rhs, &out));
 
     // Definition of the physical dimensions of the problem.

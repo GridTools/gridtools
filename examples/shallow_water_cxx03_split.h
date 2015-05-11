@@ -28,7 +28,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -278,12 +278,12 @@ namespace shallow_water{
         // static const x::Index i;
         // static const y::Index j;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 3> hx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3> ux;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3> vx;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3> h;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3> u;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3> v;
+        typedef accessor<0, range<0, 0, 0, 0>, 3> hx;
+        typedef accessor<1, range<0, 0, 0, 0>, 3> ux;
+        typedef accessor<2, range<0, 0, 0, 0>, 3> vx;
+        typedef accessor<3, range<0, 0, 0, 0>, 3> h;
+        typedef accessor<4, range<0, 0, 0, 0>, 3> u;
+        typedef accessor<5, range<0, 0, 0, 0>, 3> v;
 
         typedef boost::mpl::vector<hx,ux,vx,h,u,v> arg_list;
 
@@ -337,12 +337,12 @@ namespace shallow_water{
 //         typedef range<0,0,0,0>   xrange_subdomain;
         typedef range<0,0,0,1>   xrange_subdomain;
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 3> hy;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3> uy;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3> vy;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3> h;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3> u;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3> v;
+        typedef accessor<0, range<0, 0, 0, 0>, 3> hy;
+        typedef accessor<1, range<0, 0, 0, 0>, 3> uy;
+        typedef accessor<2, range<0, 0, 0, 0>, 3> vy;
+        typedef accessor<3, range<0, 0, 0, 0>, 3> h;
+        typedef accessor<4, range<0, 0, 0, 0>, 3> u;
+        typedef accessor<5, range<0, 0, 0, 0>, 3> v;
         typedef boost::mpl::vector<hy,uy,vy,h,u,v> arg_list;
 
         template <typename Evaluation>
@@ -395,15 +395,15 @@ namespace shallow_water{
         static const y::Index j;
 
         //using xrange=range<0,-1,0,0>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 3> hx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 3> ux;
-        typedef arg_type<2, range<0, 0, 0, 0>, 3> vx;
-        typedef arg_type<3, range<0, 0, 0, 0>, 3> hy;
-        typedef arg_type<4, range<0, 0, 0, 0>, 3> uy;
-        typedef arg_type<5, range<0, 0, 0, 0>, 3> vy;
-        typedef arg_type<6, range<0, 0, 0, 0>, 3> h;
-        typedef arg_type<7, range<0, 0, 0, 0>, 3> u;
-        typedef arg_type<8, range<0, 0, 0, 0>, 3> v;
+        typedef accessor<0, range<0, 0, 0, 0>, 3> hx;
+        typedef accessor<1, range<0, 0, 0, 0>, 3> ux;
+        typedef accessor<2, range<0, 0, 0, 0>, 3> vx;
+        typedef accessor<3, range<0, 0, 0, 0>, 3> hy;
+        typedef accessor<4, range<0, 0, 0, 0>, 3> uy;
+        typedef accessor<5, range<0, 0, 0, 0>, 3> vy;
+        typedef accessor<6, range<0, 0, 0, 0>, 3> h;
+        typedef accessor<7, range<0, 0, 0, 0>, 3> u;
+        typedef accessor<8, range<0, 0, 0, 0>, 3> v;
         typedef boost::mpl::vector<hx,ux,vx,hy,uy,vy,h,u,v> arg_list;
         static uint_t current_time;
 
@@ -516,7 +516,7 @@ namespace shallow_water{
         typedef arg<6, storage_type > p_h;
         typedef arg<7, storage_type > p_u;
         typedef arg<8, storage_type > p_v;
-        typedef boost::mpl::vector<p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v> arg_type_list;
+        typedef boost::mpl::vector<p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v> accessor_list;
 
         {// block for RAII
             typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<2, 1, 0>,
@@ -568,7 +568,7 @@ namespace shallow_water{
             // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
             // It must be noted that the only fields to be passed to the constructor are the non-temporary.
             // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-            domain_type<arg_type_list> domain
+            domain_type<accessor_list> domain
                 (boost::fusion::make_vector(&hx, &ux, &vx, &hy, &uy, &vy, &h, &u, &v));
 
             // Definition of the physical dimensions of the problem.

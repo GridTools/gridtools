@@ -9,7 +9,7 @@
 #include <boost/mpl/lambda.hpp>
 #include <common/gt_assert.h>
 #include <stencil-composition/make_stencils.h>
-#include <stencil-composition/arg_type.h>
+#include <stencil-composition/accessor.h>
 #include <stencil-composition/range.h>
 #include <stencil-composition/intermediate.h>
 
@@ -20,11 +20,11 @@ typedef uint_t x_all;
 
 struct lap_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> > in;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<-1, 1, -1, 1> > in;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> >::type in;
+    typedef accessor<0>::type out;
+    typedef const accessor<1, range<-1, 1, -1, 1> >::type in;
 #endif
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -38,13 +38,13 @@ struct lap_function {
 
 struct flx_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 1, 0, 0> > in;
-    typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 1, 0, 0> > in;
+    typedef const accessor<2, range<0, 1, 0, 0> > lap;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
-    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
+    typedef accessor<0>::type out;
+    typedef const accessor<1, range<0, 1, 0, 0> >::type in;
+    typedef const accessor<2, range<0, 1, 0, 0> >::type lap;
 #endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -59,13 +59,13 @@ struct flx_function {
 
 struct fly_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 0, 0, 1> > in;
-    typedef const arg_type<2, range<0, 0, 0, 1> > lap;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 0, 0, 1> > in;
+    typedef const accessor<2, range<0, 0, 0, 1> > lap;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
-    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
+    typedef accessor<0>::type out;
+    typedef const accessor<1, range<0, 0, 0, 1> >::type in;
+    typedef const accessor<2, range<0, 0, 0, 1> >::type lap;
 #endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -80,17 +80,17 @@ struct fly_function {
 
 struct out_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1> in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> > fly;
-    typedef const arg_type<4> coeff;
+    typedef accessor<0> out;
+    typedef const accessor<1> in;
+    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
+    typedef const accessor<3, range<0, 0, -1, 0> > fly;
+    typedef const accessor<4> coeff;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1>::type in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
-    typedef const arg_type<4>::type coeff;
+    typedef accessor<0>::type out;
+    typedef const accessor<1>::type in;
+    typedef const accessor<2, range<-1, 0, 0, 0> >::type flx;
+    typedef const accessor<3, range<0, 0, -1, 0> >::type fly;
+    typedef const accessor<4>::type coeff;
 #endif
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
