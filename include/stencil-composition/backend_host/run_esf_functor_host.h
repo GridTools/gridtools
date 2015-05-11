@@ -1,13 +1,13 @@
-/*
- * run_esf_functor_host.h
- *
- *  Created on: Apr 27, 2015
- *      Author: cosuna
- */
 #pragma once
 #include "../run_esf_functor.h"
 
 namespace gridtools {
+
+    /*
+     * @brief main functor that executes (for host) the user functor of an ESF
+     * @tparam RunFunctorArguments run functor arguments
+     * @tparam Interval interval where the functor gets executed
+     */
     template < typename RunFunctorArguments, typename Interval>
     struct run_esf_functor_host : public
         run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > //CRTP

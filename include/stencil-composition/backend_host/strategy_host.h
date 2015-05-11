@@ -6,7 +6,6 @@
 namespace gridtools{
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
-       A single loop spans all three directions, i, j and k
     */
     template<>
     struct strategy_from_id< enumtype::Naive>
@@ -17,7 +16,7 @@ namespace gridtools{
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam TMssArray a meta array with all the mss descriptors
+         * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
         template<typename MssComponentsArray, enumtype::backend BackendId>
@@ -55,15 +54,15 @@ namespace gridtools{
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 BOOST_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1));
-//                run_functor_t(local_domain_list, coords)();
 
                 execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords)();
-
-//                backend_traits_t::template for_each< iter_range >(run_functor_t(local_domain_list, coords));
             }
         };
 
-        //with the naive algorithms, the temporary storages are like the non temporary ones
+        /**
+         * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
+         * with the naive algorithms, the temporary storages are like the non temporary ones
+         */
          template <typename StorageType,
                    uint_t BI,
                    uint_t BJ,
@@ -96,7 +95,7 @@ namespace gridtools{
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam TMssArray a meta array with all the mss descriptors
+         * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
         template<typename MssComponentsArray, enumtype::backend BackendId>
@@ -182,6 +181,9 @@ namespace gridtools{
             }
         };
 
+        /**
+         * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
+         */
         template <typename StorageBase ,
                   uint_t BI,
                   uint_t BJ,

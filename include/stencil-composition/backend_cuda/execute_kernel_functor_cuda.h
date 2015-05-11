@@ -11,7 +11,7 @@ namespace _impl_cuda {
     template <typename RunFunctorArguments,
               typename LocalDomain>
     __global__
-    void do_it_on_gpu(LocalDomain const * __restrict__ l_domain, typename RunFunctorArguments::coords_t const* coords,
+    void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::coords_t const* coords,
             const int starti, const int startj, const uint_t nx, const uint_t ny) {
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
@@ -65,6 +65,10 @@ namespace _impl_cuda {
 } // namespace _impl_cuda
 
 
+/**
+ * @brief main functor that setups the CUDA kernel for a MSS and launchs it
+ * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
+ */
 template <typename RunFunctorArguments >
 struct execute_kernel_functor_cuda
 {
@@ -72,10 +76,7 @@ struct execute_kernel_functor_cuda
     typedef typename RunFunctorArguments::local_domain_t local_domain_t;
     typedef typename RunFunctorArguments::coords_t coords_t;
 
-    /**
-       @brief core of the kernel execution
-       \tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
-    */
+    //ctor
     explicit execute_kernel_functor_cuda(const local_domain_t& local_domain, const coords_t& coords,
             const uint_t block_idx_i, const uint_t block_idx_j)
     : m_local_domain(local_domain)
@@ -121,25 +122,23 @@ struct execute_kernel_functor_cuda
         coords_t const *coords_gp = m_coords.gpu_object_ptr;
 
         // number of threads
-//        uint_t nx = (uint_t) (m_coords.i_high_bound() + range_t::iplus::value - (m_coords.i_low_bound() + range_t::iminus::value)+1);
-//        uint_t ny = (uint_t) (m_coords.j_high_bound() + range_t::jplus::value - (m_coords.j_low_bound() + range_t::jminus::value)+1);
-        uint_t nx = (uint_t) (m_coords.i_high_bound() - m_coords.i_low_bound() +1);
-        uint_t ny = (uint_t) (m_coords.j_high_bound() - m_coords.j_low_bound() +1);
-
-//        int ntx = 32, nty = 8, ntz = 1;
+        const uint_t nx = (uint_t) (m_coords.i_high_bound() - m_coords.i_low_bound() +1);
+        const uint_t ny = (uint_t) (m_coords.j_high_bound() - m_coords.j_low_bound() +1);
 
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
         //compute the union (or enclosing) range for the ranges of all ESFs.
+        //This maximum range of all ESF will determine the size of the CUDA block:
+        // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
+        //    each CUDA thread will execute two grid points
+        // *  Otherwise each CUDA thread executes only one grid point.
+        // Base on the previous we compute the size of the CUDA block required.
         typedef typename boost::mpl::fold<
             typename RunFunctorArguments::range_sizes_t,
             range<0,0,0,0>,
             enclosing_range<boost::mpl::_1, boost::mpl::_2>
         >::type maximum_range_t;
 
-        // the cuda block size does not necessarily match the size of the physical domain block
-        // if there are redundant computations at halos, each warp computes 2 grid positions, therefore
-        // the cuda block size is smaller, depending on the number of halo lines required.
         typedef block_size<
             block_size_t::i_size_t::value,
             (block_size_t::j_size_t::value - maximum_range_t::jminus::value + maximum_range_t::jplus::value +
@@ -161,7 +160,7 @@ struct execute_kernel_functor_cuda
         dim3 blocks(nbx, nby, nbz);
 
         //recreate the run functor arguments, replacing the processing elements block size elements
-        // (recently computed)
+        // with the corresponding, ecently computed, block size
         typedef run_functor_arguments<
             RunFunctorArguments::backend_id_t::value,
             cuda_block_size_t,
@@ -191,7 +190,7 @@ struct execute_kernel_functor_cuda
                  (ny)
             );
 
-        //TODO we do not need this. It will block the host, and we want to continue doing other stuff
+        //TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
         cudaDeviceSynchronize();
 
     }

@@ -1,22 +1,21 @@
-/*
- * run_esf_functor_host.h
- *
- *  Created on: Apr 27, 2015
- *      Author: cosuna
- */
 #pragma once
 #include "../run_esf_functor.h"
 #include "../block_size.h"
 #include "../iterate_domain_evaluator.h"
 
 namespace gridtools {
+    /*
+     * @brief main functor that executes (for CUDA) the user functor of an ESF
+     * @tparam RunFunctorArguments run functor arguments
+     * @tparam Interval interval where the functor gets executed
+     */
     template < typename RunFunctorArguments, typename Interval>
     struct run_esf_functor_cuda :
             public run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval> > //CRTP
     {
         BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
-        //TODO This type here is not an interval, is a pair<int_, int_ >
-//        BOOST_STATIC_ASSERT((is_interval<Interval>::value));
+        //TODOCOSUNA This type here is not an interval, is a pair<int_, int_ >
+        //BOOST_STATIC_ASSERT((is_interval<Interval>::value));
 
         typedef run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval> > super;
         typedef typename RunFunctorArguments::physical_domain_block_size_t physical_domain_block_size_t;
