@@ -155,12 +155,18 @@ namespace gridtools {
 
 
         /**
-
+         * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
+         * @tparam Domain domain type containing the placeholders for all storages (including temporaries)
+         * @tparam MssComponents the mss components of the MSS
+         * @output map of <temporary placeholder, range> where the range is the enclosing range of all the ranges
+         *      defined for the different functors of a MSS.
          */
-        template <typename Domain
-                  , typename MssComponents>
+        template <
+            typename Domain,
+            typename MssComponents>
         struct obtain_map_ranges_temporaries_mss
         {
+            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
             BOOST_STATIC_ASSERT((is_mss_components<MssComponents>::value));
             typedef typename MssComponents::range_sizes_t RangeSizes;
             //full list of temporaries in list of place holders of domain
@@ -183,7 +189,9 @@ namespace gridtools {
         };
 
         /**
-         * @brief metafunction that merges to maps of <temporary, ij range>
+         * @brief metafunction that merges two maps of <temporary, ij range>
+         * The merge is performed by computing the union of all the ranges found associated
+         * to the same temporary, i.e. the enclosing range.
          * @tparam range_map1 first map to merge
          * @tparam range_map2 second map to merge
           */
@@ -215,6 +223,11 @@ namespace gridtools {
 
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
+         * for all the Mss components in an array (corresponding to a Computation)
+         * @tparam Domain domain type containing the placeholders for all storages (including temporaries)
+         * @tparam MssComponentsArray meta array of the mss components of all MSSs
+         * @output map of <temporary placeholder, range> where the range is the enclosing range of all the ranges
+         *      defined for the temporary in all MSSs.
          */
         template <typename Domain, typename MssComponentsArray>
         struct obtain_map_ranges_temporaries_mss_array {

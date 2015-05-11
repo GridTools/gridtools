@@ -159,20 +159,26 @@ namespace gridtools{
             }
         };
 
+        /**
+         * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+         */
         struct mss_fuse_esfs_strategy
         {
             typedef boost::mpl::bool_<false> type;
             BOOST_STATIC_CONSTANT(bool, value=(type::value));
         };
 
+        // high level metafunction that contains the run_esf_functor corresponding to this backend
         typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
 
+        // default block size for this backend
         typedef block_size<8,8> block_size_t;
 
         /**
          * @brief metafunction that derives that returns the right iterate domain
          * (depending on whether the local domain is positional or not)
          * @param LocalDomain the local domain
+         * @return the iterate domain type for this backend
          */
         template <typename LocalDomain>
         struct select_iterate_domain {
