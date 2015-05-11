@@ -149,7 +149,7 @@ namespace gridtools {
                 typedef typename index_to_level<typename interval::second>::type to;
                 typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-                typedef array<uint_t, Traits::iterate_domain_t::N_STORAGES> array_t;
+                typedef array<int_t, Traits::iterate_domain_t::N_STORAGES> array_t;
                 loop_hierarchy<array_t, loop_item<0, enumtype::forward, int_t>
                                , loop_item<1, enumtype::forward, int_t> > ij_loop(
                                    (int_t) (func_->m_start[0] + iminus),
