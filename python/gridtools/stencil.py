@@ -36,8 +36,6 @@ class StencilInspector (ast.NodeVisitor):
 
             obj     a Stencil object.-
         """
-        import inspect
-
         if (issubclass (obj.__class__, MultiStageStencil) or
             issubclass (obj.__class__, CombinedStencil)):
             super ( ).__init__ ( )
@@ -47,34 +45,17 @@ class StencilInspector (ast.NodeVisitor):
             #
             self.stencil = obj
             #
+            # stencil's source code
+            #
+            self.src = self._extract_source ( )
+            #
             # the domain dimensions over which this stencil operates
             #
             self.domain  = None
             #
-            # retrieve the user's stencil code
-            #
-            self.src = 'class %s (MultiStageStencil):\n' % str (self.stencil.__class__.__name__)
-            for (name,fun) in inspect.getmembers (self.stencil,
-                                                  predicate=inspect.ismethod):
-                try:
-                    if (name in ('__init__', 'kernel') or
-                        name.startswith ('stage_')):
-                        self.src += inspect.getsource (fun)
-                except OSError:
-                    try:
-                        #
-                        # is it maybe a notebook session?
-                        #
-                        from IPython.code import oinspect
-                        self.src += oinspect.getsource (fun)
-                    except Exception:
-                        raise RuntimeError ("Could not extract source code from '%s'" 
-                                            % self.stencil.__class__)
-            #
             # symbols gathered after analyzing the user's stencil are kept here
             #
             self.scope = StencilScope ( )
-
             #
             # a list of functors (i.e. stages) of this stenctil;
             # the kernel function is the entry functor of any stencil
@@ -84,6 +65,53 @@ class StencilInspector (ast.NodeVisitor):
         else:
             raise TypeError ("Class '%s' must extend 'MultiStageStencil'" % 
                              obj.__class__)
+
+
+    def _extract_source (self):
+        """
+        Extracts the source code from the user-defined stencil.-
+        """
+        import inspect
+
+        src = 'class %s (%s):\n' % (str (self.stencil.__class__.__name__),
+                                    str (self.stencil.__class__.__base__.__name__))
+        #
+        # first the constructor and stages
+        #
+        for (name,fun) in inspect.getmembers (self.stencil,
+                                              predicate=inspect.ismethod):
+            try:
+                if name == '__init__' or name.startswith ('stage_'):
+                    src += inspect.getsource (fun)
+            except OSError:
+                try:
+                    #
+                    # is this maybe a notebook session?
+                    #
+                    from IPython.code import oinspect
+                    src += oinspect.getsource (fun)
+                except Exception:
+                    raise RuntimeError ("Could not extract source code from '%s'" 
+                                        % self.stencil.__class__)
+        #
+        # then the kernel
+        #
+        for (name,fun) in inspect.getmembers (self.stencil,
+                                              predicate=inspect.ismethod):
+            try:
+                if name == 'kernel':
+                    src += inspect.getsource (fun)
+            except OSError:
+                try:
+                    #
+                    # is this maybe a notebook session?
+                    #
+                    from IPython.code import oinspect
+                    src += oinspect.getsource (fun)
+                except Exception:
+                    raise RuntimeError ("Could not extract source code from '%s'" 
+                                        % self.stencil.__class__)
+        return src
 
 
     def static_analysis (self):
@@ -634,13 +662,20 @@ class Stencil ( ):
         """
         Plots the Z field in 3D, returning a Matplotlib's Line3DCollection.-
         """
-        from gridtools import ax
+        if len (Z.shape) == 2:
+            from gridtools import plt
 
-        X, Y = np.meshgrid (np.arange (Z.shape[0]),
-                            np.arange (Z.shape[1]))
-        im = ax.plot_wireframe (X, Y, Z,
-                                linewidth=1)
-        return im
+            fig = plt.figure ( )
+            ax  = fig.add_subplot (111,
+                                   projection='3d',
+                                   autoscale_on=True)
+            X, Y = np.meshgrid (np.arange (Z.shape[0]),
+                                np.arange (Z.shape[1]))
+            im = ax.plot_wireframe (X, Y, Z,
+                                    linewidth=1)
+            return im
+        else:
+            logging.error ("The passed Z field should be 2D")
 
 
     def plot_dependency_graph (self):
@@ -1203,7 +1238,6 @@ class CombinedStencil (Stencil):
                 #
                 self.generate_code ( )
                 self.compile ( )
-                    
             #
             # prepare the list of parameters to call the library function
             #

@@ -117,6 +117,26 @@ class CombinedStencilTest (unittest.TestCase):
                           str (combined.scope['in_cpy'].value.ctypes.data_as (ctypes.c_void_p)))
 
 
+    def test_double_self_combination (self):
+        self.in_data = np.random.rand (*self.domain)
+
+        combined = self.copy.build (output='out_cpy',
+                                    in_cpy=self.copy.build (output='out_cpy'))
+        combined.backend = 'python'
+        combined.run (out_cpy=self.out_fli,
+                      in_cpy=self.in_data)
+        #
+        # parameters correctly inferred
+        #
+        for p in combined.scope.get_parameters ( ):
+            self.assertTrue (p.name in ('out_cpy', 'in_cpy'))
+        #
+        # results should be correct
+        #
+        self.assertTrue (np.array_equal (self.out_fli,
+                                         self.in_data))
+
+
     def test_order_should_not_alter_results (self, backend='python'):
         self.lap.set_halo  ( (1, 1, 1, 1) )
         self.copy.set_halo ( (0, 0, 0, 0) )
@@ -150,26 +170,6 @@ class CombinedStencilTest (unittest.TestCase):
 
     def test_order_should_not_alter_results_native (self):
         self.test_order_should_not_alter_results (backend='c++')
-
-
-    def test_double_self_combination (self):
-        self.in_data = np.random.rand (*self.domain)
-
-        combined = self.copy.build (output='out_cpy',
-                                    in_cpy=self.copy.build (output='out_cpy'))
-        combined.backend = 'python'
-        combined.run (out_cpy=self.out_fli,
-                      in_cpy=self.in_data)
-        #
-        # parameters correctly inferred
-        #
-        for p in combined.scope.get_parameters ( ):
-            self.assertTrue (p.name in ('out_cpy', 'in_cpy'))
-        #
-        # results should be correct
-        #
-        self.assertTrue (np.array_equal (self.out_fli,
-                                         self.in_data))
 
 
     def test_self_combination (self):
@@ -294,4 +294,32 @@ class CombinedStencilTest (unittest.TestCase):
 
     def test_horizontal_diffusion_combination_native (self):
         self.test_horizontal_diffusion_combination (backend='c++')
+
+
+    def test_horizontal_diffusion_combination_native_execution_performance (self):
+        import time
+
+        self.lap.set_halo ( (1, 1, 1, 1) )
+        self.fli.set_halo ( (1, 1, 1, 1) )
+        self.flj.set_halo ( (1, 1, 1, 1) )
+        self.out.set_halo ( (1, 1, 1, 1) )
+
+        hor_dif = self.out.build (output='out_hr',
+                                  in_fli=self.fli.build (output='out_fli',
+                                                         in_lapi=self.lap.build (output='out_data')),
+                                  in_flj=self.flj.build (output='out_flj',
+                                                         in_lapj=self.lap.build (output='out_data')))
+        hor_dif.backend = 'c++'
+
+        nstep  = 100
+        tstart = time.time ( )
+        try:
+            for i in range (nstep):
+                hor_dif.run (out_hr=self.out_fli,
+                             in_wgt=self.in_wgt,
+                             in_data=self.in_data)
+        except ValueError:
+            print ('known to fail')
+        else:
+            print ('FPS:', nstep / (time.time()-tstart))
 
