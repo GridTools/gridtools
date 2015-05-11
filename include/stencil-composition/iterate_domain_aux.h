@@ -36,12 +36,12 @@ namespace gridtools{
 
         template<short_t Idx>
             GT_FUNCTION
-            uint_t * RESTRICT get() {
+            int_t * RESTRICT get() {
             return ((Idx==ID-1)? &m_data[0] : (super::template get<Idx>()));
         }
 
     private:
-        uint_t m_data[storage_type::space_dimensions-1];
+        int_t m_data[storage_type::space_dimensions-1];
     };
 
 
@@ -55,13 +55,13 @@ namespace gridtools{
 
         template<short_t Idx>
         GT_FUNCTION
-        uint_t * RESTRICT get() {//stop recursion
+        int_t * RESTRICT get() {//stop recursion
             //GRIDTOOLS_STATIC_ASSERT(Idx==0, "Internal library error: Index exceeding the storage_list dimension.")
             return &m_data[0];
         }
 
     private:
-        uint_t m_data[storage_type::space_dimensions-1];
+        int_t m_data[storage_type::space_dimensions-1];
     };
 
 
@@ -166,7 +166,7 @@ namespace gridtools{
         */
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(Storage const& r_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
             boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(&index_[ID], strides_.template get<ID>());
             increment_index<ID-1, Coordinate, Execution>::assign(r_,index_,strides_);
         }
@@ -175,7 +175,7 @@ namespace gridtools{
          */
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(Storage const& r_, uint const& increment_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
             boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(increment_,&index_[ID], strides_.template get<ID>());
             increment_index<ID-1, Coordinate, Execution>::assign(r_,increment_,index_,strides_);
         }
@@ -191,14 +191,14 @@ namespace gridtools{
                  , typename Strides
                  >
         GT_FUNCTION
-        static void assign( Storage const &  r_, uint_t* RESTRICT index_, Strides & RESTRICT strides_){
+        static void assign( Storage const &  r_, int_t* RESTRICT index_, Strides & RESTRICT strides_){
             boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(&index_[0], (strides_.template get<0>() )
                 );
         }
 
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(Storage const& r_, uint const& increment_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
             boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(increment_,&index_[0], strides_.template get<0>());
         }
 
@@ -270,7 +270,7 @@ namespace gridtools{
         */
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& RESTRICT r_, uint_t id_, uint_t block_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(Storage const& RESTRICT r_, int_t id_, int_t block_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
 
             boost::fusion::at_c<ID>(r_)->template initialize<Coordinate>(id_, block_, &index_[ID], strides_.template get<ID>());
             initialize_index<ID-1, Coordinate>::assign(r_, id_,block_,index_,strides_);
@@ -285,7 +285,7 @@ namespace gridtools{
                  , typename Strides
                  >
         GT_FUNCTION
-        static void assign( Storage const & RESTRICT r_, uint_t id_, uint_t block_, uint_t* RESTRICT index_, Strides & RESTRICT strides_){
+        static void assign( Storage const & RESTRICT r_, uint_t id_, uint_t block_, int_t* RESTRICT index_, Strides & RESTRICT strides_){
 
             boost::fusion::at_c<0>(r_)->template initialize<Coordinate>(id_, block_, &index_[0], (strides_.template get<0>() )
                 );
