@@ -183,7 +183,7 @@ class SWTest (CopyTest):
         self.in_V   = np.copy (self.out_V)
 
 
-    def droplet (self, H):
+    def droplet (self, H, val=1.0):
         """
         A two-dimensional falling drop into the water:
 
@@ -192,14 +192,22 @@ class SWTest (CopyTest):
         x,y = np.mgrid[:self.domain[0], :self.domain[1]]
         droplet_x, droplet_y = self.domain[0]/2, self.domain[1]/2
         rr = (x-droplet_x)**2 + (y-droplet_y)**2
-        H[rr<(self.domain[0]/10.0)**2] = 1.0
+        H[rr<(self.domain[0]/10.0)**2] = val
 
 
     @attr (lang='c++')
-    def test_animation (self):
+    def test_animation (self, nframe=200):
+        import sys
         from pyqtgraph.Qt import QtCore, QtGui
         import pyqtgraph as pg
         import pyqtgraph.opengl as gl
+
+        #
+        # get a Qt application context
+        #
+        self.qt_app = QtGui.QApplication.instance ( )
+        if self.qt_app is None:
+            self.qt_app = QtGui.QApplication ([])
 
         ## Create a GL View widget to display data
         w = gl.GLViewWidget()
@@ -237,9 +245,7 @@ class SWTest (CopyTest):
         def update ( ):
             try:
                 if (self.stencil.dt * self.frame) % 5 == 0:
-                    self.droplet (self.out_H)
-                    self.droplet (self.out_H)
-                    self.droplet (self.out_H)
+                    self.droplet (self.out_H, val=3.95)
 
                 self.stencil.run (out_H=self.out_H,
                                   out_U=self.out_U,
@@ -248,13 +254,11 @@ class SWTest (CopyTest):
                 self.p4.setData (z=self.out_H[:,:,0])
 
             finally:
-                if self.frame < 200:
+                if self.frame < nframe:
                     QtCore.QTimer ( ).singleShot (10, update)
                 else:
                     self.qt_app.exit ( )
-
         update ( )
-        self.qt_app = QtGui.QApplication.instance ( )
         self.qt_app.exec_ ( )
 
 
@@ -330,7 +334,7 @@ class SWTest (CopyTest):
 
 
     def test_interactive_plot (self):
-        from gridtools import plt, fig, ax
+        from gridtools  import plt
         from matplotlib import animation
 
         self.stencil.backend = 'c++'
@@ -339,6 +343,11 @@ class SWTest (CopyTest):
         self.droplet (self.in_H)
 
         plt.switch_backend ('agg')
+
+        fig = plt.figure ( )
+        ax  = fig.add_subplot (111,
+                               projection='3d',
+                               autoscale_on=False)
 
         def init_frame ( ):
             ax.grid      (False)
