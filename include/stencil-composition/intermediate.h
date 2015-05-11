@@ -199,16 +199,6 @@ namespace gridtools {
 
     } // namespace _debug
 
-
-    struct printthose {
-        template <typename E>
-        void operator()(E * e) const {
-            std::cout << typename boost::remove_pointer<typename boost::remove_reference<E>::type>::type() << " std::hex " << std::hex << e << std::dec << "   " ;
-        }
-    };
-
-
-
     //\todo move inside the traits classes
     template<enumtype::backend>
     struct finalize_computation;
@@ -345,6 +335,9 @@ namespace gridtools {
     struct intermediate : public computation {
         BOOST_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value));
         BOOST_STATIC_ASSERT((is_backend<Backend>::value));
+        BOOST_STATIC_ASSERT((is_domain_type<DomainType>::value));
+        BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+        BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
@@ -355,6 +348,7 @@ namespace gridtools {
             >
         >::type range_sizes_t;
 
+        // build the meta array with all the mss components
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
             MssDescriptorArray,
@@ -442,15 +436,7 @@ namespace gridtools {
             t_domain_view domain_view(domain.storage_pointers);
             t_args_view args_view(actual_arg_list);
 
-            // boost::fusion::for_each(domain_view, printtypes());
-            // boost::fusion::for_each(args_view, printtypes());
-
             boost::fusion::copy(domain_view, args_view);
-
-            // std::cout << "\n(1) These are the view values" << std::endl;
-            // boost::fusion::for_each(domain.storage_pointers, _debug::print_pointer());
-            // std::cout << "\n(2) These are the view values" << std::endl;
-            // boost::fusion::for_each(actual_arg_list, _debug::print_pointer());
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -502,27 +488,6 @@ namespace gridtools {
             // view_type fview(actual_arg_list);
             // boost::fusion::for_each(fview, _impl::delete_tmps());
         }
-
-        template<
-            typename t_coords,
-            typename t_mss_local_domains_list,
-            typename mss_array>
-        struct run_backend_functor
-        {
-            run_backend_functor(const t_coords& coords, t_mss_local_domains_list& mss_local_domains_list) :
-                m_coords(coords), m_mss_local_domains_list(mss_local_domains_list){}
-
-            template<typename TIndex>
-            void operator()(TIndex&) const {
-
-                typedef typename boost::mpl::at<mss_array, TIndex>::type MssType;
-                Backend::template run<MssType>( m_coords, boost::fusion::at<TIndex>(m_mss_local_domains_list).local_domain_list );
-            }
-
-        private:
-            const t_coords& m_coords;
-            t_mss_local_domains_list& m_mss_local_domains_list;
-        };
 
         /**
          * \brief the execution of the stencil operations take place in this call
