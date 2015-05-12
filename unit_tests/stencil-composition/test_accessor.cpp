@@ -23,14 +23,14 @@ TEST(accessor, copy_const) {
         >
     > ArgsMap;
 
-    typedef remap_arg_type<accessor_t, ArgsMap>::type remap_arg_t;
+    typedef remap_accessor_type<accessor_t, ArgsMap>::type remap_accessor_t;
 
-    BOOST_STATIC_ASSERT((is_accessor<remap_arg_t>::value));
-    BOOST_STATIC_ASSERT((accessor_index<remap_arg_t>::value == 8));
+    BOOST_STATIC_ASSERT((is_accessor<remap_accessor_t>::value));
+    BOOST_STATIC_ASSERT((accessor_index<remap_accessor_t>::value == 8));
 
-    ASSERT_TRUE(remap_arg_t(in).get<0>() == 3);
-    ASSERT_TRUE(remap_arg_t(in).get<1>() == 2);
-    ASSERT_TRUE(remap_arg_t(in).get<2>() == 1);
+    ASSERT_TRUE(remap_accessor_t(in).get<0>() == 3);
+    ASSERT_TRUE(remap_accessor_t(in).get<1>() == 2);
+    ASSERT_TRUE(remap_accessor_t(in).get<2>() == 1);
 }
 
 
