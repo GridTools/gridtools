@@ -748,17 +748,18 @@ class Stencil ( ):
         #
         logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
         if self.backend == 'c++':
-
-            # Floating point precision validation
-            for key in kwargs:
-                  if isinstance(kwargs[key], np.ndarray):
-                      if not Stencil.utils.is_valid_float_type_size(kwargs[key]):
-                          raise TypeError ("Element size of '%s' does not match that of the C++ backend."
-                                           % key)
             #
             # automatic compilation only if the library is not available
             #
             if self.lib_obj is None:
+                #
+                # floating point precision validation
+                #
+                for key in kwargs:
+                      if isinstance(kwargs[key], np.ndarray):
+                          if not Stencil.utils.is_valid_float_type_size(kwargs[key]):
+                              raise TypeError ("Element size of '%s' does not match that of the C++ backend."
+                                               % key)
                 self.resolve (**kwargs)
                 self.generate_code ( )
                 self.compile ( )
@@ -777,7 +778,7 @@ class Stencil ( ):
                     logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
             #
             # call the compiled stencil
-            # 
+            #
             self.lib_obj.run (*lib_params)
         #
         # run in Python mode
