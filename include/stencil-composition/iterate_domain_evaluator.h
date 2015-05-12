@@ -34,15 +34,12 @@ namespace _impl {
     };
 }
 
-template<typename T> struct printpp { BOOST_MPL_ASSERT_MSG((false), PPPPPPP, (T));};
-
-
 /**
  * @brief metafunction that given an arg and a map, it will remap the index of the arg according
  * to the corresponding entry in ArgsMap
  */
 template<typename Arg, typename ArgsMap>
-struct remap_arg_type;
+struct remap_arg_type{};
 
 template < ushort_t ID, typename Range, ushort_t Number, typename ArgsMap>
 struct remap_arg_type<accessor<ID, Range, Number>, ArgsMap >
