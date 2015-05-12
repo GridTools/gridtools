@@ -234,9 +234,12 @@ namespace gridtools {
             is_set( true ),
             m_name(s)
             {
-      m_fields[0]=pointer_type(ptr, true);
-                setup(dim1, dim2, dim3);
-                set_name(s);
+	      setup(dim1, dim2, dim3);
+	      /**
+		 NOTE: external pointer constructor currently is limited to scalar fields
+	       */
+	      m_fields[0]=pointer_type(ptr, size(), true);
+	      set_name(s);
             }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
