@@ -7,6 +7,7 @@
 
 #pragma once
 #include "iterate_domain_metafunctions.h"
+#include "accessor_metafunctions.h"
 
 namespace gridtools {
 
@@ -35,35 +36,6 @@ namespace _impl {
 }
 
 /**
- * @brief metafunction that given an arg and a map, it will remap the index of the arg according
- * to the corresponding entry in ArgsMap
- */
-template<typename Arg, typename ArgsMap>
-struct remap_arg_type{};
-
-template < ushort_t ID, typename Range, ushort_t Number, typename ArgsMap>
-struct remap_arg_type<accessor<ID, Range, Number>, ArgsMap >
-{
-    typedef accessor<ID, Range, Number> accessor_t;
-    BOOST_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0));
-    //check that the key type is an int (otherwise the later has_key would never find the key)
-    BOOST_STATIC_ASSERT((boost::is_same<
-        typename boost::mpl::first<typename boost::mpl::front<ArgsMap>::type>::type::value_type,
-        int
-    >::value));
-
-    typedef typename boost::mpl::integral_c<int, (int)ID> index_type_t;
-
-    BOOST_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_type_t>::value));
-
-    typedef accessor<
-        boost::mpl::at<ArgsMap, index_type_t >::type::value,
-        Range,
-        Number
-    > type;
-};
-
-/**
  * @class iterate_domain_evaluator_base
  * base class of an iterate_domain_evaluator that intercepts the calls to evaluate the value of an arguments
  * from the iterate domain, and redirect the arg specified by user to the actual position of the arg in the
@@ -84,15 +56,15 @@ public:
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-    template <typename ArgType>
+    template <typename AccessorType>
     GT_FUNCTION
     typename boost::mpl::at<
         typename local_domain_t::esf_args,
-        typename ArgType::type::index_type
+        typename AccessorType::type::index_type
     >::type::value_type& RESTRICT
-    operator()(ArgType const& arg) const {
-        typedef typename remap_arg_type<ArgType, esf_args_map_t>::type remap_arg_t;
-        return m_iterate_domain(remap_arg_t(arg));
+    operator()(AccessorType const& accessor) const {
+        typedef typename remap_accessor_type<AccessorType, esf_args_map_t>::type remap_accessor_t;
+        return m_iterate_domain(remap_accessor_t(accessor));
     }
 
 protected:
