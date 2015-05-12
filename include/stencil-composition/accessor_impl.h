@@ -172,19 +172,27 @@ namespace gridtools {
         GT_FUNCTION
         constexpr explicit accessor_base():m_offsets() {}
 
+#ifdef CXX11_ENABLED
+        //move ctor
+        GT_FUNCTION
+        constexpr accessor_base(const type && other) : m_offsets(other.m_offsets){}
+
+        //move ctor from another accessor_base with different index
+        template<ushort_t OtherIndex>
+        GT_FUNCTION
+        constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
+            m_offsets(other.offsets()) {}
+#else
+        //copy ctor
+        GT_FUNCTION
+        constexpr accessor_base(const type & other) : m_offsets(other.m_offsets){}
+
         //copy ctor from another accessor_base with different index
         template<uint_t OtherIndex>
         GT_FUNCTION
         constexpr accessor_base(const accessor_base<OtherIndex, Range, Dim> & other) :
             m_offsets(other.offsets()){}
-
-#ifdef CXX11_ENABLED
-        template<ushort_t OtherIndex>
-        GT_FUNCTION
-        constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
-            m_offsets(other.offsets()) {}
 #endif
-
 
         //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
@@ -194,7 +202,6 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr accessor_base (const int_t x ): m_offsets(x) {}
-
 
 
         /**@brief constructor taking the Dimension class as argument.
@@ -280,18 +287,13 @@ namespace gridtools {
 
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
     */
-    template< int_t Index, int_t Dimension >
+    template< uint_t Index, int_t Dimension >
     struct offset_tuple : public offset_tuple<Index-1, Dimension>
     {
         static const int_t n_dim=Dimension;
 
         typedef offset_tuple<Index-1, Dimension> super;
         static const ushort_t n_args=super::n_args+1;
-
-        //copy ctor
-        GT_FUNCTION
-        constexpr offset_tuple (const offset_tuple<Index, Dimension> & other) :
-            m_offset(other.m_offset), super(other) {}
 
 #ifdef CXX11_ENABLED
 
@@ -412,6 +414,10 @@ namespace gridtools {
         template <typename... Whatever>
         GT_FUNCTION
         constexpr offset_tuple ( Whatever... x) {}
+
+        //copy ctor
+        GT_FUNCTION
+        constexpr offset_tuple (const offset_tuple<0, Dimension>& other) {}
 #else
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION

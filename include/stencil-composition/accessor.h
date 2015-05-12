@@ -35,24 +35,30 @@ namespace gridtools {
         */
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr accessor ( ForwardedArgs... x): super (x...)
-            {
-            }
-#endif
-#else
+        constexpr accessor ( ForwardedArgs... x): super (x...) {}
 
-        //copy ctor from an accessor with different ID
-        template<ushort_t OtherID>
+        //move ctor
         GT_FUNCTION
-        constexpr accessor(const accessor<OtherID, Range, Number>& other) :
-            super(other) {}
+        constexpr explicit accessor(const accessor<ID, Range, Number>& other) : super(std::move(other)) {}
 
-#ifdef CXX11_ENABLED
+        //move ctor from an accessor with different ID
         template<ushort_t OtherID>
         GT_FUNCTION
         constexpr accessor(accessor<OtherID, Range, Number>&& other) :
             super(std::move(other)) {}
+
 #endif
+#else
+
+        //copy ctor
+        GT_FUNCTION
+        constexpr explicit accessor(const accessor<ID, Range, Number>& other) : super(other) {}
+
+        //copy ctor from an accessor with different ID
+        template<ushort_t OtherID>
+        GT_FUNCTION
+        constexpr explicit accessor(const accessor<OtherID, Range, Number>& other) :
+            super(other) {}
 
         GT_FUNCTION
         constexpr explicit accessor(): super() {}
@@ -70,7 +76,7 @@ namespace gridtools {
         /** @brief constructor forwarding all the arguments*/
         template <typename X>
         GT_FUNCTION
-        constexpr accessor ( X x ): super(x) {}
+        constexpr accessor ( X x ) : super(x) {}
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y>
