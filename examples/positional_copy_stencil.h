@@ -5,7 +5,6 @@
 
 #include <stencil-composition/backend.h>
 
-#include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -242,7 +241,9 @@ namespace positional_copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
+#ifndef CUDA_EXAMPLE
     boost::timer::cpu_timer time;
+#endif
         copy->run();
 
 #ifdef USE_PAPI
@@ -260,8 +261,10 @@ namespace positional_copy_stencil{
 
         copy->finalize();
 
+#ifndef CUDA_EXAMPLE
         boost::timer::cpu_times lapse_time = time.elapsed();
         std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif
