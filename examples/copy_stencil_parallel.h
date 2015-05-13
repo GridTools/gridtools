@@ -51,7 +51,7 @@ namespace copy_stencil{
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
