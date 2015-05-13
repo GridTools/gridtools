@@ -54,7 +54,7 @@ namespace gridtools{
 
        Annoyngly enough does not work with CUDA 6.5
     */
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED)// && !defined(__CUDACC__)
 
     template< class Storage, uint_t ... Number >
     struct field{

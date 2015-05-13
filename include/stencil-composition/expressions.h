@@ -419,7 +419,6 @@ namespace gridtools{
             -> decltype(it_domain(arg.first_operand) / arg.second_operand) {
             return it_domain(arg.first_operand) / arg.second_operand;}
 
-#ifndef __CUDACC__
         /** power of scalar evaluation*/
         template < typename IterateDomain
                    , typename FloatType
@@ -435,26 +434,13 @@ namespace gridtools{
         static auto constexpr value_scalar(IterateDomain const& /*it_domain*/
                                            , expr_exp<FloatType, IntType> const& arg)
             -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
-            return std::pow(arg.first_operand, arg.second_operand);}
+#ifndef __CUDACC__
+            return std::pow(arg.first_operand, arg.second_operand);
+#else
+            return products<2>::apply(arg.first_operand);
+#endif
+}
 
-#else //ifndef __CUDACC__
-        /** power of scalar evaluation of CUDA*/
-        template <typename FloatType
-                  , typename IntType
-                  , typename boost::enable_if<
-                        typename boost::is_floating_point<FloatType>::type
-                        , int >::type=0
-                  , typename boost::enable_if<
-                        typename boost::is_integral<IntType>::type
-                        , int >::type=0
-                  >
-        GT_FUNCTION
-        auto static constexpr value_scalar(IterateDomain const& it_domain
-                                           , expr_exp<FloatType, IntType> const& arg)
-            -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
-            return products<2>::apply(arg.first_operand);}
-
-#endif //ifndef __CUDACC__
 
         /**
            @}
