@@ -8,15 +8,10 @@ from nose.plugins.attrib import attr
 from gridtools.stencil import MultiStageStencil, StencilInspector
 
 
-
-
 class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
-    def __init__ (self):
-        super ( ).__init__ ( )
-
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -333,10 +328,6 @@ class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
-    def __init__ (self):
-        super ( ).__init__ ( )
-
-
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
@@ -479,3 +470,282 @@ class HorizontalDiffusionTest (CopyTest):
         super ( ).test_python_execution (out_param='out_data',
                                          result_file='horizontaldiffusion_result.npy')
 
+
+
+class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor and has no other work, comments or docstrings.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self): super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorFirst (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor before doing any other work.
+    This test shows that it does not matter what arbitrary work is performed after
+    the call to the parent constructor.  If the call to the parent constructor is
+    first, it works.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        """ This is a Python feature called a docstring.  """
+        """ Here is another docstring """
+        anum = 2
+        bnum = anum * 4
+        cstr = "string" + " operation"
+        dstr = "This RHS is a string."
+        enum = 5
+        # This line is a comment.
+        fnum = 5
+        """
+        These lines resemble a comment but are actually
+        a single string.
+        """
+        gnum = 22
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterComment (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor with only a comment coming before it.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        # This is a comment.
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterMultComments (MultiStageStencil):
+    """
+    Child constructor calls parent constructor before doing any other work.
+    There are only comments preceding it.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        # This is a comment.
+        # This is another comment.
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterDocString (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor before doing any other work.
+    There is only a single string, which is treated by Python as a docstring, that
+    precedes the call.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        """ This is a Python feature called a docstring.  """
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterMultDocStrings (MultiStageStencil):
+    """
+    Child constructor calls parent constructor before doing any other work
+    but there is more than one docstring and this causes the exception to be raised.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        """ This is a Python feature called a docstring.  """
+        """ This is another docstring.  """
+        super ( ).__init__ ( )
+
+
+
+class ChildStencilNoCallParentConstructor (MultiStageStencil):
+    """
+    Child constructor does not call the parent constructor at all.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        """ This is a Python feature called a docstring.  """
+        """ Here is another docstring """
+        # Since this class tests the case where we don't call the parent constructor,
+        # a side effect is that there is no inspector field which would've been
+        # defined by the grandparent constructor (that of the Stencil class).  Since
+        # we do NOT wish to test the AttributeError here but rather the ReferenceError,
+        # the same declaration of inspector that exists in Stencil has been placed here.
+        self.inspector = StencilInspector (self)
+
+
+
+class ChildStencilCallsParentConstructorAfterAssignment (MultiStageStencil):
+    """
+    Child constructor performs a numerical assignment before calling the parent constructor.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        anum = 1
+        super ( ).__init__ ( )
+
+
+
+class ChildStencilCallsParentConstructorAfterStringAssignment (MultiStageStencil):
+    """
+    Child constructor performs a string assignment before calling the parent constructor.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        astr = "String assignment"
+        super ( ).__init__ ( )
+
+
+
+class ChildStencilParentConstructorAfterComputation (MultiStageStencil):
+    """
+    Child constructor performs a computation before calling parent constructor.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        2 * 3
+        super ( ).__init__ ( )
+        # This line is a comment.
+
+
+
+class ChildTest (unittest.TestCase):
+    """
+    A test case for the copy stencil defined above.-
+    """
+    def _run (self):
+        kwargs = dict ( )
+        for p in self.params:
+            kwargs[p] = getattr (self, p)
+        self.stencil.run (**kwargs)
+
+
+    def setUp (self):
+        logging.basicConfig (level=logging.INFO)
+
+        self.stencil = None
+
+
+    def test_child_constructor_calls_parent_constructor_and_nothing_else (self):
+        self.stencil = ChildStencilCallsParentConstructorAndNothingElse ( )
+        insp = self.stencil.inspector
+        insp.static_analysis ( )
+        self.assertNotEqual (insp, None)
+
+
+    def test_child_constructor_calls_parent_constructor_first (self):
+        self.stencil = ChildStencilCallsParentConstructorFirst ( )
+        insp = self.stencil.inspector
+        insp.static_analysis ( )
+        self.assertNotEqual (insp, None)
+
+
+    def test_child_constructor_calls_parent_constructor_after_comment (self):
+        self.stencil = ChildStencilCallsParentConstructorAfterComment ( )
+        insp = self.stencil.inspector
+        insp.static_analysis ( )
+        self.assertNotEqual (insp, None)
+
+
+    def test_child_constructor_calls_parent_constructor_after_mult_comments (self):
+        self.stencil = ChildStencilCallsParentConstructorAfterMultComments ( )
+        insp = self.stencil.inspector
+        insp.static_analysis ( )
+        self.assertNotEqual (insp, None)
+
+
+    def test_child_constructor_calls_parent_constructor_after_doc_string (self):
+        self.stencil = ChildStencilCallsParentConstructorAfterDocString ( )
+        insp = self.stencil.inspector
+        insp.static_analysis ( )
+        self.assertNotEqual (insp, None)
+
+
+    def test_child_constructor_calls_parent_constructor_after_mult_doc_strings (self):
+        with self.assertRaises (ReferenceError):
+            self.stencil = ChildStencilCallsParentConstructorAfterMultDocStrings ( )
+            insp = self.stencil.inspector
+            insp.static_analysis ( )
+
+
+    def test_child_constructor_no_call_parent_constructor (self):
+        with self.assertRaises (ReferenceError):
+            self.stencil = ChildStencilNoCallParentConstructor ( )
+            insp = self.stencil.inspector
+            insp.static_analysis ( )
+
+
+    def test_child_constructor_calls_parent_constructor_after_assignment (self):
+        with self.assertRaises (ReferenceError):
+            self.stencil = ChildStencilCallsParentConstructorAfterAssignment ( )
+            insp = self.stencil.inspector
+            insp.static_analysis ( )
+
+
+    def test_child_constructor_calls_parent_constructor_after_string_assignment (self):
+        with self.assertRaises (ReferenceError):
+            self.stencil = ChildStencilCallsParentConstructorAfterStringAssignment ( )
+            insp = self.stencil.inspector
+            insp.static_analysis ( )
+
+
+    def test_child_constructor_call_parent_constructor_after_computation (self):
+        with self.assertRaises (ReferenceError):
+            self.stencil = ChildStencilParentConstructorAfterComputation ( )
+            insp = self.stencil.inspector
+            insp.static_analysis ( )
