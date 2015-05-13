@@ -118,12 +118,13 @@ namespace gridtools {
             m_initial_offsets[0] = initial_offset_i - MinusI;
             m_initial_offsets[1] = initial_offset_j - MinusJ;
             m_initial_offsets[2] = 0 /* initial_offset_k*/;
-            // std::cout << "size: "
-            //           << (TileI+MinusI+PlusI)*n_i_threads << ", "
-            //           << (TileJ+MinusJ+PlusJ)*n_j_threads << ", "
-            //           << dim3
-            //           << std::endl;
-            // info();
+
+//            std::cout << "size: "
+//                       << (TileI+MinusI+PlusI)*n_i_threads << ", "
+//                       << (TileJ+MinusJ+PlusJ)*n_j_threads << ", "
+//                       << dim3
+//                       << "  " << n_i_threads << " " << n_j_threads<< std::endl;
+//             info();
         }
 
     private:
@@ -143,8 +144,8 @@ namespace gridtools {
             return base_type::get_index(offset);
         }
 
-
         virtual void info() const {
+
             std::cout << "Temporary storage "
                       << "Initial offset "
                       << m_initial_offsets[0] << "x"
@@ -161,6 +162,7 @@ namespace gridtools {
            threasd. There are potentially two ids, one over i and one over j, since
            our execution model is parallel on (i,j). Defaulted to 1.
         */
+        GT_FUNCTION
         typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
             uint_t offset =( base_type::template strides<0>(base_type::strides())) * (TileI+MinusI+PlusI) * EU_id_i + (TileJ+MinusJ+PlusJ) * EU_id_j;
             return base_type::fields()[index].get()+offset;
@@ -400,8 +402,7 @@ namespace gridtools {
     // {};
 
     template <typename Storge>
-    struct is_host_tmp_storage:boost::false_type{};
-
+    struct is_host_tmp_storage : boost::mpl::false_{};
 
     template <typename BaseStorage
               , uint_t TileI
@@ -419,8 +420,30 @@ namespace gridtools {
                                     , MinusJ
                                     , PlusI
                                     , PlusJ
+                                    > >
+        : boost::mpl::true_
+    {};
+
+
+    template <typename BaseStorage
+              , uint_t TileI
+              , uint_t TileJ
+              , uint_t MinusI
+              , uint_t MinusJ
+              , uint_t PlusI
+              , uint_t PlusJ
+                >
+    //TODO adding the pointers to this trait is very weird
+    struct is_host_tmp_storage<host_tmp_storage<
+                                    BaseStorage
+                                    , TileI
+                                    , TileJ
+                                    , MinusI
+                                    , MinusJ
+                                    , PlusI
+                                    , PlusJ
                                     >* >
-        : boost::true_type
+        : boost::mpl::true_
     {};
 
     template <  typename BaseStorage
