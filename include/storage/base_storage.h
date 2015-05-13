@@ -75,6 +75,11 @@ namespace gridtools {
         }
     };
 
+    template<typename T> struct is_no_storage_type_yet : boost::mpl::false_{};
+
+    template <typename RegularStorageType>
+    struct is_no_storage_type_yet<no_storage_type_yet<RegularStorageType> > : boost::mpl::true_ {};
+
     /**
        @brief stream operator, for debugging purpose
     */

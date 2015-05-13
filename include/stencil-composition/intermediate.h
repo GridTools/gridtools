@@ -27,6 +27,7 @@
 #include "backend_metafunctions.h"
 #include "backend_traits_fwd.h"
 #include "mss_components_metafunctions.h"
+#include "../storage/storage_functors.h"
 
 /**
  * @file
@@ -233,12 +234,18 @@ namespace gridtools {
 
     template<>
     struct setup_computation<enumtype::Cuda>{
+
         template<typename ArgListType, typename DomainType>
-
         static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
-            boost::fusion::copy(storage_pointers, domain.original_pointers);
 
-            boost::fusion::for_each(storage_pointers, _impl::update_pointer());
+            gridtools::for_each<
+                boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
+            > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.original_pointers));
+
+            //TODOCOSUNA recover
+//            boost::fusion::copy(storage_pointers, domain.original_pointers);
+
+            boost::fusion::for_each(storage_pointers, update_pointer());
 #ifndef NDEBUG
             printf("POINTERS\n");
             boost::fusion::for_each(storage_pointers, _debug::print_pointer());

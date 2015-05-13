@@ -142,9 +142,8 @@ namespace gridtools{
             static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
-
                 //each strategy executes a different high level loop for a mss
-                strategy_from_id<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::template run(local_domain, coords, bi, bj);
+                strategy_from_id_host<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::template run(local_domain, coords, bi, bj);
             }
         };
 
@@ -159,6 +158,23 @@ namespace gridtools{
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
         typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
+
+        // metafunction that contains the strategy from id metafunction corresponding to this backend
+        template<enumtype::strategy StrategyId>
+        struct select_strategy
+        {
+            typedef strategy_from_id_host<StrategyId> type;
+        };
+
+        template<enumtype::strategy StrategyId>
+        struct requires_temporary_redundant_halos
+        {
+            typedef typename boost::mpl::if_c<
+                StrategyId == enumtype::Naive,
+                boost::mpl::false_,
+                boost::mpl::true_
+            >::type type;
+        };
 
         // default block size for this backend
         typedef block_size<8,8> block_size_t;

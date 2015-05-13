@@ -16,10 +16,6 @@
 
 namespace gridtools {
 
-    //forward declaration
-    template<enumtype::strategy Strategy>
-    struct strategy_from_id;
-
     /**
      * @brief functor that executes all the functors contained within the mss
      * @tparam TMssArray meta array containing all the mss descriptors

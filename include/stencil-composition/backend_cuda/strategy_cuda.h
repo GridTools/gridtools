@@ -6,16 +6,20 @@
 #include "../level.h"
 
 #include "backend_traits_cuda.h"
+#include "../../storage/host_tmp_storage.h"
 #include "../mss_functor.h"
 #include "../sfinae.h"
 
 namespace gridtools{
 
+    template<enumtype::strategy>
+    struct strategy_from_id_cuda;
+
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
     */
     template<>
-    struct strategy_from_id< enumtype::Naive>
+    struct strategy_from_id_cuda< enumtype::Naive>
     {
         static const uint_t BI=0;
         static const uint_t BJ=0;
@@ -42,6 +46,10 @@ namespace gridtools{
             }
         };
 
+//        //forward declaration
+//        template<typename StorageBase,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
+//        struct host_tmp_storage;
+
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          * with the naive algorithms, the temporary storages are like the non temporary ones
@@ -56,7 +64,9 @@ namespace gridtools{
         struct get_tmp_storage
         {
 //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-            typedef storage< StorageType > type;
+//            typedef storage< StorageType > type;
+            typedef host_tmp_storage < StorageType, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
+
         };
 
     };
@@ -66,7 +76,7 @@ namespace gridtools{
        Empty as not used in the CUDA backend
     */
     template<>
-    struct strategy_from_id <enumtype::Block>
+    struct strategy_from_id_cuda <enumtype::Block>
     {};
 
     template <enumtype::backend, uint_t Id>

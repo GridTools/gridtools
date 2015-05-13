@@ -11,27 +11,6 @@ namespace gridtools{
     namespace _impl
     {
 
-/**@brief Functor updating the pointers on the device */
-        struct update_pointer {
-#ifdef __CUDACC__
-            template < typename StorageType//typename T, typename U, bool B
-                       >
-            GT_FUNCTION_WARNING
-            void operator()(/*base_storage<enumtype::Cuda,T,U,B
-                              >*/StorageType *& s) const {
-                if (s) {
-                    s->copy_data_to_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                }
-            }
-#else
-            template <typename StorageType>
-            GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {}
-#endif
-        };
-
 #ifdef CXX11_ENABLED
 /**@brief metafunction to recursively compute the next stride
    ID goes from space_dimensions-2 to 0

@@ -123,7 +123,8 @@ namespace gridtools {
     struct backend
     {
         typedef backend_traits_from_id<BackendId> backend_traits_t;
-        typedef strategy_from_id <StrategyType> strategy_traits_t;
+        typedef typename backend_traits_t::template select_strategy<StrategyType>::type strategy_traits_t;
+
         typedef backend<BackendId, StrategyType> this_type;
         static const enumtype::strategy s_strategy_id=StrategyType;
         static const enumtype::backend s_backend_id =BackendId;
@@ -148,9 +149,11 @@ namespace gridtools {
         private:
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
         public:
-            typedef typename boost::mpl::if_<typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
-                                             temp_storage_t,
-                                             no_storage_type_yet< temp_storage_t > >::type type;
+            typedef typename boost::mpl::if_<
+                typename backend_traits_t::template requires_temporary_redundant_halos<s_strategy_id>::type,
+                no_storage_type_yet< temp_storage_t >,
+                temp_storage_t
+            >::type type;
         };
 
 
@@ -312,7 +315,7 @@ namespace gridtools {
             BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
             BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
 
-            strategy_from_id< s_strategy_id >::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, coords);
+            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, coords);
         }
 
 
