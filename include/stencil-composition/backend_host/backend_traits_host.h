@@ -176,8 +176,10 @@ namespace gridtools{
             >::type type;
         };
 
-        // default block size for this backend
-        typedef block_size<8,8> block_size_t;
+        template<enumtype::strategy StrategyId>
+        struct get_block_size {
+            typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
+        };
 
         /**
          * @brief metafunction that derives that returns the right iterate domain

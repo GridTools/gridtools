@@ -42,11 +42,19 @@
 #define CXX11_DISABLED
 #endif
 
-#ifndef GT_DEFAULT_TILE
-#ifndef SUPPRESS_MESSAGES
-#pragma message("INFO: Using default tile size = 8")
+#ifndef GT_DEFAULT_TILE_I
+  #ifdef __CUDACC__
+    #define GT_DEFAULT_TILE_I 32
+  #else
+    #define GT_DEFAULT_TILE_I 8
+  #endif
 #endif
-#define GT_DEFAULT_TILE 8
+#ifndef GT_DEFAULT_TILE_J
+  #ifdef __CUDACC__
+    #define GT_DEFAULT_TILE_J 8
+  #else
+    #define GT_DEFAULT_TILE_J 8
+  #endif
 #endif
 
 #include <boost/mpl/integral_c.hpp>

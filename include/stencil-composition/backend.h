@@ -264,9 +264,10 @@ namespace gridtools {
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
             BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
 
-            static const uint_t tileI = (strategy_traits_t::BI);
+            typedef typename backend_traits_t::get_block_size<StrategyType>::type block_size_t;
 
-            static const uint_t tileJ = (strategy_traits_t::BJ);
+            static const uint_t tileI = block_size_t::i_size_t::value;
+            static const uint_t tileJ = block_size_t::j_size_t::value;
 
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;

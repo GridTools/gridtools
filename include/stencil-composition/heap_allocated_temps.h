@@ -149,14 +149,13 @@ namespace gridtools {
                     is_temporary_storage<boost::mpl::_1> > view_type;
 
                 view_type fview(arg_list);
-
                 boost::fusion::for_each(fview,
                                         instantiate_tmps
                                         ( coords.i_low_bound(),
                                           coords.j_low_bound(),
                                           coords.value_at_top()-coords.value_at_bottom()+1,
-                                          backend_type::n_i_pes()(666),
-                                          backend_type::n_j_pes()(666)
+                                          backend_type::n_i_pes()(coords.i_high_bound() - coords.i_low_bound()),
+                                          backend_type::n_j_pes()(coords.j_high_bound() - coords.j_low_bound())
                                          )
                                         );
             }
