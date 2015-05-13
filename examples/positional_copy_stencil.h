@@ -99,7 +99,7 @@ namespace positional_copy_stencil{
         uint_t d3 = z;
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >

@@ -7,6 +7,7 @@
 #include "horizontal_diffusion_repository.h"
 #include "verifier.h"
 
+//TODOCOSUNA remove
 #include <omp.h>
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
@@ -40,7 +41,11 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 struct lap_function {
     typedef accessor<0> out;
     typedef const accessor<1, range<-1, 1, -1, 1>  > in;
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef const accessor<2> ipos;
+    typedef const accessor<3> jpos;
+    typedef const accessor<4> kpos;
+
+    typedef boost::mpl::vector<out, in, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -48,6 +53,20 @@ struct lap_function {
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+#ifdef __CUDACC__
+        if((int)dom(kpos()) == 0)
+        {
+            printf("LAP %d %d %d %d %d %d %p \n", threadIdx.x, threadIdx.y, blockIdx.x, blockIdx.y, (int)dom(ipos()),
+                    (int)dom(jpos()), &(dom(out())) );
+        }
+#else
+        if((int)dom(kpos()) == 0)
+        {
+            printf("LAP %d %d %d %p \n", omp_get_thread_num(), (int)dom(ipos()),
+                    (int)dom(jpos()), &(dom(out())) );
+        }
+#endif
+
     }
 };
 
@@ -56,8 +75,11 @@ struct flx_function {
     typedef accessor<0> out;
     typedef const accessor<1, range<0, 1, 0, 0> > in;
     typedef const accessor<2, range<0, 1, 0, 0> > lap;
+    typedef const accessor<3> ipos;
+    typedef const accessor<4> jpos;
+    typedef const accessor<5> kpos;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, in, lap, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -74,7 +96,11 @@ struct fly_function {
     typedef accessor<0> out;
     typedef const accessor<1, range<0, 0, 0, 1> > in;
     typedef const accessor<2, range<0, 0, 0, 1> > lap;
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef const accessor<3> ipos;
+    typedef const accessor<4> jpos;
+    typedef const accessor<5> kpos;
+
+    typedef boost::mpl::vector<out, in, lap, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -93,8 +119,12 @@ struct out_function {
     typedef const accessor<2, range<-1, 0, 0, 0> > flx;
     typedef const accessor<3, range<0, 0, -1, 0> > fly;
     typedef const accessor<4> coeff;
+    typedef const accessor<5> ipos;
+    typedef const accessor<6> jpos;
+    typedef const accessor<7> kpos;
 
-    typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
+
+    typedef boost::mpl::vector<out,in,flx,fly,coeff, ipos, jpos, kpos> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -110,6 +140,8 @@ struct out_function {
              dom(fly()) - dom(fly( 0,-1,0))
              );
 #endif
+//        if(threadIdx.x==0 && threadIdx.y==0 )
+            printf("OUT VAL %d %d %d %f\n", (int)dom(ipos()), (int)dom(jpos()), (int)dom(kpos()), dom(out()));
     }
 };
 
@@ -145,7 +177,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t halo_size = 2;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -206,7 +238,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
+    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out, p_ipos, p_jpos, p_kpos> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -214,7 +246,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #ifdef CXX11_ENABLED
     gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out, &ipos, &jpos, &kpos));
 #endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -285,13 +317,13 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_esf<lap_function>(p_lap(), p_in(), p_ipos(), p_jpos(), p_kpos()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
-                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
+                    gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap(), p_ipos(), p_jpos(), p_kpos()),
+                    gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap(), p_ipos(), p_jpos(), p_kpos())
                 ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff(), p_ipos(), p_jpos(), p_kpos())
             ),
             domain, coords
         );

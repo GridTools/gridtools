@@ -74,7 +74,7 @@ struct print_pretty {
 
 bool test_domain_indices() {
 // #ifdef CUDA_EXAMPLE
-// #define BACKEND backend<Cuda, Naive >
+// #define BACKEND backend<Cuda, Block >
 // #else
 // #ifdef BACKEND_BLOCK
 // #define BACKEND backend<Host, Block >

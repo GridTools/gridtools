@@ -39,7 +39,7 @@ using namespace enumtype;
 bool test_cuda_storage() {
 
     typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
-    typedef gridtools::backend<Cuda, Naive>::storage_type<float_type, gridtools::layout_map<0,1,2> > ::type storage_type;
+    typedef gridtools::backend<Cuda, Block>::storage_type<float_type, gridtools::layout_map<0,1,2> > ::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
