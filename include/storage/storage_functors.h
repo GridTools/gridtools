@@ -58,6 +58,12 @@ private:
             GT_FUNCTION_WARNING
             void do_impl(StorageType *& s, boost::mpl::bool_<true>*) const
             {
+                if (s) {
+                    s->copy_data_to_gpu();
+                    s->clone_to_gpu();
+                    s = s->gpu_object_ptr;
+                    printf("Copy F\n");
+                }
             }
             template<typename StorageType>
             GT_FUNCTION_WARNING

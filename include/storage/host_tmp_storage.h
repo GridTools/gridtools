@@ -63,7 +63,8 @@ namespace gridtools {
                , uint_t PlusI
                , uint_t PlusJ
                >
-    struct host_tmp_storage : public BaseStorage
+    struct host_tmp_storage : public BaseStorage, clonable_to_gpu<
+        host_tmp_storage<BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> >
     {
 
         typedef BaseStorage base_type;
@@ -126,6 +127,12 @@ namespace gridtools {
 //                       << "  " << n_i_threads << " " << n_j_threads<< std::endl;
 //             info();
         }
+
+        __device__
+        host_tmp_storage(host_tmp_storage const& other)
+            :  super(other)
+        {}
+
 
     private:
         host_tmp_storage() {}
@@ -224,10 +231,10 @@ namespace gridtools {
                 BOOST_STATIC_ASSERT(layout::template at_<Coordinate>::value>=0);
                 *index_+=(steps_ - block_*tile_ - m_initial_offsets[Coordinate])*basic_type::template strides<Coordinate>(strides_);
             }
-                else
-                {
-                    base_type::template initialize<Coordinate>( steps_, block_, index_, strides_);
-                }
+            else
+            {
+                base_type::template initialize<Coordinate>( steps_, block_, index_, strides_);
+            }
         }
 
     };

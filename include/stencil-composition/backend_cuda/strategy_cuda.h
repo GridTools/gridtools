@@ -65,7 +65,7 @@ namespace gridtools{
         {
 //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
 //            typedef storage< StorageType > type;
-            typedef host_tmp_storage < StorageType, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
+            typedef host_tmp_storage <typename StorageType::super, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
 
         };
 
