@@ -24,7 +24,9 @@ namespace gridtools {
      * @tparam BackendId id of backend
      * @tparam StrategyId id of strategy
      */
-    template<typename MssComponentsArray, typename Coords, typename MssLocalDomainArray, enumtype::backend BackendId, enumtype::strategy StrategyId>
+    template<
+        typename MssComponentsArray, typename Coords, typename MssLocalDomainArray,
+        enumtype::backend BackendId, enumtype::strategy StrategyId>
     struct mss_functor
     {
         BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
@@ -68,11 +70,14 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Coords>::type FunctorsMap;
 
+            typedef backend_traits_from_id< BackendId > backend_traits_t;
+
+            typedef typename backend_traits_t::get_block_size<StrategyId>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
             typedef run_functor_arguments<
                 BackendId,
-                typename backend_traits_from_id<BackendId>::block_size_t,
-                typename backend_traits_from_id<BackendId>::block_size_t,
+                block_size_t,
+                block_size_t,
                 functors_list_t,
                 local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
@@ -83,8 +88,6 @@ namespace gridtools {
                 ExecutionEngine,
                 StrategyId
             > run_functor_args_t;
-
-            typedef backend_traits_from_id< BackendId > backend_traits_t;
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 

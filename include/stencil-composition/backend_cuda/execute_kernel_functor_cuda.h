@@ -17,9 +17,7 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
-        typedef typename gridtools::backend_traits_from_id<
-            RunFunctorArguments::backend_id_t::value
-        >::block_size_t block_size_t;
+        typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
@@ -36,7 +34,6 @@ namespace _impl_cuda {
         iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
         it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
         it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
-        
         __syncthreads();
 
         const int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;

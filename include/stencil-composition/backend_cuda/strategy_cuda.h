@@ -21,9 +21,16 @@ namespace gridtools{
     template<>
     struct strategy_from_id_cuda< enumtype::Naive>
     {
-        static const uint_t BI=0;
-        static const uint_t BJ=0;
-        static const uint_t BK=0;
+    };
+
+    /**
+       @brief specialization for the \ref gridtools::_impl::Block strategy
+       Empty as not used in the CUDA backend
+    */
+    template<>
+    struct strategy_from_id_cuda <enumtype::Block> {
+        // default block size for Block strategy
+        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J> block_size_t;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -41,14 +48,10 @@ namespace gridtools{
             {
                 typedef backend_traits_from_id< BackendId > backend_traits;
                 backend_traits::template for_each<iter_range> (
-                    mss_functor<MssComponentsArray, Coords, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, coords,0,0)
+                    mss_functor<MssComponentsArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,0,0)
                 );
             }
         };
-
-//        //forward declaration
-//        template<typename StorageBase,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
-//        struct host_tmp_storage;
 
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
@@ -68,14 +71,6 @@ namespace gridtools{
             typedef host_tmp_storage <typename StorageType::super, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
 
         };
-
     };
-
-    /**
-       @brief specialization for the \ref gridtools::_impl::Block strategy
-       Empty as not used in the CUDA backend
-    */
-    template<>
-    struct strategy_from_id_cuda <enumtype::Block> {};
 
 }//namespace gridtools

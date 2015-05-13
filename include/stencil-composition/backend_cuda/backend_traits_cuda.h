@@ -49,9 +49,9 @@ namespace gridtools{
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
-        GT_FUNCTION
-        static uint_t n_i_pes(int = 0) {
-            return gridDim.x;
+        static uint_t n_i_pes(const int i_size) {
+            typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
+            return (i_size + block_size_t::i_size_t::value) / block_size_t::i_size_t::value;
        }
 
         /** This is the function used by the specific backend to inform the
@@ -59,9 +59,9 @@ namespace gridtools{
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
-        GT_FUNCTION
-        static uint_t n_j_pes(int = 0) {
-            return gridDim.y;
+        static uint_t n_j_pes(const uint_t j_size) {
+            typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
+            return (j_size + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
         }
 
         /** This is the function used by the specific backend
@@ -160,8 +160,11 @@ namespace gridtools{
             typedef boost::mpl::true_ type;
         };
 
-        // default block size for this backend
-        typedef block_size<32,8> block_size_t;
+        template<enumtype::strategy StrategyId>
+        struct get_block_size {
+            GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block, "For CUDA backend only Naive strategy is supported")
+            typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
+        };
 
         /**
          * @brief metafunction that returns the right iterate domain for this backend

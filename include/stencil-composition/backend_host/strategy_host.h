@@ -14,9 +14,8 @@ namespace gridtools{
     template<>
     struct strategy_from_id_host< enumtype::Naive>
     {
-        static const uint_t BI=0;
-        static const uint_t BJ=0;
-        static const uint_t BK=0;
+        // default block size for Naive strategy
+        typedef block_size<0,0> block_size_t;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -93,9 +92,8 @@ namespace gridtools{
     template<>
     struct strategy_from_id_host <enumtype::Block>
     {
-        static const uint_t BI=GT_DEFAULT_TILE;
-        static const uint_t BJ=GT_DEFAULT_TILE;
-        static const uint_t BK=0;
+        // default block size for Block strategy
+        typedef block_size<GT_DEFAULT_TILE_I,GT_DEFAULT_TILE_J> block_size_t;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
