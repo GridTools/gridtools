@@ -4,11 +4,15 @@
 #include "execute_kernel_functor_host.h"
 
 namespace gridtools{
+
+    template<enumtype::strategy>
+    struct strategy_from_id_host;
+
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
     */
     template<>
-    struct strategy_from_id< enumtype::Naive>
+    struct strategy_from_id_host< enumtype::Naive>
     {
         static const uint_t BI=0;
         static const uint_t BJ=0;
@@ -87,7 +91,7 @@ namespace gridtools{
        The loops over i and j are split according to the values of BI and BJ
     */
     template<>
-    struct strategy_from_id <enumtype::Block>
+    struct strategy_from_id_host <enumtype::Block>
     {
         static const uint_t BI=GT_DEFAULT_TILE;
         static const uint_t BJ=GT_DEFAULT_TILE;

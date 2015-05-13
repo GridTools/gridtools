@@ -5,6 +5,7 @@
 #include "run_esf_functor_cuda.h"
 #include "../block_size.h"
 #include "iterate_domain_cuda.h"
+#include "strategy_cuda.h"
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -143,6 +144,21 @@ namespace gridtools{
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
         typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
+
+        // metafunction that contains the strategy from id metafunction corresponding to this backend
+        template<enumtype::strategy StrategyId>
+        struct select_strategy
+        {
+            typedef strategy_from_id_cuda<StrategyId> type;
+        };
+
+        template<enumtype::strategy StrategyId>
+        struct requires_temporary_redundant_halos
+        {
+            BOOST_STATIC_ASSERT(StrategyId==enumtype::Naive);
+
+            typedef boost::mpl::true_ type;
+        };
 
         // default block size for this backend
         typedef block_size<32,8> block_size_t;
