@@ -76,10 +76,6 @@ namespace gridtools{
        Empty as not used in the CUDA backend
     */
     template<>
-    struct strategy_from_id_cuda <enumtype::Block>
-    {};
-
-    template <enumtype::backend, uint_t Id>
-    struct once_per_block;
+    struct strategy_from_id_cuda <enumtype::Block> {};
 
 }//namespace gridtools
