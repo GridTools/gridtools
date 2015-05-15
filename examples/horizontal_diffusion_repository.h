@@ -20,8 +20,14 @@ using gridtools::int_t;
 class repository
 {
 public:
-    typedef gridtools::layout_map<0,1,2> layout_ijk;
+#ifdef __CUDACC__
+    typedef gridtools::layout_map<2,1,0> layout_ijk;//stride 1 on i
+    typedef gridtools::layout_map<1,0,-1> layout_ij;
+#else
+    typedef gridtools::layout_map<0,1,2> layout_ijk;//stride 1 on k
     typedef gridtools::layout_map<0,1,-1> layout_ij;
+#endif
+
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
     typedef hd_backend::storage_type<gridtools::float_type, layout_ijk >::type storage_type;
