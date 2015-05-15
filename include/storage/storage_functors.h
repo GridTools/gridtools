@@ -12,24 +12,26 @@ struct copy_pointers_functor {
     template <typename Index>
     GT_FUNCTION_WARNING
     void operator()(const Index& ) const {
-        printf("CopyPointer\n");
-
-        assign<Index>(static_cast<typename is_temporary_storage< typename boost::mpl::at<DestCont, Index>::type >::type*> (0) );
+        assign<Index>();
     }
 private:
+    //do not copy pointers in case storage is a temporary
     template<typename Index>
     GT_FUNCTION_WARNING
-    void assign(boost::mpl::bool_<true>*) const
-    {
-        printf("NoCopyPointer\n");
+    void assign(typename boost::enable_if_c<
+            is_temporary_storage<
+                typename boost::mpl::at<DestCont, Index>::type
+            >::value
+        >::type* = 0) const {}
 
-    }
     template<typename Index>
     GT_FUNCTION_WARNING
-    void assign(boost::mpl::bool_<false>*) const
+    void assign(typename boost::disable_if_c<
+            is_temporary_storage<
+                typename boost::mpl::at<DestCont, Index>::type
+            >::value
+        >::type* = 0) const
     {
-        printf("YesCopyPointer\n");
-
         boost::fusion::at<Index>(m_dc) = boost::fusion::at<Index>(m_oc);
     }
 
@@ -40,43 +42,34 @@ private:
 /**@brief Functor updating the pointers on the device */
         struct update_pointer {
 #ifdef __CUDACC__
-            template<typename T> struct printy{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYYYYYY, (T));};
 
             template < typename StorageType//typename T, typename U, bool B
                        >
             GT_FUNCTION_WARNING
             void operator()(/*base_storage<enumtype::Cuda,T,U,B
                               >*/StorageType *& s) const {
-                printf("UpdatePointer\n");
-                do_impl<StorageType>(s,
-                        static_cast<typename is_host_tmp_storage<StorageType>::type*>(0)
-                );
+                if (s) {
+                    copy_data_impl<StorageType>(s);
+
+                    s->clone_to_gpu();
+                    s = s->gpu_object_ptr;
+                }
             }
 
         private:
+            //we do not copy data into the gpu in case of a temporary
             template<typename StorageType>
             GT_FUNCTION_WARNING
-            void do_impl(StorageType *& s, boost::mpl::bool_<true>*) const
-            {
-                if (s) {
-                    s->copy_data_to_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                    printf("Copy F\n");
-                }
-            }
-            template<typename StorageType>
-            GT_FUNCTION_WARNING
-            void do_impl(StorageType *& s, boost::mpl::bool_<false>*) const
-            {
-                printf("UpdatePointerNonTemp\n");
+            void copy_data_impl(StorageType *& s,
+                    typename boost::enable_if_c<is_host_tmp_storage<StorageType>::value>::type* = 0) const
+            {}
 
-                if (s) {
-                    s->copy_data_to_gpu();
-                    s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
-                    printf("Copy F\n");
-                }
+            template<typename StorageType>
+            GT_FUNCTION_WARNING
+            void copy_data_impl(StorageType *& s,
+                    typename boost::disable_if_c<is_host_tmp_storage<StorageType>::value>::type* = 0) const
+            {
+                s->copy_data_to_gpu();
             }
 
 #else
@@ -86,23 +79,12 @@ private:
 #endif
         };
 
+
         //TODO : This struct is never used
         struct call_h2d {
-            template <typename Arg>
-            GT_FUNCTION
-            void operator()(Arg * arg) const {
-#ifndef __CUDA_ARCH__
-                arg->h2d_update();
-#endif
-            }
-        };
-
-        struct call_d2h {
             template <typename StorageType>
             GT_FUNCTION
             void operator()(StorageType * arg) const {
-                printf("MY \n ");
-
 #ifndef __CUDA_ARCH__
                 do_impl<StorageType>(arg,
                         static_cast<typename is_no_storage_type_yet<StorageType>::type*>(0)
@@ -112,17 +94,37 @@ private:
         private:
             template <typename StorageType>
             GT_FUNCTION
-            void do_impl(StorageType * arg, boost::mpl::bool_<true>*) const {
-                printf("SIs \n ");
-
-            }
+            void do_impl(StorageType * arg,
+                    typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
             template <typename StorageType>
             GT_FUNCTION
-            void do_impl(StorageType * arg, boost::mpl::bool_<false>*) const {
-                printf("NO \n ");
+            void do_impl(StorageType * arg,
+                    typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
+                arg->h2d_update();
+            }
+        };
+
+        struct call_d2h {
+            template <typename StorageType>
+            GT_FUNCTION
+            void operator()(StorageType * arg) const {
+#ifndef __CUDA_ARCH__
+                do_impl<StorageType>(arg,
+                        static_cast<typename is_no_storage_type_yet<StorageType>::type*>(0)
+                );
+#endif
+            }
+        private:
+            template <typename StorageType>
+            GT_FUNCTION
+            void do_impl(StorageType * arg,
+                    typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
+            template <typename StorageType>
+            GT_FUNCTION
+            void do_impl(StorageType * arg,
+                    typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
                 arg->d2h_update();
             }
-
         };
 
 } // namespace gridtools
