@@ -134,10 +134,6 @@ type;
             template <typename ZipElem>
             GT_FUNCTION
             void operator()(ZipElem const &a) const {
-#ifdef __CUDA_ARCH__
-                printf("CIAOLLLL %X\n", &a);//, (boost::fusion::at<boost::mpl::int_<1> >(a)));
-#endif
-                //                (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k);
                 boost::fusion::at<static_int<0> >(a) = &( (*(boost::fusion::at<static_int<1> >(a)))(i,j,k) );
             }
         };

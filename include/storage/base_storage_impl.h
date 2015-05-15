@@ -194,7 +194,7 @@ namespace gridtools{
             template <typename StorageType>
             GT_FUNCTION_WARNING
             void operator()(StorageType* s) const {
-                printf("CIAOOO TATATA %x\n",  s);
+                printf("Pointer Value %x\n",  s);
             }
         };
 #endif
