@@ -264,7 +264,7 @@ namespace gridtools {
             BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
             BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
 
-            typedef typename backend_traits_t::get_block_size<StrategyType>::type block_size_t;
+            typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
 
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
