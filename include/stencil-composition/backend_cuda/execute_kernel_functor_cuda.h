@@ -40,12 +40,9 @@ namespace _impl_cuda {
         const int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
 
         it_domain.set_index(0);
-        it_domain.template increment<0, enumtype::forward>(i+starti);
-        it_domain.template increment<1, enumtype::forward>(j+startj);
 
-        //TODOCOSUNA Why this initialize is not working anymore?
-//        it_domain.initialize<0>(i+starti);
-//        it_domain.initialize<1>(j+startj);
+        it_domain.template initialize<0>(i+starti, blockIdx.x);
+        it_domain.template initialize<1>(j+startj, blockIdx.y);
 
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
