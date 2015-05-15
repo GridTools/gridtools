@@ -238,20 +238,12 @@ namespace gridtools {
         template<typename ArgListType, typename DomainType>
         static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
 
+            //copy pointers into the domain original pointers, except for the temporaries.
             gridtools::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
             > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.original_pointers));
 
-            //TODOCOSUNA recover
-//            boost::fusion::copy(storage_pointers, domain.original_pointers);
-
             boost::fusion::for_each(storage_pointers, update_pointer());
-#ifndef NDEBUG
-            printf("POINTERS\n");
-            boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-            printf("ORIGINAL\n");
-            boost::fusion::for_each(domain.original_pointers, _debug::print_pointer());
-#endif
             return GT_NO_ERRORS;
         }
     };
