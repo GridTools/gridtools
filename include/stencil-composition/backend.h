@@ -17,7 +17,6 @@
 #endif
 
 #include "../common/pair.h"
-#include "../common/gridtools_runtime.h"
 #include "heap_allocated_temps.h"
 #include "accessor.h"
 #include "domain_type.h"
