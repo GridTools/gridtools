@@ -4,7 +4,6 @@
 #include "backend_fwd.h"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
-#include "common/gridtools_runtime.h"
 
 /**
 @file

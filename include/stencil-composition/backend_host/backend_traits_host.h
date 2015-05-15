@@ -16,15 +16,6 @@ namespace gridtools{
         struct run_functor_host;
     }
 
-    namespace multithreading{
-        /**
-           Global variable storing the current thread id
-        */
-        int __attribute__((weak)) gt_thread_id;
-#pragma omp threadprivate(gt_thread_id)
-
-    }//namespace multithreading
-
     /**forward declaration*/
     template<typename T>
     struct wrap_pointer;
@@ -61,7 +52,11 @@ namespace gridtools{
             grid of threads.
         */
         static uint_t n_i_pes(int = 0) {
-            return n_threads();
+#ifdef _OPENMP
+            return omp_get_max_threads();
+#else
+            return 1;
+#endif
         }
 
         /** This is the function used by the specific backend to inform the
@@ -78,20 +73,13 @@ namespace gridtools{
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
         static uint_t processing_element_i()  {
-            return multithreading::gt_thread_id;
+#ifdef _OPENMP
+            return omp_get_thread_num();
+#else
+            return 0;
+#endif
         }
 
-        /**@brief set the thread id
-
-           this method when openmp is enabled calls the thread_id() routine.
-           NOTE: the reason why the latter routine is not called directly every time
-           the thread id is queried is a possibly non-negligible overhead introduced by such call.
-           This interface allows to store the thread id in a global variable when a parallel
-           region is encountered.
-         */
-        static void set_thread_id(){
-            multithreading::gt_thread_id = thread_id();
-        }
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
