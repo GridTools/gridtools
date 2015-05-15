@@ -769,7 +769,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
             {}
     };
 
-#if defined(CXX11_ENABLED)// && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
     /** @brief traits class defining some useful compile-time counters
      */
     template < typename First, typename  ...  StorageExtended>
@@ -821,7 +821,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 /**@brief template specialization at the end of the recustion.*/
     template < typename First>
     struct dimension_extension_traits
-#if defined(CXX11_ENABLED)// && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
     <First>
 #endif
     {
@@ -832,7 +832,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
         typedef dimension_extension_null super;
     };
 
-#if !defined(CXX11_ENABLED) //|| defined(__CUDACC__)// big code repetition
+#if !defined(CXX11_ENABLED) || defined(__CUDACC__)// big code repetition
 
     /** @brief non-C++11 crap
      */
@@ -870,7 +870,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #endif //CXX11_ENABLED
 
 
-#if defined( CXX11_ENABLED )// && !defined( __CUDACC__ )
+#if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
     /**@brief implements the discretized field structure
 
        It is a collection of arbitrary length discretized scalar fields.
@@ -1118,7 +1118,7 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
     };
 
-#if !defined( CXX11_ENABLED ) //|| defined ( __CUDACC__ )
+#if !defined( CXX11_ENABLED ) || defined ( __CUDACC__ )
         template <typename First>
         struct data_field1 : public dimension_extension_traits<First >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
         {
