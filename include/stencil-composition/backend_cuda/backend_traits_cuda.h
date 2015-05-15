@@ -155,7 +155,7 @@ namespace gridtools{
         template<enumtype::strategy StrategyId>
         struct requires_temporary_redundant_halos
         {
-            BOOST_STATIC_ASSERT(StrategyId==enumtype::Naive);
+            BOOST_STATIC_ASSERT(StrategyId==enumtype::Block);
 
             typedef boost::mpl::true_ type;
         };

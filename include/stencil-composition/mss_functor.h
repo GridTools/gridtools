@@ -72,7 +72,7 @@ namespace gridtools {
 
             typedef backend_traits_from_id< BackendId > backend_traits_t;
 
-            typedef typename backend_traits_t::get_block_size<StrategyId>::type block_size_t;
+            typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
             typedef run_functor_arguments<
                 BackendId,

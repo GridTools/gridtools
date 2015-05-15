@@ -16,6 +16,9 @@ namespace gridtools{
     {
         // default block size for Naive strategy
         typedef block_size<0,0> block_size_t;
+        static const uint_t BI=block_size_t::i_size_t::value;
+        static const uint_t BJ=block_size_t::j_size_t::value;
+        static const uint_t BK=0;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -94,6 +97,11 @@ namespace gridtools{
     {
         // default block size for Block strategy
         typedef block_size<GT_DEFAULT_TILE_I,GT_DEFAULT_TILE_J> block_size_t;
+
+        static const uint_t BI=block_size_t::i_size_t::value;
+        static const uint_t BJ=block_size_t::j_size_t::value;
+        static const uint_t BK=0;
+
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
