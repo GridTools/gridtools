@@ -148,6 +148,7 @@ namespace gridtools {
             set_index_recur< N_STORAGES-1>::set( index, m_index);
         }
 
+        //TODOCOSUNA remove this advance_ij
         template <ushort_t Coordinate>
         GT_FUNCTION
         void advance_ij(uint_t offset, uint_t block)
@@ -506,7 +507,8 @@ namespace gridtools {
             }
             //TODOCOSUNA what with the increment of k? Is it GONE?
             base_t::template increment<Coordinate, Execution>(steps_);
-            (Execution == enumtype::backward) ? --m_k : ++m_k;
+            if( Coordinate==2)
+                (Execution == enumtype::backward) ? --m_k : ++m_k;
         }
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
