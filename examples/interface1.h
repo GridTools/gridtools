@@ -24,9 +24,13 @@ using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
-#ifdef CXX11_ENABLED
-using namespace expressions;
-#endif
+
+//Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
+//  for any type, which breaks most of the code after using expressions
+//#ifdef CXX11_ENABLED
+//using namespace expressions;
+//#endif
+
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
@@ -100,17 +104,19 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-#ifdef CXX11_ENABLED
-        dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx() - flx( -1,0,0) +
-             fly() - fly( 0,-1,0))
-             );
-#else
+//Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
+//  for any type, which breaks most of the code after using expressions
+//#ifdef CXX11_ENABLED
+//        dom(out()) = dom(in()) - dom(coeff()) *
+//            (dom(flx() - flx( -1,0,0) +
+//             fly() - fly( 0,-1,0))
+//             );
+//#else
         dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
-#endif
+//#endif
     }
 };
 
