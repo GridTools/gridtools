@@ -7,31 +7,6 @@
    templates.*/
 namespace gridtools{
 
-//#ifdef __CUDACC__
-    /**@brief Class in substitution of std::pow, not available in CUDA*/
-    template <uint_t Number>
-    struct products{
-        template<typename Value>
-        GT_FUNCTION
-        static Value constexpr apply(Value const& v)
-            {
-                return v*products<Number-1>::apply(v);
-            }
-    };
-
-    /**@brief Class in substitution of std::pow, not available in CUDA*/
-    template <>
-    struct products<0>{
-        template<typename Value>
-        GT_FUNCTION
-        static Value constexpr apply(Value const& v)
-            {
-                return 1.;
-            }
-    };
-//#endif
-
-
 #ifdef CXX11_ENABLED
 
     /** \section expressions Expressions Definition
@@ -303,11 +278,7 @@ namespace gridtools{
                   >
         GT_FUNCTION
         constexpr FloatType  pow (FloatType arg1)
-#ifdef __CUDACC__
-        {return products<Exponent>::apply(arg1);}
-#else
-        {return std::pow(arg1, Exponent);}
-#endif
+        {return gridtools::pow<Exponent>::apply(arg1);}
     }
 #endif
     namespace expressions{
@@ -452,7 +423,7 @@ namespace gridtools{
         auto static constexpr value_scalar(IterateDomain const& it_domain
                                            , expr_exp<FloatType, IntType> const& arg)
             -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
-            return products<2>::apply(arg.first_operand);}
+            return pow<2>::apply(arg.first_operand);}
 
 #endif //ifndef __CUDACC__
 
@@ -471,8 +442,8 @@ namespace gridtools{
         GT_FUNCTION
         auto static constexpr value_int(IterateDomain const& it_domain
                                         , expr_exp<ArgType1, IntType> const& arg)
-            -> decltype(products<2>::apply(it_domain(arg.first_operand))) {
-            return products<2>::apply(it_domain(arg.first_operand));
+            -> decltype(pow<2>::apply(it_domain(arg.first_operand))) {
+            return pow<2>::apply(it_domain(arg.first_operand));
         }
 
         template <typename IterateDomain, typename ArgType1 /*typename IntType, IntType*/
@@ -480,8 +451,8 @@ namespace gridtools{
         GT_FUNCTION
         auto static constexpr value_int(IterateDomain const& it_domain
                                         , expr_pow<ArgType1, exponent> const& arg)
-            -> decltype(products<exponent>::apply(it_domain(arg.first_operand))) {
-            return products<exponent>::apply(it_domain(arg.first_operand));}
+            -> decltype(pow<exponent>::apply(it_domain(arg.first_operand))) {
+            return pow<exponent>::apply(it_domain(arg.first_operand));}
 
         /**@}@}*/
 
