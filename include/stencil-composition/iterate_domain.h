@@ -306,7 +306,7 @@ namespace gridtools {
         }
 
         /** @brief method called in the Do methods of the functors.
-            Specialization for the arg_decorator placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)
+            Specialization for the accessor placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)
 
             this method is enabled only if the current placeholder dimension exceeds the number of space dimensions of the storage class.
             I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
@@ -427,7 +427,7 @@ namespace gridtools {
                     ArgType::n_dim <= boost::mpl::at<
                         typename local_domain_t::esf_args,
                         typename ArgType::index_type
-                    >::type::storage_type::space_dimensions) <= gridtools::arg_decorator<ArgType>::n_dim,
+                    >::type::storage_type::space_dimensions),
                     "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
