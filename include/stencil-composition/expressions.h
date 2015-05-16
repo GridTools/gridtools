@@ -1,5 +1,7 @@
 #pragma once
 #include<common/string_c.h>
+#include <common/math.h>
+
 /**@file
    @brief Expression templates definition.
    The expression templates are a method to parse at compile time the mathematical expression given
