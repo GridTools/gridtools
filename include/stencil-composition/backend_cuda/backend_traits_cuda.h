@@ -82,24 +82,6 @@ namespace gridtools{
             return blockIdx.y;
         }
 
-#ifdef CXX11_ENABLED
-        //function alias (pre C++11)
-        template<typename Sequence, typename F>
-        GT_FUNCTION
-        static void for_each(F&& f)
-        {
-            boost::mpl::for_each<Sequence>(std::forward<F>(f));
-        }
-#else
-        //function alias (pre C++11)
-        template<typename Sequence, typename F>
-        GT_FUNCTION
-        static void for_each(F f)
-        {
-            boost::mpl::for_each<Sequence>(f);
-        }
-#endif
-
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */

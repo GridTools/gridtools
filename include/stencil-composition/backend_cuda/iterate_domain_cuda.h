@@ -5,6 +5,9 @@
 
 namespace gridtools {
 
+/**
+ * @brief iterate domain class for the CUDA backend
+ */
 template<template<class> class IterateDomainBase, typename LocalDomain>
 class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<IterateDomainBase, LocalDomain> > //CRTP
 {
@@ -31,12 +34,18 @@ public:
         return threadIdx.y;
     }
 
+    /**
+     * @brief determines whether the current (i,j) position is within the block size
+     */
     GT_FUNCTION
     bool is_thread_in_domain() const
     {
         return threadIdx.x < m_block_size_i && threadIdx.y < m_block_size_j ;
     }
 
+    /**
+     * @brief determines whether the current (i,j) position + an offset is within the block size
+     */
     GT_FUNCTION
     bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const
     {
@@ -44,18 +53,27 @@ public:
             (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset < m_block_size_j ;
     }
 
+    /**
+     * @brief determines whether the current (i) position is within the block size
+     */
     GT_FUNCTION
     bool is_thread_in_domain_x() const
     {
         return threadIdx.x < m_block_size_i;
     }
 
+    /**
+     * @brief determines whether the current (i) position + an offset is within the block size
+     */
     GT_FUNCTION
     bool is_thread_in_domain_x(const int_t i_offset) const
     {
         return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset < m_block_size_i;
     }
 
+    /**
+     * @brief determines whether the current (j) position is within the block size
+     */
     GT_FUNCTION
     bool is_thread_in_domain_y(const int_t j_offset) const
     {
@@ -74,20 +92,15 @@ public:
     }
 
 private:
-    //TODOCOSUNA use gridtools array
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-//    uint_t m_thread_position[2];
 };
-
-//template<typename T> struct is_iterate_domain;
 
 template<
     template<class> class IterateDomainBase, typename LocalDomain>
 struct is_iterate_domain<
     iterate_domain_cuda<IterateDomainBase, LocalDomain>
-> :
-    public boost::mpl::true_{};
+> : public boost::mpl::true_{};
 
 template<
     template<class> class IterateDomainBase,

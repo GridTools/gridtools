@@ -47,7 +47,7 @@ namespace gridtools{
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits;
-                backend_traits::template for_each<iter_range> (
+                gridtools::for_each<iter_range> (
                     mss_functor<MssComponentsArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,0,0)
                 );
             }
