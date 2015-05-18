@@ -23,7 +23,7 @@ namespace gridtools {
        "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
        field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
      */
-    template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
+    template < uint_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct accessor : public accessor_base<ID, Range, Number> {
         typedef accessor_base<ID, Range, Number> super;
 #ifdef CXX11_ENABLED
@@ -39,7 +39,7 @@ namespace gridtools {
 
         //move ctor
         GT_FUNCTION
-        constexpr explicit accessor(const accessor<ID, Range, Number>& other) : super(std::move(other)) {}
+        constexpr explicit accessor(const accessor<ID, Range, Number>&& other) : super(std::move(other)) {}
 
         //move ctor from an accessor with different ID
         template<ushort_t OtherID>
