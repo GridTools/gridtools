@@ -55,9 +55,6 @@ namespace gridtools {
     template < ushort_t ID, typename Range, ushort_t Number>
     struct accessor;
 
-    template < ushort_t ID, ushort_t Numbers>
-    struct accessor0;
-
 #ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
     struct accessor_mixed;
@@ -66,9 +63,6 @@ namespace gridtools {
     //template arguments type checking
     template <typename T>
     struct is_arg_tuple : boost::false_type {};
-
-    template < ushort_t ID, ushort_t Number>
-    struct is_arg_tuple<accessor0<ID, Number> > : boost::true_type{};
 
     template < ushort_t ID, typename Range, ushort_t Number>
     struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
