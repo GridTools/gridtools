@@ -315,7 +315,7 @@ namespace gridtools {
         template < typename ArgType>
         GT_FUNCTION
         typename boost::enable_if<
-            typename boost::mpl::bool_<(ArgType::type::n_args >
+            typename boost::mpl::bool_<(ArgType::type::n_dim >
             boost::mpl::at<
             typename local_domain_t::esf_args
             , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
@@ -336,7 +336,7 @@ namespace gridtools {
                 //for the moment the extra dimensionality of the storage is limited to max 2
                 //(3 space dim + 2 extra= 5, which gives n_args==4)
                 GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-                GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_args <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
+                GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (arg_type). increase the number of dimensions when defining the placeholder.")
 
 
                 GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
@@ -346,7 +346,7 @@ namespace gridtools {
                                           storage_type::get_index
                                          (
                                              (
-                                                 ArgType::type::n_args <= storage_type::space_dimensions+1 ? // static if
+                                                 ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
                                                  arg.template get<0>() //offset for the current dimension
                                                  :
                                                  arg.template get<0>() //offset for the current dimension
