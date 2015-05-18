@@ -27,6 +27,11 @@ namespace gridtools {
             typename boost::is_same<physical_domain_block_size_t, processing_elements_block_size_t>::type
         >::type multiple_grid_points_per_warp_t;
 
+        //nevertheless, even if each thread computes more than a grid point, the i size of the physical block
+        //size and the cuda block size have to be the same
+        BOOST_STATIC_ASSERT((physical_domain_block_size_t::i_size_t::value ==
+                processing_elements_block_size_t::i_size_t::value));
+
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         using super::m_iterate_domain;
