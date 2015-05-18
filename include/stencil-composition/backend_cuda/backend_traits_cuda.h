@@ -152,6 +152,12 @@ namespace gridtools{
             typedef strategy_from_id_cuda<StrategyId> type;
         };
 
+        /*
+         * @brief metafunction that determines whether this backend requires redundant computations at halo points
+         * of each block, given the strategy Id
+         * @tparam StrategyId the strategy id
+         * @return always true for CUDA
+         */
         template<enumtype::strategy StrategyId>
         struct requires_temporary_redundant_halos
         {
@@ -160,9 +166,13 @@ namespace gridtools{
             typedef boost::mpl::true_ type;
         };
 
+        /**
+         * @brief metafunction that returns the block size
+         */
         template<enumtype::strategy StrategyId>
         struct get_block_size {
-            GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block, "For CUDA backend only Naive strategy is supported")
+            GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block,
+                    "For CUDA backend only Naive strategy is supported")
             typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
         };
 

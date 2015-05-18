@@ -88,24 +88,24 @@ namespace gridtools{
             return 0;
         }
 
-        //function alias (pre C++11, std::bind or std::mem_fn,
-        //using function pointers looks very ugly)
-        template<
-            typename Sequence
-            , typename F
-            >
-
-#ifdef CXX11_ENABLED
-        //unnecessary copies/indirections if the compiler is not smart
-        inline static void for_each(F&& f){
-            gridtools::for_each<Sequence>(std::forward<F>(f));
-            }
-#else
-        //unnecessary copies/indirections if the compiler is not smart
-        inline static void for_each(F f){
-            gridtools::for_each<Sequence>(f);
-            }
-#endif
+//        //function alias (pre C++11, std::bind or std::mem_fn,
+//        //using function pointers looks very ugly)
+//        template<
+//            typename Sequence
+//            , typename F
+//            >
+//
+//#ifdef CXX11_ENABLED
+//        //unnecessary copies/indirections if the compiler is not smart
+//        inline static void for_each(F&& f){
+//            gridtools::for_each<Sequence>(std::forward<F>(f));
+//            }
+//#else
+//        //unnecessary copies/indirections if the compiler is not smart
+//        inline static void for_each(F f){
+//            gridtools::for_each<Sequence>(f);
+//            }
+//#endif
 
         template <uint_t Id>
         struct once_per_block {
