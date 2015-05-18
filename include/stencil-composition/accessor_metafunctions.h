@@ -21,7 +21,7 @@ struct accessor_index<accessor<ID, Range, Number> >
 };
 
 /**
- * @brief metafunction that given an arg and a map, it will remap the index of the arg according
+ * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
  * to the corresponding entry in ArgsMap
  */
 template<typename Accessor, typename ArgsMap>

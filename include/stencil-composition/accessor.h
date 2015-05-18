@@ -86,60 +86,6 @@ namespace gridtools {
 #endif
     };
 
-
-    /**
-       @brief convenient interface allowing to specify an arbitrary dimensional
-       \ref gridtools::accessor with zero range
-    */
-    template < ushort_t ID, ushort_t Number>
-    struct accessor0 : public accessor_base<ID, range<0,0,0,0>, Number> {
-        typedef accessor_base<ID, range<0,0,0,0>, Number> super;
-        GT_FUNCTION
-        constexpr accessor0(): super()
-            {}
-
-        //copy ctor from an accessor with different ID
-        template<ushort_t OtherID>
-        GT_FUNCTION
-        constexpr accessor0(const accessor0<OtherID, Number>& other) :
-            super(other) {}
-
-#ifdef CXX11_ENABLED
-        template<ushort_t OtherID>
-        GT_FUNCTION
-        constexpr accessor0(accessor0<OtherID, Number>&& other) :
-            super(std::move(other)) {}
-#endif
-
-#ifdef CXX11_ENABLED
-// #ifndef __CUDACC__
-//         using super::accessor_base::accessor_base;
-// #else
-
-        template <typename... ForwardedArgs>
-        GT_FUNCTION
-        constexpr accessor0 ( ForwardedArgs... x): super (x ...) {}
-// #endif
-#else
-        template <typename X, typename Y, typename Z,  typename T>
-        GT_FUNCTION
-        constexpr accessor0 ( X x, Y y, Z z, T t ): super(x, y, z, t) {}
-
-        template <typename X, typename Y, typename Z>
-        GT_FUNCTION
-        constexpr accessor0 ( X x, Y y, Z z ): super(x, y, z) {}
-
-        template <typename X>
-        GT_FUNCTION
-        constexpr accessor0 ( X x ): super(x) {}
-
-        template <typename X, typename Y>
-        GT_FUNCTION
-        constexpr accessor0 ( X x, Y y ): super(x, y) {}
-#endif
-
-    };
-
     /**
      * Type to create placeholders for data fields.
      *

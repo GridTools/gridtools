@@ -186,8 +186,6 @@ namespace shallow_water{
         typedef accessor<0, range<-1, 0, 0, 0>, 5> tmpx;
         typedef accessor<1, range<0, 0, -1, 0>, 5> tmpy;
         typedef accessor<2, range<0, 0, 0, 0>, 5> sol;
-        // typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        // typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
