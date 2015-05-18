@@ -139,7 +139,15 @@ namespace gridtools {
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
         };
 
-
+        /**
+         * @brief metafunction determining the type of a temporary storage (based on the layout)
+         * If the backend fuses multiple ESFs of a computation, it will require applying redundant computation
+         * at some halo points of each block. In this case a "no_storage_type_yet" type is selected, which will
+         * be replace into an actual storage allocating enough space for the redundant halo points. In this case,
+         * the allocated space will depend on block sizes and ranges of the ESF (that is why we need to delay the
+         * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
+         * storage type will be enough.
+         */
         template <typename ValueType, typename Layout>
         struct temporary_storage_type
         {
