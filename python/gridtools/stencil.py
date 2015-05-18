@@ -385,10 +385,19 @@ class StencilInspector (ast.NodeVisitor):
         #
         if node.name == '__init__':
             logging.debug ("Stencil constructor at %d" % node.lineno)
+            docstring = ast.get_docstring(node)
             #
             # should be a call to the parent-class constructor
             #
+            pcix = 0 # Index, amongst the children nodes, of the call to parent constructor
             for n in node.body:
+                if isinstance(n.value, ast.Str):
+                    # Allow for the docstring to appear before the call to the parent constructor
+                    if n.value.s.lstrip() != docstring:
+                        pcix = pcix + 1
+                       
+                else:
+                    pcix = pcix + 1
                 try:
                     parent_call = (isinstance (n.value, ast.Call) and 
                                    isinstance (n.value.func.value, ast.Call) and
@@ -403,6 +412,8 @@ class StencilInspector (ast.NodeVisitor):
             #
             if not parent_call:
                 raise ReferenceError ("Missing parent constructor call")
+            if pcix != 1:
+                raise ReferenceError ("Parent constructor is NOT the first operation of the child constructor")
             #
             # continue traversing the AST of this function
             #
