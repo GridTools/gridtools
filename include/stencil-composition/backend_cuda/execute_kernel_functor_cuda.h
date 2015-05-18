@@ -124,9 +124,10 @@ struct execute_kernel_functor_cuda
         //compute the union (or enclosing) range for the ranges of all ESFs.
         //This maximum range of all ESF will determine the size of the CUDA block:
         // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
-        //    each CUDA thread will execute two grid points
+        //    each CUDA thread will execute two grid points (one at the core of the block and
+        //    another within one of the halo regions)
         // *  Otherwise each CUDA thread executes only one grid point.
-        // Base on the previous we compute the size of the CUDA block required.
+        // Based on the previous we compute the size of the CUDA block required.
         typedef typename boost::mpl::fold<
             typename RunFunctorArguments::range_sizes_t,
             range<0,0,0,0>,
@@ -153,8 +154,8 @@ struct execute_kernel_functor_cuda
 
         dim3 blocks(nbx, nby, nbz);
 
-        //recreate the run functor arguments, replacing the processing elements block size elements
-        // with the corresponding, ecently computed, block size
+        //re-create the run functor arguments, replacing the processing elements block size
+        // with the corresponding, recently computed, block size
         typedef run_functor_arguments<
             RunFunctorArguments::backend_id_t::value,
             cuda_block_size_t,
