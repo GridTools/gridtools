@@ -182,7 +182,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
             m_offsets(other.offsets()) {}
-#else
+#endif
         //copy ctor
         GT_FUNCTION
         constexpr accessor_base(const type & other) : m_offsets(other.m_offsets){}
@@ -192,7 +192,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor_base(const accessor_base<OtherIndex, Range, Dim> & other) :
             m_offsets(other.offsets()){}
-#endif
 
         //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
