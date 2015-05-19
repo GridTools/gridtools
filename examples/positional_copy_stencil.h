@@ -242,7 +242,7 @@ namespace positional_copy_stencil{
         pw_start_collector(collector_execute);
 #endif
 #ifndef CUDA_EXAMPLE
-    boost::timer::cpu_timer time;
+        boost::timer::cpu_timer time;
 #endif
         copy->run();
 
