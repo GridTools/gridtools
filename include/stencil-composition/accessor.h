@@ -231,7 +231,6 @@ namespace gridtools {
     template <typename ArgType, typename ... Pair>
     struct accessor_mixed{
 
-        static const ushort_t n_args = ArgType::n_args;
         static const ushort_t n_dim = ArgType::n_dim;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;

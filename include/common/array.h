@@ -36,7 +36,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template<typename ... ElTypes>
         GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{types ... } {
+        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
         GT_FUNCTION
