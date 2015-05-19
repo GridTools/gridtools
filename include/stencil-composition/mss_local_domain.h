@@ -55,10 +55,10 @@ namespace gridtools
             _impl::get_local_domain<actual_arg_list_type, IsStateful>
         >::type mpl_local_domain_list;
 
-        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type unfused_local_domain_sequence_t;
+        typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type unfused_local_domain_list_t;
 
-        typedef typename fuse_mss_local_domains<BackendId, unfused_local_domain_sequence_t>::type fused_local_domain_sequence_t;
-        typedef typename generate_args_lookup_map<BackendId, unfused_local_domain_sequence_t, fused_local_domain_sequence_t>::type
+        typedef typename fuse_mss_local_domains<BackendId, unfused_local_domain_list_t>::type fused_local_domain_sequence_t;
+        typedef typename generate_args_lookup_map<BackendId, unfused_local_domain_list_t, fused_local_domain_sequence_t>::type
                 fused_local_domain_args_map;
 
         fused_local_domain_sequence_t local_domain_list;

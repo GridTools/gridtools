@@ -8,11 +8,7 @@
 
 # HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
 
-#TODOCOSUNA RECOVER FILES
-#list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D )
-list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian )
-
-
+list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D )
 
 if( GCL_MPI )
     list(APPEND SRCFILES copy_stencil_parallel)

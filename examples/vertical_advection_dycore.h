@@ -20,7 +20,12 @@ using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
-
+#ifdef CXX11_ENABLED
+using namespace expressions;
+#define POSTFIX
+#else
+#define POSTFIX
+#endif
 namespace vertical_advection_dycore{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0, 1>, level<1,-2> > kbody;
@@ -32,16 +37,16 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 template<typename T>
 struct u_forward_function {
-    typedef const accessor<0> utens_stage;
-    typedef const accessor<1, range<0,1, 0, 0> > wcon;
-    typedef const accessor<2> u_stage;
-    typedef const accessor<3> u_pos;
-    typedef const accessor<4> utens;
-    typedef const accessor<5> dtr_stage;
-    typedef accessor<6> acol;
-    typedef accessor<7> bcol;
-    typedef accessor<8> ccol;
-    typedef accessor<9> dcol;
+    typedef const accessor<0> POSTFIX utens_stage;
+    typedef const accessor<1, range<0,1, 0, 0> > POSTFIX wcon;
+    typedef const accessor<2> POSTFIX u_stage;
+    typedef const accessor<3> POSTFIX u_pos;
+    typedef const accessor<4> POSTFIX utens;
+    typedef const accessor<5> POSTFIX dtr_stage;
+    typedef accessor<6> POSTFIX acol;
+    typedef accessor<7> POSTFIX bcol;
+    typedef accessor<8> POSTFIX ccol;
+    typedef accessor<9> POSTFIX dcol;
 
     typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
@@ -137,12 +142,12 @@ private:
 
 template<typename T>
 struct u_backward_function {
-    typedef accessor<0> utens_stage;
-    typedef const accessor<1> u_pos;
-    typedef const accessor<2> dtr_stage;
-    typedef const accessor<3> ccol;
-    typedef const accessor<4> dcol;
-    typedef accessor<5> data_col;
+    typedef accessor<0> POSTFIX utens_stage;
+    typedef const accessor<1> POSTFIX u_pos;
+    typedef const accessor<2> POSTFIX dtr_stage;
+    typedef const accessor<3> POSTFIX ccol;
+    typedef const accessor<4> POSTFIX dcol;
+    typedef accessor<5> POSTFIX data_col;
 
     typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 

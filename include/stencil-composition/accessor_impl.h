@@ -178,26 +178,25 @@ namespace gridtools {
         constexpr accessor_base(const type && other) : m_offsets(other.m_offsets){}
 
         //move ctor from another accessor_base with different index
-        template<uint_t OtherIndex>
+        template<ushort_t OtherIndex>
         GT_FUNCTION
         constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
             m_offsets(other.offsets()) {}
-
-#endif
+#else
+        //copy ctor
+        GT_FUNCTION
+        constexpr accessor_base(const type & other) : m_offsets(other.m_offsets){}
 
         //copy ctor from another accessor_base with different index
         template<uint_t OtherIndex>
         GT_FUNCTION
         constexpr accessor_base(const accessor_base<OtherIndex, Range, Dim> & other) :
             m_offsets(other.offsets()){}
-
-        //copy ctor
-        GT_FUNCTION
-        constexpr accessor_base(const type & other) : m_offsets(other.m_offsets){}
+#endif
 
         //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
-        template<uint_t Idx>
+        template<ushort_t Idx>
         GT_FUNCTION
         constexpr accessor_base (enumtype::Dimension<Idx> const& x ): m_offsets(x) {}
 
@@ -213,9 +212,9 @@ namespace gridtools {
         template <typename... Whatever>
         GT_FUNCTION
         constexpr accessor_base ( Whatever... x) : m_offsets(x...)
-        {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
-        }
+            {
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
+            }
 #else
         template<typename X, typename Y, typename Z, typename T>
         GT_FUNCTION
@@ -293,20 +292,10 @@ namespace gridtools {
     {
         static const int_t n_dim=Dimension;
 
-        typedef offset_tuple<Index, Dimension> type;
         typedef offset_tuple<Index-1, Dimension> super;
         static const ushort_t n_args=super::n_args+1;
 
-        GT_FUNCTION
-        constexpr offset_tuple ( const type& other): super( other ), m_offset(other.m_offset) {}
-
-        GT_FUNCTION
-        constexpr offset_tuple ( type& other): super( other ), m_offset(other.m_offset) {}
-
 #ifdef CXX11_ENABLED
-
-        GT_FUNCTION
-        constexpr offset_tuple(const type&& other) : m_offset(other.m_offset), super(std::move(other)) {}
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
