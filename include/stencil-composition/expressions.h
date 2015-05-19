@@ -55,8 +55,10 @@ namespace gridtools{
 
         ArgType1 const first_operand;
         ArgType2 const second_operand;
+#ifndef __CUDACC__
     private:
-        /**@brief default empty constructor*/
+#endif
+      /**@brief default empty constructor*/
         GT_FUNCTION
         constexpr expr(){}
     };
@@ -76,8 +78,10 @@ namespace gridtools{
 
         ArgType1 const first_operand;
 
+#ifndef __CUDACC__
     private:
-        /**@brief default empty constructor*/
+#endif
+      /**@brief default empty constructor*/
         GT_FUNCTION
         constexpr unary_expr(){}
     };
@@ -92,7 +96,10 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_plus(expr_plus const& other):super(other){};
 
+#ifndef __CUDACC__
     private:
+#endif
+        GT_FUNCTION
         constexpr expr_plus(){};
 #ifndef __CUDACC__
         static char constexpr op[]="+";
@@ -113,9 +120,12 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(expr_minus const& other):super(other){}
 
+#ifndef __CUDACC__
     private:
+#endif
         GT_FUNCTION
         constexpr expr_minus(){}
+
 #ifndef __CUDACC__
         static char constexpr op[]="-";
         typedef string_c<print, op> operation;
@@ -134,7 +144,9 @@ namespace gridtools{
 
         GT_FUNCTION
         constexpr expr_times(expr_times const& other):super(other){}
+#ifndef __CUDACC__
     private:
+#endif
         GT_FUNCTION
         constexpr expr_times(){}
 #ifndef __CUDACC__
@@ -155,7 +167,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(expr_divide const& other):super(other){}
 
+#ifndef __CUDACC__
     private:
+#endif
         GT_FUNCTION
         constexpr expr_divide(){}
 #ifndef __CUDACC__
@@ -179,7 +193,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(expr_exp const& other):super(other){}
 
+#ifndef __CUDACC__
     private:
+#endif
         GT_FUNCTION
         constexpr expr_exp(){}
 #ifndef __CUDACC__
@@ -208,7 +224,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_pow(expr_pow const& other):super(other) {}
 
+#ifndef __CUDACC__
     private:
+#endif
         GT_FUNCTION
         constexpr expr_pow(){}
 #ifndef __CUDACC__
@@ -235,7 +253,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(expr_direct_access const& other):super(other) {}
 
+#ifndef __CUDACC__
     private:
+#endif
         GT_FUNCTION
         constexpr expr_direct_access(){}
 #ifndef __CUDACC__
@@ -419,7 +439,6 @@ namespace gridtools{
             -> decltype(it_domain(arg.first_operand) / arg.second_operand) {
             return it_domain(arg.first_operand) / arg.second_operand;}
 
-#ifndef __CUDACC__
         /** power of scalar evaluation*/
         template < typename IterateDomain
                    , typename FloatType
@@ -435,26 +454,13 @@ namespace gridtools{
         static auto constexpr value_scalar(IterateDomain const& /*it_domain*/
                                            , expr_exp<FloatType, IntType> const& arg)
             -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
-            return std::pow(arg.first_operand, arg.second_operand);}
+#ifndef __CUDACC__
+            return std::pow(arg.first_operand, arg.second_operand);
+#else
+            return products<2>::apply(arg.first_operand);
+#endif
+}
 
-#else //ifndef __CUDACC__
-        /** power of scalar evaluation of CUDA*/
-        template <typename FloatType
-                  , typename IntType
-                  , typename boost::enable_if<
-                        typename boost::is_floating_point<FloatType>::type
-                        , int >::type=0
-                  , typename boost::enable_if<
-                        typename boost::is_integral<IntType>::type
-                        , int >::type=0
-                  >
-        GT_FUNCTION
-        auto static constexpr value_scalar(IterateDomain const& it_domain
-                                           , expr_exp<FloatType, IntType> const& arg)
-            -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
-            return products<2>::apply(arg.first_operand);}
-
-#endif //ifndef __CUDACC__
 
         /**
            @}

@@ -18,7 +18,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -37,8 +37,8 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<-1, 1, -1, 1>  > in;
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -52,9 +52,9 @@ struct lap_function {
 
 struct flx_function {
 
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 1, 0, 0> > in;
-    typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 1, 0, 0> > in;
+    typedef const accessor<2, range<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -71,9 +71,9 @@ struct flx_function {
 
 struct fly_function {
 
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 0, 0, 1> > in;
-    typedef const arg_type<2, range<0, 0, 0, 1> > lap;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 0, 0, 1> > in;
+    typedef const accessor<2, range<0, 0, 0, 1> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -89,11 +89,11 @@ struct fly_function {
 
 struct out_function {
 
-    typedef arg_type<0> out;
-    typedef const arg_type<1> in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> > fly;
-    typedef const arg_type<4> coeff;
+    typedef accessor<0> out;
+    typedef const accessor<1> in;
+    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
+    typedef const accessor<3, range<0, 0, -1, 0> > fly;
+    typedef const accessor<4> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
@@ -187,15 +187,15 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
-    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
+    gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-    gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -336,7 +336,7 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return result; /// lapse_time.wall<5000000 &&
+  return result; /// lapse_time.wall<5000000 &&
 // #ifdef USE_PAPI
 //                     values[0]>1000 && //random value
 // #endif

@@ -2,7 +2,7 @@
 
 #include <boost/type_traits/is_const.hpp>
 
-#include "stencil-composition/arg_type.h"
+#include "stencil-composition/accessor.h"
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)

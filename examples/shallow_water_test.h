@@ -21,7 +21,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -42,8 +42,8 @@ namespace shallow_water{
 
     struct functor_traits{
 //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
-        using tmp=arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type ;
-        using sol=arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type ;
+        using tmp=arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type ;
+        using sol=arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type ;
         using arg_list=boost::mpl::vector<tmp, sol> ;
         using step=Dimension<3> ;
         using comp=Dimension<4>;
@@ -85,8 +85,8 @@ namespace shallow_water{
            The compilation runs fine without warnings with GCC >= 4.9 and Clang*/
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
         //shielding the base class aliases
-        typedef arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        typedef arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
+        typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
         typedef Dimension<3> step;
         typedef Dimension<4> comp;
@@ -141,8 +141,8 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-        typedef arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        typedef arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
+        typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
         typedef Dimension<3> step;
         typedef Dimension<4> comp;
@@ -262,12 +262,12 @@ namespace shallow_water{
     /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
             typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type1;
-            typedef extend_width<base_type1, 1>  extended_type;
-            typedef extend_dim<extended_type, extended_type, extended_type>  tmp_type;
+            typedef storage_list<base_type1, 1>  extended_type;
+            typedef data_field<extended_type, extended_type, extended_type>  tmp_type;
 
             typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type2;
-            typedef extend_width<base_type2, 0>  extended_type2;
-            typedef extend_dim<extended_type2, extended_type2, extended_type2>  sol_type;
+            typedef storage_list<base_type2, 0>  extended_type2;
+            typedef data_field<extended_type2, extended_type2, extended_type2>  sol_type;
 #else
             typedef extend<storage_type::basic_type, 1, 1, 1>::type tmp_type;
             typedef extend<storage_type::basic_type, 0, 0, 0>::type sol_type;
@@ -278,7 +278,7 @@ namespace shallow_water{
             // especially the non-temporary ones, in the construction of the domain
             typedef arg<0, tmp_type > p_tmp;
             typedef arg<1, sol_type > p_sol;
-            typedef boost::mpl::vector<p_tmp, p_sol> arg_type_list;
+            typedef boost::mpl::vector<p_tmp, p_sol> accessor_list;
 
 
             // // Definition of the actual data fields that are used for input/output
@@ -304,7 +304,7 @@ namespace shallow_water{
             // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
             // It must be noted that the only fields to be passed to the constructor are the non-temporary.
             // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-            gridtools::domain_type<arg_type_list> domain
+            gridtools::domain_type<accessor_list> domain
                 (boost::fusion::make_vector(&tmp, &sol));
 
             // Definition of the physical dimensions of the problem.

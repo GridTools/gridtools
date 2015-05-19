@@ -13,7 +13,7 @@
     @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the backend*/
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -28,8 +28,8 @@ namespace copy_stencil{
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef const arg_type<0> in;
-        typedef arg_type<1> out;
+        typedef const accessor<0> in;
+        typedef accessor<1> out;
         typedef boost::mpl::vector<in,out> arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -89,13 +89,14 @@ namespace copy_stencil{
         typedef arg<1, storage_type> p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+        typedef boost::mpl::vector<p_in, p_out> accessor_list;
         /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
+        array<ushort_t, 3> padding(0,0,0);
         array<ushort_t, 3> halo(1,1,1);
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
-        partitioner_t part(he.comm(), halo);
+        partitioner_t part(he.comm(), halo, padding);
         parallel_storage<storage_type, partitioner_t> in(part);
         parallel_storage<storage_type, partitioner_t> out(part);
         in.setup(d1, d2, d3);
@@ -130,7 +131,7 @@ namespace copy_stencil{
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-        gridtools::domain_type<arg_type_list> domain
+        gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
 
         /*
