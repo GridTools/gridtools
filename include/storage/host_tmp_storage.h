@@ -176,7 +176,8 @@ namespace gridtools {
         */
         GT_FUNCTION
         typename pointer_type::pointee_t* fields_offset(int index, uint_t EU_id_i, uint_t EU_id_j) const {
-            uint_t offset =( base_type::template strides<0>(base_type::strides())) * (TileI+MinusI+PlusI) * EU_id_i + (TileJ+MinusJ+PlusJ) * EU_id_j;
+            uint_t offset =( base_type::template strides<0>(base_type::strides())) * (TileI+MinusI+PlusI) * EU_id_i +
+                    ( base_type::template strides<1>(base_type::strides())) * (TileJ+MinusJ+PlusJ) * EU_id_j;
             return base_type::fields()[index].get()+offset;
         }
 
