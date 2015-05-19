@@ -16,7 +16,7 @@
 
 #include "verifier.h"
 #include "shallow_water_reference.h"
-//#define BACKEND_BLOCK 1
+#define BACKEND_BLOCK 1
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
@@ -27,7 +27,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -48,7 +48,7 @@ namespace shallow_water{
 
 /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
-        using comp=Dimension<5>;
+        typedef Dimension<5> comp;
 
         /**@brief space discretization step in direction i */
         GT_FUNCTION
@@ -102,19 +102,17 @@ namespace shallow_water{
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            return 1.+height * std::exp(-5*std::pow((i-3)*dx(), 2)+std::pow((j-3)*dy(), 2));
+            return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-3)*dy())*((j-3)*dy())));
        }
 };
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
-        using xrange=range<0,-2,0,-2>;
-        using xrange_subdomain=range<0,1,0,0>;
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+      typedef accessor<1, range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+      typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+      using arg_list=boost::mpl::vector<tmpx, sol> ;
 
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
-        using arg_list=boost::mpl::vector<tmpx, sol> ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -148,11 +146,11 @@ namespace shallow_water{
 
     struct second_step_y        : public functor_traits {
 
-        using xrange=range<0,-2,0,-2>;
-        using xrange_subdomain=range<0,0,0,1>;
+        // using xrange=range<0,-2,0,-2>;
+        // using xrange_subdomain=range<0,0,0,1>;
 
-        typedef arg_type<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef arg_type<1,range<0, 0, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
+        typedef accessor<1,range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -184,12 +182,12 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
-        using xrange=range<0,-2,0,-2>;
-        using xrange_subdomain=range<1,1,1,1>;
+        // using xrange=range<0,-2,0,-2>;
+        // using xrange_subdomain=range<1,1,1,1>;
 
-        typedef arg_type<0, range<0,0,0,0>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef arg_type<1, range<0,0,0,0>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef arg_type<2,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0, range<0,0,0,0>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef accessor<1, range<0,0,0,0>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef accessor<2,range<-1, 0, -1, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 
@@ -257,7 +255,7 @@ namespace shallow_water{
     }
 
     extern char const s1[]="hello ";
-    extern char const s2[]="world ";
+    extern char const s2[]="world\n";
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
 
@@ -297,7 +295,7 @@ namespace shallow_water{
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
-        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
+        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
         typedef storage_type::pointer_type pointer_type;
 
         gridtools::array<int, 3> dimensions(0,0,0);
@@ -316,9 +314,10 @@ namespace shallow_water{
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-        array<ushort_t, 3> halo={2,2,0};
+        array<ushort_t, 3> padding={1,1,0};
+        array<ushort_t, 3> halo={1,1,0};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
-        partitioner_t part(he.comm(), halo);
+        partitioner_t part(he.comm(), halo, padding);
         parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
 
@@ -328,14 +327,14 @@ namespace shallow_water{
 
         he.setup(3);
 
-        pointer_type out7(sol.size()), out8(sol.size()), out9(sol.size());
+        // pointer_type out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(PID==1)
-            sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
+            sol.set<0,0>( &bc_periodic<0,0>::droplet);//h
         else
-            sol.set<0,0>(out7, 1.);//h
+            sol.set<0,0>( 1.);//h
         //sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
-        sol.set<0,1>(out8, 0.);//u
-        sol.set<0,2>(out9, 0.);//v
+        sol.set<0,1>( 0.);//u
+        sol.set<0,2>( 0.);//v
 
 #ifndef NDEBUG
     std::ofstream myfile;
@@ -347,7 +346,7 @@ namespace shallow_water{
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-        domain_type<arg_type_list> domain
+        domain_type<accessor_list> domain
             (boost::fusion::make_vector(&sol));
 
         // Definition of the physical dimensions of the problem.
@@ -403,7 +402,17 @@ namespace shallow_water{
             myfile<<"#####################################################"<<std::endl;
 #endif
 
+#ifndef CUDA_EXAMPLE
+                boost::timer::cpu_timer time;
+#endif
+
             shallow_water_stencil->run();
+
+#ifndef CUDA_EXAMPLE
+                boost::timer::cpu_times lapse_time = time.elapsed();
+                if(PID==0)
+                    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
 
 #ifndef NDEBUG
             shallow_water_stencil->finalize();

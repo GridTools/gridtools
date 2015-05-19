@@ -35,7 +35,7 @@ namespace gridtools
         typedef typename boost::mpl::transform<
             typename MssType::linear_esf,
             _impl::get_local_domain<actual_arg_list_type, local_domain, IsStateful>
-        >::type mpl_local_domain_list;
+            >::type::type mpl_local_domain_list;
 
         /**
          *

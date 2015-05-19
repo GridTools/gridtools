@@ -53,10 +53,10 @@ struct wrap_pointer{
     {}
 
     GT_FUNCTION
-    wrap_pointer(T* p, bool managed=true)
+    wrap_pointer(T* p, uint_t size_=0, bool managed=true)
         : m_cpu_p(p)
         , m_managed(managed)
-    {}
+    { }
 
     wrap_pointer<T>& operator = (T& p)
     {
