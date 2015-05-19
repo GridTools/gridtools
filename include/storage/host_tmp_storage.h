@@ -128,10 +128,15 @@ namespace gridtools {
 //             info();
         }
 
-        __device__
+        //copy ctor
+        GT_FUNCTION
         host_tmp_storage(host_tmp_storage const& other)
-            :  super(other)
-        {}
+            :  n_i_threads(other.n_i_threads), n_j_threads(other.n_j_threads), super(other)
+        {
+            m_initial_offsets[0] = other.m_initial_offsets[0];
+            m_initial_offsets[1] = other.m_initial_offsets[1];
+            m_initial_offsets[2] = other.m_initial_offsets[2];
+        }
 
 
     private:
@@ -233,7 +238,7 @@ namespace gridtools {
             }
             else
             {
-                base_type::template initialize<Coordinate>( steps_, block_, index_, strides_);
+                base_type::template initialize<Coordinate>( steps_, block_, strides_, index_);
             }
         }
 
