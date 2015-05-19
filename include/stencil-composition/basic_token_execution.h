@@ -2,6 +2,7 @@
 #include <boost/mpl/has_key.hpp>
 #include "iteration_policy.h"
 #include "level.h"
+#include "interval.h"
 
 namespace gridtools {
     namespace _impl {
@@ -56,9 +57,12 @@ namespace gridtools {
 
                 typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
 
-                if (boost::mpl::has_key<typename traits::interval_map_t, Interval>::type::value) {
+                if (gt_has_key<typename traits::interval_map_t, Interval>::type::value) {
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                    typedef typename boost::mpl::find_if<typename traits::interval_map_t, boost::is_same<boost::mpl::first<boost::mpl::_1>, Interval> >::type::type::second interval_type;
+#else
                     typedef typename boost::mpl::at<typename traits::interval_map_t, Interval>::type interval_type;
-
+#endif
                     uint_t const from=m_coords.template value_at<from_t>();
                     uint_t const to=m_coords.template value_at<to_t>();
                     static_cast<Derived*>(const_cast<run_f_on_interval_base<Derived>* >(this))->template do_loop<iteration_policy, interval_type>(to-from);

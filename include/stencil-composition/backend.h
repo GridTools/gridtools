@@ -118,8 +118,12 @@ namespace gridtools {
                     typename boost::mpl::deref<
                         typename boost::mpl::find_if<
                             loop_intervals_t,
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                            gt_has_key<interval_map_t, boost::mpl::_1>
+#else
                             boost::mpl::has_key<interval_map_t, boost::mpl::_1>
-                            >::type
+#endif
+                    >::type
                         >::type::first
                     >::type first_hit_t;
 
@@ -228,7 +232,11 @@ namespace gridtools {
 
             typedef typename boost::mpl::fold<
                 list_of_temporaries,
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                boost::mpl::vector0<>,
+#else
                 boost::mpl::map0<>,
+#endif
                 _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor, RangeSizes>
             >::type type;
         };
@@ -245,8 +253,13 @@ namespace gridtools {
                 range_map1,
                 range_map2,
                 boost::mpl::if_<
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                    gt_has_key<range_map2, boost::mpl::first<boost::mpl::_2> >,
+                        gt_insert<
+#else
                     boost::mpl::has_key<range_map2, boost::mpl::first<boost::mpl::_2> >,
-                    boost::mpl::insert<
+                        boost::mpl::insert<
+#endif
                         boost::mpl::_1,
                         boost::mpl::pair<
                             boost::mpl::first<boost::mpl::_2>,
@@ -256,7 +269,11 @@ namespace gridtools {
                             >
                         >
                     >,
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                    gt_insert<
+#else
                     boost::mpl::insert<
+#endif
                         boost::mpl::_1,
                         boost::mpl::_2
                     >
@@ -274,7 +291,11 @@ namespace gridtools {
 
             typedef typename boost::mpl::fold<
                 typename MssArray::elements,
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                boost::mpl::vector0<>,
+#else
                 boost::mpl::map0<>,
+#endif
                 merge_range_temporary_maps<
                     boost::mpl::_1,
                     obtain_map_ranges_temporaries_mss<Domain, boost::mpl::_2>

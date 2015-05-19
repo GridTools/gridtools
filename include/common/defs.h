@@ -1,4 +1,13 @@
 #pragma once
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+#include <boost/mpl/map/aux_/item.hpp>
+#include <boost/mpl/map.hpp>
+#endif
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/vector.hpp>
+
+
 /**
    @file
    @brief global definitions
@@ -184,4 +193,44 @@ namespace gridtools{  namespace enumtype{
      */
 //######################################################
 #endif
+
+    //linear search in decreasing order
+    template <typename Index, typename Sequence, typename Key>
+    struct check_key_recur
+    {
+        typedef typename boost::mpl::if_<typename boost::is_same<typename boost::mpl::first<typename boost::mpl::at<Sequence, Index>::type>::type, Key>::type, boost::true_type, typename check_key_recur<static_int<Index::value-1>, Sequence, Key>::type >::type type;
+    };
+
+    template <typename Sequence, typename Key>
+    struct check_key_recur <static_int<-1>, Sequence, Key>
+
+    {
+        typedef boost::false_type  type;
+    };
+
+    template <typename Sequence, typename Key>
+    struct gt_has_key : check_key_recur<static_int<boost::mpl::size<typename Sequence::type>::type::value-1>, Sequence, Key >::type
+    {
+        typedef typename check_key_recur<static_int<boost::mpl::size<typename Sequence::type>::type::value-1>, Sequence, Key >::type super;
+    };
+
+
+    template<typename MapType, typename PairType>
+    struct gt_insert{
+        typedef typename boost::mpl::if_<  typename gt_has_key<MapType, typename boost::mpl::first<PairType> >::type
+                                           , typename MapType::type
+                                           , typename boost::mpl::push_back<typename MapType::type, PairType>::type
+                                           >::type type;
+    };
+
+    template<typename SequenceType, int_t StaticInt>
+    struct gt_insert<SequenceType, static_int<StaticInt> >{
+        typedef typename boost::mpl::insert<SequenceType, typename static_int<StaticInt>::type >::type type;
+    };
+
+    template<typename PairType>
+    struct gt_insert<boost::mpl::vector0<>, PairType >{
+        typedef typename boost::mpl::vector<PairType>::type type;
+    };
+
 }//namespace gridtools

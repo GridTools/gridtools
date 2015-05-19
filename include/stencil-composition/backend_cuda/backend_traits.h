@@ -8,6 +8,7 @@
 #include "backend_traits_cuda.h"
 #include "../mss_functor.h"
 #include "../sfinae.h"
+#include "../run_functor_arguments.h"
 
 /**
    @file
