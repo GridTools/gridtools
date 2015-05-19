@@ -104,7 +104,6 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-//TODOCOSUNA recover once expressions work again
 //Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
 //  for any type, which breaks most of the code after using expressions
 //#ifdef CXX11_ENABLED

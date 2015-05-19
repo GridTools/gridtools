@@ -177,20 +177,16 @@ struct print_ {
 template<typename MSS>
 void print_mss(MSS)
 {
-    typedef typename mss_descriptor_linear_esf_sequence<MSS>::type linear_esf_t;
-
-    boost::mpl::for_each<linear_esf_t>(print_independent(std::string(">")));
+    boost::mpl::for_each<typename MSS::linear_esf>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
-    typedef typename mss_descriptor_esf_sequence<MSS>::type esf_sequence_t;
-
-    boost::mpl::for_each<esf_sequence_t>(print_independent(std::string(">")));
+    boost::mpl::for_each<typename MSS::esf_array>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
     typedef typename boost::mpl::fold<
-        esf_sequence_t,
+        typename MSS::esf_array,
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
     >::type ranges_list;
