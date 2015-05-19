@@ -573,17 +573,23 @@ class Stencil ( ):
                     makedirs (src_dir)
                 self.src_dir = src_dir
 
-            self.lib_file     = 'lib%s.so' % self.name.lower ( )
-            self.hdr_file     = '%s.h' % self.name
-            self.cpp_file     = '%s.cpp' % self.name
+            if self.backend == 'c++':
+                extension = 'cpp'
+            elif self.backend == 'cuda':
+                extension = 'cu'
+            else:
+                raise RuntimeError ("Unknown backend '%s' in while generating code" % self.backend)
+            self.cpp_file     = '%s.%s'        % (self.name, extension)
+            self.lib_file     = 'lib%s.so'     % self.name.lower ( )
+            self.hdr_file     = '%s.h'         % self.name
             self.make_file    = 'Makefile'
             self.fun_hdr_file = '%sFunctors.h' % self.name
 
             #
             # ... and populate them
             #
-            logging.info ("Generating C++ code in '%s'" % self.src_dir)
-
+            logging.info ("Generating %s code in '%s'" % (self.backend.upper ( ),
+                                                          self.src_dir))
             #
             # generate the code of *all* functors in this stencil,
             # build a data-dependency graph among *all* data fields
@@ -758,7 +764,7 @@ class Stencil ( ):
         # run the selected backend version
         #
         logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
-        if self.backend == 'c++':
+        if self.backend == 'c++' or self.backend == 'cuda':
             #
             # automatic compilation only if the library is not available
             #
@@ -863,7 +869,7 @@ class Stencil ( ):
         #
         header   = JinjaEnv.get_template ("stencil.h")
         cpp      = JinjaEnv.get_template ("stencil.cpp")
-        make     = JinjaEnv.get_template ("Makefile")
+        make     = JinjaEnv.get_template ("Makefile.%s" % self.backend)
 
         params   = list (self.scope.get_parameters ( ))
         temps    = list (self.scope.get_temporaries ( ))
@@ -1300,7 +1306,7 @@ class CombinedStencil (Stencil):
         #
         header    = JinjaEnv.get_template ("stencil.h")
         cpp       = JinjaEnv.get_template ("stencil.cpp")
-        make      = JinjaEnv.get_template ("Makefile")
+        make      = JinjaEnv.get_template ("Makefile.%s" % self.backend)
 
         namespace = self.name.lower ( )
         params    = list (self.scope.get_parameters ( ))
