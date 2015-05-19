@@ -439,7 +439,9 @@ namespace gridtools{
 
 #else //ifndef __CUDACC__
         /** power of scalar evaluation of CUDA*/
-        template <typename FloatType
+        template <
+            typename IterateDomain,
+            typename FloatType
                   , typename IntType
                   , typename boost::enable_if<
                         typename boost::is_floating_point<FloatType>::type
