@@ -178,7 +178,7 @@ namespace gridtools {
         constexpr accessor_base(const type && other) : m_offsets(other.m_offsets){}
 
         //move ctor from another accessor_base with different index
-        template<ushort_t OtherIndex>
+        template<uint_t OtherIndex>
         GT_FUNCTION
         constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
             m_offsets(other.offsets()) {}
@@ -196,7 +196,7 @@ namespace gridtools {
 
         //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
-        template<ushort_t Idx>
+        template<uint_t Idx>
         GT_FUNCTION
         constexpr accessor_base (enumtype::Dimension<Idx> const& x ): m_offsets(x) {}
 
