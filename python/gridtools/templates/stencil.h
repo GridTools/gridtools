@@ -22,7 +22,6 @@
 
 
 using gridtools::level;
-using gridtools::arg_type;
 using gridtools::range;
 using gridtools::arg;
 

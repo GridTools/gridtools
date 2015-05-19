@@ -9,7 +9,7 @@
 
 
 
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 
 using namespace gridtools;
