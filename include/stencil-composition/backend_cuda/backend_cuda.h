@@ -2,9 +2,9 @@
 
 #include "../execution_policy.h"
 #include "../heap_allocated_temps.h"
-#include "../run_kernel.h"
 #include "backend_traits.h"
 #include "backend_traits_cuda.h"
+#include "../run_kernel.h"
 
 /**
  * @file
@@ -65,7 +65,6 @@ namespace gridtools {
                      >
                      (it_domain,*coords));
             }
-
         }
 
         /**

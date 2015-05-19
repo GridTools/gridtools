@@ -3,7 +3,6 @@
 #include <boost/static_assert.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/map.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/copy_if.hpp>
@@ -63,7 +62,11 @@ namespace gridtools {
 
         // add the loop interval to the do method lookup map
         // (only add empty loop intervals if the functor loop interval is empty)
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+        typedef typename gt_insert<
+#else
         typedef typename boost::mpl::insert<
+#endif
             DoMethodLookupMap,
             boost::mpl::pair<
                 TLoopInterval,
@@ -122,12 +125,17 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             LoopIntervals,
             boost::mpl::pair<
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
+                boost::mpl::vector0<>,
+#else
                 boost::mpl::map0<>,
-                typename boost::mpl::begin<TDoMethods>::type
+#endif
+            typename boost::mpl::begin<TDoMethods>::type
                 >,
                     do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
-                    >::type DoMethodLookupMap;
+            >::type::type DoMethodLookupMap;
 
+        // typedef typename DoMethodLookupMap::type::fuck fuck;
         // remove the do method iterator and return the map only
         typedef typename boost::mpl::first<DoMethodLookupMap>::type type;
     };

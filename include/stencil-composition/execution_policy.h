@@ -19,9 +19,7 @@ namespace gridtools{
            @brief   Execution kernel containing the loop over k levels
         */
         template< typename ExecutionEngine, typename ExtraArguments >
-        struct run_f_on_interval{
-            typedef uint_t local_domain_t;
-        };
+        struct run_f_on_interval;
 
         /**
            @brief partial specialization for the forward or backward cases
