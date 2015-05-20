@@ -90,6 +90,10 @@ namespace gridtools {
         >
     > : boost::mpl::true_{};
 
+    /**
+     * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to
+     * all functors involved in the execution of the ESF
+     */
     template<typename RunFunctorArguments, typename Index>
     struct esf_arguments
     {
