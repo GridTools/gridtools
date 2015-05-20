@@ -107,9 +107,9 @@ namespace gridtools {
                 {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
-                        (m_iterate_domain).advance_ij<1>(range_t::jminus::value, 0);
+                        (m_iterate_domain).advance_ij<1>(range_t::jminus::value);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
-                        (m_iterate_domain).advance_ij<1>(-range_t::jminus::value, 0);
+                        (m_iterate_domain).advance_ij<1>(-range_t::jminus::value);
                     }
                 }
                 //JPlus halo
@@ -119,9 +119,9 @@ namespace gridtools {
                     {
                         const int joffset = range_t::jminus::value + m_iterate_domain.block_size_j();
 
-                        (m_iterate_domain).advance_ij<1>(joffset, 0);
+                        (m_iterate_domain).advance_ij<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
-                        (m_iterate_domain).advance_ij<1>(-joffset, 0);
+                        (m_iterate_domain).advance_ij<1>(-joffset);
                     }
                 }
                 //IMinus halo
@@ -134,11 +134,11 @@ namespace gridtools {
 
                     if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
-                        (m_iterate_domain).advance_ij < 0 > (ioffset, 0);
-                        (m_iterate_domain).advance_ij < 1 > (joffset, 0);
+                        (m_iterate_domain).advance_ij < 0 > (ioffset);
+                        (m_iterate_domain).advance_ij < 1 > (joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
-                        (m_iterate_domain).advance_ij < 0 > (-ioffset, 0);
-                        (m_iterate_domain).advance_ij < 1 > (-joffset, 0);
+                        (m_iterate_domain).advance_ij < 0 > (-ioffset);
+                        (m_iterate_domain).advance_ij < 1 > (-joffset);
                     }
                 }
                 //IPlus halo
@@ -152,11 +152,11 @@ namespace gridtools {
 
                     if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
-                        (m_iterate_domain).advance_ij<0>(ioffset, 0);
-                        (m_iterate_domain).advance_ij<1>(joffset, 0);
+                        (m_iterate_domain).advance_ij<0>(ioffset);
+                        (m_iterate_domain).advance_ij<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
-                        (m_iterate_domain).advance_ij<0>(-ioffset, 0);
-                        (m_iterate_domain).advance_ij<1>(-joffset, 0);
+                        (m_iterate_domain).advance_ij<0>(-ioffset);
+                        (m_iterate_domain).advance_ij<1>(-joffset);
                     }
                 }
                 //the remaining warps will compute extra work at the core of the block
@@ -168,9 +168,9 @@ namespace gridtools {
 
                     if(m_iterate_domain.is_thread_in_domain(0, joffset))
                     {
-                        (m_iterate_domain).advance_ij<1>(joffset, 0);
+                        (m_iterate_domain).advance_ij<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
-                        (m_iterate_domain).advance_ij<1>(-joffset, 0);
+                        (m_iterate_domain).advance_ij<1>(-joffset);
                     }
                 }
             }
