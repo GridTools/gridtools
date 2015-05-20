@@ -42,11 +42,8 @@ struct u_forward_function {
     typedef accessor<7> bcol;
     typedef accessor<8> ccol;
     typedef accessor<9> dcol;
-    typedef accessor<10> ipos;
-    typedef accessor<11> jpos;
-    typedef accessor<12> kpos;
 
-    typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol, ipos, jpos, kpos> arg_list;
+    typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
     template<typename Eval>
     GT_FUNCTION
@@ -68,8 +65,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-        printf("POS IN %d %d %d %d %d %f %f \n", threadIdx.x, threadIdx.y, (int)eval(ipos()), (int)eval(jpos()), (int)eval(kpos()),
-                eval(ccol()), eval(dcol()));
     }
 
     template<typename Eval>
@@ -87,9 +82,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-//        printf("POSKMAX IN %d %d %d %d %d %f %f \n", threadIdx.x, threadIdx.y, (int)eval(ipos()), (int)eval(jpos()), (int)eval(kpos()),
-//                eval(ccol()), eval(dcol()));
-
     }
 
     template<typename Eval>
@@ -106,9 +98,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-        printf("POSKMIN IN %d %d %d %d %d %f %f \n", threadIdx.x, threadIdx.y, (int)eval(ipos()), (int)eval(jpos()), (int)eval(kpos()),
-                eval(ccol()), eval(dcol()));
-
     }
 
 private:
@@ -152,20 +141,14 @@ struct u_backward_function {
     typedef accessor<3> ccol;
     typedef accessor<4> dcol;
     typedef accessor<5> data_col;
-    typedef accessor<6> ipos;
-    typedef accessor<7> jpos;
-    typedef accessor<8> kpos;
 
-    typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col, ipos, jpos, kpos> arg_list;
+    typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
     template<typename Eval>
     GT_FUNCTION
     static void Do(Eval const & eval, kbody_low interval)
     {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
-        printf("BACK IN %d %d %d %d %d %f \n", threadIdx.x, threadIdx.y, (int)eval(ipos()), (int)eval(jpos()), (int)eval(kpos()),
-                eval(utens_stage()));
-
     }
 
     template<typename Eval>
@@ -173,9 +156,6 @@ struct u_backward_function {
     static void Do(Eval const & eval, kmaximum interval)
     {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
-        printf("BACKMAX IN %d %d %d %d %d %f \n", threadIdx.x, threadIdx.y, (int)eval(ipos()), (int)eval(jpos()), (int)eval(kpos()),
-                eval(utens_stage()));
-
     }
 
 private:
@@ -243,28 +223,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef arg<8, tmp_storage_type> p_ccol;
     typedef arg<9, tmp_storage_type> p_dcol;
     typedef arg<10, tmp_storage_type> p_data_col;
-    typedef arg<11, storage_type> p_ipos;
-    typedef arg<12, storage_type> p_jpos;
-    typedef arg<13, storage_type> p_kpos;
-//    typedef arg<0, storage_type> p_utens_stage;
-//    typedef arg<1, storage_type> p_u_pos;
-//    typedef arg<2, storage_type> p_dtr_stage;
-//    typedef arg<3, tmp_storage_type> p_ccol;
-//    typedef arg<4, tmp_storage_type> p_dcol;
-//    typedef arg<5, tmp_storage_type> p_data_col;
-//    typedef arg<6, storage_type> p_ipos;
-//    typedef arg<7, storage_type> p_jpos;
-//    typedef arg<8, storage_type> p_kpos;
-
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-//    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
     typedef boost::mpl::vector<p_utens_stage, p_u_stage, p_wcon, p_u_pos, p_utens, p_dtr_stage,
-            p_acol, p_bcol, p_ccol, p_dcol, p_data_col, p_ipos, p_jpos, p_kpos> accessor_list;
-
-//    typedef boost::mpl::vector<p_utens_stage, p_u_pos, p_dtr_stage,
-//            p_ccol, p_dcol, p_data_col, p_ipos, p_jpos, p_kpos> accessor_list;
+            p_acol, p_bcol, p_ccol, p_dcol, p_data_col> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -282,12 +245,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #else
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(
             &repository.utens_stage(), &repository.u_stage(), &repository.wcon(),
-            &repository.u_pos(), &repository.utens(), &repository.dtr_stage(), &repository.ipos(),
-            &repository.jpos(),&repository.kpos()));
-//        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(
-//                &repository.utens_stage(),
-//                &repository.u_pos(), &repository.dtr_stage(), &repository.ipos(),
-//                &repository.jpos(),&repository.kpos()));
+            &repository.u_pos(), &repository.utens(), &repository.dtr_stage()));
 
 #endif
 
@@ -323,10 +281,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
                         p_acol(),
                         p_bcol(),
                         p_ccol(),
-                        p_dcol(),
-                        p_ipos(),
-                        p_jpos(),
-                        p_kpos()
+                        p_dcol()
                 ) // esf_descriptor
             ),
             gridtools::make_mss
@@ -338,11 +293,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
                         p_dtr_stage(),
                         p_ccol(),
                         p_dcol(),
-                        p_data_col(),
-                        p_ipos(),
-                        p_jpos(),
-                        p_kpos()
-
+                        p_data_col()
                 )
             ),
             domain,

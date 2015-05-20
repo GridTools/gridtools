@@ -5,6 +5,9 @@
 
 namespace gridtools {
 
+/**
+ * @brief iterate domain class for the Host backend
+ */
 template<template<class> class IterateDomainBase, typename LocalDomain>
 class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > //CRTP
 {
@@ -17,14 +20,11 @@ public:
 
 };
 
-//template<typename T> struct is_iterate_domain;
-
 template<
     template<class> class IterateDomainBase, typename LocalDomain>
 struct is_iterate_domain<
     iterate_domain_host<IterateDomainBase, LocalDomain>
-> :
-    public boost::mpl::true_{};
+> : public boost::mpl::true_{};
 
 template<
     template<class> class IterateDomainBase,
