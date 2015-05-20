@@ -50,7 +50,7 @@ namespace gridtools{
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomain, typename Coords>
-            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
+            static void run(const LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
                 BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
@@ -149,7 +149,7 @@ namespace gridtools{
         {
             BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value));
             template<typename LocalDomain, typename Coords>
-            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
+            static void run(const LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
                 BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));

@@ -12,6 +12,7 @@ namespace gridtools {
     struct run_esf_functor_host : public
         run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > //CRTP
     {
+        BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
         typedef run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 

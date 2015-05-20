@@ -46,6 +46,8 @@ namespace gridtools{
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
+                BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+
                 typedef backend_traits_from_id< BackendId > backend_traits;
                 gridtools::for_each<iter_range> (
                     mss_functor<MssComponentsArray, Coords, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, coords,0,0)

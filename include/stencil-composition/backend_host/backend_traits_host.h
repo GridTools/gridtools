@@ -88,25 +88,6 @@ namespace gridtools{
             return 0;
         }
 
-//        //function alias (pre C++11, std::bind or std::mem_fn,
-//        //using function pointers looks very ugly)
-//        template<
-//            typename Sequence
-//            , typename F
-//            >
-//
-//#ifdef CXX11_ENABLED
-//        //unnecessary copies/indirections if the compiler is not smart
-//        inline static void for_each(F&& f){
-//            gridtools::for_each<Sequence>(std::forward<F>(f));
-//            }
-//#else
-//        //unnecessary copies/indirections if the compiler is not smart
-//        inline static void for_each(F f){
-//            gridtools::for_each<Sequence>(f);
-//            }
-//#endif
-
         template <uint_t Id>
         struct once_per_block {
             template<typename Left, typename Right>
@@ -130,6 +111,8 @@ namespace gridtools{
             static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+                BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+
                 //each strategy executes a different high level loop for a mss
                 strategy_from_id_host<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::template run(local_domain, coords, bi, bj);
             }
@@ -154,6 +137,12 @@ namespace gridtools{
             typedef strategy_from_id_host<StrategyId> type;
         };
 
+        /*
+         * @brief metafunction that determines whether this backend requires redundant computations at halo points
+         * of each block, given the strategy Id
+         * @tparam StrategyId the strategy id
+         * @return always false for Host
+         */
         template<enumtype::strategy StrategyId>
         struct requires_temporary_redundant_halos
         {

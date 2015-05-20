@@ -284,10 +284,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /** @brief copy the pointers from the device to the host */
         void finalize_computation() {
-            //TODOCOSUNA recover
             boost::fusion::for_each(original_pointers, call_d2h());
-//            boost::fusion::copy(original_pointers, storage_pointers);
-//            printq<arg_list> lo;
             gridtools::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
             > (copy_pointers_functor<arg_list, arg_list> (original_pointers, storage_pointers));

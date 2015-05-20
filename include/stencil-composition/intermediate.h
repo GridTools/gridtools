@@ -256,6 +256,9 @@ namespace gridtools {
         }
     };
 
+    /**
+     * @brief metafunction that create the mss local domain type
+     */
     template<
         enumtype::backend BackendId,
         typename MssComponentsArray,
@@ -265,6 +268,7 @@ namespace gridtools {
     > struct create_mss_local_domains
     {
         BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
+        BOOST_STATIC_ASSERT((is_domain_type<DomainType>::value));
 
         struct get_the_mss_local_domain {
             template <typename T>
@@ -279,6 +283,10 @@ namespace gridtools {
         >::type type;
     };
 
+    /**
+     * @brief computes the list of actual arg types by replacing the temporaries with their
+     * actual storage type
+     */
     template<
         typename Backend,
         typename DomainType,
@@ -289,6 +297,7 @@ namespace gridtools {
     struct create_actual_arg_list
     {
         BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
+        BOOST_STATIC_ASSERT((is_domain_type<DomainType>::value));
 
         /**
          * Takes the domain list of storage pointer types and transform
