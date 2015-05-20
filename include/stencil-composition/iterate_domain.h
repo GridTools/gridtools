@@ -65,7 +65,7 @@ namespace gridtools {
     struct iterate_domain {
         typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
 
-        //TODOCOSUNA assert LocalDomain
+        BOOST_STATIC_ASSERT((is_local_domain<local_domain_t>::value));
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
                 typename local_domain_t::mpl_storages, 0>::type
@@ -148,10 +148,13 @@ namespace gridtools {
             set_index_recur< N_STORAGES-1>::set( index, m_index);
         }
 
-        //TODOCOSUNA remove this advance_ij
+        /**@brief method for advancing the indices by some offset
+           @tparam Coordinate dimension being advanced
+           @tparam offset offset to advance the indices
+         */
         template <ushort_t Coordinate>
         GT_FUNCTION
-        void advance_ij(uint_t offset, uint_t block)
+        void advance_ij(int_t offset)
         {
             //TODOCOSUNA assert Coordinate is IJ
             increment_index<N_STORAGES-1, Coordinate, enumtype::forward>::assign(local_domain.local_args, offset, &m_index[0], *m_strides);
