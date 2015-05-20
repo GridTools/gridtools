@@ -58,7 +58,7 @@ namespace gridtools {
         template<ushort_t OtherID>
         GT_FUNCTION
         constexpr explicit accessor(const accessor<OtherID, Range, Number>& other) :
-            super(other) {}
+            super(static_cast<accessor_base<OtherID, Range, Number> >(other)) {}
 
         GT_FUNCTION
         constexpr explicit accessor(): super() {}
