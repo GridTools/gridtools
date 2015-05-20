@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/utility/enable_if.hpp>
 #include "../run_esf_functor.h"
 #include "../block_size.h"
 #include "../iterate_domain_evaluator.h"
@@ -53,7 +54,6 @@ namespace gridtools {
             iterate_domain_evaluator_t iterate_domain_evaluator(m_iterate_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
-            typedef typename EsfArguments::range_t range_t;
 
             //a grid point at the core of the block can be out of range (for last blocks) if domain of computations
             // is not a multiple of the block size
@@ -62,6 +62,43 @@ namespace gridtools {
                 //call the user functor at the core of the block
                 functor_t::Do(iterate_domain_evaluator, IntervalType());
             }
+
+            this->template ExecuteExtraWork<
+                multiple_grid_points_per_warp_t,
+                IntervalType,
+                EsfArguments,
+                iterate_domain_evaluator_t
+            > (iterate_domain_evaluator);
+
+            __syncthreads();
+
+        }
+
+    private:
+
+        template<
+            typename MultipleGridPointsPerWarp,
+            typename IntervalType,
+            typename EsfArguments,
+            typename IterateDomainEvaluator
+        >
+        __device__
+        void ExecuteExtraWork(const IterateDomainEvaluator& iterate_domain_evaluator,
+                typename boost::disable_if<MultipleGridPointsPerWarp, int >::type=0) const
+        {}
+
+        template<
+            typename MultipleGridPointsPerWarp,
+            typename IntervalType,
+            typename EsfArguments,
+            typename IterateDomainEvaluator
+        >
+        __device__
+        void ExecuteExtraWork(const IterateDomainEvaluator& iterate_domain_evaluator,
+                typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0) const
+        {
+            typedef typename EsfArguments::functor_t functor_t;
+            typedef typename EsfArguments::range_t range_t;
 
             //if the warps need to compute more grid points than the core of the block
             if(multiple_grid_points_per_warp_t::value) {
@@ -137,7 +174,6 @@ namespace gridtools {
                     }
                 }
             }
-            __syncthreads();
         }
 
     };
