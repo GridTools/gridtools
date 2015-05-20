@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/remove_const.hpp>
 
 namespace gridtools {
 
@@ -35,24 +36,13 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template<typename ... ElTypes>
         GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{types ... } {
+        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
         GT_FUNCTION
         array(std::initializer_list<T> c) {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
-        }
-#else
-#ifndef __CUDACC__ //this generates a warning
-        GT_FUNCTION
-        array(T const& i): _array{i} {
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j): _array{i, j} {
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j, T const& k): _array{i, j, k} {
         }
 #else
         GT_FUNCTION
@@ -70,7 +60,6 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
             const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
         }
-#endif
 #endif
 
         GT_FUNCTION
