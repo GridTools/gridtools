@@ -34,6 +34,18 @@ namespace gridtools {
             };
         };
 
+        template <typename T>
+        struct extract_staggering {
+                typedef typename T::staggering_t type;
+        };
+
+        template <typename ESF, typename Staggering>
+        struct decorate_with_staggering : public ESF {
+            typedef Staggering staggering_t;
+            using ESF::Do;
+            using ESF::ESF;
+        };
+
         template <typename FunctorDesc>
         struct extract_ranges {
             typedef typename FunctorDesc::esf_function Functor;
@@ -203,10 +215,15 @@ namespace gridtools {
          * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
          * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
          */
+        typedef typename  _impl::decorate_with_staggering<
+              _impl::extract_functor::apply<boost::mpl::_1>
+            , _impl::extract_staggering<boost::mpl::_1>
+            > unary_lambda_t;
+
         typedef typename boost::mpl::transform<
             linear_esf,
-            _impl::extract_functor
-        >::type functors_list;
+            unary_lambda_t
+            >::type functors_list;
 
 //        /**
 //         *  compute the functor do methods - This is the most computationally intensive part

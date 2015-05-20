@@ -106,15 +106,8 @@ namespace gridtools {
                 typedef typename Traits::iterate_domain_t iterate_domain_type;
                 typedef typename Arguments::execution_type_t execution_type_t;
 
-                typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value
-                                                       , get_xrange< functor_type >
-                                                       , boost::mpl::identity<range<0,0,0> > >::type new_range_t;
 
-                typedef typename sum_range<new_range_t, range_t>::type xrange_t;
-
-                typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value
-                                                       , get_xrange_subdomain< functor_type >
-                                                       , boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+                typedef typename sum_range<typename functor_type::staggering_t, range_t>::type xrange_t;
 
                 const typename backend_t::coords_t::partitioner_t::Flag UP=backend_t::coords_t::partitioner_t::UP;
                 const typename backend_t::coords_t::partitioner_t::Flag LOW=backend_t::coords_t::partitioner_t::LOW;
