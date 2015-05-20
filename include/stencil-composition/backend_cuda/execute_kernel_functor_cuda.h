@@ -29,18 +29,19 @@ namespace _impl_cuda {
         __shared__  array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
         __shared__ strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides;
 
-        //Doing construction and assignment before the following 'if', so that we can
-        //exploit parallel shared memory initialization
+        //Doing construction of the ierate domain and assignment of pointers and strides
         iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
         it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
         it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
         __syncthreads();
 
+        //computing the global position in the physical domain
         const int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
         const int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
 
         it_domain.set_index(0);
 
+        //initialize the indices
         it_domain.template initialize<0>(i+starti, blockIdx.x);
         it_domain.template initialize<1>(j+startj, blockIdx.y);
 
@@ -53,6 +54,7 @@ namespace _impl_cuda {
         if( !(iteration_policy::value==enumtype::forward) )
             it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
 
+        //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
             (_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain,*coords) );
     }
