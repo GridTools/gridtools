@@ -38,8 +38,7 @@ class CopyTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        #self.domain = (64, 64, 32)
-        self.domain = (6, 6, 1)
+        self.domain = (64, 64, 32)
         self.params = ('out_cpy', 'in_cpy')
         self.temps  = ( )
 
@@ -124,8 +123,8 @@ class CopyTest (unittest.TestCase):
     def test_compare_python_cpp_and_cuda_results (self):
         import copy
 
-        self.stencil.recompile ( )
         for backend in [ 'cuda', 'c++' ]:
+            self.stencil.recompile ( )
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
 
@@ -211,6 +210,7 @@ class CopyTest (unittest.TestCase):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
 
 
+    @attr(lang='python')
     def test_python_results (self, out_param=None, result_file=None):
         import os
 
@@ -218,20 +218,22 @@ class CopyTest (unittest.TestCase):
 
         self.stencil.backend = 'python'
         self._run ( )
+        #
+        # take halo into account when comparing the results
+        #
+        beg_i = self.stencil.halo[0]
+        end_i = self.domain[0] - self.stencil.halo[1]
+        beg_j = self.stencil.halo[2]
+        end_j = self.domain[1] - self.stencil.halo[3]
 
         if result_file is None:
-            beg_i = self.stencil.halo[0]
-            end_i = self.domain[0] - self.stencil.halo[1]
-            beg_j = self.stencil.halo[2]
-            end_j = self.domain[1] - self.stencil.halo[3]
-
-            self.assertTrue (np.array_equal (self.in_cpy[beg_i:end_i, beg_j:end_j],
-                                             self.out_cpy[beg_i:end_i, beg_j:end_j]))
+            expected  = self.in_cpy
+            out_param = 'out_cpy'
         else:
             expected = np.load ('%s/%s' % (cur_dir,
                                            result_file)) 
-            self.assertTrue (np.array_equal (getattr (self, out_param),
-                                             expected))
+        self.assertTrue (np.array_equal (getattr (self, out_param)[beg_i:end_i, beg_j:end_j],
+                                         expected[beg_i:end_i, beg_j:end_j]))
 
 
     def test_execution_performance_cpp (self, backend='c++'):
@@ -366,7 +368,7 @@ class Laplace (MultiStageStencil):
         #
         for p in self.get_interior_points (out_data):
             out_data[p] = -4.0 * in_data[p] + (
-                          in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
@@ -394,15 +396,17 @@ class LaplaceTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_range_detection (self):
+    def test_automatic_range_detection (self, ranges=None, backend='c++'):
         expected_ranges = {'out_data': None,
                            'in_data':  [-1,1,-1,1]}
         super ( ).test_automatic_range_detection (ranges=expected_ranges)
 
 
-    def test_python_execution (self):
-        super ( ).test_python_execution (out_param='out_data',
-                                         result_file='laplace_result.npy')
+    @attr(lang='python')
+    def test_python_results (self):
+        self.out_data = np.random.rand (*self.domain)
+        super ( ).test_python_results (out_param='out_data',
+                                       result_file='laplace_result.npy')
 
 
 
@@ -498,9 +502,11 @@ class HorizontalDiffusionTest (CopyTest):
                                                   backend=backend)
 
 
-    def test_python_execution (self):
-        super ( ).test_python_execution (out_param='out_data',
-                                         result_file='horizontaldiffusion_result.npy')
+    @attr(lang='python')
+    def test_python_results (self):
+        self.out_data = np.random.rand (*self.domain)
+        super ( ).test_python_results (out_param='out_data',
+                                       result_file='horizontaldiffusion_result.npy')
 
 
 

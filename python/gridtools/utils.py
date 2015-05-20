@@ -97,7 +97,7 @@ class Utilities ( ):
             # attach the library object
             #
             self.ulib_obj = cdll.LoadLibrary ("%s" % path.join (self.src_dir, 
-                                                               self.ulib_file))
+                                                                self.ulib_file))
         except Exception as e:
             logging.error ("Compilation error")
             self.ulib_obj = None
@@ -105,13 +105,13 @@ class Utilities ( ):
 
 
     def is_valid_float_type_size (self, npfloat):
+        rv = True
+
         if self.ulib_obj is None:
             self.generate_validation_code ( )
             self.ucompile ( )
 
-        rv = True
-
-        backendSize = self.ulib_obj.getFloatSize()
+        backendSize = self.ulib_obj.getFloatSize ( )
         nptype      = npfloat.dtype
 
         logging.debug ("Backend Float Size: %d" % backendSize)
