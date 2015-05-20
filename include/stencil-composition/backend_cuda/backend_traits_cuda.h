@@ -46,8 +46,8 @@ namespace gridtools{
 
         /** This is the function used by the specific backend to inform the
             generic backend and the temporary storage allocator how to
-            compute the number of threads in the i-direction, in a 2D
-            grid of threads.
+            compute the number of processing elements in the i-direction (i.e. cuda blocks
+            in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_i_pes(const int i_size) {
             typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
@@ -56,8 +56,8 @@ namespace gridtools{
 
         /** This is the function used by the specific backend to inform the
             generic backend and the temporary storage allocator how to
-            compute the number of threads in the j-direction, in a 2D
-            grid of threads.
+            compute the number of processing elements in the j-direction (i.e. cuda blocks
+            in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_j_pes(const uint_t j_size) {
             typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
@@ -90,6 +90,7 @@ namespace gridtools{
             template<typename Left, typename Right>
             GT_FUNCTION
             static void assign(Left& l, Right const& r){
+                //TODOCOSUNA if there are more ID than threads in a block????
                 if(threadIdx.x==Id)
                     {
                         l=r;
@@ -111,6 +112,8 @@ namespace gridtools{
             static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
                 BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+                BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+
                 execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, coords, bi, bj)();
             }
         };
@@ -144,7 +147,6 @@ namespace gridtools{
         struct requires_temporary_redundant_halos
         {
             BOOST_STATIC_ASSERT(StrategyId==enumtype::Block);
-
             typedef boost::mpl::true_ type;
         };
 
