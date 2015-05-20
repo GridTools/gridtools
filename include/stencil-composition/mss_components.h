@@ -3,6 +3,12 @@
 
 namespace gridtools {
 
+/**
+ * @brief the mss components contains meta data associated to a mss descriptor.
+ * All derived metadata is computed in this class
+ * @tparam MssDescriptor the mss descriptor
+ * @tparam RangeSizes the range sizes of all the ESFs in this mss
+ */
 template<
     typename MssDescriptor,
     typename RangeSizes
@@ -10,8 +16,8 @@ template<
 struct mss_components
 {
     BOOST_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value));
+    BOOST_STATIC_ASSERT((is_sequence_of<RangeSizes, is_range>::value));
 
-//    typedef ArrayEsfDescr esf_array_t; // may contain independent constructs
     typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 
     /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent

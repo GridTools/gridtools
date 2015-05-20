@@ -6,37 +6,14 @@
 
 namespace gridtools {
 
-//template<
-//    typename MssDescriptor,
-//    typename range_sizes
-//>
-//struct create_mss_components
-//{
-//    BOOST_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value));
-//
-//    template<typename Esf>
-//    struct extract_range
-//    {
-//        BOOST_STATIC_ASSERT((boost::mpl::has_key<range_sizes_map, Esf>::value));
-//        typedef typename boost::mpl::at<range_sizes_map, Esf>::type type;
-//    };
-//
-//    typedef typename boost::mpl::fold<
-//        typename mss_descriptor_esf_sequence<MssDescriptor>::type,
-//        boost::mpl::vector0<>,
-//        boost::mpl::push_back<boost::mpl::_1, extract_range<boost::mpl::_2> >
-//    >::type range_sizes_t;
-//
-//    typedef mss_components<MssDescriptor, range_sizes_t> type;
-//
-//};
-
+/**
+ * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
+ * @tparam MssArray meta array of MSS
+ */
 template<typename MssArray>
 struct split_esfs_into_independent_mss
 {
-    //TODOCOSUNA
-    BOOST_MPL_ASSERT_MSG((is_meta_array_of<MssArray, is_mss_descriptor>::value), JJJJJJJJJJJJJJJJJJJJJJJJj, (MssArray));
-//    BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+    BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
 
     template<typename MssDescriptor>
     struct mss_split_esfs
@@ -72,18 +49,25 @@ struct split_esfs_into_independent_mss
 };
 
 
+/**
+ * @brief metafunction that builds the array of mss components
+ * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
+ * @tparam MssDescriptorArray meta array of mss descriptors
+ * @tparam range_sizes sequence of sequence of ranges
+ */
 template<
     enumtype::backend BackendId,
     typename MssDescriptorArray,
-    typename range_sizes
+    typename RangeSizes
 >
 struct build_mss_components_array
 {
     BOOST_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value));
-    BOOST_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
-            boost::mpl::size<range_sizes>::value));
 
-    template<typename RangeSizes>
+    BOOST_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
+            boost::mpl::size<RangeSizes>::value));
+
+    template<typename _RangeSizes_>
     struct unroll_range_sizes
     {
         template<typename State, typename Sequence>
@@ -99,7 +83,7 @@ struct build_mss_components_array
             >::type type;
         };
         typedef typename boost::mpl::fold<
-            RangeSizes,
+            _RangeSizes_,
             boost::mpl::vector0<>,
             insert_unfold<boost::mpl::_1, boost::mpl::_2>
         >::type type;
@@ -113,8 +97,8 @@ struct build_mss_components_array
 
     typedef typename boost::mpl::eval_if<
         typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
-        boost::mpl::identity<range_sizes>,
-        unroll_range_sizes<range_sizes>
+        boost::mpl::identity<RangeSizes>,
+        unroll_range_sizes<RangeSizes>
     >::type range_sizes_unrolled_t;
 
     BOOST_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
@@ -143,6 +127,9 @@ struct build_mss_components_array
     > type;
 };
 
+/**
+ * @brief metafunction that computes the mss functor do methods
+ */
 template<
     typename MssComponents,
     typename Coords
@@ -160,6 +147,9 @@ struct mss_functor_do_methods
     >::type type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 };
 
+/**
+ * @brief metafunction that computes the loop intervals of an mss
+ */
 template<
     typename MssComponents,
     typename Coords
@@ -167,6 +157,8 @@ template<
 struct mss_loop_intervals
 {
     BOOST_STATIC_ASSERT((is_mss_components<MssComponents>::value));
+    BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+
     /**
      *  compute the functor do methods - This is the most computationally intensive part
      */

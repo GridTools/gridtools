@@ -512,7 +512,7 @@ namespace gridtools {
             //TODOCOSUNA what with the increment of k? Is it GONE?
             base_t::template increment<Coordinate, Execution>(steps_);
             if( Coordinate==2)
-                (Execution == enumtype::backward) ? --m_k : ++m_k;
+                (Execution == enumtype::backward) ? m_k -= steps_ : m_k += steps_;
         }
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
