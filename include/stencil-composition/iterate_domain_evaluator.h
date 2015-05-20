@@ -127,7 +127,7 @@ public:
 
 /**
  * @struct get_iterate_domain_evaluator
- * metafunctions that computes the iterate_domain_evaluator from the iterate domain type
+ * metafunction that computes the iterate_domain_evaluator from the iterate domain type
  */
 template<typename IterateDomain, typename EsfArgsMap>
 struct get_iterate_domain_evaluator

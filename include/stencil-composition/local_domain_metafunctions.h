@@ -2,6 +2,9 @@
 
 namespace gridtools {
 
+    /**
+     * @brief metafunction that merges a sequence of local domains into a single local domain
+     */
     template<typename LocalDomainSequence>
     struct merge_local_domain_sequence
     {
@@ -40,9 +43,9 @@ namespace gridtools {
             LocalDomainSequence,
             boost::mpl::pair< boost::mpl::set0<>, boost::mpl::vector0<> >,
             insert_new_esf_args<boost::mpl::_1, local_domain_esf_args<boost::mpl::_2> >
-        >::type merged_esf_args2_t;
+        >::type merged_esf_args_pairs_t;
 
-        typedef typename boost::mpl::second<merged_esf_args2_t>::type merged_esf_args_t;
+        typedef typename boost::mpl::second<merged_esf_args_pairs_t>::type merged_esf_args_t;
 
         typedef boost::mpl::vector1<
             local_domain<
@@ -53,6 +56,11 @@ namespace gridtools {
         > type;
     };
 
+    /**
+     * @brief metafunction that creates a trivial lookup map for the arguments (i.e. the identity)
+     * from original positions in the local domain into the merge local domain. This trivial map
+     * is used when no merging is required.
+     */
     template<typename LocalDomainSequence>
     struct create_trivial_args_lookup_map
     {
@@ -80,6 +88,12 @@ namespace gridtools {
         >::type type;
     };
 
+    /**
+     * @brief metafunction that generates the lookup table of the arguments that map their indices
+     * in the original local domains into their positions in the merge local domain
+     * @tparam LocalDomainSequence original sequence of local domains
+     * @tparam MergedLocalDomainSequence merge local domain sequence
+     */
     template<typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct create_args_lookup_map
     {
@@ -141,6 +155,11 @@ namespace gridtools {
         >::type type;
     };
 
+    /**
+     * @brief metafunction that fuses the local domains of a mss if the backend requires it
+     * @tparam BackendId id of the backend
+     * @tparam LocalDomainSequence sequence of local domains
+     */
     template<enumtype::backend BackendId, typename LocalDomainSequence>
     struct fuse_mss_local_domains
     {
@@ -154,6 +173,13 @@ namespace gridtools {
 
     };
 
+    /**
+     * @brief metafunction that generates the lookup map of arguments for arguments from the original
+     * local domains positions into the fused local domain
+     * @tparam BackendId id of the backend
+     * @tparam LocalDomainSequence sequence of local domains
+     * @tparam MergedLocalDomainSequence sequence of merged local domains
+     */
     template<enumtype::backend BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct generate_args_lookup_map
     {
@@ -166,6 +192,11 @@ namespace gridtools {
         >::type type;
     };
 
+    /**
+     * @brief metafunction that computes the index of the position of a local domain in a fused local domain
+     * @tparam Index original position index of the local domain in the non fused sequence
+     * @tparam BackendId id of the backend
+     */
     template<typename Index, typename BackendId>
     struct extract_local_domain_index
     {

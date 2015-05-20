@@ -14,20 +14,26 @@
 
 namespace gridtools {
 
-    /** The following struct is defined here since the current version of NVCC does not accept local types to be used as template arguments of __global__ functions \todo move inside backend::run()*/
+    /**
+     * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
+     * all functors involved in the execution of the mss
+     */
     template<
-        enumtype::backend BackendId,
-        typename ProcessingElementsBlockSize,
-        typename PhysicalDomainBlockSize,
-        typename FunctorList,
-        typename EsfArgsMapSequence,
-        typename LoopIntervals,
-        typename FunctorsMap,
-        typename RangeSizes,
-        typename LocalDomain,
-        typename Coords,
-        typename ExecutionEngine,
-        enumtype::strategy StrategyId>
+        enumtype::backend BackendId,                // id of the backend
+        typename ProcessingElementsBlockSize,       // block size of grid points updated by computation
+                                                    //    in the physical domain
+        typename PhysicalDomainBlockSize,           // block size of processing elements (i.e. threads)
+                                                    //    taking part in the computation of a physical block size
+        typename FunctorList,                       // sequence of functors (one per ESF)
+        typename EsfArgsMapSequence,                // map of arg indices from local functor position to a merged
+                                                    //    local domain
+        typename LoopIntervals,                     // loop intervals
+        typename FunctorsMap,                       // functors map
+        typename RangeSizes,                        // ranges of each ESF
+        typename LocalDomain,                       // local domain type
+        typename Coords,                            // the coordinates
+        typename ExecutionEngine,                   // the execution engine
+        enumtype::strategy StrategyId>              // the strategy id
     struct run_functor_arguments
     {
         BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
