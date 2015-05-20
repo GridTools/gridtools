@@ -51,17 +51,10 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
                {%- endif -%}
            {% endfor -%})
 {
-#ifdef __CUDACC__
-    //
-    // Fortran-like memory layout
-    //
-    typedef gridtools::layout_map<2,1,0> layout_t;
-#else
     //
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
-#endif
 
     //
     // define the storage unit used by the backend

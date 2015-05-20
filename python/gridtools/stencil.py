@@ -462,27 +462,10 @@ class Stencil ( ):
         # a unique name for the stencil object
         #
         self.name = self.__class__.__name__.capitalize ( )
-
-        #
-        # defines the way to execute the stencil, one of 'python' or 'c++'
-        #
-        self.backend = "python"
-
         #
         # the inspector object is used to JIT-compile this stencil
         #
         self.inspector = StencilInspector (self)
-
-        #
-        # a halo descriptor - see 'set_halo' below
-        #
-        self.set_halo ( (0, 0, 0, 0) )
-
-        #
-        # define the execution order in 'k' dimension - see 'set_k_direction' below
-        #
-        self.set_k_direction ('forward')
-
         #
         # these entities are automatically generated at compile time
         #
@@ -492,11 +475,22 @@ class Stencil ( ):
         self.cpp_file     = None
         self.make_file    = None
         self.fun_hdr_file = None
-
         #
         # a reference to the compiled dynamic library
         #
-        self.lib_obj  = None
+        self.lib_obj = None
+        #
+        # defines the way to execute the stencil, one of 'python' or 'c++'
+        #
+        self.backend = "python"
+        #
+        # a halo descriptor - see 'set_halo' below
+        #
+        self.set_halo ( (0, 0, 0, 0) )
+        #
+        # define the execution order in 'k' dimension - see 'set_k_direction' below
+        #
+        self.set_k_direction ('forward')
 
 
     def __hash__ (self):
@@ -706,11 +700,16 @@ class Stencil ( ):
         """
         Marks the currently compiled library as dirty, needing recompilation.-
         """
+        import _ctypes
+
         #
-        # clear the compiled library and the symbols inspector
+        # this only works in POSIX systems ...
         #
-        self.lib_obj   = None
-        self.inspector = StencilInspector (self)
+        if self.lib_obj is not None:
+            _ctypes.dlclose (self.lib_obj._handle)
+            del self.lib_obj
+            self.lib_obj   = None
+            self.inspector = StencilInspector (self)
 
 
     def resolve (self, **kwargs):
@@ -774,7 +773,7 @@ class Stencil ( ):
                 #
                 for key in kwargs:
                       if isinstance(kwargs[key], np.ndarray):
-                          if not Stencil.utils.is_valid_float_type_size(kwargs[key]):
+                          if not Stencil.utils.is_valid_float_type_size (kwargs[key]):
                               raise TypeError ("Element size of '%s' does not match that of the C++ backend."
                                                % key)
                 self.resolve (**kwargs)
