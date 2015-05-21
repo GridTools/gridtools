@@ -122,8 +122,12 @@ class CopyTest (unittest.TestCase):
     @attr(lang='cuda')
     def test_compare_python_cpp_and_cuda_results (self):
         import copy
+        import random
 
-        for backend in [ 'cuda', 'c++' ]:
+        backends = ['cuda', 'c++']
+        random.shuffle (backends)
+
+        for backend in backends:
             self.stencil.recompile ( )
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
@@ -137,8 +141,11 @@ class CopyTest (unittest.TestCase):
                 params_py[p]  = np.random.rand (*self.domain)
                 params_cxx[p] = np.copy (params_py[p])
             #
-            # apply both stencils 10 times
+            # apply both stencils 10 times and compare the results
+            # using an error threshold
             #
+            err  = np.zeros (self.domain)
+            err += 10e-12
             for i in range (10):
                 self.stencil.run   (**params_py)
                 stencil_native.run (**params_cxx)
@@ -146,8 +153,8 @@ class CopyTest (unittest.TestCase):
                 # compare field contents
                 #
                 for k in params_py.keys ( ):
-                    self.assertTrue (np.array_equal (params_py[k],
-                                                     params_cxx[k]))
+                    self.assertTrue (np.all (np.less (params_py[k] - params_cxx[k],
+                                                      err)))
 
 
     def test_symbol_discovery (self, backend='c++'):
