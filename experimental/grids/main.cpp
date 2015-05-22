@@ -73,10 +73,13 @@ int main() {
     EVAL(cell2edges, 2, 3);
     EVAL(cell2edges, 2, 4);
 
-    // EVAL(cell2edges_offsets, 2, 3);
-    // EVAL(cell2edges_offsets, 2, 4);
-    // EVAL(cell2edges_offsets, 3, 3);
-    // EVAL(cell2edges_offsets, 3, 4);
+    EVAL(edge2cells_ll_p0, 2, 3);
+    EVAL(edge2cells_ll_p1, 2, 3);
+    EVAL(edge2cells_ll_p2, 2, 3);
+    EVAL(edge2cells, 2, 3);
+    EVAL(edge2cells, 2, 4);
+    EVAL(edge2cells, 2, 5);
+
 
     return 0;
 }
