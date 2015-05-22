@@ -206,7 +206,7 @@ namespace gridtools {
         }
 
         array<unsigned int, 3>
-        cell2edges_ll_p0(array<unsigned int, 2> const& i) const
+        cell2edges_ll_p1(array<unsigned int, 2> const& i) const
         {
             return array<unsigned int, 3>{
                 DO_THE_MATH(edge, i[0], 2, i[1]),
@@ -215,7 +215,7 @@ namespace gridtools {
         }
 
         array<unsigned int, 3>
-        cell2edges_ll_p1(array<unsigned int, 2> const& i) const
+        cell2edges_ll_p0(array<unsigned int, 2> const& i) const
         {
             return array<unsigned int, 3>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
