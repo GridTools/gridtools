@@ -335,10 +335,7 @@ class SWTest (CopyTest):
 
     @attr(lang='cuda')
     def test_compare_python_cpp_and_cuda_results (self):
-        try:
-            super ( ).test_compare_python_cpp_and_cuda_results ( )
-        except AssertionError:
-            print ('known to fail')
+        super ( ).test_compare_python_cpp_and_cuda_results ( )
 
 
     def test_interactive_plot (self):
@@ -347,61 +344,43 @@ class SWTest (CopyTest):
 
         self.stencil.backend = 'c++'
 
-        self.droplet (self.out_H)
-        self.droplet (self.in_H)
-
         plt.switch_backend ('agg')
 
         fig = plt.figure ( )
         ax  = fig.add_subplot (111,
                                projection='3d',
                                autoscale_on=False)
+        X, Y = np.meshgrid (np.arange (self.out_H.shape[0]),
+                            np.arange (self.out_H.shape[1]))
 
         def init_frame ( ):
             ax.grid      (False)
             ax.set_xlim  ( (0, self.domain[0] - 1) )
             ax.set_ylim  ( (0, self.domain[1] - 1) )
-            ax.set_zlim  ( (0.9, 1.10) )
-            ax.view_init (azim=-60.0, elev=10.0)
-            im = self.stencil.plot_3d (self.out_H[:,:,0])
+            ax.set_zlim  ( (0, 3.50) )
+            im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
+                                    linewidth=1)
             return [im]
 
         def draw_frame (frame):
-            #
-            # run the stencil
-            #
-            if frame % 2 == 0:
-                self.stencil.run (out_H=self.out_H,
-                                  out_U=self.out_U,
-                                  out_V=self.out_V,
-                                  out_Hd=self.out_Hd,
-                                  out_Ud=self.out_Ud,
-                                  out_Vd=self.out_Vd,
-                                  in_H=self.in_H,
-                                  in_U=self.in_U,
-                                  in_V=self.in_V)
-            else:
-                self.stencil.run (out_H=self.in_H,
-                                  out_U=self.in_U,
-                                  out_V=self.in_V,
-                                  out_Hd=self.out_Hd,
-                                  out_Ud=self.out_Ud,
-                                  out_Vd=self.out_Vd,
-                                  in_H=self.out_H,
-                                  in_U=self.out_U,
-                                  in_V=self.out_V)
+            if (self.stencil.dt * frame) % 5 == 0:
+                self.droplet (self.out_H, val=3.95)
+
+            self.stencil.run (out_H=self.out_H,
+                              out_U=self.out_U,
+                              out_V=self.out_V)
             ax.cla       ( )
             ax.grid      (False)
             ax.set_xlim  ( (0, self.domain[0] - 1) )
             ax.set_ylim  ( (0, self.domain[1] - 1) )
-            ax.set_zlim  ( (0.9, 1.10) )
-            ax.view_init (azim=-60.0, elev=10.0)
-            im = self.stencil.plot_3d (self.out_H[:,:,0])
+            ax.set_zlim  ( (0, 3.50) )
+            im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
+                                    linewidth=1)
             return [im]
 
         anim = animation.FuncAnimation (fig,
                                         draw_frame,
-                                        frames=range (10),
+                                        frames=range (50),
                                         interval=10,
                                         init_func=init_frame,
                                         blit=False)
