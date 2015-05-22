@@ -132,7 +132,7 @@ namespace gridtools {
                 initialize(init);
             }
 
-#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
+        //#if !defined(__GNUC__) || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9) )
         /**@brief generic multidimensional constructor
 
            There are two possible types of storage dimension. One (space dimension) defines the number of indexes
@@ -144,7 +144,7 @@ namespace gridtools {
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
         template <class ... UIntTypes>
-        base_storage(  UIntTypes const& ... args/*, value_type init = value_type(), char const* s/*="default storage"*/ ):
+        base_storage(  UIntTypes ... args/*, value_type init = value_type(), char const* s/*="default storage"*/ ):
             is_set( true ),
             m_name("default_storage"),
             m_dims{args...},
@@ -160,7 +160,27 @@ namespace gridtools {
                 //You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
                 BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UIntTypes) == sizeof(uint_t) ... ) );
             }
-#endif // GCC<4.9.0
+
+        template <typename Int>
+        base_storage(  array<Int, space_dimensions> const& sizes ):
+            is_set( true ),
+            m_name("default_storage"),
+            m_dims{sizes},
+            m_strides{0}
+            {
+                BOOST_STATIC_ASSERT(field_dimensions>0);
+                for (int j=0; j<space_dimensions; ++j) {
+                    m_strides[j] = 1;
+                    for (int i=j; i<space_dimensions; ++i) {
+                        m_strides[j] *= sizes[i];
+                    }
+                }
+                
+                m_fields[0]=pointer_type(m_strides[0]);
+
+            }
+
+        //#endif // GCC<4.9.0
 
 #else //CXX11_ENABLED
 
@@ -338,7 +358,7 @@ namespace gridtools {
         template<uint_t Coordinate>
         GT_FUNCTION
         static constexpr uint_t strides(uint_t const* str){
-            return (vec_max<typename layout::layout_vector_t>::value < 0) ?0:( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 :  str[layout::template at_<Coordinate>::value+1];
+            return (vec_max<typename layout::layout_vector_t>::value < 0) ?0:( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 :  str[layout::template at_<Coordinate>::value];
         }
 
         /**@brief printing a portion of the content of the data field*/
@@ -378,25 +398,25 @@ namespace gridtools {
            index for temporary storages is computed in the subclass gridtools::host_tmp_storge
            NOTE: this version will be preferred over the templated overloads
         */
-        GT_FUNCTION
-        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const {
-            uint_t index;
-            if (IsTemporary) {
-                index =
-                    m_strides[1]
-                    * (modulus(layout::template find_val<0,uint_t,0>(i,j,k),layout::template find<0>(m_dims))) +
-                    m_strides[2] * modulus(layout::template find_val<1,uint_t,0>(i,j,k),layout::template find<1>(m_dims)) +
-                    modulus(layout::template find_val<2,uint_t,0>(i,j,k),layout::template find<2>(m_dims));
-            } else {
-                index =
-                    m_strides[1]
-                    * layout::template find_val<0,uint_t,0>(i,j,k) +
-                    m_strides[2] * layout::template find_val<1,uint_t,0>(i,j,k) +
-                    layout::template find_val<2,uint_t,0>(i,j,k);
-            }
-            assert(index<size());
-            return index;
-        }
+        // GT_FUNCTION
+        // uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const {
+        //     uint_t index;
+        //     if (IsTemporary) {
+        //         index =
+        //             m_strides[1]
+        //             * (modulus(layout::template find_val<0,uint_t,0>(i,j,k),layout::template find<0>(m_dims))) +
+        //             m_strides[2] * modulus(layout::template find_val<1,uint_t,0>(i,j,k),layout::template find<1>(m_dims)) +
+        //             modulus(layout::template find_val<2,uint_t,0>(i,j,k),layout::template find<2>(m_dims));
+        //     } else {
+        //         index =
+        //             m_strides[1]
+        //             * layout::template find_val<0,uint_t,0>(i,j,k) +
+        //             m_strides[2] * layout::template find_val<1,uint_t,0>(i,j,k) +
+        //             layout::template find_val<2,uint_t,0>(i,j,k);
+        //     }
+        //     assert(index<size());
+        //     return index;
+        // }
 
 #ifdef CXX11_ENABLED
         /**
@@ -517,7 +537,7 @@ namespace gridtools {
         const char* m_name;
         // static const uint_t m_strides[/*3*/space_dimensions]={( dim1*dim2*dim3 ),( dims[layout::template get<2>()]*dims[layout::template get<1>()]),( dims[layout::template get<2>()] )};
         pointer_type m_fields[field_dimensions];
-        uint_t m_dims[space_dimensions];
+        array<uint_t, space_dimensions> m_dims;
         uint_t m_strides[space_dimensions];
 #ifdef NDEBUG
     private:

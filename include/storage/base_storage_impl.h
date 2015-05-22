@@ -65,7 +65,7 @@ namespace gridtools{
             static void apply(uint_t* strides, UIntType ... args){
 		BOOST_STATIC_ASSERT(MaxIndex>=ID);
 		BOOST_STATIC_ASSERT(ID>=0);
-		strides[MaxIndex-ID] = next_stride<ID, MaxIndex, Layout>::apply(args...);
+		strides[MaxIndex-ID] = next_stride<ID+1, MaxIndex, Layout>::apply(args...);
 		assign_strides<ID-1, MaxIndex, Layout>::apply(strides, args...);
 	    }
 	};
@@ -77,7 +77,7 @@ namespace gridtools{
             GT_FUNCTION
 	    static void apply(uint_t* strides, UIntType ... args){
 		BOOST_STATIC_ASSERT(MaxIndex>=0);
-		strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
+		strides[MaxIndex] = next_stride<1, MaxIndex, Layout>::apply(args...);
 	    }
 	};
 #endif
@@ -93,8 +93,8 @@ namespace gridtools{
                \param indices the array of coordinates
             */template<typename IntType>
             GT_FUNCTION
-	    static int_t apply(uint_t const* strides, IntType* indices){
-		return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
+            static int_t apply(uint_t const* strides, IntType* indices){
+                return strides[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>(indices)+compute_offset<Id-1, Layout>::apply(strides, indices );
 	    }
 
 #ifdef CXX11_ENABLED
