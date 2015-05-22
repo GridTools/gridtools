@@ -61,6 +61,7 @@ namespace gridtools {
 
         GT_FUNCTION
         size_t size() const {return _size;}
+        
     };
 
     template <typename T, size_t D>
