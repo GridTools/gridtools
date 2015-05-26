@@ -24,12 +24,12 @@ namespace gridtools
          * @name Few short and obvious metafunctions
          * @{
          * */
-        template <typename StoragePointers, bool IsStateful>
+        template <typename StoragePointers>
         struct get_local_domain {
             template <typename Esf>
             struct apply {
                 BOOST_STATIC_ASSERT((is_esf_descriptor<Esf>::value));
-                typedef local_domain<StoragePointers,typename Esf::args,IsStateful> type;
+                typedef local_domain<StoragePointers,typename Esf::args> type;
             };
         };
     } //namespace _impl
@@ -38,8 +38,7 @@ namespace gridtools
         enumtype::backend BackendId,
         typename MssComponents,
         typename DomainType,
-        typename actual_arg_list_type,
-        bool IsStateful
+        typename actual_arg_list_type
     >
     struct mss_local_domain
     {
@@ -52,7 +51,7 @@ namespace gridtools
          */
         typedef typename boost::mpl::transform<
             typename MssComponents::linear_esf_t,
-            _impl::get_local_domain<actual_arg_list_type, IsStateful>
+            _impl::get_local_domain<actual_arg_list_type>
         >::type mpl_local_domain_list;
 
         typedef typename boost::fusion::result_of::as_vector<mpl_local_domain_list>::type unfused_local_domain_sequence_t;
@@ -70,10 +69,9 @@ namespace gridtools
         enumtype::backend BackendId,
         typename MssType,
         typename DomainType,
-        typename actual_arg_list_type,
-        bool IsStateful
+        typename actual_arg_list_type
     >
-    struct is_mss_local_domain<mss_local_domain<BackendId, MssType, DomainType, actual_arg_list_type, IsStateful> > :
+    struct is_mss_local_domain<mss_local_domain<BackendId, MssType, DomainType, actual_arg_list_type> > :
         boost::mpl::true_{};
 
     template<typename T>

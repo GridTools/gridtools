@@ -68,12 +68,12 @@ if(CUDA_FOUND)
     else()
 
         if( GCL_MPI )
-             cuda_add_executable( copy_stencil_parallel_cuda copy_stencil_parallel.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+             cuda_add_executable( copy_stencil_parallel_cuda copy_stencil_parallel.cu )
              target_link_libraries(copy_stencil_parallel_cuda gcl ${exe_LIBS})
         endif()
 
         foreach(srcfile interface1 boundary-condition tridiagonal laplacian vertical_advection_dycore copy_stencil )
-             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
 
              target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
          endforeach(srcfile)
@@ -81,7 +81,7 @@ if(CUDA_FOUND)
 
     if( NOT ENABLE_CXX11 )
         if( GCL_MPI )
-            cuda_add_executable(shallow_water_cxx03_cuda  shallow_water_cxx03.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+            cuda_add_executable(shallow_water_cxx03_cuda  shallow_water_cxx03.cu)
             target_link_libraries(shallow_water_cxx03_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 
             cuda_add_executable(shallow_water_cxx03_single_storage_cuda  shallow_water_cxx03_single_storage.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
@@ -92,8 +92,8 @@ if(CUDA_FOUND)
         endif()
     else()
 
-       cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
-       target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+#       cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
+#       target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 
     endif()
 

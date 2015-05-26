@@ -42,13 +42,13 @@ namespace _impl {
  * iterate domain
  * @param IterateDomainEvaluatorImpl implementer class of the CRTP
  */
-template<typename IterateDomainEvaluatorImpl>
+    template<typename IterateDomain, typename EsfArgsMap>
 class iterate_domain_evaluator_base
 {
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_evaluator_base);
 public:
-    typedef typename _impl::iterate_domain_evaluator_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
-    typedef typename _impl::iterate_domain_evaluator_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
+    typedef IterateDomain iterate_domain_t;
+    typedef EsfArgsMap esf_args_map_t;
 
     BOOST_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value));
     typedef typename iterate_domain_local_domain<iterate_domain_t>::type local_domain_t;
@@ -79,76 +79,15 @@ protected:
  */
 template<typename IterateDomain, typename EsfArgsMap>
 class iterate_domain_evaluator : public
-    iterate_domain_evaluator_base<iterate_domain_evaluator<IterateDomain, EsfArgsMap> > //CRTP
+iterate_domain_evaluator_base<IterateDomain, EsfArgsMap>
 {
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_evaluator);
 public:
     BOOST_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value));
-    typedef iterate_domain_evaluator_base<iterate_domain_evaluator<IterateDomain, EsfArgsMap> > super;
+    typedef iterate_domain_evaluator_base<IterateDomain, EsfArgsMap > super;
 
     GT_FUNCTION
     explicit iterate_domain_evaluator(const IterateDomain& iterate_domain) : super(iterate_domain) {}
-
-};
-
-/**
- * @class positional_iterate_domain_evaluator
- * iterate domain evaluator when positional information is required
- * @param IterateDomain iterate domain
- * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
- */
-template<typename IterateDomain, typename EsfArgsMap>
-class positional_iterate_domain_evaluator : public
-    iterate_domain_evaluator_base<positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap> > //CRTP
-{
-DISALLOW_COPY_AND_ASSIGN(positional_iterate_domain_evaluator);
-public:
-    BOOST_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value));
-    typedef iterate_domain_evaluator_base<positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap> > super;
-
-    GT_FUNCTION
-    explicit positional_iterate_domain_evaluator(const IterateDomain& iterate_domain) : super(iterate_domain) {}
-
-    GT_FUNCTION
-    uint_t i() const {
-        return this->m_iterate_domain.i();
-    }
-
-    GT_FUNCTION
-    uint_t j() const {
-        return this->m_iterate_domain.j();
-    }
-
-    GT_FUNCTION
-    uint_t k() const {
-        return this->m_iterate_domain.k();
-    }
-};
-
-/**
- * @struct get_iterate_domain_evaluator
- * metafunction that computes the iterate_domain_evaluator from the iterate domain type
- */
-template<typename IterateDomain, typename EsfArgsMap>
-struct get_iterate_domain_evaluator
-{
-    BOOST_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value));
-    template<typename _IterateDomain, typename _EsfArgsMap>
-    struct select_basic_iterate_domain_evaluator
-    {
-        typedef iterate_domain_evaluator<_IterateDomain, _EsfArgsMap> type;
-    };
-    template<typename _IterateDomain, typename _EsfArgsMap>
-    struct select_positional_iterate_domain_evaluator
-    {
-        typedef positional_iterate_domain_evaluator<_IterateDomain, _EsfArgsMap> type;
-    };
-
-    typedef typename boost::mpl::eval_if<
-        is_positional_iterate_domain<IterateDomain>,
-        select_positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap>,
-        select_basic_iterate_domain_evaluator<IterateDomain, EsfArgsMap>
-    >::type type;
 
 };
 

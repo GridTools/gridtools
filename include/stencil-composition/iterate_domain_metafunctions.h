@@ -9,7 +9,7 @@ namespace gridtools
     struct is_positional_iterate_domain : boost::mpl::false_{};
 
     template<typename IterateDomainImpl>
-    struct is_positional_iterate_domain<positional_iterate_domain<IterateDomainImpl> > : boost::mpl::true_{};
+    struct is_positional_iterate_domain<iterate_domain<IterateDomainImpl, true> > : boost::mpl::true_{};
 
     template<typename T>
     struct iterate_domain_local_domain;

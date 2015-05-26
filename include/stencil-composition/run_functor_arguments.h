@@ -33,7 +33,8 @@ namespace gridtools {
         typename LocalDomain,                       // local domain type
         typename Coords,                            // the coordinates
         typename ExecutionEngine,                   // the execution engine
-        enumtype::strategy StrategyId>              // the strategy id
+        enumtype::strategy StrategyId,              // the strategy id
+        bool IsPositional=POSITIONAL_WHEN_DEBUGGING>
     struct run_functor_arguments
     {
         BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
@@ -52,7 +53,7 @@ namespace gridtools {
         typedef RangeSizes range_sizes_t;
         typedef LocalDomain local_domain_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
-                template select_iterate_domain<local_domain_t>::type iterate_domain_t;
+        template select_iterate_domain<local_domain_t, IsPositional>::type iterate_domain_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=StrategyId;

@@ -732,45 +732,6 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
     };
 
-    /**@brief specialization: if the width extension is 0 we fall back on the base storage*/
-    template < typename Storage>
-    struct storage_list<Storage, 0> : public Storage
-    {
-        typedef typename Storage::basic_type basic_type;
-        typedef Storage super;
-        typedef typename Storage::original_storage original_storage;
-
-        //default constructor
-        storage_list(): super(){}
-
-#ifdef CXX11_ENABLED
-        /**@brief default constructor*/
-        template<typename ... UIntTypes>
-        explicit storage_list(UIntTypes const& ... args ): Storage( args ... ) {
-        }
-#else
-        /**@brief default constructor*/
-        explicit storage_list(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( d1, d2, d3 ) {
-        }
-#endif
-
-        /**@brief destructor: frees the pointers to the data fields */
-        virtual ~storage_list(){
-        }
-
-        using super::setup;
-
-   /**dimension number of snaphsots for the current field dimension*/
-        static const ushort_t n_width = Storage::n_width;
-
-        /**@brief device copy constructor*/
-        template<typename T>
-        __device__
-        storage_list(T const& other)
-            : Storage(other)
-            {}
-    };
-
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
     /** @brief traits class defining some useful compile-time counters
      */
