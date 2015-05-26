@@ -156,7 +156,7 @@ namespace gridtools{
         template<enumtype::strategy StrategyId>
         struct get_block_size {
             GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block,
-                    "For CUDA backend only Naive strategy is supported")
+                    "For CUDA backend only Block strategy is supported")
             typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
         };
 

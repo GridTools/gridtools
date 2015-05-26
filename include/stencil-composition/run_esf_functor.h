@@ -81,7 +81,7 @@ namespace gridtools {
 		            (although in theory we could) pass placeholders to the computation which are not\n\
 		            also referenced in the functor.");
 
-                static_cast<const RunEsfFunctorImpl*>(this)->template DoImpl<interval_type, esf_arguments_t>();
+                static_cast<const RunEsfFunctorImpl*>(this)->template do_impl<interval_type, esf_arguments_t>();
             }
         }
     protected:
