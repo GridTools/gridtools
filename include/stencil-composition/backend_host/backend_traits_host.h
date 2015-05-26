@@ -159,7 +159,7 @@ namespace gridtools{
         };
 
         /**
-         * @brief metafunction that derives that returns the right iterate domain
+         * @brief metafunction that returns the right iterate domain
          * (depending on whether the local domain is positional or not)
          * @param LocalDomain the local domain
          * @return the iterate domain type for this backend

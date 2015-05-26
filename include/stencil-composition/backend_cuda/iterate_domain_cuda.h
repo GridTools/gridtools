@@ -49,8 +49,7 @@ public:
     GT_FUNCTION
     bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const
     {
-        return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset < m_block_size_i &&
-            (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset < m_block_size_j ;
+        return is_thread_in_domain_x(i_offset) &&  is_thread_in_domain_y(j_offset);
     }
 
     /**

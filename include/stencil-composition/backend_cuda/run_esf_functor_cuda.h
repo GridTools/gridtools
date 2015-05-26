@@ -40,9 +40,14 @@ namespace gridtools {
         GT_FUNCTION
         explicit run_esf_functor_cuda(iterate_domain_t& iterate_domain) : super(iterate_domain) {}
 
+        /*
+         * @brief main functor implemenation that executes (for CUDA) the user functor of an ESF
+         * @tparam IntervalType interval where the functor gets executed
+         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
+         */
         template<typename IntervalType, typename EsfArguments>
         __device__
-        void DoImpl() const
+        void do_impl() const
         {
             BOOST_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value));
 
@@ -63,7 +68,7 @@ namespace gridtools {
                 functor_t::Do(iterate_domain_evaluator, IntervalType());
             }
 
-            this->template ExecuteExtraWork<
+            this->template execute_extra_work<
                 multiple_grid_points_per_warp_t,
                 IntervalType,
                 EsfArguments,
@@ -76,6 +81,17 @@ namespace gridtools {
 
     private:
 
+        /*
+         * @brief executes the extra grid points associated with each CUDA thread.
+         * This extra grid points can be located at the IMinus or IPlus halos or be one of
+         * the last J positions in the core of the block
+         * @tparam MultipleGridPointsPerWarp boolean template parameter that determines whether a CUDA
+         *         thread has to execute more than one grid point (in case of false, the implementation
+         *         of this function is empty)
+         * @tparam IntervalType type of the interval
+         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
+         * @tparam IterateDomainEvaluator an iterate domain evaluator that wraps an iterate domain
+         */
         template<
             typename MultipleGridPointsPerWarp,
             typename IntervalType,
@@ -83,10 +99,21 @@ namespace gridtools {
             typename IterateDomainEvaluator
         >
         __device__
-        void ExecuteExtraWork(const IterateDomainEvaluator& iterate_domain_evaluator,
+        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
                 typename boost::disable_if<MultipleGridPointsPerWarp, int >::type=0) const
         {}
 
+        /*
+         * @brief executes the extra grid points associated with each CUDA thread.
+         * This extra grid points can be located at the IMinus or IPlus halos or be one of
+         * the last J positions in the core of the block
+         * @tparam MultipleGridPointsPerWarp boolean template parameter that determines whether a CUDA
+         *         thread has to execute more than one grid point (in case of false, the implementation
+         *         of this function is empty)
+         * @tparam IntervalType type of the interval
+         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
+         * @tparam IterateDomainEvaluator an iterate domain evaluator that wraps an iterate domain
+         */
         template<
             typename MultipleGridPointsPerWarp,
             typename IntervalType,
@@ -94,7 +121,7 @@ namespace gridtools {
             typename IterateDomainEvaluator
         >
         __device__
-        void ExecuteExtraWork(const IterateDomainEvaluator& iterate_domain_evaluator,
+        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
                 typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0) const
         {
             typedef typename EsfArguments::functor_t functor_t;
