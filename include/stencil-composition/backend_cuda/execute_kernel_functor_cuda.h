@@ -14,6 +14,7 @@ namespace _impl_cuda {
     void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::coords_t const* coords,
             const int starti, const int startj, const uint_t nx, const uint_t ny) {
 
+        assert(l_domain);
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 

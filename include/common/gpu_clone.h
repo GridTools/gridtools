@@ -86,6 +86,7 @@ The template argument T is supposed to be of mask_object type */
 
       ~clonable_to_gpu() {
           cudaFree(gpu_object_ptr);
+          gpu_object_ptr=NULL;
       }
     };
 #else
