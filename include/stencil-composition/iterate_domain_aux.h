@@ -252,6 +252,7 @@ namespace gridtools{
         template <typename Array>
         GT_FUNCTION
         static void set(uint_t const& id, Array& index){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array")
             index[ID]=id;
             set_index_recur<ID-1>::set(id,index);
         }
@@ -266,6 +267,7 @@ namespace gridtools{
         template<typename Array>
         GT_FUNCTION
         static void set(Array const& index, Array& out){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array")
             out[ID]=index[ID];
             set_index_recur<ID-1>::set(index, out);
         }
@@ -279,12 +281,14 @@ namespace gridtools{
         template<typename Array>
         GT_FUNCTION
         static void set( uint_t const& id, Array& index/* , ushort_t* lru */){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array")
             index[0]=id;
         }
 
         template<typename Array>
         GT_FUNCTION
         static void set(Array const& index, Array& out){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array")
             out[0]=index[0];
         }
     };
@@ -299,9 +303,12 @@ namespace gridtools{
            the location (i,j,k). Such index is shared among all the fields contained in the
            same storage class instance, and it is not shared among different storage instances.
         */
-        template<typename Storage, typename Strides>
+        template<typename StorageSequence, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& RESTRICT r_, const uint_t initial_pos, const uint_t block_, Strides &  RESTRICT strides_, uint_t* RESTRICT index_){
+        static void assign(StorageSequence const& RESTRICT r_, const uint_t initial_pos, const uint_t block_, Strides &  RESTRICT strides_, uint_t* RESTRICT index_){
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
+                    "Storage type not supported")
+            assert(index_);
 
             boost::fusion::at_c<ID>(r_)->template initialize<Coordinate>(initial_pos, block_, strides_.template get<ID>(), &index_[ID]);
             initialize_index<ID-1, Coordinate>::assign(r_, initial_pos, block_,strides_, index_);
@@ -312,11 +319,12 @@ namespace gridtools{
     template<uint_t Coordinate>
     struct initialize_index<0, Coordinate>{
 
-        template<typename Storage
-                 , typename Strides
-                 >
+        template<typename StorageSequence, typename Strides>
         GT_FUNCTION
-        static void assign( Storage const & RESTRICT r_, const uint_t initial_pos, const uint_t block_, Strides & RESTRICT strides_, uint_t* RESTRICT index_){
+        static void assign( StorageSequence const & RESTRICT r_, const uint_t initial_pos, const uint_t block_, Strides & RESTRICT strides_, uint_t* RESTRICT index_){
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
+                    "Storage type not supported")
+            assert(index_);
 
             boost::fusion::at_c<0>(r_)->template initialize<Coordinate>(initial_pos, block_, strides_.template get<0>(), &index_[0]);
         }
