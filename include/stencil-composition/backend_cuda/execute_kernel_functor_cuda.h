@@ -192,8 +192,8 @@ struct execute_kernel_functor_cuda
 
     }
 private:
-    local_domain_t m_local_domain;
-    const coords_t m_coords;
+    const local_domain_t& m_local_domain;
+    const coords_t& m_coords;
     const uint_t m_block_idx_i;
     const uint_t m_block_idx_j;
 };
