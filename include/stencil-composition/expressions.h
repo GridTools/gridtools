@@ -1,4 +1,5 @@
 #pragma once
+#include<common/defs.h>
 #include<common/string_c.h>
 #include <common/math.h>
 
@@ -231,27 +232,45 @@ namespace gridtools{
     namespace expressions{
 /**\section operator (Operators Overloaded)
    @{*/
+        template<typename Arg1, typename Arg2 >
+        struct both_arithmetic_types : public boost::mpl::and_<boost::is_arithmetic<Arg1>, boost::is_arithmetic<Arg2> >::type {};
 
         /** sum expression*/
-        template<typename ArgType1, typename ArgType2>
+        template<typename ArgType1, typename ArgType2 ,
+                 typename boost::disable_if<
+                     typename boost::mpl::or_<
+                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){
             return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** minus expression*/
-        template<typename ArgType1, typename ArgType2>
+        template<typename ArgType1, typename ArgType2,
+                                  typename boost::disable_if<
+                     typename boost::mpl::or_<
+                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){
             return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** multiply expression*/
-        template<typename ArgType1, typename ArgType2>
+        template<typename ArgType1, typename ArgType2,
+                 typename boost::disable_if<
+                     typename boost::mpl::or_<
+                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){
             return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** divide expression*/
-        template<typename ArgType1, typename ArgType2>
+        template<typename ArgType1, typename ArgType2,
+                 typename boost::disable_if<
+                     typename boost::mpl::or_<
+                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){
             return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
@@ -280,7 +299,7 @@ namespace gridtools{
                   >
         GT_FUNCTION
         constexpr FloatType  pow (FloatType arg1)
-        {return gridtools::pow<Exponent>::apply(arg1);}
+        {return gridtools::gt_pow<Exponent>::apply(arg1);}
     }
 #endif
     namespace expressions{
@@ -444,8 +463,8 @@ namespace gridtools{
         GT_FUNCTION
         auto static constexpr value_int(IterateDomain const& it_domain
                                         , expr_exp<ArgType1, IntType> const& arg)
-            -> decltype(pow<2>::apply(it_domain(arg.first_operand))) {
-            return pow<2>::apply(it_domain(arg.first_operand));
+            -> decltype(gt_pow<2>::apply(it_domain(arg.first_operand))) {
+            return gt_pow<2>::apply(it_domain(arg.first_operand));
         }
 
         template <typename IterateDomain, typename ArgType1 /*typename IntType, IntType*/
@@ -453,8 +472,8 @@ namespace gridtools{
         GT_FUNCTION
         auto static constexpr value_int(IterateDomain const& it_domain
                                         , expr_pow<ArgType1, exponent> const& arg)
-            -> decltype(pow<exponent>::apply(it_domain(arg.first_operand))) {
-            return pow<exponent>::apply(it_domain(arg.first_operand));}
+            -> decltype(gt_pow<exponent>::apply(it_domain(arg.first_operand))) {
+            return gt_pow<exponent>::apply(it_domain(arg.first_operand));}
 
         /**@}@}*/
 

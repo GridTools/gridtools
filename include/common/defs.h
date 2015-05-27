@@ -4,6 +4,9 @@
    @brief global definitions
 */
 #include <boost/mpl/bool.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/type_traits.hpp>
 
 #ifdef FUSION_MAX_VECTOR_SIZE
 #undef FUSION_MAX_VECTOR_SIZE
@@ -113,6 +116,39 @@ namespace gridtools{  namespace enumtype{
            @}
          */
     }//namespace enumtype
+
+
+    template<typename Arg >
+    struct is_enum_type : public boost::mpl::and_<
+        typename boost::mpl::not_<boost::is_arithmetic<Arg> >::type
+        , typename boost::is_convertible<Arg, const int>::type >::type {};
+
+    template<typename Arg1, typename Arg2 >
+    struct any_enum_type : public boost::mpl::or_<is_enum_type<Arg1>, is_enum_type<Arg2> >::type {};
+
+    template<typename T>
+    struct is_backend_enum : boost::mpl::false_ {};
+
+    template<>
+    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+    struct error_no_operator_overload{};
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+
 
     template<typename T>
     struct is_execution_engine : boost::mpl::false_{};

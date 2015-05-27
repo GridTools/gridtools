@@ -27,9 +27,9 @@ using namespace enumtype;
 
 //Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
 //  for any type, which breaks most of the code after using expressions
-//#ifdef CXX11_ENABLED
-//using namespace expressions;
-//#endif
+#ifdef CXX11_ENABLED
+using namespace expressions;
+#endif
 
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
@@ -107,17 +107,17 @@ struct out_function {
 //TODOCOSUNA recover once expressions work again
 //Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
 //  for any type, which breaks most of the code after using expressions
-//#ifdef CXX11_ENABLED
-//        dom(out()) = dom(in()) - dom(coeff()) *
-//            (dom(flx() - flx( -1,0,0) +
-//             fly() - fly( 0,-1,0))
-//             );
-//#else
+#ifdef CXX11_ENABLED
+       dom(out()) = dom(in()) - dom(coeff()) *
+           (dom(flx() - flx( -1,0,0) +
+            fly() - fly( 0,-1,0))
+            );
+#else
         dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
-//#endif
+#endif
     }
 };
 
