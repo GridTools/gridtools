@@ -117,7 +117,7 @@ namespace gridtools {
         template<typename BackendType>
         GT_FUNCTION
         void assign_storage_pointers( array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT data_pointer ){
-
+            assert(data_pointer);
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
             m_data_pointer=data_pointer;
@@ -128,6 +128,7 @@ namespace gridtools {
         template<typename BackendType, typename Strides>
         GT_FUNCTION
         void assign_stride_pointers( Strides * RESTRICT strides_){
+            assert(strides_);
             m_strides=strides_;
             assign_strides< N_STORAGES-1, BackendType >::assign(*m_strides, local_domain.local_args);
         }
