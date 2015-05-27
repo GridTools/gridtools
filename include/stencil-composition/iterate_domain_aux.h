@@ -6,6 +6,7 @@
 #include <boost/fusion/include/size.hpp>
 #include "expressions.h"
 #include "accessor.h"
+#include "../common/meta_array.h"
 
 /**
    @file
@@ -15,6 +16,27 @@
 */
 
 namespace gridtools{
+
+    /**
+     * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
+     */
+    template<typename T>
+    struct is_any_iterate_domain_storage : boost::mpl::false_{};
+
+    template < typename BaseStorage >
+    struct is_any_iterate_domain_storage<storage<BaseStorage>* > : boost::mpl::true_{};
+
+    template <typename BaseStorage,
+        uint_t TileI,
+        uint_t TileJ,
+        uint_t MinusI,
+        uint_t MinusJ,
+        uint_t PlusI,
+        uint_t PlusJ
+    >
+    struct is_any_iterate_domain_storage<host_tmp_storage< BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>* > :
+        boost::mpl::true_{};
+
     /**
        @brief struct to allocate recursively all the strides with the proper dimension
 
@@ -165,18 +187,24 @@ namespace gridtools{
            The actual increment computation is delegated to the storage classes, the reason being that the implementation may depend on the storage type
            (e.g. whether the storage is temporary, partiitoned into blocks, ...)
         */
-        template<typename Storage, typename Strides>
+        template<typename StorageSequence, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(StorageSequence const& r_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
+                    "Storage type not supported")
+            assert(index_);
             boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(&index_[ID], strides_.template get<ID>());
             increment_index<ID-1, Coordinate, Execution>::assign(r_,index_,strides_);
         }
 
         /** @brief method for computing the index rof the memory access at a specific (i,j,k) location incremented/decremented by 'increment_' in direction 'Coordinate'.
          */
-        template<typename Storage, typename Strides>
+        template<typename StorageSequence, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(StorageSequence const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
+                    "Storage type not supported")
+            assert(index_);
             boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(increment_,&index_[ID], strides_.template get<ID>());
             increment_index<ID-1, Coordinate, Execution>::assign(r_,increment_,index_,strides_);
         }
@@ -188,18 +216,21 @@ namespace gridtools{
     template<uint_t Coordinate, enumtype::execution Execution>
     struct increment_index<0, Coordinate, Execution>{
 
-        template<typename Storage
-                 , typename Strides
-                 >
+        template<typename StorageSequence, typename Strides>
         GT_FUNCTION
-        static void assign( Storage const &  r_, uint_t* RESTRICT index_, Strides & RESTRICT strides_){
+        static void assign( StorageSequence const &  r_, uint_t* RESTRICT index_, Strides & RESTRICT strides_){
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
+                    "Storage type not supported")
             boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(&index_[0], (strides_.template get<0>() )
                 );
         }
 
-        template<typename Storage, typename Strides>
+        template<typename StorageSequence, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(StorageSequence const& r_, uint const& increment_, uint_t* RESTRICT index_, Strides &  RESTRICT strides_){
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
+                    "Storage type not supported")
+
             boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(increment_,&index_[0], strides_.template get<0>());
         }
 
