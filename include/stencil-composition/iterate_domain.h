@@ -221,15 +221,16 @@ namespace gridtools {
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate>
         GT_FUNCTION
-        void initialize(uint_t const& initial_pos=0, uint_t const& block=0)
-            {
-                initialize_index< N_STORAGES-1, Coordinate>::assign(local_domain.local_args
-                                                                    , initial_pos
-                                                                    , block
-                                                                    , *m_strides
-                                                                    , &m_index[0]
-                                                                    );
-            }
+        void initialize(uint_t const initial_pos=0, uint_t const block=0)
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                initialize_index_functor<
+                    Coordinate,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(*m_strides, local_domain.local_args, initial_pos, block, &m_index[0])
+            );
+        }
 
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION

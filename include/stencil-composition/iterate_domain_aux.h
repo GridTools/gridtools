@@ -219,7 +219,7 @@ namespace gridtools{
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage>::value),
                 "internal error: wrong type")
 
-        increment_index_functor(StorageSequence const& storages, uint const& increment,
+        increment_index_functor(StorageSequence const& storages, uint_t const& increment,
                 uint_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
@@ -235,7 +235,7 @@ namespace gridtools{
         }
     private:
         StorageSequence const& m_storages;
-        uint const& m_increment;
+        uint_t const& m_increment;
         uint_t* RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
     };
@@ -297,40 +297,43 @@ namespace gridtools{
         }
     };
 
-
-    /**@brief initializing the indeces*/
-    template<uint_t ID, uint_t Coordinate>
-    struct initialize_index {
-
-        /**@brief does the actual assignment
+    /**@brief initializing the indeces
+     *     does the actual assignment
            This method is responsible of computing the index for the memory access at
            the location (i,j,k). Such index is shared among all the fields contained in the
            same storage class instance, and it is not shared among different storage instances.
-        */
-        template<typename StorageSequence, typename Strides>
+     *
+     */
+    template<uint_t Coordinate, typename Strides, typename StorageSequence>
+    struct initialize_index_functor {
+    private:
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage>::value),
+                "internal error: wrong type")
+
+
+        Strides& RESTRICT m_strides;
+        StorageSequence const & RESTRICT m_storages;
+        const uint_t m_initial_pos;
+        const uint_t m_block;
+        uint_t* RESTRICT m_index_array;
+
+    public:
+        initialize_index_functor(Strides& RESTRICT strides, StorageSequence const & RESTRICT storages, const uint_t initial_pos,
+            const uint_t block, uint_t* RESTRICT index_array) :
+            m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
+            m_index_array(index_array) {}
+
+        template <typename ID>
         GT_FUNCTION
-        static void assign(StorageSequence const& RESTRICT r_, const uint_t initial_pos, const uint_t block_, Strides &  RESTRICT strides_, uint_t* RESTRICT index_){
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
-                    "Storage type not supported")
-            assert(index_);
+        void operator()(ID const&) const {
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
+                "Accessing an index out of bound in fusion tuple")
 
-            boost::fusion::at_c<ID>(r_)->template initialize<Coordinate>(initial_pos, block_, strides_.template get<ID>(), &index_[ID]);
-            initialize_index<ID-1, Coordinate>::assign(r_, initial_pos, block_,strides_, index_);
-        }
-    };
+            assert(m_index_array);
 
-    /**usual specialization to stop the recursion*/
-    template<uint_t Coordinate>
-    struct initialize_index<0, Coordinate>{
-
-        template<typename StorageSequence, typename Strides>
-        GT_FUNCTION
-        static void assign( StorageSequence const & RESTRICT r_, const uint_t initial_pos, const uint_t block_, Strides & RESTRICT strides_, uint_t* RESTRICT index_){
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage>::value),
-                    "Storage type not supported")
-            assert(index_);
-
-            boost::fusion::at_c<0>(r_)->template initialize<Coordinate>(initial_pos, block_, strides_.template get<0>(), &index_[0]);
+            boost::fusion::at<ID>(m_storages)->template initialize<Coordinate>(
+                    m_initial_pos, m_block, m_strides.template get<ID::value>(), &m_index_array[ID::value]);
         }
     };
 
