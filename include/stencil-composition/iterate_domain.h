@@ -81,6 +81,7 @@ namespace gridtools {
             boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
 
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
+        typedef strides_cached<N_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
 
     private:
         // iterate_domain remembers the state. This is necessary when
@@ -92,7 +93,7 @@ namespace gridtools {
         array<uint_t,N_STORAGES> m_index;
         data_pointer_array_t* RESTRICT m_data_pointer;
 
-        strides_cached<N_STORAGES-1, typename local_domain_t::esf_args>* RESTRICT m_strides;
+        strides_cached_t* RESTRICT m_strides;
 
     public:
         /**@brief constructor of the iterate_domain struct
@@ -170,7 +171,13 @@ namespace gridtools {
         void advance_ij(int_t offset)
         {
             //TODOCOSUNA assert Coordinate is IJ
-            increment_index<N_STORAGES-1, Coordinate, enumtype::forward>::assign(local_domain.local_args, offset, &m_index[0], *m_strides);
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    Coordinate,
+                    enumtype::forward,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, offset, &m_index[0], *m_strides));//                    );
         }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
@@ -180,9 +187,16 @@ namespace gridtools {
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment()
-            {
-                increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
-            }
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    Coordinate,
+                    Execution,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, 1, &m_index[0], *m_strides)
+            );
+        }
 
         /**@brief method for incrementing the index when moving forward along the given direction
 
@@ -193,9 +207,16 @@ namespace gridtools {
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment(uint_t const& steps_)
-            {
-                increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, steps_, &m_index[0], *m_strides);
-            }
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    Coordinate,
+                    Execution,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, steps_, &m_index[0], *m_strides)
+            );
+        }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate>
@@ -213,9 +234,16 @@ namespace gridtools {
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from_)
-            {
-                increment_index<N_STORAGES-1, 2, enumtype::forward>::assign(local_domain.local_args, from_, &m_index[0], *m_strides);
-            }
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    2, //TODOCOSUNA This hardcoded 2 is not good idea, maybe have a enum
+                    enumtype::forward,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, from_, &m_index[0], *m_strides)
+            );
+        }
 
         template <typename T>
         GT_FUNCTION
