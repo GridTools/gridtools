@@ -7,6 +7,7 @@
 #include "expressions.h"
 #include "accessor.h"
 #include "../common/meta_array.h"
+#include "../common/array.h"
 
 /**
    @file
@@ -86,6 +87,10 @@ namespace gridtools{
         uint_t m_data[storage_type::space_dimensions-1];
     };
 
+    template<typename T> struct is_strides_cached : boost::mpl::false_{};
+
+    template<uint_t ID, typename StorageList>
+    struct is_strides_cached< strides_cached<ID, StorageList> > : boost::mpl::true_{};
 
     //defines how many threads participate to the (shared) memory initialization
     //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
@@ -154,19 +159,37 @@ namespace gridtools{
     /**@brief this struct counts the total number of data fields which are neceassary for this functor (i.e. number of storage instances times number of fields per storage)
        TODO code repetition in the _traits class
     */
-    template <typename StoragesVector, int_t index>
+    template <typename StoragesVector, int_t EndIndex>
     struct total_storages{
         //the index must not exceed the number of storages
-        GRIDTOOLS_STATIC_ASSERT(index<boost::mpl::size<StoragesVector>::type::value, "the index must not exceed the number of storages")
-        static const uint_t count=total_storages<StoragesVector, index-1>::count+
-            boost::remove_pointer<typename boost::remove_reference<typename boost::mpl::at_c<StoragesVector, index >::type>::type>
-            ::type::field_dimensions;
-    };
+        GRIDTOOLS_STATIC_ASSERT(EndIndex <= boost::mpl::size<StoragesVector>::type::value,
+                "the index must not exceed the number of storages")
 
-    /**@brief partial specialization to stop the recursion*/
-    template <typename StoragesVector>
-    struct total_storages<StoragesVector, 0 >{
-        static const uint_t count=boost::remove_pointer<typename boost::remove_reference<typename  boost::mpl::at_c<StoragesVector, 0 >::type>::type>::type::field_dimensions;
+        template<typename Index_>
+        struct get_field_dimensions{
+            typedef typename boost::mpl::int_<
+                 boost::remove_pointer<
+                     typename boost::remove_reference<
+                         typename boost::mpl::at<StoragesVector, Index_ >::type
+                     >::type
+                 >::type::field_dimensions
+             >::type type;
+        };
+
+        typedef typename boost::mpl::if_c<
+            (EndIndex < 0),
+            boost::mpl::int_<0>,
+            typename boost::mpl::fold<
+                boost::mpl::range_c<int, 0, EndIndex>,
+                boost::mpl::int_<0>,
+                boost::mpl::plus<
+                    boost::mpl::_1,
+                    get_field_dimensions<boost::mpl::_2>
+                >
+            >::type
+        >::type type;
+
+        static const uint_t value=type::value;
     };
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
@@ -330,63 +353,52 @@ namespace gridtools{
         }
     };
 
-    /**@brief assigning all the storage pointers to the m_data_pointers array*/
-    template<uint_t ID, typename BackendType>
-    struct assign_storage{
+    /**@brief assigning all the storage pointers to the m_data_pointers array
+     * This method is responsible of copying the base pointers of the storages inside a local vector
+     * which is tipically instantiated on a fast local memory.
+     *
+     * The EU stands for ExecutionUnit (thich may be a thread or a group of
+     * threads. There are potentially two ids, one over i and one over j, since
+     * our execution model is parallel on (i,j). Defaulted to 1.
+     * */
+    template<typename BackendType, typename DataPointerArray, typename StorageSequence>
+    struct assign_storage_functor{
 
-        /**@brief does the actual assignment
-           This method is responsible of copying the base pointers of the storages inside a local vector
-           which is tipically instantiated on a fast local memory.
+        GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value), "internal error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage>::value),
+                "internal error: wrong type")
 
-           The EU stands for ExecutionUnit (thich may be a thread or a group of
-           threads. There are potentially two ids, one over i and one over j, since
-           our execution model is parallel on (i,j). Defaulted to 1.
-        */
-        template<typename Left, typename Right>
+        assign_storage_functor(DataPointerArray& RESTRICT data_pointer_array, StorageSequence const& RESTRICT storages,
+                const int_t EU_id_i, const int_t EU_id_j) :
+            m_data_pointer_array(data_pointer_array), m_storages(storages), m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
+
+        template <typename ID>
         GT_FUNCTION
-        static void assign(Left& RESTRICT l, Right const & RESTRICT r, int EU_id_i, int EU_id_j){
-#ifdef CXX11_ENABLED
-            typedef typename std::remove_pointer
-                <typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
-#else
-            typedef typename boost::remove_pointer
-                <typename boost::remove_reference
-                 <BOOST_TYPEOF(boost::fusion::at_c<ID>(r))
-                  >::type
-                 >::type storage_type;
-#endif
+        void operator()(ID const&) const {
+            typedef typename boost::remove_pointer<
+                typename boost::remove_reference<
+                    typename boost::fusion::result_of::at<StorageSequence, ID>::type
+                 >::type
+            >::type storage_type;
+
             //if the following fails, the ID is larger than the number of storage types
-            GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
+            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
+                    "the ID is larger than the number of storage types")
 
-                assign_raw_data<storage_type::field_dimensions-1,
-                                total_storages<Right, ID-1>::count,
-                                BackendType,
-                                storage_type>::
-                assign(l, boost::fusion::at_c<ID>(r),
-                       EU_id_i, EU_id_j);
+            assign_raw_data<storage_type::field_dimensions-1,
+                total_storages<StorageSequence, ID::value>::value,
+                BackendType,
+                storage_type
+            >::assign(m_data_pointer_array, boost::fusion::at<ID>(m_storages), m_EU_id_i, m_EU_id_j);
 
-            assign_storage<ID-1, BackendType>::assign(l, r, EU_id_i, EU_id_j); //tail recursion
         }
+    private:
+        DataPointerArray& RESTRICT m_data_pointer_array;
+        StorageSequence const & RESTRICT m_storages;
+        const int_t m_EU_id_i;
+        const int_t m_EU_id_j;
+
     };
-
-    /**usual specialization to stop the recursion*/
-    template<typename BackendType>
-    struct assign_storage<0, BackendType>{
-
-        template<typename Left, typename Right>
-        GT_FUNCTION
-        static void assign(Left & RESTRICT l, Right const & RESTRICT r, int EU_id_i, int EU_id_j){
-#ifdef CXX11_ENABLED
-            typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r))>::type>::type storage_type;
-#else
-            typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r))>::type>::type storage_type;
-#endif
-            // std::cout<<"ID is: "<<0<<"n_width is: "<< storage_type::n_width-1 << "current index is "<< 0 <<std::endl;
-            assign_raw_data<storage_type::field_dimensions-1, 0, BackendType, storage_type>::
-                assign(l, boost::fusion::at_c<0>(r), EU_id_i, EU_id_j);
-        }
-    };
-
 
     /**
        @brief assigning the storage strides to the m_strides array.
@@ -424,39 +436,34 @@ namespace gridtools{
        for(i=0; i<n_f; ++i)
        for(j=0; j<n_d(i); ++j)
     */
-    template<uint_t ID, typename BackendType>
-    struct assign_strides{
+    template<typename BackendType, typename StridesCached, typename StorageSequence>
+    struct assign_strides_functor{
 
-        /**@brief does the actual assignment
-         */
-        template<typename Left, typename Right>
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage>::value),
+                "internal error: wrong type")
+
+        assign_strides_functor(StridesCached& RESTRICT strides, StorageSequence const& RESTRICT storages) :
+            m_strides(strides), m_storages(storages) {}
+
+        template <typename ID>
         GT_FUNCTION
-        static void assign(Left& RESTRICT l, Right const& RESTRICT r){
-#ifdef CXX11_ENABLED
-            typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
-#else
-            typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<ID>(r))>::type>::type storage_type;
-#endif
+        void operator()(ID const&) const {
+            typedef typename boost::remove_pointer<
+                typename boost::remove_reference<
+                    typename boost::mpl::at<StorageSequence, ID>::type
+                 >::type
+            >::type storage_type;
+
             //if the following fails, the ID is larger than the number of storage types
-            GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<Right>::value, "the ID is larger than the number of storage types")
-                assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(l.template get<ID>(), &boost::fusion::at_c<ID>(r)->strides(1));
-            assign_strides<ID-1,BackendType>::assign(l,r); //tail recursion
-        }
-    };
+            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types")
 
-    /**usual specialization to stop the recursion*/
-    template<typename BackendType>
-    struct assign_strides<0, BackendType>{
-        template<typename Left, typename Right>
-        GT_FUNCTION
-        static void assign(Left & RESTRICT l_, Right const & RESTRICT r_){
-#ifdef CXX11_ENABLED
-            typedef typename std::remove_pointer< typename std::remove_reference<decltype(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
-#else
-            typedef typename boost::remove_pointer< typename boost::remove_reference<BOOST_TYPEOF(boost::fusion::at_c<0>(r_))>::type>::type storage_type;
-#endif
-            assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(l_.template get<0>(), &boost::fusion::at_c<0>(r_)->strides(1));
+            assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(
+                    m_strides.template get<ID::value>(), &boost::fusion::at<ID>(m_storages)->strides(1));
         }
+    private:
+        StridesCached& RESTRICT m_strides;
+        const StorageSequence& RESTRICT m_storages;
     };
 
 }//namespace gridtools
