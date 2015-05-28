@@ -1,7 +1,7 @@
 #pragma once
 #include<common/defs.h>
 #include<common/string_c.h>
-#include <common/math.h>
+#include <common/gt_math.h>
 
 /**@file
    @brief Expression templates definition.
