@@ -219,6 +219,7 @@ namespace gridtools{
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage>::value),
                 "internal error: wrong type")
 
+        GT_FUNCTION
         increment_index_functor(StorageSequence const& storages, uint_t const& increment,
                 uint_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
@@ -319,6 +320,7 @@ namespace gridtools{
         uint_t* RESTRICT m_index_array;
 
     public:
+        GT_FUNCTION
         initialize_index_functor(Strides& RESTRICT strides, StorageSequence const & RESTRICT storages, const uint_t initial_pos,
             const uint_t block, uint_t* RESTRICT index_array) :
             m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
@@ -352,6 +354,7 @@ namespace gridtools{
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage>::value),
                 "internal error: wrong type")
 
+        GT_FUNCTION
         assign_storage_functor(DataPointerArray& RESTRICT data_pointer_array, StorageSequence const& RESTRICT storages,
                 const int_t EU_id_i, const int_t EU_id_j) :
             m_data_pointer_array(data_pointer_array), m_storages(storages), m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
@@ -392,26 +395,27 @@ namespace gridtools{
 
        This is the unrolling of the inner nested loop
     */
-    template<uint_t Number, typename BackendType>
-    struct assign_strides_rec{
-        static const uint_t Id=(Number)%BLOCK_SIZE;
-        template<typename Left , typename Right >
-        GT_FUNCTION
-        static void assign(Left* RESTRICT l, Right const* RESTRICT r){
-            BackendType:: template once_per_block<Id>::assign(l[Number],r[Number]);
-            assign_strides_rec<Number-1, BackendType>::assign(l, r);
-        }
-
-    };
-
-    /**@brief stopping the recursion*/
     template<typename BackendType>
-    struct assign_strides_rec<0, BackendType>{
-        static const uint_t Id=0;
-        template<typename Left , typename Right >
+    struct assign_strides_inner_functor
+    {
+    private:
+        uint_t* RESTRICT m_l;
+        const uint_t* RESTRICT m_r;
+
+    public:
+
         GT_FUNCTION
-        static void assign(Left* RESTRICT l, Right const* RESTRICT r){
-            BackendType:: template once_per_block<Id>::assign(l[0],r[0]);
+        assign_strides_inner_functor(uint_t* RESTRICT l, const uint_t* RESTRICT r) :
+            m_l(l), m_r(r) {}
+
+        template <typename ID>
+        GT_FUNCTION
+        void operator()(ID const&) const {
+            assert(m_l);
+            assert(m_r);
+            const uint_t pe_id=(ID::value)%BLOCK_SIZE;
+
+            BackendType:: template once_per_block<pe_id>::assign(m_l[ID::value],m_r[ID::value]);
         }
     };
 
@@ -448,8 +452,11 @@ namespace gridtools{
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types")
 
-            assign_strides_rec<storage_type::space_dimensions-2, BackendType>::assign(
-                    m_strides.template get<ID::value>(), &boost::fusion::at<ID>(m_storages)->strides(1));
+            for_each<boost::mpl::range_c<int, 0, storage_type::space_dimensions-1> > (
+                assign_strides_inner_functor<
+                    BackendType
+                >(m_strides.template get<ID::value>(), &boost::fusion::at<ID>(m_storages)->strides(1))
+            );
         }
     private:
         StridesCached& RESTRICT m_strides;
