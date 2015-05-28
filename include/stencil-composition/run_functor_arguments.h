@@ -42,7 +42,7 @@ namespace gridtools {
         BOOST_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value));
         BOOST_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value));
 
-        typedef boost::mpl::integral_c<enumtype::backend, BackendId> backend_id_t;
+        typedef enumtype::enum_type<enumtype::backend, BackendId> backend_id_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef FunctorList functor_list_t;

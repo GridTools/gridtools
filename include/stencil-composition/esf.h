@@ -2,7 +2,7 @@
 
 #include <boost/type_traits/is_const.hpp>
 
-#include "stencil-composition/accessor.h"
+#include "accessor.h"
 #include "domain_type.h"
 
 /**
