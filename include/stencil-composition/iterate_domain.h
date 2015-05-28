@@ -78,7 +78,10 @@ namespace gridtools {
         //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages<
             actual_args_type,
-            boost::mpl::size<typename local_domain_t::mpl_storages>::type::value-1 >::count;
+            boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
+
+        typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
+        typedef strides_cached<N_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
 
     private:
         // iterate_domain remembers the state. This is necessary when
@@ -88,9 +91,9 @@ namespace gridtools {
 
         local_domain_t const& local_domain;
         array<uint_t,N_STORAGES> m_index;
-        array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT m_data_pointer;
+        data_pointer_array_t* RESTRICT m_data_pointer;
 
-        strides_cached<N_STORAGES-1, typename local_domain_t::esf_args>* RESTRICT m_strides;
+        strides_cached_t* RESTRICT m_strides;
 
     public:
         /**@brief constructor of the iterate_domain struct
@@ -116,20 +119,31 @@ namespace gridtools {
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( array<void* RESTRICT, N_DATA_POINTERS>* RESTRICT data_pointer ){
-
+        void assign_storage_pointers( data_pointer_array_t* RESTRICT data_pointer ){
+            assert(data_pointer);
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
             m_data_pointer=data_pointer;
-            assign_storage< N_STORAGES-1, BackendType >
-                ::assign(*m_data_pointer, local_domain.local_args, EU_id_i, EU_id_j);
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                assign_storage_functor<
+                    BackendType,
+                    data_pointer_array_t,
+                    typename local_domain_t::local_args_type
+                >(*m_data_pointer, local_domain.local_args,  EU_id_i, EU_id_j));
         }
 
         template<typename BackendType, typename Strides>
         GT_FUNCTION
         void assign_stride_pointers( Strides * RESTRICT strides_){
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type")
+            assert(strides_);
             m_strides=strides_;
-            assign_strides< N_STORAGES-1, BackendType >::assign(*m_strides, local_domain.local_args);
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                assign_strides_functor<
+                    BackendType,
+                    Strides,
+                    typename local_domain_t::local_args_type
+                >(*m_strides, local_domain.local_args));
         }
 
 
@@ -157,7 +171,13 @@ namespace gridtools {
         void advance_ij(int_t offset)
         {
             //TODOCOSUNA assert Coordinate is IJ
-            increment_index<N_STORAGES-1, Coordinate, enumtype::forward>::assign(local_domain.local_args, offset, &m_index[0], *m_strides);
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    Coordinate,
+                    enumtype::forward,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, offset, &m_index[0], *m_strides));//                    );
         }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
@@ -167,9 +187,16 @@ namespace gridtools {
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment()
-            {
-                increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, &m_index[0], *m_strides);
-            }
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    Coordinate,
+                    Execution,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, 1, &m_index[0], *m_strides)
+            );
+        }
 
         /**@brief method for incrementing the index when moving forward along the given direction
 
@@ -180,9 +207,16 @@ namespace gridtools {
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
         void increment(uint_t const& steps_)
-            {
-                increment_index< N_STORAGES-1, Coordinate, Execution>::assign(local_domain.local_args, steps_, &m_index[0], *m_strides);
-            }
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    Coordinate,
+                    Execution,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, steps_, &m_index[0], *m_strides)
+            );
+        }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate>
@@ -200,9 +234,16 @@ namespace gridtools {
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
         void set_k_start(uint_t from_)
-            {
-                increment_index<N_STORAGES-1, 2, enumtype::forward>::assign(local_domain.local_args, from_, &m_index[0], *m_strides);
-            }
+        {
+            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+                increment_index_functor<
+                    2, //TODOCOSUNA This hardcoded 2 is not good idea, maybe have a enum
+                    enumtype::forward,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, from_, &m_index[0], *m_strides)
+            );
+        }
 
         template <typename T>
         GT_FUNCTION
@@ -233,7 +274,7 @@ namespace gridtools {
 
         template < typename LocalD, typename ArgType>
         struct current_storage<false, LocalD, ArgType>{
-            static const uint_t value=(total_storages< typename LocalD::local_args_type, ArgType::index_type::value-1 >::count);
+            static const uint_t value=(total_storages< typename LocalD::local_args_type, ArgType::index_type::value >::value);
         };
 
 #ifdef CXX11_ENABLED
