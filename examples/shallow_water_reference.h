@@ -9,8 +9,10 @@
 */
 using namespace gridtools;
 
+namespace{
 template <int exponent>
-static constexpr float_type pow(float_type const& x){return products<exponent>::apply(x);}
+static constexpr float_type pow(float_type const& x){return gridtools::gt_pow<exponent>::apply(x);}
+}
 
 template< typename StorageType, uint_t DimI, uint_t DimJ >
 struct shallow_water_reference{

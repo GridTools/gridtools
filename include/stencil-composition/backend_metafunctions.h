@@ -1,7 +1,10 @@
 #pragma once
 
-#include "backend.h"
+//#include "backend.h"
+
 namespace gridtools {
+template<enumtype::backend BackendId, enumtype::strategy StrategyType >
+struct backend;
 
 //traits for backend
 template<typename T> struct is_backend : boost::mpl::false_{};
@@ -13,6 +16,7 @@ template<typename T> struct backend_id;
 
 template< enumtype::backend BackendId, enumtype::strategy StrategyType >
 struct backend_id< backend<BackendId, StrategyType> > :
-    boost::mpl::integral_c<enumtype::backend, BackendId>{};
+        enumtype::enum_type<enumtype::backend, BackendId>{
+};
 
 } // gridtools
