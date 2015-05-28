@@ -153,7 +153,7 @@ namespace gridtools {
     template<typename T> struct is_array : boost::mpl::false_{};
 
     template <typename T, size_t D, class ENABLE>
-    class is_array <array<T, D, ENABLE> > : boost::mpl::true_{};
+    struct is_array <array<T, D, ENABLE> > : boost::mpl::true_{};
 
 } // namespace gridtools
 
