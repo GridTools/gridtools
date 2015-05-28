@@ -74,20 +74,13 @@ namespace gridtools{  namespace enumtype{
         /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<backend T>
-        struct backend_type
-        {
-            enum {value=T};
-        };
-
         enum strategy  {Naive, Block};
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<strategy T>
-        struct strategy_type
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
+        template<typename EnumType, EnumType T>
+        struct enum_type
         {
-            enum {value=T};
+            static const EnumType value=T;
         };
 
 
@@ -129,6 +122,8 @@ namespace gridtools{  namespace enumtype{
     template<typename T>
     struct is_backend_enum : boost::mpl::false_ {};
 
+#ifdef CXX11_ENABLED
+    /** checking that no arithmetic operation is performed on enum types*/
     template<>
     struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
     struct error_no_operator_overload{};
@@ -148,7 +143,7 @@ namespace gridtools{  namespace enumtype{
     template <typename  ArgType1, typename ArgType2,
               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
     error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
-
+#endif
 
     template<typename T>
     struct is_execution_engine : boost::mpl::false_{};

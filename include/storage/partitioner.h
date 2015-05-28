@@ -5,7 +5,7 @@
 #include<communication/halo_exchange.h>
 #endif
 #include "cell_topology.h"
-#include "../common/math.h"
+#include "../common/gt_math.h"
 
 /**
 @file
