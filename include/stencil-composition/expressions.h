@@ -39,6 +39,9 @@ namespace gridtools{
         constexpr expr(){}
     };
 
+    template <typename Arg>
+    struct is_binary_expr : boost::mpl::false_ {};
+
 
     template <typename ArgType1>
     struct unary_expr{
@@ -60,6 +63,12 @@ namespace gridtools{
         constexpr unary_expr(){}
     };
 
+    template <typename Arg>
+    struct is_unary_expr : boost::mpl::false_ {};
+
+    template <typename Arg>
+    using is_expr=typename boost::mpl::or_<is_binary_expr<Arg>, is_unary_expr<Arg> >::type;
+
     /**@brief Expression summing two arguments*/
     template <typename ArgType1, typename ArgType2>
     struct expr_plus : public expr<ArgType1, ArgType2>{
@@ -80,6 +89,11 @@ namespace gridtools{
         using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
     };
+
+    template < typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_plus<ArgType1, ArgType2> > : boost::mpl::true_ {
+    };
+
 
     /**@brief Expression subrtracting two arguments*/
     template <typename ArgType1, typename ArgType2>
@@ -103,6 +117,10 @@ namespace gridtools{
 #endif
     };
 
+    template < typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_minus<ArgType1, ArgType2> > : boost::mpl::true_ {
+    };
+
     /**@brief Expression multiplying two arguments*/
     template <typename ArgType1, typename ArgType2>
     struct expr_times : public expr<ArgType1, ArgType2 >{
@@ -121,7 +139,11 @@ namespace gridtools{
         //currying and recursion (this gets inherited)
         using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
-};
+    };
+
+    template < typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_times<ArgType1, ArgType2> > : boost::mpl::true_ {
+    };
 
     /**@brief Expression dividing two arguments*/
     template <typename ArgType1, typename ArgType2>
@@ -143,7 +165,11 @@ namespace gridtools{
         //currying and recursion (this gets inherited)
         using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
 #endif
-};
+    };
+
+    template < typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_divide<ArgType1, ArgType2> > : boost::mpl::true_ {
+    };
 
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
@@ -169,6 +195,8 @@ namespace gridtools{
 #endif
     };
 
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_exp<ArgType1, ArgType2> > : boost::mpl::true_ {};
 
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
@@ -196,7 +224,10 @@ namespace gridtools{
         //currying and recursion (this gets inherited)
         using to_string = concatenate<  ArgType1, operation >;
 #endif
-};
+    };
+
+    template <typename ArgType1, int Exponent>
+    struct is_unary_expr<expr_pow<ArgType1, Exponent> > : boost::mpl::true_ {};
 
 
 
@@ -223,23 +254,39 @@ namespace gridtools{
         //currying and recursion (this gets inherited)
         using to_string = concatenate<  ArgType1, operation >;
 #endif
-};
+    };
+
+    template <typename ArgType1>
+    struct is_unary_expr<expr_direct_access<ArgType1> > : boost::mpl::true_ {};
 
 /*@}*/
+        template <typename Arg>
+        struct is_accessor;
 
     /**@brief Overloaded operators
        The algebraic operators are overloaded in order to deal with expressions. To enable these operators the user has to use the namespace expressions.*/
     namespace expressions{
 /**\section operator (Operators Overloaded)
    @{*/
+
         template<typename Arg1, typename Arg2 >
-        struct both_arithmetic_types : public boost::mpl::and_<boost::is_arithmetic<Arg1>, boost::is_arithmetic<Arg2> >::type {};
+        using both_arithmetic_types = typename boost::mpl::and_<boost::is_arithmetic<Arg1>, boost::is_arithmetic<Arg2> >::type;
+
+        template<typename Arg1, typename Arg2 >
+        using no_expr_types = typename boost::mpl::not_<typename boost::mpl::or_<is_expr<Arg1>, is_expr<Arg2> >::type>::type ;
+
+        template<typename Arg1, typename Arg2 >
+        using no_accessor_types = typename boost::mpl::not_<typename boost::mpl::or_<is_accessor<Arg1>, is_accessor<Arg2> >::type>::type ;
+
+        template<typename Arg1, typename Arg2 >
+        using no_expr_nor_accessor_types = typename boost::mpl::and_<no_accessor_types<Arg1, Arg2>, no_expr_types<Arg1, Arg2> >::type ;
+
 
         /** sum expression*/
         template<typename ArgType1, typename ArgType2 ,
                  typename boost::disable_if<
                      typename boost::mpl::or_<
-                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
                          any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){
@@ -249,7 +296,7 @@ namespace gridtools{
         template<typename ArgType1, typename ArgType2,
                                   typename boost::disable_if<
                      typename boost::mpl::or_<
-                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
                          any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){
@@ -259,7 +306,7 @@ namespace gridtools{
         template<typename ArgType1, typename ArgType2,
                  typename boost::disable_if<
                      typename boost::mpl::or_<
-                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
                          any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){
@@ -269,7 +316,7 @@ namespace gridtools{
         template<typename ArgType1, typename ArgType2,
                  typename boost::disable_if<
                      typename boost::mpl::or_<
-                         both_arithmetic_types< ArgType1, ArgType2 >,
+                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
                          any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
         GT_FUNCTION
         constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){
