@@ -5,7 +5,7 @@
 #endif
 #include <boost/fusion/include/size.hpp>
 #include "expressions.h"
-#include "accessor.h"
+#include "accessor_metafunctions.h"
 
 /**
    @file
