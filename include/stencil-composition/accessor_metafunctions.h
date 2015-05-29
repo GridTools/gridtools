@@ -36,16 +36,16 @@ template < ushort_t ID, typename Range, ushort_t Number, typename ArgsMap>
 struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >
 {
     typedef accessor<ID, Range, Number> accessor_t;
-    BOOST_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0));
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0), "Internal Error: wrong size")
     //check that the key type is an int (otherwise the later has_key would never find the key)
-    BOOST_STATIC_ASSERT((boost::is_same<
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same<
         typename boost::mpl::first<typename boost::mpl::front<ArgsMap>::type>::type::value_type,
         int
-    >::value));
+    >::value), "Internal Error")
 
     typedef typename boost::mpl::integral_c<int, (int)ID> index_type_t;
 
-    BOOST_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_type_t>::value));
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_type_t>::value), "Internal Error")
 
     typedef accessor<
         boost::mpl::at<ArgsMap, index_type_t >::type::value,

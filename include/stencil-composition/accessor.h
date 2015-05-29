@@ -39,7 +39,7 @@ namespace gridtools {
 
         //move ctor
         GT_FUNCTION
-        constexpr explicit accessor(const accessor<ID, Range, Number>& other) : super(std::move(other)) {}
+        constexpr explicit accessor(accessor<ID, Range, Number>&& other) : super(std::move(other)) {}
 
         //move ctor from an accessor with different ID
         template<ushort_t OtherID>

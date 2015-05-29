@@ -29,9 +29,9 @@ namespace gridtools {
         enumtype::backend BackendId, enumtype::strategy StrategyId>
     struct mss_functor
     {
-        BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
-        BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
-        BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
 
         mss_functor(MssLocalDomainArray& local_domain_lists, const Coords& coords, const int block_idx, const int block_idy) :
             m_local_domain_lists(local_domain_lists), m_coords(coords), m_block_idx(block_idx), m_block_idy(block_idy) {}
@@ -43,13 +43,14 @@ namespace gridtools {
         void operator()(Index const& ) const
         {
             typedef typename boost::fusion::result_of::value_at<MssLocalDomainArray, Index>::type mss_local_domain_t;
-            BOOST_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value));
-            BOOST_STATIC_ASSERT((Index::value < boost::mpl::size<typename MssComponentsArray::elements>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((Index::value < boost::mpl::size<typename MssComponentsArray::elements>::value),
+                    "Internal Error")
             typedef typename boost::mpl::at<typename MssComponentsArray::elements, Index>::type mss_components_t;
             typedef typename mss_local_domain_list<mss_local_domain_t>::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map<mss_local_domain_t>::type local_domain_esf_args_map_t;
 
-            BOOST_STATIC_ASSERT((boost::mpl::size<local_domain_list_t>::value==1));
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<local_domain_list_t>::value==1), "Internal Error: wrong size")
             typedef typename boost::mpl::back<local_domain_list_t>::type local_domain_t;
             local_domain_list_t& local_domain_list = (local_domain_list_t&)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;
             local_domain_t& local_domain = (local_domain_t&)boost::fusion::at<boost::mpl::int_<0> >(local_domain_list);

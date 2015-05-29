@@ -56,7 +56,7 @@ namespace gridtools {
         template<template<typename> class, typename> class IterateDomainImpl >
     struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
     {
-        BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
         typedef LocalDomain type;
     };
 
@@ -65,7 +65,7 @@ namespace gridtools {
     struct iterate_domain {
         typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
 
-        BOOST_STATIC_ASSERT((is_local_domain<local_domain_t>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type")
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
                 typename local_domain_t::mpl_storages, 0>::type

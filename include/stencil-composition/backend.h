@@ -176,8 +176,8 @@ namespace gridtools {
             typename MssComponents>
         struct obtain_map_ranges_temporaries_mss
         {
-            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
-            BOOST_STATIC_ASSERT((is_mss_components<MssComponents>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type")
             typedef typename MssComponents::range_sizes_t RangeSizes;
             //full list of temporaries in list of place holders of domain
             typedef typename boost::mpl::fold<typename Domain::placeholders,
@@ -241,8 +241,8 @@ namespace gridtools {
          */
         template <typename Domain, typename MssComponentsArray>
         struct obtain_map_ranges_temporaries_mss_array {
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
-            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type")
 
             typedef typename boost::mpl::fold<
                 typename MssComponentsArray::elements,
@@ -267,9 +267,9 @@ namespace gridtools {
                   , typename LayoutType >
         struct obtain_temporary_storage_types {
 
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
-            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
-            BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type")
 
             typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
 
@@ -320,9 +320,9 @@ namespace gridtools {
         > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, MssLocalDomainArray &mss_local_domain_list) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
-            BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
 
             strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, coords);
         }

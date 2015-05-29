@@ -6,6 +6,7 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
+#include "../gt_for_each/for_each.hpp"
 #include "expressions.h"
 #include "accessor_metafunctions.h"
 #include "../common/meta_array.h"

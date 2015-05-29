@@ -8,8 +8,8 @@ namespace gridtools {
     template<typename LocalDomainSequence>
     struct merge_local_domain_sequence
     {
-        BOOST_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value));
-        BOOST_STATIC_ASSERT((boost::mpl::size<LocalDomainSequence>::value > 0));
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<LocalDomainSequence>::value > 0), "Internal Error: wrong size")
 
         template<typename state, typename element>
         struct insert_element
@@ -64,11 +64,11 @@ namespace gridtools {
     template<typename LocalDomainSequence>
     struct create_trivial_args_lookup_map
     {
-        BOOST_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type")
         template<typename LocalDomain>
         struct generate_trivial_esf_args_map
         {
-            BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
             typedef typename boost::mpl::fold<
                 typename local_domain_esf_args<LocalDomain>::type,
                 boost::mpl::map0<>,
@@ -97,10 +97,10 @@ namespace gridtools {
     template<typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct create_args_lookup_map
     {
-        BOOST_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type")
         // a real merged local domain should have only one element in the sequence
         // (as all the local domains were merged)
-        BOOST_STATIC_ASSERT((boost::mpl::size<MergedLocalDomainSequence>::value==1));
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<MergedLocalDomainSequence>::value==1), "Internal Error: wrong size")
         typedef typename boost::mpl::front<MergedLocalDomainSequence>::type merged_local_domain_t;
         typedef typename local_domain_esf_args<merged_local_domain_t>::type merged_esf_args_t;
 
@@ -111,7 +111,7 @@ namespace gridtools {
                 merged_esf_args_t,
                 Arg
             >::type pos;
-            BOOST_STATIC_ASSERT((!boost::is_same<pos, merged_esf_args_t>::value));
+            GRIDTOOLS_STATIC_ASSERT((!boost::is_same<pos, merged_esf_args_t>::value), "Internal Error: wrong type")
 
             typedef typename boost::mpl::distance<
                 typename boost::mpl::begin<merged_esf_args_t>::type,
@@ -124,7 +124,7 @@ namespace gridtools {
         struct generate_esf_args_map
         {
             typedef typename local_domain_esf_args<LocalDomain>::type local_domain_esf_args_t;
-            BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
             typedef typename boost::mpl::fold<
                 boost::mpl::zip_view<
                     boost::mpl::vector2<
@@ -163,7 +163,7 @@ namespace gridtools {
     template<enumtype::backend BackendId, typename LocalDomainSequence>
     struct fuse_mss_local_domains
     {
-        BOOST_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type")
         typedef typename boost::mpl::eval_if<
             typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
             merge_local_domain_sequence<LocalDomainSequence>,
@@ -183,7 +183,7 @@ namespace gridtools {
     template<enumtype::backend BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct generate_args_lookup_map
     {
-        BOOST_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type")
 
         typedef typename boost::mpl::eval_if<
             typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
