@@ -6,6 +6,7 @@
 
 namespace gridtools {
 
+//TODOCOSUNA unittest this
 /**
  * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
  * @tparam MssArray meta array of MSS
@@ -36,7 +37,7 @@ struct split_esfs_into_independent_mss
     };
 
     typedef meta_array<
-        typename boost::mpl::fold<
+        typename boost::mpl::reverse_fold<
             typename MssArray::elements,
             boost::mpl::vector0<>,
             boost::mpl::copy<
