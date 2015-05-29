@@ -41,7 +41,7 @@ namespace gridtools{
                 >
             > //CRTP
         {
-            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type")
 
             typedef typename backend_traits_from_id<RunFunctorArguments::backend_id_t::value >::run_esf_functor_h_t run_esf_functor_h_t;
             typedef run_f_on_interval_base<
@@ -90,7 +90,7 @@ namespace gridtools{
                 RunFunctorArguments
             >
         > {
-            BOOST_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type")
             //*TODO implement me
         };
     } // namespace _impl

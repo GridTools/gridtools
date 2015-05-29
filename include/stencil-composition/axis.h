@@ -33,7 +33,7 @@ namespace gridtools {
 
     template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
-        BOOST_STATIC_ASSERT(is_interval<Axis>::value);
+        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type")
         typedef Axis axis_type;
         typedef Partitioner partitioner_t;
 
@@ -99,7 +99,7 @@ namespace gridtools {
         template <typename Level>
         GT_FUNCTION
         uint_t value_at() const {
-            BOOST_STATIC_ASSERT(is_level<Level>::value);
+            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), "Internal Error: wrong type")
             int_t offs = Level::Offset::value;
             if (offs < 0) offs += 1;
             return value_list[Level::Splitter::value] + offs;
