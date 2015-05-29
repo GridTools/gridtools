@@ -16,8 +16,6 @@ using namespace gridtools;
 
 
 
-namespace {{ namespace }}
-{
 //
 // definition of the special regions in the vertical (k) direction
 //
@@ -30,6 +28,4 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // in Python, which use the 'kernel' function as a starting point
 //
 {{ functor_src }}
-
-} // namespace {{ namespace }}
 
