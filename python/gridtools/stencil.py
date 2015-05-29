@@ -471,7 +471,6 @@ class Stencil ( ):
         #
         self.src_dir      = None
         self.lib_file     = None
-        self.hdr_file     = None
         self.cpp_file     = None
         self.make_file    = None
         self.fun_hdr_file = None
@@ -575,7 +574,6 @@ class Stencil ( ):
                 raise RuntimeError ("Unknown backend '%s' in while generating code" % self.backend)
             self.cpp_file     = '%s.%s'        % (self.name, extension)
             self.lib_file     = 'lib%s.so'     % self.name.lower ( )
-            self.hdr_file     = '%s.h'         % self.name
             self.make_file    = 'Makefile'
             self.fun_hdr_file = '%sFunctors.h' % self.name
 
@@ -591,15 +589,11 @@ class Stencil ( ):
             for func in self.inspector.functors:
                 func.generate_code (self.inspector.src)
                 self.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
-            fun_src, hdr_src, cpp_src, make_src = self.translate ( )
+            fun_src, cpp_src, make_src = self.translate ( )
 
             with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
                 functors  = JinjaEnv.get_template ("functors.h")
-                namespace = self.name.lower ( )
-                fun_hdl.write (functors.render (namespace=namespace,
-                                                functor_src=fun_src))
-            with open (path.join (self.src_dir, self.hdr_file), 'w') as hdr_hdl:
-                hdr_hdl.write (hdr_src)
+                fun_hdl.write (functors.render (functor_src=fun_src))
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
@@ -850,10 +844,10 @@ class Stencil ( ):
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 
 
-    def translate (self, namespace=None):
+    def translate (self):
         """
         Translates this stencil to C++, using the gridtools interface, returning
-        a string tuple of rendered files (functors, header, cpp, make).-
+        a string tuple of rendered files (functors, cpp, make).-
         """
         from gridtools import JinjaEnv
 
@@ -866,16 +860,12 @@ class Stencil ( ):
         #
         # instantiate each of the templates and render them
         #
-        header   = JinjaEnv.get_template ("stencil.h")
-        cpp      = JinjaEnv.get_template ("stencil.cpp")
-        make     = JinjaEnv.get_template ("Makefile.%s" % self.backend)
+        cpp    = JinjaEnv.get_template ("stencil.cpp")
+        make   = JinjaEnv.get_template ("Makefile.%s" % self.backend)
 
-        params   = list (self.scope.get_parameters ( ))
-        temps    = list (self.scope.get_temporaries ( ))
+        params = list (self.scope.get_parameters ( ))
+        temps  = list (self.scope.get_temporaries ( ))
 
-        if namespace is None:
-            namespace = self.name.lower ( )
-        
         functs     = dict ( )
         ind_functs = dict ( )
 
@@ -890,18 +880,15 @@ class Stencil ( ):
             ind_functs[self.name] = ind_functs[self.name][:-1]
 
         return (functor_src,
-                header.render (namespace            = namespace,
-                               fun_hdr_file         = self.fun_hdr_file,
-                               stencil_name         = self.name,
-                               stencils             = [self],
-                               scope                = self.scope,
-                               params               = params,
-                               temps                = temps,
-                               params_temps         = params + temps,
-                               functors             = functs,
-                               independent_functors = ind_functs),
-                cpp.render  (stencil=self,
-                             params=params),
+                cpp.render (fun_hdr_file         = self.fun_hdr_file,
+                            stencil_name         = self.name,
+                            stencils             = [self],
+                            scope                = self.scope,
+                            params               = params,
+                            temps                = temps,
+                            params_temps         = params + temps,
+                            functors             = functs,
+                            independent_functors = ind_functs),
                 make.render (stencil=self))
 
 
@@ -1124,10 +1111,8 @@ class CombinedStencil (Stencil):
                 makedirs (src_dir)
             self.src_dir = src_dir
 
-        namespace         = self.name.lower ( )
         functor_src       = ''
-        self.lib_file     = 'lib%s.so' % namespace
-        self.hdr_file     = '%s.h' % self.name
+        self.lib_file     = 'lib%s.so' % self.name.lower ( )
         self.cpp_file     = '%s.cpp' % self.name
         self.make_file    = 'Makefile'
         self.fun_hdr_file = '%sFunctors.h' % self.name
@@ -1141,19 +1126,16 @@ class CombinedStencil (Stencil):
             for func in st.inspector.functors:
                 func.generate_code (st.inspector.src)
                 st.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
-            fun_src, _, _, _ = st.translate (namespace=namespace)
-            functor_src     += fun_src
+            fun_src, _, _  = st.translate ( )
+            functor_src   += fun_src
 
         with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
             functors = JinjaEnv.get_template ("functors.h")
-            fun_hdl.write (functors.render (namespace=namespace,
-                                            functor_src=functor_src))
+            fun_hdl.write (functors.render (functor_src=functor_src))
         #
         # code for the stencil, the library entry point and makefile
         #
-        hdr_src, cpp_src, make_src = self.translate ( )
-        with open (path.join (self.src_dir, self.hdr_file), 'w') as hdr_hdl:
-            hdr_hdl.write (hdr_src)
+        cpp_src, make_src = self.translate ( )
         with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
             cpp_hdl.write (cpp_src)
         with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
@@ -1296,20 +1278,18 @@ class CombinedStencil (Stencil):
     def translate (self):
         """
         Translates this stencil to C++, using the gridtools interface, returning
-        a string tuple of rendered files (header, cpp, make).-
+        a string tuple of rendered files (cpp, make).-
         """
         from gridtools import JinjaEnv
 
         #
         # instantiate each of the templates and render them
         #
-        header    = JinjaEnv.get_template ("stencil.h")
-        cpp       = JinjaEnv.get_template ("stencil.cpp")
-        make      = JinjaEnv.get_template ("Makefile.%s" % self.backend)
+        cpp    = JinjaEnv.get_template ("stencil.cpp")
+        make   = JinjaEnv.get_template ("Makefile.%s" % self.backend)
 
-        namespace = self.name.lower ( )
-        params    = list (self.scope.get_parameters ( ))
-        temps     = list (self.scope.get_temporaries ( ))
+        params = list (self.scope.get_parameters ( ))
+        temps  = list (self.scope.get_temporaries ( ))
 
         #
         # stencil list and functor dictionaries in execution order
@@ -1343,17 +1323,14 @@ class CombinedStencil (Stencil):
                 functors[st.name]             = [ st.inspector.functors[-1] ]
                 independent_functors[st.name] = independent_functors[st.name][:-1]
 
-        return (header.render (namespace            = namespace,
-                               fun_hdr_file         = self.fun_hdr_file,
-                               stencil_name         = self.name.lower ( ),
-                               stencils             = stencils,
-                               scope                = self.scope,
-                               params               = params,
-                               temps                = temps,
-                               params_temps         = params + temps,
-                               functors             = functors,
-                               independent_functors = independent_functors),
-                cpp.render  (stencil=self,
-                             params=params),
+        return (cpp.render (fun_hdr_file         = self.fun_hdr_file,
+                            stencil_name         = self.name.lower ( ),
+                            stencils             = stencils,
+                            scope                = self.scope,
+                            params               = params,
+                            temps                = temps,
+                            params_temps         = params + temps,
+                            functors             = functors,
+                            independent_functors = independent_functors),
                 make.render (stencil=self))
 

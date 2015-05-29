@@ -38,8 +38,6 @@ class Utilities ( ):
         cpp  = JinjaEnv.get_template ("utilities.cpp")
         make = JinjaEnv.get_template ("Makefile.utilities")
 
-        namespace = self.name.lower ( )
-
         return (cpp.render  (stencil=self),
                 make.render (stencil=self))
 
@@ -58,7 +56,6 @@ class Utilities ( ):
         #
         self.src_dir = mkdtemp (prefix="__gridtools_")
 
-        namespace       = self.name.lower ( )
         self.ulib_file  = 'libutilities.so'
         self.ucpp_file  = 'utilities.cpp'
         self.umake_file = 'Makefile.utilities'
