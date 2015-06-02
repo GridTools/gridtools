@@ -39,7 +39,7 @@ namespace gridtools {
         static constexpr int Dims = 2;
 
     public:
-        using storage_types = typename boost::mpl::vector<cell_storage_t&, edge_storage_t&>;
+        using storage_types = typename boost::mpl::vector<cell_storage_t*, edge_storage_t*>;
 
         static constexpr unsigned int u_cell_size_j(int _M) {return _M+4;}
         static constexpr unsigned int u_cell_size_i(int _N) {return _N+2;}

@@ -9,6 +9,8 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/adapted/mpl/detail/size_impl.hpp>
+#include <boost/fusion/include/at_c.hpp>
+#include <type_traits>
 
 template <int I, typename LocationType>
 struct arg {
@@ -43,12 +45,16 @@ make_esf(PlcHldr0, PlcHldr1) {
 template <typename Accessor, typename Lambda>
 struct on_cells_impl {
     using function = Lambda;
+    function ff;
+    on_cells_impl(function l)
+        : ff(l)
+    {}
 };
 
 template <typename Accessor, typename Lambda>
 on_cells_impl<Accessor, Lambda>
-on_cells(Lambda) {
-    return on_cells_impl<Accessor, Lambda>();
+on_cells(Lambda l) {
+    return on_cells_impl<Accessor, Lambda>(l);
 }
     
 template <typename PlcVector, typename GridType>
@@ -63,17 +69,14 @@ private:
         };
     };
 public:
-    using storage_types = typename boost::fusion::result_of::as_vector<typename GridType::storage_types>::type;
-    //typedef typename boost::fusion::result_of::as_vector<boost::mpl::vector<int, char> >::type storage_types;
+    using storage_types = typename std::remove_const<typename boost::fusion::result_of::as_vector<typename GridType::storage_types>::type>::type;
     
-    // using mpl_pointers_t_ = typename boost::mpl::transform<PlcVector,
-    //                                                       get_pointer<GridType>
-    //                                                        >::type;
+    using mpl_pointers_t_ = typename boost::mpl::transform<PlcVector,
+                                                           get_pointer<GridType>
+                                                            >::type;
 
-    // using x = typename mpl_pointers_t::template ciccia<GridType>;
-    // using pointers_t = typename boost::fusion::result_of::as_vector<mpl_pointers_t_>::type;
+    using pointers_t = typename boost::fusion::result_of::as_vector<mpl_pointers_t_>::type;
 
-    using pointers_t = boost::fusion::vector<double*, double*>;
 private:
     storage_types storages;
     pointers_t pointers;
@@ -81,11 +84,15 @@ private:
     unsigned int m_pos_i;
     unsigned int m_pos_j;
 
+    template <typename PointersT, typename StoragesT>
     struct _set_pointers {
+        PointersT &pt;
+        StoragesT const &st;
+        _set_pointers(PointersT& pt, StoragesT const &st): pt(pt), st(st) {}
+
         template <typename Index>
-        void operator()(Index) const {
-            std::cout << Index::value << std::endl;
-            // boost::fusion::at_c<Index::value>(pointers) = const_cast<double*>((boost::fusion::at_c<Index::value>(storage_types)).min_addr());
+        void operator()(Index) {
+            boost::fusion::at_c<Index::value>(pt) = const_cast<double*>((boost::fusion::at_c<Index::value>(st))->min_addr());
         }
     };
     
@@ -97,7 +104,7 @@ public:
         , m_pos_j(pos_j)
     {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_set_pointers());
+        boost::mpl::for_each<indices>(_set_pointers<pointers_t, storage_types>(pointers, storages));
     }
 
     void inc_i() {++m_pos_i;}
@@ -113,10 +120,11 @@ public:
 
     template <typename Arg, typename Accumulator>
     double operator()(on_cells_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
-        auto neighbors = grid.cell2cells(boost::fusion::at_c<Arg::value>(storages), {m_pos_i, m_pos_j});
+        auto neighbors = grid.cell2cells(*(boost::fusion::at_c<Arg::value>(storages)), {m_pos_i, m_pos_j});
         double result = initial;
+
         for (int i = 0; i<neighbors.size(); ++i) {
-            result = on_cells_impl<Arg, Accumulator>::function(boost::fusion::at_c<Arg::value>(pointers), result);
+            result = oncells.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
         }
     }
 
@@ -146,11 +154,11 @@ struct on_cells_f {
     
     template <typename GridAccessors>
     void
-    operator()(GridAccessors const& eval/*, region*/) const {
+    operator()(GridAccessors /*const*/& eval/*, region*/) const {
         std::cout << "i = " << eval.i()
                   << " j = " << eval.j()
                   << std::endl;
-        auto ff = [](const double _in, const double _res){return _in+_res;};
+        auto ff = [](const double _in, const double _res) -> double {return _in+_res;};
         eval(out()) = eval(on_cells<in>(ff), 0.0);
     }
 };
@@ -231,7 +239,7 @@ int main() {
     auto x = make_esf<on_cells_f, trapezoid_2D>(in_cells(), out_cells());
 
     accessor_type<boost::mpl::vector<in_cells, out_cells>, trapezoid_2D> acc
-        (boost::fusion::vector<cell_storage_type&, cell_storage_type&>(cells_out, cells), grid, 0,0);
+        (boost::fusion::vector<cell_storage_type*, cell_storage_type*>(&cells_out, &cells), grid, 0,0);
 
     for (int i = 1; i < NC-1; ++i) {
         acc.set_ij(i, 1);
