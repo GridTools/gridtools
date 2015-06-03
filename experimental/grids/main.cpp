@@ -17,6 +17,11 @@ struct arg {
     using location_type = LocationType;
 };
 
+template <int I, typename T>
+std::ostream& operator<<(std::ostream& s, arg<I,T>) {
+    return s << "placeholder<" << I << ", " << T() << ">";
+}
+
 template <int I>
 struct accessor {
     static const int value = I;
@@ -24,22 +29,24 @@ struct accessor {
 
 template <typename Functor,
           typename Grid,
+          typename LocationType,
           typename PlcHldrs>
 struct esf
 {
     using functor = Functor;
     using grid = Grid;
+    using location_type = LocationType;
     using plcs = PlcHldrs;
 };
 
 
 template <typename Functor,
           typename Grid,
-          typename PlcHldr0,
-          typename PlcHldr1>
-esf<Functor, Grid, boost::mpl::vector<PlcHldr0, PlcHldr1> >
-make_esf(PlcHldr0, PlcHldr1) {
-    return esf<Functor, Grid, boost::mpl::vector<PlcHldr0, PlcHldr1>>();
+          typename LocationType,
+          typename ...PlcHldr0>
+esf<Functor, Grid, LocationType, boost::mpl::vector<PlcHldr0...> >
+make_esf(PlcHldr0... args) {
+    return esf<Functor, Grid, LocationType, boost::mpl::vector<PlcHldr0...>>();
 }
 
 template <typename Accessor, typename Lambda>
@@ -57,10 +64,26 @@ on_cells(Lambda l) {
     return on_cells_impl<Accessor, Lambda>(l);
 }
     
+template <typename Accessor, typename Lambda>
+struct on_edges_impl {
+    using function = Lambda;
+    function ff;
+    on_edges_impl(function l)
+        : ff(l)
+    {}
+};
+
+template <typename Accessor, typename Lambda>
+on_edges_impl<Accessor, Lambda>
+on_edges(Lambda l) {
+    return on_edges_impl<Accessor, Lambda>(l);
+}
+    
 template <typename PlcVector, typename GridType>
 struct accessor_type {
 
 private:
+
     template <typename GridType_>
     struct get_pointer {
         template <typename PlcType>
@@ -68,34 +91,92 @@ private:
             using type = typename GridType_::template pointer_to<typename PlcType::location_type>::type;
         };
     };
+    template <typename GridType_>
+    struct get_storage {
+        template <typename PlcType>
+        struct apply {
+            using type = typename GridType_::template storage_type<typename PlcType::location_type>::type;
+        };
+    };
+
 public:
-    using storage_types = typename std::remove_const<typename boost::fusion::result_of::as_vector<typename GridType::storage_types>::type>::type;
+    using mpl_storage_types = typename boost::mpl::transform<PlcVector,
+                                                             get_storage<GridType>
+                                                             >::type;
+
+    using storage_types = typename boost::fusion::result_of::as_vector<mpl_storage_types>::type; //typename std::remove_const<typename boost::fusion::result_of::as_vector<typename GridType::storage_types>::type>::type;
     
     using mpl_pointers_t_ = typename boost::mpl::transform<PlcVector,
                                                            get_pointer<GridType>
-                                                            >::type;
+                                                           >::type;
 
     using pointers_t = typename boost::fusion::result_of::as_vector<mpl_pointers_t_>::type;
 
+    using grid_type = GridType;
 private:
     storage_types storages;
     pointers_t pointers;
-    GridType const& grid;
+    grid_type const& grid;
     unsigned int m_pos_i;
     unsigned int m_pos_j;
 
     template <typename PointersT, typename StoragesT>
-    struct _set_pointers {
+    struct _set_pointers 
+    {
         PointersT &pt;
         StoragesT const &st;
         _set_pointers(PointersT& pt, StoragesT const &st): pt(pt), st(st) {}
 
         template <typename Index>
         void operator()(Index) {
-            boost::fusion::at_c<Index::value>(pt) = const_cast<double*>((boost::fusion::at_c<Index::value>(st))->min_addr());
+            double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(st))->min_addr());
+            std::cout << " -------------------------> Pointer " << std::hex << ptr << std::endl;
+            boost::fusion::at_c<Index::value>(pt) = ptr;
         }
     };
     
+    template <int Coordinate, typename PointersT, typename GridT>
+    struct _move_pointers 
+    {
+        PointersT &pt;
+        GridT const &g;
+
+        _move_pointers(PointersT& pt, GridT const& g): pt(pt), g(g) {}
+
+        template <typename Index>
+        void operator()(Index) {
+            auto value = boost::fusion::at_c<boost::mpl::at_c<PlcVector, Index::value>::type::location_type::value>
+                (g.virtual_storages())->template strides<Coordinate>();
+            std::cout << "Stide<" << Index::value << "> for coordinate " << Coordinate << " = " << value << std::endl;
+            boost::fusion::at_c<Index::value>(pt) += value;
+        }
+    };
+    
+    void _increment_pointers_i()
+    {
+        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
+        boost::mpl::for_each<indices>(_move_pointers<0, pointers_t, grid_type>(pointers, grid));
+    }
+
+    void _increment_pointers_j() 
+    {
+        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
+        boost::mpl::for_each<indices>(_move_pointers<1, pointers_t, grid_type>(pointers, grid));
+    }
+
+    void _reset_pointers() 
+    {
+        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
+        boost::mpl::for_each<indices>(_set_pointers<pointers_t, storage_types>(pointers, storages));
+    }
+
+    struct printplc {
+        template <typename T>
+        void operator()(T const& e) const {
+            std::cout << "printing placeholders: " << e << std::endl;
+        }
+    };
+
 public:
     accessor_type(storage_types const& storages, GridType const& grid, unsigned int pos_i, unsigned int pos_j)
         : storages(storages)
@@ -103,12 +184,12 @@ public:
         , m_pos_i(pos_i)
         , m_pos_j(pos_j)
     {
-        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_set_pointers<pointers_t, storage_types>(pointers, storages));
+        _reset_pointers();
+        boost::mpl::for_each<PlcVector>(printplc());
     }
 
-    void inc_i() {++m_pos_i;}
-    void inc_j() {++m_pos_j;}
+    void inc_i() {++m_pos_i; _increment_pointers_i();}
+    void inc_j() {++m_pos_j; _increment_pointers_j();}
     void reset_i() {m_pos_i = 0;}
     void reset_j() {m_pos_j = 0;}
     void set_ij(int i, int j) {
@@ -120,11 +201,23 @@ public:
 
     template <typename Arg, typename Accumulator>
     double operator()(on_cells_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
-        auto neighbors = grid.cell2cells(*(boost::fusion::at_c<Arg::value>(storages)), {m_pos_i, m_pos_j});
+        auto neighbors = grid.cell2cells(/**(boost::fusion::at_c<Arg::value>(storages)),*/ {m_pos_i, m_pos_j});
         double result = initial;
+        std::cout << "on_cells " << Arg::value << std::endl;
 
         for (int i = 0; i<neighbors.size(); ++i) {
             result = oncells.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
+        }
+    }
+
+    template <typename Arg, typename Accumulator>
+    double operator()(on_edges_impl<Arg, Accumulator> onedges, double initial = 0.0) const {
+        auto neighbors = grid.cell2edges(/**(boost::fusion::at_c<Arg::value>(storages)),*/ {m_pos_i, m_pos_j});
+        double result = initial;
+        std::cout << "on_edges " << Arg::value << std::endl;
+
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onedges.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
         }
     }
 
@@ -151,7 +244,9 @@ namespace gridtools {
 struct on_cells_f {
     typedef accessor<0> out;
     typedef accessor<1> in;
-    
+    typedef accessor<2> out_edges_NOT_USED;
+    typedef accessor<3> in_edges;
+
     template <typename GridAccessors>
     void
     operator()(GridAccessors /*const*/& eval/*, region*/) const {
@@ -159,12 +254,12 @@ struct on_cells_f {
                   << " j = " << eval.j()
                   << std::endl;
         auto ff = [](const double _in, const double _res) -> double {return _in+_res;};
-        eval(out()) = eval(on_cells<in>(ff), 0.0);
+        eval(out()) = eval(on_cells<in>(ff), 0.0) + eval(on_edges<in_edges>(ff), 0.0);
     }
 };
 
-#define EVAL(f,storage,x,y)                                             \
-    std::cout << #f << ": " << gridtools::array<int,2>{x,y} << " -> " << (grid.f(storage,{x,y})) << std::endl
+#define EVAL(f,x,y)                                                     \
+    std::cout << #f << ": " << gridtools::array<int,2>{x,y} << " -> " << (grid.f({x,y})) << std::endl
 
 using gridtools::layout_map;
 using gridtools::wrap_pointer;
@@ -189,57 +284,56 @@ int main() {
               << "ME = " << ME
               << std::endl;
 
-    std::cout << trapezoid_2D().u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}) << std::endl;
-    std::cout << trapezoid_2D().u_edge_size(gridtools::array<unsigned int, 2>{NC, MC}) << std::endl;
-    
-    cell_storage_type cells(trapezoid_2D().u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}));
-    edge_storage_type edges(trapezoid_2D().u_edge_size(gridtools::array<unsigned int, 2>{NE, ME}));
+    cell_storage_type cells(trapezoid_2D::u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}));
+    edge_storage_type edges(trapezoid_2D::u_edge_size(gridtools::array<unsigned int, 2>{NE, ME}));
 
-    trapezoid_2D grid(/*cells, edges,*/ NC, MC);
+    trapezoid_2D grid(/*cells, edges,*/ 6, 12);
 
     cells.info();
     
-    EVAL(cell2cells_ll_p0, cells, 1, 1);
-    EVAL(cell2cells_ll_p0, cells, 1, 2);
-    EVAL(cell2cells_ll_p1, cells, 1, 3);
-    EVAL(cell2cells_ll_p1, cells, 1, 4);
-    EVAL(cell2cells, cells, 2, 3);
-    EVAL(cell2cells, cells, 2, 4);
-    EVAL(cell2cells, cells, 3, 3);
-    EVAL(cell2cells, cells, 3, 4);
+    EVAL(cell2cells_ll_p0, 1, 1);
+    EVAL(cell2cells_ll_p0, 1, 2);
+    EVAL(cell2cells_ll_p1, 1, 3);
+    EVAL(cell2cells_ll_p1, 1, 4);
+    EVAL(cell2cells, 2, 3);
+    EVAL(cell2cells, 2, 4);
+    EVAL(cell2cells, 3, 3);
+    EVAL(cell2cells, 3, 4);
 
-    EVAL(edge2edges_ll_p0, edges, 2, 3);
-    EVAL(edge2edges_ll_p1, edges, 2, 3);
-    EVAL(edge2edges_ll_p2, edges, 2, 3);
-    EVAL(edge2edges, edges, 2, 2);
-    EVAL(edge2edges, edges, 2, 3);
-    EVAL(edge2edges, edges, 2, 4);
+    EVAL(edge2edges_ll_p0, 2, 3);
+    EVAL(edge2edges_ll_p1, 2, 3);
+    EVAL(edge2edges_ll_p2, 2, 3);
+    EVAL(edge2edges, 2, 2);
+    EVAL(edge2edges, 2, 3);
+    EVAL(edge2edges, 2, 4);
 
-    EVAL(cell2edges_ll_p0, edges, 2, 3);
-    EVAL(cell2edges_ll_p1, edges, 2, 3);
-    EVAL(cell2edges, edges, 2, 3);
-    EVAL(cell2edges, edges, 2, 4);
+    EVAL(cell2edges_ll_p0, 2, 3);
+    EVAL(cell2edges_ll_p1, 2, 3);
+    EVAL(cell2edges, 2, 3);
+    EVAL(cell2edges, 2, 4);
 
-    EVAL(edge2cells_ll_p0, cells, 2, 3);
-    EVAL(edge2cells_ll_p1, cells, 2, 3);
-    EVAL(edge2cells_ll_p2, cells, 2, 3);
-    EVAL(edge2cells, cells, 2, 3);
-    EVAL(edge2cells, cells, 2, 4);
-    EVAL(edge2cells, cells, 2, 5);
+    EVAL(edge2cells_ll_p0, 2, 3);
+    EVAL(edge2cells_ll_p1, 2, 3);
+    EVAL(edge2cells_ll_p2, 2, 3);
+    EVAL(edge2cells, 2, 3);
+    EVAL(edge2cells, 2, 4);
+    EVAL(edge2cells, 2, 5);
 
 
-    cell_storage_type cells_out(trapezoid_2D().u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}));
-    edge_storage_type edges_out(trapezoid_2D().u_edge_size(gridtools::array<unsigned int, 2>{NE, ME}));
+    cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}));
+    edge_storage_type edges_out(trapezoid_2D::u_edge_size(gridtools::array<unsigned int, 2>{NE, ME}));
 
     //    trapezoid_2D grid_out(cells_out, edges_out, NC, MC);
 
     typedef arg<0, trapezoid_2D::cells> in_cells;
     typedef arg<1, trapezoid_2D::cells> out_cells;
+    typedef arg<2, trapezoid_2D::edges> out_edges;
+    typedef arg<3, trapezoid_2D::edges> in_edges;
 
-    auto x = make_esf<on_cells_f, trapezoid_2D>(in_cells(), out_cells());
+    auto x = make_esf<on_cells_f, trapezoid_2D, trapezoid_2D::cells>(in_cells(), out_cells(), out_edges(), in_edges());
 
-    accessor_type<boost::mpl::vector<in_cells, out_cells>, trapezoid_2D> acc
-        (boost::fusion::vector<cell_storage_type*, cell_storage_type*>(&cells_out, &cells), grid, 0,0);
+    accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>, trapezoid_2D> acc
+        (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>(&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
     for (int i = 1; i < NC-1; ++i) {
         acc.set_ij(i, 1);
