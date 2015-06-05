@@ -40,7 +40,7 @@ bool test(){
 #ifdef CXX11_ENABLED
                    , static_loop_item<0, enumtype::forward, 0u, 10u, uint_t>
 #endif
-        > h(2u, 5u, 6, 8);
+        > h(2, 5, 6, 8);
     h.apply(it_domain, fun);
 
     return fun.m_iterations == 4*3
