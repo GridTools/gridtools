@@ -17,7 +17,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -34,12 +34,12 @@ namespace copy_stencil{
     struct copy_functor {
 
 #ifdef CXX11_ENABLED
-        typedef arg_type<0, range<0,0,0,0>, 4> in;
+        typedef accessor<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
         typedef Dimension<4> time;
 #else
-        typedef const arg_type<0, range<0,0,0,0>, 3> in;
-        typedef arg_type<1, range<0,0,0,0>, 3> out;
+        typedef const accessor<0, range<0,0,0,0>, 3> in;
+        typedef accessor<1, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
 
@@ -77,7 +77,7 @@ namespace copy_stencil{
         uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -102,8 +102,8 @@ namespace copy_stencil{
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
         //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
-        typedef extend_width<base_type1, 0>  extended_type;
-        typedef storage<extend_dim<extended_type, extended_type> > vec_field_type;
+        typedef storage_list<base_type1, 0>  extended_type;
+        typedef storage<data_field<extended_type, extended_type> > vec_field_type;
 #endif
 #endif
         //out.print();
@@ -112,13 +112,13 @@ namespace copy_stencil{
         // especially the non-temporary ones, in the construction of the domain
 #ifdef CXX11_ENABLED
         typedef arg<0, vec_field_type > p_in;
-        typedef boost::mpl::vector<p_in> arg_type_list;
+        typedef boost::mpl::vector<p_in> accessor_list;
 #else
         typedef arg<0, storage_type> p_in;
         typedef arg<1, storage_type> p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+        typedef boost::mpl::vector<p_in, p_out> accessor_list;
 #endif
         /* typedef arg<1, vec_field_type > p_out; */
 
@@ -150,10 +150,10 @@ namespace copy_stencil{
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
-        gridtools::domain_type<arg_type_list> domain
+        gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in));
 #else
-        gridtools::domain_type<arg_type_list> domain
+        gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
 #endif
         // Definition of the physical dimensions of the problem.
@@ -214,12 +214,12 @@ namespace copy_stencil{
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                        ,p_out()
+                       ,p_out()
 #endif
-                        )
-                    ),
+                    )
+                ),
                 domain, coords
-                );
+            );
 
         copy->ready();
 
@@ -237,7 +237,9 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
+#ifndef CUDA_EXAMPLE
         boost::timer::cpu_timer time;
+#endif
         copy->run();
 
 #ifdef USE_PAPI
@@ -251,11 +253,14 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_execute);
 #endif
+#ifndef CUDA_EXAMPLE
         boost::timer::cpu_times lapse_time = time.elapsed();
-
+#endif
         copy->finalize();
 
+#ifndef CUDA_EXAMPLE
         std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#endif
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif

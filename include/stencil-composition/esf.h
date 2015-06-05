@@ -2,18 +2,45 @@
 
 #include <boost/type_traits/is_const.hpp>
 
-#include "stencil-composition/arg_type.h"
+#include "accessor.h"
+#include "domain_type.h"
+
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)
 */
 namespace gridtools {
 
-    /** @brief Descriptors for Elementary Stencil Function (ESF) */
+    /**
+     * @brief Descriptors for Elementary Stencil Function (ESF)
+     */
     template <typename ESF, typename ArgArray>
     struct esf_descriptor {
         typedef ESF esf_function;
         typedef ArgArray args;
+
+        //////////////////////Compile time checks ////////////////////////////////////////////////////////////
+        //checking that all the placeholders have a different index
+        /**
+         * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
+         * note that the static const indexes are transformed into types using mpl::integral_c
+         */
+        typedef _impl::compute_index_set<typename esf_function::arg_list> check_holes;
+        typedef typename check_holes::raw_index_list raw_index_list;
+        typedef typename check_holes::index_set index_set;
+        static const ushort_t len=check_holes::len;
+
+        //actual check if the user specified placeholder arguments with the same index
+        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ),
+                "You specified different placeholders with the same index. Check the indexes of the arg_type definitions.")
+
+            //checking if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+            typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
+            //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n "
+            "The numeration of the placeholders is not contiguous. You have to define each arg_type with a unique identifier ranging "
+            " from 1 to N without \"holes\".")
+            //////////////////////////////////////////////////////////////////////////////////////////////////////
     };
 
     template <typename T, typename V>
@@ -36,12 +63,20 @@ namespace gridtools {
       : boost::true_type
     {};
 
+    template <typename T> struct is_esf_descriptor : boost::mpl::false_{};
+
+    template<typename ESF, typename ArgArray>
+    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray> > : boost::mpl::true_{};
+
+    template <typename T>
+    struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
+
+
     // Metafunctions
     template <typename Esf>
     struct is_written_temp {
         template <typename Index>
         struct apply {
-            // TODO: boolean logic, replace with mpl::and_ and mpl::or_
             typedef typename boost::mpl::if_<
                 is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
                 typename boost::mpl::if_<

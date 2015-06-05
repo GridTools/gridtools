@@ -26,7 +26,7 @@ namespace make_computation_test{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 
     struct test_functor {
-        typedef const arg_type<0> in;
+        typedef const accessor<0> in;
         typedef boost::mpl::vector1<in> arg_list;
 
         template <typename Evaluation>
@@ -46,7 +46,7 @@ TEST(test_make_computation, get_mss_array) {
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_type> p_out;
-    typedef boost::mpl::vector<p_in, p_out> arg_type_list_t;
+    typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
 
     typedef decltype(
         gridtools::make_mss // mss_descriptor
@@ -65,7 +65,7 @@ TEST(test_make_computation, get_mss_array) {
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;
     typedef gridtools::coordinates<axis_t> coords_t;
 
-    typedef gridtools::domain_type<arg_type_list_t> domain_t;
+    typedef gridtools::domain_type<accessor_list_t> domain_t;
     typedef boost::mpl::vector5<int, domain_t, mss2_t, coords_t, mss1_t> ListTypes;
 
     typedef _impl::get_mss_array<ListTypes>::type MssArray;

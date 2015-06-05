@@ -3,6 +3,10 @@
    @file
    @brief global definitions
 */
+#include <boost/mpl/bool.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/type_traits.hpp>
 
 #ifdef FUSION_MAX_VECTOR_SIZE
 #undef FUSION_MAX_VECTOR_SIZE
@@ -41,14 +45,26 @@
 #define CXX11_DISABLED
 #endif
 
-#ifndef GT_DEFAULT_TILE
-#ifndef SUPPRESS_MESSAGES
-#pragma message("INFO: Using default tile size = 8")
+#ifndef GT_DEFAULT_TILE_I
+  #ifdef __CUDACC__
+    #define GT_DEFAULT_TILE_I 32
+  #else
+    #define GT_DEFAULT_TILE_I 8
+  #endif
 #endif
-#define GT_DEFAULT_TILE 8
+#ifndef GT_DEFAULT_TILE_J
+  #ifdef __CUDACC__
+    #define GT_DEFAULT_TILE_J 8
+  #else
+    #define GT_DEFAULT_TILE_J 8
+  #endif
 #endif
 
 #include <boost/mpl/integral_c.hpp>
+// macro defining empty copy constructors and assignment operators
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName&);               \
+    TypeName& operator=(const TypeName&)
 
 namespace gridtools{  namespace enumtype{
         /**
@@ -58,20 +74,13 @@ namespace gridtools{  namespace enumtype{
         /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<backend T>
-        struct backend_type
-        {
-            enum {value=T};
-        };
-
         enum strategy  {Naive, Block};
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<strategy T>
-        struct strategy_type
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
+        template<typename EnumType, EnumType T>
+        struct enum_type
         {
-            enum {value=T};
+            static const EnumType value=T;
         };
 
 
@@ -100,6 +109,48 @@ namespace gridtools{  namespace enumtype{
            @}
          */
     }//namespace enumtype
+
+
+    template<typename Arg >
+    struct is_enum_type : public boost::mpl::and_<
+        typename boost::mpl::not_<boost::is_arithmetic<Arg> >::type
+        , typename boost::is_convertible<Arg, const int>::type >::type {};
+
+    template<typename Arg1, typename Arg2 >
+    struct any_enum_type : public boost::mpl::or_<is_enum_type<Arg1>, is_enum_type<Arg2> >::type {};
+
+    template<typename T>
+    struct is_backend_enum : boost::mpl::false_ {};
+
+#ifdef CXX11_ENABLED
+    /** checking that no arithmetic operation is performed on enum types*/
+    template<>
+    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+    struct error_no_operator_overload{};
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+#endif
+
+    template<typename T>
+    struct is_execution_engine : boost::mpl::false_{};
+
+    template<enumtype::execution U>
+    struct is_execution_engine<enumtype::execute<U> > : boost::mpl::true_{};
+
 
 #ifndef CXX11_ENABLED
 #define constexpr
@@ -148,8 +199,8 @@ namespace gridtools{  namespace enumtype{
 #ifdef CXX11_ENABLED
     using int_t          = int;
     using short_t        = int;
-    using uint_t         = unsigned int;
-    using ushort_t       = unsigned short;
+    using uint_t         = int;
+    using ushort_t       = int;
     template<int_t N>
     using  static_int=boost::mpl::integral_c<int_t,N>;
     template<uint_t N>
@@ -161,8 +212,8 @@ namespace gridtools{  namespace enumtype{
 #else
     typedef int                     int_t;
     typedef int                     short_t;
-    typedef unsigned int                     uint_t;
-    typedef unsigned short                     ushort_t;
+    typedef int                     uint_t;
+    typedef int                     ushort_t;
     template<int_t N>
     struct static_int : boost::mpl::integral_c<int_t,N>{
         typedef boost::mpl::integral_c<int_t,N> type;

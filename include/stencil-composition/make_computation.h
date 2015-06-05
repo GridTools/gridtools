@@ -17,7 +17,7 @@
 
 #include "common/defs.h"
 #include "stencil-composition/esf.h"
-#include "stencil-composition/mss.h"
+#include "stencil-composition/mss_metafunctions.h"
 #ifndef __CUDACC__
 #include <boost/make_shared.hpp>
 #endif
@@ -48,7 +48,7 @@ namespace _impl {
     template<typename Sequence>
     struct get_mss_array
     {
-        BOOST_STATIC_ASSERT(( boost::mpl::is_sequence<Sequence>::value ));
+        GRIDTOOLS_STATIC_ASSERT(( boost::mpl::is_sequence<Sequence>::value ), "Internal Error: wrong type")
 
         typedef typename boost::mpl::fold<
             Sequence,

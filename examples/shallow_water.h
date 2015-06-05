@@ -23,7 +23,7 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -97,10 +97,7 @@ namespace shallow_water{
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
-            if(i>0 && j>0 && i<4 && j<4)
-                return 1.+height * std::exp(-5*(((i-1)*dx())*(((i-1)*dx()))+((j-1)*dy())*((j-1)*dy())));
-            else
-                return 1.;
+                return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-3)*dy())*((j-3)*dy())));
         }
 
     };
@@ -110,8 +107,8 @@ namespace shallow_water{
         /**GCC 4.8.2  bug: inheriting the 'using' aliases (or replacing the typedefs below with the 'using' syntax) from the base class produces an internal compiler error (segfault).
            The compilation runs fine without warnings with GCC >= 4.9 and Clang*/
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
+        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx;
+        typedef accessor<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
@@ -152,8 +149,8 @@ namespace shallow_water{
 
     struct second_step_y        : public functor_traits {
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpy;
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> sol;
+        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpy;
+        typedef accessor<1, range<0, 0, 0, 0>, 5> sol;
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -186,11 +183,9 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 
-        typedef arg_type<0, range<0, 0, 0, 0>, 5> tmpx;
-        typedef arg_type<1, range<0, 0, 0, 0>, 5> tmpy;
-        typedef arg_type<2, range<0, 0, 0, 0>, 5> sol;
-        // typedef arg_extend<arg_type<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        // typedef arg_extend<arg_type<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef accessor<0, range<-1, 0, 0, 0>, 5> tmpx;
+        typedef accessor<1, range<0, 0, -1, 0>, 5> tmpy;
+        typedef accessor<2, range<0, 0, 0, 0>, 5> sol;
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
@@ -294,7 +289,7 @@ namespace shallow_water{
             uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -314,12 +309,12 @@ namespace shallow_water{
 #else
 //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
             typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,6> base_type1;
-            typedef extend_width<base_type1, 1>  extended_type;
-            typedef storage<extend_dim<extended_type, extended_type, extended_type> >  tmp_type;
+            typedef storage_list<base_type1, 1>  extended_type;
+            typedef storage<data_field<extended_type, extended_type, extended_type> >  tmp_type;
 
             typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,3> base_type2;
-            typedef extend_width<base_type2, 0>  extended_type2;
-            typedef storage<extend_dim<extended_type2, extended_type2, extended_type2> >  sol_type;
+            typedef storage_list<base_type2, 0>  extended_type2;
+            typedef storage<data_field<extended_type2, extended_type2, extended_type2> >  sol_type;
 #endif
             typedef sol_type::original_storage::pointer_type ptr;
 
@@ -329,28 +324,26 @@ namespace shallow_water{
             typedef arg<0, sol_type > p_tmpx;
             typedef arg<1, sol_type > p_tmpy;
             typedef arg<2, sol_type > p_sol;
-            typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> arg_type_list;
+            typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
 
 
             // // Definition of the actual data fields that are used for input/output
             sol_type tmpx(d1-1,d2-1,d3);
             sol_type tmpy(d1-1,d2-1,d3);
-            ptr out1(tmpx.size()), out2(tmpx.size()), out3(tmpx.size()), out4(tmpy.size()), out5(tmpy.size()), out6(tmpy.size());
 
             sol_type sol(d1,d2,d3);
-            ptr out7(sol.size()), out8(sol.size()), out9(sol.size());
 
-            tmpx.set<0>(out1, 0.);
-            tmpx.set<1>(out2, 0.);
-            tmpx.set<2>(out3, 0.);
+            tmpx.set<0>(0.);
+            tmpx.set<1>(0.);
+            tmpx.set<2>(0.);
 
-            tmpy.set<0>(out4, 0.);
-            tmpy.set<1>(out5, 0.);
-            tmpy.set<2>(out6, 0.);
+            tmpy.set<0>(0.);
+            tmpy.set<1>(0.);
+            tmpy.set<2>(0.);
 
-            sol.set<0>(out7, &bc_periodic<0,0>::droplet);//h
-            sol.set<1>(out8, 0.);//u
-            sol.set<2>(out9, 0.);//v
+            sol.set<0>(&bc_periodic<0,0>::droplet);//h
+            sol.set<1>(0.);//u
+            sol.set<2>(0.);//v
 
             std::cout<<"INITIALIZED VALUES"<<std::endl;
             sol.print();
@@ -359,7 +352,7 @@ namespace shallow_water{
             // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
             // It must be noted that the only fields to be passed to the constructor are the non-temporary.
             // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-            domain_type<arg_type_list> domain
+            domain_type<accessor_list> domain
                 (boost::fusion::make_vector(&tmpx, &tmpy, &sol));
 
             // Definition of the physical dimensions of the problem.
