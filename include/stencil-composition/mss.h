@@ -252,10 +252,9 @@ namespace gridtools {
          */
         typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type type;
 
-        GRIDTOOL_STATIC_ASSERT((
-            boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
-                    boost::mpl::size<type>::value
-        ), "Internal Error: wrong size")
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
+                    boost::mpl::size<type>::value), "Internal Error: wrong size")
     };
 
 } // namespace gridtools
