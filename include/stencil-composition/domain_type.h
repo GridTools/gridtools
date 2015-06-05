@@ -21,6 +21,7 @@
 #include "gt_for_each/for_each.hpp"
 #include "../common/gpu_clone.h"
 #include <storage/storage.h>
+#include "../storage/storage_functors.h"
 
 #include "domain_type_impl.h"
 
@@ -283,8 +284,11 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /** @brief copy the pointers from the device to the host */
         void finalize_computation() {
-            boost::fusion::for_each(original_pointers, _impl::call_d2h());
-            boost::fusion::copy(original_pointers, storage_pointers);
+            boost::fusion::for_each(original_pointers, call_d2h());
+            gridtools::for_each<
+                boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
+            > (copy_pointers_functor<arg_list, arg_list> (original_pointers, storage_pointers));
+
         }
 
     };

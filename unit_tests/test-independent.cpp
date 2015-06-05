@@ -9,7 +9,7 @@
 #include <boost/mpl/lambda.hpp>
 #include <common/gt_assert.h>
 #include <stencil-composition/make_stencils.h>
-#include <stencil-composition/arg_type.h>
+#include <stencil-composition/accessor.h>
 #include <stencil-composition/range.h>
 #include <stencil-composition/intermediate.h>
 
@@ -20,11 +20,11 @@ typedef uint_t x_all;
 
 struct lap_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> > in;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<-1, 1, -1, 1> > in;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<-1, 1, -1, 1> >::type in;
+    typedef accessor<0>::type out;
+    typedef const accessor<1, range<-1, 1, -1, 1> >::type in;
 #endif
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -38,13 +38,13 @@ struct lap_function {
 
 struct flx_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 1, 0, 0> > in;
-    typedef const arg_type<2, range<0, 1, 0, 0> > lap;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 1, 0, 0> > in;
+    typedef const accessor<2, range<0, 1, 0, 0> > lap;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
-    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
+    typedef accessor<0>::type out;
+    typedef const accessor<1, range<0, 1, 0, 0> >::type in;
+    typedef const accessor<2, range<0, 1, 0, 0> >::type lap;
 #endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -59,13 +59,13 @@ struct flx_function {
 
 struct fly_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 0, 0, 1> > in;
-    typedef const arg_type<2, range<0, 0, 0, 1> > lap;
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 0, 0, 1> > in;
+    typedef const accessor<2, range<0, 0, 0, 1> > lap;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
-    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
+    typedef accessor<0>::type out;
+    typedef const accessor<1, range<0, 0, 0, 1> >::type in;
+    typedef const accessor<2, range<0, 0, 0, 1> >::type lap;
 #endif
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -80,17 +80,17 @@ struct fly_function {
 
 struct out_function {
 #ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1> in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> > fly;
-    typedef const arg_type<4> coeff;
+    typedef accessor<0> out;
+    typedef const accessor<1> in;
+    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
+    typedef const accessor<3, range<0, 0, -1, 0> > fly;
+    typedef const accessor<4> coeff;
 #else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1>::type in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
-    typedef const arg_type<4>::type coeff;
+    typedef accessor<0>::type out;
+    typedef const accessor<1>::type in;
+    typedef const accessor<2, range<-1, 0, 0, 0> >::type flx;
+    typedef const accessor<3, range<0, 0, -1, 0> >::type fly;
+    typedef const accessor<4>::type coeff;
 #endif
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
@@ -177,16 +177,20 @@ struct print_ {
 template<typename MSS>
 void print_mss(MSS)
 {
-    boost::mpl::for_each<typename MSS::linear_esf>(print_independent(std::string(">")));
+    typedef typename mss_descriptor_linear_esf_sequence<MSS>::type linear_esf_t;
+
+    boost::mpl::for_each<linear_esf_t>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
-    boost::mpl::for_each<typename MSS::esf_array>(print_independent(std::string(">")));
+    typedef typename mss_descriptor_esf_sequence<MSS>::type esf_sequence_t;
+
+    boost::mpl::for_each<esf_sequence_t>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
     typedef typename boost::mpl::fold<
-        typename MSS::esf_array,
+        esf_sequence_t,
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
     >::type ranges_list;

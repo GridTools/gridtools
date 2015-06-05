@@ -32,9 +32,9 @@ namespace gridtools {
             allocate_it(size);
 
 #ifndef NDEBUG
-            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+        printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
-        }
+    }
 
 // copy constructor passes on the ownership
         GT_FUNCTION

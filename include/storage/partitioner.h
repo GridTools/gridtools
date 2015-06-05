@@ -5,6 +5,7 @@
 #include<communication/halo_exchange.h>
 #endif
 #include "cell_topology.h"
+#include "../common/gt_math.h"
 
 /**
 @file
@@ -33,7 +34,7 @@ public:
 
     enum Flag{UP=1, LOW=
 #ifdef CXX11_ENABLED
-              products<space_dimensions<Derived>::value>::apply(2)
+              gt_pow<space_dimensions<Derived>::value>::apply(2)
 #else
               8 // 2^3, 3D topology
 #endif
