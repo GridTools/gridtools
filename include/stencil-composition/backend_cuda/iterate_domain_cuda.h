@@ -8,11 +8,11 @@ namespace gridtools {
 /**
  * @brief iterate domain class for the CUDA backend
  */
-template<template<class> class IterateDomainBase, typename LocalDomain>
-class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<IterateDomainBase, LocalDomain> > //CRTP
+    template<typename LocalDomain, bool IsPositional>
+    class iterate_domain_cuda : public iterate_domain<iterate_domain_cuda<LocalDomain, IsPositional>, IsPositional > //CRTP
 {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
-    typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, LocalDomain> > super;
+    typedef iterate_domain<iterate_domain_cuda<LocalDomain, IsPositional>, IsPositional > super;
 public:
     GT_FUNCTION
     explicit iterate_domain_cuda(LocalDomain const& local_domain, const uint_t block_size_i, const uint_t block_size_j)
@@ -95,17 +95,10 @@ private:
     const uint_t m_block_size_j;
 };
 
-template<
-    template<class> class IterateDomainBase, typename LocalDomain>
-struct is_iterate_domain<
-    iterate_domain_cuda<IterateDomainBase, LocalDomain>
-> : public boost::mpl::true_{};
-
-template<
-    template<class> class IterateDomainBase,
-    typename LocalDomain
->
-struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, LocalDomain> > :
-    is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, LocalDomain> > > {};
+    template<
+        typename LocalDomain, bool IsPositional>
+    struct is_iterate_domain<
+            iterate_domain_cuda<LocalDomain, IsPositional>
+            > : public boost::mpl::true_{};
 
 }

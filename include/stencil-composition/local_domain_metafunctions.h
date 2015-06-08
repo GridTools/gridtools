@@ -50,9 +50,7 @@ namespace gridtools {
         typedef boost::mpl::vector1<
             local_domain<
                 typename local_domain_storage_pointers<typename boost::mpl::front<LocalDomainSequence>::type>::type,
-                merged_esf_args_t,
-                local_domain_is_stateful< typename boost::mpl::front<LocalDomainSequence>::type >::value
-            >
+                merged_esf_args_t>
         > type;
     };
 

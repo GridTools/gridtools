@@ -8,29 +8,21 @@ namespace gridtools {
 /**
  * @brief iterate domain class for the Host backend
  */
-template<template<class> class IterateDomainBase, typename LocalDomain>
-class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > //CRTP
+    template<typename LocalDomain, bool IsPositional>
+    class iterate_domain_host : public iterate_domain<iterate_domain_host<LocalDomain, IsPositional>, IsPositional > //CRTP
 {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
-    typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > super;
+    typedef iterate_domain<iterate_domain_host<LocalDomain, IsPositional>, IsPositional > super;
 public:
+    typedef LocalDomain local_domain_t;
+
     GT_FUNCTION
     explicit iterate_domain_host(LocalDomain const& local_domain)
         : super(local_domain) {}
 
 };
 
-template<
-    template<class> class IterateDomainBase, typename LocalDomain>
-struct is_iterate_domain<
-    iterate_domain_host<IterateDomainBase, LocalDomain>
-> : public boost::mpl::true_{};
-
-template<
-    template<class> class IterateDomainBase,
-    typename LocalDomain
->
-struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, LocalDomain> > :
-    is_positional_iterate_domain<IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > > {};
+template<typename LocalDomain, bool IsPositional>
+struct is_iterate_domain<iterate_domain_host<LocalDomain, IsPositional> > : public boost::mpl::true_{};
 
 }

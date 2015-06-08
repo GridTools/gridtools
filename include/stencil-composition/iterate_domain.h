@@ -52,20 +52,21 @@ namespace gridtools {
     struct iterate_domain_impl_local_domain;
 
     template< typename LocalDomain,
-        template<typename> class IterateDomainBase,
-        template<template<typename> class, typename> class IterateDomainImpl >
-    struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
+              template<typename, bool> class IterateDomainImpl,
+              bool IsPositional>
+    struct iterate_domain_impl_local_domain < IterateDomainImpl<LocalDomain, IsPositional> >
     {
         BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
         typedef LocalDomain type;
     };
 
-    /**@brief class handling the computation of the */
-    template <typename IterateDomainImpl>
-    struct iterate_domain {
-        typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
+    template <typename IterateDomainImpl/*derived class*/, bool IsPositional>
+    struct iterate_domain;
 
-        BOOST_STATIC_ASSERT((is_local_domain<local_domain_t>::value));
+    /**@brief class handling the computation of the */
+    template <typename IterateDomainImpl/*derived class*/>
+    struct iterate_domain<IterateDomainImpl, false> {
+        typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
                 typename local_domain_t::mpl_storages, 0>::type
@@ -400,16 +401,16 @@ namespace gridtools {
 
     /**@brief class handling the computation of the */
     template<typename IterateDomainImpl>
-    struct positional_iterate_domain : public iterate_domain<IterateDomainImpl>
+    struct iterate_domain<IterateDomainImpl, true> : public iterate_domain<IterateDomainImpl, false>
     {
-        typedef iterate_domain<IterateDomainImpl> base_t;
+        typedef iterate_domain<IterateDomainImpl, false> base_t;
         typedef typename base_t::local_domain_t local_domain_t;
 
 #ifdef CXX11_ENABLED
-        using iterate_domain<IterateDomainImpl>::iterate_domain;
+        using iterate_domain<IterateDomainImpl, false>::iterate_domain;
 #else
         GT_FUNCTION
-        positional_iterate_domain(local_domain_t const& local_domain) : base_t(local_domain) {}
+        iterate_domain(local_domain_t const& local_domain) : base_t(local_domain) {}
 #endif
 
         /**@brief method for incrementing the index when moving forward along the k direction */

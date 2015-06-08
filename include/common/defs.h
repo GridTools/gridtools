@@ -8,6 +8,22 @@
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 
+
+#ifndef NDEBUG
+
+#ifndef __CUDACC__
+#define POSITIONAL_WHEN_DEBUGGING true
+#ifndef SUPPRESS_MESSAGES
+#pragma message (">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
+#endif
+#else
+#define POSITIONAL_WHEN_DEBUGGING false
+#endif
+#else
+#define POSITIONAL_WHEN_DEBUGGING false
+#endif
+
+
 #ifdef FUSION_MAX_VECTOR_SIZE
 #undef FUSION_MAX_VECTOR_SIZE
 #endif

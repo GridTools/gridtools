@@ -166,27 +166,9 @@ namespace gridtools{
          * @tparam LocalDomain the local domain
          * @return the iterate domain type for this backend
          */
-        template <typename LocalDomain>
+        template <typename LocalDomain, bool IsPositional>
         struct select_iterate_domain {
-            BOOST_STATIC_ASSERT((is_local_domain<LocalDomain>::value));
-            //indirection in order to avoid instantiation of both types of the eval_if
-            template<typename _LocalDomain>
-            struct select_positional_iterate_domain
-            {
-                typedef iterate_domain_cuda<positional_iterate_domain, _LocalDomain> type;
-            };
-
-            template<typename _LocalDomain>
-            struct select_basic_iterate_domain
-            {
-                typedef iterate_domain_cuda<iterate_domain, _LocalDomain> type;
-            };
-
-            typedef typename boost::mpl::eval_if<
-                local_domain_is_stateful<LocalDomain>,
-                select_positional_iterate_domain<LocalDomain>,
-                select_basic_iterate_domain<LocalDomain>
-            >::type type;
+            typedef iterate_domain_cuda<LocalDomain, IsPositional> type;
         };
     };
 

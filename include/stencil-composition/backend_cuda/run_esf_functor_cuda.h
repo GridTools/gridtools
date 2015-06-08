@@ -52,11 +52,6 @@ namespace gridtools {
             BOOST_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value));
 
             //instantiate the iterate domain evaluator, that will map the calls to arguments to their actual
-            // position in the iterate domain
-            typedef typename get_iterate_domain_evaluator<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
-                    iterate_domain_evaluator_t;
-
-            iterate_domain_evaluator_t iterate_domain_evaluator(m_iterate_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
 
@@ -65,15 +60,15 @@ namespace gridtools {
             if(m_iterate_domain.is_thread_in_domain())
             {
                 //call the user functor at the core of the block
-                functor_t::Do(iterate_domain_evaluator, IntervalType());
+                functor_t::Do(m_iterate_domain, IntervalType());
             }
 
             this->template execute_extra_work<
                 multiple_grid_points_per_warp_t,
                 IntervalType,
                 EsfArguments,
-                iterate_domain_evaluator_t
-            > (iterate_domain_evaluator);
+                iterate_domain_t
+            > (m_iterate_domain);
 
             __syncthreads();
 

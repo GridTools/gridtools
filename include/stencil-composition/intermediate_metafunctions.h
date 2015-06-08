@@ -10,9 +10,8 @@ namespace gridtools {
               typename LayoutType,
               typename MssArray,
               typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct is_intermediate<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> > :
+              typename Coords>
+    struct is_intermediate<intermediate<Backend, LayoutType, MssArray, DomainType, Coords> > :
         boost::mpl::true_{};
 
     template<typename T> struct intermediate_backend;
@@ -21,9 +20,8 @@ namespace gridtools {
               typename LayoutType,
               typename MssArray,
               typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct intermediate_backend<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+              typename Coords>
+    struct intermediate_backend<intermediate<Backend, LayoutType, MssArray, DomainType, Coords> >
     {
         typedef Backend type;
     };
@@ -34,9 +32,8 @@ namespace gridtools {
               typename LayoutType,
               typename MssArray,
               typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct intermediate_domain_type<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+              typename Coords>
+    struct intermediate_domain_type<intermediate<Backend, LayoutType, MssArray, DomainType, Coords> >
     {
         typedef DomainType type;
     };
@@ -47,9 +44,8 @@ namespace gridtools {
               typename LayoutType,
               typename MssArray,
               typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct intermediate_mss_array<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+              typename Coords>
+    struct intermediate_mss_array<intermediate<Backend, LayoutType, MssArray, DomainType, Coords> >
     {
         typedef MssArray type;
     };
@@ -74,24 +70,10 @@ namespace gridtools {
               typename LayoutType,
               typename MssArray,
               typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct intermediate_layout_type<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
+              typename Coords>
+    struct intermediate_layout_type<intermediate<Backend, LayoutType, MssArray, DomainType, Coords> >
     {
         typedef LayoutType type;
-    };
-
-    template<typename T> struct intermediate_is_stateful;
-
-    template <typename Backend,
-              typename LayoutType,
-              typename MssArray,
-              typename DomainType,
-              typename Coords,
-              bool IsStateful>
-    struct intermediate_is_stateful<intermediate<Backend, LayoutType, MssArray, DomainType, Coords, IsStateful> >
-    {
-        typedef boost::mpl::bool_<IsStateful> type;
     };
 
     template<typename T> struct intermediate_mss_local_domains;
