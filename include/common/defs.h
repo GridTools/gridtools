@@ -1,4 +1,12 @@
 #pragma once
+
+#if __cplusplus > 199711L
+#ifndef CXX11_DISABLE
+#define CXX11_ENABLED
+#endif
+#define CXX11_DISABLED
+#endif
+
 #if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
 #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
@@ -42,13 +50,6 @@
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
-
-#if __cplusplus > 199711L
-#ifndef CXX11_DISABLE
-#define CXX11_ENABLED
-#endif
-#define CXX11_DISABLED
-#endif
 
 #ifndef GT_DEFAULT_TILE
 #ifndef SUPPRESS_MESSAGES
