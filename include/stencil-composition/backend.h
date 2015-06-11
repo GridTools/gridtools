@@ -17,12 +17,11 @@
 #endif
 
 #include "../common/pair.h"
-#include "../common/gridtools_runtime.h"
 #include "heap_allocated_temps.h"
-#include "arg_type.h"
+#include "accessor.h"
 #include "domain_type.h"
-#include "execution_types.h"
 #include "mss_metafunctions.h"
+#include "mss_local_domain.h"
 #include "mss.h"
 #include "axis.h"
 #include "../common/meta_array.h"
@@ -34,6 +33,7 @@
 */
 
 namespace gridtools {
+
     namespace _impl {
 
         /**
@@ -54,11 +54,10 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::second<MapElem>::type range_type;
                 typedef typename boost::mpl::first<MapElem>::type temporary;
+
                 typedef pair<
                     typename StrategyTraits::template get_tmp_storage<
-                    BackendID,
-                    ValueType,
-                    LayoutType,
+                    typename temporary::storage_type::type,
                     BI, BJ,
                     -range_type::iminus::value,
                     -range_type::jminus::value,
@@ -76,59 +75,7 @@ namespace gridtools {
     template <typename PlcArgType>
     struct is_temporary_arg : is_temporary_storage<typename PlcArgType::storage_type>{};
 
-
-
     /**
-       @brief traits struct for the run_functor
-       Specialization for all backend classes.
-
-       This struct defines a type for all the template arguments in
-       the run_functor subclasses. It is required because in the
-       run_functor class definition the 'Derived' template argument is
-       an incomplete type (ans thus we can not access its template
-       arguments).  This struct also contains all the type definitions
-       common to all backends.
-    */
-    template <
-        typename Arguments,
-        template < typename Argument > class Back
-    >
-    struct run_functor_traits< Back< Arguments > >
-    {
-        BOOST_STATIC_ASSERT((is_run_functor_arguments<Arguments>::value));
-        typedef Arguments arguments_t;
-        typedef typename Arguments::local_domain_list_t local_domain_list_t;
-        typedef typename Arguments::coords_t coords_t;
-        typedef typename Arguments::functor_list_t functor_list_t;
-        typedef typename Arguments::loop_intervals_t loop_intervals_t;
-        typedef typename Arguments::functors_map_t functors_map_t;
-        typedef typename Arguments::range_sizes_t range_sizes_t;
-        typedef Back<Arguments> backend_t;
-
-/**
-   @brief traits class to be used inside the functor \ref gridtools::_impl::execute_kernel_functor, which dependson an Index type.
-*/
-            template <typename Index>
-            struct traits{
-                typedef typename boost::mpl::at<range_sizes_t, Index>::type range_t;
-                typedef typename boost::mpl::at<functor_list_t, Index>::type functor_t;
-                typedef typename boost::fusion::result_of::value_at<local_domain_list_t, Index>::type local_domain_t;
-                typedef typename boost::mpl::at<functors_map_t, Index>::type interval_map_t;
-                typedef typename index_to_level<
-                    typename boost::mpl::deref<
-                        typename boost::mpl::find_if<
-                            loop_intervals_t,
-                            boost::mpl::has_key<interval_map_t, boost::mpl::_1>
-                            >::type
-                        >::type::first
-                    >::type first_hit_t;
-
-                typedef typename local_domain_t::iterate_domain_t iterate_domain_t;
-            };
-    };
-
-
-    /** 
         this struct contains the 'run' method for all backends, with a
         policy determining the specific type. Each backend contains a
         traits class for the specific case.
@@ -174,8 +121,9 @@ namespace gridtools {
     template< enumtype::backend BackendId, enumtype::strategy StrategyType >
     struct backend
     {
-        typedef backend_traits_from_id <BackendId> backend_traits_t;
-        typedef strategy_from_id <StrategyType> strategy_traits_t;
+        typedef backend_traits_from_id<BackendId> backend_traits_t;
+        typedef typename backend_traits_t::template select_strategy<StrategyType>::type strategy_traits_t;
+
         typedef backend<BackendId, StrategyType> this_type;
         static const enumtype::strategy s_strategy_id=StrategyType;
         static const enumtype::backend s_backend_id =BackendId;
@@ -185,13 +133,21 @@ namespace gridtools {
         */
         typedef uint_t (*query_i_threads_f)(int);
         typedef uint_t (*query_j_threads_f)(int);
-        
+
         template <typename ValueType, typename Layout>
         struct storage_type {
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
         };
 
-
+        /**
+         * @brief metafunction determining the type of a temporary storage (based on the layout)
+         * If the backend fuses multiple ESFs of a computation, it will require applying redundant computation
+         * at some halo points of each block. In this case a "no_storage_type_yet" type is selected, which will
+         * be replace into an actual storage allocating enough space for the redundant halo points. In this case,
+         * the allocated space will depend on block sizes and ranges of the ESF (that is why we need to delay the
+         * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
+         * storage type will be enough.
+         */
         template <typename ValueType, typename Layout>
         struct temporary_storage_type
         {
@@ -200,20 +156,29 @@ namespace gridtools {
         private:
             typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
         public:
-            typedef typename boost::mpl::if_<typename boost::mpl::bool_<s_strategy_id==enumtype::Naive>::type,
-                                             temp_storage_t,
-                                             no_storage_type_yet< temp_storage_t > >::type type;
+            typedef typename boost::mpl::if_<
+                typename backend_traits_t::template requires_temporary_redundant_halos<s_strategy_id>::type,
+                no_storage_type_yet< temp_storage_t >,
+                temp_storage_t
+            >::type type;
         };
 
 
         /**
-           
+         * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
+         * @tparam Domain domain type containing the placeholders for all storages (including temporaries)
+         * @tparam MssComponents the mss components of the MSS
+         * @output map of <temporary placeholder, range> where the range is the enclosing range of all the ranges
+         *      defined for the different functors of a MSS.
          */
-        template <typename Domain
-                  , typename MssType>
+        template <
+            typename Domain,
+            typename MssComponents>
         struct obtain_map_ranges_temporaries_mss
         {
-            typedef typename MssType::range_sizes RangeSizes;
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type")
+            typedef typename MssComponents::range_sizes_t RangeSizes;
             //full list of temporaries in list of place holders of domain
             typedef typename boost::mpl::fold<typename Domain::placeholders,
                 boost::mpl::vector<>,
@@ -224,17 +189,19 @@ namespace gridtools {
             >::type list_of_temporaries;
 
             //vector of written temporaries per functor (vector of vectors)
-            typedef typename MssType::written_temps_per_functor written_temps_per_functor;
+            typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
 
             typedef typename boost::mpl::fold<
                 list_of_temporaries,
                 boost::mpl::map0<>,
-                _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor, RangeSizes>
+                _impl::associate_ranges_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, RangeSizes>
             >::type type;
         };
 
         /**
-         * @brief metafunction that merges to maps of <temporary, ij range>
+         * @brief metafunction that merges two maps of <temporary, ij range>
+         * The merge is performed by computing the union of all the ranges found associated
+         * to the same temporary, i.e. the enclosing range.
          * @tparam range_map1 first map to merge
          * @tparam range_map2 second map to merge
           */
@@ -266,14 +233,19 @@ namespace gridtools {
 
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
+         * for all the Mss components in an array (corresponding to a Computation)
+         * @tparam Domain domain type containing the placeholders for all storages (including temporaries)
+         * @tparam MssComponentsArray meta array of the mss components of all MSSs
+         * @output map of <temporary placeholder, range> where the range is the enclosing range of all the ranges
+         *      defined for the temporary in all MSSs.
          */
-        template <typename Domain, typename MssArray>
+        template <typename Domain, typename MssComponentsArray>
         struct obtain_map_ranges_temporaries_mss_array {
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
-            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type")
 
             typedef typename boost::mpl::fold<
-                typename MssArray::elements,
+                typename MssComponentsArray::elements,
                 boost::mpl::map0<>,
                 merge_range_temporary_maps<
                     boost::mpl::_1,
@@ -285,32 +257,33 @@ namespace gridtools {
         /**
          * @brief compute a list with all the temporary storage types used by an array of mss
          * @tparam Domain domain
-         * @tparam MssArray meta array of mss
+         * @tparam MssComponentsArray meta array of mss components
          * @tparam ValueType type of field values stored in the temporary storage
          * @tparam LayoutType memory layout
          */
         template <typename Domain
-                  , typename MssArray
+                  , typename MssComponentsArray
                   , typename ValueType
                   , typename LayoutType >
         struct obtain_temporary_storage_types {
 
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
-            BOOST_STATIC_ASSERT((is_domain_type<Domain>::value));
-            BOOST_STATIC_ASSERT((is_layout_map<LayoutType>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type")
 
-            static const uint_t tileI = (strategy_traits_t::BI);
+            typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
 
-            static const uint_t tileJ = (strategy_traits_t::BJ);
+            static const uint_t tileI = block_size_t::i_size_t::value;
+            static const uint_t tileJ = block_size_t::j_size_t::value;
 
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
-            
-            typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssArray>::type map_of_ranges;
+            typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssComponentsArray>::type map_of_ranges;
 
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
-                    "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"
-            )
+
+            // GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
+            //         "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"
+            // )
 
             typedef typename boost::mpl::fold<
                 map_of_ranges,
@@ -341,17 +314,17 @@ namespace gridtools {
          * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
         template <
-            typename MssArray,
+            typename MssComponentsArray,
             typename Coords,
             typename MssLocalDomainArray
         > // List of local domain to be pbassed to functor at<i>
         static void run(/*Domain const& domain, */Coords const& coords, MssLocalDomainArray &mss_local_domain_list) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            BOOST_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value));
-            BOOST_STATIC_ASSERT((is_coordinates<Coords>::value));
-            BOOST_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value));
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
 
-            strategy_from_id< s_strategy_id >::template fused_mss_loop<MssArray, BackendId>::run(mss_local_domain_list, coords);
+            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, coords);
         }
 
 
@@ -364,7 +337,7 @@ namespace gridtools {
 
         /** Initial interface
 
-            Threads are oganized in a 2D grid. These two functions 
+            Threads are oganized in a 2D grid. These two functions
             n_i_pes() and n_j_pes() retrieve the
             information about how to compute those sizes.
 
@@ -379,7 +352,7 @@ namespace gridtools {
 
         /** Initial interface
 
-            Threads are oganized in a 2D grid. These two functions 
+            Threads are oganized in a 2D grid. These two functions
             n_i_pes() and n_j_pes() retrieve the
             information about how to compute those sizes.
 
@@ -394,6 +367,5 @@ namespace gridtools {
 
 
     }; // struct backend {
-
 
 } // namespace gridtools

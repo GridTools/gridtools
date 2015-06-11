@@ -20,24 +20,24 @@ namespace gridtools {
         typedef wrap_pointer<T> super;
         typedef typename super::pointee_t pointee_t;
 
-	GT_FUNCTION
-	explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
+        GT_FUNCTION
+        explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
 
-	GT_FUNCTION
-	explicit  hybrid_pointer(T* p, bool managed=true) : wrap_pointer<T>(p, managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
+        GT_FUNCTION
+        explicit  hybrid_pointer(T* p, bool managed=true) : wrap_pointer<T>(p, managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(0) {}
 
 
-	GT_FUNCTION
+        //GT_FUNCTION
         explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
             allocate_it(size);
 
 #ifndef NDEBUG
-            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+        printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
-        }
+    }
 
 // copy constructor passes on the ownership
-	GT_FUNCTION
+        GT_FUNCTION
         hybrid_pointer(hybrid_pointer const& other)
             : wrap_pointer<T>(other)
             , m_gpu_p(other.m_gpu_p)
@@ -58,7 +58,7 @@ namespace gridtools {
 #endif
         }
 
-	GT_FUNCTION
+        GT_FUNCTION
         virtual ~hybrid_pointer(){  };
 
         void allocate_it(uint_t size) {
@@ -99,6 +99,10 @@ namespace gridtools {
             cudaMemcpy(this->m_cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
 #endif
         }
+
+#ifdef __CUDACC__
+        void set(pointee_t const& value, uint_t const& index){cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice); }
+#endif
 
         __host__ __device__
         void out() const {
@@ -167,7 +171,7 @@ namespace gridtools {
         T* get_pointer_to_use(){return m_pointer_to_use;}
 
         GT_FUNCTION
-	pointee_t* get() const {return m_gpu_p;}
+        pointee_t* get() const {return m_gpu_p;}
 
         GT_FUNCTION
         int get_size(){return m_size;}

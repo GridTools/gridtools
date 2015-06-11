@@ -40,7 +40,7 @@ namespace gridtools {
         using v_cell_storage_t = virtual_storage<typename cell_storage_t::layout>;
         using v_edge_storage_t = virtual_storage<typename edge_storage_t::layout>;
 
-        const unsigned int M,N; // Sizes as cells in a multi-dimensional Cell array
+        const uint_t M,N; // Sizes as cells in a multi-dimensional Cell array
 
         static constexpr int Dims = 2;
 
@@ -67,19 +67,19 @@ namespace gridtools {
         };
 
 
-        static constexpr unsigned int u_cell_size_j(int _M) {return _M+4;}
-        static constexpr unsigned int u_cell_size_i(int _N) {return _N+2;}
-        static constexpr unsigned int u_edge_size_j(int _M) {return 3*(_M/2)+6;}
-        static constexpr unsigned int u_edge_size_i(int _N) {return _N+2;}
+        static constexpr uint_t u_cell_size_j(int _M) {return _M+4;}
+        static constexpr uint_t u_cell_size_i(int _N) {return _N+2;}
+        static constexpr uint_t u_edge_size_j(int _M) {return 3*(_M/2)+6;}
+        static constexpr uint_t u_edge_size_i(int _N) {return _N+2;}
 
         /** i[1] must be even */
-        static /*constexpr*/ array<unsigned int, Dims+1> u_cell_size(array<unsigned int, Dims> const& i) {
-            return array<unsigned int, Dims+1>{i[0], 2, i[1]/2};
+        static /*constexpr*/ array<uint_t, Dims+1> u_cell_size(array<uint_t, Dims> const& i) {
+            return array<uint_t, Dims+1>{i[0], 2, i[1]/2};
         }
 
         /** i[1] must be even */
-        static /*constexpr*/ array<unsigned int, Dims+1> u_edge_size(array<unsigned int, Dims> const& i) {
-            return array<unsigned int, Dims+1>{i[0]+1, 3, (i[1])/3};
+        static /*constexpr*/ array<uint_t, Dims+1> u_edge_size(array<uint_t, Dims> const& i) {
+            return array<uint_t, Dims+1>{i[0]+1, 3, (i[1])/3};
         }
 
     private:
@@ -88,15 +88,15 @@ namespace gridtools {
         int edge_size_j() const {return static_cast<int>(u_edge_size_j(M));}
         int edge_size_i() const {return static_cast<int>(u_edge_size_i(M));}
 
-        unsigned int u_cell_size_j() const {return (u_cell_size_j(M));}
-        unsigned int u_cell_size_i() const {return (u_cell_size_i(M));}
-        unsigned int u_edge_size_j() const {return (u_edge_size_j(M));}
-        unsigned int u_edge_size_i() const {return (u_edge_size_i(M));}
+        uint_t u_cell_size_j() const {return (u_cell_size_j(M));}
+        uint_t u_cell_size_i() const {return (u_cell_size_i(M));}
+        uint_t u_edge_size_j() const {return (u_edge_size_j(M));}
+        uint_t u_edge_size_i() const {return (u_edge_size_i(M));}
 
         trapezoid_2D_no_tile() = delete;
     public :
 
-        trapezoid_2D_no_tile(unsigned int N, unsigned int M)
+        trapezoid_2D_no_tile(uint_t N, uint_t M)
             : M{M}
             , N{N}
             , m_v_cell_storage(u_cell_size({u_cell_size_i(N),u_cell_size_j(M)}))
@@ -114,98 +114,98 @@ namespace gridtools {
         m_v_ ## stor ## _storage._index(i,j,k)
 
         
-        array<unsigned int, 3>
-        cell2cells_ll_p1(array<unsigned int, 2> const& i) const
+        array<uint_t, 3>
+        cell2cells_ll_p1(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 3>{
+            return array<uint_t, 3>{
                 DO_THE_MATH(cell, i[0], 0, i[1]),
                 DO_THE_MATH(cell, i[0], 0, i[1]+1),
                 DO_THE_MATH(cell, i[0]+1, 0, i[1])};
         }
 
-        array<unsigned int, 3>
-        cell2cells_ll_p0(array<unsigned int, 2> const& i) const
+        array<uint_t, 3>
+        cell2cells_ll_p0(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 3>{
+            return array<uint_t, 3>{
                 DO_THE_MATH(cell, i[0], 1, i[1]-1),
                 DO_THE_MATH(cell, i[0], 1, i[1]),
                 DO_THE_MATH(cell, i[0]-1, 1, i[1])};
         }
 
-        array<unsigned int, 4>
-        edge2edges_ll_p0(array<unsigned int, 2> const& i) const
+        array<uint_t, 4>
+        edge2edges_ll_p0(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 4>{
+            return array<uint_t, 4>{
                 DO_THE_MATH(edge, i[0], 1, i[1]),
                 DO_THE_MATH(edge, i[0]+1, 1, i[1]-1),
                 DO_THE_MATH(edge, i[0], 2, i[1]),
                 DO_THE_MATH(edge, i[0], 2, i[1]-1)};
         }
 
-        array<unsigned int, 4>
-        edge2edges_ll_p1(array<unsigned int, 2> const& i) const
+        array<uint_t, 4>
+        edge2edges_ll_p1(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 4>{
+            return array<uint_t, 4>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
                 DO_THE_MATH(edge, i[0]-1, 0, i[1]+1),
                 DO_THE_MATH(edge, i[0], 2, i[1]),
                 DO_THE_MATH(edge, i[0]-1, 2, i[1])};
         }
 
-        array<unsigned int, 4>
-        edge2edges_ll_p2(array<unsigned int, 2> const& i) const
+        array<uint_t, 4>
+        edge2edges_ll_p2(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 4>{
+            return array<uint_t, 4>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
                 DO_THE_MATH(edge, i[0], 0, i[1]+1),
                 DO_THE_MATH(edge, i[0], 1, i[1]),
                 DO_THE_MATH(edge, i[0]+1, 1, i[1])};
         }
 
-        array<unsigned int, 3>
-        cell2edges_ll_p1(array<unsigned int, 2> const& i) const
+        array<uint_t, 3>
+        cell2edges_ll_p1(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 3>{
+            return array<uint_t, 3>{
                 DO_THE_MATH(edge, i[0], 2, i[1]),
                 DO_THE_MATH(edge, i[0], 0, i[1]+1),
                 DO_THE_MATH(edge, i[0]+1, 1, i[1])};
         }
 
-        array<unsigned int, 3>
-        cell2edges_ll_p0(array<unsigned int, 2> const& i) const
+        array<uint_t, 3>
+        cell2edges_ll_p0(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 3>{
+            return array<uint_t, 3>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
                 DO_THE_MATH(edge, i[0], 1, i[1]),
                 DO_THE_MATH(edge, i[0], 2, i[1])};
         }
 
-        array<unsigned int, 2>
-        edge2cells_ll_p0(array<unsigned int, 2> const& i) const
+        array<uint_t, 2>
+        edge2cells_ll_p0(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 2>{
+            return array<uint_t, 2>{
                 DO_THE_MATH(cell, i[0], 1, i[1]-1),
                 DO_THE_MATH(cell, i[0], 0, i[1])};
         }
 
-        array<unsigned int, 2>
-        edge2cells_ll_p1(array<unsigned int, 2> const& i) const
+        array<uint_t, 2>
+        edge2cells_ll_p1(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 2>{
+            return array<uint_t, 2>{
                 DO_THE_MATH(cell, i[0]-1, 1, i[1]),
                 DO_THE_MATH(cell, i[0], 0, i[1])};
         }
 
-        array<unsigned int, 2>
-        edge2cells_ll_p2(array<unsigned int, 2> const& i) const
+        array<uint_t, 2>
+        edge2cells_ll_p2(array<uint_t, 2> const& i) const
         {
-            return array<unsigned int, 2>{
+            return array<uint_t, 2>{
                 DO_THE_MATH(cell, i[0], 0, i[1]),
                 DO_THE_MATH(cell, i[0], 1, i[1])};
         }
 
-        array<unsigned int, 3>
-        cell2cells(array<unsigned int, 2> const& i) const
+        array<uint_t, 3>
+        cell2cells(array<uint_t, 2> const& i) const
         {
             if (i[1]&1) {
                 return cell2cells_ll_p1({i[0], i[1]/2});
@@ -214,8 +214,8 @@ namespace gridtools {
             }
         }        
 
-        array<unsigned int, 4>
-        edge2edges(array<unsigned int, 2> const& i) const
+        array<uint_t, 4>
+        edge2edges(array<uint_t, 2> const& i) const
         {
             switch (i[1]%3) {
             case 0:
@@ -227,8 +227,8 @@ namespace gridtools {
             }
         }
 
-        array<unsigned int, 3>
-        cell2edges(array<unsigned int, 2> const& i) const
+        array<uint_t, 3>
+        cell2edges(array<uint_t, 2> const& i) const
         {
             if (i[1]&1) {
                 return cell2edges_ll_p1({i[0], i[1]/2});
@@ -237,8 +237,8 @@ namespace gridtools {
             }
         }
 
-        array<unsigned int, 2>
-        edge2cells(array<unsigned int, 2> const& i) const
+        array<uint_t, 2>
+        edge2cells(array<uint_t, 2> const& i) const
         {
             switch (i[1]%3) {
             case 0:

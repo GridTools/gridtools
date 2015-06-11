@@ -4,7 +4,7 @@ int main(int argc, char** argv)
 {
 
     if (argc != 4) {
-        std::cout << "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+        printf( "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
         return 1;
     }
 

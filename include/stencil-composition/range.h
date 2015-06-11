@@ -61,6 +61,15 @@ namespace gridtools {
       : boost::true_type
     {};
 
+
+    /**
+     * Metafunction to check if a type is a range - Specialization yielding true
+     */
+    template <typename T>
+    struct is_range<const T >
+        : is_range<T>
+    {};
+
     template<typename T> struct undef_t;
     /**
      * Metafunction taking two ranges and yielding a range containing them
@@ -100,8 +109,8 @@ namespace gridtools {
     template <typename Range1,
               typename Range2>
     struct union_ranges {
-        BOOST_STATIC_ASSERT((is_range<Range1>::value));
-        BOOST_STATIC_ASSERT((is_range<Range2>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_range<Range1>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_range<Range2>::value), "Internal Error: invalid type")
 
         typedef range<
             (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,

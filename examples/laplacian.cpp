@@ -3,11 +3,9 @@
 #include <fstream>
 
 #include <gridtools.h>
-
 #include <stencil-composition/backend.h>
-
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 /*! @file
   @brief  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -20,7 +18,7 @@
   These stencil operations are implemented as functors, and define the Elementary Stencil Functions (ESF). We can thus assume that MSS is a vector of ESFs.
   -# The Elementary Stencil Function (ESF) is a functor defining one operator (e.g. differential operator, the Laplacian in this case). \
   It implements a templated method "Do" which performs the actual stencil operation.
-  -# arg_type
+  -# accessor
   - Run-time
   -# The fields ("in" and "out" in this case) contain the values of a field on the grid. They live in the scope of the main function,
   their pointers are passed when the domain is constructed
@@ -31,9 +29,12 @@
 */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
+using gridtools::uint_t;
+using gridtools::int_t;
+
 
 
 /**
@@ -69,21 +70,13 @@ struct lap_function {
     static const int n_args = 2; //!< public compile-time constant, \todo apparently useless?
 
     /**
-       @brief placeholder for the output field, index 0. arg_type contains a vector of 3 offsets and defines a plus method summing values to the offsets
+       @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-#ifdef CXX11_ENABLED
-    typedef arg_type<0, range<-1, 1, -1, 1>, 3 > out;
-#else
-    typedef arg_type<0, range<-1, 1, -1, 1>, 3 >::type out;
-#endif
+    typedef accessor<0, range<-1, 1, -1, 1>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */
-#ifdef CXX11_ENABLED
-    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 > in;
-#else
-    typedef const arg_type<1, range<-1, 1, -1, 1>, 3 >::type in;
-#endif
+    typedef const accessor<1, range<-1, 1, -1, 1>, 3 > in;
     /**
        @brief MPL vector of the out and in types
     */
@@ -98,7 +91,7 @@ struct lap_function {
 
         dom(out()) = 4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));//! use of the arg_type<I> constructor in the Do function \todo why isn't the sum done at compile-time, e.g. expression templates?
+             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
 
     }
 };
@@ -128,9 +121,9 @@ int main(int argc, char** argv) {
     }
 
     /**
-	The following steps are performed:
+       The following steps are performed:
 
-	- Definition of the domain:
+       - Definition of the domain:
     */
     uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
@@ -140,7 +133,7 @@ int main(int argc, char** argv) {
     using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive>
+#define BACKEND backend<Cuda, Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block>
@@ -151,12 +144,12 @@ int main(int argc, char** argv) {
 
     typedef gridtools::layout_map<0,1,2> layout_t;
     /**
-	- definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
+       - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
     /**
     - definition of the temporary storage type, also depends on the backend
-	\todo unused here?
+    \todo unused here?
     */
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
@@ -182,15 +175,15 @@ int main(int argc, char** argv) {
        - Creation of an array of placeholders to be passed to the domain
        \todo I'm using mpl::vector, but the final API should look slightly simpler
     */
-    typedef boost::mpl::vector<p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_in, p_out> accessor_list;
 
     /**
        - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
        It must be noted that the only fields to be passed to the constructor are the non-temporary.
-       The order in which they have to be passed is the order in which they appear scanning the placeholders in order (i.e. the order in the arg_type_list?). \todo (I don't particularly like this).
+       The order in which they have to be passed is the order in which they appear scanning the placeholders in order (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
        \note domain_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
     */
-       gridtools::domain_type<arg_type_list> domain
+       gridtools::domain_type<accessor_list> domain
         (boost::fusion::make_vector(&in, &out));
 
        /**
@@ -257,12 +250,16 @@ int main(int argc, char** argv) {
     domain.clone_to_gpu();
     printf("CLONED\n");
 
+#ifndef __CUDACC__
     boost::timer::cpu_timer time;
+#endif
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
     horizontal_diffusion->run();
+#ifndef __CUDACC__
     boost::timer::cpu_times lapse_time = time.elapsed();
+#endif
 
     horizontal_diffusion->finalize();
 
@@ -274,9 +271,9 @@ int main(int argc, char** argv) {
     out.print();
     out.print(file_o);
     //    lap.print();
-
+#ifndef __CUDACC__
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-
+#endif
      return 0;
 }
 

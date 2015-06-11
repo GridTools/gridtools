@@ -19,13 +19,6 @@ namespace gridtools {
     template<enumtype::backend T>
     struct backend_traits_from_id;
 
-
-    /**
-       @brief traits struct, specialized for the specific strategies
-    */
-    template<enumtype::strategy Strategy>
-    struct strategy_from_id;
-
     /**
        @brief wasted code because of the lack of constexpr
        its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding enum of type \ref gridtools::_impl::BACKEND .
@@ -39,12 +32,4 @@ namespace gridtools {
     template< typename Backend >
     struct execute_kernel_functor;
 
-
-    /**
-       @brief traits struct for the run_functor
-
-       empty declaration
-    */
-    template <class Subclass>
-    struct run_functor_traits;
 }

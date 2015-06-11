@@ -80,7 +80,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     {% if params %}
     //
     // parameter data fields use the memory buffers received from NumPy arrays
-    // 
+    //
     {% for p in params -%}
     storage_type {{ p.name }} (d1, d2, d3,
                                (float_type *) {{ p.name }}_buff,
@@ -93,7 +93,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,
     // especially the non-temporary ones, during the construction of the domain
     //
     {% for p in params_temps -%}
-    typedef arg<{{ loop.index0 }}, 
+    typedef arg<{{ loop.index0 }},
         {%- if scope.is_temporary (p.name) -%}
             tmp_storage_type>
         {%- else -%}

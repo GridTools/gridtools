@@ -1,12 +1,9 @@
-
 #pragma once
 
 #include <gridtools.h>
-
 #include <stencil-composition/backend.h>
-
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include "stencil-composition/make_computation.h"
+#include <stencil-composition/interval.h>
 #include "horizontal_diffusion_repository.h"
 #include "verifier.h"
 
@@ -21,15 +18,19 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
+
+//Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
+//  for any type, which breaks most of the code after using expressions
 #ifdef CXX11_ENABLED
 using namespace expressions;
 #endif
+
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
@@ -40,13 +41,9 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-#ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<-1, 1, -1, 1>  > in;
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<-1, 1, -1, 1>  >::type in;
-#endif
+    typedef accessor<0> out;
+    typedef const accessor<1, range<-1, 1, -1, 1>  > in;
+
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -59,23 +56,16 @@ struct lap_function {
 };
 
 struct flx_function {
-#ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 1, 0, 0> > in;
-    typedef const arg_type<2, range<0, 1, 0, 0> > lap;
 
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 1, 0, 0> >::type in;
-    typedef const arg_type<2, range<0, 1, 0, 0> >::type lap;
-#endif
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 1, 0, 0> > in;
+    typedef const accessor<2, range<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
@@ -84,21 +74,16 @@ struct flx_function {
 };
 
 struct fly_function {
-#ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1, range<0, 0, 0, 1> > in;
-    typedef const arg_type<2, range<0, 0, 0, 1> > lap;
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1, range<0, 0, 0, 1> >::type in;
-    typedef const arg_type<2, range<0, 0, 0, 1> >::type lap;
-#endif
+
+    typedef accessor<0> out;
+    typedef const accessor<1, range<0, 0, 0, 1> > in;
+    typedef const accessor<2, range<0, 0, 0, 1> > lap;
+
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
@@ -107,37 +92,32 @@ struct fly_function {
 };
 
 struct out_function {
-#ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef const arg_type<1> in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> > flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> > fly;
-    typedef const arg_type<4> coeff;
 
-#else
-    typedef arg_type<0>::type out;
-    typedef const arg_type<1>::type in;
-    typedef const arg_type<2, range<-1, 0, 0, 0> >::type flx;
-    typedef const arg_type<3, range<0, 0, -1, 0> >::type fly;
-    typedef const arg_type<4>::type coeff;
-#endif
+    typedef accessor<0> out;
+    typedef const accessor<1> in;
+    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
+    typedef const accessor<3, range<0, 0, -1, 0> > fly;
+    typedef const accessor<4> coeff;
+
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
+//TODOCOSUNA recover once expressions work again
+//Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
+//  for any type, which breaks most of the code after using expressions
 #ifdef CXX11_ENABLED
-        dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx() - flx( -1,0,0) +
-             fly() - fly( 0,-1,0))
-             );
+       dom(out()) = dom(in()) - dom(coeff()) *
+           (dom(flx() - flx( -1,0,0) +
+            fly() - fly( 0,-1,0))
+            );
 #else
-        dom(out()) = dom(in()) - dom(coeff()) *
+        dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
 #endif
-        // printf("final dom(out()) => %e\n", dom(out()));
     }
 };
 
@@ -173,7 +153,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t halo_size = 2;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -213,15 +193,15 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
-    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
+    gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-    gridtools::domain_type<arg_type_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -297,11 +277,11 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 (
                     gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
                     gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-                    ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
                 ),
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+            ),
             domain, coords
-            );
+        );
 
     horizontal_diffusion->ready();
 
@@ -362,7 +342,7 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-    return result; /// lapse_time.wall<5000000 &&
+  return result; /// lapse_time.wall<5000000 &&
 // #ifdef USE_PAPI
 //                     values[0]>1000 && //random value
 // #endif

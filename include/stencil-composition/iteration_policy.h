@@ -1,6 +1,5 @@
 #pragma once
-
-#include "execution_types.h"
+#include <common/defs.h>
 
 namespace gridtools{
     namespace _impl{
@@ -13,7 +12,7 @@ namespace gridtools{
         template<typename From, typename To>
         struct iteration_policy<From, To, enumtype::forward >
         {
-	  static const enumtype::execution value=enumtype::forward;
+            static const enumtype::execution value=enumtype::forward;
 
             typedef From from;
             typedef To to;
@@ -23,7 +22,7 @@ namespace gridtools{
 
             template<typename Domain>
             GT_FUNCTION
-	      static void increment(Domain& dom){dom.increment();}
+            static void increment(Domain& dom){dom.template increment<2, enumtype::forward>();}
 
             GT_FUNCTION
             static bool condition(uint_t const& a, uint_t const& b){return a<=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)
@@ -33,7 +32,7 @@ namespace gridtools{
         template<typename From,typename To>
         struct iteration_policy<From, To, enumtype::backward >
         {
-	  static const enumtype::execution value=enumtype::backward;
+            static const enumtype::execution value=enumtype::backward;
             typedef  To from;
             typedef From to;
 
@@ -42,7 +41,7 @@ namespace gridtools{
 
             template <typename Domain>
             GT_FUNCTION
-            static void increment(Domain& dom){dom.decrement();}
+            static void increment(Domain& dom){dom.template increment<2, enumtype::backward>();}
 
             GT_FUNCTION
             static bool condition(uint_t const& a, uint_t const& b){return a>=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)

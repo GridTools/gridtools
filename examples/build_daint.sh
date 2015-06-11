@@ -22,7 +22,7 @@ echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 pwd
 
 module load cmake
-module load boost
+module load boost/1.56.0
 module unload  PrgEnv-cray
 module load  PrgEnv-gnu
 module load cudatoolkit
@@ -38,9 +38,9 @@ cmake \
 -DCUDA_SDK_ROOT_DIR:PATH=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7945.8.2 \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_ROOT=/project/csstaff/mbianco/googletest/ \
--DGPU_ENABLED_FUSION:PATH=../fusion/include \
--DBoost_INCLUDE_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473/include \
--DBoost_DIR:PATH=/apps/daint/boost/1.54.0/gnu_473  \
+-DGPU_ENABLED_FUSION:PATH=./fusion/include \
+-DBoost_INCLUDE_DIR:PATH=/apps/daint/boost/1.56.0/gnu_482/include \
+-DBoost_DIR:PATH=/apps/daint/boost/1.56.0/gnu_482  \
 -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF \
 -DUSE_PAPI:BOOL=OFF \
 -DGNU_COVERAGE:BOOL=ON \

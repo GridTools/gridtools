@@ -19,14 +19,11 @@ using gridtools::plus_;
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
 
-#include <stdlib.h>
-#include <stdio.h>
-
 using namespace gridtools;
 using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive>
+#define BACKEND backend<Cuda, Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block>

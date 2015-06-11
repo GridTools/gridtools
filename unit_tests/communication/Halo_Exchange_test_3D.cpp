@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <common/boollist.h>
 
-struct T1 {}; // GCL CYCLIC
-struct T2 {}; // GCL not CYCLIC
 struct T3 {}; // MPI CYCLIC
 struct T4 {}; // MPI not CYCLIC
 
@@ -14,39 +12,9 @@ template <typename T>
 struct pgrid;
 
 template <>
-struct pgrid<T1> {
-
-  typedef gridtools::_3D_process_grid_t<gridtools::boollist<3> > grid_type;
-
-  static grid_type instantiate(MPI_Comm comm) {
-    int pid;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    int nprocs;
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(gridtools::boollist<3>(true, true, true), nprocs, pid);
-  }
-
-};
-
-template <>
-struct pgrid<T2> {
-
-  typedef gridtools::_3D_process_grid_t<gridtools::boollist<3> > grid_type;
-
-  static grid_type instantiate(MPI_Comm comm) {
-    int pid;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    int nprocs;
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    return grid_type(gridtools::boollist<3>(false,false,false), nprocs, pid);
-  }
-
-};
-
-template <>
 struct pgrid<T3> {
 
-  typedef gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > grid_type;
+  typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
@@ -59,7 +27,7 @@ struct pgrid<T3> {
     int period[3] = {1, 1, 1};
 
     std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1]  << " - " << dims[2] << "\n";
- 
+
     MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
     return grid_type(gridtools::boollist<3>(true, true, true), CartComm);
@@ -70,7 +38,7 @@ struct pgrid<T3> {
 template <>
 struct pgrid<T4> {
 
-  typedef gridtools::MPI_3D_process_grid_t<gridtools::boollist<3> > grid_type;
+  typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
   static grid_type instantiate(MPI_Comm comm) {
     int pid;
@@ -83,7 +51,7 @@ struct pgrid<T4> {
     int period[3] = {0, 0, 0};
 
     std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
     MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
     return grid_type(gridtools::boollist<3>(false,false,false), CartComm);
@@ -163,60 +131,60 @@ int main(int argc, char** argv) {
 
   gridtools::Halo_Exchange_3D<test_type::grid_type> he(pg);
 
-  std::cout << "@" << gridtools::PID << "@ SEND " 
-            << &iminus << " - " 
-            << &iplus << " - " 
-            << &jminus << " - " 
-            << &jplus << " - " 
-            << &kminus << " - " 
-            << &kplus << " - " 
-            << &iminusjminus << " - " 
-            << &iplusjminus << " - " 
-            << &iminusjplus << " - " 
-            << &iplusjplus << " - " 
-            << &iminuskminus << " - " 
-            << &ipluskminus << " - " 
-            << &iminuskplus << " - " 
+  std::cout << "@" << gridtools::PID << "@ SEND "
+            << &iminus << " - "
+            << &iplus << " - "
+            << &jminus << " - "
+            << &jplus << " - "
+            << &kminus << " - "
+            << &kplus << " - "
+            << &iminusjminus << " - "
+            << &iplusjminus << " - "
+            << &iminusjplus << " - "
+            << &iplusjplus << " - "
+            << &iminuskminus << " - "
+            << &ipluskminus << " - "
+            << &iminuskplus << " - "
             << &ipluskplus << " - "
-            << &jminuskminus << " - " 
-            << &jpluskminus << " - " 
-            << &jminuskplus << " - " 
+            << &jminuskminus << " - "
+            << &jpluskminus << " - "
+            << &jminuskplus << " - "
             << &jpluskplus << " - "
-            << &iminusjminuskminus << " - " 
-            << &iplusjminuskminus << " - " 
-            << &iminusjpluskminus << " - " 
-            << &iplusjpluskminus << " - " 
-            << &iminusjminuskplus << " - " 
-            << &iplusjminuskplus << " - " 
-            << &iminusjpluskplus << " - " 
-            << &iplusjpluskplus << std::endl; 
-  std::cout << "@" << gridtools::PID << "@ RECV " 
-            << &iminus_r << " - " 
-            << &iplus_r << " - " 
-            << &jminus_r << " - " 
-            << &jplus_r << " - " 
-            << &kminus_r << " - " 
-            << &kplus_r << " - " 
-            << &iminusjminus_r << " - " 
-            << &iplusjminus_r << " - " 
-            << &iminusjplus_r << " - " 
-            << &iplusjplus_r << " - " 
-            << &iminuskminus_r << " - " 
-            << &ipluskminus_r << " - " 
-            << &iminuskplus_r << " - " 
+            << &iminusjminuskminus << " - "
+            << &iplusjminuskminus << " - "
+            << &iminusjpluskminus << " - "
+            << &iplusjpluskminus << " - "
+            << &iminusjminuskplus << " - "
+            << &iplusjminuskplus << " - "
+            << &iminusjpluskplus << " - "
+            << &iplusjpluskplus << std::endl;
+  std::cout << "@" << gridtools::PID << "@ RECV "
+            << &iminus_r << " - "
+            << &iplus_r << " - "
+            << &jminus_r << " - "
+            << &jplus_r << " - "
+            << &kminus_r << " - "
+            << &kplus_r << " - "
+            << &iminusjminus_r << " - "
+            << &iplusjminus_r << " - "
+            << &iminusjplus_r << " - "
+            << &iplusjplus_r << " - "
+            << &iminuskminus_r << " - "
+            << &ipluskminus_r << " - "
+            << &iminuskplus_r << " - "
             << &ipluskplus_r << " - "
-            << &jminuskminus_r << " - " 
-            << &jpluskminus_r << " - " 
-            << &jminuskplus_r << " - " 
+            << &jminuskminus_r << " - "
+            << &jpluskminus_r << " - "
+            << &jminuskplus_r << " - "
             << &jpluskplus_r << " - "
-            << &iminusjminuskminus_r << " - " 
-            << &iplusjminuskminus_r << " - " 
-            << &iminusjpluskminus_r << " - " 
-            << &iplusjpluskminus_r << " - " 
-            << &iminusjminuskplus_r << " - " 
-            << &iplusjminuskplus_r << " - " 
-            << &iminusjpluskplus_r << " - " 
-            << &iplusjpluskplus_r << std::endl; 
+            << &iminusjminuskminus_r << " - "
+            << &iplusjminuskminus_r << " - "
+            << &iminusjpluskminus_r << " - "
+            << &iplusjpluskminus_r << " - "
+            << &iminusjminuskplus_r << " - "
+            << &iplusjminuskplus_r << " - "
+            << &iminusjpluskplus_r << " - "
+            << &iplusjpluskplus_r << std::endl;
 
   he.register_send_to_buffer<-1,-1,-1>(&iminusjminuskminus, sizeof(int));
   he.register_send_to_buffer<-1, 1,-1>(&iminusjpluskminus, sizeof(int));

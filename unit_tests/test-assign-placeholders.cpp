@@ -3,7 +3,8 @@
 
 #include <stencil-composition/backend.h>
 
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -16,7 +17,7 @@ using namespace enumtype;
 bool assign_placeholders() {
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -50,13 +51,13 @@ bool assign_placeholders() {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
     // printf("coeff (3) pointer: %x\n", &coeff);
     // printf("in    (4) pointer: %x\n", &in);
     // printf("out   (5) pointer: %x\n", &out);
 
-    gridtools::domain_type<arg_type_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+    gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
 
     return ((boost::fusion::at_c<3>(domain.storage_pointers) == &coeff) &&
             (boost::fusion::at_c<4>(domain.storage_pointers) == &in) &&

@@ -1,3 +1,4 @@
+#pragma once
 /**@file @brief implementation of a compile-time accumulator and max
 
    The accumulator allows to perform operations on static const value to
@@ -45,9 +46,9 @@ namespace gridtools{
     struct multiplies {
         GT_FUNCTION
         constexpr multiplies(){}
-        template <typename  T>
+        template <typename  T1, typename T2>
         GT_FUNCTION
-        constexpr T operator() (const T& x, const T& y) const {return x*y;}
+        constexpr T1 operator() (const T1& x, const T2& y) const {return x*y;}
     };
 
 
@@ -61,9 +62,9 @@ namespace gridtools{
     };
 
     /**@brief operation to be used inside the accumulator*/
-    struct add {
+    struct add_functor {
         GT_FUNCTION
-        constexpr add(){}
+        constexpr add_functor(){}
         template <class T>
         GT_FUNCTION
         constexpr T operator() (const T& x, const T& y) const {return x+y;}
@@ -81,5 +82,32 @@ namespace gridtools{
     template<typename Operator, typename First>
     GT_FUNCTION
     static constexpr First accumulate(Operator op, First first){return first;}
+
+    template<uint_t Id>
+    struct assign{
+        GT_FUNCTION
+        constexpr assign(){}
+
+        template <typename T1, typename T2  >
+        GT_FUNCTION
+        static void apply(T1& t1, T2 const& t2)
+            {
+                t1[Id]=std::get<Id>(t2);
+                assign<Id-1>::apply(t1, t2);
+            }
+    };
+
+    template<>
+    struct assign<0>{
+        GT_FUNCTION
+        constexpr assign(){}
+        template <typename T1, typename T2  >
+        GT_FUNCTION
+        static void apply(T1& t1, T2 const& t2)
+            {
+                t1[0]=std::get<0>(t2);
+            }
+    };
 #endif
+
 }//namespace gridtools

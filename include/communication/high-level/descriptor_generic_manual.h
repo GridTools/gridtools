@@ -107,7 +107,7 @@ namespace gridtools {
                field_on_the_fly<DataType, f_layoutmap, traits> const & halo_example,
                int typesize = sizeof(DataType) )
     {
-     
+
         typedef typename field_on_the_fly<DataType, f_layoutmap, traits>::inner_layoutmap t_layoutmap;
         gridtools::array<int, DIMS> eta;
         for (int i=-1; i<=1; ++i) {
@@ -126,13 +126,13 @@ namespace gridtools {
                         recv_buffer_size[translate()(i,j,k)] = (R*max_fields_n*typesize);
 
                         // std::cout << halo_example << std::endl;
-                        // std::cout << "Send size to " 
+                        // std::cout << "Send size to "
                         //           << i << ", "
                         //           << j << ", "
                         //           << k << ": "
                         //           << send_buffer_size[translate()(i,j,k)]
                         //           << std::endl;
-                        // std::cout << "Recv size fr " 
+                        // std::cout << "Recv size fr "
                         //           << i << ", "
                         //           << j << ", "
                         //           << k << ": "
@@ -149,12 +149,12 @@ namespace gridtools {
               const int j_P = proc_layout().template select<1>(i,j,k);
               const int k_P = proc_layout().template select<2>(i,j,k);
 
-              base_type::haloexch.register_send_to_buffer
+              base_type::m_haloexch.register_send_to_buffer
                 (&(send_buffer[translate()(i,j,k)][0]),
                  send_buffer_size[translate()(i,j,k)],
                  i_P,j_P,k_P);
 
-              base_type::haloexch.register_receive_from_buffer
+              base_type::m_haloexch.register_receive_from_buffer
                 (&(recv_buffer[translate()(i,j,k)][0]),
                  recv_buffer_size[translate()(i,j,k)],
                  i_P,j_P,k_P);
@@ -190,12 +190,12 @@ namespace gridtools {
               const int j_P = proc_layout().template select<1>(i,j,k);
               const int k_P = proc_layout().template select<2>(i,j,k);
 
-              base_type::haloexch.register_send_to_buffer
+              base_type::m_haloexch.register_send_to_buffer
                 (&(send_buffer[translate()(i,j,k)][0]),
                  buffer_size_list[translate()(i,j,k)],
                  i_P,j_P,k_P);
 
-              base_type::haloexch.register_receive_from_buffer
+              base_type::m_haloexch.register_receive_from_buffer
                 (&(recv_buffer[translate()(i,j,k)][0]),
                  buffer_size_list[translate()(i,j,k)],
                  i_P,j_P,k_P);
@@ -518,9 +518,9 @@ namespace gridtools {
        Note: when the start_exchange() + wait() combination is used, the exchange() method should not be used, and vice versa.
     */
     void wait() {
-      base_type::haloexch.wait();
+      base_type::m_haloexch.wait();
     }
- 
+
     /**
        Setup function, in this version, takes tree parameters to
        compute internal buffers and sizes. It takes a field on the fly
@@ -560,7 +560,7 @@ namespace gridtools {
                 send_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<char,arch_type>::alloc(send_size[translate()(ii,jj,kk)]*max_fields_n*typesize);
 
-                base_type::haloexch.register_send_to_buffer
+                base_type::m_haloexch.register_send_to_buffer
                   (&(send_buffer[translate()(ii,jj,kk)][0]),
                    send_size[translate()(ii,jj,kk)]*max_fields_n*typesize,
                    ii_P,jj_P,kk_P);
@@ -572,7 +572,7 @@ namespace gridtools {
                 recv_buffer[translate()(ii,jj,kk)] =
                   _impl::gcl_alloc<char,arch_type>::alloc(recv_size[translate()(ii,jj,kk)]*max_fields_n*typesize);
 
-                base_type::haloexch.register_receive_from_buffer
+                base_type::m_haloexch.register_receive_from_buffer
                   (&(recv_buffer[translate()(ii,jj,kk)][0]),
                    recv_size[translate()(ii,jj,kk)]*max_fields_n*typesize,
                    ii_P,jj_P,kk_P);
@@ -583,7 +583,7 @@ namespace gridtools {
                 send_size[translate()(ii,jj,kk)] = 0;
                 send_buffer[translate()(ii,jj,kk)] = NULL;
 
-                base_type::haloexch.register_send_to_buffer(NULL, 0,ii_P,jj_P,kk_P);
+                base_type::m_haloexch.register_send_to_buffer(NULL, 0,ii_P,jj_P,kk_P);
 
 
                 recv_size[translate()(ii,jj,kk)] = 0;
@@ -591,7 +591,7 @@ namespace gridtools {
                 recv_buffer[translate()(ii,jj,kk)] = NULL;
 
                 //(*filep) << "Size-of-buffer %d %d %d -> send %d -> recv %d" << ii << jj << kk << send_size[translate()(ii,jj,kk)]*max_fields_n*typesize << recv_size[translate()(ii,jj,kk)]*max_fields_n*typesize << std::endl;
-                base_type::haloexch.register_receive_from_buffer(NULL, 0,ii_P,jj_P,kk_P);
+                base_type::m_haloexch.register_receive_from_buffer(NULL, 0,ii_P,jj_P,kk_P);
               }
             }
 
@@ -602,9 +602,9 @@ namespace gridtools {
       }
 
       err = cudaMemcpy
-        (d_send_buffer, 
-         &(send_buffer[0]), 
-         _impl::static_pow3<DIMS>::value * sizeof(DataType*), 
+        (d_send_buffer,
+         &(send_buffer[0]),
+         _impl::static_pow3<DIMS>::value * sizeof(DataType*),
          cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table to device. Size: %d\n", _impl::static_pow3<DIMS>::value * sizeof(DataType*));
@@ -616,9 +616,9 @@ namespace gridtools {
       }
 
       err = cudaMemcpy
-        (d_recv_buffer, 
-         &(recv_buffer[0]), 
-         _impl::static_pow3<DIMS>::value * sizeof(DataType*), 
+        (d_recv_buffer,
+         &(recv_buffer[0]),
+         _impl::static_pow3<DIMS>::value * sizeof(DataType*),
          cudaMemcpyHostToDevice);
       if(err != cudaSuccess) {
         printf("Error transferring buffer table (recv) to device. Size: %d\n", _impl::static_pow3<DIMS>::value * sizeof(DataType*));
@@ -651,7 +651,7 @@ namespace gridtools {
             fields[l].halos[0].set_minus(0);
         }
       }
-      {   
+      {
         int ii=-1;
         int jj=0;
         int kk=0;
@@ -699,7 +699,7 @@ namespace gridtools {
             fields[l].halos[2].set_minus(0);
         }
       }
-      {   
+      {
         int ii=0;
         int jj=0;
         int kk=-1;
@@ -717,7 +717,7 @@ namespace gridtools {
       //   std::cout << "after trimming " << l << " " << fields[l] << std::endl;
 
       /* Computing the (prefix sums for) offsets to place fields in linear buffers
-       */ 
+       */
       for (int ii=-1; ii<=1; ++ii)
         for (int jj=-1; jj<=1; ++jj)
           for (int kk=-1; kk<=1; ++kk) {
@@ -741,39 +741,39 @@ namespace gridtools {
       //typedef translate_t<3,default_layout_map<3>::type > translate;
       if (send_size[translate()(0,0,-1)]) {
         m_packZL_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer), 
-           &(prefix_send_size[0])); 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer),
+           &(prefix_send_size[0]));
       }
       if (send_size[translate()(0,0,1)]) {
         m_packZU_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer),
            &(prefix_send_size[0]));
       }
       if (send_size[translate()(0,-1,0)]) {
         m_packYL_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer),
            &(prefix_send_size[0]));
       }
       if (send_size[translate()(0,1,0)]) {
         m_packYU_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer),
            &(prefix_send_size[0]));
       }
       if (send_size[translate()(-1,0,0)]) {
         m_packXL_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer),
            &(prefix_send_size[0]));
       }
       if (send_size[translate()(1,0,0)]) {
         m_packXU_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer), 
-           &(prefix_send_size[0])); 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_send_buffer),
+           &(prefix_send_size[0]));
       }
 
 #ifdef GCL_MULTI_STREAMS
@@ -811,7 +811,7 @@ namespace gridtools {
             fields[l].halos[0].set_plus(0);
         }
       }
-      {   
+      {
         int ii=-1;
         int jj=0;
         int kk=0;
@@ -859,7 +859,7 @@ namespace gridtools {
             fields[l].halos[2].set_plus(0);
         }
       }
-      {   
+      {
         int ii=0;
         int jj=0;
         int kk=-1;
@@ -894,38 +894,38 @@ namespace gridtools {
       //typedef translate_t<3,default_layout_map<3>::type > translate;
       if (recv_size[translate()(0,0,-1)]) {
         m_unpackZL_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer),
            &(prefix_recv_size[0]));
       }
       if (recv_size[translate()(0,0,1)]) {
         m_unpackZU_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer),
            &(prefix_recv_size[0]));
       }
       if (recv_size[translate()(0,-1,0)]) {
         m_unpackYL_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer),
            &(prefix_recv_size[0]));
       }
       if (recv_size[translate()(0,1,0)]) {
         m_unpackYU_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer),
            &(prefix_recv_size[0]));
       }
       if (recv_size[translate()(-1,0,0)]) {
         m_unpackXL_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer),
            &(prefix_recv_size[0]));
       }
       if (recv_size[translate()(1,0,0)]) {
         m_unpackXU_generic
-          (fields, 
-           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer), 
+          (fields,
+           reinterpret_cast<typename field_on_the_fly<T1,T2,T3>::value_type**>(d_recv_buffer),
            &(prefix_recv_size[0]));
       }
 

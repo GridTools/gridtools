@@ -5,7 +5,7 @@ namespace gridtools {
   template <typename DataType, int DIMS, typename>
   class hndlr_descriptor_ut;
 
-  template <typename Datatype, int DIMS, typename, typename, typename, int >
+  template <typename Datatype, typename GridType, typename, typename, typename, int >
   class hndlr_dynamic_ut;
 
   template <int DIMS,

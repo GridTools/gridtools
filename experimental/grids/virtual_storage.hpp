@@ -23,7 +23,9 @@ namespace gridtools {
 
     protected:
         array<uint_t, space_dimensions> m_dims;
-        uint_t m_strides[space_dimensions];
+        //uint_t m_strides[space_dimensions];
+        array<uint_t, space_dimensions-1> m_strides;
+        
 #ifdef NDEBUG
     private:
         /**@brief noone calls the empty constructor*/
@@ -41,12 +43,12 @@ namespace gridtools {
         template <typename Int>
         virtual_storage(  array<Int, space_dimensions> const& sizes ):
             m_dims{sizes},
-            m_strides{0}
+            m_strides{}
             {
-                for (int j=0; j<space_dimensions; ++j) {
-                    m_strides[j] = 1;
+                for (int j=1; j<space_dimensions; ++j) {
+                    m_strides[j-1] = 1;
                     for (int i=j; i<space_dimensions; ++i) {
-                        m_strides[j] *= sizes[i];
+                        m_strides[j-1] *= sizes[i];
                     }
                 }
             }
@@ -92,7 +94,7 @@ namespace gridtools {
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
             GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
 #endif
-            return _impl::compute_offset<space_dimensions, layout>::apply(m_strides, dims ...);
+            return _impl::compute_offset<space_dimensions, layout>::apply(&m_strides[0], dims ...);
         }
 
         /** @brief returns the memory access index of the element with coordinate (i,j,k) */

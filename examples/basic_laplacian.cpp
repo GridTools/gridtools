@@ -1,8 +1,4 @@
-#include <iostream>
-#include <storage/storage.h>
-#include <common/layout_map.h>
-#include <fstream>
-#include <boost/timer/timer.hpp>
+#include <gridtools.h>
 #include <stencil-composition/backend.h>
 
 int main_naive(int argc, char** argv) {
@@ -13,9 +9,9 @@ int main_naive(int argc, char** argv) {
     }
 
     /**
-	The following steps are performed:
+       The following steps are performed:
 
-	- Definition of the domain:
+       - Definition of the domain:
     */
     uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
@@ -58,9 +54,9 @@ int main_block(int argc, char** argv) {
     }
 
     /**
-	The following steps are performed:
+       The following steps are performed:
 
-	- Definition of the domain:
+       - Definition of the domain:
     */
     uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/

@@ -1,8 +1,7 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <stencil-composition/arg_type.h>
+#include <stencil-composition/accessor.h>
 #include <stencil-composition/domain_type.h>
-#include <storage/storage.h>
 #include <stencil-composition/backend.h>
 
 #include <stdio.h>
@@ -75,7 +74,7 @@ struct print_pretty {
 
 bool test_domain_indices() {
 // #ifdef CUDA_EXAMPLE
-// #define BACKEND backend<Cuda, Naive >
+// #define BACKEND backend<Cuda, Block >
 // #else
 // #ifdef BACKEND_BLOCK
 // #define BACKEND backend<Host, Block >
@@ -110,17 +109,17 @@ bool test_domain_indices() {
 
     result = true;
 
-    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
-    gridtools::domain_type<arg_type_list> domain
+    gridtools::domain_type<accessor_list> domain
        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
 #ifndef NDEBUG
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::raw_index_list>(print_());
+    boost::mpl::for_each<gridtools::domain_type<accessor_list>::raw_index_list>(print_());
     std::cout << std::endl;
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::range_t>(print_());
+    boost::mpl::for_each<gridtools::domain_type<accessor_list>::range_t>(print_());
     std::cout << std::endl;
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::arg_list_mpl>(print_pretty());
+    boost::mpl::for_each<gridtools::domain_type<accessor_list>::arg_list_mpl>(print_pretty());
 #endif
     std::cout << std::endl;
 
@@ -131,7 +130,7 @@ bool test_domain_indices() {
     count = 0;
     result = true;
     //std::cout << "3 " << std::boolalpha << result << std::endl;
-    boost::mpl::for_each<gridtools::domain_type<arg_type_list>::placeholders>(pfph);
+    boost::mpl::for_each<gridtools::domain_type<accessor_list>::placeholders>(pfph);
 
     //std::cout << "4 " << std::boolalpha << result << std::endl;
 

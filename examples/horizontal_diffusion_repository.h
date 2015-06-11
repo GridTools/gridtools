@@ -5,7 +5,7 @@
 namespace horizontal_diffusion {
 
 #ifdef CUDA_EXAMPLE
-typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > hd_backend;
+typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > hd_backend;
 #else
 #ifdef BACKEND_BLOCK
 typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block > hd_backend;
@@ -14,11 +14,20 @@ typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive
 #endif
 #endif
 
+using gridtools::uint_t;
+using gridtools::int_t;
+    
 class repository
 {
 public:
-    typedef gridtools::layout_map<0,1,2> layout_ijk;
+#ifdef __CUDACC__
+    typedef gridtools::layout_map<2,1,0> layout_ijk;//stride 1 on i
+    typedef gridtools::layout_map<1,0,-1> layout_ij;
+#else
+    typedef gridtools::layout_map<0,1,2> layout_ijk;//stride 1 on k
     typedef gridtools::layout_map<0,1,-1> layout_ij;
+#endif
+
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
     typedef hd_backend::storage_type<gridtools::float_type, layout_ijk >::type storage_type;
@@ -28,11 +37,11 @@ public:
     typedef hd_backend::temporary_storage_type<gridtools::float_type, layout_ijk >::type tmp_storage_type;
     typedef hd_backend::temporary_storage_type<gridtools::float_type, layout_scalar>::type tmp_scalar_storage_type;
 
-    repository(const int idim, const int jdim, const int kdim, const int halo_size) :
-        in_(idim, jdim, kdim, -1, "in"),
-        out_(idim, jdim, kdim, -1, "out"),
-        out_ref_(idim, jdim, kdim, -1, "in_ref"),
-        coeff_(idim, jdim, kdim, -1, "coeff"),
+    repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const int halo_size) :
+        in_(idim, jdim, kdim, -1., "in"),
+        out_(idim, jdim, kdim, -1., "out"),
+        out_ref_(idim, jdim, kdim, -1., "in_ref"),
+        coeff_(idim, jdim, kdim, -1., "coeff"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
     {}
@@ -43,12 +52,12 @@ public:
         init_field_to_value(out_, 0.0);
         init_field_to_value(out_ref_, 0.0);
 
-        const int i_begin = 0;
-        const int i_end=  idim_;
-        const int j_begin = 0;
-        const int j_end=  jdim_;
-        const int k_begin = 0;
-        const int k_end=  kdim_;
+        const uint_t i_begin = 0;
+        const uint_t i_end=  idim_;
+        const uint_t j_begin = 0;
+        const uint_t j_end=  jdim_;
+        const uint_t k_begin = 0;
+        const uint_t k_end=  kdim_;
 
         double dx = 1./(double)(i_end-i_begin);
         double dy = 1./(double)(j_end-j_begin);
@@ -92,9 +101,9 @@ public:
 
     void generate_reference()
     {
-        ij_storage_type lap(idim_, jdim_, 1, -1, "lap");
-        ij_storage_type flx(idim_, jdim_, 1, -1, "flx");
-        ij_storage_type fly(idim_, jdim_, 1, -1, "fly");
+        ij_storage_type lap(idim_, jdim_, 1, -1., "lap");
+        ij_storage_type flx(idim_, jdim_, 1, -1., "flx");
+        ij_storage_type fly(idim_, jdim_, 1, -1., "fly");
 
         init_field_to_value(lap, 0.0);
 

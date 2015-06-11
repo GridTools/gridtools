@@ -19,6 +19,9 @@
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include "gt_for_each/for_each.hpp"
+#include "../common/gpu_clone.h"
+#include <storage/storage.h>
+#include "../storage/storage_functors.h"
 
 #include "domain_type_impl.h"
 
@@ -200,7 +203,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         {
 
 // #ifndef NDEBUG
-	    //the following creates an empty storage (problems with its destruction)
+            //the following creates an empty storage (problems with its destruction)
 //             std::cout << "These are the original placeholders and their storages" << std::endl;
 //             gridtools::for_each<original_placeholders>(_debug::stdcoutstuff());
 // #endif
@@ -210,10 +213,10 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             view_type fview(storage_pointers);
 
-	    GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructin the domain_type is not the same as the number of placeholders to non-temporary storages.");
+            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructin the domain_type is not the same as the number of placeholders to non-temporary storages.")
 
 // #ifndef NDEBUG
-	    //the following creates an empty storage (problems with its destruction)
+                //the following creates an empty storage (problems with its destruction)
 //             // std::cout << "These are the actual placeholders and their storages" << std::endl;
 //             // gridtools::for_each<placeholders>(_debug::stdcoutstuff());
 //             std::cout << "These are the real storages" << std::endl;
@@ -281,8 +284,11 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /** @brief copy the pointers from the device to the host */
         void finalize_computation() {
-            boost::fusion::for_each(original_pointers, _impl::call_d2h());
-            boost::fusion::copy(original_pointers, storage_pointers);
+            boost::fusion::for_each(original_pointers, call_d2h());
+            gridtools::for_each<
+                boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
+            > (copy_pointers_functor<arg_list, arg_list> (original_pointers, storage_pointers));
+
         }
 
     };

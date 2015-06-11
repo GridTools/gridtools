@@ -28,7 +28,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Naive>
+#define BACKEND backend<Cuda, Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host , Block>
@@ -139,6 +139,7 @@ bool basic() {
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
 
@@ -263,7 +264,6 @@ bool basic() {
     }
 
     return result;
-
 }
 
 bool predicate() {
@@ -276,6 +276,7 @@ bool predicate() {
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
 
@@ -435,6 +436,7 @@ bool twosurfaces() {
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
 
@@ -591,6 +593,7 @@ bool usingzero_1() {
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
 
@@ -729,9 +732,11 @@ bool usingzero_2() {
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
     storage_type out(d1,d2,d3);
+    out.allocate();
     out.initialize(-1);
     out.set_name("out");
 
@@ -898,6 +903,7 @@ bool usingvalue_2() {
     in.initialize(-1);
     in.set_name("in");
     storage_type out(d1,d2,d3);
+    out.allocate();
     out.initialize(-1);
     out.set_name("out");
 
@@ -1060,12 +1066,15 @@ bool usingcopy_3() {
 
     // Definition of the actual data fields that are used for input/output
     storage_type src(d1,d2,d3);
+    src.allocate();
     src.initialize(-1);
     src.set_name("src");
     storage_type one(d1,d2,d3);
+    one.allocate();
     one.initialize(-1);
     one.set_name("one");
     storage_type two(d1,d2,d3);
+    two.allocate();
     two.initialize(-1);
     two.set_name("two");
 
@@ -1265,5 +1274,4 @@ bool usingcopy_3() {
     }
 
     return result;
-
 }

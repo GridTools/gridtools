@@ -2,14 +2,14 @@
 
 #include "../common/host_device.h"
 #include "../common/gpu_clone.h"
+#include "../common/is_temporary_storage.h"
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/fusion/view/zip_view.hpp>
+#include <boost/fusion/include/for_each.hpp>
 #include <boost/utility.hpp>
-
-#include "iterate_domain.h"
 
 namespace gridtools {
 
@@ -70,7 +70,7 @@ namespace gridtools {
             for how to deal with temporaries.
 
             Since certain modifications happend this metafunction is actually
-            identical, in behavior, with extract_types. 
+            identical, in behavior, with extract_types.
         */
         template <typename StorageList>
         struct extract_actual_types {
@@ -101,20 +101,6 @@ namespace gridtools {
 
     } // namespace gt_aux
 
-
-    template <bool IsStateful, typename T>
-    struct select_iterate_domain;
-
-    template <typename T>
-    struct select_iterate_domain<true, T> {
-        typedef stateful_iterate_domain<T> type;
-    };
-
-    template <typename T>
-    struct select_iterate_domain<false, T> {
-        typedef iterate_domain<T> type;
-    };
-
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. There is one version which provide coordinates to the functor
@@ -123,14 +109,12 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename Derived, typename StoragePointers, bool IsStateful, typename EsfDescriptor>
+    template <typename Derived, typename StoragePointers, bool IsStateful, typename EsfArgs>
     struct local_domain_base: public clonable_to_gpu<Derived> {
 
-        typedef local_domain_base<Derived, StoragePointers, IsStateful, EsfDescriptor> this_type;
+        typedef local_domain_base<Derived, StoragePointers, IsStateful, EsfArgs> this_type;
 
-        typedef typename EsfDescriptor::args esf_args;
-        typedef typename EsfDescriptor::esf_function esf_function;
-
+        typedef EsfArgs esf_args;
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<esf_args>::type::value > the_range;
 
@@ -165,9 +149,6 @@ namespace gridtools {
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
 
-
-        typedef typename select_iterate_domain<IsStateful, this_type>::type iterate_domain_t;
-
         local_args_type local_args;
 
         template <typename Dom, typename IsActuallyClonable, uint_t DUMMY = 0>
@@ -187,9 +168,9 @@ namespace gridtools {
         GT_FUNCTION_WARNING
         local_domain_base() {}
 
-        template <typename Domain, typename ActualArgs>
+        template <typename ActualArgs>
         GT_FUNCTION
-        void init(Domain const& _dom, ActualArgs const& actual_args)
+        void init(ActualArgs const& actual_args)
         {
             typedef boost::fusion::vector<domain_indices const&, local_args_type&> to_zip;
             typedef boost::fusion::zip_view<to_zip> zipping;
@@ -226,31 +207,6 @@ namespace gridtools {
         }
     };
 
-    //            template <typename EsfDescriptor, typename Domain>
-    //            struct local_domain_location : public local_domain_base<EsfDescriptor, Domain> {
-    //                typedef local_domain_base<EsfDescriptor, Domain> base_type;
-    //                typedef typename EsfDescriptor::args esf_args;
-    //                typedef typename EsfDescriptor::esf_function esf_function;
-    //                typedef typename Domain::placeholders dom_placeholders;
-    //                //typedef typename Domain::arg dom_args;
-    //                typedef Domain domain_type;
-    //
-    //                int m_i,m_j,m_k;
-    //
-    //                explicit local_domain_location(Domain const & dom, int i, int j, int k)
-    //                    : base_type(dom)
-    //                    , m_i(i)
-    //                    , m_j(j)
-    //                    , m_k(k)
-    //                {
-    //                    std::cout << "LOCAL DOMAIN LOCATIONNNNN" << std::endl;
-    //                }
-    //
-    //                int i() const { return m_i;}
-    //                int j() const { return m_j;}
-    //                int k() const { return m_k;}
-    //            };
-
     /**
      * This class extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. This version does not provide coordinates
@@ -259,14 +215,11 @@ namespace gridtools {
      * @tparam EsfDescriptor The descriptor of the elementary stencil function
      * @tparam Domain The full domain type
      */
-    template <typename StoragePointers, typename EsfDescriptor, bool IsStateful>
-    struct local_domain : public local_domain_base< local_domain<StoragePointers,EsfDescriptor,IsStateful>, StoragePointers, IsStateful, EsfDescriptor > {
-        typedef local_domain_base<local_domain<StoragePointers,EsfDescriptor,IsStateful>, StoragePointers, IsStateful, EsfDescriptor > base_type;
-        typedef EsfDescriptor esf_descriptor;
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain : public local_domain_base< local_domain<StoragePointers,EsfArgs,IsStateful>, StoragePointers, IsStateful, EsfArgs > {
+        typedef local_domain_base<local_domain<StoragePointers,EsfArgs,IsStateful>, StoragePointers, IsStateful, EsfArgs > base_type;
         typedef StoragePointers storage_pointers;
-        //typedef Iterators iterators;
-        typedef typename EsfDescriptor::args esf_args;
-        typedef typename EsfDescriptor::esf_function esf_function;
+        typedef EsfArgs esf_args;
 
         GT_FUNCTION
         local_domain() {}
@@ -276,11 +229,11 @@ namespace gridtools {
             : base_type(other)
         {}
 
-        template <typename Domain, typename ArgList>
+        template <typename ArgList>
         GT_FUNCTION
-        void init(Domain const& dom, ArgList const& arg_list, uint_t, uint_t, uint_t)
+        void init(ArgList const& arg_list, uint_t, uint_t, uint_t)
         {
-            base_type::init(dom, arg_list);
+            base_type::init(arg_list);
 #ifndef NDEBUG
 #ifndef __CUDACC__
             std::cout << "LOCAL DOMAIN" << std::endl;
@@ -297,14 +250,37 @@ namespace gridtools {
         uint_t k() const {return 1e9; }
     };
 
-    template <typename StoragePointers, typename EsfDescriptor, bool IsStateful>
-    std::ostream& operator<<(std::ostream& s, local_domain<StoragePointers, EsfDescriptor, IsStateful> const&) {
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    std::ostream& operator<<(std::ostream& s, local_domain<StoragePointers, EsfArgs, IsStateful> const&) {
         return s << "local_domain<stuff>";
     }
 
     template<typename T> struct is_local_domain : boost::mpl::false_{};
 
-    template <typename StoragePointers, typename EsfDescriptor, bool IsStateful>
-    struct is_local_domain<local_domain<StoragePointers, EsfDescriptor, IsStateful> > : boost::mpl::true_{};
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct is_local_domain<local_domain<StoragePointers, EsfArgs, IsStateful> > : boost::mpl::true_{};
 
-}
+    template<typename T> struct local_domain_is_stateful;
+
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain_is_stateful<local_domain<StoragePointers, EsfArgs, IsStateful> > : boost::mpl::bool_<IsStateful>{};
+
+    template<typename T>
+    struct local_domain_esf_args;
+
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain_esf_args<local_domain<StoragePointers, EsfArgs, IsStateful> >
+    {
+        typedef EsfArgs type;
+    };
+
+    template<typename T>
+    struct local_domain_storage_pointers;
+
+    template <typename StoragePointers, typename EsfArgs, bool IsStateful>
+    struct local_domain_storage_pointers<local_domain<StoragePointers, EsfArgs, IsStateful> >
+    {
+        typedef StoragePointers type;
+    };
+
+} // namespace gridtools

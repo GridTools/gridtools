@@ -4,8 +4,8 @@
 
 #include <stencil-composition/backend.h>
 
-#include <boost/timer/timer.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/interval.h>
+#include <stencil-composition/make_computation.h>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.h>
@@ -27,7 +27,7 @@
  */
 
 using gridtools::level;
-using gridtools::arg_type;
+using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 
@@ -46,13 +46,13 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-#if (defined(CXX11_ENABLED)  && !defined(__CUDACC__ ))
+#if (defined(CXX11_ENABLED))
     namespace ex{
-        typedef arg_type<0> out;
-        typedef arg_type<1> inf; //a
-        typedef arg_type<2> diag; //b
-        typedef arg_type<3> sup; //c
-        typedef arg_type<4> rhs; //d
+        typedef accessor<0> out;
+        typedef accessor<1> inf; //a
+        typedef accessor<2> diag; //b
+        typedef accessor<3> sup; //c
+        typedef accessor<4> rhs; //d
 
         static  auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
 
@@ -64,27 +64,19 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
-#ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef arg_type<1> inf; //a
-    typedef arg_type<2> diag; //b
-    typedef arg_type<3> sup; //c
-    typedef arg_type<4> rhs; //d
-#else
-    typedef arg_type<0>::type out;
-    typedef arg_type<1>::type inf; //a
-    typedef arg_type<2>::type diag; //b
-    typedef arg_type<3>::type sup; //c
-    typedef arg_type<4>::type rhs; //d
-#endif
+    typedef accessor<0> out;
+    typedef accessor<1> inf; //a
+    typedef accessor<2> diag; //b
+    typedef accessor<3> sup; //c
+    typedef accessor<4> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
-#if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
-	dom(sup()) =  dom(ex::expr_sup);
-	dom(rhs()) =  dom(ex::expr_rhs);
+#if (defined(CXX11_ENABLED))
+        dom(sup()) =  dom(ex::expr_sup);
+        dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -113,26 +105,18 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
-#ifdef CXX11_ENABLED
-    typedef arg_type<0> out;
-    typedef arg_type<1> inf; //a
-    typedef arg_type<2> diag; //b
-    typedef arg_type<3> sup; //c
-    typedef arg_type<4> rhs; //d
-#else
-    typedef arg_type<0>::type out;
-    typedef arg_type<1>::type inf; //a
-    typedef arg_type<2>::type diag; //b
-    typedef arg_type<3>::type sup; //c
-    typedef arg_type<4>::type rhs; //d
-#endif
+    typedef accessor<0> out;
+    typedef accessor<1> inf; //a
+    typedef accessor<2> diag; //b
+    typedef accessor<3> sup; //c
+    typedef accessor<4> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
 
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#if (defined(CXX11_ENABLED) && (!defined(__CUDACC__ )))
+#if (defined(CXX11_ENABLED))
         dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
@@ -179,7 +163,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -224,12 +208,12 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_inf, p_diag, p_sup, p_rhs, p_out> arg_type_list;
+    typedef boost::mpl::vector<p_inf, p_diag, p_sup, p_rhs, p_out> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<arg_type_list> domain
+    gridtools::domain_type<accessor_list> domain
         (boost::fusion::make_vector(&inf, &diag, &sup, &rhs, &out));
 
     // Definition of the physical dimensions of the problem.
@@ -273,9 +257,9 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-	gridtools::computation* backward_step =
+    gridtools::computation* backward_step =
 #else
-	       boost::shared_ptr<gridtools::computation> backward_step =
+        boost::shared_ptr<gridtools::computation> backward_step =
 #endif
       gridtools::make_computation<gridtools::BACKEND, layout_t>
       (
@@ -285,7 +269,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
                 gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ),
             domain, coords
-	  ) ;
+          ) ;
 
     forward_step->ready();
     forward_step->steady();

@@ -1,3 +1,4 @@
+using uint_t = unsigned int;
 #include <iostream>
 #include "grid.hpp"
 #include <storage/base_storage.h>
@@ -11,6 +12,7 @@
 #include <boost/fusion/adapted/mpl/detail/size_impl.hpp>
 #include <boost/fusion/include/at_c.hpp>
 #include <type_traits>
+
 
 template <int I, typename LocationType>
 struct arg {
@@ -117,8 +119,8 @@ private:
     storage_types storages;
     pointers_t pointers;
     grid_type const& grid;
-    unsigned int m_pos_i;
-    unsigned int m_pos_j;
+    uint_t m_pos_i;
+    uint_t m_pos_j;
 
     template <typename PointersT, typename StoragesT>
     struct _set_pointers 
@@ -130,7 +132,7 @@ private:
         template <typename Index>
         void operator()(Index) {
             double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(st))->min_addr());
-            std::cout << " -------------------------> Pointer " << std::hex << ptr << std::endl;
+            std::cout << " -------------------------> Pointer " << std::hex << ptr << std::dec << std::endl;
             boost::fusion::at_c<Index::value>(pt) = ptr;
         }
     };
@@ -147,7 +149,7 @@ private:
         void operator()(Index) {
             auto value = boost::fusion::at_c<boost::mpl::at_c<PlcVector, Index::value>::type::location_type::value>
                 (g.virtual_storages())->template strides<Coordinate>();
-            std::cout << "Stide<" << Index::value << "> for coordinate " << Coordinate << " = " << value << std::endl;
+            //std::cout << "Stide<" << Index::value << "> for coordinate " << Coordinate << " = " << value << std::endl;
             boost::fusion::at_c<Index::value>(pt) += value;
         }
     };
@@ -178,7 +180,7 @@ private:
     };
 
 public:
-    accessor_type(storage_types const& storages, GridType const& grid, unsigned int pos_i, unsigned int pos_j)
+    accessor_type(storage_types const& storages, GridType const& grid, uint_t pos_i, uint_t pos_j)
         : storages(storages)
         , grid(grid)
         , m_pos_i(pos_i)
@@ -196,14 +198,14 @@ public:
         m_pos_i = i;
         m_pos_j = j;
     }
-    unsigned int i() const {return m_pos_i;}
-    unsigned int j() const {return m_pos_j;}
+    uint_t i() const {return m_pos_i;}
+    uint_t j() const {return m_pos_j;}
 
     template <typename Arg, typename Accumulator>
     double operator()(on_cells_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
         auto neighbors = grid.cell2cells(/**(boost::fusion::at_c<Arg::value>(storages)),*/ {m_pos_i, m_pos_j});
         double result = initial;
-        std::cout << "on_cells " << Arg::value << std::endl;
+        //std::cout << "on_cells " << Arg::value << std::endl;
 
         for (int i = 0; i<neighbors.size(); ++i) {
             result = oncells.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
@@ -214,7 +216,7 @@ public:
     double operator()(on_edges_impl<Arg, Accumulator> onedges, double initial = 0.0) const {
         auto neighbors = grid.cell2edges(/**(boost::fusion::at_c<Arg::value>(storages)),*/ {m_pos_i, m_pos_j});
         double result = initial;
-        std::cout << "on_edges " << Arg::value << std::endl;
+        //std::cout << "on_edges " << Arg::value << std::endl;
 
         for (int i = 0; i<neighbors.size(); ++i) {
             result = onedges.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
@@ -230,7 +232,7 @@ public:
 
 namespace gridtools {
     template <typename T, size_t D>
-    std::ostream& operator<<(std::ostream &s, array<T,D,void> const& a) {
+    std::ostream& operator<<(std::ostream &s, array<T,D> const& a) {
         s << " {  ";
         for (int i = 0; i < D-1; ++i) {
             s << a[i] << ", ";
@@ -239,6 +241,16 @@ namespace gridtools {
 
         return s;
     }
+
+}
+
+template <typename T, size_t D>
+bool operator==(gridtools::array<T,D> const& a, gridtools::array<T,D> const& b) {
+    gridtools::array<T,D> a0 = a;
+    gridtools::array<T,D> b0 = b;
+    std::sort(a0.begin(), a0.end());
+    std::sort(b0.begin(), b0.end());
+    return std::equal(a0.begin(), a0.end(), b0.begin());
 }
 
 struct on_cells_f {
@@ -250,16 +262,20 @@ struct on_cells_f {
     template <typename GridAccessors>
     void
     operator()(GridAccessors /*const*/& eval/*, region*/) const {
-        std::cout << "i = " << eval.i()
-                  << " j = " << eval.j()
-                  << std::endl;
+        // std::cout << "i = " << eval.i()
+        //           << " j = " << eval.j()
+        //           << std::endl;
         auto ff = [](const double _in, const double _res) -> double {return _in+_res;};
         eval(out()) = eval(on_cells<in>(ff), 0.0) + eval(on_edges<in_edges>(ff), 0.0);
     }
 };
 
 #define EVAL(f,x,y)                                                     \
-    std::cout << #f << ": " << gridtools::array<int,2>{x,y} << " -> " << (grid.f({x,y})) << std::endl
+    std::cout << #f << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.f({x,y})) << std::endl
+
+#define EVAL_C(f,x,y, result)                                                    \
+    std::cout << #f << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.f({x,y})) << ", expect " << result; \
+    std::cout << ": Passed? " << std::boolalpha << (grid.f({x,y}) == result) << std::endl
 
 using gridtools::layout_map;
 using gridtools::wrap_pointer;
@@ -284,44 +300,44 @@ int main() {
               << "ME = " << ME
               << std::endl;
 
-    cell_storage_type cells(trapezoid_2D::u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}));
-    edge_storage_type edges(trapezoid_2D::u_edge_size(gridtools::array<unsigned int, 2>{NE, ME}));
+    cell_storage_type cells(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));
+    edge_storage_type edges(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME}));
 
     trapezoid_2D grid(/*cells, edges,*/ 6, 12);
 
     cells.info();
     
-    EVAL(cell2cells_ll_p0, 1, 1);
-    EVAL(cell2cells_ll_p0, 1, 2);
-    EVAL(cell2cells_ll_p1, 1, 3);
-    EVAL(cell2cells_ll_p1, 1, 4);
-    EVAL(cell2cells, 2, 3);
-    EVAL(cell2cells, 2, 4);
-    EVAL(cell2cells, 3, 3);
-    EVAL(cell2cells, 3, 4);
+    EVAL_C(cell2cells_ll_p0, 1, 1, (gridtools::array<uint_t,3>{9, 24, 25}));
+    EVAL_C(cell2cells_ll_p0, 1, 2, (gridtools::array<uint_t,3>{10, 25, 26}));
+    EVAL_C(cell2cells_ll_p1, 1, 3, (gridtools::array<uint_t,3>{19, 20, 35}));
+    EVAL_C(cell2cells_ll_p1, 1, 4, (gridtools::array<uint_t,3>{20, 21, 36}));
+    EVAL_C(cell2cells, 2, 3, (gridtools::array<uint_t,3>{33, 34, 49}));
+    EVAL_C(cell2cells, 2, 4, (gridtools::array<uint_t,3>{26, 41, 42}));
+    EVAL_C(cell2cells, 3, 3, (gridtools::array<uint_t,3>{49, 50, 65}));
+    EVAL_C(cell2cells, 3, 4, (gridtools::array<uint_t,3>{42, 57, 58}));
 
-    EVAL(edge2edges_ll_p0, 2, 3);
-    EVAL(edge2edges_ll_p1, 2, 3);
-    EVAL(edge2edges_ll_p2, 2, 3);
-    EVAL(edge2edges, 2, 2);
-    EVAL(edge2edges, 2, 3);
-    EVAL(edge2edges, 2, 4);
+    EVAL_C(edge2edges_ll_p0, 2, 3, (gridtools::array<uint_t,4>{66,67,59,82}));
+    EVAL_C(edge2edges_ll_p1, 2, 3, (gridtools::array<uint_t,4>{43,28,51,67}));
+    EVAL_C(edge2edges_ll_p2, 2, 3, (gridtools::array<uint_t,4>{51,59,52,83}));
+    EVAL_C(edge2edges, 2, 2, (gridtools::array<uint_t,4>{48,56,49,80}));
+    EVAL_C(edge2edges, 2, 3, (gridtools::array<uint_t,4>{64,57,65,80}));
+    EVAL_C(edge2edges, 2, 4, (gridtools::array<uint_t,4>{41,26,49,65}));
 
-    EVAL(cell2edges_ll_p0, 2, 3);
-    EVAL(cell2edges_ll_p1, 2, 3);
-    EVAL(cell2edges, 2, 3);
-    EVAL(cell2edges, 2, 4);
+    EVAL_C(cell2edges_ll_p0, 2, 3, (gridtools::array<uint_t,3>{51,59,67}));
+    EVAL_C(cell2edges_ll_p1, 2, 3, (gridtools::array<uint_t,3>{67,52,83}));
+    EVAL_C(cell2edges, 2, 3, (gridtools::array<uint_t,3>{65,50,81}));
+    EVAL_C(cell2edges, 2, 4, (gridtools::array<uint_t,3>{58,50,66}));
 
-    EVAL(edge2cells_ll_p0, 2, 3);
-    EVAL(edge2cells_ll_p1, 2, 3);
-    EVAL(edge2cells_ll_p2, 2, 3);
-    EVAL(edge2cells, 2, 3);
-    EVAL(edge2cells, 2, 4);
-    EVAL(edge2cells, 2, 5);
+    EVAL_C(edge2cells_ll_p0, 2, 3, (gridtools::array<uint_t,2>{42,35}));
+    EVAL_C(edge2cells_ll_p1, 2, 3, (gridtools::array<uint_t,2>{27,35}));
+    EVAL_C(edge2cells_ll_p2, 2, 3, (gridtools::array<uint_t,2>{35,43}));
+    EVAL_C(edge2cells, 2, 3, (gridtools::array<uint_t,2>{33,40}));
+    EVAL_C(edge2cells, 2, 4, (gridtools::array<uint_t,2>{25,33}));
+    EVAL_C(edge2cells, 2, 5, (gridtools::array<uint_t,2>{33,41}));
 
 
-    cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<unsigned int, 2>{NC, MC}));
-    edge_storage_type edges_out(trapezoid_2D::u_edge_size(gridtools::array<unsigned int, 2>{NE, ME}));
+    cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));
+    edge_storage_type edges_out(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME}));
 
     //    trapezoid_2D grid_out(cells_out, edges_out, NC, MC);
 
