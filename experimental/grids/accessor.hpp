@@ -1,10 +1,18 @@
 #pragma once
 
+/**
+   This is the type of the accessors accessed by a stencil functor.
+   It's a pretty minima implementation.
+ */
 template <int I>
 struct accessor {
     static const int value = I;
 };
 
+/**
+   This struct is the one holding the function to apply when iterating
+   on neighbor cells of a cell
+ */
 template <typename Accessor, typename Lambda>
 struct on_cells_impl {
     using function = Lambda;
@@ -14,12 +22,19 @@ struct on_cells_impl {
     {}
 };
 
+/**
+   User friendly interface to let iterate on neighbor cells of a cell
+ */
 template <typename Accessor, typename Lambda>
 on_cells_impl<Accessor, Lambda>
 on_cells(Lambda l) {
     return on_cells_impl<Accessor, Lambda>(l);
 }
     
+/**
+   This struct is the one holding the function to apply when iterating
+   on neighbor edges of a cell
+ */
 template <typename Accessor, typename Lambda>
 struct on_edges_impl {
     using function = Lambda;
@@ -29,12 +44,19 @@ struct on_edges_impl {
     {}
 };
 
+/**
+   User friendly interface to let iterate on neighbor edges of a cell
+ */
 template <typename Accessor, typename Lambda>
 on_edges_impl<Accessor, Lambda>
 on_edges(Lambda l) {
     return on_edges_impl<Accessor, Lambda>(l);
 }
-    
+
+/**
+   This class is basically the iterate domain. It contains the
+   ways to access data and the implementation of iterating on neighbors.
+ */
 template <typename PlcVector, typename GridType>
 struct accessor_type {
 
@@ -60,8 +82,8 @@ public:
                                                              get_storage<GridType>
                                                              >::type;
 
-    using storage_types = typename boost::fusion::result_of::as_vector<mpl_storage_types>::type; //typename std::remove_const<typename boost::fusion::result_of::as_vector<typename GridType::storage_types>::type>::type;
-    
+    using storage_types = typename boost::fusion::result_of::as_vector<mpl_storage_types>::type;
+
     using mpl_pointers_t_ = typename boost::mpl::transform<PlcVector,
                                                            get_pointer<GridType>
                                                            >::type;
