@@ -165,7 +165,7 @@ public:
     template <typename Arg, typename Accumulator>
     double operator()(on_neighbors_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
 
-        auto neighbors = (grid.*(gridtools::translate<GridType, location_type, typename Arg::location_type>().funct))( {m_pos_i, m_pos_j} );
+        auto neighbors = grid.neighbors( {m_pos_i, m_pos_j}, location_type(), typename Arg::location_type() );
         double result = initial;
         //std::cout << "on_cells " << Arg::value << std::endl;
 

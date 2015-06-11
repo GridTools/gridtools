@@ -66,6 +66,10 @@ struct stencil_on_edges {
     std::cout << #f << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.f({x,y})) << ", expect " << result; \
     std::cout << ": Passed? " << std::boolalpha << (grid.f({x,y}) == result) << std::endl
 
+#define _EVAL_C(l1,l2,x,y, result)                                        \
+    std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << ", expect " << result; \
+    std::cout << ": Passed? " << std::boolalpha << (grid.neighbors({x,y},trapezoid_2D::l1(),trapezoid_2D::l2()) == result) << std::endl
+
 int main() {
     uint_t NC = trapezoid_2D::u_cell_size_i(6);
     uint_t MC = trapezoid_2D::u_cell_size_j(12);
@@ -90,29 +94,29 @@ int main() {
     EVAL_C(cell2cells_ll_p0, 1, 2, (gridtools::array<uint_t,3>{10, 25, 26}));
     EVAL_C(cell2cells_ll_p1, 1, 3, (gridtools::array<uint_t,3>{19, 20, 35}));
     EVAL_C(cell2cells_ll_p1, 1, 4, (gridtools::array<uint_t,3>{20, 21, 36}));
-    EVAL_C(cell2cells, 2, 3, (gridtools::array<uint_t,3>{33, 34, 49}));
-    EVAL_C(cell2cells, 2, 4, (gridtools::array<uint_t,3>{26, 41, 42}));
-    EVAL_C(cell2cells, 3, 3, (gridtools::array<uint_t,3>{49, 50, 65}));
-    EVAL_C(cell2cells, 3, 4, (gridtools::array<uint_t,3>{42, 57, 58}));
+    _EVAL_C(cells,cells, 2, 3, (gridtools::array<uint_t,3>{33, 34, 49}));
+    _EVAL_C(cells,cells, 2, 4, (gridtools::array<uint_t,3>{26, 41, 42}));
+    _EVAL_C(cells,cells, 3, 3, (gridtools::array<uint_t,3>{49, 50, 65}));
+    _EVAL_C(cells,cells, 3, 4, (gridtools::array<uint_t,3>{42, 57, 58}));
 
     EVAL_C(edge2edges_ll_p0, 2, 3, (gridtools::array<uint_t,4>{66,67,59,82}));
     EVAL_C(edge2edges_ll_p1, 2, 3, (gridtools::array<uint_t,4>{43,28,51,67}));
     EVAL_C(edge2edges_ll_p2, 2, 3, (gridtools::array<uint_t,4>{51,59,52,83}));
-    EVAL_C(edge2edges, 2, 2, (gridtools::array<uint_t,4>{48,56,49,80}));
-    EVAL_C(edge2edges, 2, 3, (gridtools::array<uint_t,4>{64,57,65,80}));
-    EVAL_C(edge2edges, 2, 4, (gridtools::array<uint_t,4>{41,26,49,65}));
+    _EVAL_C(edges,edges, 2, 2, (gridtools::array<uint_t,4>{48,56,49,80}));
+    _EVAL_C(edges,edges, 2, 3, (gridtools::array<uint_t,4>{64,57,65,80}));
+    _EVAL_C(edges,edges, 2, 4, (gridtools::array<uint_t,4>{41,26,49,65}));
 
     EVAL_C(cell2edges_ll_p0, 2, 3, (gridtools::array<uint_t,3>{51,59,67}));
     EVAL_C(cell2edges_ll_p1, 2, 3, (gridtools::array<uint_t,3>{67,52,83}));
-    EVAL_C(cell2edges, 2, 3, (gridtools::array<uint_t,3>{65,50,81}));
-    EVAL_C(cell2edges, 2, 4, (gridtools::array<uint_t,3>{58,50,66}));
+    _EVAL_C(cells,edges, 2, 3, (gridtools::array<uint_t,3>{65,50,81}));
+    _EVAL_C(cells,edges, 2, 4, (gridtools::array<uint_t,3>{58,50,66}));
 
     EVAL_C(edge2cells_ll_p0, 2, 3, (gridtools::array<uint_t,2>{42,35}));
     EVAL_C(edge2cells_ll_p1, 2, 3, (gridtools::array<uint_t,2>{27,35}));
     EVAL_C(edge2cells_ll_p2, 2, 3, (gridtools::array<uint_t,2>{35,43}));
-    EVAL_C(edge2cells, 2, 3, (gridtools::array<uint_t,2>{33,40}));
-    EVAL_C(edge2cells, 2, 4, (gridtools::array<uint_t,2>{25,33}));
-    EVAL_C(edge2cells, 2, 5, (gridtools::array<uint_t,2>{33,41}));
+    _EVAL_C(edges,cells, 2, 3, (gridtools::array<uint_t,2>{33,40}));
+    _EVAL_C(edges,cells, 2, 4, (gridtools::array<uint_t,2>{25,33}));
+    _EVAL_C(edges,cells, 2, 5, (gridtools::array<uint_t,2>{33,41}));
 
 
     cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));
@@ -156,7 +160,7 @@ int main() {
     /** Iteration on CELLS
      */
     for (int i = 1; i < NE-1; ++i) {
-        acc.set_ij(i, 1);
+        acc.set_ij(i, 2);
         for (int j = 3; j < ME-3; ++j) {
             acc.inc_j();
             decltype(x)::functor()(acc);

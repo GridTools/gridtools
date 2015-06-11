@@ -205,7 +205,7 @@ namespace gridtools {
         }
 
         array<uint_t, 3>
-        cell2cells(array<uint_t, 2> const& i) const
+        neighbors(array<uint_t, 2> const& i, cells, cells) const
         {
             if (i[1]&1) {
                 return cell2cells_ll_p1({i[0], i[1]/2});
@@ -215,7 +215,7 @@ namespace gridtools {
         }        
 
         array<uint_t, 4>
-        edge2edges(array<uint_t, 2> const& i) const
+        neighbors(array<uint_t, 2> const& i, edges, edges) const
         {
             switch (i[1]%3) {
             case 0:
@@ -228,7 +228,7 @@ namespace gridtools {
         }
 
         array<uint_t, 3>
-        cell2edges(array<uint_t, 2> const& i) const
+        neighbors(array<uint_t, 2> const& i, cells, edges) const
         {
             if (i[1]&1) {
                 return cell2edges_ll_p1({i[0], i[1]/2});
@@ -238,7 +238,7 @@ namespace gridtools {
         }
 
         array<uint_t, 2>
-        edge2cells(array<uint_t, 2> const& i) const
+        neighbors(array<uint_t, 2> const& i, edges, cells) const
         {
             switch (i[1]%3) {
             case 0:
@@ -250,53 +250,6 @@ namespace gridtools {
             }
         }
 
-    };
-
-    template <typename GridType, typename LocationTypeSrc, typename LocationTypeDst>
-    struct translate;
-
-    template<typename T, typename U>
-    struct translate<trapezoid_2D_no_tile<T,U>,
-                     typename trapezoid_2D_no_tile<T,U>::cells,
-                     typename trapezoid_2D_no_tile<T,U>::cells>
-    {
-        array<uint_t, 3> (trapezoid_2D_no_tile<T,U>::*funct) (array<uint_t, 2> const&) const;
-        translate()
-            : funct(&trapezoid_2D_no_tile<T,U>::cell2cells)
-        {}
-    };
-
-    template<typename T, typename U>
-    struct translate<trapezoid_2D_no_tile<T,U>,
-                     typename trapezoid_2D_no_tile<T,U>::cells,
-                     typename trapezoid_2D_no_tile<T,U>::edges>
-    {
-        array<uint_t, 3> (trapezoid_2D_no_tile<T,U>::*funct) (array<uint_t, 2> const&) const;
-        translate()
-            : funct(&trapezoid_2D_no_tile<T,U>::cell2edges)
-        {}
-    };
-
-    template<typename T, typename U>
-    struct translate<trapezoid_2D_no_tile<T,U>,
-                     typename trapezoid_2D_no_tile<T,U>::edges,
-                     typename trapezoid_2D_no_tile<T,U>::edges>
-    {
-        array<uint_t, 4> (trapezoid_2D_no_tile<T,U>::*funct) (array<uint_t, 2> const&) const;
-        translate()
-            : funct(&trapezoid_2D_no_tile<T,U>::edge2edges)
-        {}
-    };
-
-    template<typename T, typename U>
-    struct translate<trapezoid_2D_no_tile<T,U>,
-                     typename trapezoid_2D_no_tile<T,U>::edges,
-                     typename trapezoid_2D_no_tile<T,U>::cells >
-    {
-        array<uint_t, 3> (trapezoid_2D_no_tile<T,U>::*funct) (array<uint_t, 2> const&) const;
-        translate()
-            : funct(&trapezoid_2D_no_tile<T,U>::edge2cells)
-        {}
     };
 
 }
