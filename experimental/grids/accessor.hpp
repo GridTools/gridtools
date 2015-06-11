@@ -4,20 +4,24 @@
    This is the type of the accessors accessed by a stencil functor.
    It's a pretty minima implementation.
  */
-template <int I>
+template <int I, typename LocationType>
 struct accessor {
+    using location_type = LocationType;
     static const int value = I;
 };
 
 /**
    This struct is the one holding the function to apply when iterating
-   on neighbor cells of a cell
+   on neighbors
  */
 template <typename Accessor, typename Lambda>
-struct on_cells_impl {
+struct on_neighbors_impl {
+    using accessor = Accessor;
     using function = Lambda;
+    
     function ff;
-    on_cells_impl(function l)
+
+    on_neighbors_impl(function l)
         : ff(l)
     {}
 };
@@ -26,38 +30,18 @@ struct on_cells_impl {
    User friendly interface to let iterate on neighbor cells of a cell
  */
 template <typename Accessor, typename Lambda>
-on_cells_impl<Accessor, Lambda>
-on_cells(Lambda l) {
-    return on_cells_impl<Accessor, Lambda>(l);
+on_neighbors_impl<Accessor, Lambda>
+on_neighbors(Lambda l) {
+    return on_neighbors_impl<Accessor, Lambda>(l);
 }
     
-/**
-   This struct is the one holding the function to apply when iterating
-   on neighbor edges of a cell
- */
-template <typename Accessor, typename Lambda>
-struct on_edges_impl {
-    using function = Lambda;
-    function ff;
-    on_edges_impl(function l)
-        : ff(l)
-    {}
-};
 
-/**
-   User friendly interface to let iterate on neighbor edges of a cell
- */
-template <typename Accessor, typename Lambda>
-on_edges_impl<Accessor, Lambda>
-on_edges(Lambda l) {
-    return on_edges_impl<Accessor, Lambda>(l);
-}
 
 /**
    This class is basically the iterate domain. It contains the
    ways to access data and the implementation of iterating on neighbors.
  */
-template <typename PlcVector, typename GridType>
+template <typename PlcVector, typename GridType, typename LocationType>
 struct accessor_type {
 
 private:
@@ -89,8 +73,9 @@ public:
                                                            >::type;
 
     using pointers_t = typename boost::fusion::result_of::as_vector<mpl_pointers_t_>::type;
-
+    
     using grid_type = GridType;
+    using location_type = LocationType;
 private:
     storage_types storages;
     pointers_t pointers;
@@ -178,8 +163,9 @@ public:
     uint_t j() const {return m_pos_j;}
 
     template <typename Arg, typename Accumulator>
-    double operator()(on_cells_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
-        auto neighbors = grid.cell2cells(/**(boost::fusion::at_c<Arg::value>(storages)),*/ {m_pos_i, m_pos_j});
+    double operator()(on_neighbors_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
+
+        auto neighbors = (grid.*(gridtools::translate<GridType, location_type, typename Arg::location_type>().funct))( {m_pos_i, m_pos_j} );
         double result = initial;
         //std::cout << "on_cells " << Arg::value << std::endl;
 
@@ -188,19 +174,9 @@ public:
         }
     }
 
-    template <typename Arg, typename Accumulator>
-    double operator()(on_edges_impl<Arg, Accumulator> onedges, double initial = 0.0) const {
-        auto neighbors = grid.cell2edges(/**(boost::fusion::at_c<Arg::value>(storages)),*/ {m_pos_i, m_pos_j});
-        double result = initial;
-        //std::cout << "on_edges " << Arg::value << std::endl;
 
-        for (int i = 0; i<neighbors.size(); ++i) {
-            result = onedges.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
-        }
-    }
-
-    template <int I>
-    double& operator()(accessor<I> const& arg) const {
+    template <int I, typename LT>
+    double& operator()(accessor<I,LT> const& arg) const {
         return *(boost::fusion::at_c<I>(pointers));
     }
 };
