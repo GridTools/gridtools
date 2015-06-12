@@ -250,6 +250,148 @@ namespace gridtools {
             }
         }
 
+
+
+
+
+
+
+        array<array<uint_t, 3>, 3>
+        cell2cells_ll_p1_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 3>{
+                { i[0], 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 0, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 3>
+        cell2cells_ll_p0_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 3>{
+                { i[0], 1, i[1]-1},
+                { i[0], 1, i[1]},
+                { i[0]-1, 1, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 4>
+        edge2edges_ll_p0_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 4>{
+                { i[0], 1, i[1]},
+                { i[0]+1, 1, i[1]-1},
+                { i[0], 2, i[1]},
+                { i[0], 2, i[1]-1}};
+        }
+
+        array<array<uint_t, 3>, 4>
+        edge2edges_ll_p1_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 4>{
+                { i[0], 0, i[1]},
+                { i[0]-1, 0, i[1]+1},
+                { i[0], 2, i[1]},
+                { i[0]-1, 2, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 4>
+        edge2edges_ll_p2_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 4>{
+                { i[0], 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0], 1, i[1]},
+                { i[0]+1, 1, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 3>
+        cell2edges_ll_p1_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 3>{
+                { i[0], 2, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 1, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 3>
+        cell2edges_ll_p0_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 3>{
+                { i[0], 0, i[1]},
+                { i[0], 1, i[1]},
+                { i[0], 2, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 2>
+        edge2cells_ll_p0_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 2>{
+                { i[0], 1, i[1]-1},
+                { i[0], 0, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 2>
+        edge2cells_ll_p1_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 2>{
+                { i[0]-1, 1, i[1]},
+                { i[0], 0, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 2>
+        edge2cells_ll_p2_indices(array<uint_t, 2> const& i) const
+        {
+            return array<array<uint_t, 3>, 2>{
+                { i[0], 0, i[1]},
+                { i[0], 1, i[1]}};
+        }
+
+        array<array<uint_t, 3>, 3>
+        neighbors_indices(array<uint_t, 2> const& i, cells, cells) const
+        {
+            if (i[1]&1) {
+                return cell2cells_ll_p1_indices({i[0], i[1]/2});
+            } else {
+                return cell2cells_ll_p0_indices({i[0], i[1]/2});
+            }
+        }
+
+        array<array<uint_t, 3>, 4>
+        neighbors_indices(array<uint_t, 2> const& i, edges, edges) const
+        {
+            switch (i[1]%3) {
+            case 0:
+                return edge2edges_ll_p0_indices({i[0], i[1]/3});
+            case 1:
+                return edge2edges_ll_p1_indices({i[0], i[1]/3});
+            case 2:
+                return edge2edges_ll_p2_indices({i[0], i[1]/3});
+            }
+        }
+
+        array<array<uint_t, 3>, 3>
+        neighbors_indices(array<uint_t, 2> const& i, cells, edges) const
+        {
+            if (i[1]&1) {
+                return cell2edges_ll_p1_indices({i[0], i[1]/2});
+            } else {
+                return cell2edges_ll_p0_indices({i[0], i[1]/2});
+            }
+        }
+
+        array<array<uint_t, 3>, 2>
+        neighbors_indices(array<uint_t, 2> const& i, edges, cells) const
+        {
+            switch (i[1]%3) {
+            case 0:
+                return edge2cells_ll_p0_indices({i[0], i[1]/3});
+            case 1:
+                return edge2cells_ll_p1_indices({i[0], i[1]/3});
+            case 2:
+                return edge2cells_ll_p2_indices({i[0], i[1]/3});
+            }
+        }
+
     };
 
 }
