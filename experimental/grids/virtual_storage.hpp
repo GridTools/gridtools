@@ -62,6 +62,16 @@ namespace gridtools {
             return m_strides[0];
         }
 
+        array<int, space_dimensions> offset2indices(uint_t offset) const {
+            array<int, space_dimensions> indices;
+            for (int i = 0; i < space_dimensions-1; ++i) {
+                indices[i] = offset/m_strides[i];
+                offset = offset%m_strides[i];
+            }
+            indices[space_dimensions-1] = offset;
+            return indices;
+        }
+
         /**@brief return the stride for a specific coordinate, given the vector of strides
            Coordinates 0,1,2 correspond to i,j,k respectively*/
         template<uint_t Coordinate>
