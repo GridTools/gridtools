@@ -4,18 +4,9 @@
 #include <cassert>
 #include <boost/mpl/vector.hpp>
 #include "virtual_storage.hpp"
+#include "location_type.hpp"
 
 namespace gridtools {
-
-    template <int I>
-    struct location_type {
-        static const int value = I;
-    };
-
-    template <int I>
-    std::ostream& operator<<(std::ostream& s, location_type<I>) {
-        return s << "location_type<" << I << ">";
-    }
 
     /**
     */
@@ -113,6 +104,22 @@ namespace gridtools {
 #define DO_THE_MATH(stor, i,j,k)                \
         m_v_ ## stor ## _storage._index(i,j,k)
 
+
+        array<uint_t, 3> ll_indices(array<uint_t, 2> const& i, cells) const {
+            return array<uint_t, 3>{i[0], i[1]%1, i[1]/3};
+        }
+        
+        array<uint_t, 3> ll_indices(array<uint_t, 2> const& i, edges) const {
+            return array<uint_t, 3>{i[0], i[1]%3, i[1]/3};
+        }
+        
+        uint_t ll_offset(array<uint_t, 3> const& i, cells) const {
+            return m_v_cell_storage._index(i[0], i[1], i[2]);
+        }
+        
+        uint_t ll_offset(array<uint_t, 3> const& i, edges) const {
+            return m_v_edge_storage._index(i[0], i[1], i[2]);
+        }
         
         array<uint_t, 3>
         cell2cells_ll_p1(array<uint_t, 2> const& i) const
@@ -391,6 +398,55 @@ namespace gridtools {
                 return edge2cells_ll_p2_indices({i[0], i[1]/3});
             }
         }
+
+
+        /**************************************************************************/
+        array<array<uint_t, 3>, 3>
+        neighbors_indices_3(array<uint_t, 3> const& i, cells, cells) const
+        {
+            if (i[1]&1) {
+                return cell2cells_ll_p1_indices({i[0], i[2]});
+            } else {
+                return cell2cells_ll_p0_indices({i[0], i[2]});
+            }
+        }
+
+        array<array<uint_t, 3>, 4>
+        neighbors_indices_3(array<uint_t, 3> const& i, edges, edges) const
+        {
+            switch (i[1]%3) {
+            case 0:
+                return edge2edges_ll_p0_indices({i[0], i[1]});
+            case 1:
+                return edge2edges_ll_p1_indices({i[0], i[1]});
+            case 2:
+                return edge2edges_ll_p2_indices({i[0], i[1]});
+            }
+        }
+
+        array<array<uint_t, 3>, 3>
+        neighbors_indices_3(array<uint_t, 3> const& i, cells, edges) const
+        {
+            if (i[1]&1) {
+                return cell2edges_ll_p1_indices({i[0], i[1]});
+            } else {
+                return cell2edges_ll_p0_indices({i[0], i[1]});
+            }
+        }
+
+        array<array<uint_t, 3>, 2>
+        neighbors_indices_3(array<uint_t, 3> const& i, edges, cells) const
+        {
+            switch (i[1]%3) {
+            case 0:
+                return edge2cells_ll_p0_indices({i[0], i[1]});
+            case 1:
+                return edge2cells_ll_p1_indices({i[0], i[1]});
+            case 2:
+                return edge2cells_ll_p2_indices({i[0], i[1]});
+            }
+        }
+
 
     };
 

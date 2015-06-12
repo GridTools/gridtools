@@ -41,6 +41,7 @@ struct stencil_on_cells {
         eval(out()) = eval(on_neighbors<in>(ff), 0.0) + eval(on_neighbors<in_edges>(ff), 0.0);
         eval(out()) = eval(in()(ff), 0.0) + eval(in_edges()(ff), 0.0);
         eval(out()) = eval(in::neighbors(ff), 0.0) + eval(in_edges::neighbors(ff), 0.0);
+        //eval(out()) = eval(__on_neighbors<trapezoid_2D::edges, on_neighbors<in> >(ff), 0.0);// + eval(on_neighbors<in_edges>(ff), 0.0);
     }
 };
 
@@ -71,6 +72,9 @@ struct stencil_on_edges {
 #define _EVAL_C(l1,l2,x,y, result)                                        \
     std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << ", expect " << result; \
     std::cout << ": Passed? " << std::boolalpha << (grid.neighbors({x,y},trapezoid_2D::l1(),trapezoid_2D::l2()) == result) << std::endl
+
+#define _EVAL_I(l1,l2,x,y)                                              \
+    std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors_indices({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << std::endl;
 
 int main() {
     uint_t NC = trapezoid_2D::u_cell_size_i(6);
@@ -119,6 +123,25 @@ int main() {
     _EVAL_C(edges,cells, 2, 3, (gridtools::array<uint_t,2>{33,40}));
     _EVAL_C(edges,cells, 2, 4, (gridtools::array<uint_t,2>{25,33}));
     _EVAL_C(edges,cells, 2, 5, (gridtools::array<uint_t,2>{33,41}));
+
+
+
+
+    _EVAL_I(cells,cells, 2, 3);
+    _EVAL_I(cells,cells, 2, 4);
+    _EVAL_I(cells,cells, 3, 3);
+    _EVAL_I(cells,cells, 3, 4);
+
+    _EVAL_I(edges,edges, 2, 2);
+    _EVAL_I(edges,edges, 2, 3);
+    _EVAL_I(edges,edges, 2, 4);
+
+    _EVAL_I(cells,edges, 2, 3);
+    _EVAL_I(cells,edges, 2, 4);
+
+    _EVAL_I(edges,cells, 2, 3);
+    _EVAL_I(edges,cells, 2, 4);
+    _EVAL_I(edges,cells, 2, 5);
 
 
     cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));

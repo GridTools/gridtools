@@ -1,4 +1,5 @@
 #pragma once
+#include "location_type.hpp"
 
 /**
    This struct is the one holding the function to apply when iterating
@@ -25,6 +26,44 @@ on_neighbors(Lambda l) {
     return on_neighbors_impl<Accessor, Lambda>(l);
 }
     
+template <typename LocationTypeSrc, typename ToDestination>
+struct __on_neighbors;
+
+template <int I, int J, typename ToDestination>
+struct __on_neighbors<typename gridtools::location_type<I>, __on_neighbors<typename gridtools::location_type<J>, ToDestination>> {
+    using next_type = __on_neighbors<gridtools::location_type<J>, ToDestination>;
+
+    next_type m_next;
+
+    template <typename Lambda>
+        __on_neighbors(Lambda ff)
+        : m_next(ff)
+    {}
+
+    next_type next()
+    {
+        return m_next;
+    }
+};
+
+template <int I, typename Accessor, typename Lambda>
+struct __on_neighbors<typename gridtools::location_type<I>, on_neighbors_impl<Accessor, Lambda>> {
+    using next_type = on_neighbors_impl<Accessor, Lambda>;
+
+    next_type m_next;
+
+    __on_neighbors(Lambda ff)
+        : m_next(ff)
+    {}
+
+    next_type next()
+    {
+        return m_next;
+    }
+};
+
+
+
 /**
    This is the type of the accessors accessed by a stencil functor.
    It's a pretty minima implementation.
@@ -175,20 +214,57 @@ public:
     uint_t j() const {return m_pos_j;}
 
     template <typename Arg, typename Accumulator>
-    double operator()(on_neighbors_impl<Arg, Accumulator> oncells, double initial = 0.0) const {
+    double operator()(on_neighbors_impl<Arg, Accumulator> onneighbors, double initial = 0.0) const {
 
         auto neighbors = grid.neighbors( {m_pos_i, m_pos_j}, location_type(), typename Arg::location_type() );
         double result = initial;
         //std::cout << "on_cells " << Arg::value << std::endl;
 
         for (int i = 0; i<neighbors.size(); ++i) {
-            result = oncells.ff(*(boost::fusion::at_c<Arg::value>(pointers)), result);
+            result = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+neighbors[i]), result);
         }
+    }
+
+    template <typename LocationTypeDst, typename Defer>
+    double operator()(__on_neighbors<LocationTypeDst, Defer> __onneighbors, double initial = 0.0) const {
+        
+        auto neighbors = grid.ll_indices( {m_pos_i, m_pos_j}, location_type() );
+        __begin_iteration<location_type>(__onneighbors, initial, neighbors);
+        // double result = initial;
+        // //std::cout << "on_cells " << Arg::value << std::endl;
+
+        // for (int i = 0; i<neighbors.size(); ++i) {
+        //     result = operator()(__onneighbors::next_type(neighbors[i], result);
+        // }
     }
 
 
     template <int I, typename LT>
     double& operator()(accessor<I,LT> const& arg) const {
         return *(boost::fusion::at_c<I>(pointers));
+    }
+
+private:
+
+    template <typename LocationTypeSrc, typename LocationTypeDst, typename Defer>
+    double __begin_iteration(__on_neighbors<LocationTypeDst, Defer> __onneighbors,
+                             double initial,
+                             gridtools::array<uint_t, 3> const& indices) const
+    {
+        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), LocationTypeDst() );
+        for (int i = 0; i<neighbors.size(); ++i) {
+            initial = __begin_iteration<LocationTypeDst>(__onneighbors.next(), initial, neighbors[i]);
+        }
+    }
+
+    template <typename LocationTypeSrc, typename Arg, typename Accumulator>
+    double __begin_iteration(on_neighbors_impl<Arg, Accumulator> onneighbors,
+                             double initial,
+                             gridtools::array<uint_t, 3> const& indices) const
+    {
+        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
+        for (int i = 0; i<neighbors.size(); ++i) {
+            initial = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+neighbors[i]), initial);
+        }
     }
 };
