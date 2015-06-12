@@ -39,6 +39,8 @@ struct stencil_on_cells {
         //           << std::endl;
         auto ff = [](const double _in, const double _res) -> double {return _in+_res;};
         eval(out()) = eval(on_neighbors<in>(ff), 0.0) + eval(on_neighbors<in_edges>(ff), 0.0);
+        eval(out()) = eval(in()(ff), 0.0) + eval(in_edges()(ff), 0.0);
+        eval(out()) = eval(in::neighbors(ff), 0.0) + eval(in_edges::neighbors(ff), 0.0);
     }
 };
 

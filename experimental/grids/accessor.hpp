@@ -1,16 +1,6 @@
 #pragma once
 
 /**
-   This is the type of the accessors accessed by a stencil functor.
-   It's a pretty minima implementation.
- */
-template <int I, typename LocationType>
-struct accessor {
-    using location_type = LocationType;
-    static const int value = I;
-};
-
-/**
    This struct is the one holding the function to apply when iterating
    on neighbors
  */
@@ -35,6 +25,28 @@ on_neighbors(Lambda l) {
     return on_neighbors_impl<Accessor, Lambda>(l);
 }
     
+/**
+   This is the type of the accessors accessed by a stencil functor.
+   It's a pretty minima implementation.
+ */
+template <int I, typename LocationType>
+struct accessor {
+    using this_type = accessor<I, LocationType>;
+    using location_type = LocationType;
+    static const int value = I;
+
+    template <typename Lambda>
+    on_neighbors_impl<this_type, Lambda>
+    operator()(Lambda l) const {
+        return on_neighbors_impl<this_type, Lambda>(l);
+    }
+    template <typename Lambda>
+    static
+    on_neighbors_impl<this_type, Lambda>
+    neighbors(Lambda l) {
+        return on_neighbors_impl<this_type, Lambda>(l);
+    }
+};
 
 
 /**
