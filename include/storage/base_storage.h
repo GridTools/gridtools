@@ -549,8 +549,10 @@ namespace gridtools {
 #endif
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
+#ifdef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
-                increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_)*steps_);
+#endif
+                    increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_)*steps_);
             }
         }
 
@@ -565,8 +567,10 @@ namespace gridtools {
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
+#ifdef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?")
-                *index_+=strides<Coordinate>(strides_)*steps_;
+#endif
+                    *index_+=strides<Coordinate>(strides_)*steps_;
             }
         }
 
