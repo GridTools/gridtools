@@ -285,19 +285,17 @@ namespace gridtools{
         /** sum expression*/
         template<typename ArgType1, typename ArgType2 ,
                  typename boost::disable_if<
-                     typename boost::mpl::or_<
-                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
-                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
         GT_FUNCTION
         constexpr expr_plus<ArgType1, ArgType2 >  operator + (ArgType1 arg1, ArgType2 arg2){
             return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** minus expression*/
         template<typename ArgType1, typename ArgType2,
-                                  typename boost::disable_if<
-                     typename boost::mpl::or_<
-                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
-                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
         GT_FUNCTION
         constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){
             return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}
@@ -305,9 +303,8 @@ namespace gridtools{
         /** multiply expression*/
         template<typename ArgType1, typename ArgType2,
                  typename boost::disable_if<
-                     typename boost::mpl::or_<
-                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
-                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
         GT_FUNCTION
         constexpr expr_times<ArgType1, ArgType2 > operator * (ArgType1 arg1, ArgType2 arg2){
             return expr_times<ArgType1, ArgType2 >(arg1, arg2);}
@@ -315,15 +312,15 @@ namespace gridtools{
         /** divide expression*/
         template<typename ArgType1, typename ArgType2,
                  typename boost::disable_if<
-                     typename boost::mpl::or_<
-                         no_expr_nor_accessor_types< ArgType1, ArgType2 >,
-                         any_enum_type<ArgType1, ArgType2> >::type , int >::type=0 >
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
         GT_FUNCTION
         constexpr expr_divide<ArgType1, ArgType2 > operator / (ArgType1 arg1, ArgType2 arg2){
             return expr_divide<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** power expression*/
-        template<int exponent, typename ArgType1, typename boost::disable_if<typename boost::is_floating_point<ArgType1>::type, int >::type=0>
+        template<int exponent, typename ArgType1,
+                 typename boost::disable_if<typename boost::is_floating_point<ArgType1>::type, int >::type=0>
         GT_FUNCTION
         constexpr expr_pow<ArgType1, exponent >    pow (ArgType1 arg1){
             return expr_pow<ArgType1, exponent >(arg1);}

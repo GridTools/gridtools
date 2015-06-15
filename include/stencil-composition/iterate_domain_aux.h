@@ -21,6 +21,18 @@
 
 namespace gridtools{
 
+    /**@brief alternative to boost::mlpl::range_c, which defines a sequence of integers of length End-Start, with step Step, in decreasing order*/
+    template<typename Start, typename End, typename Step>
+    struct gt_reversed_range{
+        typedef typename boost::mpl::reverse_fold<
+            boost::mpl::range_c<int_t, Start::value-1, End::value-1>//numeration from 0
+            , boost::mpl::vector_c<int_t>
+            , boost::mpl::push_back<boost::mpl::_1,
+                                    boost::mpl::plus<boost::mpl::_2
+                                                     , Step> > >::type type;
+    };
+
+
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
      */
@@ -51,6 +63,28 @@ namespace gridtools{
                 boost::is_pointer<T>
             > {};
 
+    /** method replacing the operator ? which selects a branch at compile time and
+     allows to return different types whether the condition is true or false */
+    template<bool Condition>
+    struct static_if;
+
+    template<>
+    struct static_if <true>{
+        template <typename TrueVal, typename FalseVal>
+        static constexpr TrueVal& apply(TrueVal& true_val, FalseVal& /*false_val*/)
+            {
+                return true_val;
+            }
+    };
+
+    template<>
+    struct static_if <false>{
+        template <typename TrueVal, typename FalseVal>
+        static constexpr FalseVal& apply(TrueVal& /*true_val*/, FalseVal& false_val)
+            {
+                return false_val;
+            }
+    };
 
     /**
        @brief struct to allocate recursively all the strides with the proper dimension
@@ -66,6 +100,10 @@ namespace gridtools{
         typedef typename  boost::mpl::at_c<StorageList, ID>::type::storage_type storage_type;
         typedef strides_cached<ID-1, StorageList> super;
 
+        using data_array_t=array<uint_t, storage_type::space_dimensions-1>;
+        template <short_t Idx>
+            using return_t = typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx> >::type;
+
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
         strides_cached():super(){
@@ -74,12 +112,14 @@ namespace gridtools{
 
         template<short_t Idx>
         GT_FUNCTION
-        uint_t * RESTRICT get() {
-            return ((Idx==ID-1)? &m_data[0] : (super::template get<Idx>()));
+            return_t<Idx> & RESTRICT
+            get() {
+            return static_if<(Idx==ID)>::apply( m_data , super::template get<Idx>());
         }
 
     private:
-        uint_t m_data[storage_type::space_dimensions-1];
+
+        data_array_t m_data;
     };
 
 
@@ -91,17 +131,20 @@ namespace gridtools{
         GT_FUNCTION
         strides_cached(){}
 
+        using data_array_t = array<uint_t, storage_type::space_dimensions-1>;
+        template <short_t Idx>
+        using return_t=data_array_t;
         //TODOCOSUNA getter should be const method. But we can not here because we return a non const *
         // We should have a getter and a setter
         template<short_t Idx>
         GT_FUNCTION
-        uint_t * RESTRICT get()  {//stop recursion
-            //GRIDTOOLS_STATIC_ASSERT(Idx==0, "Internal library error: Index exceeding the storage_list dimension.")
-            return &m_data[0];
+        data_array_t & RESTRICT
+        get()  {//stop recursion
+            return m_data;
         }
 
     private:
-        uint_t m_data[storage_type::space_dimensions-1];
+        data_array_t m_data;
     };
 
     template<typename T> struct is_strides_cached : boost::mpl::false_{};
@@ -156,6 +199,8 @@ namespace gridtools{
         }
     private:
 
+        assign_raw_data_functor();
+
         // implementation of the assignment of the data pointer in case the storage is a temporary storage
         template<typename ID, typename PE_ID, typename _Storage>
         GT_FUNCTION
@@ -199,7 +244,7 @@ namespace gridtools{
             (EndIndex < 0),
             boost::mpl::int_<0>,
             typename boost::mpl::fold<
-                boost::mpl::range_c<int, 0, EndIndex>,
+                typename gt_reversed_range< static_int<0>, static_int<EndIndex>, static_int<1> >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,
@@ -374,7 +419,7 @@ namespace gridtools{
 
         GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value), "internal error: wrong type")
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-                "internal error: wrong type")
+                                "internal error: wrong type")
     private:
         DataPointerArray& RESTRICT m_data_pointer_array;
         StorageSequence const & RESTRICT m_storages;
@@ -403,7 +448,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                     "the ID is larger than the number of storage types")
 
-            for_each<boost::mpl::range_c<int, 0, storage_type::field_dimensions > > (
+            for_each< typename gt_reversed_range< static_int<0>, static_int<storage_type::field_dimensions>, static_int<1> >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -474,7 +519,7 @@ namespace gridtools{
         GT_FUNCTION
         void operator()(ID const&) const {
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
-                    "Accessing an index out of bound in fusion tuple")
+                                    "Accessing an index out of bound in fusion tuple")
 
             typedef typename boost::remove_pointer<
                 typename boost::remove_reference<
@@ -485,11 +530,11 @@ namespace gridtools{
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types")
 
-            for_each<boost::mpl::range_c<int, 0, storage_type::space_dimensions-1> > (
+                for_each<typename gt_reversed_range< static_int<0>, static_int< storage_type::space_dimensions-1>, static_int<1> >::type> (
                 assign_strides_inner_functor<
-                    BackendType
-                >(m_strides.template get<ID::value>(), &boost::fusion::at<ID>(m_storages)->strides(1))
-            );
+                BackendType
+                >(&(m_strides.template get<ID::value>()[0]), &boost::fusion::at<ID>(m_storages)->strides(1))
+                );
         }
     };
 

@@ -185,9 +185,9 @@ namespace shallow_water{
         // using xrange=range<0,-2,0,-2>;
         // using xrange_subdomain=range<1,1,1,1>;
 
-        typedef accessor<0, range<0,0,0,0>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef accessor<1, range<0,0,0,0>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef accessor<2,range<-1, 0, -1, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0, range<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef accessor<1, range<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef accessor<2,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 
@@ -206,27 +206,52 @@ namespace shallow_water{
 
             eval(sol()) =
                 eval(sol()-
-                     (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
+                     (ux(i+1) - ux())*(dt()/dx())
                      -
-                     (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
+                     (vy(j+1) - vy())*(dt()/dy())
                     );
 
             // eval(sol(comp(1))) = eval(hx());
 
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
-                     (pow<2>(ux(j-1))                / hx(j-1)    + hx(j-1)*hx(j-1)*((g()/2.))                 -
-                      (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-                     (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-                      vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy())
+                     (pow<2>(ux(i+1))                / hx(i+1)    + hx(i+1)*hx(i+1)*((g()/2.))                 -
+                      (pow<2>(ux())            / hx() +pow<2>(hx() )*((g()/2.))))*((dt()/dx())) -
+                     (vy(j+1)*uy(j+1)          / hy(j+1)                                                   -
+                      vy()*uy() / hy()) *(dt()/dy())
                     );
 
             eval(sol(comp(2))) =
                 eval(sol(comp(2)) -
-                     (ux(j-1)    *vx(j-1)       /hx(j-1) -
-                      (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
-                     (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
-                      (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
+                     (ux(i+1)    *vx(i+1)       /hx(i+1) -
+                      (ux()*vx()) /hx())*((dt()/dx()))-
+                     (pow<2>(vy(j+1))                /hy(j+1)      +pow<2>(hy(j+1)     )*((g()/2.)) -
+                      (pow<2>(vy())           /hy() +pow<2>(hy())*((g()/2.))   ))*((dt()/dy())));
+
+
+            // eval(sol()) =
+            //     eval(sol()-
+            //          (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
+            //          -
+            //          (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
+            //         );
+
+            // // eval(sol(comp(1))) = eval(hx());
+
+            // eval(sol(comp(1))) =
+            //     eval(sol(comp(1)) -
+            //          (pow<2>(ux(j-1))                / hx(j-1)    + hx(j-1)*hx(j-1)*((g()/2.))                 -
+            //           (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
+            //          (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
+            //           vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy())
+            //         );
+
+            // eval(sol(comp(2))) =
+            //     eval(sol(comp(2)) -
+            //          (ux(j-1)    *vx(j-1)       /hx(j-1) -
+            //           (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
+            //          (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
+            //           (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
 
         }
 
@@ -320,6 +345,7 @@ namespace shallow_water{
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
+        sol.allocate();
 
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());

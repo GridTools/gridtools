@@ -543,6 +543,15 @@ namespace shallow_water{
             parallel_storage<storage_type, partitioner_t> h (part); h .setup( d1, d2, d3);
             parallel_storage<storage_type, partitioner_t> u (part); u .setup( d1, d2, d3);
             parallel_storage<storage_type, partitioner_t> v (part); v .setup( d1, d2, d3);
+            hx.allocate();
+            ux.allocate();
+            vx.allocate();
+            hy.allocate();
+            uy.allocate();
+            vy.allocate();
+            h.allocate();
+            u.allocate();
+            v.allocate();
 
             he.add_halo<0>(v.get_halo_gcl<0>());//the parallel storage, not the partitioner, must hold this information
             he.add_halo<1>(v.get_halo_gcl<1>());

@@ -1,3 +1,7 @@
+add_executable(test_iterate_domain test_iterate_domain.cpp)
+set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(test_iterate_domain ${exe_LIBS})
+
 add_executable(FunctorDoMethodLookupMaps FunctorDoMethodLookupMaps.cpp)
 add_test(test.FunctorDoMethodLookupMaps "${CMAKE_BINARY_DIR}/build/FunctorDoMethodLookupMaps")
 
@@ -15,13 +19,13 @@ if ( ENABLE_CXX11 )
 endif()
 
 if (GTEST_FOUND)
-    set(COMMON_TESTS 
-        tests.cpp 
-        test_domain_indices.cpp 
-        test_smallstorage_indices.cpp 
-        boundary_conditions_test.cpp 
+    set(COMMON_TESTS
+        tests.cpp
+        test_domain_indices.cpp
+        test_smallstorage_indices.cpp
+        boundary_conditions_test.cpp
     )
-    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp )
+    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp gtest_iterate_domain.cpp )
 
     if ( ENABLE_CXX11 )
         add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})

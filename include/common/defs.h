@@ -31,7 +31,9 @@
 
 /** Macro do enable additional checks that may catch some errors in user code
  */
+#ifndef PEDANTIC_DISABLED
 #define PEDANTIC
+#endif
 
 #define RESTRICT __restrict__
 

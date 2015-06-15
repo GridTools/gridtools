@@ -260,7 +260,7 @@ namespace gridtools{
             for (value_type i=loop.low_bound(); i<=loop.up_bound(); i+=loop.step())
             {
 #if defined(VERBOSE) && !defined(NDEBUG)
-                std::cout<<"iteration "<<i<<", last index "<<First::s_id<<std::endl;
+                std::cout<<"iteration "<<i<<", index (last) "<<First::s_id<<std::endl;
 #endif
                 kernel();
                 it_domain.set_index(restore_index);//redundant in the last iteration
