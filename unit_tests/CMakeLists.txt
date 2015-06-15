@@ -1,7 +1,3 @@
-add_executable(test_iterate_domain test_iterate_domain.cpp)
-set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(test_iterate_domain ${exe_LIBS})
-
 add_executable(FunctorDoMethodLookupMaps FunctorDoMethodLookupMaps.cpp)
 add_test(test.FunctorDoMethodLookupMaps "${CMAKE_BINARY_DIR}/build/FunctorDoMethodLookupMaps")
 
@@ -16,6 +12,11 @@ if ( ENABLE_CXX11 )
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test-independent ${exe_LIBS})
     add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
+
+    add_executable(test_iterate_domain test_iterate_domain.cpp)
+    set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_iterate_domain ${exe_LIBS})
+
 endif()
 
 if (GTEST_FOUND)

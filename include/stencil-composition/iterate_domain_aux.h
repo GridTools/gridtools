@@ -99,10 +99,17 @@ namespace gridtools{
     struct strides_cached : public strides_cached<ID-1, StorageList> {
         typedef typename  boost::mpl::at_c<StorageList, ID>::type::storage_type storage_type;
         typedef strides_cached<ID-1, StorageList> super;
+        typedef array<uint_t, storage_type::space_dimensions-1> data_array_t;
 
-        using data_array_t=array<uint_t, storage_type::space_dimensions-1>;
+#ifdef CXX11_ENABLED
         template <short_t Idx>
             using return_t = typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx> >::type;
+#else
+        template <short_t Idx>
+            struct return_t{
+            typedef typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx>::type >::type type;
+        };
+#endif
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
@@ -112,7 +119,12 @@ namespace gridtools{
 
         template<short_t Idx>
         GT_FUNCTION
-            return_t<Idx> & RESTRICT
+#ifdef CXX11_ENABLED
+            return_t<Idx>
+#else
+            typename return_t<Idx>::type
+#endif
+            & RESTRICT
             get() {
             return static_if<(Idx==ID)>::apply( m_data , super::template get<Idx>());
         }
@@ -131,9 +143,16 @@ namespace gridtools{
         GT_FUNCTION
         strides_cached(){}
 
-        using data_array_t = array<uint_t, storage_type::space_dimensions-1>;
+        typedef array<uint_t, storage_type::space_dimensions-1> data_array_t;
+
         template <short_t Idx>
+#ifdef CXX11_ENABLED
         using return_t=data_array_t;
+#else
+        struct return_t{
+            typedef data_array_t type;
+        };
+#endif
         //TODOCOSUNA getter should be const method. But we can not here because we return a non const *
         // We should have a getter and a setter
         template<short_t Idx>

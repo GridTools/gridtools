@@ -78,7 +78,7 @@ namespace gridtools {
                 uint_t const to=m_coords.template value_at<to_t>();
 
                 static_cast<RunFOnIntervalImpl*>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl>* >(this))->
-                        template loop<iteration_policy, Interval>(from, to);
+                        template k_loop<iteration_policy, Interval>(from, to);
             }
 
         protected:

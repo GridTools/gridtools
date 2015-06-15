@@ -84,10 +84,10 @@ else()
 endif()
 
 if ( ENABLE_CXX11 )
-   message ("CXX11 enabled: " "${ENABLE_CXX11}")
-
+   message ("CXX11 enabled?: " "${ENABLE_CXX11}\n")
    set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
+   message ("CXX11 disabled")
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
 endif()
 

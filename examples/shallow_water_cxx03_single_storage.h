@@ -508,7 +508,7 @@ namespace shallow_water{
             partitioner_t part(he.comm(), halo, padding);
             parallel_storage<sol_type, partitioner_t> sol(part);
             sol.setup(d1, d2, d3);
-            sol.allocate()
+            sol.allocate();
 
             he.add_halo<0>(sol.get_halo_gcl<0>());
             he.add_halo<1>(sol.get_halo_gcl<1>());
