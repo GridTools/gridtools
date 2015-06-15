@@ -105,7 +105,7 @@ namespace gridtools {
         template<typename Storage>
         arg_storage_pair<arg<I,T>, Storage>
         operator=(Storage& ref) {
-            BOOST_MPL_ASSERT( (boost::is_same<Storage, T>) );
+            GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage, T>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
             return arg_storage_pair<arg<I,T>, Storage>(&ref);
         }
 
@@ -227,7 +227,8 @@ namespace gridtools {
         get_constexpr(){
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
             GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0")
-            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "the result must be larger or equal than 0")
+
+            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.")
             return s_args_constexpr.template get<Idx>();
         }
 

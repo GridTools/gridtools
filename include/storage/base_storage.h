@@ -544,9 +544,12 @@ namespace gridtools {
         template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
         void increment(uint_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
-            BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+#ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
+#endif
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
+                GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
                 increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_)*steps_);
             }
         }
@@ -562,6 +565,7 @@ namespace gridtools {
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
+                GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?")
                 *index_+=strides<Coordinate>(strides_)*steps_;
             }
         }
@@ -628,8 +632,8 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
     {
 
         typedef storage_list<Storage, ExtraWidth> type;
-   /*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
-   GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.")
+        /*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
+        GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.")
         typedef Storage super;
         typedef typename super::pointer_type pointer_type;
 
@@ -1038,36 +1042,11 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #endif
    pointer_type& get( )
        {
-      return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+           return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
        }
 
 
-        /**
-           @brief returns the index (in the array of data snapshots) corresponding to the specified offset
-           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the latter case it returns offset modulo the size of the array.
-           In the former case it returns the array size's complement of -offset.
-        */
-        GT_FUNCTION
-        static constexpr ushort_t get_index (short_t const& offset) {
-            return (offset+n_width)%n_width;
-        }
-
    /**@biref sets the given storage as the nth snapshot of a specific field dimension, at the specified coordinates
-
-           If on the device, it calls the API to set the memory on the device
-      \tparam field_dim the given field dimenisons
-      \tparam snapshot the snapshot of dimension field_dim to be set
-      \param value the value to be set
-        */
-#ifdef CXX11_ENABLED
-            template<typename StridesVector, short_t field_dim=0, short_t snapshot=0>
-#else
-            template<typename StridesVector, short_t field_dim  , short_t snapshot  >
-#endif
-            void set_value( StridesVector const& strides_, typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
-                {
-                    super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot].set(value, super::_index(strides_,x, y, z));
-                }
 
 
         /**@biref gets a given value as the given field i,j,k coordinates
@@ -1242,12 +1221,6 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
       \tparam snapshot the snapshot of dimension field_dim to be set
       \param value the value to be set
         */
-            template<typename StridesVector, short_t field_dim  , short_t snapshot  >
-   void set_value( StridesVector const& strides_, typename super::value_type const& value, uint_t const& x, uint_t const& y, uint_t const& z)
-                {
-                    super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot].set(value, super::_index(strides_,x, y, z));
-                }
-
 
         /**@biref gets a given value as the given field i,j,k coordinates
 

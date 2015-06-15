@@ -329,8 +329,10 @@ namespace gridtools {
 
         template <ushort_t I>
         struct at_ {
+#ifdef PEDANTIC
             static_assert(I<length, "Index out of bound");
-            static const short_t value = layout_vector[I];
+#endif
+            static const short_t value = I<length ? layout_vector[I] : -1;
         };
 
         template <ushort_t I, short_t DefaultVal>

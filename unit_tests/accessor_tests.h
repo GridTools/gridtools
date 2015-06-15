@@ -45,7 +45,7 @@ namespace interface{
 */
     bool test_static_alias() {
 
-        //mixing caompile time and runtime values
+        //mixing compile time and runtime values
         using t=Dimension<15>;
         typedef accessor<0, range<0,0,0,0>, 15> arg_t;
         using alias_t = alias<arg_t, t, x, Dimension<7> >::set<-3, 4, 2>;

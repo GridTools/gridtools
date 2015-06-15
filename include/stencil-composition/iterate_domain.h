@@ -48,6 +48,7 @@
 
 namespace gridtools {
 
+
     template< typename Impl>
     struct iterate_domain_impl_local_domain;
 
@@ -96,6 +97,7 @@ namespace gridtools {
         strides_cached_t* RESTRICT m_strides;
 
     public:
+
         /**@brief constructor of the iterate_domain struct
 
            It assigns the storage pointers to the first elements of
@@ -105,10 +107,12 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const& local_domain)
-            : local_domain(local_domain)
+        iterate_domain(local_domain_t const& local_domain_)
+            : local_domain(local_domain_)
             ,m_data_pointer(0)
             ,m_strides(0) {}
+
+        const void* data_pointer(ushort_t i){return (*m_data_pointer)[i];}
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -124,7 +128,7 @@ namespace gridtools {
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
             m_data_pointer=data_pointer;
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
@@ -138,7 +142,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type")
             assert(strides_);
             m_strides=strides_;
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+            for_each< typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
                 assign_strides_functor<
                     BackendType,
                     Strides,
@@ -162,24 +166,6 @@ namespace gridtools {
             set_index_recur< N_STORAGES-1>::set( index, m_index);
         }
 
-        /**@brief method for advancing the indices by some offset
-           @tparam Coordinate dimension being advanced
-           @tparam offset offset to advance the indices
-         */
-        template <ushort_t Coordinate>
-        GT_FUNCTION
-        void advance_ij(int_t offset)
-        {
-            //TODOCOSUNA assert Coordinate is IJ
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
-                increment_index_functor<
-                    Coordinate,
-                    enumtype::forward,
-                    strides_cached_t,
-                    typename local_domain_t::local_args_type
-                >(local_domain.local_args, offset, &m_index[0], *m_strides));//                    );
-        }
-
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
@@ -188,7 +174,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment()
         {
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
                 increment_index_functor<
                     Coordinate,
                     Execution,
@@ -208,7 +194,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment(uint_t const& steps_)
         {
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
                 increment_index_functor<
                     Coordinate,
                     Execution,
@@ -223,7 +209,7 @@ namespace gridtools {
         GT_FUNCTION
         void initialize(uint_t const initial_pos=0, uint_t const block=0)
         {
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
                 initialize_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -232,11 +218,11 @@ namespace gridtools {
             );
         }
 
-        /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
+        /** @brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero) */
         GT_FUNCTION
         void set_k_start(uint_t from_)
         {
-            for_each<boost::mpl::range_c<int, 0, N_STORAGES> > (
+            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
                 increment_index_functor<
                     2, //TODOCOSUNA This hardcoded 2 is not good idea, maybe have a enum
                     enumtype::forward,
@@ -252,7 +238,6 @@ namespace gridtools {
             {
                 local_domain.info(x);
             }
-
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
            \param arg placeholder containing the storage ID and the offsets
@@ -540,28 +525,30 @@ namespace gridtools {
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-            GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
 
+        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(Dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, Dimension<5> >::set<2> z_field; \n eval(z_field()); \n")
 
-            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+            //dimension/snapshot offsets must be non negative
+        assert(arg.template get<0>()>=0);
+        assert( (ArgType::type::n_dim <= storage_type::space_dimensions+1) ||
+                (arg.template get<1>()>=0) );
+             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
-            // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
-
-            return get_value(arg,
-                             (*m_data_pointer)[
-                                 storage_type::get_index
-                                 (
-                                     (
-                                         ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
-                                         arg.template get<0>() //offset for the current dimension
-                                         :
-                                         arg.template get<0>() //offset for the current dimension
-                                         //limitation to "rectangular" vector fields for non-static fields dimensions
-                                         +  arg.template get<1>()
-                                         * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
-                                         ))//+ the offset of the other extra dimension
-                                 + current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type>::value
-                                 ]);
+        return get_value(arg,
+                         (*m_data_pointer)[
+                             (
+                                 ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
+                                 arg.template get<0>() //offset for the current dimension
+                                 :
+                                 arg.template get<1>() //offset for the current snapshot
+                                 //limitation to "rectangular" vector fields for non-static fields dimensions
+                                 +  arg.template get<0>() //select the dimension
+                                 * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+                                 )
+                                     //+ the offset of the other extra dimension
+                             + current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type>::value
+                             ]);
     }
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__ )
@@ -586,23 +573,24 @@ namespace gridtools {
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
         GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
-
-
-        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: in the pre-C++11 version of the library only fields with the same number of snapshots in each field dimension are allowed.")
+        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>()>=0,
+                                    "offset specified for the dimension corresponding to the number of snapshots must be non negative")
+        GRIDTOOLS_STATIC_ASSERT( (ArgType::type::n_dim <= storage_type::space_dimensions+1) ||
+                                     (accessor_mixed_t::template get_constexpr<1>()>=0),
+                                     "offset specified for the dimension corresponding to the number of field components must be non negative")
 
         return get_value(arg,
                          (*m_data_pointer)[ //static if
                              //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
-                             storage_type::get_index(
                                  (
                                      ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
-                                         accessor_mixed_t::template get_constexpr<0>() //offset for the current dimension
+                                     accessor_mixed_t::template get_constexpr<0>() //offset for the current snapshot
                                      :
-                                     accessor_mixed_t::template get_constexpr<0>() //offset for the current dimension
+                                     accessor_mixed_t::template get_constexpr<1>() //offset for the current snapshot
                                      //hypotheses : storage offsets are known at compile-time
-                                     + compute_storage_offset< typename storage_type::traits, accessor_mixed_t::template get_constexpr<1>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
-                                     ))//+ the offset of the other extra dimension
-                             + current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type>::value
+                                     + compute_storage_offset< typename storage_type::traits, accessor_mixed_t::template get_constexpr<0>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
+                                     )//+ the offset of the other extra dimension
+                             + current_storage<(ArgType::index_type::value==0), local_domain_t, typename ArgType::type>::value
                              ]);
     }
 

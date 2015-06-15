@@ -50,6 +50,44 @@ namespace gridtools{
         explicit storage():super(){}
     };
 
+    namespace{
+
+        /**@brief metafunction for applying a parameter pack in reversed order
+
+           implemented for this specific case, could be generalized and used as a common tool
+           usage:
+           reverse<4, 3, 2>::apply<ToBeReversed, Storage, 8>::type::type
+           gives
+           ToBeReversed<Storage, 8, 2, 3, 4>::type
+         */
+        // forward decl
+        template<uint_t ...Tn>
+            struct reverse;
+
+        // recursion anchor
+        template<>
+            struct reverse<>
+        {
+            template<template<typename Storage, uint_t...> class ToBeReversed, typename Storage, uint_t ... Un>
+            struct apply{
+                typedef ToBeReversed<Storage, Un...> type;
+            };
+        };
+
+        // recursion
+        template<uint_t T, uint_t ...Tn>
+            struct reverse<T, Tn...>
+        {
+            template <template <typename Storage, uint_t...> class ToBeReversed, typename Storage, uint_t ... Un >
+            struct apply{
+                // bubble 1st parameter backwards
+                typedef typename reverse<Tn...>::template apply<ToBeReversed, Storage, T, Un...>::type type;
+            };
+        };
+    }
+
+
+
 /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
 
        Annoyngly enough does not work with CUDA 6.5
@@ -57,7 +95,7 @@ namespace gridtools{
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
     template< class Storage, uint_t ... Number >
-    struct field{
+    struct field_reversed{
         typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
@@ -74,7 +112,7 @@ namespace gridtools{
                , uint_t PlusI
                , uint_t PlusJ
                , uint_t ... Number >
-    struct field<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
+    struct field_reversed<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
         typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
@@ -82,7 +120,7 @@ namespace gridtools{
                ,typename Layout
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field<base_storage<PointerType, Layout, true, FieldDimension>, Number... >{
+    struct field_reversed<base_storage<PointerType, Layout, true, FieldDimension>, Number... >{
         typedef storage< data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
@@ -91,13 +129,16 @@ namespace gridtools{
                ,typename Layout
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
+    struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
         typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
     };
 
+    template< class Storage, uint_t First, uint_t ... Number >
+    struct field{
+        typedef typename reverse<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
+    };
+
 #else//CXX11_ENABLED
-
-
 
 
     template< class Storage, uint_t Number1, uint_t Number2, uint_t Number3 >
