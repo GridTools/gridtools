@@ -42,7 +42,7 @@ struct stencil_on_cells {
         eval(out()) = eval(on_cells(in(), ff), 0.0) + eval(on_edges(in_edges(),ff), 0.0);
         eval(out()) = eval(in()(ff), 0.0) + eval(in_edges()(ff), 0.0);
         eval(out()) = eval(in::neighbors(ff), 0.0) + eval(in_edges::neighbors(ff), 0.0);
-        eval(out()) = eval(__on_neighbors<typename trapezoid_2D::edges, on_neighbors_impl<in, decltype(ff)> >(ff), 0.0);// + eval(on_neighbors<in_edges>(ff), 0.0);
+
         eval(out()) = eval(on_cells(on_cells(in(), ff)), 0.0);// + eval(on_neighbors<in_edges>(ff), 0.0);
     }
 };

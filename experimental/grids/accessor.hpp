@@ -28,43 +28,6 @@ on_neighbors(Lambda l) {
     return on_neighbors_impl<Accessor, Lambda>(l);
 }
 
-template <typename LocationTypeSrc, typename ToDestination>
-struct __on_neighbors;
-
-template <int I, int J, typename ToDestination>
-struct __on_neighbors<typename gridtools::location_type<I>, __on_neighbors<typename gridtools::location_type<J>, ToDestination>> {
-    using next_type = __on_neighbors<gridtools::location_type<J>, ToDestination>;
-
-    next_type m_next;
-
-    template <typename Lambda>
-        __on_neighbors(Lambda ff)
-        : m_next(ff)
-    {}
-
-    next_type next()
-    {
-        return m_next;
-    }
-};
-
-template <int I, typename Accessor, typename Lambda>
-struct __on_neighbors<typename gridtools::location_type<I>, on_neighbors_impl<Accessor, Lambda>> {
-    using next_type = on_neighbors_impl<Accessor, Lambda>;
-
-    next_type m_next;
-
-    __on_neighbors(Lambda ff)
-        : m_next(ff)
-    {}
-
-    next_type next()
-    {
-        return m_next;
-    }
-};
-
-
 
 template <typename NextStep>
 struct nested_neighbors_impl {
@@ -310,13 +273,6 @@ public:
         }
     }
 
-    template <typename LocationTypeDst, typename Defer>
-    double operator()(__on_neighbors<LocationTypeDst, Defer> __onneighbors, double initial = 0.0) const {
-        
-        auto neighbors = grid.ll_indices( {m_pos_i, m_pos_j}, location_type() );
-        loop_over_neighbors<location_type>(__onneighbors, initial, neighbors);
-    }
-
     template <typename Defer>
     double operator()(nested_neighbors_impl<Defer> incomplete, double initial = 0.0) const {
         
@@ -331,29 +287,6 @@ public:
     }
 
 private:
-
-    template <typename LocationTypeSrc, typename LocationTypeDst, typename Defer>
-    double loop_over_neighbors(__on_neighbors<LocationTypeDst, Defer> __onneighbors,
-                             double initial,
-                             gridtools::array<uint_t, 3> const& indices) const
-    {
-        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), LocationTypeDst() );
-        for (int i = 0; i<neighbors.size(); ++i) {
-            initial = loop_over_neighbors<LocationTypeDst>(__onneighbors.next(), initial, neighbors[i]);
-        }
-    }
-
-    template <typename LocationTypeSrc, typename Arg, typename Accumulator>
-    double loop_over_neighbors(on_neighbors_impl<Arg, Accumulator> onneighbors,
-                             double initial,
-                             gridtools::array<uint_t, 3> const& indices) const
-    {
-        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
-        for (int i = 0; i<neighbors.size(); ++i) {
-            initial = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+grid.ll_offset(neighbors[i], typename Arg::location_type())), initial);
-        }
-    }
-
 
     template <typename LocationTypeSrc, typename Defer>
     double incloop_over_neighbors(nested_neighbors_impl<Defer> __onneighbors,
