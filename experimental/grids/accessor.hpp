@@ -1,6 +1,6 @@
 #pragma once
 #include "location_type.hpp"
-
+#include <type_traits>
 /**
    This struct is the one holding the function to apply when iterating
    on neighbors
@@ -18,14 +18,37 @@ struct on_neighbors_impl {
 };
 
 /**
-   User friendly interface to let iterate on neighbor cells of a cell
+   User friendly interface to let iterate on neighbors of a location of a location type
+   (the one of the iteraion space). The neighbors are of a location type Accessor::location_type
  */
 template <typename Accessor, typename Lambda>
 on_neighbors_impl<Accessor, Lambda>
 on_neighbors(Lambda l) {
     return on_neighbors_impl<Accessor, Lambda>(l);
 }
-    
+
+/**
+   User friendly interface to let iterate on neighbor cells of a cell
+ */
+template <typename Accessor, typename Lambda>
+on_neighbors_impl<Accessor, Lambda>
+on_cells(Lambda l) {
+    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
+        "The accessor provided to 'on_cells' is not on cells");
+    return on_neighbors_impl<Accessor, Lambda>(l);
+}
+
+/**
+   User friendly interface to let iterate on neighbor edges of a edge
+ */
+template <typename Accessor, typename Lambda>
+on_neighbors_impl<Accessor, Lambda>
+on_edges(Lambda l) {
+    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<1>>::value,
+        "The accessor provided to 'on_edges' is not on edges");
+    return on_neighbors_impl<Accessor, Lambda>(l);
+}
+
 template <typename LocationTypeSrc, typename ToDestination>
 struct __on_neighbors;
 
@@ -264,7 +287,7 @@ private:
     {
         auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
         for (int i = 0; i<neighbors.size(); ++i) {
-            initial = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+neighbors[i]), initial);
+            initial = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+grid.ll_offset(neighbors[i], typename Arg::location_type())), initial);
         }
     }
 };
