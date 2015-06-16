@@ -39,28 +39,26 @@ struct stencil_on_cells {
         //           << std::endl;
         auto ff = [](const double _in, const double _res) -> double
             {std::cout << "#"; return _in+_res;};
-        auto gg = [](const double _in, const double _res) -> double
-            {std::cout << "."; return _in+_res;};
 
         /**
            Interface that do not check if the location types are correct
          */
-        eval(out()) = eval(on_neighbors(in(), ff), 0.0) + eval(on_neighbors(in_edges(), ff), 0.0);
+        eval(out()) = eval(on_neighbors(in(), ff, 0.0)) + eval(on_neighbors(in_edges(), ff, 0.0));
 
         /**
            This interface checks that the location types are compatible with the accessors
          */
-        eval(out()) = eval(on_cells(in(), ff), 0.0) + eval(on_edges(in_edges(),ff), 0.0);
+        eval(out()) = eval(on_cells(in(), ff, 0.0)) + eval(on_edges(in_edges(),ff, 0.0));
 
         /**
            This is the most concise interface but maybe not intuitive
          */
-        eval(out()) = eval(in()(ff), 0.0) + eval(in_edges()(ff), 0.0);
+        eval(out()) = eval(in()(ff, 0.0)) + eval(in_edges()(ff, 0.0));
 
         /**
            This interface cannot mistake the location types, since they are incoded in the accessor types ones
          */
-        eval(out()) = eval(in::neighbors(ff), 0.0) + eval(in_edges::neighbors(ff), 0.0);
+        eval(out()) = eval(in::neighbors(ff, 0.0)) + eval(in_edges::neighbors(ff, 0.0));
     }
 };
 
@@ -76,30 +74,32 @@ struct stencil_on_edges_cells {
         // std::cout << "i = " << eval.i()
         //           << " j = " << eval.j()
         //           << std::endl;
-        auto ff = [](const double _in, const double _res) -> double
+        auto nested_reduction = [](const double _in, const double _res) -> double
             {std::cout << "#"; return _in+_res;};
-        auto gg = [](const double _in, const double _res) -> double
+        auto map = [](const double _in, const double _from_neighbors) -> double
+            {std::cout << "."; return _in+_from_neighbors;};
+        auto top_reduce = [](const double _in, const double _res) -> double
             {std::cout << "."; return _in+_res;};
 
         /**
            Interface that do not check if the location types are correct
          */
-        eval(out()) = eval(on_neighbors(in_edges(), gg, on_neighbors(in(), (ff))));
+        eval(out()) = eval(on_neighbors(in_edges(), map, on_neighbors(in(), nested_reduction, 0.0), /*top_reduce,*/ 0.0 ));
 
         /**
            This interface checks that the location types are compatible with the accessors
          */
-        eval(out()) = eval(on_edges(in_edges(), gg, on_cells(in(), (ff))));
+        eval(out()) = eval(on_edges(in_edges(), map, on_cells(in(), nested_reduction), /*top_reduction,*/ 0.0));
 
         /**
            This interface cannot mistake the location types, since they are incoded in the accessor types ones
          */
-        eval(out()) = eval(in_edges::neighbors(gg, in::neighbors(ff)));
+        eval(out()) = eval(in_edges::neighbors(map, in::neighbors(nested_reduction, 0.0), /*reduction,*/ 0.0));
 
         /**
            You can mix interfaces!
          */
-        eval(out()) = eval(in_edges()(gg, in::neighbors(ff)));
+        eval(out()) = eval(in_edges()(map, in::neighbors(nested_reduction, 0.0), 0.0));
 
     }
 };
@@ -255,68 +255,68 @@ int main() {
         }
     }
 
-    {
-        auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
+    // {
+    //     auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
+    //         (out_cells(), in_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::cells> acc
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
-
-
-        /** Iteration on CELLS
-         */
-        for (int i = 1; i < NC-1; ++i) {
-            acc.set_ij(i, 1);
-            for (int j = 2; j < MC-2; ++j) {
-                acc.inc_j();
-                decltype(x)::functor()(acc);
-            }
-        }
-    }
-
-    {
-        auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
-
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::cells> acc
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+    //                   trapezoid_2D, trapezoid_2D::cells> acc
+    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-        /** Iteration on CELLS
-         */
-        for (int i = 1; i < NC-1; ++i) {
-            acc.set_ij(i, 1);
-            for (int j = 2; j < MC-2; ++j) {
-                acc.inc_j();
-                decltype(x)::functor()(acc);
-            }
-        }
-    }
+    //     /** Iteration on CELLS
+    //      */
+    //     for (int i = 1; i < NC-1; ++i) {
+    //         acc.set_ij(i, 1);
+    //         for (int j = 2; j < MC-2; ++j) {
+    //             acc.inc_j();
+    //             decltype(x)::functor()(acc);
+    //         }
+    //     }
+    // }
 
-    {
-        auto y = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
-            (out_cells(), out_cells(), out_edges(), in_edges());
+    // {
+    //     auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
+    //         (out_cells(), in_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::edges> accy
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+    //                   trapezoid_2D, trapezoid_2D::cells> acc
+    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-        /** Iteration on CELLS
-         */
-        for (int i = 1; i < NE-1; ++i) {
-            accy.set_ij(i, 2);
-            for (int j = 3; j < ME-3; ++j) {
-                accy.inc_j();
-                decltype(y)::functor()(accy);
-            }
-        }
-    }
+    //     /** Iteration on CELLS
+    //      */
+    //     for (int i = 1; i < NC-1; ++i) {
+    //         acc.set_ij(i, 1);
+    //         for (int j = 2; j < MC-2; ++j) {
+    //             acc.inc_j();
+    //             decltype(x)::functor()(acc);
+    //         }
+    //     }
+    // }
+
+    // {
+    //     auto y = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
+    //         (out_cells(), out_cells(), out_edges(), in_edges());
+
+    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+    //                   trapezoid_2D, trapezoid_2D::edges> accy
+    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+
+
+    //     /** Iteration on CELLS
+    //      */
+    //     for (int i = 1; i < NE-1; ++i) {
+    //         accy.set_ij(i, 2);
+    //         for (int j = 3; j < ME-3; ++j) {
+    //             accy.inc_j();
+    //             decltype(y)::functor()(accy);
+    //         }
+    //     }
+    // }
 
     return 0;
 }
