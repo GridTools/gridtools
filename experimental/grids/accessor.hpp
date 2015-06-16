@@ -12,9 +12,9 @@ struct on_neighbors_impl {
     using function = Lambda;
     using location_type = typename accessor::location_type;
 
-    function ff;
+    const function ff;
 
-    on_neighbors_impl(function l)
+    on_neighbors_impl(const function l)
         : ff(l)
     {}
     
@@ -34,8 +34,8 @@ struct on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, Nes
     using function = Lambda;
     using location_type = typename accessor::location_type;
 
-    function ff;
-    next_accessor nested_guy;
+    const function ff;
+    const next_accessor nested_guy;
     
     on_neighbors_impl(function l, next_accessor ng)
         : ff(l)
@@ -133,6 +133,18 @@ struct accessor {
     on_neighbors_impl<this_type, Lambda>
     neighbors(Lambda l) {
         return on_neighbors_impl<this_type, Lambda>(l);
+    }
+
+    template <typename Lambda, typename NestedAccessor, typename NestedLambda>
+    on_neighbors_impl<this_type, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >
+    operator()(Lambda l, on_neighbors_impl<NestedAccessor, NestedLambda> nested_guy) const {
+        return on_neighbors_impl<this_type, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >(l, nested_guy);
+    }
+    template <typename Lambda, typename NestedAccessor, typename NestedLambda>
+    static
+    on_neighbors_impl<this_type, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >
+    neighbors(Lambda l, on_neighbors_impl<NestedAccessor, NestedLambda> nested_guy) {
+        return on_neighbors_impl<this_type, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >(l, nested_guy);
     }
 };
 
