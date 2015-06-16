@@ -37,13 +37,57 @@ struct stencil_on_cells {
         // std::cout << "i = " << eval.i()
         //           << " j = " << eval.j()
         //           << std::endl;
-        auto ff = [](const double _in, const double _res) -> double {return _in+_res;};
-        eval(out()) = eval(on_neighbors<in>(ff), 0.0) + eval(on_neighbors<in_edges>(ff), 0.0);
+        auto ff = [](const double _in, const double _res) -> double
+            {std::cout << "#"; return _in+_res;};
+        auto gg = [](const double _in, const double _res) -> double
+            {std::cout << "."; return _in+_res;};
+
+        eval(out()) = eval(on_neighbors(in(), ff), 0.0) + eval(on_neighbors(in_edges(), ff), 0.0);
         eval(out()) = eval(on_cells(in(), ff), 0.0) + eval(on_edges(in_edges(),ff), 0.0);
         eval(out()) = eval(in()(ff), 0.0) + eval(in_edges()(ff), 0.0);
         eval(out()) = eval(in::neighbors(ff), 0.0) + eval(in_edges::neighbors(ff), 0.0);
+    }
+};
 
-        eval(out()) = eval(on_cells(on_cells(in(), ff)), 0.0);// + eval(on_neighbors<in_edges>(ff), 0.0);
+struct stencil_on_edges_cells {
+    typedef accessor<0, trapezoid_2D::cells> out;
+    typedef accessor<1, trapezoid_2D::cells> in;
+    typedef accessor<2, trapezoid_2D::edges> out_edges_NOT_USED;
+    typedef accessor<3, trapezoid_2D::edges> in_edges;
+
+    template <typename GridAccessors>
+    void
+    operator()(GridAccessors /*const*/& eval/*, region*/) const {
+        // std::cout << "i = " << eval.i()
+        //           << " j = " << eval.j()
+        //           << std::endl;
+        auto ff = [](const double _in, const double _res) -> double
+            {std::cout << "#"; return _in+_res;};
+        auto gg = [](const double _in, const double _res) -> double
+            {std::cout << "."; return _in+_res;};
+
+        eval(out()) = eval(on_neighbors(in_edges(), gg, on_neighbors(in(), (ff))));
+    }
+};
+
+struct stencil_on_cells_edges {
+    typedef accessor<0, trapezoid_2D::cells> out;
+    typedef accessor<1, trapezoid_2D::cells> in;
+    typedef accessor<2, trapezoid_2D::edges> out_edges_NOT_USED;
+    typedef accessor<3, trapezoid_2D::edges> in_edges;
+
+    template <typename GridAccessors>
+    void
+    operator()(GridAccessors /*const*/& eval/*, region*/) const {
+        // std::cout << "i = " << eval.i()
+        //           << " j = " << eval.j()
+        //           << std::endl;
+        auto ff = [](const double _in, const double _res) -> double
+            {std::cout << "#"; return _in+_res;};
+        auto gg = [](const double _in, const double _res) -> double
+            {std::cout << "."; return _in+_res;};
+
+        eval(out()) = eval(on_cells(in(), gg, on_edges(in_edges(), (ff))));
     }
 };
 
@@ -59,8 +103,8 @@ struct stencil_on_edges {
         // std::cout << "i = " << eval.i()
         //           << " j = " << eval.j()
         //           << std::endl;
-        auto ff = [](const double _in, const double _res) -> double {return _in+_res;};
-        eval(out_edges()) = eval(on_neighbors<in>(ff), 0.0) + eval(on_neighbors<in_edges>(ff), 0.0);
+        auto ff = [](const double _in, const double _res) -> double {std::cout << "e"; return _in+_res;};
+        eval(out_edges()) = eval(on_neighbors(in(), ff), 0.0) + eval(on_neighbors(in_edges(), ff), 0.0);
     }
 };
 
@@ -149,48 +193,94 @@ int main() {
     cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));
     edge_storage_type edges_out(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME}));
 
-    //    trapezoid_2D grid_out(cells_out, edges_out, NC, MC);
+
 
     typedef arg<0, trapezoid_2D::cells> out_cells;
     typedef arg<1, trapezoid_2D::cells> in_cells;
     typedef arg<2, trapezoid_2D::edges> out_edges;
     typedef arg<3, trapezoid_2D::edges> in_edges;
 
-    auto x = make_esf<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
-        (out_cells(), in_cells(), out_edges(), in_edges());
+    {
+        auto x = make_esf<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
+            (out_cells(), in_cells(), out_edges(), in_edges());
 
-    accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                  trapezoid_2D, trapezoid_2D::cells> acc
-        (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-         (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::cells> acc
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-    /** Iteration on CELLS
-     */
-    for (int i = 1; i < NC-1; ++i) {
-        acc.set_ij(i, 1);
-        for (int j = 2; j < MC-2; ++j) {
-            acc.inc_j();
-            decltype(x)::functor()(acc);
+        /** Iteration on CELLS
+         */
+        for (int i = 1; i < NC-1; ++i) {
+            acc.set_ij(i, 1);
+            for (int j = 2; j < MC-2; ++j) {
+                acc.inc_j();
+                decltype(x)::functor()(acc);
+            }
         }
     }
 
-    auto y = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
-        (out_cells(), out_cells(), out_edges(), in_edges());
+    {
+        auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
+            (out_cells(), in_cells(), out_edges(), in_edges());
 
-    accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                  trapezoid_2D, trapezoid_2D::edges> accy
-        (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-         (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::cells> acc
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-    /** Iteration on CELLS
-     */
-    for (int i = 1; i < NE-1; ++i) {
-        acc.set_ij(i, 2);
-        for (int j = 3; j < ME-3; ++j) {
-            acc.inc_j();
-            decltype(x)::functor()(acc);
+        /** Iteration on CELLS
+         */
+        for (int i = 1; i < NC-1; ++i) {
+            acc.set_ij(i, 1);
+            for (int j = 2; j < MC-2; ++j) {
+                acc.inc_j();
+                decltype(x)::functor()(acc);
+            }
+        }
+    }
+
+    {
+        auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
+            (out_cells(), in_cells(), out_edges(), in_edges());
+
+        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::cells> acc
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+
+
+        /** Iteration on CELLS
+         */
+        for (int i = 1; i < NC-1; ++i) {
+            acc.set_ij(i, 1);
+            for (int j = 2; j < MC-2; ++j) {
+                acc.inc_j();
+                decltype(x)::functor()(acc);
+            }
+        }
+    }
+
+    {
+        auto y = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
+            (out_cells(), out_cells(), out_edges(), in_edges());
+
+        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::edges> accy
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+
+
+        /** Iteration on CELLS
+         */
+        for (int i = 1; i < NE-1; ++i) {
+            accy.set_ij(i, 2);
+            for (int j = 3; j < ME-3; ++j) {
+                accy.inc_j();
+                decltype(y)::functor()(accy);
+            }
         }
     }
 

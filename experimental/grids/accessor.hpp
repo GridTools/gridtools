@@ -1,21 +1,55 @@
 #pragma once
 #include "location_type.hpp"
 #include <type_traits>
+
 /**
    This struct is the one holding the function to apply when iterating
    on neighbors
  */
-template <typename Accessor, typename Lambda>
+template <typename Accessor, typename Lambda, typename Nested = void>
 struct on_neighbors_impl {
     using accessor = Accessor;
     using function = Lambda;
-    using location_type = typename Accessor::location_type;
+    using location_type = typename accessor::location_type;
 
     function ff;
 
     on_neighbors_impl(function l)
         : ff(l)
     {}
+    
+    on_neighbors_impl(on_neighbors_impl const& other)
+        : ff(other.ff)
+    {}
+};
+
+/**
+   This struct is the one holding the function to apply when iterating
+   on neighbors of neighbors
+ */
+template <typename Accessor, typename Lambda, typename NestedAccessor, typename NestedLambda>
+struct on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> > {
+    using accessor = Accessor;
+    using next_accessor = on_neighbors_impl<NestedAccessor, NestedLambda>;
+    using function = Lambda;
+    using location_type = typename accessor::location_type;
+
+    function ff;
+    next_accessor nested_guy;
+    
+    on_neighbors_impl(function l, next_accessor ng)
+        : ff(l)
+        , nested_guy(ng)
+    {}
+
+    on_neighbors_impl(on_neighbors_impl const& other)
+        : ff(other.ff)
+        , nested_guy(other.nested_guy)
+    {}
+
+    next_accessor next() const {
+        return nested_guy;
+    }
 };
 
 /**
@@ -23,47 +57,19 @@ struct on_neighbors_impl {
    (the one of the iteraion space). The neighbors are of a location type Accessor::location_type
  */
 template <typename Accessor, typename Lambda>
-on_neighbors_impl<Accessor, Lambda>
-on_neighbors(Lambda l) {
-    return on_neighbors_impl<Accessor, Lambda>(l);
+on_neighbors_impl<Accessor, Lambda, void>
+on_neighbors(Accessor, Lambda l)
+{
+    return on_neighbors_impl<Accessor, Lambda, void>(l);
 }
 
+template <typename Accessor, typename NestedAccessor, typename NestedLambda, typename Lambda>
+on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >
+on_neighbors(Accessor, Lambda l, on_neighbors_impl<NestedAccessor, NestedLambda> nested_guy)
+{
+    return on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >(l, nested_guy);
+}
 
-template <typename NextStep>
-struct nested_neighbors_impl {
-    using next_type = NextStep;
-    using location_type = typename next_type::location_type;
-    using function_type = typename next_type::function_type;
-    
-    next_type m_next;
-    
-    nested_neighbors_impl(function_type ff)
-        : m_next(ff)
-        {}
-
-    next_type next()
-    {
-        return m_next;
-    }
-};
-
-template <typename Accessor, typename Lambda>
-struct nested_neighbors_impl<on_neighbors_impl<Accessor, Lambda>> {
-    using location_type = typename Accessor::location_type;
-    using next_type = on_neighbors_impl<Accessor, Lambda>; 
-    using function_type = Lambda;
-   
-    next_type m_next;
-    
-    nested_neighbors_impl(function_type ff)
-        : m_next(ff)
-        {}
-
-    next_type next()
-    {
-        return m_next;
-    }
-};
 
 /**
    User friendly interface to let iterate on neighbor cells of a cell
@@ -76,28 +82,14 @@ on_cells(Accessor, Lambda l) {
     return on_neighbors_impl<Accessor, Lambda>(l);
 }
 
-/**
-   User friendly interface to let iterate on neighbor cells of a cell
- */
-template <typename Accessor, typename Lambda>
-nested_neighbors_impl<on_neighbors_impl<Accessor, Lambda> >
-on_cells(on_neighbors_impl<Accessor, Lambda> l) {
-    // static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
-    //     "The accessor provided to 'on_cells' is not on cells");
-    return nested_neighbors_impl<on_neighbors_impl<Accessor, Lambda>>(l.ff);
+template <typename Accessor, typename NestedAccessor, typename NestedLambda, typename Lambda>
+on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >
+on_cells(Accessor, Lambda l, on_neighbors_impl<NestedAccessor, NestedLambda> nested_guy)
+{
+    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
+        "The accessor (for a nested call) provided to 'on_cells' is not on cells");
+    return on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >(l, nested_guy);
 }
-
-/**
-   User friendly interface to let iterate on neighbor cells of a cell
- */
-template <typename NextStep>
-nested_neighbors_impl<NextStep>
-on_cells(nested_neighbors_impl<NextStep> l) {
-    // static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
-    //     "The accessor provided to 'on_cells' is not on cells");
-    return nested_neighbors_impl<NextStep>(l.m_next);
-};
-
 
 /**
    User friendly interface to let iterate on neighbor edges of a edge
@@ -108,6 +100,15 @@ on_edges(Accessor, Lambda l) {
     static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<1>>::value,
         "The accessor provided to 'on_edges' is not on edges");
     return on_neighbors_impl<Accessor, Lambda>(l);
+}
+
+template <typename Accessor, typename NestedAccessor, typename NestedLambda, typename Lambda>
+on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >
+on_edges(Accessor, Lambda l, on_neighbors_impl<NestedAccessor, NestedLambda> nested_guy)
+{
+    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<1>>::value,
+        "The accessor (for a nested call) provided to 'on_edges' is not on cells");
+    return on_neighbors_impl<Accessor, Lambda, on_neighbors_impl<NestedAccessor, NestedLambda> >(l, nested_guy);
 }
 
 
@@ -262,7 +263,7 @@ public:
     uint_t j() const {return m_pos_j;}
 
     template <typename Arg, typename Accumulator>
-    double operator()(on_neighbors_impl<Arg, Accumulator> onneighbors, double initial = 0.0) const {
+    double operator()(on_neighbors_impl<Arg, Accumulator, void> onneighbors, double initial = 0.0) const {
 
         auto neighbors = grid.neighbors( {m_pos_i, m_pos_j}, location_type(), typename Arg::location_type() );
         double result = initial;
@@ -273,13 +274,11 @@ public:
         }
     }
 
-    template <typename Defer>
-    double operator()(nested_neighbors_impl<Defer> incomplete, double initial = 0.0) const {
-        
+    template <typename Arg, typename Accumulator, typename NextLevel>
+    double operator()(on_neighbors_impl<Arg, Accumulator, NextLevel> onneighbors, double initial = 0.0) const {
         auto neighbors = grid.ll_indices( {m_pos_i, m_pos_j}, location_type() );
-        incloop_over_neighbors<location_type>(incomplete, initial, neighbors);
+        __begin_iteration<location_type>(onneighbors, initial, neighbors);
     }
-
 
     template <int I, typename LT>
     double& operator()(accessor<I,LT> const& arg) const {
@@ -287,26 +286,35 @@ public:
     }
 
 private:
-
-    template <typename LocationTypeSrc, typename Defer>
-    double incloop_over_neighbors(nested_neighbors_impl<Defer> __onneighbors,
-                             double initial,
-                             gridtools::array<uint_t, 3> const& indices) const
-    {
-        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Defer::location_type() );
-        for (int i = 0; i<neighbors.size(); ++i) {
-            initial = incloop_over_neighbors<typename Defer::location_type>(__onneighbors.next(), initial, neighbors[i]);
-        }
-    }
-
-    template <typename LocationTypeSrc, typename Arg, typename Accumulator>
-    double incloop_over_neighbors(on_neighbors_impl<Arg, Accumulator> onneighbors,
+    template <typename LocationTypeSrc, typename Arg, typename Accumulator, typename NextLevel>
+    double __begin_iteration(on_neighbors_impl<Arg, Accumulator, NextLevel> __onneighbors,
                              double initial,
                              gridtools::array<uint_t, 3> const& indices) const
     {
         auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
         for (int i = 0; i<neighbors.size(); ++i) {
-            initial = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+grid.ll_offset(neighbors[i], typename Arg::location_type())), initial);
+            initial = __onneighbors.ff
+                (*(boost::fusion::at_c<Arg::value>(pointers)
+                   +grid.ll_offset(neighbors[i], typename Arg::location_type())),
+                 __begin_iteration<typename Arg::location_type>(__onneighbors.next(), initial, neighbors[i]));
         }
+        return initial;        
     }
+
+    template <typename LocationTypeSrc, typename Arg, typename Accumulator>
+    double __begin_iteration(on_neighbors_impl<Arg, Accumulator, void> __onneighbors,
+                             double initial,
+                             gridtools::array<uint_t, 3> const& indices) const
+    {
+        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
+        for (int i = 0; i<neighbors.size(); ++i) {
+            initial = __onneighbors.ff
+                (*(boost::fusion::at_c<Arg::value>(pointers)
+                   +grid.ll_offset(neighbors[i], typename Arg::location_type())),
+                 initial
+                 );
+        }
+        return initial;        
+    }
+
 };
