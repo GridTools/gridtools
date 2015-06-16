@@ -43,7 +43,7 @@ struct on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedVa
     const next_accessor nested_guy;
     const value_type value;
     
-    on_neighbors_impl(function l, next_accessor ng)
+    on_neighbors_impl(function l, next_accessor ng, value_type value)
         : ff(l)
         , nested_guy(ng)
         , value(value)
@@ -71,11 +71,11 @@ on_neighbors(Accessor, Lambda l, ValueType initial)
     return on_neighbors_impl<ValueType, Accessor, Lambda, void>(l, initial);
 }
 
-template <typename ValueType, typename Accessor, typename NestedAccessor, typename NestedLambda, typename NestedValueType, typename Lambda>
-on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >
-on_neighbors(Accessor, Lambda l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> nested_guy, ValueType initial)
+template <typename ValueType, typename Accessor, typename NestedAccessor, typename NestedLambda, typename NestedValueType, typename Lambda, typename Rest>
+on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >
+on_neighbors(Accessor, Lambda l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy, ValueType initial)
 {
-    return on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >(l, nested_guy, initial);
+    return on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >(l, nested_guy, initial);
 }
 
 
@@ -90,13 +90,13 @@ on_cells(Accessor, Lambda l, ValueType initial) {
     return on_neighbors_impl<ValueType, Accessor, Lambda>(l, initial);
 }
 
-template <typename ValueType, typename Accessor, typename NestedValueType, typename NestedAccessor, typename NestedLambda, typename Lambda>
-on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >
-on_cells(Accessor, Lambda l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> nested_guy, ValueType initial)
+template <typename ValueType, typename Accessor, typename NestedValueType, typename NestedAccessor, typename NestedLambda, typename Lambda, typename Rest>
+on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >
+on_cells(Accessor, Lambda l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy, ValueType initial)
 {
     static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
         "The accessor (for a nested call) provided to 'on_cells' is not on cells");
-    return on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >(l, nested_guy, initial);
+    return on_neighbors_impl<ValueType, Accessor, Lambda, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >(l, nested_guy, initial);
 }
 
 /**
@@ -306,7 +306,7 @@ public:
     }
 
 private:
-    template <typename ValueType, typename LocationTypeSrc, typename Arg, typename Accumulator, typename NextLevel>
+    template <typename LocationTypeSrc, typename ValueType, typename Arg, typename Accumulator, typename NextLevel>
     double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> __onneighbors,
                              double initial,
                              gridtools::array<uint_t, 3> const& indices) const
@@ -321,7 +321,7 @@ private:
         return initial;        
     }
 
-    template <typename ValueType, typename LocationTypeSrc, typename Arg, typename Accumulator>
+    template <typename LocationTypeSrc, typename ValueType, typename Arg, typename Accumulator>
     double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, void> __onneighbors,
                              double initial,
                              gridtools::array<uint_t, 3> const& indices) const

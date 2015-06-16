@@ -89,12 +89,12 @@ struct stencil_on_edges_cells {
         /**
            This interface checks that the location types are compatible with the accessors
          */
-        eval(out()) = eval(on_edges(in_edges(), map, on_cells(in(), nested_reduction), /*top_reduction,*/ 0.0));
+        eval(out()) = eval(on_edges(in_edges(), map, on_cells(in(), nested_reduction, 0.0), /*top_reduction,*/ 0.0));
 
         /**
            This interface cannot mistake the location types, since they are incoded in the accessor types ones
          */
-        eval(out()) = eval(in_edges::neighbors(map, in::neighbors(nested_reduction, 0.0), /*reduction,*/ 0.0));
+        eval(out()) = eval(in_edges::neighbors(map, in::neighbors(nested_reduction, 0.0),/* top_reduction,*/ 0.0));
 
         /**
            You can mix interfaces!
@@ -255,26 +255,26 @@ int main() {
         }
     }
 
-    // {
-    //     auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
-    //         (out_cells(), in_cells(), out_edges(), in_edges());
+    {
+        auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
+            (out_cells(), in_cells(), out_edges(), in_edges());
 
-    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-    //                   trapezoid_2D, trapezoid_2D::cells> acc
-    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::cells> acc
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-    //     /** Iteration on CELLS
-    //      */
-    //     for (int i = 1; i < NC-1; ++i) {
-    //         acc.set_ij(i, 1);
-    //         for (int j = 2; j < MC-2; ++j) {
-    //             acc.inc_j();
-    //             decltype(x)::functor()(acc);
-    //         }
-    //     }
-    // }
+        /** Iteration on CELLS
+         */
+        for (int i = 1; i < NC-1; ++i) {
+            acc.set_ij(i, 1);
+            for (int j = 2; j < MC-2; ++j) {
+                acc.inc_j();
+                decltype(x)::functor()(acc);
+            }
+        }
+    }
 
     // {
     //     auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
