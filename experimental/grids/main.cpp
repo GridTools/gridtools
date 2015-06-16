@@ -78,28 +78,28 @@ struct stencil_on_edges_cells {
             {std::cout << "#"; return _in+_res;};
         auto map = [](const double _in, const double _from_neighbors) -> double
             {std::cout << "."; return _in+_from_neighbors;};
-        auto top_reduce = [](const double _in, const double _res) -> double
+        auto top_reduction = [](const double _in, const double _res) -> double
             {std::cout << "."; return _in+_res;};
 
         /**
            Interface that do not check if the location types are correct
          */
-        eval(out()) = eval(on_neighbors(in_edges(), map, on_neighbors(in(), nested_reduction, 0.0), /*top_reduce,*/ 0.0 ));
+        eval(out()) = eval(on_neighbors(in_edges(), map, on_neighbors(in(), nested_reduction, 0.0), top_reduction, 0.0 ));
 
         /**
            This interface checks that the location types are compatible with the accessors
          */
-        eval(out()) = eval(on_edges(in_edges(), map, on_cells(in(), nested_reduction, 0.0), /*top_reduction,*/ 0.0));
+        eval(out()) = eval(on_edges(in_edges(), map, on_cells(in(), nested_reduction, 0.0), top_reduction, 0.0));
 
         /**
            This interface cannot mistake the location types, since they are incoded in the accessor types ones
          */
-        eval(out()) = eval(in_edges::neighbors(map, in::neighbors(nested_reduction, 0.0),/* top_reduction,*/ 0.0));
+        eval(out()) = eval(in_edges::neighbors(map, in::neighbors(nested_reduction, 0.0), top_reduction, 0.0));
 
         /**
            You can mix interfaces!
          */
-        eval(out()) = eval(in_edges()(map, in::neighbors(nested_reduction, 0.0), 0.0));
+        eval(out()) = eval(in_edges()(map, in::neighbors(nested_reduction, 0.0), top_reduction, 0.0));
 
     }
 };
