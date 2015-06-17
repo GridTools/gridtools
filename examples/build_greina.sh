@@ -41,7 +41,7 @@ cmake \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_LIBRARY:STRING="/users/crosetto/gtest-1.7.0/libgtest.a" \
--DGTEST_MAIN_LIBRARIES:STRING="/users/crosetto/gtest-1.7.0/libgtest_main.a" \
+-DGTEST_MAIN_LIBRARY:STRING="/users/crosetto/gtest-1.7.0/libgtest_main.a" \
 -DGTEST_INCLUDE_DIR:PATH=/users/crosetto/gtest-1.7.0/include \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
