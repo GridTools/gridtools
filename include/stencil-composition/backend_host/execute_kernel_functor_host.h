@@ -42,7 +42,7 @@ struct execute_kernel_functor_host
             m_coords(coords){}
 
         void operator() () const {
-            m_it_domain.template set_k_start( m_coords.template value_at< typename IterationPolicy::from >() );
+            m_it_domain.template initialize<2>( m_coords.template value_at< typename IterationPolicy::from >() );
 
             gridtools::for_each< LoopIntervals >
             ( RunOnInterval (m_it_domain, m_coords) );

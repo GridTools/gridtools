@@ -53,7 +53,7 @@ namespace _impl_cuda {
 
         //setting the initial k level (for backward/parallel iterations it is not 0)
         if( !(iteration_policy::value==enumtype::forward) )
-            it_domain.set_k_start( coords->template value_at< iteration_policy::from >() );
+            it_domain.initialize<2>( coords->template value_at< iteration_policy::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
