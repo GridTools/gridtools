@@ -128,7 +128,7 @@ namespace gridtools {
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
             m_data_pointer=data_pointer;
-            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
+            for_each<typename reversed_range< 0, N_STORAGES >::type > (
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
@@ -142,7 +142,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type")
             assert(strides_);
             m_strides=strides_;
-            for_each< typename gt_reversed_range<0, N_STORAGES >::type > (
+            for_each< typename reversed_range<0, N_STORAGES >::type > (
                 assign_strides_functor<
                     BackendType,
                     Strides,
@@ -174,7 +174,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment()
         {
-            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
+            for_each<typename reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
                 Coordinate,
                 strides_cached_t,
@@ -194,7 +194,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment(uint_t steps_)
         {
-            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
+            for_each<typename reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -208,7 +208,7 @@ namespace gridtools {
         GT_FUNCTION
         void initialize(uint_t const initial_pos=0, uint_t const block=0)
         {
-            for_each<typename gt_reversed_range<0, N_STORAGES >::type > (
+            for_each<typename reversed_range<0, N_STORAGES >::type > (
                 initialize_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -221,7 +221,7 @@ namespace gridtools {
         GT_FUNCTION
         void set_k_start(uint_t from_)
         {
-            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
+            for_each<typename reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
                     2, //TODOCOSUNA This hardcoded 2 is not good idea, maybe have a enum
                     strides_cached_t,

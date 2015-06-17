@@ -1,3 +1,5 @@
+#define PEDANTIC_DISABLED // too stringent for this test
+#include "gtest/gtest.h"
 #include <iostream>
 #include <common/defs.h>
 #include <stencil-composition/intermediate_metafunctions.h>
@@ -234,10 +236,6 @@ namespace test_iterate_domain{
     //check offsets for the space dimensions
     using buff_1_1=alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>;
 
-    std::cout<<(float_type*)(buff.get<1,1>().get()+ new_index[1] +buff.strides<0>(buff.strides())
-        )<<"   =    "
-             <<&it_domain(buff_1_1(enumtype::Dimension<1>(1)));
-
     assert(((float_type*)(buff.get<1,1>().get()+new_index[1]+buff.strides<0>(buff.strides()))==
             &it_domain(buff_1_1(enumtype::Dimension<1>(1)))));
 
@@ -269,3 +267,7 @@ namespace test_iterate_domain{
     return true;
  }
 } // namespace test_iterate_domain
+
+TEST(testdomain, iterate_domain) {
+    EXPECT_EQ(test_iterate_domain::test(), true);
+}

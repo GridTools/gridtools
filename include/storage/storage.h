@@ -3,6 +3,7 @@
 #include <common/gpu_clone.h>
 #include "host_tmp_storage.h"
 #include "accumulate.h"
+#include <common/generic_metafunctions/reverse_pack.hpp>
 
 /**
 @file
@@ -49,44 +50,6 @@ namespace gridtools{
 //    private :
         explicit storage():super(){}
     };
-
-    namespace{
-
-        /**@brief metafunction for applying a parameter pack in reversed order
-
-           implemented for this specific case, could be generalized and used as a common tool
-           usage:
-           reverse<4, 3, 2>::apply<ToBeReversed, Storage, 8>::type::type
-           gives
-           ToBeReversed<Storage, 8, 2, 3, 4>::type
-         */
-        // forward decl
-        template<uint_t ...Tn>
-            struct reverse;
-
-        // recursion anchor
-        template<>
-            struct reverse<>
-        {
-            template<template<typename Storage, uint_t...> class ToBeReversed, typename Storage, uint_t ... Un>
-            struct apply{
-                typedef ToBeReversed<Storage, Un...> type;
-            };
-        };
-
-        // recursion
-        template<uint_t T, uint_t ...Tn>
-            struct reverse<T, Tn...>
-        {
-            template <template <typename Storage, uint_t...> class ToBeReversed, typename Storage, uint_t ... Un >
-            struct apply{
-                // bubble 1st parameter backwards
-                typedef typename reverse<Tn...>::template apply<ToBeReversed, Storage, T, Un...>::type type;
-            };
-        };
-    }
-
-
 
 /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
 
@@ -135,7 +98,7 @@ namespace gridtools{
 
     template< class Storage, uint_t First, uint_t ... Number >
     struct field{
-        typedef typename reverse<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
+        typedef typename reverse_pack<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
     };
 
 #else//CXX11_ENABLED
