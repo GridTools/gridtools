@@ -40,8 +40,8 @@ cmake \
 -DCUDA_NVCC_FLAGS:STRING="-arch=sm_35 -G  -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DUSE_GPU:BOOL=$USE_GPU \
--DGTEST_LIBRARY=/users/crosetto/gtest-1.7.0/libgtest.a \
--DGTEST_MAIN_LIBRARY=/users/crosetto/gtest-1.7.0/libgtest.a \
+-DGTEST_LIBRARY:STRING="/users/crosetto/gtest-1.7.0/libgtest.a" \
+-DGTEST_MAIN_LIBRARIES:STRING="/users/crosetto/gtest-1.7.0/libgtest_main.a" \
 -DGTEST_INCLUDE_DIR:PATH=/users/crosetto/gtest-1.7.0/include \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
