@@ -550,7 +550,7 @@ namespace gridtools {
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
 #ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
+                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
 #endif
                     *index_ += strides<Coordinate>(strides_)*steps_;
             }
@@ -564,11 +564,12 @@ namespace gridtools {
         template <uint_t Coordinate, typename StridesVector >
         GT_FUNCTION
         void initialize(uint_t const& steps_, uint_t const& /*block*/, StridesVector const& RESTRICT strides_, uint_t* RESTRICT index_){
-            BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-            if( layout::template at_< Coordinate >::value >= 0 )//static if
+            //BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
+
+            if( Coordinate < space_dimensions && layout::template at_< Coordinate >::value >= 0 )//static if
             {
 #ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?")
+                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?")
 #endif
                     *index_+=strides<Coordinate>(strides_)*steps_;
             }

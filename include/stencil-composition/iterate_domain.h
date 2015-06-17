@@ -216,12 +216,12 @@ namespace gridtools {
             );
         }
 
-        /** @brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero) */
-        GT_FUNCTION
-        void set_k_start(uint_t from_)
-        {
-            initialize<2>(from_);
-        }
+        // /** @brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero) */
+        // GT_FUNCTION
+        // void set_k_start(uint_t from_)
+        // {
+        //     initialize<2>(from_);
+        // }
 
         template <typename T>
         GT_FUNCTION
@@ -425,13 +425,14 @@ namespace gridtools {
             if( Coordinate==2)
                 m_k += steps_;
         }
-        /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
-        GT_FUNCTION
-        void set_k_start(const uint_t from_)
-        {
-            m_k = from_;
-            base_t::set_k_start(from_);
-        }
+
+        // /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
+        // GT_FUNCTION
+        // void set_k_start(const uint_t from_)
+        // {
+        //     m_k = from_;
+        //     base_t::set_k_start(from_);
+        // }
 
         template <ushort_t Coordinate>
         GT_FUNCTION
