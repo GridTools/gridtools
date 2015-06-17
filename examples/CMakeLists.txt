@@ -105,4 +105,5 @@ if(CUDA_FOUND)
 endif()
 
 
+add_subdirectory( IGA )
 add_subdirectory( communication )

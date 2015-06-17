@@ -416,7 +416,6 @@ namespace gridtools{
                 "Accessing an index out of bound in fusion tuple")
 
             assert(m_index_array);
-
             boost::fusion::at<ID>(m_storages)->template initialize<Coordinate>(
                     m_initial_pos, m_block, m_strides.template get<ID::value>(), &m_index_array[ID::value]);
         }

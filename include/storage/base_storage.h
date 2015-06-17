@@ -545,12 +545,12 @@ namespace gridtools {
         GT_FUNCTION
         void increment(uint_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
 #ifdef PEDANTIC
-            GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
+            GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature compile in non-pedantic mode (i.e. with -DPEDANTIC_DISABLED), or comment out this assert.");
 #endif
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
 #ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
+                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
 #endif
                     increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_)*steps_);
             }
@@ -568,7 +568,7 @@ namespace gridtools {
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
 #ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?")
+                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Are you explicitly initializing the iteration space by calling base_storage::initialize?")
 #endif
                     *index_+=strides<Coordinate>(strides_)*steps_;
             }

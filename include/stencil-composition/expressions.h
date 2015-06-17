@@ -12,6 +12,12 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
 
+    struct tokens{
+        static char constexpr par_o[]="(";
+        static char constexpr par_c[]=")";
+        using  open_par = string_c<print, par_o>;
+        using  closed_par = string_c<print, par_c>;
+    };
     /** \section expressions Expressions Definition
         @{
         This is the base class of a binary expression, containing the instances of the two arguments.
@@ -63,6 +69,35 @@ namespace gridtools{
         constexpr unary_expr(){}
     };
 
+        template <typename ArgType1, typename ArgType2, typename ArgType3>
+    struct ternary_expr{
+
+        /**@brief generic expression constructor*/
+        GT_FUNCTION
+        constexpr ternary_expr(ArgType1 const& first_operand, ArgType2 const& second_operand, ArgType3 const& third_operand)
+            :
+            first_operand{first_operand},
+            second_operand{second_operand},
+            third_operand{third_operand}
+            {}
+
+        GT_FUNCTION
+        constexpr ternary_expr(ternary_expr const& other) :
+            first_operand(other.first_operand),
+            second_operand(other.second_operand),
+            third_operand(other.third_operand){}
+
+        ArgType1 const first_operand;
+        ArgType2 const second_operand;
+        ArgType3 const third_operand;
+#ifndef __CUDACC__
+    private:
+#endif
+        /**@brief default empty constructor*/
+        GT_FUNCTION
+        constexpr ternary_expr(){}
+    };
+
     template <typename Arg>
     struct is_unary_expr : boost::mpl::false_ {};
 
@@ -82,11 +117,11 @@ namespace gridtools{
     private:
         constexpr expr_plus(){};
 #ifndef __CUDACC__
-        static char constexpr op[]="+";
+        static char constexpr op[]=" + ";
         typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par>;
 #endif
     };
 
@@ -109,11 +144,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(){}
 #ifndef __CUDACC__
-        static char constexpr op[]="-";
+        static char constexpr op[]=" - ";
         typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
 #endif
     };
 
@@ -134,10 +169,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_times(){}
 #ifndef __CUDACC__
-        static char constexpr op[]="*";
+        static char constexpr op[]=" * ";
+        typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
 #endif
     };
 
@@ -159,11 +195,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(){}
 #ifndef __CUDACC__
-        static char constexpr op[]="/";
+        static char constexpr op[]=" / ";
         typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
 #endif
     };
 
@@ -187,11 +223,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(){}
 #ifndef __CUDACC__
-        static char constexpr op[]="^";
+        static char constexpr op[]=" ^ ";
         typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<ArgType1, concatenate<string_c<print, op>, ArgType2> >;
+        using to_string = concatenate<tokens::open_par, ArgType1, tokens::closed_par, operation, tokens::open_par, ArgType2, tokens::closed_par >;
 #endif
     };
 
@@ -218,16 +254,209 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_pow(){}
 #ifndef __CUDACC__
-        static char constexpr op[]="^2";
+        static char constexpr op[]="^2 ";
         typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<  ArgType1, operation >;
+        using to_string = concatenate<tokens::open_par,  ArgType1, tokens::closed_par, operation >;
 #endif
     };
 
     template <typename ArgType1, int Exponent>
     struct is_unary_expr<expr_pow<ArgType1, Exponent> > : boost::mpl::true_ {};
+
+
+    /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2>
+    struct expr_larger : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        GT_FUNCTION
+        constexpr expr_larger(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_larger(expr_larger const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_larger(){}
+#ifndef __CUDACC__
+        static char constexpr op[]=" > ";
+        typedef string_c<print, op> operation;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
+#endif
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_larger<ArgType1, ArgType2> > : boost::mpl::true_ {};
+
+        /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2>
+    struct expr_larger_equal : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        GT_FUNCTION
+        constexpr expr_larger_equal(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_larger_equal(expr_larger_equal const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_larger_equal(){}
+#ifndef __CUDACC__
+        static char constexpr op[]=" > ";
+        typedef string_c<print, op> operation;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
+#endif
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_larger_equal<ArgType1, ArgType2> > : boost::mpl::true_ {};
+
+    /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2>
+    struct expr_smaller : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        GT_FUNCTION
+        constexpr expr_smaller(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_smaller(expr_smaller const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_smaller(){}
+#ifndef __CUDACC__
+        static char constexpr op[]=" < ";
+        typedef string_c<print, op> operation;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
+#endif
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_smaller<ArgType1, ArgType2> > : boost::mpl::true_ {};
+
+        /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2>
+    struct expr_smaller_equal : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        GT_FUNCTION
+        constexpr expr_smaller_equal(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_smaller_equal(expr_smaller_equal const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_smaller_equal(){}
+#ifndef __CUDACC__
+        static char constexpr op[]=" <= ";
+        typedef string_c<print, op> operation;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
+#endif
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_smaller_equal<ArgType1, ArgType2> > : boost::mpl::true_ {};
+
+
+    /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2>
+    struct expr_and : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        GT_FUNCTION
+        constexpr expr_and(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_and(expr_and const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_and(){}
+#ifndef __CUDACC__
+        static char constexpr op[]=" && ";
+        typedef string_c<print, op> operation;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
+#endif
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_and<ArgType1, ArgType2> > : boost::mpl::true_ {};
+
+    /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2>
+    struct expr_or : public expr<ArgType1, ArgType2 >{
+        typedef expr<ArgType1, ArgType2> super;
+        GT_FUNCTION
+        constexpr expr_or(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+        GT_FUNCTION
+        constexpr expr_or(expr_or const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_or(){}
+#ifndef __CUDACC__
+        static char constexpr op[]=" || ";
+        typedef string_c<print, op> operation;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
+#endif
+    };
+
+    template <typename ArgType1, typename ArgType2>
+    struct is_binary_expr<expr_or<ArgType1, ArgType2> > : boost::mpl::true_ {};
+
+
+
+    /**@brief Expression dividing two arguments*/
+    template <typename ArgType1, typename ArgType2, typename ArgType3>
+    struct expr_if_then_else : public ternary_expr<ArgType1, ArgType2, ArgType3 >{
+        typedef ternary_expr<ArgType1, ArgType2, ArgType3> super;
+        GT_FUNCTION
+        constexpr expr_if_then_else(ArgType1 const& first_operand, ArgType2 const& second_operand, ArgType3 const& third_operand):super(first_operand, second_operand, third_operand){}
+
+        GT_FUNCTION
+        constexpr expr_if_then_else(expr_if_then_else const& other):super(other){}
+
+#ifndef __CUDACC__
+    private:
+#endif
+        GT_FUNCTION
+        constexpr expr_if_then_else(){}
+#ifndef __CUDACC__
+        static char constexpr op1[]=" ) ? (";
+        static char constexpr op2[]=" ) : ( ";
+        typedef string_c<print, op1> operation;
+        typedef string_c<print, op2> operation2;
+    public:
+        //currying and recursion (this gets inherited)
+        using to_string = concatenate<tokens::open_par, ArgType1, operation,  ArgType2,  operation2, ArgType3, tokens::closed_par >;
+#endif
+};
+
 
 
 
@@ -248,11 +477,11 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(){}
 #ifndef __CUDACC__
-        static char constexpr op[]="!x";
+        static char constexpr op[]=" !";
         typedef string_c<print, op> operation;
     public:
         //currying and recursion (this gets inherited)
-        using to_string = concatenate<  ArgType1, operation >;
+        using to_string = concatenate< operation, tokens::open_par, ArgType1, tokens::closed_par >;
 #endif
     };
 
@@ -280,7 +509,6 @@ namespace gridtools{
 
         template<typename Arg1, typename Arg2 >
         using no_expr_nor_accessor_types = typename boost::mpl::and_<no_accessor_types<Arg1, Arg2>, no_expr_types<Arg1, Arg2> >::type ;
-
 
         /** sum expression*/
         template<typename ArgType1, typename ArgType2 ,
@@ -330,6 +558,66 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp<ArgType1, int >    pow (ArgType1 arg1, int arg2){
             return expr_exp<ArgType1, int >(arg1, arg2);}
+
+        /** larger expression*/
+        template<typename ArgType1, typename ArgType2 ,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
+        GT_FUNCTION
+        constexpr expr_larger<ArgType1, ArgType2>   operator > (ArgType1 arg1, ArgType2 arg2){
+            return expr_larger<ArgType1, ArgType2 >(arg1, arg2);}
+
+        /** larger or equal expression*/
+        template<typename ArgType1, typename ArgType2 ,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
+        GT_FUNCTION
+        constexpr expr_larger_equal<ArgType1, ArgType2>   operator >= (ArgType1 arg1, ArgType2 arg2){
+            return expr_larger_equal<ArgType1, ArgType2 >(arg1, arg2);}
+
+        /** smaller expression*/
+        template<typename ArgType1, typename ArgType2,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
+        GT_FUNCTION
+        constexpr expr_smaller<ArgType1, ArgType2 >   operator < (ArgType1 arg1, ArgType2 arg2){
+            return expr_smaller<ArgType1, ArgType2 >(arg1, arg2);}
+
+        /** smaller expression*/
+        template<typename ArgType1, typename ArgType2,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
+        GT_FUNCTION
+        constexpr expr_smaller_equal<ArgType1, ArgType2 >   operator <= (ArgType1 arg1, ArgType2 arg2){
+            return expr_smaller_equal<ArgType1, ArgType2 >(arg1, arg2);}
+
+        /** and expression*/
+        template<typename ArgType1, typename ArgType2 ,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
+        GT_FUNCTION
+        constexpr expr_and<ArgType1, ArgType2 >   operator && (ArgType1 arg1, ArgType2 arg2){
+            return expr_and<ArgType1, ArgType2 >(arg1, arg2);}
+
+        /** and expression*/
+        template<typename ArgType1, typename ArgType2 ,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                     , int >::type=0 >
+        GT_FUNCTION
+        constexpr expr_or<ArgType1, ArgType2 >   operator || (ArgType1 arg1, ArgType2 arg2){
+            return expr_or<ArgType1, ArgType2 >(arg1, arg2);}
+
+        /** if_then_else expression*/
+        template<typename ArgType1, typename ArgType2, typename ArgType3>
+        GT_FUNCTION
+        constexpr expr_if_then_else<ArgType1, ArgType2, ArgType3>   if_then_else (ArgType1 arg1, ArgType2 arg2, ArgType3 arg3){
+            return expr_if_then_else<ArgType1, ArgType2, ArgType3 >(arg1, arg2, arg3);}
 
         /** direct access expression*/
         template<typename ArgType1>
@@ -401,6 +689,60 @@ namespace gridtools{
                                     , expr_divide<ArgType1, ArgType2> const& arg)
             -> decltype(it_domain(arg.first_operand) / it_domain(arg.second_operand)) {
             return it_domain(arg.first_operand) / it_domain(arg.second_operand);}
+
+
+        /** larger of evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        bool static constexpr value(IterateDomain const& it_domain
+                                    , expr_larger<ArgType1, ArgType2> const& arg){
+            return it_domain(arg.first_operand) > it_domain(arg.second_operand);}
+
+        /** larger or equal of evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        bool static constexpr value(IterateDomain const& it_domain
+                                    , expr_larger_equal<ArgType1, ArgType2> const& arg){
+            return it_domain(arg.first_operand) >= it_domain(arg.second_operand);}
+
+        /** smaller of evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        bool static constexpr value(IterateDomain const& it_domain
+                                    , expr_smaller<ArgType1, ArgType2> const& arg){
+            return it_domain(arg.first_operand) < it_domain(arg.second_operand);}
+
+        /** smaller or equal of evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        bool static constexpr value(IterateDomain const& it_domain
+                                    , expr_smaller_equal<ArgType1, ArgType2> const& arg){
+            return it_domain(arg.first_operand) <= it_domain(arg.second_operand);}
+
+        /** and evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        bool static constexpr value(IterateDomain const& it_domain
+                                    , expr_and<ArgType1, ArgType2> const& arg){
+            return it_domain(arg.first_operand) && it_domain(arg.second_operand);}
+
+        /** or evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2>
+        GT_FUNCTION
+        bool static constexpr value(IterateDomain const& it_domain
+                                    , expr_or<ArgType1, ArgType2> const& arg){
+            return it_domain(arg.first_operand) || it_domain(arg.second_operand);}
+
+        /** if_then_else evaluation*/
+        template <typename IterateDomain, typename ArgType1, typename ArgType2, typename ArgType3>
+        GT_FUNCTION
+        auto static constexpr value(IterateDomain const& it_domain
+                                    , expr_if_then_else<ArgType1, ArgType2, ArgType3> const& arg)
+            -> decltype(it_domain(arg.first_operand)) {
+            return (it_domain(arg.first_operand))?
+                arg.second_operand :
+                arg.third_operand;
+        }
 
         /**\subsection specialization (Partial Specializations)
            partial specializations for double (or float)
