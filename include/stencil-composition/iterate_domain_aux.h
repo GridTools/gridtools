@@ -11,6 +11,8 @@
 #include "accessor_metafunctions.h"
 #include "../common/meta_array.h"
 #include "../common/array.h"
+#include <common/generic_metafunctions/static_if.hpp>
+#include <common/generic_metafunctions/reversed_range.hpp>
 
 /**
    @file
@@ -20,19 +22,6 @@
 */
 
 namespace gridtools{
-
-    /**@brief alternative to boost::mlpl::range_c, which defines a sequence of integers of length End-Start, with step Step, in decreasing order*/
-    template<int_t Start, int_t End>
-    struct gt_reversed_range{
-        typedef typename boost::mpl::reverse_fold<
-            boost::mpl::range_c<int_t, Start// Start::value
-                                , End// End::value
-                                >//numeration from 0
-            , boost::mpl::vector_c<int_t>
-            , boost::mpl::push_back<boost::mpl::_1,
-                                    boost::mpl::_2>
-            >::type type;
-    };
 
 
     /**
@@ -64,29 +53,6 @@ namespace gridtools{
                 is_any_iterate_domain_storage< typename boost::remove_pointer<T>::type >,
                 boost::is_pointer<T>
             > {};
-
-    /** method replacing the operator ? which selects a branch at compile time and
-     allows to return different types whether the condition is true or false */
-    template<bool Condition>
-    struct static_if;
-
-    template<>
-    struct static_if <true>{
-        template <typename TrueVal, typename FalseVal>
-        static constexpr TrueVal& apply(TrueVal& true_val, FalseVal& /*false_val*/)
-            {
-                return true_val;
-            }
-    };
-
-    template<>
-    struct static_if <false>{
-        template <typename TrueVal, typename FalseVal>
-        static constexpr FalseVal& apply(TrueVal& /*true_val*/, FalseVal& false_val)
-            {
-                return false_val;
-            }
-    };
 
     /**
        @brief struct to allocate recursively all the strides with the proper dimension
@@ -263,9 +229,9 @@ namespace gridtools{
 
         typedef typename boost::mpl::if_c<
             (EndIndex < 0),
-            boost::mpl::int_<0>,
-            typename boost::mpl::fold<
-                typename gt_reversed_range< 0, EndIndex >::type,
+                boost::mpl::int_<0>,
+                typename boost::mpl::fold<
+                typename reversed_range< 0, EndIndex >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,
@@ -470,7 +436,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                     "the ID is larger than the number of storage types")
 
-            for_each< typename gt_reversed_range< 0, storage_type::field_dimensions >::type > (
+            for_each< typename reversed_range< 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -552,11 +518,11 @@ namespace gridtools{
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types")
 
-                for_each<typename gt_reversed_range< 0,  storage_type::space_dimensions-1 >::type> (
+            for_each<typename reversed_range< 0,  storage_type::space_dimensions-1 >::type> (
                 assign_strides_inner_functor<
                 BackendType
                 >(&(m_strides.template get<ID::value>()[0]), &boost::fusion::at<ID>(m_storages)->strides(1))
-                );
+            );
         }
     };
 
