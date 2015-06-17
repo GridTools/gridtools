@@ -10,7 +10,7 @@ struct is_accessor : boost::mpl::false_{};
 template < ushort_t ID, typename Range, ushort_t Number>
 struct is_accessor<accessor<ID, Range, Number> > : boost::mpl::true_{};
 
-#ifdef CXX11_ENABLED
+#if defined( CXX11_ENABLED) && !defined(__CUDACC__)
 template <typename ArgType, typename ... Pair>
 struct is_accessor<accessor_mixed<ArgType, Pair ... > > : boost::mpl::true_{};
 #endif

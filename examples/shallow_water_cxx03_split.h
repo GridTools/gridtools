@@ -635,16 +635,16 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
 #ifdef __CUDACC__
-                if(!he.comm().pid()==target_process)
-                    cudaProfilerStart();
+                // if(!he.comm().pid()==target_process)
+                //     cudaProfilerStart();
 #endif
 #ifndef CUDA_EXAMPLE
                 boost::timer::cpu_timer time;
 #endif
                 shallow_water_stencil->run();
 #ifdef __CUDACC__
-                if(!he.comm().pid())
-                    cudaProfilerStop();
+                // if(!he.comm().pid())
+                //     cudaProfilerStop();
 #endif
 #ifndef CUDA_EXAMPLE
                 boost::timer::cpu_times lapse_time = time.elapsed();

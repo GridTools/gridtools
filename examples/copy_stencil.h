@@ -105,7 +105,7 @@ namespace copy_stencil{
         //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
         typedef storage_list<base_type1, 0>  extended_type;
-        typedef storage<data_field<extended_type, extended_type> > vec_field_type;
+        typedef storage<data_field2<extended_type, extended_type> > vec_field_type;
 #endif
 #endif
         //out.print();

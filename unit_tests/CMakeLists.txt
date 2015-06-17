@@ -52,8 +52,8 @@ if (GTEST_FOUND)
       test_hybrid_pointer.cu
       gpu_clone.cu
       cloningstuff.cu
-      boundary_conditions_test.cu
     )
+#      boundary_conditions_test.cu
 
     add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
