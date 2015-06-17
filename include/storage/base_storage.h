@@ -543,7 +543,7 @@ namespace gridtools {
         */
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        void increment(uint_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
+        void increment(int_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
 #endif

@@ -260,8 +260,7 @@ namespace gridtools{
     template<
         uint_t Coordinate,
         typename StridesCached,
-        typename StorageSequence,
-        enumtype::execution Execution=enumtype::forward
+        typename StorageSequence
         >
     struct increment_index_functor {
 
@@ -270,7 +269,7 @@ namespace gridtools{
                 "internal error: wrong type")
 
         GT_FUNCTION
-        increment_index_functor(StorageSequence const& storages, uint_t const& increment,
+        increment_index_functor(StorageSequence const& storages, int_t const& increment,
                 uint_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
@@ -286,7 +285,7 @@ namespace gridtools{
         }
     private:
         StorageSequence const& m_storages;
-        uint_t const& m_increment;
+        int_t const& m_increment;
         uint_t* RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
     };

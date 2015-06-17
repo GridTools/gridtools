@@ -176,11 +176,10 @@ namespace gridtools {
         {
             for_each<typename reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
-                Coordinate,
-                strides_cached_t,
-                typename local_domain_t::local_args_type,
-                Execution
-                >(local_domain.local_args, 1, &m_index[0], *m_strides)
+                    Coordinate,
+                    strides_cached_t,
+                    typename local_domain_t::local_args_type
+                >(local_domain.local_args, Execution==enumtype::forward ? 1:-1, &m_index[0], *m_strides)
             );
         }
 
@@ -192,7 +191,7 @@ namespace gridtools {
          */
         template <ushort_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t steps_)
+        void increment(int_t steps_)
         {
             for_each<typename reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
@@ -221,14 +220,7 @@ namespace gridtools {
         GT_FUNCTION
         void set_k_start(uint_t from_)
         {
-            for_each<typename reversed_range< 0, N_STORAGES >::type > (
-                increment_index_functor<
-                    2, //TODOCOSUNA This hardcoded 2 is not good idea, maybe have a enum
-                    strides_cached_t,
-                    typename local_domain_t::local_args_type,
-                    enumtype::forward
-                >(local_domain.local_args, from_, &m_index[0], *m_strides)
-            );
+            initialize<2>(from_);
         }
 
         template <typename T>
