@@ -219,10 +219,10 @@ namespace gridtools {
             base_type::template increment<Coordinate, Execution>( index_, strides_);
         }
 
-        template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
+        template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         void increment(const uint_t& steps_, uint_t* RESTRICT index_, StridesVector const&  RESTRICT strides_){
-            base_type::template increment<Coordinate, Execution>( steps_, index_, strides_);
+            base_type::template increment<Coordinate>( steps_, index_, strides_);
         }
 
 

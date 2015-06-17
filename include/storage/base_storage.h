@@ -541,7 +541,7 @@ namespace gridtools {
             \param steps: the number of steps of the increment
             \param index: the output index being set
         */
-        template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
+        template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         void increment(uint_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
 #ifdef PEDANTIC
@@ -552,7 +552,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT(strides_.size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
 #endif
-                    increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_)*steps_);
+                    *index_ += strides<Coordinate>(strides_)*steps_;
             }
         }
 

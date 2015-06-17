@@ -128,7 +128,7 @@ namespace gridtools {
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
             m_data_pointer=data_pointer;
-            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
+            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
@@ -142,7 +142,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type")
             assert(strides_);
             m_strides=strides_;
-            for_each< typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
+            for_each< typename gt_reversed_range<0, N_STORAGES >::type > (
                 assign_strides_functor<
                     BackendType,
                     Strides,
@@ -174,12 +174,12 @@ namespace gridtools {
         GT_FUNCTION
         void increment()
         {
-            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
+            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
-                    Coordinate,
-                    Execution,
-                    strides_cached_t,
-                    typename local_domain_t::local_args_type
+                Coordinate,
+                strides_cached_t,
+                typename local_domain_t::local_args_type,
+                Execution
                 >(local_domain.local_args, 1, &m_index[0], *m_strides)
             );
         }
@@ -190,26 +190,25 @@ namespace gridtools {
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
          */
-        template <ushort_t Coordinate, enumtype::execution Execution>
+        template <ushort_t Coordinate>
         GT_FUNCTION
-        void increment(uint_t const& steps_)
+        void increment(uint_t steps_)
         {
-            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
+            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
                     Coordinate,
-                    Execution,
                     strides_cached_t,
                     typename local_domain_t::local_args_type
                 >(local_domain.local_args, steps_, &m_index[0], *m_strides)
             );
         }
 
-        /**@brief method for incrementing the index when moving forward along the k direction */
+        /**@brief method for initializing the index */
         template <ushort_t Coordinate>
         GT_FUNCTION
         void initialize(uint_t const initial_pos=0, uint_t const block=0)
         {
-            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
+            for_each<typename gt_reversed_range<0, N_STORAGES >::type > (
                 initialize_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -222,12 +221,12 @@ namespace gridtools {
         GT_FUNCTION
         void set_k_start(uint_t from_)
         {
-            for_each<typename gt_reversed_range< static_int<0>, static_int<N_STORAGES>, static_int<1> >::type > (
+            for_each<typename gt_reversed_range< 0, N_STORAGES >::type > (
                 increment_index_functor<
                     2, //TODOCOSUNA This hardcoded 2 is not good idea, maybe have a enum
-                    enumtype::forward,
                     strides_cached_t,
-                    typename local_domain_t::local_args_type
+                    typename local_domain_t::local_args_type,
+                    enumtype::forward
                 >(local_domain.local_args, from_, &m_index[0], *m_strides)
             );
         }
@@ -400,7 +399,26 @@ namespace gridtools {
         /**@brief method for incrementing the index when moving forward along the k direction */
         template <ushort_t Coordinate, enumtype::execution Execution>
         GT_FUNCTION
-        void increment(const uint_t steps_=1)
+        void increment()
+        {
+            //TODOCOSUNA recover
+            //            assert(Execution == enumtype::forward || Execution == enumtype::backward);
+            if (Coordinate==0) {
+                (Execution == enumtype::backward) ? m_i -= 1 : m_i += 1;
+            }
+            if (Coordinate==1) {
+                (Execution == enumtype::backward) ? m_j -= 1 : m_j += 1;
+            }
+            //TODOCOSUNA what with the increment of k? Is it GONE?
+            base_t::template increment<Coordinate, Execution>();
+            if( Coordinate==2)
+                (Execution == enumtype::backward) ? m_k -= 1 : m_k += 1;
+        }
+
+        /**@brief method for incrementing the index when moving forward along the k direction */
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void increment(const uint_t steps_)
         {
             //TODOCOSUNA recover
             //            assert(Execution == enumtype::forward || Execution == enumtype::backward);
@@ -411,9 +429,9 @@ namespace gridtools {
                 m_j+=steps_;
             }
             //TODOCOSUNA what with the increment of k? Is it GONE?
-            base_t::template increment<Coordinate, Execution>(steps_);
+            base_t::template increment<Coordinate>(steps_);
             if( Coordinate==2)
-                (Execution == enumtype::backward) ? m_k -= steps_ : m_k += steps_;
+                m_k += steps_;
         }
         /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
         GT_FUNCTION
