@@ -22,14 +22,16 @@
 namespace gridtools{
 
     /**@brief alternative to boost::mlpl::range_c, which defines a sequence of integers of length End-Start, with step Step, in decreasing order*/
-    template<typename Start, typename End, typename Step>
+    template<int_t Start, int_t End>
     struct gt_reversed_range{
         typedef typename boost::mpl::reverse_fold<
-            boost::mpl::range_c<int_t, Start::value-1, End::value-1>//numeration from 0
+            boost::mpl::range_c<int_t, Start// Start::value
+                                , End// End::value
+                                >//numeration from 0
             , boost::mpl::vector_c<int_t>
             , boost::mpl::push_back<boost::mpl::_1,
-                                    boost::mpl::plus<boost::mpl::_2
-                                                     , Step> > >::type type;
+                                    boost::mpl::_2>
+            >::type type;
     };
 
 
@@ -263,7 +265,7 @@ namespace gridtools{
             (EndIndex < 0),
             boost::mpl::int_<0>,
             typename boost::mpl::fold<
-                typename gt_reversed_range< static_int<0>, static_int<EndIndex>, static_int<1> >::type,
+                typename gt_reversed_range< 0, EndIndex >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,
@@ -291,9 +293,10 @@ namespace gridtools{
     */
     template<
         uint_t Coordinate,
-        enumtype::execution Execution,
         typename StridesCached,
-        typename StorageSequence>
+        typename StorageSequence,
+        enumtype::execution Execution=enumtype::forward
+        >
     struct increment_index_functor {
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type")
@@ -312,7 +315,7 @@ namespace gridtools{
                     "Accessing an index out of bound in fusion tuple")
 
             assert(m_index_array);
-            boost::fusion::at<ID>(m_storages)->template increment<Coordinate, Execution>(
+            boost::fusion::at<ID>(m_storages)->template increment<Coordinate>(
                     m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
         }
     private:
@@ -467,7 +470,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                     "the ID is larger than the number of storage types")
 
-            for_each< typename gt_reversed_range< static_int<0>, static_int<storage_type::field_dimensions>, static_int<1> >::type > (
+            for_each< typename gt_reversed_range< 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -549,7 +552,7 @@ namespace gridtools{
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types")
 
-                for_each<typename gt_reversed_range< static_int<0>, static_int< storage_type::space_dimensions-1>, static_int<1> >::type> (
+                for_each<typename gt_reversed_range< 0,  storage_type::space_dimensions-1 >::type> (
                 assign_strides_inner_functor<
                 BackendType
                 >(&(m_strides.template get<ID::value>()[0]), &boost::fusion::at<ID>(m_storages)->strides(1))
