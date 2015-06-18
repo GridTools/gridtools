@@ -1,7 +1,10 @@
 #pragma once
+#ifndef CXX11_CUDA_PATCH
 #include <boost/mpl/has_key.hpp>
+#endif
 #include "iteration_policy.h"
 #include "level.h"
+#include "interval.h"
 
 namespace gridtools {
     namespace _impl {

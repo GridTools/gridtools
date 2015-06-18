@@ -250,14 +250,14 @@ int main(int argc, char** argv) {
     domain.clone_to_gpu();
     printf("CLONED\n");
 
-#ifndef __CUDACC__
+#ifndef CUDA_EXAMPLE
     boost::timer::cpu_timer time;
 #endif
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
     horizontal_diffusion->run();
-#ifndef __CUDACC__
+#ifndef CUDA_EXAMPLE
     boost::timer::cpu_times lapse_time = time.elapsed();
 #endif
 
@@ -271,7 +271,7 @@ int main(int argc, char** argv) {
     out.print();
     out.print(file_o);
     //    lap.print();
-#ifndef __CUDACC__
+#ifndef CUDA_EXAMPLE
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
      return 0;

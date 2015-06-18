@@ -14,10 +14,11 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <typename ESF, typename ArgArray>
+    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0> >
     struct esf_descriptor {
         typedef ESF esf_function;
         typedef ArgArray args;
+        typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
         //checking that all the placeholders have a different index
@@ -65,8 +66,8 @@ namespace gridtools {
 
     template <typename T> struct is_esf_descriptor : boost::mpl::false_{};
 
-    template<typename ESF, typename ArgArray>
-    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray> > : boost::mpl::true_{};
+    template<typename ESF, typename ArgArray, typename Staggering>
+    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray, Staggering> > : boost::mpl::true_{};
 
     template <typename T>
     struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};

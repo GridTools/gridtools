@@ -177,7 +177,7 @@ struct mss_loop_intervals
 template<
     typename MssComponents,
     typename Coords
->
+    >
 struct mss_functor_do_method_lookup_maps
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type")

@@ -107,7 +107,11 @@ namespace gridtools {
             typename boost::mpl::deref<
                 typename boost::mpl::find_if<
                     typename RunFunctorArguments::loop_intervals_t,
+#ifdef CXX11_CUDA_PATCH
+                    gt_has_key<interval_map_t, boost::mpl::_1>
+#else
                     boost::mpl::has_key<interval_map_t, boost::mpl::_1>
+#endif
                     >::type
                 >::type::first
             >::type first_hit_t;
