@@ -193,7 +193,7 @@ namespace test_iterate_domain{
 
     //check index initialization and increment
 
-    array<uint_t, 3> index;
+    array<int_t, 3> index;
     it_domain.get_index(index);
     assert(index[0]==0 && index[1]==0 && index[2]==0);
     index[0] += 3;
@@ -204,7 +204,7 @@ namespace test_iterate_domain{
     it_domain.get_index(index);
     assert(index[0]==3 && index[1]==2 && index[2]==1);
 
-    array<uint_t, 3> new_index;
+    array<int_t, 3> new_index;
     it_domain.increment<0,enumtype::forward>();//increment i
     it_domain.get_index(new_index);
     it_domain.increment<1,enumtype::forward>();//increment j
