@@ -63,11 +63,11 @@ namespace gridtools{
        \tparam StorageList typelist of the storages
     */
     //TODOCOSUNA this is just an array, no need for special class, looks like
-    template<uint_t ID, typename StorageList>
+    template<ushort_t ID, typename StorageList>
     struct strides_cached : public strides_cached<ID-1, StorageList> {
         typedef typename  boost::mpl::at_c<StorageList, ID>::type::storage_type storage_type;
         typedef strides_cached<ID-1, StorageList> super;
-        typedef array<uint_t, storage_type::space_dimensions-1> data_array_t;
+        typedef array<int_t, storage_type::space_dimensions-1> data_array_t;
 
 #ifdef CXX11_ENABLED
         template <short_t Idx>
@@ -98,14 +98,13 @@ namespace gridtools{
         }
 
     private:
-
         data_array_t m_data;
     };
 
 
     /**specialization to stop the recursion*/
     template<typename storage_list>
-    struct strides_cached<0, storage_list>  {
+        struct strides_cached<(ushort_t)0, storage_list>  {
         typedef typename boost::mpl::at_c<storage_list, 0>::type::storage_type storage_type;
 
         GT_FUNCTION
@@ -270,7 +269,7 @@ namespace gridtools{
 
         GT_FUNCTION
         increment_index_functor(StorageSequence const& storages, int_t const& increment,
-                uint_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
+                int_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
         template <typename ID>
@@ -286,7 +285,7 @@ namespace gridtools{
     private:
         StorageSequence const& m_storages;
         int_t const& m_increment;
-        uint_t* RESTRICT m_index_array;
+        int_t* RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
     };
 
@@ -305,7 +304,7 @@ namespace gridtools{
         */
         template <typename Array>
         GT_FUNCTION
-        static void set(uint_t const& id, Array& index){
+        static void set(int_t const& id, Array& index){
             GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array")
             index[ID]=id;
             set_index_recur<ID-1>::set(id,index);
@@ -334,7 +333,7 @@ namespace gridtools{
 
         template<typename Array>
         GT_FUNCTION
-        static void set( uint_t const& id, Array& index/* , ushort_t* lru */){
+        static void set( int_t const& id, Array& index/* , ushort_t* lru */){
             GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array")
             index[0]=id;
         }
@@ -366,14 +365,14 @@ namespace gridtools{
 
         Strides& RESTRICT m_strides;
         StorageSequence const & RESTRICT m_storages;
-        const uint_t m_initial_pos;
+        const int_t m_initial_pos;
         const uint_t m_block;
-        uint_t* RESTRICT m_index_array;
+        int_t* RESTRICT m_index_array;
 
     public:
         GT_FUNCTION
-        initialize_index_functor(Strides& RESTRICT strides, StorageSequence const & RESTRICT storages, const uint_t initial_pos,
-            const uint_t block, uint_t* RESTRICT index_array) :
+        initialize_index_functor(Strides& RESTRICT strides, StorageSequence const & RESTRICT storages, const int_t initial_pos,
+            const uint_t block, int_t* RESTRICT index_array) :
             m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
             m_index_array(index_array) {}
 
@@ -456,13 +455,13 @@ namespace gridtools{
     struct assign_strides_inner_functor
     {
     private:
-        uint_t* RESTRICT m_l;
-        const uint_t* RESTRICT m_r;
+        int_t* RESTRICT m_l;
+        const int_t* RESTRICT m_r;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(uint_t* RESTRICT l, const uint_t* RESTRICT r) :
+        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
             m_l(l), m_r(r) {}
 
         template <typename ID>

@@ -12,5 +12,3 @@
 #include "backend_traits_host.h"
 #include "../loop_hierarchy.h"
 #include "strategy_host.h"
-
-

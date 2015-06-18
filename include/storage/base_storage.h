@@ -404,7 +404,7 @@ namespace gridtools {
 #endif
         /**@brief returns the size of the data field*/
         GT_FUNCTION
-        uint_t const& size() const {
+        uint_t size() const { //cast to uint_t
             return m_strides[0];
         }
 
@@ -423,7 +423,7 @@ namespace gridtools {
            Coordinates 0,1,2 correspond to i,j,k respectively*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
+        static constexpr int_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
         }
 
@@ -528,7 +528,7 @@ namespace gridtools {
         */
         template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
         GT_FUNCTION
-        void increment( uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
+        void increment( int_t* RESTRICT index_, StridesVector const& RESTRICT strides_/*, typename boost::enable_if_c< (layout::template pos_<Coordinate>::value >= 0) >::type* dummy=0*/){
             BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
             if(layout::template at_< Coordinate >::value >=0)//static if
             {
@@ -543,7 +543,7 @@ namespace gridtools {
         */
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        void increment(int_t const& steps_, uint_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
+        void increment(int_t const& steps_, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
 #endif
@@ -557,13 +557,13 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_index(uint_t value, uint_t* index){
+        void set_index(uint_t value, int_t* index){
             *index=value;
         }
 
         template <uint_t Coordinate, typename StridesVector >
         GT_FUNCTION
-        void initialize(uint_t const& steps_, uint_t const& /*block*/, StridesVector const& RESTRICT strides_, uint_t* RESTRICT index_){
+        void initialize(uint_t const& steps_, uint_t const& /*block*/, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
             //BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
 
             if( Coordinate < space_dimensions && layout::template at_< Coordinate >::value >= 0 )//static if
@@ -595,7 +595,7 @@ namespace gridtools {
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-        uint_t const& strides(ushort_t i) const {
+        int_t const& strides(ushort_t i) const {
             // m_strides[0] contains the whole storage dimension."
             assert(i!=0);
             return m_strides[i];
@@ -604,7 +604,7 @@ namespace gridtools {
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-        uint_t const* strides() const {
+        int_t const* strides() const {
             GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage")
             return (&m_strides[1]);
         }
@@ -618,7 +618,7 @@ namespace gridtools {
         array<pointer_type, field_dimensions> m_fields;
 #endif
         array<uint_t, space_dimensions> m_dims;
-        array<uint_t, space_dimensions> m_strides;
+        array<int_t, space_dimensions> m_strides;
 
     };
 
