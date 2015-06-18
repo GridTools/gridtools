@@ -59,7 +59,7 @@ namespace gridtools{
             compute the number of processing elements in the j-direction (i.e. cuda blocks
             in the CUDA backend), in a 2D grid of threads.
         */
-        static uint_t n_j_pes(const uint_t j_size) {
+        static uint_t n_j_pes(const int j_size) {
             typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
             return (j_size + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
         }
