@@ -2,7 +2,9 @@
 
 #include <gridtools.h>
 #include <boost/fusion/include/value_at.hpp>
+#ifndef CXX11_CUDA_PATCH
 #include <boost/mpl/has_key.hpp>
+#endif
 #include "../level.h"
 
 #include "backend_traits_cuda.h"

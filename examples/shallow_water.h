@@ -330,16 +330,7 @@ namespace shallow_water{
             // // Definition of the actual data fields that are used for input/output
             sol_type tmpx(d1-1,d2-1,d3);
             sol_type tmpy(d1-1,d2-1,d3);
-
             sol_type sol(d1,d2,d3);
-
-            tmpx.set<0>(0.);
-            tmpx.set<1>(0.);
-            tmpx.set<2>(0.);
-
-            tmpy.set<0>(0.);
-            tmpy.set<1>(0.);
-            tmpy.set<2>(0.);
 
             sol.set<0>(&bc_periodic<0,0>::droplet);//h
             sol.set<1>(0.);//u

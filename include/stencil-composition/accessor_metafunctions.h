@@ -45,7 +45,11 @@ struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >
 
     typedef typename boost::mpl::integral_c<int, (int)ID> index_type_t;
 
+#ifdef CXX11_CUDA_PATCH
+    GRIDTOOLS_STATIC_ASSERT((gt_has_key<ArgsMap, index_type_t>::value), "Internal Error")
+#else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_type_t>::value), "Internal Error")
+#endif
 
     typedef accessor<
         boost::mpl::at<ArgsMap, index_type_t >::type::value,

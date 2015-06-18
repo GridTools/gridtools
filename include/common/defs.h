@@ -1,4 +1,27 @@
 #pragma once
+
+#if __cplusplus > 199711L
+#ifndef CXX11_DISABLE
+#define CXX11_ENABLED
+#endif
+#define CXX11_DISABLED
+#endif
+
+#if (defined(CXX11_ENABLED) && defined(__CUDA_ARCH__) && (__CUDA_ARCH__<=350))
+#define CXX11_CUDA_PATCH
+#endif
+
+#ifndef CXX11_CUDA_PATCH
+// #include <boost/mpl/map/aux_/item.hpp>
+#include <boost/mpl/map.hpp>
+// #endif
+//#include <boost/mpl/pair.hpp>
+// #include <boost/mpl/at.hpp>
+ #include <boost/mpl/insert.hpp>
+#include <boost/mpl/vector.hpp>
+
+#endif
+
 /**
    @file
    @brief global definitions
@@ -39,13 +62,6 @@
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
-
-#if __cplusplus > 199711L
-#ifndef CXX11_DISABLE
-#define CXX11_ENABLED
-#endif
-#define CXX11_DISABLED
-#endif
 
 #ifndef GT_DEFAULT_TILE_I
   #ifdef __CUDACC__
@@ -201,8 +217,8 @@ namespace gridtools{  namespace enumtype{
 #ifdef CXX11_ENABLED
     using int_t          = int;
     using short_t        = int;
-    using uint_t         = unsigned int;
-    using ushort_t       = unsigned int;
+    using uint_t         = int;
+    using ushort_t       = int;
     template<int_t N>
     using  static_int=boost::mpl::integral_c<int_t,N>;
     template<uint_t N>
@@ -236,5 +252,48 @@ namespace gridtools{  namespace enumtype{
        @}
      */
 //######################################################
+#endif
+
+#ifdef CXX11_CUDA_PATCH
+    //linear search in decreasing order
+    template <typename Index, typename Sequence, typename Key>
+    struct check_key_recur
+    {
+        typedef typename boost::mpl::if_<typename boost::is_same<typename boost::mpl::first<typename boost::mpl::at<Sequence, Index>::type>::type, Key>::type, boost::true_type, typename check_key_recur<static_int<Index::value-1>, Sequence, Key>::type >::type type;
+    };
+
+    template <typename Sequence, typename Key>
+    struct check_key_recur <static_int<-1>, Sequence, Key>
+
+    {
+        typedef boost::false_type  type;
+    };
+
+    template <typename Sequence, typename Key>
+    struct gt_has_key : check_key_recur<static_int<boost::mpl::size<typename Sequence::type>::type::value-1>, Sequence, Key >::type
+    {
+        typedef typename check_key_recur<static_int<boost::mpl::size<typename Sequence::type>::type::value-1>, Sequence, Key >::type super;
+    };
+
+
+    template<typename MapType, typename PairType>
+    struct gt_insert{
+        typedef typename boost::mpl::if_<  typename gt_has_key<MapType, typename boost::mpl::first<PairType> >::type
+                                           , typename MapType::type
+                                           , typename boost::mpl::push_back<typename MapType::type, PairType>::type
+                                           >::type type;
+    };
+
+    template<typename SequenceType, int_t StaticInt>
+    struct gt_insert<SequenceType, static_int<StaticInt> >{
+        typedef typename boost::mpl::insert<SequenceType, typename static_int<StaticInt>::type >::type type;
+    };
+
+    template<typename PairType>
+    struct gt_insert<boost::mpl::vector0<>, PairType >{
+        typedef typename boost::mpl::vector<PairType>::type type;
+    };
+
+    fuck you
 #endif
 }//namespace gridtools

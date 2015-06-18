@@ -6,7 +6,10 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/set.hpp>
+//#include <boost/mpl/at.hpp>
+#ifndef CXX11_CUDA_PATCH
 #include <boost/mpl/insert.hpp>
+#endif
 #include <gt_for_each/for_each.hpp>
 
     template <typename RegularStorageType>
@@ -211,7 +214,11 @@ type;
             typedef typename boost::mpl::if_<
                 boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >,
                 TMap,
+#ifdef CXX11_CUDA_PATCH
+                typename gt_insert<
+#else
                 typename boost::mpl::insert<
+#endif
                     TMap,
                     boost::mpl::pair<Temp, typename boost::mpl::at<RangeSizes, typename iter::pos>::type>
                 >::type

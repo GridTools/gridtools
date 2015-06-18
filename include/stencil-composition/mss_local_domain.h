@@ -8,7 +8,9 @@
 #pragma once
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/set.hpp>
+#ifndef CXX11_CUDA_PATCH
 #include <boost/mpl/has_key.hpp>
+#endif
 
 #include "domain_type.h"
 #include "local_domain.h"

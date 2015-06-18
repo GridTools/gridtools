@@ -51,7 +51,7 @@ namespace gridtools{
         explicit storage():super(){}
     };
 
-/**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
+    /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
 
        Annoyngly enough does not work with CUDA 6.5
     */
