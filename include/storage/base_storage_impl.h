@@ -40,7 +40,7 @@ namespace gridtools{
         struct assign_strides{
             template<typename ... UIntType>
             GT_FUNCTION
-            static void apply(uint_t* strides, UIntType ... args){
+            static void apply(int_t* strides, UIntType ... args){
                 BOOST_STATIC_ASSERT(MaxIndex>=ID);
                 BOOST_STATIC_ASSERT(ID>=0);
                 strides[MaxIndex-ID] = next_stride<ID, MaxIndex, Layout>::apply(args...);
@@ -53,7 +53,7 @@ namespace gridtools{
         struct assign_strides<0, MaxIndex, Layout>{
             template<typename ... UIntType>
             GT_FUNCTION
-            static void apply(uint_t* strides, UIntType ... args){
+            static void apply(int_t* strides, UIntType ... args){
                 BOOST_STATIC_ASSERT(MaxIndex>=0);
                 strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
             }

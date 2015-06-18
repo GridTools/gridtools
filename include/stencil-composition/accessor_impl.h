@@ -123,7 +123,7 @@ namespace gridtools {
 #endif
 
     //forward declaration
-    template< int_t Index, int_t Dimension >
+    template< int_t  Index, int_t Dimension >
     struct offset_tuple;
 
     namespace enumtype{
@@ -277,7 +277,7 @@ namespace gridtools {
 
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
     */
-    template< uint_t Index, int_t Dimension >
+    template< int_t Index, int_t Dimension >
     struct offset_tuple : public offset_tuple<Index-1, Dimension>
     {
         static const int_t n_dim=Dimension;

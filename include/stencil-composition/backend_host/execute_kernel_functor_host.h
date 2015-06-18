@@ -101,7 +101,6 @@ struct execute_kernel_functor_host
         std::cout<<"jplus::value: "<<range_t::jplus::value<<std::endl;
         std::cout<<"block_id_i: "<<m_block_id[0]<<std::endl;
         std::cout<<"block_id_j: "<<m_block_id[1]<<std::endl;
-
         }
 #endif
 
@@ -118,7 +117,7 @@ struct execute_kernel_functor_host
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        typedef array<uint_t, iterate_domain_t::N_STORAGES> array_t;
+        typedef array<int_t, iterate_domain_t::N_STORAGES> array_t;
         loop_hierarchy<
             array_t, loop_item<0, enumtype::forward, int_t>,
             loop_item<1, enumtype::forward, int_t>

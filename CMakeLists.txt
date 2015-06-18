@@ -35,7 +35,7 @@ if(WIN32)
   find_package( Boost REQUIRED )
 else()
   # On other platforms, me must be specific about which libs are required
-  find_package( Boost COMPONENTS  timer system chrono REQUIRED )
+  find_package( Boost COMPONENTS timer system chrono REQUIRED )
 endif()
 
 # If the version is less than 1.56, we need a special version of Fusion
