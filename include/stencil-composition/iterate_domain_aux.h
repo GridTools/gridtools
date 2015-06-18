@@ -110,7 +110,7 @@ namespace gridtools{
         GT_FUNCTION
         strides_cached(){}
 
-        typedef array<uint_t, storage_type::space_dimensions-1> data_array_t;
+        typedef array<int_t, storage_type::space_dimensions-1> data_array_t;
 
         template <short_t Idx>
 #ifdef CXX11_ENABLED
@@ -385,7 +385,7 @@ namespace gridtools{
             assert(m_index_array);
 
             boost::fusion::at<ID>(m_storages)->template initialize<Coordinate>(
-                    m_initial_pos, m_block, m_strides.template get<ID::value>(), &m_index_array[ID::value]);
+                m_initial_pos, m_block, &m_index_array[ID::value], m_strides.template get<ID::value>());
         }
     };
 
