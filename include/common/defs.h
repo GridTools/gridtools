@@ -7,20 +7,14 @@
 #define CXX11_DISABLED
 #endif
 
-#if (defined(CXX11_ENABLED) && defined(__CUDA_ARCH__) && (__CUDA_ARCH__<=350))
-#define CXX11_CUDA_PATCH
-#endif
+//defines how many threads participate to the (shared) memory initialization
+//TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
+#define BLOCK_SIZE 32
 
-#ifndef CXX11_CUDA_PATCH
 // #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
-// #endif
-//#include <boost/mpl/pair.hpp>
-// #include <boost/mpl/at.hpp>
- #include <boost/mpl/insert.hpp>
+#include <boost/mpl/insert.hpp>
 #include <boost/mpl/vector.hpp>
-
-#endif
 
 /**
    @file
@@ -254,46 +248,4 @@ namespace gridtools{  namespace enumtype{
 //######################################################
 #endif
 
-#ifdef CXX11_CUDA_PATCH
-    //linear search in decreasing order
-    template <typename Index, typename Sequence, typename Key>
-    struct check_key_recur
-    {
-        typedef typename boost::mpl::if_<typename boost::is_same<typename boost::mpl::first<typename boost::mpl::at<Sequence, Index>::type>::type, Key>::type, boost::true_type, typename check_key_recur<static_int<Index::value-1>, Sequence, Key>::type >::type type;
-    };
-
-    template <typename Sequence, typename Key>
-    struct check_key_recur <static_int<-1>, Sequence, Key>
-
-    {
-        typedef boost::false_type  type;
-    };
-
-    template <typename Sequence, typename Key>
-    struct gt_has_key : check_key_recur<static_int<boost::mpl::size<typename Sequence::type>::type::value-1>, Sequence, Key >::type
-    {
-        typedef typename check_key_recur<static_int<boost::mpl::size<typename Sequence::type>::type::value-1>, Sequence, Key >::type super;
-    };
-
-
-    template<typename MapType, typename PairType>
-    struct gt_insert{
-        typedef typename boost::mpl::if_<  typename gt_has_key<MapType, typename boost::mpl::first<PairType> >::type
-                                           , typename MapType::type
-                                           , typename boost::mpl::push_back<typename MapType::type, PairType>::type
-                                           >::type type;
-    };
-
-    template<typename SequenceType, int_t StaticInt>
-    struct gt_insert<SequenceType, static_int<StaticInt> >{
-        typedef typename boost::mpl::insert<SequenceType, typename static_int<StaticInt>::type >::type type;
-    };
-
-    template<typename PairType>
-    struct gt_insert<boost::mpl::vector0<>, PairType >{
-        typedef typename boost::mpl::vector<PairType>::type type;
-    };
-
-    fuck you
-#endif
 }//namespace gridtools

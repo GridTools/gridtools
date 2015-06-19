@@ -52,12 +52,12 @@ if (GTEST_FOUND)
       test_hybrid_pointer.cu
       gpu_clone.cu
       cloningstuff.cu
+      boundary_conditions_test.cu
     )
-#      boundary_conditions_test.cu
 
-    add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
+     add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
-    target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
+     target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})

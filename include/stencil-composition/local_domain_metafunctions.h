@@ -1,7 +1,4 @@
 #pragma once
-//#ifndef CXX11_CUDA_PATCH
-// #include <boost/mpl/has_key.hpp>
-// #endif
 
 namespace gridtools {
 
@@ -32,11 +29,7 @@ namespace gridtools {
                 esf_sequence,
                 state,
                 boost::mpl::if_<
-#ifdef CXX11_CUDA_PATCH
-                    gt_has_key<
-#else
                     boost::mpl::has_key<
-#endif
                         assoc_state_t,
                         boost::mpl::_2
                     >,
@@ -78,11 +71,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
             typedef typename boost::mpl::fold<
                 typename local_domain_esf_args<LocalDomain>::type,
-#ifdef CXX11_CUDA_PATCH
-                boost::mpl::vector0<>,
-#else
                 boost::mpl::map0<>,
-#endif
                 boost::mpl::insert<
                     boost::mpl::_1,
                     boost::mpl::pair<boost::mpl::_2, boost::mpl::_2>
@@ -143,11 +132,7 @@ namespace gridtools {
                         boost::mpl::range_c<int, 0, boost::mpl::size<local_domain_esf_args_t>::value >
                     >
                 >,
-#ifdef CXX11_CUDA_PATCH
-                boost::mpl::vector0<>,
-#else
                 boost::mpl::map0<>,
-#endif
                 boost::mpl::insert<
                     boost::mpl::_1,
                     boost::mpl::pair<

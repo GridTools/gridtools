@@ -1,9 +1,7 @@
 #pragma once
 #include <boost/mpl/transform.hpp>
-#ifndef CXX11_CUDA_PATCH
 #include <boost/mpl/map/map0.hpp>
 #include <boost/mpl/assert.hpp>
-#endif
 #include "functor_do_methods.h"
 #include "esf.h"
 #include "../common/meta_array.h"

@@ -172,7 +172,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr explicit accessor_base():m_offsets() {}
 
-#ifdef CXX11_ENABLED
+#if defined( CXX11_ENABLED ) && ! defined(__CUDACC__)
         //move ctor
         GT_FUNCTION
         constexpr accessor_base(const type && other) : m_offsets(other.m_offsets){}
@@ -185,7 +185,7 @@ namespace gridtools {
 #endif
         //copy ctor
         GT_FUNCTION
-        constexpr accessor_base(const type & other) : m_offsets(other.m_offsets){}
+        constexpr accessor_base( type const& other) : m_offsets(other.m_offsets){}
 
         //copy ctor from another accessor_base with different index
         template<uint_t OtherIndex>
@@ -207,10 +207,10 @@ namespace gridtools {
            This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
            language keyword used at the interface level.
         */
-#ifdef CXX11_ENABLED
+#if defined( CXX11_ENABLED ) && ! defined(__CUDACC__) //cuda messing up
         template <typename... Whatever>
         GT_FUNCTION
-        constexpr accessor_base ( Whatever... x) : m_offsets(x...)
+        constexpr accessor_base ( Whatever... x) : m_offsets( x...)
         {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
         }
@@ -301,7 +301,9 @@ namespace gridtools {
         */
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
-        constexpr offset_tuple ( enumtype::Dimension<Idx> const& t, Whatever const&... x):
+        constexpr offset_tuple ( enumtype::Dimension<Idx> // const&
+                                 t, Whatever // const&
+                                 ... x):
             super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
         {}
 #else

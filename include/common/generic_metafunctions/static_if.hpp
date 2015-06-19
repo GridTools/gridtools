@@ -9,6 +9,7 @@ namespace gridtools{
     template<>
     struct static_if <true>{
         template <typename TrueVal, typename FalseVal>
+        GT_FUNCTION
         static constexpr TrueVal& apply(TrueVal& true_val, FalseVal& /*false_val*/)
             {
                 return true_val;
@@ -18,6 +19,7 @@ namespace gridtools{
     template<>
     struct static_if <false>{
         template <typename TrueVal, typename FalseVal>
+        GT_FUNCTION
         static constexpr FalseVal& apply(TrueVal& /*true_val*/, FalseVal& false_val)
             {
                 return false_val;

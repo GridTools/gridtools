@@ -12,9 +12,7 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/insert.hpp>
-#ifndef CXX11_CUDA_PATCH
 #include <boost/mpl/has_key.hpp>
-#endif
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/back.hpp>
 #include <boost/mpl/next.hpp>
@@ -97,11 +95,7 @@ namespace gridtools {
             typename make_range<FromIndex, ToIndex>::type,
             boost::mpl::vector0<>,
             boost::mpl::if_<
-#ifdef CXX11_CUDA_PATCH
-                gt_has_key<FromIndexes, boost::mpl::_2>,
-#else
                 boost::mpl::has_key<FromIndexes, boost::mpl::_2>,
-#endif
                 boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>,
                 boost::mpl::_1
                 >

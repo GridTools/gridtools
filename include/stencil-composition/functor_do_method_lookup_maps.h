@@ -3,9 +3,6 @@
 #include <boost/static_assert.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/vector.hpp>
-#ifdef CXX11_CUDA_PATCH
-#include <boost/mpl/map.hpp>
-#endif
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/copy_if.hpp>
@@ -65,11 +62,7 @@ namespace gridtools {
 
         // add the loop interval to the do method lookup map
         // (only add empty loop intervals if the functor loop interval is empty)
-#ifdef CXX11_CUDA_PATCH
-        typedef typename gt_insert<
-#else
         typedef typename boost::mpl::insert<
-#endif
             DoMethodLookupMap,
             boost::mpl::pair<
                 TLoopInterval,
@@ -128,11 +121,7 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             LoopIntervals,
             boost::mpl::pair<
-#ifdef CXX11_CUDA_PATCH
-                boost::mpl::vector0<>,
-#else
                 boost::mpl::map0<>,
-#endif
             typename boost::mpl::begin<TDoMethods>::type
                 >,
                     do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>

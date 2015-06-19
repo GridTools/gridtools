@@ -73,7 +73,7 @@ if(CUDA_FOUND)
         endif()
 
         foreach(srcfile interface1 boundary-condition tridiagonal laplacian vertical_advection_dycore copy_stencil )
-             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
 
              target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
          endforeach(srcfile)
