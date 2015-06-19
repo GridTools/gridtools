@@ -27,6 +27,10 @@ namespace gridtools {
     struct accessor : public accessor_base<ID, Range, Number> {
         typedef accessor_base<ID, Range, Number> super;
 #ifdef CXX11_ENABLED
+
+        GT_FUNCTION
+        constexpr accessor(): super() {}
+
 #ifndef __CUDACC__
         /**inheriting all constructors from offset_tuple*/
         using super::accessor_base;
@@ -41,12 +45,10 @@ namespace gridtools {
         GT_FUNCTION
         constexpr explicit accessor(accessor<ID, Range, Number>&& other) : super(std::move(other)) {}
 
-        //move ctor from an accessor with different ID
-        template<ushort_t OtherID>
+        //copy ctor
         GT_FUNCTION
-        constexpr accessor(accessor<OtherID, Range, Number>&& other) :
-            super(std::move(other)) {}
-
+        constexpr accessor(accessor<ID, Range, Number> const& other) : super(other) {
+        }
 #endif
 #else
 
