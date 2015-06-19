@@ -46,8 +46,13 @@ template<typename IterateDomainEvaluatorImpl>
 class iterate_domain_evaluator_base
 {
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_evaluator_base);
-public:
+
     typedef typename _impl::iterate_domain_evaluator_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
+protected:
+    const iterate_domain_t& m_iterate_domain;
+
+public:
+
     typedef typename _impl::iterate_domain_evaluator_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type")
@@ -56,19 +61,31 @@ public:
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-    template <typename AccessorType>
+    template <template<uint_t ID, typename Range, ushort_t Number> class AccessorType, uint_t ID, typename Range// =range<0,0,0,0>
+              , ushort_t Number// =3
+              >
     GT_FUNCTION
     typename boost::mpl::at<
         typename local_domain_t::esf_args,
-        typename AccessorType::type::index_type
+        typename AccessorType<ID, Range, Number>::type::index_type
     >::type::value_type& RESTRICT
-    operator()(AccessorType const& accessor) const {
-        typedef typename remap_accessor_type<AccessorType, esf_args_map_t>::type remap_accessor_t;
+    operator()(AccessorType<ID, Range, Number> const& accessor) const {
+        typedef typename remap_accessor_type<AccessorType<ID, Range, Number>, esf_args_map_t>::type remap_accessor_t;
         return m_iterate_domain(remap_accessor_t(accessor));
     }
 
+#ifdef CXX11_ENABLED
+    /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
+    template <template<typename ... Args> class Expression, typename ... Arguments>
+    GT_FUNCTION
+    auto operator() (Expression<Arguments ... >  arg) const -> decltype(m_iterate_domain(arg))
+        {
+            typedef typename remap_accessor_type<Expression<Arguments...>, esf_args_map_t>::type remap_accessor_t;
+            return m_iterate_domain(remap_accessor_t(arg));
+        }
+#endif
+
 protected:
-    const iterate_domain_t& m_iterate_domain;
 };
 
 /**

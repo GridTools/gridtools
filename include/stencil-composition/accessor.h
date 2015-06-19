@@ -52,7 +52,7 @@ namespace gridtools {
 
         //copy ctor
         GT_FUNCTION
-        constexpr explicit accessor(const accessor<ID, Range, Number>& other) : super(other) {}
+        constexpr explicit accessor(accessor<ID, Range, Number> const& other) : super(other) {}
 
         //copy ctor from an accessor with different ID
         template<ushort_t OtherID>

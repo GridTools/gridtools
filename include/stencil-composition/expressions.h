@@ -106,6 +106,7 @@ namespace gridtools{
     template <typename ArgType1, typename ArgType2>
     struct expr_minus : public expr<ArgType1, ArgType2 >{
         typedef expr<ArgType1, ArgType2> super;
+
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
@@ -490,11 +491,7 @@ namespace gridtools{
         static auto constexpr value_scalar(IterateDomain const& /*it_domain*/
                                            , expr_exp<FloatType, IntType> const& arg)
             -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
-#ifndef __CUDACC__
-            return std::pow(arg.first_operand, arg.second_operand);
-#else
-            return products<2>::apply(arg.first_operand);
-#endif
+            return gt_pow<2>::apply(arg.first_operand);
 }
 
 

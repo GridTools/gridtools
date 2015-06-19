@@ -65,11 +65,7 @@ namespace gridtools {
             typedef typename esf_arguments_t::functor_t functor_t;
 
             if (
-#ifdef CXX11_CUDA_PATCH
-                gt_has_key<interval_map_t, interval_t>::type::value
-#else
                 boost::mpl::has_key<interval_map_t, interval_t>::type::value
-#endif
                 ) {
                 typedef typename boost::mpl::at<interval_map_t, interval_t>::type interval_type;
 

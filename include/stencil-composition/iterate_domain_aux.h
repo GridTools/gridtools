@@ -99,6 +99,7 @@ namespace gridtools{
 
     private:
         data_array_t m_data;
+        strides_cached(strides_cached const&);
     };
 
 
@@ -131,16 +132,13 @@ namespace gridtools{
 
     private:
         data_array_t m_data;
+        strides_cached(strides_cached const&);
     };
 
     template<typename T> struct is_strides_cached : boost::mpl::false_{};
 
     template<uint_t ID, typename StorageList>
     struct is_strides_cached< strides_cached<ID, StorageList> > : boost::mpl::true_{};
-
-    //defines how many threads participate to the (shared) memory initialization
-    //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
-#define BLOCK_SIZE 32
 
     /**@brief functor assigning the 'raw' data pointers to an input data pointers array (i.e. the m_data_pointers array).
 
@@ -168,6 +166,8 @@ namespace gridtools{
         const uint_t m_EU_id_j;
 
     public:
+        GT_FUNCTION
+        assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_EU_id_i(other.m_EU_id_i), m_EU_id_j(other.m_EU_id_j){}
 
         GT_FUNCTION
         assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage,
@@ -183,6 +183,7 @@ namespace gridtools{
             //provide the implementation that performs the assignment, depending on the type of storage we have
             impl<ID, pe_id_t, Storage>();
         }
+
     private:
 
         assign_raw_data_functor();
@@ -240,6 +241,9 @@ namespace gridtools{
         >::type type;
 
         static const uint_t value=type::value;
+    private:
+        total_storages();
+        total_storages(total_storages const&);
     };
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
@@ -282,7 +286,12 @@ namespace gridtools{
             boost::fusion::at<ID>(m_storages)->template increment<Coordinate>(
                     m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
         }
+
+        GT_FUNCTION
+        increment_index_functor(increment_index_functor const& other) : m_storages(other.m_storages), m_increment(other.m_increment), m_index_array(other.m_index_array), m_strides_cached(other.m_strides_cached){};
     private:
+        increment_index_functor();
+
         StorageSequence const& m_storages;
         int_t const& m_increment;
         int_t* RESTRICT m_index_array;
@@ -324,6 +333,9 @@ namespace gridtools{
             out[ID]=index[ID];
             set_index_recur<ID-1>::set(index, out);
         }
+    private:
+        set_index_recur();
+        set_index_recur(set_index_recur const&);
     };
 
 
@@ -368,8 +380,11 @@ namespace gridtools{
         const int_t m_initial_pos;
         const uint_t m_block;
         int_t* RESTRICT m_index_array;
-
+        initialize_index_functor();
     public:
+        GT_FUNCTION
+        initialize_index_functor(initialize_index_functor const& other) : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos), m_block(other.m_block), m_index_array(other.m_index_array){}
+
         GT_FUNCTION
         initialize_index_functor(Strides& RESTRICT strides, StorageSequence const & RESTRICT storages, const int_t initial_pos,
             const uint_t block, int_t* RESTRICT index_array) :
@@ -411,8 +426,11 @@ namespace gridtools{
         StorageSequence const & RESTRICT m_storages;
         const int_t m_EU_id_i;
         const int_t m_EU_id_j;
-
+        assign_storage_functor();
     public:
+        GT_FUNCTION
+        assign_storage_functor(assign_storage_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storages(other.m_storages), m_EU_id_i(other.m_EU_id_i), m_EU_id_j(other.m_EU_id_j)  {}
+
         GT_FUNCTION
         assign_storage_functor(DataPointerArray& RESTRICT data_pointer_array, StorageSequence const& RESTRICT storages,
                 const int_t EU_id_i, const int_t EU_id_j) :
@@ -455,23 +473,22 @@ namespace gridtools{
     struct assign_strides_inner_functor
     {
     private:
-        int_t* RESTRICT m_l;
-        const int_t* RESTRICT m_r;
+        int_t* RESTRICT m_left;
+        const int_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
         assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
-            m_l(l), m_r(r) {}
+            m_left(l), m_right(r) {}
 
         template <typename ID>
         GT_FUNCTION
         void operator()(ID const&) const {
-            assert(m_l);
-            assert(m_r);
+            assert(m_left);
+            assert(m_right);
             const uint_t pe_id=(ID::value)%BLOCK_SIZE;
-
-            BackendType:: template once_per_block<pe_id>::assign(m_l[ID::value],m_r[ID::value]);
+            BackendType:: template once_per_block<pe_id>::assign(m_left[ID::value],m_right[ID::value]);
         }
     };
 
@@ -496,8 +513,13 @@ namespace gridtools{
     private:
         StridesCached& RESTRICT m_strides;
         const StorageSequence& RESTRICT m_storages;
+        assign_strides_functor();
 
     public:
+        GT_FUNCTION
+        assign_strides_functor(assign_strides_functor const& other): m_strides(other.m_strides), m_storages(other.m_storages) {}
+
+        GT_FUNCTION
         assign_strides_functor(StridesCached& RESTRICT strides, StorageSequence const& RESTRICT storages) :
             m_strides(strides), m_storages(storages) {}
 
