@@ -1,32 +1,7 @@
-#
-# path to GridTools and Boost libs
-#
-GRIDTOOLS ?= ${GRIDTOOLS_ROOT}
-BOOST ?= ${BOOST_ROOT}
+{% extends "Makefile.base" %}
 
-#
-# compiler flags
-# 
-CC := g++
-#CCFLAGS  := -O0 -g -fPIC -fopenmp -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE
-CCFLAGS   := -O3 -fPIC -fopenmp -DNDEBUG -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE
-LIBRARIES := -fopenmp -lc
-INCLUDES  := -I. -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
-GENCODE   := -shared -Wl,-soname,libutilities.so
-OBJS      := utilities.o $(GRIDTOOLS)/src/gridtools.o 
+{% block extra_targets %}
 
+LIBRARIES := $(LIBRARIES) -lc
 
-# Target rules
-all: build
-
-build: utilities
-
-utilities: $(OBJS)
-	$(CC) $(GENCODE) -o libutilities.so $+ $(LIBRARIES)
-
-%.o: %.cpp
-	$(CC) $(CCFLAGS) $(INCLUDES) -o $@ -c $<
-
-clean:
-	rm -f libutilities.so
-	rm -f $(OBJS)
+{% endblock %}

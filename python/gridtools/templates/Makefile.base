@@ -1,0 +1,62 @@
+#
+# OS detection
+#
+UNAME_S := $(shell uname -s)
+
+#
+# C++ compiler
+#
+ifndef CXX
+  $(error CXX is not set)
+endif
+
+#
+# path to Boost libs and GridTools sources
+#
+ifndef BOOST_ROOT
+  $(error BOOST_ROOT is not set)
+else
+  BOOST ?= ${BOOST_ROOT}
+endif
+
+ifndef GRIDTOOLS_ROOT
+  $(error GRIDTOOLS_ROOT is not set)
+else
+  GRIDTOOLS ?= ${GRIDTOOLS_ROOT}
+endif
+
+#
+# compiler flags
+# 
+#CXXFLAGS  := -O0 -g -fPIC -fopenmp -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE
+CXXFLAGS   := -O3 -w -fPIC -fopenmp -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE -DNDEBUG 
+LIBRARIES := -L$(BOOST)/lib -fopenmp -lpthread -lboost_timer -lboost_system -lboost_chrono
+INCLUDES  := -I. -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
+OBJS      := {{ stencil.name }}.o $(GRIDTOOLS)/src/gridtools.o
+BIN       := lib{{ stencil.name|lower }}.so
+ifeq ($(UNAME_S),Linux)
+  GENCODE := -shared -Wl,-soname,$(BIN)
+endif
+ifeq ($(UNAME_S),Darwin)
+  GENCODE := -shared -Wl,-install_name,$(BIN)
+endif
+
+#
+# Default target rules
+#
+all: build
+
+build: $(BIN)
+
+$(BIN): $(OBJS)
+	$(CXX) $(GENCODE) -o $@ $+ $(LIBRARIES)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ -c $<
+
+clean:
+	rm -f lib{{ stencil.name|lower }}.so
+	rm -f $(OBJS)
+
+{% block extra_targets %}
+{% endblock %}

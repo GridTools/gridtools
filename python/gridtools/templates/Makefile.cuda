@@ -1,54 +1,33 @@
+{% extends "Makefile.base" %}
+
+{% block extra_targets %}
 #
-# paths to dependencies
+# path to CUDA toolkit
 #
-CUDA      ?= ${CUDATOOLKIT_HOME}
-BOOST     ?= ${BOOST_ROOT}
-GRIDTOOLS ?= ${GRIDTOOLS_ROOT}
+ifndef CUDATOOLKIT_HOME
+$(error CUDATOOLKIT_HOME is not set)
+else
+CUDA ?= ${CUDATOOLKIT_HOME}
+endif
 
 #
 # compilers and their flags
 # 
-CC        := g++
 NVCC 	  := $(CUDA)/bin/nvcc
-CCFLAGS   := -O3 -w -fPIC -fopenmp -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -D_USE_GPU_ -D_GCL_GPU_ -DNDEBUG -DCXX11_DISABLE
-NVCCFLAGS := -w -ccbin $(CC) -m64 -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE -DNVCC -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O3\",\"-w\",\"-fPIC\",\"-DNDEBUG\" -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions
-LIBRARIES := -rdynamic $(CUDA)/lib64/libcudart.so -L$(BOOST)/lib -lpthread -lboost_timer -lboost_system -lboost_chrono
-INCLUDES  := -I. -I$(CUDA)/include -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
+CXXFLAGS  := $(CXXFLAGS) -D_USE_GPU_ -D_GCL_GPU_
+NVCCFLAGS := -w -ccbin $(CXX) -m64 -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE -DNVCC -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O3\",\"-w\",\"-fPIC\",\"-DNDEBUG\" -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions
+LIBRARIES := $(LIBRARIES) -rdynamic $(CUDA)/lib64/libcudart.so 
+INCLUDES  := $(INCLUDES) -I$(CUDA)/include
 GENCODE   := -shared -Wl,-soname,lib{{ stencil.name|lower }}.so -Wl,-rpath,$(CUDA)/lib64
-OBJS      := GCL {{ stencil.name }}.o $(GRIDTOOLS)/src/gridtools.o 
+OBJS      := GCL $(OBJS)
 
-
-# Target rules
-all: build
-
-build: {{ stencil.name|lower }}
-
-{{ stencil.name|lower }}: $(OBJS)
-	$(CC) $(CCFLAGS) $(GENCODE) -o {{ stencil.lib_file }} $+ $(LIBRARIES)
-
+#
+# Extra target rules
+#
 GCL:
-	$(CC) $(CCFLAGS) $(INCLUDES) -o $@ -c $(GRIDTOOLS)/src/GCL.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ -c $(GRIDTOOLS)/src/GCL.cpp
 
 %.o: %.cu
 	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -o $@ -c $<
 
-clean:
-	rm -f {{ stencil.lib_file }}
-	rm -f $(OBJS)
-
-##
-## example GCL compilation
-##
-#/usr/bin/c++   -DFLOAT_PRECISION=8 -D_USE_GPU_ -fopenmp -D_GCL_GPU_ -O3 -DNDEBUG -I/home/luka/src/gridtools/include -I/home/luka/src/gridtools/include/communication/high-level -isystem /opt/cuda/include     -D_USE_GPU_ -fopenmp -D_GCL_GPU_ -DCXX11_DISABLE -o CMakeFiles/gcl.dir/src/GCL.cpp.o -c /home/luka/src/gridtools/src/GCL.cpp
-
-
-##
-## example NVCC compilation
-##
-#/opt/cuda/bin/nvcc /home/luka/src/gridtools/examples/copy_stencil.cu -c -o /home/luka/src/gridtools/build/examples/CMakeFiles/copy_stencil_cuda.dir//./copy_stencil_cuda_generated_copy_stencil.cu.o -ccbin /usr/bin/gcc -m64 -DFLOAT_PRECISION=8 -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O3\",\"-DNDEBUG\" -DCXX11_DISABLE -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions -DCXX11_DISABLE -DNVCC -I/opt/cuda/include -I/home/luka/src/gridtools/include -I/home/luka/src/gridtools/include/communication/high-level -I/usr/include -I/opt/cuda/include
-
-
-##
-## example NVCC linking
-##
-#/usr/bin/c++    -D_USE_GPU_ -fopenmp -D_GCL_GPU_ -O3 -DNDEBUG   CMakeFiles/copy_stencil_cuda.dir/copy_stencil_cuda_generated_copy_stencil.cu.o  -o ../build/copy_stencil_cuda -rdynamic /opt/cuda/lib64/libcudart.so ../libgcl.a -lgtest -lgtest_main -lpthread /opt/cuda/lib64/libcudart.so -lboost_timer -lboost_system -lboost_chrono ../libgridtools.a -lgtest -lgtest_main -lpthread -lboost_timer -lboost_system -lboost_chrono -Wl,-rpath,/opt/cuda/lib64 
+{% endblock %}

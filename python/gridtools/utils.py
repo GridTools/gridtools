@@ -35,10 +35,10 @@ class Utilities ( ):
         #
         # instantiate each of the templates and render them
         #
-        cpp  = JinjaEnv.get_template ("utilities.cpp")
+        cpp  = JinjaEnv.get_template ("Utilities.cpp")
         make = JinjaEnv.get_template ("Makefile.utilities")
 
-        return (cpp.render  (stencil=self),
+        return (cpp.render  ( ),
                 make.render (stencil=self))
 
 
@@ -57,7 +57,7 @@ class Utilities ( ):
         self.src_dir = mkdtemp (prefix="__gridtools_")
 
         self.ulib_file  = 'libutilities.so'
-        self.ucpp_file  = 'utilities.cpp'
+        self.ucpp_file  = 'Utilities.cpp'
         self.umake_file = 'Makefile.utilities'
 
         logging.info ("Generating backend float type check code (C++) in '%s'" % self.src_dir)
