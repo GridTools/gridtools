@@ -44,17 +44,6 @@ namespace gridtools {
             std::copy(c.begin(), c.end(), _array);
         }
 #else
-#ifndef __CUDACC__ //this generates a warning
-        GT_FUNCTION
-        array(T const& i): _array{i} {
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j): _array{i, j} {
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j, T const& k): _array{i, j, k} {
-        }
-#else
         GT_FUNCTION
         array(T const& i): _array() {
             const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
@@ -70,7 +59,6 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
             const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
         }
-#endif
 #endif
 
         GT_FUNCTION

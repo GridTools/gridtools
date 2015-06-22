@@ -175,7 +175,7 @@ namespace gridtools{
          */
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint const& increment_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(Storage const& r_, uint_t const& increment_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
             boost::fusion::at_c<ID>(r_)->template increment<Coordinate, Execution>(increment_,&index_[ID], strides_.template get<ID>());
             increment_index<ID-1, Coordinate, Execution>::assign(r_,increment_,index_,strides_);
         }
@@ -198,7 +198,7 @@ namespace gridtools{
 
         template<typename Storage, typename Strides>
         GT_FUNCTION
-        static void assign(Storage const& r_, uint const& increment_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
+        static void assign(Storage const& r_, uint_t const& increment_, int_t* RESTRICT index_, Strides &  RESTRICT strides_){
             boost::fusion::at_c<0>(r_)->template increment<Coordinate, Execution>(increment_,&index_[0], strides_.template get<0>());
         }
 
