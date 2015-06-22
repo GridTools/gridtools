@@ -521,7 +521,7 @@ class Stencil ( ):
         Compiles the translated code to a shared library, ready to be used.-
         """
         from os         import path, getcwd, chdir
-        from ctypes     import cdll
+        from numpy      import ctypeslib
         from subprocess import check_call
 
         try:
@@ -537,8 +537,8 @@ class Stencil ( ):
             #
             # attach the library object
             #
-            self.lib_obj = cdll.LoadLibrary ("%s" % path.join (self.src_dir, 
-                                                               self.lib_file))
+            self.lib_obj = ctypeslib.load_library (self.lib_file,
+                                                   self.src_dir)
         except Exception as e:
             logging.error ("Compilation error")
             self.lib_obj = None
@@ -572,8 +572,8 @@ class Stencil ( ):
                 extension = 'cu'
             else:
                 raise RuntimeError ("Unknown backend '%s' in while generating code" % self.backend)
-            self.cpp_file     = '%s.%s'        % (self.name, extension)
-            self.lib_file     = 'lib%s.so'     % self.name.lower ( )
+            self.cpp_file     = '%s.%s'    % (self.name, extension)
+            self.lib_file     = 'lib%s'    % self.name.lower ( )
             self.make_file    = 'Makefile'
             self.fun_hdr_file = '%sFunctors.h' % self.name
 
@@ -1112,7 +1112,7 @@ class CombinedStencil (Stencil):
             self.src_dir = src_dir
 
         functor_src       = ''
-        self.lib_file     = 'lib%s.so' % self.name.lower ( )
+        self.lib_file     = 'lib%s' % self.name.lower ( )
         self.cpp_file     = '%s.cpp' % self.name
         self.make_file    = 'Makefile'
         self.fun_hdr_file = '%sFunctors.h' % self.name

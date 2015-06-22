@@ -56,7 +56,7 @@ class Utilities ( ):
         #
         self.src_dir = mkdtemp (prefix="__gridtools_")
 
-        self.ulib_file  = 'libutilities.so'
+        self.ulib_file  = 'libutilities'
         self.ucpp_file  = 'Utilities.cpp'
         self.umake_file = 'Makefile.utilities'
 
@@ -77,7 +77,7 @@ class Utilities ( ):
         Compiles the translated code to a shared library, ready to be used.-
         """
         from os         import path, getcwd, chdir
-        from ctypes     import cdll
+        from numpy      import ctypeslib
         from subprocess import check_call
 
         try:
@@ -93,8 +93,8 @@ class Utilities ( ):
             #
             # attach the library object
             #
-            self.ulib_obj = cdll.LoadLibrary ("%s" % path.join (self.src_dir, 
-                                                                self.ulib_file))
+            self.ulib_obj = ctypeslib.load_library (self.ulib_file,
+                                                    self.src_dir)
         except Exception as e:
             logging.error ("Compilation error")
             self.ulib_obj = None
