@@ -16,9 +16,14 @@ endif
 NVCC 	  := $(CUDA)/bin/nvcc
 CXXFLAGS  := $(CXXFLAGS) -D_USE_GPU_ -D_GCL_GPU_
 NVCCFLAGS := -w -ccbin $(CXX) -m64 -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE -DNVCC -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O3\",\"-w\",\"-fPIC\",\"-DNDEBUG\" -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions
-LIBRARIES := $(LIBRARIES) -rdynamic $(CUDA)/lib64/libcudart.so 
+ifeq ($(UNAME_S),Linux)
+  LIBRARIES := $(LIBRARIES) -rdynamic $(CUDA)/lib64/libcudart.$(LIBEXT)
+endif
+ifeq ($(UNAME_S),Darwin)
+  LIBRARIES := $(LIBRARIES) -rdynamic $(CUDA)/lib/libcudart.$(LIBEXT)
+endif
 INCLUDES  := $(INCLUDES) -I$(CUDA)/include
-GENCODE   := -shared -Wl,-soname,lib{{ stencil.name|lower }}.so -Wl,-rpath,$(CUDA)/lib64
+GENCODE   := $(GENCODE) -Wl,-rpath,$(CUDA)/lib64
 OBJS      := GCL $(OBJS)
 
 #
