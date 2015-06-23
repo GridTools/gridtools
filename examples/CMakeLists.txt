@@ -105,5 +105,5 @@ if(CUDA_FOUND)
 endif()
 
 
-add_subdirectory( IGA )
+add_subdirectory( galerkin )
 add_subdirectory( communication )
