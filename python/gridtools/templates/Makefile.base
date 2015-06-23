@@ -37,14 +37,18 @@ LIBRARIES := -L$(BOOST)/lib -lpthread -lboost_timer -lboost_system -lboost_chron
 INCLUDES  := -I. -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
 OBJS      := {{ stencil.name }}.o $(GRIDTOOLS)/src/gridtools.o
 ifeq ($(UNAME_S),Linux)
-  GENCODE := -shared -Wl,-soname,$(BIN)
-  LIBEXT  := so
+  LIBRARIES := $(LIBRARIES) -fopenmp
+  GENCODE   := -shared -Wl,-soname
+  LIBEXT    := so
 endif
 ifeq ($(UNAME_S),Darwin)
   GENCODE := -dynamiclib
   LIBEXT  := dylib
 endif
 BIN := lib{{ stencil.name|lower }}.$(LIBEXT)
+ifeq ($(UNAME_S),Linux)
+  GENCODE := $(GENCODE),$(BIN)
+endif
 
 #
 # Default target rules
