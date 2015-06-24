@@ -52,10 +52,10 @@ set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 fe
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
 if ( ENABLE_CXX11 )
-   message ("CXX11 enabled?: " "${ENABLE_CXX11}\n")
+   message ("-- CXX11 enabled?: " "${ENABLE_CXX11}")
    set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
-   message ("CXX11 disabled")
+   message ("-- CXX11 disabled")
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
 endif()
 
@@ -64,7 +64,7 @@ set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 # compile to PTX assembly format
 set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
 if( USE_GPU )
-  MESSAGE("using GPU")
+  MESSAGE("-- using GPU")
   find_package(CUDA REQUIRED)
   if( ${CUDA_VERSION} VERSION_GREATER "6.0")
       if ( ENABLE_CXX11 )

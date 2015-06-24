@@ -55,10 +55,10 @@ cmake \
 -DGTEST_INCLUDE_DIR:PATH=/users/crosetto/gtest-1.7.0/include \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
--DCMAKE_CXX_COMPILER="/cm/shared/apps/gcc/4.8.4/bin/g++" \
--DCMAKE_C_COMPILER="/cm/shared/apps/gcc/4.8.4/bin/gcc" \
--DUSE_MPI:BOOL=$RUN_MPI_TESTS \
--DUSE_MPI_COMPILER:BOOL=$RUN_MPI_TESTS  \
+-DCMAKE_CXX_COMPILER="/cm/shared/apps/mpich/ge/gcc/64/3.1/bin/mpicxx" \
+-DCMAKE_C_COMPILER="/cm/shared/apps/mpich/ge/gcc/64/3.1/bin/mpicc" \
+-DUSE_MPI:BOOL=ON \
+-DUSE_MPI_COMPILER:BOOL=OFF  \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -fPIC -DBOOST_RESULT_OF_USE_TR1"  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
