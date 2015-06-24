@@ -242,7 +242,8 @@ namespace gridtools {
             {
 	      setup(dim1, dim2, dim3);
               m_fields[0]=pointer_type(ptr, true);
-              allocate(FieldDimension, 1);
+              if(FieldDimension>1)
+                  allocate(FieldDimension, 1);
 	      set_name(s);
             }
 
@@ -273,6 +274,7 @@ namespace gridtools {
             }
 
         void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
+            assert(dims>offset);
             is_set=true;
             for(ushort_t i=0; i<dims; ++i)
                 m_fields[i+offset]=pointer_type(size());
