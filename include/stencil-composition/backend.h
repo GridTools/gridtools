@@ -214,7 +214,7 @@ namespace gridtools {
                 range_map2,
                 boost::mpl::if_<
                     boost::mpl::has_key<range_map2, boost::mpl::first<boost::mpl::_2> >,
-                        boost::mpl::insert<
+                    boost::mpl::insert<
                         boost::mpl::_1,
                         boost::mpl::pair<
                             boost::mpl::first<boost::mpl::_2>,

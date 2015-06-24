@@ -301,9 +301,7 @@ namespace gridtools {
         */
         template <ushort_t Idx, typename... Whatever>
         GT_FUNCTION
-        constexpr offset_tuple ( enumtype::Dimension<Idx> // const&
-                                 t, Whatever // const&
-                                 ... x):
+        constexpr offset_tuple ( enumtype::Dimension<Idx> const& t, Whatever const& ... x):
             super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
         {}
 #else

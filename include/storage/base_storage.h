@@ -167,21 +167,22 @@ namespace gridtools {
             m_strides()
             {
                 setup(args ...);
+                allocate();
             }
 
         template<typename ... UInt>
         void setup(UInt const& ... dims)
             {
                 assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
-                BOOST_STATIC_ASSERT(sizeof...(UInt)==space_dimensions);
-                BOOST_STATIC_ASSERT(field_dimensions>0);
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(field_dimensions>0, "you specified a zero or negative value for a storage fields dimension");
                 m_strides[0] = accumulate( multiplies(), dims...) ;
                 _impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
 
 #ifdef PEDANTIC
                 //the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
                 //You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
-                BOOST_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ) );
+                GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ), "You can disable this assertion by recompiling with the DISABLE_PEDANTIC flag set. This assert fails when we pass one or more arguments to the arbitrary dimensional storage constructor which are not of unsigned integer type (type uint_t). You can only pass the dimension sizes to this constructor." );
 #endif
             }
 
@@ -240,10 +241,8 @@ namespace gridtools {
             m_name(s)
             {
 	      setup(dim1, dim2, dim3);
-              allocate();
-	      /**
-		 NOTE: external pointer constructor currently is limited to scalar fields
-	       */
+              m_fields[0]=pointer_type(ptr, true);
+              allocate(FieldDimension, 1);
 	      set_name(s);
             }
 
@@ -273,10 +272,10 @@ namespace gridtools {
                 m_strides[2] = other.strides(2);
             }
 
-        void allocate(ushort_t const& dims=FieldDimension){
+        void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
             is_set=true;
             for(ushort_t i=0; i<dims; ++i)
-                m_fields[i]=pointer_type(size());
+                m_fields[i+offset]=pointer_type(size());
         }
 
         /** @brief initializes with a constant value */

@@ -122,9 +122,9 @@ namespace gridtools {
             LoopIntervals,
             boost::mpl::pair<
                 boost::mpl::map0<>,
-            typename boost::mpl::begin<TDoMethods>::type
+                typename boost::mpl::begin<TDoMethods>::type
                 >,
-                    do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
+            do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
             >::type DoMethodLookupMap;
 
         // typedef typename DoMethodLookupMap::type::fuck fuck;

@@ -111,7 +111,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
- link_directories( ${CMAKE_BINARY_DIR})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})

@@ -216,13 +216,6 @@ namespace gridtools {
             );
         }
 
-        // /** @brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero) */
-        // GT_FUNCTION
-        // void set_k_start(uint_t from_)
-        // {
-        //     initialize<2>(from_);
-        // }
-
         template <typename T>
         GT_FUNCTION
         void info(T const &x) const
@@ -426,14 +419,6 @@ namespace gridtools {
                 m_k += steps_;
         }
 
-        // /**@brief method to set the first index in k (when iterating backwards or in the k-parallel case this can be different from zero)*/
-        // GT_FUNCTION
-        // void set_k_start(const uint_t from_)
-        // {
-        //     m_k = from_;
-        //     base_t::set_k_start(from_);
-        // }
-
         template <ushort_t Coordinate>
         GT_FUNCTION
         void initialize(uint_t const& index=0, uint_t const& block=0)
@@ -593,15 +578,17 @@ namespace gridtools {
         return get_value(arg,
                          (*m_data_pointer)[ //static if
                              //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
-                                 (
-                                     ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
-                                     accessor_mixed_t::template get_constexpr<0>() //offset for the current snapshot
-                                     :
-                                     accessor_mixed_t::template get_constexpr<1>() //offset for the current snapshot
-                                     //hypotheses : storage offsets are known at compile-time
-                                     + compute_storage_offset< typename storage_type::traits, accessor_mixed_t::template get_constexpr<0>(), storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
-                                     )//+ the offset of the other extra dimension
-                             + current_storage<(ArgType::index_type::value==0), local_domain_t, typename ArgType::type>::value
+               (
+                   ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
+                   accessor_mixed_t::template get_constexpr<0>() //offset for the current snapshot
+                   :
+                   accessor_mixed_t::template get_constexpr<1>() //offset for the current snapshot
+                   //hypotheses : storage offsets are known at compile-time
+                   + compute_storage_offset< typename storage_type::traits
+                   , accessor_mixed_t::template get_constexpr<0>()
+                   , storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
+                   )//+ the offset of the other extra dimension
+               + current_storage<(ArgType::index_type::value==0), local_domain_t, typename ArgType::type>::value
                              ]);
     }
 
