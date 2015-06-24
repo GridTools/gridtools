@@ -263,7 +263,6 @@ namespace gridtools {
             static const int second=Arg2;
         };
 
-#ifndef __CUDACC__
         /**
            @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
 
@@ -272,7 +271,6 @@ namespace gridtools {
         */
         template<int ... Args>
         using set=accessor_mixed< Callable, pair_<Known::direction,Args> ... >;
-#endif
 
         /**@brief constructor
        \param args are the offsets which are already known*/
