@@ -21,7 +21,7 @@ fi
 echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 pwd
 
-if [ "x$CXX_11_ON" == "xON" ]
+if [ "x$CXX_11_ON" == "xcxx11" ]
 then
 CXX_11=ON
 else

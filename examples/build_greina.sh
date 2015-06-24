@@ -31,7 +31,7 @@ SINGLE_PRECISION=OFF
 fi
 echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 
-if [ "x$CXX_11_ON" == "xON" ]
+if [ "x$CXX_11_ON" == "xcxx11" ]
 then
 CXX_11=ON
 else
