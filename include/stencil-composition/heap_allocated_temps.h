@@ -130,7 +130,7 @@ namespace gridtools {
                 template <typename Elem>
                 GT_FUNCTION
                 void operator()(Elem & elem) const {
-#ifndef __CUDA_ARCH__
+#ifndef __CUDACC__
                     delete elem;
 #endif
                 }

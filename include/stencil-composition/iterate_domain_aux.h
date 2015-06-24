@@ -229,14 +229,14 @@ namespace gridtools{
 
         typedef typename boost::mpl::if_c<
             (EndIndex < 0),
-                boost::mpl::int_<0>,
-                typename boost::mpl::fold<
+            boost::mpl::int_<0>,
+            typename boost::mpl::fold<
                 typename reversed_range< 0, EndIndex >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,
                     get_field_dimensions<boost::mpl::_2>
-                >
+                    >
             >::type
         >::type type;
 
@@ -540,7 +540,7 @@ namespace gridtools{
 
             for_each<typename reversed_range< 0,  storage_type::space_dimensions-1 >::type> (
                 assign_strides_inner_functor<
-                BackendType
+                    BackendType
                 >(&(m_strides.template get<ID::value>()[0]), &boost::fusion::at<ID>(m_storages)->strides(1))
             );
         }

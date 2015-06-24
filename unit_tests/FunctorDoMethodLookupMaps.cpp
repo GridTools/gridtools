@@ -2,9 +2,6 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/pair.hpp>
-// #if !((defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)))
-// #include <boost/mpl/find_if.hpp>
-// #endif
 #include "gt_for_each/for_each.hpp"
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/at.hpp>
@@ -48,27 +45,10 @@ struct PrintLoopInterval
     template<typename TLoopInterval>
     void operator()(TLoopInterval)
     {
-        // extract the do method interval
-// #if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
-//         // TDoMethodLookUpMap::fuck();
-//         // TLoopInterval::fuck();
-
-//         typedef typename boost::mpl::find_if<
-//             TDoMethodLookUpMap
-//             , boost::is_same<boost::mpl::first<boost::mpl::_1>, TLoopInterval>
-//             >::type::type DoIntervalPair;
-
-//         typedef typename boost::mpl::eval_if<
-//             boost::is_same<DoIntervalPair, typename boost::mpl::void_ >
-//             , DoIntervalPair
-//             , boost::mpl::second<DoIntervalPair>
-//             >::type DoInterval;
-// #else
         typedef typename boost::mpl::at<
             TDoMethodLookUpMap,
             TLoopInterval
             >::type DoInterval;
-// #endif
         // print the loop interval
         typedef typename index_to_level<typename TLoopInterval::first>::type FromLevel;
         typedef typename index_to_level<typename TLoopInterval::second>::type ToLevel;
@@ -106,9 +86,6 @@ struct PrintDoMethodLookupMap
     void operator()(TIndex)
     {
 
-        // typedef boost::mpl::vector<static_int<23>, static_int<54> >::type::type boh;
-        // boost::mpl::begin<boh>::type::type::fuck();
-        // TFunctorDoMethodLookupMaps::fuck();
         typedef typename boost::mpl::at<TFunctors, TIndex>::type Functor;
         typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, static_int<0> >::type DoMethodLookUpMap;
         // DoMethodLookUpMap::fuck();
@@ -126,8 +103,7 @@ struct PrintDoMethodLookupMap
         {
             std::cout << "Functor2:" << std::endl;
         }
-        // DoMethodLookUpMap::fuck();
-        //TLoopIntervals::fuck();
+
         // print the map
         gridtools::for_each<
             TLoopIntervals
