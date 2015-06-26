@@ -770,6 +770,14 @@ class Stencil ( ):
                           if not Stencil.utils.is_valid_float_type_size (kwargs[key]):
                               raise TypeError ("Element size of '%s' does not match that of the C++ backend."
                                                % key)
+                          if self.backend == 'cuda' and not Stencil.utils.is_fortran_array_layout (kwargs[key]):
+                              logging.info('Detected an incorrect array layout.  Checking if it can be converted.')
+                              if Stencil.util.is_c_array_layout(kwargs[key]):
+                                  logging.info('Converting array layout.')
+                                  kwargs[key] = np.asfortranarray(kwargs[key])        # Attempt to reformat
+                                  Stencil.utils.is_fortran_array_layout (kwargs[key]) # re-check
+                              else
+                                  raise TypeError ("An array does not have the correct layout for the cuda backend!")
                 self.resolve (**kwargs)
                 self.generate_code ( )
                 self.compile ( )

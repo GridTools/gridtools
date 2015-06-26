@@ -125,3 +125,26 @@ class Utilities ( ):
 
         return rv
 
+    def is_fortran_array_layout (self, nparray):
+        rv = False
+
+        if nparray.flags['F_CONTIGUOUS']:
+            logging.debug("Fortran array layout in use.")
+            rv = True
+        else:
+            logging.info("Non Fortran array layout in use!!!")
+            rv = False
+
+        return rv
+
+    def is_c_array_layout (self, nparray):
+        rv = False
+
+        if nparray.flags['C_CONTIGUOUS']:
+            logging.debug("C array layout in use.")
+            rv = True
+        else:
+            logging.debug("Non C array layout in use!!!")
+            rv = False
+
+        return rv

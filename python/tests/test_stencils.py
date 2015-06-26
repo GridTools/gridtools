@@ -57,6 +57,32 @@ class CopyTest (unittest.TestCase):
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
+    def test_cuda_arrays_have_fortran_layout (self):
+        # Test first that the C++ backend doesn't perform the check
+        self.stencil.backend = 'c++'
+        self.in_cpy = np.random.random_integers (10, size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.out_cpy = np.random.random_integers (10, size=self.domain)
+        self.out_cpy = self.out_cpy.astype (np.float64)
+        self._run()
+
+        # Test that the Cuda backend with C++ layout is caught and corrected
+        self.stencil.backend = 'cuda'
+        self.in_cpy = np.random.random_integers (10, size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.out_cpy = np.random.random_integers (10, size=self.domain)
+        self.out_cpy = self.out_cpy.astype (np.float64)
+        self._run()
+
+        # Test that the Cuda backend with Fortran layout is OK
+        self.stencil.backend = 'cuda'
+        self.in_cpy = np.random.random_integers (10, size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.in_cpy = np.asfortranarray (self.in_cpy)
+        self.out_cpy = np.random.random_integers (10, size=self.domain)
+        self.out_cpy = self.out_cpy.astype (np.float64)
+        self.out_cpy = np.asfortranarray (self.out_cpy)
+        self._run()
 
     def test_automatic_dependency_detection (self, deps=None, backend='c++'):
         self.stencil.recompile ( )
