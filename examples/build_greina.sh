@@ -14,6 +14,7 @@ export GRIDTOOLS_ROOT=$PWD/../
 TARGET=$1
 REAL_TYPE=$2
 CXX_11_ON=$3
+MPI=$4
 
 if [ "x$TARGET" == "xgpu" ]
 then
@@ -39,6 +40,15 @@ CXX_11=OFF
 fi
 echo "C++ 11 = $CXX_11"
 
+
+if [ "x$MPI" == "xMPI" ]
+then
+USE_MPI=ON
+else
+USE_MPI=OFF
+fi
+echo "C++ 11 = $CXX_11"
+
 RUN_MPI_TESTS=OFF ##$SINGLE_PRECISION
 
 pwd
@@ -57,7 +67,7 @@ cmake \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="/cm/shared/apps/mpich/ge/gcc/64/3.1/bin/mpicxx" \
 -DCMAKE_C_COMPILER="/cm/shared/apps/mpich/ge/gcc/64/3.1/bin/mpicc" \
--DUSE_MPI:BOOL=ON \
+-DUSE_MPI:BOOL=$USE_MPI \
 -DUSE_MPI_COMPILER:BOOL=OFF  \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -fPIC -DBOOST_RESULT_OF_USE_TR1"  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
