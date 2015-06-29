@@ -124,18 +124,6 @@ namespace gridtools {
                 }
             };
 
-            // noone calls this!!!
-            // I know! we should try to put this back, I had issues with double frees at some point
-            struct delete_tmps {
-                template <typename Elem>
-                GT_FUNCTION
-                void operator()(Elem & elem) const {
-#ifndef __CUDACC__
-                    delete elem;
-#endif
-                }
-            };
-
             static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
                 //static const enumtype::strategy StrategyType = Block;
 
@@ -166,9 +154,7 @@ namespace gridtools {
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-#ifndef __CUDA_ARCH__
                 delete elem;
-#endif
             }
         };
 

@@ -144,7 +144,7 @@ namespace gridtools {
             m_strides()
             {
                 GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
-                    setup(dim1, dim2, dim3);
+                setup(dim1, dim2, dim3);
                 allocate();
                 initialize(init, 1);
             }
@@ -250,7 +250,7 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage(){
             for(ushort_t i=0; i<field_dimensions; ++i)
-                if(!m_fields[i].managed())
+                if(!m_fields[i].externally_managed())
                     m_fields[i].free_it();
         }
 

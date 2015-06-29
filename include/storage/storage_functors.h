@@ -52,7 +52,6 @@ private:
                     copy_data_impl<StorageType>(s);
 
                     s->clone_to_gpu();
-                    s = s->gpu_object_ptr;
                 }
             }
 

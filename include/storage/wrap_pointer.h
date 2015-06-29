@@ -40,28 +40,28 @@ struct wrap_pointer{
 
     //default constructor
     GT_FUNCTION
-    wrap_pointer(bool managed=false)
+    wrap_pointer(bool externally_managed=false)
         : m_cpu_p(NULL),
-          m_managed(managed)
+          m_externally_managed(externally_managed)
     {}
 
 
     GT_FUNCTION
     wrap_pointer(wrap_pointer const& other)
         : m_cpu_p(other.m_cpu_p),
-          m_managed(false)
+          m_externally_managed(false)
     {}
 
     GT_FUNCTION
-    wrap_pointer(T* p, uint_t size_=0, bool managed=true)
+    wrap_pointer(T* p, uint_t size_=0, bool externally_managed=true)
         : m_cpu_p(p)
-        , m_managed(managed)
+        , m_externally_managed(externally_managed)
     { }
 
     wrap_pointer<T>& operator = (T& p)
     {
         m_cpu_p=p;
-        m_managed=true;
+        m_externally_managed=true;
         return *this;
     }
 
@@ -69,7 +69,7 @@ struct wrap_pointer{
 
     void reset(T* cpu_p){m_cpu_p=cpu_p;}
 
-    bool managed(){return m_managed;}
+    bool externally_managed(){return m_externally_managed;}
 
   GT_FUNCTION
   virtual ~wrap_pointer(){
@@ -84,7 +84,7 @@ struct wrap_pointer{
     void update_gpu() {}//\todo find a way to remove this method
 
     GT_FUNCTION
-    wrap_pointer(uint_t size, bool managed=false): m_managed(managed) {
+    wrap_pointer(uint_t size, bool externally_managed=false): m_externally_managed(externally_managed) {
         allocate_it(size);
 #ifndef NDEBUG
             printf(" - %X %d\n", m_cpu_p, size);
@@ -160,7 +160,7 @@ struct wrap_pointer{
 
 protected:
     T * m_cpu_p;
-    bool m_managed;
+    bool m_externally_managed;
 
 
 };

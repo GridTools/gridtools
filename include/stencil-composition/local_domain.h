@@ -45,7 +45,11 @@ namespace gridtools {
                 typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
 
                 boost::fusion::at_c<1>(ze) =
+#ifdef __CUDACC__
+                    boost::fusion::at<index>(arg_list)->gpu_object_ptr;
+#else
                     boost::fusion::at<index>(arg_list);
+#endif
             }
         };
 

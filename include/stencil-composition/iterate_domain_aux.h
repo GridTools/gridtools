@@ -231,7 +231,7 @@ namespace gridtools{
             (EndIndex < 0),
             boost::mpl::int_<0>,
             typename boost::mpl::fold<
-                typename reversed_range< 0, EndIndex >::type,
+                typename reversed_range< int_t, 0, EndIndex >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,
@@ -452,7 +452,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                     "the ID is larger than the number of storage types")
 
-            for_each< typename reversed_range< 0, storage_type::field_dimensions >::type > (
+                for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -538,7 +538,7 @@ namespace gridtools{
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types")
 
-            for_each<typename reversed_range< 0,  storage_type::space_dimensions-1 >::type> (
+                for_each<typename reversed_range< short_t, 0,  storage_type::space_dimensions-1 >::type> (
                 assign_strides_inner_functor<
                     BackendType
                 >(&(m_strides.template get<ID::value>()[0]), &boost::fusion::at<ID>(m_storages)->strides(1))
