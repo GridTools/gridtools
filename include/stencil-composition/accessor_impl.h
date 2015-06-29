@@ -212,7 +212,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor_base ( Whatever... x) : m_offsets( x...)
         {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage")
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, range, D>)")
         }
 #else
         template<typename X, typename Y, typename Z, typename T>

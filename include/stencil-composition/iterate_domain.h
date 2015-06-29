@@ -142,7 +142,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type")
             assert(strides_);
             m_strides=strides_;
-            for_each< typename reversed_range_c<int_t, 0, N_STORAGES >::type > (
+            for_each< typename reversed_range<int_t, 0, N_STORAGES >::type > (
                 assign_strides_functor<
                     BackendType,
                     Strides,
@@ -174,7 +174,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment()
         {
-            for_each<typename reversed_range_c< int_t, 0, N_STORAGES >::type > (
+            for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
