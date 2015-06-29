@@ -5,7 +5,7 @@
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 
-/*
+/**
   @file
   @brief This file shows a possible usage of the extension to storages with more than 3 space dimensions.
 
