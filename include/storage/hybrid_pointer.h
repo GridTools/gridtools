@@ -21,10 +21,14 @@ namespace gridtools {
         typedef typename super::pointee_t pointee_t;
 
         GT_FUNCTION
-        explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {}
+        explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {
+#ifndef NDEBUG
+            printf("creating empty hybrid pointer %x \n", this);
+#endif
+        }
 
         GT_FUNCTION
-	  explicit  hybrid_pointer(T* p, uint_t size_, bool managed=true) : wrap_pointer<T>(p, managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(size_) {
+	  explicit  hybrid_pointer(T* p, uint_t size_, bool externally_managed=true) : wrap_pointer<T>(p, externally_managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(size_) {
 	  allocate_it(m_size);
 	}
 
@@ -34,7 +38,8 @@ namespace gridtools {
             allocate_it(size);
 
 #ifndef NDEBUG
-        printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+            printf("allocating hybrid pointer %x \n", this);
+            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
     }
 
@@ -51,7 +56,7 @@ namespace gridtools {
             , m_size(other.m_size)
         {
 #ifndef NDEBUG
-            printf("cpy const hp ");
+            printf("cpy const hybrid pointer: ");
             printf("%X ", this->m_cpu_p);
             printf("%X ", m_gpu_p);
             printf("%X ", m_pointer_to_use);
@@ -61,7 +66,11 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        virtual ~hybrid_pointer(){  };
+        virtual ~hybrid_pointer(){
+#ifndef NDEBUG
+            printf("deleting hybrid pointer %x \n", this);
+#endif
+};
 
         void allocate_it(uint_t size) {
 #ifdef __CUDACC__
@@ -73,6 +82,9 @@ namespace gridtools {
                           << size*sizeof(T)
                           << " bytes   " <<  cudaGetErrorString(err)
                           << std::endl;
+#ifndef NDEBUG
+                printf("allocating hybrid pointer %x \n", this);
+#endif
             }
 #endif
         }
@@ -80,8 +92,12 @@ namespace gridtools {
         void free_it() {
 #ifdef __CUDACC__
             cudaFree(m_gpu_p);
+            m_gpu_p=NULL;
 #endif
             wrap_pointer<T>::free_it();
+#ifndef NDEBUG
+                printf("freeing hybrid pointer %x \n", this);
+#endif
       }
 
         void update_gpu() const {
@@ -178,7 +194,18 @@ namespace gridtools {
         GT_FUNCTION
         int get_size(){return m_size;}
 
+        hybrid_pointer operator =(hybrid_pointer const& other){
+            printf("= operator for %x \n", this);
+            this->m_cpu_p = other.m_cpu_p;
+            this->m_externally_managed = false;
+            m_gpu_p = other.m_gpu_p;
+            m_pointer_to_use =other.m_pointer_to_use;
+            m_size = other.m_size;
+        }
     private:
+        /** disable equal operator and constructor from raw pointer*/
+        T* operator =(T*);
+        hybrid_pointer(T*);
         T * m_gpu_p;
         T * m_pointer_to_use;
         uint_t m_size;

@@ -38,7 +38,6 @@ namespace copy_stencil{
 #ifdef CXX11_ENABLED
         typedef accessor<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
-        typedef Dimension<4> time;
 #else
         typedef const accessor<0, range<0,0,0,0>, 3> in;
         typedef accessor<1, range<0,0,0,0>, 3> out;
@@ -49,7 +48,7 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            eval(in(0,0,0,1))
+            eval(in(0,0,0,0,1))
 #else
                 eval(out())
 #endif

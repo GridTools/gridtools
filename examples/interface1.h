@@ -195,7 +195,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#ifdef CXX11_ENABLED
+#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
     gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
