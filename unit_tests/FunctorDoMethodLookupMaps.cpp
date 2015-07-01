@@ -45,12 +45,10 @@ struct PrintLoopInterval
     template<typename TLoopInterval>
     void operator()(TLoopInterval)
     {
-        // extract the do method interval
         typedef typename boost::mpl::at<
             TDoMethodLookUpMap,
             TLoopInterval
-        >::type DoInterval;
-
+            >::type DoInterval;
         // print the loop interval
         typedef typename index_to_level<typename TLoopInterval::first>::type FromLevel;
         typedef typename index_to_level<typename TLoopInterval::second>::type ToLevel;
@@ -87,8 +85,10 @@ struct PrintDoMethodLookupMap
     template<typename TIndex>
     void operator()(TIndex)
     {
+
         typedef typename boost::mpl::at<TFunctors, TIndex>::type Functor;
-        typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, TIndex>::type DoMethodLookUpMap;
+        typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, static_int<0> >::type DoMethodLookUpMap;
+        // DoMethodLookUpMap::fuck();
 
         // print the functor name
         if(boost::is_same<Functor0, Functor>::value)
@@ -114,6 +114,7 @@ struct PrintDoMethodLookupMap
 // test method computing do method lookup maps
 int main(int argc, char *argv[])
 {
+#if defined(CXX11_ENABLED) && (__CUDA_ARCH__<=350)
     std::cout
         << "Functor Do Method Lookup Map" << std::endl
         << "============================" << std::endl;
@@ -145,9 +146,9 @@ int main(int argc, char *argv[])
     // print all loop intervals of functor 0, 1 and 2
     std::cout << "Print the Functor0, Functor1 and Functor2 do method lookup maps:" << std::endl;
     gridtools::for_each<
-        boost::mpl::range_c<uint_t, 0, boost::mpl::size<FunctorsDoMethods>::value>
+        boost::mpl::range_c<uint_t, 0, boost::mpl::size<FunctorsDoMethods>::value>//from 0 to 2
     >(PrintDoMethodLookupMap<Functors, LoopIntervals, FunctorDoMethodLookupMaps>());
     std::cout << "Done!" << std::endl;
-
+#endif
     return 0;
 }

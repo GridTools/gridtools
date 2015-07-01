@@ -20,12 +20,7 @@ using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
-#ifdef CXX11_ENABLED
-using namespace expressions;
-#define POSTFIX
-#else
-#define POSTFIX
-#endif
+
 namespace vertical_advection_dycore{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0, 1>, level<1,-2> > kbody;
@@ -37,16 +32,16 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 template<typename T>
 struct u_forward_function {
-    typedef const accessor<0> POSTFIX utens_stage;
-    typedef const accessor<1, range<0,1, 0, 0> > POSTFIX wcon;
-    typedef const accessor<2> POSTFIX u_stage;
-    typedef const accessor<3> POSTFIX u_pos;
-    typedef const accessor<4> POSTFIX utens;
-    typedef const accessor<5> POSTFIX dtr_stage;
-    typedef accessor<6> POSTFIX acol;
-    typedef accessor<7> POSTFIX bcol;
-    typedef accessor<8> POSTFIX ccol;
-    typedef accessor<9> POSTFIX dcol;
+    typedef const accessor<0> utens_stage;
+    typedef const accessor<1, range<0,1, 0, 0> > wcon;
+    typedef const accessor<2> u_stage;
+    typedef const accessor<3> u_pos;
+    typedef const accessor<4> utens;
+    typedef const accessor<5> dtr_stage;
+    typedef accessor<6> acol;
+    typedef accessor<7> bcol;
+    typedef accessor<8> ccol;
+    typedef accessor<9> dcol;
 
     typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
@@ -87,7 +82,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-
     }
 
     template<typename Eval>
@@ -104,7 +98,6 @@ struct u_forward_function {
         // update the d column
         computeDColumn(eval, correctionTerm);
         thomas_forward(eval, interval);
-
     }
 
 private:
@@ -142,12 +135,12 @@ private:
 
 template<typename T>
 struct u_backward_function {
-    typedef accessor<0> POSTFIX utens_stage;
-    typedef const accessor<1> POSTFIX u_pos;
-    typedef const accessor<2> POSTFIX dtr_stage;
-    typedef const accessor<3> POSTFIX ccol;
-    typedef const accessor<4> POSTFIX dcol;
-    typedef accessor<5> POSTFIX data_col;
+    typedef accessor<0> utens_stage;
+    typedef const accessor<1> u_pos;
+    typedef const accessor<2> dtr_stage;
+    typedef accessor<3> ccol;
+    typedef accessor<4> dcol;
+    typedef accessor<5> data_col;
 
     typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
@@ -186,9 +179,9 @@ private:
 /*
  * The following operators and structs are for debugging only
  */
-std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
-    return s << "u_forward_function";
-}
+//std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
+//    return s << "u_forward_function";
+//}
 std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
     return s << "u_backward_function";
 }
@@ -233,13 +226,13 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-//    typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
     typedef boost::mpl::vector<p_utens_stage, p_u_stage, p_wcon, p_u_pos, p_utens, p_dtr_stage,
             p_acol, p_bcol, p_ccol, p_dcol, p_data_col> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+
 #ifdef CXX11_ENABLE
     gridtools::domain_type<accessor_list> domain(
             (p_utens_stage() = repository.utens_stage()),
@@ -253,6 +246,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(
             &repository.utens_stage(), &repository.u_stage(), &repository.wcon(),
             &repository.u_pos(), &repository.utens(), &repository.dtr_stage()));
+
 #endif
 
     // Definition of the physical dimensions of the problem.

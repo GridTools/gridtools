@@ -33,7 +33,7 @@ namespace gridtools {
 
     template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
-        BOOST_STATIC_ASSERT(is_interval<Axis>::value);
+        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type")
         typedef Axis axis_type;
         typedef Partitioner partitioner_t;
 
@@ -49,9 +49,9 @@ namespace gridtools {
             m_partitioner(partitioner_dummy()),
             m_direction_i(direction_i),
             m_direction_j(direction_j)
-            {
-                GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
-            }
+        {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
+        }
 
 
         template<typename ParallelStorage>
@@ -99,7 +99,7 @@ namespace gridtools {
         template <typename Level>
         GT_FUNCTION
         uint_t value_at() const {
-            BOOST_STATIC_ASSERT(is_level<Level>::value);
+            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), "Internal Error: wrong type")
             int_t offs = Level::Offset::value;
             if (offs < 0) offs += 1;
             return value_list[Level::Splitter::value] + offs;
@@ -127,9 +127,9 @@ namespace gridtools {
 
         template<typename Flag>
         bool at_boundary(ushort_t const& coordinate_, Flag const& flag_) const
-            {
-                return m_partitioner.at_boundary(coordinate_, flag_);
-            }
+        {
+            return m_partitioner.at_boundary(coordinate_, flag_);
+        }
 
     private:
 

@@ -122,27 +122,6 @@ type;
             };
         };
 
-        //TODO : This struct is never used
-        struct call_h2d {
-            template <typename Arg>
-            GT_FUNCTION
-            void operator()(Arg * arg) const {
-#ifndef __CUDA_ARCH__
-                arg->h2d_update();
-#endif
-            }
-        };
-
-        struct call_d2h {
-            template <typename Arg>
-            GT_FUNCTION
-            void operator()(Arg * arg) const {
-#ifndef __CUDA_ARCH__
-                arg->d2h_update();
-#endif
-            }
-        };
-
         struct moveto_functor {
             uint_t i,j,k;
             GT_FUNCTION
@@ -155,10 +134,6 @@ type;
             template <typename ZipElem>
             GT_FUNCTION
             void operator()(ZipElem const &a) const {
-#ifdef __CUDA_ARCH__
-                printf("CIAOLLLL %X\n", &a);//, (boost::fusion::at<boost::mpl::int_<1> >(a)));
-#endif
-                //                (*(boost::fusion::at<boost::mpl::int_<1> >(a)))(i,j,k);
                 boost::fusion::at<static_int<0> >(a) = &( (*(boost::fusion::at<static_int<1> >(a)))(i,j,k) );
             }
         };

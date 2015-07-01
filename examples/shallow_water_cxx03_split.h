@@ -478,7 +478,7 @@ namespace shallow_water{
         uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -626,16 +626,16 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
 #ifdef __CUDACC__
-                if(!he.comm().pid()==target_process)
-                    cudaProfilerStart();
+                // if(!he.comm().pid()==target_process)
+                //     cudaProfilerStart();
 #endif
 #ifndef CUDA_EXAMPLE
                 boost::timer::cpu_timer time;
 #endif
                 shallow_water_stencil->run();
 #ifdef __CUDACC__
-                if(!he.comm().pid())
-                    cudaProfilerStop();
+                // if(!he.comm().pid())
+                //     cudaProfilerStop();
 #endif
 #ifndef CUDA_EXAMPLE
                 boost::timer::cpu_times lapse_time = time.elapsed();

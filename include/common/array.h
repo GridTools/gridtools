@@ -12,7 +12,6 @@
 #include "host_device.h"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
-#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 
@@ -35,7 +34,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         template<typename ... ElTypes>
         GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{types ... } {
+        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
         GT_FUNCTION
@@ -87,7 +86,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        size_t size() const {return _size;}
+        static constexpr size_t size() {return _size;}
     };
 
     template <typename T, size_t D>
@@ -135,8 +134,14 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        size_t size() const {return _size;}
+        static constexpr size_t size() {return _size;}
     };
+
+    template<typename T> struct is_array : boost::mpl::false_{};
+
+    template <typename T, size_t D, class ENABLE>
+    struct is_array <array<T, D, ENABLE> > : boost::mpl::true_{};
+
 } // namespace gridtools
 
 #endif

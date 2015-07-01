@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive>
+#define BACKEND backend<Cuda, Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block>
@@ -271,7 +271,6 @@ int main(int argc, char** argv) {
     out.print();
     out.print(file_o);
     //    lap.print();
-
 #ifndef CUDA_EXAMPLE
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif

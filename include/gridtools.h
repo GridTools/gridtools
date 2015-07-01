@@ -18,12 +18,11 @@
 #endif
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
+// #include <boost/type_traits.hpp>
 
 #include<communication/GCL.h>
-
 #include "common/gt_assert.h"
 #include "common/defs.h"
 #include "common/host_device.h"
 #include "common/array.h"
 #include "common/layout_map.h"
-#include "common/gridtools_runtime.h"

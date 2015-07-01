@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/timer/timer.hpp>
+
 #include <gridtools.h>
 #include <stencil-composition/backend.h>
 #include <stencil-composition/make_computation.h>
@@ -10,8 +12,8 @@
 #include <papi_wrap.h>
 #include <papi.h>
 #endif
-#undef CXX11_ENABLED
-/*
+
+/**
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
@@ -47,7 +49,7 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 #ifdef CXX11_ENABLED
-            eval(in(0,0,0,1))
+            eval(in(time(1)))
 #else
                 eval(out())
 #endif
@@ -77,7 +79,7 @@ namespace copy_stencil{
         uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -103,7 +105,7 @@ namespace copy_stencil{
         //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
         typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
         typedef storage_list<base_type1, 0>  extended_type;
-        typedef storage<data_field<extended_type, extended_type> > vec_field_type;
+        typedef storage<data_field2<extended_type, extended_type> > vec_field_type;
 #endif
 #endif
         //out.print();
@@ -214,89 +216,82 @@ namespace copy_stencil{
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
 #ifndef CXX11_ENABLED
-                        ,p_out()
+                       ,p_out()
 #endif
-                        )
-                    ),
+                    )
+                ),
                 domain, coords
-                );
+            );
 
-/*         copy->ready(); */
+        copy->ready();
 
-/*         copy->steady(); */
-/*         domain.clone_to_gpu(); */
+        copy->steady();
+        domain.clone_to_gpu();
 
-/* #ifdef USE_PAPI_WRAP */
-/*         pw_stop_collector(collector_init); */
-/* #endif */
+#ifdef USE_PAPI_WRAP
+        pw_stop_collector(collector_init);
+#endif
 
-/* #ifdef USE_PAPI */
-/*         if( PAPI_start(event_set) != PAPI_OK) */
-/*             handle_error(1); */
-/* #endif */
-/* #ifdef USE_PAPI_WRAP */
-/*         pw_start_collector(collector_execute); */
-/* #endif */
-/* #ifndef CUDA_EXAMPLE */
-/*         boost::timer::cpu_timer time; */
-/* #endif */
-/*         copy->run(); */
+#ifdef USE_PAPI
+        if( PAPI_start(event_set) != PAPI_OK)
+            handle_error(1);
+#endif
+#ifdef USE_PAPI_WRAP
+        pw_start_collector(collector_execute);
+#endif
+        boost::timer::cpu_timer time;
+        copy->run();
 
-/* #ifdef USE_PAPI */
-/*         double dummy=0.5; */
-/*         double dummy2=0.8; */
-/*         if( PAPI_read(event_set, values) != PAPI_OK) */
-/*             handle_error(1); */
-/*         printf("%f After reading the counters: %lld\n", dummy, values[0]); */
-/*         PAPI_stop(event_set, values); */
-/* #endif */
-/* #ifdef USE_PAPI_WRAP */
-/*         pw_stop_collector(collector_execute); */
-/* #endif */
-/* #ifndef CUDA_EXAMPLE */
-/*         boost::timer::cpu_times lapse_time = time.elapsed(); */
-/* #endif */
-/*         copy->finalize(); */
+#ifdef USE_PAPI
+        double dummy=0.5;
+        double dummy2=0.8;
+        if( PAPI_read(event_set, values) != PAPI_OK)
+            handle_error(1);
+        printf("%f After reading the counters: %lld\n", dummy, values[0]);
+        PAPI_stop(event_set, values);
+#endif
+#ifdef USE_PAPI_WRAP
+        pw_stop_collector(collector_execute);
+#endif
+        boost::timer::cpu_times lapse_time = time.elapsed();
+        copy->finalize();
 
-/* #ifndef CUDA_EXAMPLE */
-/*         std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl; */
-/* #endif */
-/*         //#ifdef CUDA_EXAMPLE */
-/*         //out.data().update_cpu(); */
-/*         //#endif */
+        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+        //#ifdef CUDA_EXAMPLE
+        //out.data().update_cpu();
+        //#endif
 
-/* #ifdef USE_PAPI_WRAP */
-/*         pw_print(); */
-/* #endif */
-/*         printf("dimensions are: %d, %d, %d\n", d1, d2, d3); */
-/*         bool success = true; */
-/*         for(uint_t i=0; i<d1; ++i) */
-/*             for(uint_t j=0; j<d2; ++j) */
-/*                 for(uint_t k=0; k<d3; ++k) */
-/*                 { */
-/* #ifdef CXX11_ENABLED */
-/*                     if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k)) */
-/* #else */
-/*                         if (in(i, j, k)!=out(i,j,k)) */
-/* #endif */
-/*                         { */
-/*                             std::cout << "error in " */
-/*                                       << i << ", " */
-/*                                       << j << ", " */
-/*                                       << k << ": " */
-/* #ifdef CXX11_ENABLED */
-/*                                       << "in = " << (in.get_value<0,0>(i, j, k)) */
-/*                                       << ", out = " << (in.get_value<0,1>(i, j, k)) */
-/* #else */
-/*                                       << "in = " << in(i, j, k) */
-/*                                       << ", out = " << out(i, j, k) */
-/* #endif */
-/*                                       << std::endl; */
-/*                             success = false; */
-/*                         } */
-/*                 } */
-/*         std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl; */
-/*         return success; */
-	return true;
+#ifdef USE_PAPI_WRAP
+        pw_print();
+#endif
+        printf("dimensions are: %d, %d, %d\n", d1, d2, d3);
+        bool success = true;
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
+                {
+#ifdef CXX11_ENABLED
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
+#else
+                        if (in(i, j, k)!=out(i,j,k))
+#endif
+                        {
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+#ifdef CXX11_ENABLED
+                                      << "in = " << (in.get_value<0,0>(i, j, k))
+                                      << ", out = " << (in.get_value<1,0>(i, j, k))
+#else
+                                      << "in = " << in(i, j, k)
+                                      << ", out = " << out(i, j, k)
+#endif
+                                      << std::endl;
+                            success = false;
+                        }
+                }
+        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        return success;
     }
 }//namespace copy_stencil

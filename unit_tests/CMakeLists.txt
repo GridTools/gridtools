@@ -12,13 +12,22 @@ if ( ENABLE_CXX11 )
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test-independent ${exe_LIBS})
     add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
+
 endif()
 
 if (GTEST_FOUND)
+    set(COMMON_TESTS
+        tests.cpp
+        test_domain_indices.cpp
+        test_smallstorage_indices.cpp
+        boundary_conditions_test.cpp
+    )
+    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp stencil-composition/test_iterate_domain.cpp)
+
     if ( ENABLE_CXX11 )
-        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+        add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})
     else()
-        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+        add_executable(tests ${COMMON_TESTS})
     endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )

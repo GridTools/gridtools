@@ -1,8 +1,29 @@
 #pragma once
+
+#if __cplusplus > 199711L
+#ifndef CXX11_DISABLE
+#define CXX11_ENABLED
+#endif
+#define CXX11_DISABLED
+#endif
+
+//defines how many threads participate to the (shared) memory initialization
+//TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
+#define BLOCK_SIZE 32
+
+// #include <boost/mpl/map/aux_/item.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/vector.hpp>
+
 /**
    @file
    @brief global definitions
 */
+#include <boost/mpl/bool.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/type_traits.hpp>
 
 #ifdef FUSION_MAX_VECTOR_SIZE
 #undef FUSION_MAX_VECTOR_SIZE
@@ -27,28 +48,35 @@
 
 /** Macro do enable additional checks that may catch some errors in user code
  */
+#ifndef PEDANTIC_DISABLED
 #define PEDANTIC
+#endif
 
 #define RESTRICT __restrict__
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
 
-#if __cplusplus > 199711L
-#ifndef CXX11_DISABLE
-#define CXX11_ENABLED
+#ifndef GT_DEFAULT_TILE_I
+  #ifdef __CUDACC__
+    #define GT_DEFAULT_TILE_I 32
+  #else
+    #define GT_DEFAULT_TILE_I 8
+  #endif
 #endif
-#define CXX11_DISABLED
-#endif
-
-#ifndef GT_DEFAULT_TILE
-#ifndef SUPPRESS_MESSAGES
-#pragma message("INFO: Using default tile size = 8")
-#endif
-#define GT_DEFAULT_TILE 8
+#ifndef GT_DEFAULT_TILE_J
+  #ifdef __CUDACC__
+    #define GT_DEFAULT_TILE_J 8
+  #else
+    #define GT_DEFAULT_TILE_J 8
+  #endif
 #endif
 
 #include <boost/mpl/integral_c.hpp>
+// macro defining empty copy constructors and assignment operators
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName&);               \
+    TypeName& operator=(const TypeName&)
 
 namespace gridtools{  namespace enumtype{
         /**
@@ -58,20 +86,13 @@ namespace gridtools{  namespace enumtype{
         /** enum specifying the type of backend we use */
         enum backend  {Cuda, Host};
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<backend T>
-        struct backend_type
-        {
-            enum {value=T};
-        };
-
         enum strategy  {Naive, Block};
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++1)*/
-        template<strategy T>
-        struct strategy_type
+        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
+        template<typename EnumType, EnumType T>
+        struct enum_type
         {
-            enum {value=T};
+            static const EnumType value=T;
         };
 
 
@@ -100,6 +121,48 @@ namespace gridtools{  namespace enumtype{
            @}
          */
     }//namespace enumtype
+
+
+    template<typename Arg >
+    struct is_enum_type : public boost::mpl::and_<
+        typename boost::mpl::not_<boost::is_arithmetic<Arg> >::type
+        , typename boost::is_convertible<Arg, const int>::type >::type {};
+
+    template<typename Arg1, typename Arg2 >
+    struct any_enum_type : public boost::mpl::or_<is_enum_type<Arg1>, is_enum_type<Arg2> >::type {};
+
+    template<typename T>
+    struct is_backend_enum : boost::mpl::false_ {};
+
+#ifdef CXX11_ENABLED
+    /** checking that no arithmetic operation is performed on enum types*/
+    template<>
+    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+    struct error_no_operator_overload{};
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+#endif
+
+    template<typename T>
+    struct is_execution_engine : boost::mpl::false_{};
+
+    template<enumtype::execution U>
+    struct is_execution_engine<enumtype::execute<U> > : boost::mpl::true_{};
+
 
 #ifndef CXX11_ENABLED
 #define constexpr
@@ -184,4 +247,5 @@ namespace gridtools{  namespace enumtype{
      */
 //######################################################
 #endif
+
 }//namespace gridtools
