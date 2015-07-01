@@ -12,19 +12,19 @@
  * are located using relative coordinates. In the next diagram, the given process is (0,0)
  * while the neighbors are indicated with their relative coordinates.
  * \code
- *       ------------------------- 
- *       |       |       |       | 
- *       | -1,-1 | -1,0  | -1,1  | 
- *       |       |       |       | 
- *       ------------------------- 
- *       |       |       |       | 
- *       |  0,-1 |  0,0  |  0,1  | 
- *       |       |       |       | 
- *       ------------------------- 
- *       |       |       |       | 
- *       |  1,-1 |  1,0  |  1,1  | 
- *       |       |       |       | 
- *       ------------------------- 
+ *       -------------------------
+ *       |       |       |       |
+ *       | -1,-1 | -1,0  | -1,1  |
+ *       |       |       |       |
+ *       -------------------------
+ *       |       |       |       |
+ *       |  0,-1 |  0,0  |  0,1  |
+ *       |       |       |       |
+ *       -------------------------
+ *       |       |       |       |
+ *       |  1,-1 |  1,0  |  1,1  |
+ *       |       |       |       |
+ *       -------------------------
  * \endcode
  */
 
@@ -57,19 +57,19 @@ namespace gridtools {
    * are located using relative coordinates. In the next diagram, the given process is (0,0)
    * while the neighbors are indicated with their relative coordinates.
    * \code
-   *       ------------------------- 
-   *       |       |       |       | 
-   *       | -1,-1 | -1,0  | -1,1  | 
-   *       |       |       |       | 
-   *       ------------------------- 
-   *       |       |       |       | 
-   *       |  0,-1 |  0,0  |  0,1  | 
-   *       |       |       |       | 
-   *       ------------------------- 
-   *       |       |       |       | 
-   *       |  1,-1 |  1,0  |  1,1  | 
-   *       |       |       |       | 
-   *       ------------------------- 
+   *       -------------------------
+   *       |       |       |       |
+   *       | -1,-1 | -1,0  | -1,1  |
+   *       |       |       |       |
+   *       -------------------------
+   *       |       |       |       |
+   *       |  0,-1 |  0,0  |  0,1  |
+   *       |       |       |       |
+   *       -------------------------
+   *       |       |       |       |
+   *       |  1,-1 |  1,0  |  1,1  |
+   *       |       |       |       |
+   *       -------------------------
    * \endcode
    * The pattern is cyclic or not bepending on the process grid passed to it. The cyclicity may be on only one dimension.
    * An example of use of the pattern is given below
@@ -120,7 +120,7 @@ namespace gridtools {
      \endcode
 
 
-     A running example can be found in the included example. \example Halo_Exchange_test.cpp \example Halo_Exchange_test_2.cpp
+     A running example can be found in the included example. \example test_halo_exchange_3D.cpp \example test_halo_exchange_2D.cpp
    */
   template <typename PROC_GRID, int ALIGN=1 >
   class Halo_Exchange_2D_DT {
@@ -185,7 +185,7 @@ namespace gridtools {
 #ifndef NDEBUG
       std::cout << "@" << gridtools::PID << "@ IRECV from (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
-                << " T " << TAG<-I,-J>::value << " - " 
+                << " T " << TAG<-I,-J>::value << " - "
                 << " R " << translate()(-I,-J) << "\n";
 #endif
 
@@ -203,7 +203,7 @@ namespace gridtools {
 #ifndef NDEBUG
       std::cout << "@" << gridtools::PID << "@ ISEND to   (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
-                << " T " << TAG<I,J>::value << " - " 
+                << " T " << TAG<I,J>::value << " - "
                 << " R " << translate()(I,J) << "\n";
 #endif
       MPI_Isend(static_cast<char*>(m_send_buffers.buffer(I,J)),
@@ -246,7 +246,7 @@ namespace gridtools {
 
     /** Returns the processor grid (as const reference) been used in construction
 
-        If used to get process grid information additional information can be 
+        If used to get process grid information additional information can be
         found in \link GRIDS_INTERACTION \endlink
      */
     PROC_GRID const & proc_grid() const {return m_proc_grid;}
@@ -403,7 +403,7 @@ namespace gridtools {
           if (m_proc_grid.template proc<0,-1>()!=-1) {
               post_receive<0,-1>();
           }
-      
+
           /* Posting receives FOR CORNERS
            */
           if (m_proc_grid.template proc<1,1>()!=-1) {
@@ -494,7 +494,7 @@ namespace gridtools {
         do_sends();
       }
 
-      void wait() {      
+      void wait() {
           /* Actual receives
            */
           if (m_proc_grid.template proc<1,0>()!=-1) {
@@ -508,7 +508,7 @@ namespace gridtools {
           if (m_proc_grid.template proc<0,1>()!=-1) {
               wait<0,1>();
           }
-          
+
           if (m_proc_grid.template proc<0,-1>()!=-1) {
               wait<0,-1>();
           }
@@ -530,7 +530,7 @@ namespace gridtools {
               wait<1,-1>();
           }
 
-      
+
           MPI_Barrier(gridtools::GCL_WORLD);
       }
 

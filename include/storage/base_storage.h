@@ -370,7 +370,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
+#ifdef PEDANTIC
             assert(_index(strides(),dims...) < size());
+#endif
 #endif
             return (m_fields[0])[_index(strides(),dims...)];
         }

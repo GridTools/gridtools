@@ -57,7 +57,7 @@ namespace copy_stencil{
         }
     };
 
-    /*
+    /**
      * The following operators and structs are for debugging only
      */
     std::ostream& operator<<(std::ostream& s, copy_functor const) {

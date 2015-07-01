@@ -241,7 +241,6 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr T find_val(First first, Indices ... indices) {
             static_assert(sizeof...(Indices)<length, "Too many arguments");
-
             //lazy template instantiation
             typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) +1 ),
                 identity<T, DefaultVal>
@@ -291,7 +290,7 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of type other than accessor")
                 return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :

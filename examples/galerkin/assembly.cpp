@@ -1,5 +1,6 @@
-#include "assembly.h"
+#include "intrepid.h"
 #include <iostream>
+#define PEDANTIC_DISABLED
 
 int main(int argc, char** argv)
 {
@@ -10,7 +11,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return !assembly::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return !intrepid::test();
 #else
     assert(false);
     return -1;
