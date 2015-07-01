@@ -14,7 +14,7 @@
 
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -207,7 +207,6 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     {% for s in stencils -%}
     comp_{{ s.name|lower }}->steady();
     {% endfor %}
-    domain.clone_to_gpu ( );
     //
     // ... and execution
     //
@@ -221,4 +220,34 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     comp_{{ s.name|lower }}->finalize();
     {% endfor %}
 }
+
+
+
+
+/**
+ * A MAIN function for debugging purposes
+ *
+int main (int argc, char **argv)
+{
+    uint_t dim1 = 64;
+    uint_t dim2 = 64;
+    uint_t dim3 = 32;
+
+    {% for p in params -%}
+    float_type *{{ p.name }}_buff = (float_type *) malloc (dim1*dim2*dim3 * sizeof (float_type));
+    {% endfor -%}
+
+
+    run (dim1, dim2, dim3,
+          {%- for p in params %}
+          {{ p.name }}_buff
+              {%- if not loop.last -%}
+              ,
+              {%- endif -%}
+          {% endfor -%});
+
+    return EXIT_SUCCESS;
+}
+*/
+
 
