@@ -75,18 +75,6 @@ namespace gridtools {
 
         };
 
-        // noone calls this!!!
-        // I know! we should try to put this back, I had issues with double frees at some point
-        struct delete_tmps {
-            template <typename Elem>
-            GT_FUNCTION
-                void operator()(Elem & elem) const {
-#ifndef __CUDA_ARCH__
-                delete elem;
-#endif
-            }
-        };
-
         /**
            Specialization for Block policy
          */
@@ -166,7 +154,7 @@ namespace gridtools {
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                delete elem;
+                //delete elem;
             }
         };
 
