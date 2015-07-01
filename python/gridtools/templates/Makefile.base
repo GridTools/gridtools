@@ -35,7 +35,7 @@ ifeq ($(UNAME_S),Linux)
 endif
 LIBRARIES := -L$(BOOST)/lib -lpthread -lboost_timer -lboost_system -lboost_chrono
 INCLUDES  := -I. -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
-OBJS      := {{ stencil.name }}.o $(GRIDTOOLS)/src/gridtools.o
+OBJS      := {{ stencil.name }}.o
 ifeq ($(UNAME_S),Linux)
   LIBRARIES := $(LIBRARIES) -fopenmp
   GENCODE   := -shared -Wl,-soname
