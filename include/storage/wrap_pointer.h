@@ -49,11 +49,11 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(wrap_pointer const& other)
         : m_cpu_p(other.m_cpu_p),
-          m_externally_managed(false)
+          m_externally_managed(other.m_externally_managed)
     {}
 
     GT_FUNCTION
-    wrap_pointer(T* p, uint_t size_=0, bool externally_managed=true)
+    wrap_pointer(T* p, uint_t size_,  bool externally_managed)
         : m_cpu_p(p)
         , m_externally_managed(externally_managed)
     { }
@@ -102,7 +102,7 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void free_it() {
-        if(m_cpu_p)
+        if(m_cpu_p && !m_externally_managed)
         {
 #ifndef NDEBUG
 #ifndef __CUDACC__
