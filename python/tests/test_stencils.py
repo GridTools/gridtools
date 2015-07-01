@@ -57,8 +57,17 @@ class CopyTest (unittest.TestCase):
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
-    def test_cuda_arrays_have_fortran_layout (self):
-        # Test first that the C++ backend doesn't perform the check
+    def _find_and_count_error_messages(self, output, term):
+        count = 0
+        for key in output:
+            if key == term:
+                count = count + 1
+        return count
+
+    def test_cuda_arrays_have_fortran_layout_but_cpp_not_affected (self):
+        """
+        Test first that the C++ backend doesn't perform the check
+        """
         self.stencil.backend = 'c++'
         self.in_cpy = np.random.random_integers (10, size=self.domain)
         self.in_cpy = self.in_cpy.astype (np.float64)
@@ -66,23 +75,42 @@ class CopyTest (unittest.TestCase):
         self.out_cpy = self.out_cpy.astype (np.float64)
         self._run()
 
-        # Test that the Cuda backend with C++ layout is caught and corrected
-        self.stencil.backend = 'cuda'
-        self.in_cpy = np.random.random_integers (10, size=self.domain)
-        self.in_cpy = self.in_cpy.astype (np.float64)
-        self.out_cpy = np.random.random_integers (10, size=self.domain)
-        self.out_cpy = self.out_cpy.astype (np.float64)
-        self._run()
+    def test_cuda_arrays_have_fortran_layout_clayout_converted_to_flayout (self):
+        with self.assertLogs () as cm:
+            """
+            Test that the Cuda backend with C-layout is caught and corrected
+            There should be two occurrances of the message; one for each argument.
+            """
+            self.stencil.backend = 'cuda'
+            self.in_cpy = np.random.random_integers (10, size=self.domain)
+            self.in_cpy = self.in_cpy.astype (np.float64)
+            self.out_cpy = np.random.random_integers (10, size=self.domain)
+            self.out_cpy = self.out_cpy.astype (np.float64)
+            self._run()
+            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Checking if it can be converted.")
+            self.assertEqual(count, 2)
 
-        # Test that the Cuda backend with Fortran layout is OK
-        self.stencil.backend = 'cuda'
-        self.in_cpy = np.random.random_integers (10, size=self.domain)
-        self.in_cpy = self.in_cpy.astype (np.float64)
-        self.in_cpy = np.asfortranarray (self.in_cpy)
-        self.out_cpy = np.random.random_integers (10, size=self.domain)
-        self.out_cpy = self.out_cpy.astype (np.float64)
-        self.out_cpy = np.asfortranarray (self.out_cpy)
-        self._run()
+    def test_cuda_arrays_have_fortran_layout_flayout_needs_no_conversion (self):
+        with self.assertLogs () as cm:
+            """
+            Test that the Cuda backend, when passed arrays with Fortran layout, is OK.
+            To test this, we check that the warning message that would appear
+            if the arguments were not of Fortray-layout does NOT occur;
+            that is, we should have a count of zero (0) for that message.
+            The above empty message ensures that there is at least one message
+            returned so that we don't receive an erroneous AssertionError.
+            """
+            logging.info("")
+            self.stencil.backend = 'cuda'
+            self.in_cpy = np.random.random_integers (10, size=self.domain)
+            self.in_cpy = self.in_cpy.astype (np.float64)
+            self.in_cpy = np.asfortranarray (self.in_cpy)
+            self.out_cpy = np.random.random_integers (10, size=self.domain)
+            self.out_cpy = self.out_cpy.astype (np.float64)
+            self.out_cpy = np.asfortranarray (self.out_cpy)
+            self._run()
+            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Checking if it can be converted.")
+            self.assertEqual(count, 0)
 
     def test_automatic_dependency_detection (self, deps=None, backend='c++'):
         self.stencil.recompile ( )
