@@ -65,15 +65,19 @@ class CopyTest (unittest.TestCase):
         return count
 
     def test_cuda_arrays_have_fortran_layout_but_cpp_not_affected (self):
-        """
-        Test first that the C++ backend doesn't perform the check
-        """
-        self.stencil.backend = 'c++'
-        self.in_cpy = np.random.random_integers (10, size=self.domain)
-        self.in_cpy = self.in_cpy.astype (np.float64)
-        self.out_cpy = np.random.random_integers (10, size=self.domain)
-        self.out_cpy = self.out_cpy.astype (np.float64)
-        self._run()
+        with self.assertLogs () as cm:
+            """
+            Test first that the C++ backend doesn't perform the check
+            """
+            logging.info("")
+            self.stencil.backend = 'c++'
+            self.in_cpy = np.random.random_integers (10, size=self.domain)
+            self.in_cpy = self.in_cpy.astype (np.float64)
+            self.out_cpy = np.random.random_integers (10, size=self.domain)
+            self.out_cpy = self.out_cpy.astype (np.float64)
+            self._run()
+            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Checking if it can be converted.")
+            self.assertEqual(count, 0)
 
     def test_cuda_arrays_have_fortran_layout_clayout_converted_to_flayout (self):
         with self.assertLogs () as cm:
@@ -97,7 +101,7 @@ class CopyTest (unittest.TestCase):
             To test this, we check that the warning message that would appear
             if the arguments were not of Fortray-layout does NOT occur;
             that is, we should have a count of zero (0) for that message.
-            The above empty message ensures that there is at least one message
+            The empty message at the start ensures that there is at least one message
             returned so that we don't receive an erroneous AssertionError.
             """
             logging.info("")
