@@ -43,6 +43,19 @@ namespace gridtools {
        Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
      */
 
+#ifdef CXX11_ENABLED
+    template <typename ESF, typename ... ExtraArgs>
+    esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >
+    make_esf( ExtraArgs&& ... /*args_*/){
+        return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >();
+    }
+
+    template <typename ESF, typename Staggering, typename ... ExtraArgs>
+    esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...>, Staggering >
+    make_esf( ExtraArgs&& ... args_){
+        return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...>, Staggering >();
+    }
+#else
 #define _MAKE_ESF(z, n, nil)                                            \
     template <typename ESF,                                             \
               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename A)>        \
@@ -53,9 +66,18 @@ namespace gridtools {
 
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_ESF, _)
 #undef _MAKE_ESF
+#endif
 
+#ifdef CXX11_ENABLED
+        template <typename ExecutionEngine,
+                  typename ... EsfDescr >
+        mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >
+        make_mss(ExecutionEngine&& /**/, EsfDescr&& ...  ) {
+        return mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >();
+    }
 
-#define _MAKE_MSS(z, ITN, nil)                                          \
+#else
+#define _MAKE_MSS(z, ITN, nil)                                        \
     template <typename ExecutionEngine,                               \
               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) > \
     mss_descriptor<ExecutionEngine, BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > \
@@ -65,8 +87,16 @@ namespace gridtools {
 
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_MSS, _)
 #undef _MAKE_MSS
+#endif
 
+#ifdef CXX11_ENABLED
+        template <typename ... EsfDescr >
+        independent_esf< boost::mpl::vector<EsfDescr ...> >
+        make_independent(EsfDescr&& ... ) {
+        return independent_esf<boost::mpl::vector<EsfDescr... > >();
+    }
 
+#else
 #define _MAKE_INDEPENDENT(z, ITN, nil)          \
     template <typename EsfDescr,                                        \
               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) > \
@@ -77,5 +107,5 @@ namespace gridtools {
 
     BOOST_PP_REPEAT(GT_MAX_INDEPENDENT, _MAKE_INDEPENDENT, _)
 #undef _MAKE_INDEPENDENT
-
+#endif
 } // namespace gridtools

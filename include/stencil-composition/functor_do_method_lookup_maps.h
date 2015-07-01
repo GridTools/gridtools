@@ -3,7 +3,6 @@
 #include <boost/static_assert.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/map.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/copy_if.hpp>
@@ -125,9 +124,10 @@ namespace gridtools {
                 boost::mpl::map0<>,
                 typename boost::mpl::begin<TDoMethods>::type
                 >,
-                    do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
-                    >::type DoMethodLookupMap;
+            do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
+            >::type DoMethodLookupMap;
 
+        // typedef typename DoMethodLookupMap::type::fuck fuck;
         // remove the do method iterator and return the map only
         typedef typename boost::mpl::first<DoMethodLookupMap>::type type;
     };

@@ -1,6 +1,10 @@
 #pragma once
 #include <gt_for_each/for_each.hpp>
 #include "../backend_traits_fwd.h"
+#include "run_esf_functor_host.h"
+#include "../block_size.h"
+#include "iterate_domain_host.h"
+#include "strategy_host.h"
 
 /**@file
 @brief type definitions and structures specific for the Host backend
@@ -11,14 +15,6 @@ namespace gridtools{
         template <typename Arguments>
         struct run_functor_host;
     }
-
-    namespace multithreading{
-        /**
-           Global variable storing the current thread id
-        */
-        int __attribute__((weak)) gt_thread_id;
-#pragma omp threadprivate(gt_thread_id)
-    }//namespace multithreading
 
     /**forward declaration*/
     template<typename T>
@@ -56,7 +52,11 @@ namespace gridtools{
             grid of threads.
         */
         static uint_t n_i_pes(int = 0) {
-            return n_threads();
+#ifdef _OPENMP
+            return omp_get_max_threads();
+#else
+            return 1;
+#endif
         }
 
         /** This is the function used by the specific backend to inform the
@@ -73,20 +73,13 @@ namespace gridtools{
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
         static uint_t processing_element_i()  {
-            return multithreading::gt_thread_id;
+#ifdef _OPENMP
+            return omp_get_thread_num();
+#else
+            return 0;
+#endif
         }
 
-        /**@brief set the thread id
-
-           this method when openmp is enabled calls the thread_id() routine.
-           NOTE: the reason why the latter routine is not called directly every time
-           the thread id is queried is a possibly non-negligible overhead introduced by such call.
-           This interface allows to store the thread id in a global variable when a parallel
-           region is encountered.
-         */
-        static void set_thread_id(){
-            multithreading::gt_thread_id=thread_id();
-        }
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
@@ -94,25 +87,6 @@ namespace gridtools{
         static uint_t  processing_element_j()  {
             return 0;
         }
-
-        //function alias (pre C++11, std::bind or std::mem_fn,
-        //using function pointers looks very ugly)
-        template<
-            typename Sequence
-            , typename F
-            >
-
-#ifdef CXX11_ENABLED
-        //unnecessary copies/indirections if the compiler is not smart
-        inline static void for_each(F&& f){
-            gridtools::for_each<Sequence>(std::forward<F>(f));
-            }
-#else
-        //unnecessary copies/indirections if the compiler is not smart
-        inline static void for_each(F f){
-            gridtools::for_each<Sequence>(f);
-            }
-#endif
 
         template <uint_t Id>
         struct once_per_block {
@@ -123,6 +97,95 @@ namespace gridtools{
             }
         };
 
+        /**
+         * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
+         * and sequentially executes all the functors in the mss
+         * @tparam RunFunctorArgs run functor arguments
+         * @tparam StrategyId id of the strategy
+         */
+        template<typename RunFunctorArgs, enumtype::strategy StrategyId>
+        struct mss_loop
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type")
+            template<typename LocalDomain, typename Coords>
+            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
+            {
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+
+                //each strategy executes a different high level loop for a mss
+                strategy_from_id_host<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::template run(local_domain, coords, bi, bj);
+            }
+        };
+
+        /**
+         * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+         */
+        struct mss_fuse_esfs_strategy
+        {
+            typedef boost::mpl::bool_<false> type;
+            BOOST_STATIC_CONSTANT(bool, value=(type::value));
+        };
+
+        // high level metafunction that contains the run_esf_functor corresponding to this backend
+        typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
+
+        // metafunction that contains the strategy from id metafunction corresponding to this backend
+        template<enumtype::strategy StrategyId>
+        struct select_strategy
+        {
+            typedef strategy_from_id_host<StrategyId> type;
+        };
+
+        /*
+         * @brief metafunction that determines whether this backend requires redundant computations at halo points
+         * of each block, given the strategy Id
+         * @tparam StrategyId the strategy id
+         * @return always false for Host
+         */
+        template<enumtype::strategy StrategyId>
+        struct requires_temporary_redundant_halos
+        {
+            typedef typename boost::mpl::if_c<
+                StrategyId == enumtype::Naive,
+                boost::mpl::false_,
+                boost::mpl::true_
+            >::type type;
+        };
+
+        template<enumtype::strategy StrategyId>
+        struct get_block_size {
+            typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
+        };
+
+        /**
+         * @brief metafunction that returns the right iterate domain
+         * (depending on whether the local domain is positional or not)
+         * @param LocalDomain the local domain
+         * @return the iterate domain type for this backend
+         */
+        template <typename LocalDomain>
+        struct select_iterate_domain {
+            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
+            //indirection in order to avoid instantiation of both types of the eval_if
+            template<typename _LocalDomain>
+            struct select_positional_iterate_domain
+            {
+                typedef iterate_domain_host<positional_iterate_domain, _LocalDomain> type;
+            };
+
+            template<typename _LocalDomain>
+            struct select_basic_iterate_domain
+            {
+                typedef iterate_domain_host<iterate_domain, _LocalDomain> type;
+            };
+
+            typedef typename boost::mpl::eval_if<
+                local_domain_is_stateful<LocalDomain>,
+                select_positional_iterate_domain<LocalDomain>,
+                select_basic_iterate_domain<LocalDomain>
+            >::type type;
+        };
     };
 
 }//namespace gridtools

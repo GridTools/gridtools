@@ -5,7 +5,7 @@
 #include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 
-/*
+/**
   @file
   @brief This file shows a possible usage of the extension to storages with more than 3 space dimensions.
 
@@ -87,7 +87,7 @@ namespace assembly{
     bool test(uint_t d1, uint_t d2, uint_t d3){
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >

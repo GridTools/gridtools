@@ -452,7 +452,7 @@ namespace shallow_water{
         uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -501,10 +501,13 @@ namespace shallow_water{
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
+        sol.allocate();
         parallel_storage<sol_type, partitioner_t> tmpx(part);
         tmpx.setup(d1, d2, d3);
+        tmpx.allocate();
         parallel_storage<sol_type, partitioner_t> tmpy(part);
         tmpy.setup(d1, d2, d3);
+        tmpy.allocate();
 
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());

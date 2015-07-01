@@ -4,7 +4,6 @@
 #include "backend_fwd.h"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
-#include "common/gridtools_runtime.h"
 
 /**
 @file
@@ -13,7 +12,6 @@ TODO Document me!
 
 namespace gridtools {
     namespace _impl {
-
 
         /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments
             to the constructor depending on the specific strategy */
@@ -138,18 +136,6 @@ namespace gridtools {
                 }
             };
 
-            // noone calls this!!!
-            // I know! we should try to put this back, I had issues with double frees at some point
-            struct delete_tmps {
-                template <typename Elem>
-                GT_FUNCTION
-                void operator()(Elem & elem) const {
-#ifndef __CUDA_ARCH__
-                    delete elem;
-#endif
-                }
-            };
-
             static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
                 //static const enumtype::strategy StrategyType = Block;
 
@@ -161,18 +147,27 @@ namespace gridtools {
                     is_temporary_storage<boost::mpl::_1> > view_type;
 
                 view_type fview(arg_list);
-
                 boost::fusion::for_each(fview,
                                         instantiate_tmps
                                         ( coords.i_low_bound(),
                                           coords.j_low_bound(),
                                           coords.value_at_top()-coords.value_at_bottom()+1,
-                                          backend_type::n_i_pes()(666),
-                                          backend_type::n_j_pes()(666)
+                                          backend_type::n_i_pes()(coords.i_high_bound() - coords.i_low_bound()),
+                                          backend_type::n_j_pes()(coords.j_high_bound() - coords.j_low_bound())
                                          )
                                         );
             }
 
+        };
+
+        // noone calls this!!!
+        // I know! we should try to put this back, I had issues with double frees at some point
+        struct delete_tmps {
+            template <typename Elem>
+            GT_FUNCTION
+            void operator()(Elem & elem) const {
+                delete elem;
+            }
         };
 
     } // namespace _impl

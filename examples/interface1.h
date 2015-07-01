@@ -12,7 +12,7 @@
 #include <papi.h>
 #endif
 
-/*
+/**
   @file
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
@@ -24,9 +24,13 @@ using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
+
+//Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
+//  for any type, which breaks most of the code after using expressions
 #ifdef CXX11_ENABLED
 using namespace expressions;
 #endif
+
 namespace horizontal_diffusion{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
@@ -39,6 +43,7 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 struct lap_function {
     typedef accessor<0> out;
     typedef const accessor<1, range<-1, 1, -1, 1>  > in;
+
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -61,7 +66,6 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
@@ -74,12 +78,12 @@ struct fly_function {
     typedef accessor<0> out;
     typedef const accessor<1, range<0, 0, 0, 1> > in;
     typedef const accessor<2, range<0, 0, 0, 1> > lap;
+
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
         if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
@@ -100,18 +104,17 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-#ifdef CXX11_ENABLED
-        dom(out()) = dom(in()) - dom(coeff()) *
-            (dom(flx() - flx( -1,0,0) +
-             fly() - fly( 0,-1,0))
-             );
+#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
+       dom(out()) = dom(in()) - dom(coeff()) *
+           (dom(flx() - flx( -1,0,0) +
+            fly() - fly( 0,-1,0))
+            );
 #else
         dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
 #endif
-        // printf("final dom(out()) => %e\n", dom(out()));
     }
 };
 
@@ -147,7 +150,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     uint_t halo_size = 2;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -192,7 +195,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#ifdef CXX11_ENABLED
+#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
     gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
@@ -271,11 +274,11 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 (
                     gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
                     gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-                    ),
-                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
                 ),
+                gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
+            ),
             domain, coords
-            );
+        );
 
     horizontal_diffusion->ready();
 

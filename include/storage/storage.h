@@ -3,6 +3,7 @@
 #include <common/gpu_clone.h>
 #include "host_tmp_storage.h"
 #include "accumulate.h"
+#include <common/generic_metafunctions/reverse_pack.hpp>
 
 /**
 @file
@@ -57,7 +58,7 @@ namespace gridtools{
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
     template< class Storage, uint_t ... Number >
-    struct field{
+    struct field_reversed{
         typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
@@ -74,7 +75,7 @@ namespace gridtools{
                , uint_t PlusI
                , uint_t PlusJ
                , uint_t ... Number >
-    struct field<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
+    struct field_reversed<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
         typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
@@ -82,7 +83,7 @@ namespace gridtools{
                ,typename Layout
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field<base_storage<PointerType, Layout, true, FieldDimension>, Number... >{
+    struct field_reversed<base_storage<PointerType, Layout, true, FieldDimension>, Number... >{
         typedef storage< data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
@@ -91,11 +92,17 @@ namespace gridtools{
                ,typename Layout
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
+    struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
         typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
     };
 
+    template< class Storage, uint_t First, uint_t ... Number >
+    struct field{
+        typedef typename reverse_pack<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
+    };
+
 #else//CXX11_ENABLED
+
 
     template< class Storage, uint_t Number1, uint_t Number2, uint_t Number3 >
     struct field{

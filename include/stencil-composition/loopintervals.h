@@ -73,8 +73,8 @@ namespace gridtools {
     struct compute_loop_intervals
     {
         // check the template parameters
-        BOOST_STATIC_ASSERT(boost::mpl::is_sequence<TDoMethods>::value);
-        BOOST_STATIC_ASSERT(is_interval<TAxisInterval>::value);
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence<TDoMethods>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_interval<TAxisInterval>::value), "Internal Error: wrong type")
 
         // define the from and to level indexes
         typedef typename interval_from_index<TAxisInterval>::type FromIndex;

@@ -46,7 +46,7 @@ namespace positional_copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(one()) = static_cast<float_type>(V)*(eval.i+eval.j+eval.k);
+            eval(one()) = static_cast<float_type>(V)*(eval.i()+eval.j()+eval.k());
             eval(two()) = -1.1;
         }
     };
@@ -98,7 +98,7 @@ namespace positional_copy_stencil{
         uint_t d3 = z;
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >

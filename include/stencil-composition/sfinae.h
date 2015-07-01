@@ -99,4 +99,14 @@ namespace gridtools {
     */
     HAS_TYPE_SFINAE(xrange_subdomain, has_xrange_subdomain, get_xrange_subdomain)
 
+
+    /*use with eval_if as follows*/
+    // typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value
+    //                                        , get_xrange< functor_type >
+    //                                        , boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+
+    // typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value
+    //                                        , get_xrange_subdomain< functor_type >
+    //                                        , boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+
 }

@@ -29,6 +29,15 @@ namespace gridtools {
 #endif
     };
 
+    template <int_t ... Coords>
+    struct staggered : public range<Coords ...> {};
+
+    template <typename In>
+    struct is_staggered : public boost::false_type {};
+
+    template <int_t ... Coords>
+    struct is_staggered<staggered<Coords ...> > : public boost::true_type {};
+
     /**
      * Output operator for ranges - for debug purposes
      *
@@ -93,8 +102,8 @@ namespace gridtools {
     template <typename Range1,
               typename Range2>
     struct sum_range {
-        BOOST_MPL_ASSERT((is_range<Range1>));
-        BOOST_MPL_ASSERT((is_range<Range2>));
+        BOOST_MPL_ASSERT((boost::mpl::or_<is_range<Range1>, is_staggered<Range1> >));
+        BOOST_MPL_ASSERT((boost::mpl::or_<is_range<Range2>, is_staggered<Range1> >));
 
         typedef range<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::plus<typename Range1::iplus,  typename Range2::iplus>::type::value,
@@ -109,8 +118,8 @@ namespace gridtools {
     template <typename Range1,
               typename Range2>
     struct union_ranges {
-        BOOST_STATIC_ASSERT((is_range<Range1>::value));
-        BOOST_STATIC_ASSERT((is_range<Range2>::value));
+        GRIDTOOLS_STATIC_ASSERT((is_range<Range1>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_range<Range2>::value), "Internal Error: invalid type")
 
         typedef range<
             (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,

@@ -23,10 +23,14 @@ namespace gridtools {
        "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
        field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
      */
-    template < ushort_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
+    template < uint_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct accessor : public accessor_base<ID, Range, Number> {
         typedef accessor_base<ID, Range, Number> super;
 #ifdef CXX11_ENABLED
+
+        GT_FUNCTION
+        constexpr accessor(): super() {}
+
 #ifndef __CUDACC__
         /**inheriting all constructors from offset_tuple*/
         using super::accessor_base;
@@ -35,92 +39,53 @@ namespace gridtools {
         */
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr accessor ( ForwardedArgs... x): super (x...)
-            {
-            }
+        constexpr accessor ( ForwardedArgs... x): super (x...) {}
+
+        //move ctor
+        GT_FUNCTION
+        constexpr explicit accessor(accessor<ID, Range, Number>&& other) : super(std::move(other)) {}
+
+        //copy ctor
+        GT_FUNCTION
+        constexpr accessor(accessor<ID, Range, Number> const& other) : super(other) {
+        }
 #endif
 #else
 
+        //copy ctor
         GT_FUNCTION
-        constexpr explicit accessor(): super()
-            {}
+        constexpr explicit accessor(accessor<ID, Range, Number> const& other) : super(other) {}
+
+        //copy ctor from an accessor with different ID
+        template<ushort_t OtherID>
+        GT_FUNCTION
+        constexpr explicit accessor(const accessor<OtherID, Range, Number>& other) :
+            super(static_cast<accessor_base<OtherID, Range, Number> >(other)) {}
+
+        GT_FUNCTION
+        constexpr explicit accessor(): super() {}
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z,  typename T>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y, Z z, T t ): super(x, y, z, t)
-            {
-            }
+        constexpr accessor ( X x, Y y, Z z, T t ): super(x, y, z, t) {}
 
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y, typename Z>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y, Z z ): super(x, y, z)
-            {
-            }
+        constexpr accessor ( X x, Y y, Z z ): super(x, y, z) {}
+
         /** @brief constructor forwarding all the arguments*/
         template <typename X>
         GT_FUNCTION
-        constexpr accessor ( X x ): super(x)
-            {
-            }
+        constexpr accessor ( X x ) : super(x) {}
+
         /** @brief constructor forwarding all the arguments*/
         template <typename X, typename Y>
         GT_FUNCTION
-        constexpr accessor ( X x, Y y ): super(x, y)
-            {
-            }
+        constexpr accessor ( X x, Y y ): super(x, y) {}
 
 #endif
-    };
-
-
-    /**
-       @brief convenient interface allowing to specify an arbitrary dimensional
-       \ref gridtools::accessor with zero range
-    */
-    template < ushort_t ID, ushort_t Number>
-    struct accessor0 : public accessor_base<ID, range<0,0,0,0>, Number> {
-        typedef accessor_base<ID, range<0,0,0,0>, Number> super;
-        GT_FUNCTION
-        constexpr accessor0(): super()
-            {}
-
-#ifdef CXX11_ENABLED
-// #ifndef __CUDACC__
-//         using super::accessor_base::accessor_base;
-// #else
-
-        template <typename... ForwardedArgs>
-        GT_FUNCTION
-        constexpr accessor0 ( ForwardedArgs... x): super (x ...)
-            {
-            }
-// #endif
-#else
-        template <typename X, typename Y, typename Z,  typename T>
-        GT_FUNCTION
-        constexpr accessor0 ( X x, Y y, Z z, T t ): super(x, y, z, t)
-            {
-            }
-
-        template <typename X, typename Y, typename Z>
-        GT_FUNCTION
-        constexpr accessor0 ( X x, Y y, Z z ): super(x, y, z)
-            {
-            }
-        template <typename X>
-        GT_FUNCTION
-        constexpr accessor0 ( X x ): super(x)
-            {
-            }
-        template <typename X, typename Y>
-        GT_FUNCTION
-        constexpr accessor0 ( X x, Y y ): super(x, y)
-            {
-            }
-#endif
-
     };
 
     /**
@@ -142,7 +107,7 @@ namespace gridtools {
         template<typename Storage>
         arg_storage_pair<arg<I,T>, Storage>
         operator=(Storage& ref) {
-            BOOST_MPL_ASSERT( (boost::is_same<Storage, T>) );
+            GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage, T>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
             return arg_storage_pair<arg<I,T>, Storage>(&ref);
         }
 
@@ -172,10 +137,10 @@ namespace gridtools {
 #else
                 {val}
 #endif
-                {
-                    GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1")
-                    GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the accessor must be positive integerts")
-                }
+            {
+                GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1")
+                GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the accessor must be positive integerts")
+            }
 
             /**@brief Constructor*/
             GT_FUNCTION
@@ -231,7 +196,6 @@ namespace gridtools {
     template <typename ArgType, typename ... Pair>
     struct accessor_mixed{
 
-        static const ushort_t n_args = ArgType::n_args;
         static const ushort_t n_dim = ArgType::n_dim;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
@@ -264,7 +228,8 @@ namespace gridtools {
         get_constexpr(){
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
             GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0")
-            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "the result must be larger or equal than 0")
+
+            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.")
             return s_args_constexpr.template get<Idx>();
         }
 
@@ -298,7 +263,6 @@ namespace gridtools {
             static const int second=Arg2;
         };
 
-#ifndef __CUDACC__
         /**
            @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
 
@@ -307,7 +271,6 @@ namespace gridtools {
         */
         template<int ... Args>
         using set=accessor_mixed< Callable, pair_<Known::direction,Args> ... >;
-#endif
 
         /**@brief constructor
        \param args are the offsets which are already known*/
@@ -326,8 +289,8 @@ namespace gridtools {
     template<typename ... Unknowns>
     GT_FUNCTION
     Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
-            {
-                return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
+    {
+        return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
 
     private:
         //store the list of offsets which are already known on an array

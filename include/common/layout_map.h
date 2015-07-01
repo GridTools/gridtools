@@ -55,9 +55,6 @@ namespace gridtools {
     template < ushort_t ID, typename Range, ushort_t Number>
     struct accessor;
 
-    template < ushort_t ID, ushort_t Numbers>
-    struct accessor0;
-
 #ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
     struct accessor_mixed;
@@ -66,9 +63,6 @@ namespace gridtools {
     //template arguments type checking
     template <typename T>
     struct is_arg_tuple : boost::false_type {};
-
-    template < ushort_t ID, ushort_t Number>
-    struct is_arg_tuple<accessor0<ID, Number> > : boost::true_type{};
 
     template < ushort_t ID, typename Range, ushort_t Number>
     struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
@@ -249,7 +243,7 @@ namespace gridtools {
             static_assert(sizeof...(Indices)<length, "Too many arguments");
 
             //lazy template instantiation
-            typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) ),
+            typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) +1 ),
                 identity<T, DefaultVal>
                 ,
                 tied_type<I, T> >::type type;
@@ -335,8 +329,10 @@ namespace gridtools {
 
         template <ushort_t I>
         struct at_ {
+#ifdef PEDANTIC
             static_assert(I<length, "Index out of bound");
-            static const short_t value = layout_vector[I];
+#endif
+            static const short_t value = I<length ? layout_vector[I] : -1;
         };
 
         template <ushort_t I, short_t DefaultVal>
