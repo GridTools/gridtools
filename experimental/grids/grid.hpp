@@ -5,12 +5,13 @@
 #include <boost/mpl/vector.hpp>
 #include "virtual_storage.hpp"
 #include "location_type.hpp"
+#include "backend.hpp"
 
 namespace gridtools {
 
     /**
     */
-    template <typename CellStorageT, typename EdgeStorageT>
+    template <typename Backend>
     class trapezoid_2D_no_tile {
     public :
         using cells = location_type<0>;
@@ -24,10 +25,10 @@ namespace gridtools {
             using type = double*;
         };
 
-    private:
-        using cell_storage_t = CellStorageT;
-        using edge_storage_t = EdgeStorageT;
+        using cell_storage_t = typename Backend::template storage_type<cells>;
+        using edge_storage_t = typename Backend::template storage_type<edges>;
 
+    private:
         using v_cell_storage_t = virtual_storage<typename cell_storage_t::layout>;
         using v_edge_storage_t = virtual_storage<typename edge_storage_t::layout>;
 
@@ -108,19 +109,19 @@ namespace gridtools {
         array<uint_t, 3> ll_indices(array<uint_t, 2> const& i, cells) const {
             return array<uint_t, 3>{i[0], i[1]%1, i[1]/3};
         }
-        
+
         array<uint_t, 3> ll_indices(array<uint_t, 2> const& i, edges) const {
             return array<uint_t, 3>{i[0], i[1]%3, i[1]/3};
         }
-        
+
         uint_t ll_offset(array<uint_t, 3> const& i, cells) const {
             return m_v_cell_storage._index(i[0], i[1], i[2]);
         }
-        
+
         uint_t ll_offset(array<uint_t, 3> const& i, edges) const {
             return m_v_edge_storage._index(i[0], i[1], i[2]);
         }
-        
+
         array<uint_t, 3>
         cell2cells_ll_p1(array<uint_t, 2> const& i) const
         {
@@ -219,7 +220,7 @@ namespace gridtools {
             } else {
                 return cell2cells_ll_p0({i[0], i[1]/2});
             }
-        }        
+        }
 
         array<uint_t, 4>
         neighbors(array<uint_t, 2> const& i, edges, edges) const
@@ -451,4 +452,3 @@ namespace gridtools {
     };
 
 }
-

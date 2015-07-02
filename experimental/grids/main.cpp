@@ -1,7 +1,7 @@
 using uint_t = unsigned int;
 #include <iostream>
 #include "grid.hpp"
-#include <storage/base_storage.h>
+#include "base_storage.hpp"
 #include <common/layout_map.h>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -17,13 +17,17 @@ using uint_t = unsigned int;
 #include "make_stencil.hpp"
 #include "accessor.hpp"
 
+
+
 using gridtools::layout_map;
 using gridtools::wrap_pointer;
 
-using cell_storage_type = gridtools::base_storage<wrap_pointer<double>, layout_map<0,1,2> >;
-using edge_storage_type = gridtools::base_storage<wrap_pointer<double>, layout_map<0,1,2> >;
 
-using trapezoid_2D = gridtools::trapezoid_2D_no_tile<cell_storage_type, edge_storage_type>;
+using trapezoid_2D = gridtools::trapezoid_2D_no_tile<gridtools::_backend>;
+
+using cell_storage_type = typename trapezoid_2D::cell_storage_t;
+using edge_storage_type = typename trapezoid_2D::edge_storage_t;
+
 
 struct stencil_on_cells {
     typedef accessor<0, trapezoid_2D::cells> out;
@@ -158,23 +162,32 @@ struct stencil_on_edges {
 #define _EVAL_I(l1,l2,x,y)                                              \
     std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors_indices({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << std::endl;
 
+template <typename Array>
+uint_t product(Array && x) {
+    uint_t r = 1;
+    for (int i = 0; i < x.size(); ++i) {
+        r *= x[i];
+    }
+    return r;
+};
+
 int main() {
     uint_t NC = trapezoid_2D::u_cell_size_i(6);
     uint_t MC = trapezoid_2D::u_cell_size_j(12);
-   
+
     uint_t NE = trapezoid_2D::u_edge_size_i(6);
     uint_t ME = trapezoid_2D::u_edge_size_j(12);
 
     std::cout << "NC = " << NC << " "
               << "MC = " << MC
               << std::endl;
-    
+
     std::cout << "NE = " << NE << " "
               << "ME = " << ME
               << std::endl;
 
-    cell_storage_type cells(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));
-    edge_storage_type edges(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME}));
+    cell_storage_type cells(product(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC})));
+    edge_storage_type edges(product(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME})));
 
     trapezoid_2D grid(/*cells, edges,*/ 6, 12);
 
@@ -226,8 +239,8 @@ int main() {
     _EVAL_I(edges,cells, 2, 5);
 
 
-    cell_storage_type cells_out(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC}));
-    edge_storage_type edges_out(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME}));
+    cell_storage_type cells_out(product(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC})));
+    edge_storage_type edges_out(product(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME})));
 
 
 
@@ -240,10 +253,19 @@ int main() {
         auto x = make_esf<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
 
+
+        // gridtools::domain_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges> >
+        //     (&cells_out, &cells, &edges_out, &edges);
+
+        auto ptrs = boost::fusion::vector<cell_storage_type*,
+                                          cell_storage_type*,
+                                          edge_storage_type*,
+                                          edge_storage_type*>
+            (&cells_out, &cells, &edges_out, &edges);
+
         accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+            (ptrs, grid, 0,0);
 
 
         /** Iteration on CELLS
@@ -257,68 +279,68 @@ int main() {
         }
     }
 
-    {
-        auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
+    // {
+    //     auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
+    //         (out_cells(), in_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::cells> acc
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
-
-
-        /** Iteration on CELLS
-         */
-        for (int i = 1; i < NC-1; ++i) {
-            acc.set_ij(i, 1);
-            for (int j = 2; j < MC-2; ++j) {
-                acc.inc_j();
-                decltype(x)::functor()(acc);
-            }
-        }
-    }
-
-    {
-        auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
-
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::cells> acc
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+    //                   trapezoid_2D, trapezoid_2D::cells> acc
+    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-        /** Iteration on CELLS
-         */
-        for (int i = 1; i < NC-1; ++i) {
-            acc.set_ij(i, 1);
-            for (int j = 2; j < MC-2; ++j) {
-                acc.inc_j();
-                decltype(x)::functor()(acc);
-            }
-        }
-    }
+    //     /** Iteration on CELLS
+    //      */
+    //     for (int i = 1; i < NC-1; ++i) {
+    //         acc.set_ij(i, 1);
+    //         for (int j = 2; j < MC-2; ++j) {
+    //             acc.inc_j();
+    //             decltype(x)::functor()(acc);
+    //         }
+    //     }
+    // }
 
-    {
-        auto y = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
-            (out_cells(), out_cells(), out_edges(), in_edges());
+    // {
+    //     auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
+    //         (out_cells(), in_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::edges> accy
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+    //                   trapezoid_2D, trapezoid_2D::cells> acc
+    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
-        /** Iteration on CELLS
-         */
-        for (int i = 1; i < NE-1; ++i) {
-            accy.set_ij(i, 2);
-            for (int j = 3; j < ME-3; ++j) {
-                accy.inc_j();
-                decltype(y)::functor()(accy);
-            }
-        }
-    }
+    //     /** Iteration on CELLS
+    //      */
+    //     for (int i = 1; i < NC-1; ++i) {
+    //         acc.set_ij(i, 1);
+    //         for (int j = 2; j < MC-2; ++j) {
+    //             acc.inc_j();
+    //             decltype(x)::functor()(acc);
+    //         }
+    //     }
+    // }
+
+    // {
+    //     auto y = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
+    //         (out_cells(), out_cells(), out_edges(), in_edges());
+
+    //     accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+    //                   trapezoid_2D, trapezoid_2D::edges> accy
+    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+    //          (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+
+
+    //     /** Iteration on CELLS
+    //      */
+    //     for (int i = 1; i < NE-1; ++i) {
+    //         accy.set_ij(i, 2);
+    //         for (int j = 3; j < ME-3; ++j) {
+    //             accy.inc_j();
+    //             decltype(y)::functor()(accy);
+    //         }
+    //     }
+    // }
 
     return 0;
 }
