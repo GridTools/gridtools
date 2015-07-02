@@ -13,7 +13,7 @@
 #include <papi.h>
 #endif
 
-/*
+/**
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
