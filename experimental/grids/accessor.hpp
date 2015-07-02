@@ -38,8 +38,8 @@ struct on_neighbors_impl {
    This struct is the one holding the function to apply when iterating
    on neighbors of neighbors
  */
-template <typename ValueType, typename Accessor, typename MapReduce, typename NestedValueType, typename NestedAccessor, typename NestedLambda>
-struct on_neighbors_impl<ValueType, Accessor, MapReduce, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> > {
+template <typename ValueType, typename Accessor, typename MapReduce, typename NestedValueType, typename NestedAccessor, typename NestedLambda, typename NestedNext>
+struct on_neighbors_impl<ValueType, Accessor, MapReduce, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, NestedNext> > {
     using accessor = Accessor;
     using next_accessor = on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda>;
     using map_function = typename MapReduce::map_type;
