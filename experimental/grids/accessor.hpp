@@ -235,52 +235,89 @@ public:
 private:
     storage_types storages;
     pointers_t pointers;
-    grid_type const& grid;
+    grid_type const& m_grid;
     uint_t m_pos_i;
     uint_t m_pos_j;
+
+    uint_t m_ll_i;
+    uint_t m_ll_j;
+    uint_t m_ll_k;
 
     template <typename PointersT, typename StoragesT>
     struct _set_pointers
     {
-        PointersT &pt;
-        StoragesT const &st;
-        _set_pointers(PointersT& pt, StoragesT const &st): pt(pt), st(st) {}
+        PointersT &m_pt;
+        StoragesT const &m_st;
+        _set_pointers(PointersT& pt, StoragesT const &st): m_pt(pt), m_st(st) {}
 
         template <typename Index>
         void operator()(Index) {
-            double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(st))->min_addr());
+            double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr());
             std::cout << " -------------------------> Pointer " << std::hex << ptr << std::dec << std::endl;
-            boost::fusion::at_c<Index::value>(pt) = ptr;
+            boost::fusion::at_c<Index::value>(m_pt) = ptr;
+        }
+    };
+
+    template <typename LocationT, typename PointersT, typename StoragesT, typename GridT>
+    struct _set_pointers_to
+    {
+        PointersT &m_pt;
+        StoragesT const &m_st;
+        GridT const& m_g;
+        const uint_t m_ll_i;
+        const uint_t m_ll_j;
+        const uint_t m_ll_k;
+
+        _set_pointers_to(PointersT& pt,
+                         StoragesT const &st,
+                         GridT const& g,
+                         const uint_t ll_i,
+                         const uint_t ll_j,
+                         const uint_t ll_k)
+            : m_pt(pt)
+            , m_st(st)
+            , m_g(g)
+            , m_ll_i(ll_i)
+            , m_ll_j(ll_j)
+            , m_ll_k(ll_k)
+        {}
+
+        template <typename Index>
+        void operator()(Index) {
+            double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr())
+                + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())->_index(m_ll_i, m_ll_j, m_ll_k));
+            std::cout << " -------------------------> Pointer_To " << std::hex << ptr << std::dec << std::endl;
+            boost::fusion::at_c<Index::value>(m_pt) = ptr;
         }
     };
 
     template <int Coordinate, typename PointersT, typename GridT>
     struct _move_pointers
     {
-        PointersT &pt;
-        GridT const &g;
+        PointersT &m_pt;
+        GridT const &m_g;
 
-        _move_pointers(PointersT& pt, GridT const& g): pt(pt), g(g) {}
+        _move_pointers(PointersT& m_pt, GridT const& m_g): m_pt(m_pt), m_g(m_g) {}
 
         template <typename Index>
         void operator()(Index) {
             auto value = boost::fusion::at_c<boost::mpl::at_c<PlcVector, Index::value>::type::location_type::value>
-                (g.virtual_storages())->template strides<Coordinate>();
+                (m_g.virtual_storages())->template strides<Coordinate>();
             //std::cout << "Stide<" << Index::value << "> for coordinate " << Coordinate << " = " << value << std::endl;
-            boost::fusion::at_c<Index::value>(pt) += value;
+            boost::fusion::at_c<Index::value>(m_pt) += value;
         }
     };
 
     void _increment_pointers_i()
     {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_move_pointers<0, pointers_t, grid_type>(pointers, grid));
+        boost::mpl::for_each<indices>(_move_pointers<0, pointers_t, grid_type>(pointers, m_grid));
     }
 
     void _increment_pointers_j()
     {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_move_pointers<1, pointers_t, grid_type>(pointers, grid));
+        boost::mpl::for_each<indices>(_move_pointers<1, pointers_t, grid_type>(pointers, m_grid));
     }
 
     void _reset_pointers()
@@ -296,10 +333,17 @@ private:
         }
     };
 
+
+    template <typename LocationT>
+    void _set_pointers_to_ll() {
+        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
+        boost::mpl::for_each<indices>(_set_pointers_to<LocationT, pointers_t, storage_types, grid_type>(pointers, storages, m_grid, m_ll_i, m_ll_j, m_ll_k));
+    }
+
 public:
-    accessor_type(storage_types const& storages, GridType const& grid, uint_t pos_i, uint_t pos_j)
+    accessor_type(storage_types const& storages, GridType const& m_grid, uint_t pos_i, uint_t pos_j)
         : storages(storages)
-        , grid(grid)
+        , m_grid(m_grid)
         , m_pos_i(pos_i)
         , m_pos_j(pos_j)
     {
@@ -307,21 +351,35 @@ public:
         boost::mpl::for_each<PlcVector>(printplc());
     }
 
+    GridType const& grid() const {return m_grid;}
+
     void inc_i() {++m_pos_i; _increment_pointers_i();}
     void inc_j() {++m_pos_j; _increment_pointers_j();}
+
+    void inc_ll_k() {_increment_pointers_j();}
+
     void reset_i() {m_pos_i = 0;}
     void reset_j() {m_pos_j = 0;}
     void set_ij(int i, int j) {
         m_pos_i = i;
         m_pos_j = j;
     }
+
+    template <typename LocationT>
+    void set_ll_ij(int i, int j, int k) {
+        m_ll_i = i;
+        m_ll_j = j;
+        m_ll_k = k;
+        _set_pointers_to_ll<LocationT>();
+    }
+
     uint_t i() const {return m_pos_i;}
     uint_t j() const {return m_pos_j;}
 
     template <typename ValueType, typename Arg, typename Accumulator>
     double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, void> onneighbors) const {
 
-        auto neighbors = grid.neighbors( {m_pos_i, m_pos_j}, location_type(), typename Arg::location_type() );
+        auto neighbors = m_grid.neighbors( {m_pos_i, m_pos_j}, location_type(), typename Arg::location_type() );
         double result = onneighbors.value;
         //std::cout << "on_cells " << Arg::value << std::endl;
 
@@ -332,7 +390,7 @@ public:
 
     template <typename ValueType, typename Arg, typename Accumulator, typename NextLevel>
     double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> onneighbors) const {
-        auto neighbors = grid.ll_indices( {m_pos_i, m_pos_j}, location_type() );
+        auto neighbors = m_grid.ll_indices( {m_pos_i, m_pos_j}, location_type() );
         __begin_iteration<location_type>(onneighbors, neighbors);
     }
 
@@ -346,13 +404,13 @@ private:
     double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> __onneighbors,
                              gridtools::array<uint_t, 3> const& indices) const
     {
-        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
+        auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
         double result = __onneighbors.value;
         std::cout << "<" << neighbors.size() << ">";
         for (int i = 0; i<neighbors.size(); ++i) {
             result = __onneighbors.reduction(__onneighbors.map
                 (*(boost::fusion::at_c<Arg::value>(pointers)
-                   +grid.ll_offset(neighbors[i], typename Arg::location_type())),
+                   +m_grid.ll_offset(neighbors[i], typename Arg::location_type())),
                  __begin_iteration<typename Arg::location_type>(__onneighbors.next(), neighbors[i])), result);
         }
         return result;
@@ -362,12 +420,12 @@ private:
     double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, void> __onneighbors,
                              gridtools::array<uint_t, 3> const& indices) const
     {
-        auto neighbors = grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
+        auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
         double result = __onneighbors.value;
         for (int i = 0; i<neighbors.size(); ++i) {
             result = __onneighbors.ff
                 (*(boost::fusion::at_c<Arg::value>(pointers)
-                   +grid.ll_offset(neighbors[i], typename Arg::location_type())),
+                   +m_grid.ll_offset(neighbors[i], typename Arg::location_type())),
                  result
                  );
         }

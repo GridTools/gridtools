@@ -280,7 +280,7 @@ int main() {
             {}
         } coords(1, NC-1, 2, MC-2);
 
-        gridtools::_backend::run(acc, x, coords);
+        gridtools::colored_backend::run(acc, x, coords);
 
     }
 
