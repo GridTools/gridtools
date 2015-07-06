@@ -28,13 +28,13 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-	  explicit  hybrid_pointer(T* p, uint_t size_, bool externally_managed=true) : wrap_pointer<T>(p, externally_managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(size_) {
+        explicit  hybrid_pointer(T* p, uint_t size_, bool externally_managed) : wrap_pointer<T>(p, size_, externally_managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(size_) {
 	  allocate_it(m_size);
 	}
 
 
         //GT_FUNCTION
-        explicit hybrid_pointer(uint_t size) : wrap_pointer<T>(size), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
+        explicit hybrid_pointer(uint_t size, bool externally_managed=false) : wrap_pointer<T>(size, externally_managed), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
             allocate_it(size);
 
 #ifndef NDEBUG
@@ -96,7 +96,7 @@ namespace gridtools {
 #endif
             wrap_pointer<T>::free_it();
 #ifndef NDEBUG
-                printf("freeing hybrid pointer %x \n", this);
+            printf("freeing hybrid pointer %x \n", this);
 #endif
       }
 
@@ -194,10 +194,11 @@ namespace gridtools {
         GT_FUNCTION
         int get_size(){return m_size;}
 
+        /** the standard = operator */
         hybrid_pointer operator =(hybrid_pointer const& other){
             printf("= operator for %x \n", this);
             this->m_cpu_p = other.m_cpu_p;
-            this->m_externally_managed = false;
+            this->m_externally_managed = other.m_externally_managed;
             m_gpu_p = other.m_gpu_p;
             m_pointer_to_use =other.m_pointer_to_use;
             m_size = other.m_size;
