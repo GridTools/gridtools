@@ -278,7 +278,7 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NC-1, 2, MC-2);
+        } coords(1, NC-1-1, 2, MC-2-1); // closed intervals
 
         gridtools::colored_backend::run(acc, x, coords);
 
@@ -304,9 +304,9 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NE-1, 3, ME-3);
+        } coords(1, NE-1-1, 3, ME-3-1);
 
-        gridtools::_backend::run(acc, x, coords);
+        gridtools::colored_backend::run(acc, x, coords);
 
     }
 
@@ -330,9 +330,9 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NE-1, 3, ME-3);
+        } coords(1, NE-1-1, 3, ME-3-1);
 
-        gridtools::_backend::run(acc, x, coords);
+        gridtools::colored_backend::run(acc, x, coords);
 
     }
 
@@ -356,9 +356,9 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NC-1, 3, MC-3);
+        } coords(1, NC-1-1, 3, MC-3-1);
 
-        gridtools::_backend::run(acc, x, coords);
+        gridtools::colored_backend::run(acc, x, coords);
     }
 
     std::cout << std::endl;

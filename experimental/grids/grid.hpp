@@ -107,10 +107,12 @@ namespace gridtools {
 
 
         array<uint_t, 3> ll_indices(array<uint_t, 2> const& i, cells) const {
-            return array<uint_t, 3>{i[0], i[1]%1, i[1]/3};
+            std::cout << " *cells* " << std::endl;
+            return array<uint_t, 3>{i[0], i[1]%2, i[1]/2};
         }
 
         array<uint_t, 3> ll_indices(array<uint_t, 2> const& i, edges) const {
+            std::cout << " *edges* " << std::endl;
             return array<uint_t, 3>{i[0], i[1]%3, i[1]/3};
         }
 
