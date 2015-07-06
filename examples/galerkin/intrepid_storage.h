@@ -40,27 +40,36 @@ namespace gridtools{
 
         template <typename T>
         static typename T::value_type& apply(T* t, int i, int j, int k){ return (*t)(i,j,k);}
-};
+    };
+
+
+    template<>
+    struct operator_selector<4>{
+        template <typename T>
+        static typename T::value_type& apply(T* t, int i){ return (*t)(i,0,0,0);}
+
+        template <typename T>
+        static typename T::value_type& apply(T* t, int i, int j){ return (*t)(i,j,0,0);}
+
+        template <typename T>
+        static typename T::value_type& apply(T* t, int i, int j, int k){ return (*t)(i,j,k,0);}
+
+        template <typename T>
+        static typename T::value_type& apply(T* t, int i, int j, int k, int l){ return (*t)(i,j,k,l);}
+    };
 
     /**decorator for the regular storage to be used instead of a Intrepid::FieldContainer*/
     template <typename Storage>
-    class intrepid_storage // : public Storage
+    class intrepid_storage
     {
     private :
-        Storage & m_storage;
+        Storage& m_storage;
+        uint_t m_rank;
 
     public:
-        // using Storage::Storage;
         using storage_t=Storage;
-        // GRIDTOOLS_STATIC_ASSERT(
-        //     boost::mpl::fold<
-        //     Storage::layout::layout_vector,
-        //     boost::mpl::bool_<0>,
-        //     boost::mpl::greater<boost::mpl::_2, boost::mpl::_1> >::type::value,
-        //     "the memory layout for this storage must be increasing strides (layout_map<0,1,2,3>)"
-        //     )
 
-        intrepid_storage(storage_t& storage_) : m_storage(storage_){}
+        intrepid_storage(storage_t& storage_, uint_t rank_=0) : m_storage(storage_), m_rank(rank_){}
 
         Storage /*const*/& get_storage(){ return m_storage;}
 
@@ -85,15 +94,9 @@ namespace gridtools{
             return (int) m_storage.dims(k);
         }
 
-        // //bad things happening
-        // typename Storage::value_type const& operator[](int k) const {
-        //     return m_storage.fields()[0].get()[k];
-        // }
-
-        // //very bad things happening
-        // typename Storage::value_type& operator[](int k){
-        //     return m_storage.fields()[0].get()[k];
-        // }
+        int rank() const {
+            return (int) m_rank? m_rank : Storage::space_dimensions;
+        }
 
     };
 }//namespace gridtools

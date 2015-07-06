@@ -1,7 +1,6 @@
 #pragma once
 
 // [includes]
-#include <stencil-composition/interval.h>
 #include <stencil-composition/make_computation.h>
 #include "basis_functions.h"
 
@@ -11,112 +10,204 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-namespace assembly{
+struct assembly{
 
-    typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-    typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+    //                      dims  x y z  qp
+    //                   strides  1 x xy xyz
+    typedef gridtools::layout_map<0,1,2,3> layout_t;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::layout_map<0,1,2,3,4,5> layout_jacobian_t;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_jacobian_t >::type jacobian_type;
+    typedef gridtools::layout_map<0,1,2,3,4> layout_grid_t;
+    typedef gridtools::BACKEND::storage_type<float_type, layout_grid_t >::type grid_type;
 
+private:
+
+    uint_t m_d1, m_d2, m_d3;
+    grid_type m_grid;
+    jacobian_type m_jac;
+    storage_type m_jac_det;
+    storage_type m_f;
+    storage_type m_result;
+
+public:
+
+    assembly(uint_t d1, uint_t d2, uint_t d3 ): m_d1(d1)
+                                              , m_d2(d2)
+                                              , m_d3(d3)
+                                              , m_grid(d1, d2, d3, geo_map::basisCardinality, 3)
+                                              , m_jac(d1, d2, d3, fe::numCubPoints, 3, 3)
+                                              , m_jac_det(d1, d2, d3, fe::numCubPoints)
+                                              , m_f(d1, d2, d3, fe::numCubPoints)
+                                              , m_result(d1, d2, d3, fe::basisCardinality)
+        {}
+
+    jacobian_type const& get_jac() const {return m_jac;}
+    storage_type const& get_jac_det() const {return m_jac_det;}
+    grid_type const& get_grid() const {return m_grid;}
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
-    struct update{
-        typedef accessor<0, range<0,0,0,0> , 4> const grid_points;
-        typedef accessor<1, range<0,0,0,0> , 5> jac;
+    struct update_jac{
+        typedef accessor<0, range<0,0,0,0> , 5> const grid_points;
+        typedef accessor<1, range<0,0,0,0> , 6> jac;
         typedef accessor<2, range<0,0,0,0> , 3> const dphi;
         typedef boost::mpl::vector< grid_points, jac, dphi> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            Dimension<1>::Index i;
-            Dimension<2>::Index j;
-            Dimension<3>::Index qp;
-            Dimension<4>::Index dimx;
-            Dimension<5>::Index dimy;
-            Dimension<2>::Index d;
+            Dimension<4>::Index qp;
+            Dimension<5>::Index dimx;
+            Dimension<6>::Index dimy;
 
-            for(short_t icoor=0; icoor< 3; ++icoor)
-                for(short_t jcoor=0; jcoor< 3; ++jcoor)
-                    for(short_t iter_quad=0; iter_quad< fe::numNodes/*quad_pts*/; ++iter_quad)
+            for (int_t iterNode=0; iterNode < geo_map::basisCardinality ; ++iterNode)
+            {//reduction/gather
+                for(short_t icoor=0; icoor< 3; ++icoor)
+                {
+                    for(short_t jcoor=0; jcoor< 3; ++jcoor)
                     {
-                        eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
-                        for (int_t iterNode=0; iterNode < fe::numNodes ; ++iterNode)
-                        {//reduction/gather
-                            eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(iterNode, icoor, 0, 0) * !dphi(i+iterNode, d+jcoor, qp+iter_quad) );
+                        // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
+                        for(short_t iter_quad=0; iter_quad< geo_map::numCubPoints/*quad_pts*/; ++iter_quad)
+                        {
+                            eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(0,0,0, iterNode, icoor) * !dphi(iterNode, iter_quad, jcoor) );
                         }
                     }
+                }
             }
+
+
+        }
     };
 
-    template <typename ReferenceFESpace1, typename ReferenceFESpace2>
+
+
+    /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
+        where x_k are the points in the geometric element*/
+    struct det{
+        typedef accessor<0, range<0,0,0,0> , 6> const jac;
+        typedef accessor<1, range<0,0,0,0> , 4> const jac_det;
+        typedef boost::mpl::vector< jac, jac_det > arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            Dimension<4>::Index qp;
+            Dimension<5>::Index dimx;
+            Dimension<6>::Index dimy;
+
+            for(short_t q=0; q< fe::numCubPoints; ++q)
+            {
+                eval( jac_det(qp+q) )= eval(
+                    jac(        qp+q)*jac(dimx+1, dimy+1, qp+q)*jac(dimx+2, dimy+2, qp+q) +
+                    jac(dimx+1, qp+q)*jac(dimx+2, dimy+1, qp+q)*jac(dimy+2,         qp+q) +
+                    jac(dimy+1, qp+q)*jac(dimx+1, dimy+2, qp+q)*jac(dimx+2,         qp+q) -
+                    jac(dimy+1, qp+q)*jac(dimx+1,         qp+q)*jac(dimx+2, dimy+2, qp+q) -
+                    jac(        qp+q)*jac(dimx+2, dimy+1, qp+q)*jac(dimx+1, dimy+2, qp+q) -
+                    jac(dimy+2, qp+q)*jac(dimx+1, dimy+1, qp+q)*jac(dimx+2,         qp+q)
+                    );
+            }
+        }
+    };
+
     struct integration {
         typedef accessor<0, range<0,0,0,0> , 3> const dphi;
-        typedef accessor<2, range<0,0,0,0> , 5> const jac;
-        typedef accessor<3, range<0,0,0,0> , 3> const f;
-        typedef accessor<4, range<0,0,0,0> , 3> result;
-        typedef boost::mpl::vector<dphi, jac, f, result> arg_list;
+        typedef accessor<1, range<0,0,0,0> , 4> const jac_det;
+        typedef accessor<2, range<0,0,0,0> , 4> const f;
+        typedef accessor<3, range<0,0,0,0> , 4> result;
+        typedef boost::mpl::vector<dphi, jac_det, f, result> arg_list;
         using quad=Dimension<4>;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            x::Index i;
-            y::Index j;
-            z::Index k;
+
             quad::Index qp;
             //projection of f on a (e.g.) P1 FE space ReferenceFESpace1:
             //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             //computational complexity in the order of  {(nDOF) x (nDOF) x (nq)}
-            for(short_t I=0; I<8; ++I)
-                for(short_t J=0; J<8; ++J)
-                    for(short_t q=0; q<2; ++q)
-                        eval(result(I)) +=
-                            eval(!dphi(i+I,qp+q)*!dphi(i+J,qp+q) * jac(qp+q)*f(qp+q))/8;
+            for(short_t I=0; I<fe::basisCardinality; ++I)
+                for(short_t J=0; J<fe::basisCardinality; ++J)
+                    for(short_t q=0; q<fe::numCubPoints; ++q)
+                        eval(result(0,0,0,I)) +=
+                            eval(!dphi(I,q,0)*!dphi(J,q,0)*jac_det(qp+q)*f(qp+q))/8;
 
         }
     };
 
 
-    template <typename ReferenceFESpace1, typename ReferenceFESpace2>
-    struct assembly {
-        typedef accessor<0, range<0,0,0,0> , 3> const in;
-        typedef accessor<1, range<0,0,0,0> , 3> out;
-        typedef boost::mpl::vector<in, out> arg_list;
-        using quad=Dimension<4>;
+    // template <typename ReferenceFESpace1, typename ReferenceFESpace2>
+    // struct assembly {
+    //     typedef accessor<0, range<0,0,0,0> , 4> const in;
+    //     typedef accessor<1, range<0,0,0,0> , 4> const out;
+    //     //local_grid must be +-1 on the boundary and 0 on the internal
+    //     typedef accessor<2, range<0,0,0,0> , 2> const local_grid;
+    //     typedef boost::mpl::vector<in, out> arg_list;
+    //     using quad=Dimension<4>;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            x::Index i;
+    //     template <typename Evaluation>
+    //     GT_FUNCTION
+    //     static void Do(Evaluation const & eval, x_interval) {
+    //         x::Index i;
+    //         y::Index j;
+    //         z::Index k;
+    //         // Dimension<4>::Index point;
+    //         Dimension<4>::Index loc_x;
+    //         Dimension<5>::Index loc_y;
+    //         Dimension<6>::Index loc_z;
 
-            //assembly
-            for(short_t I=0; I<4; ++I)
-            {
-                eval(out(i+I)) += eval(in(i+I));
-                eval(out(i+I)) += eval(in(i+(I-4)));
-            }
-        }
-    };
+    //         // assembly : this part is specific for brick topologies
+    //         // possible underlying hypothesis to avoid the 'if': the dofs living on the boundary have lower indices,
+    //         // which is not the case now
+    //         ushort_t counter=0;
+
+    //         //boundary dofs
+    //         uint_t const bd_dim=geo_map::boundary::basisCardinality;
+    //         for(short_t I=0; I<bd_dim; I++)
+    //         for(short_t J=0; J<bd_dim; J++)
+    //         {
+    //             eval(out(loc_y+I, loc_z+J)) += eval(out(i+1, loc_x+bd_dim, loc_y+I, loc_z+J));
+    //             eval(out(loc_x+I, loc_z+J)) += eval(out(j+1, loc_y+bd_dim, loc_x+I, loc_z+J));
+    //             eval(out(loc_x+I, loc_y+J)) += eval(out(k+1, loc_z+bd_dim, loc_x+I, loc_y+J));
+    //         }
+
+    //         // // internal dofs
+    //         // for(short_t I=1; I<bd_dim-1; I++)
+    //         // for(short_t J=1; J<bd_dim-1; J++)
+    //         // for(short_t K=1; K<bd_dim-1; K++)
+    //         //     eval(out(loc_x+I, loc_y+J, loc_z+K)) = eval(in(loc_x+I, loc_y+J, loc_z+K));
+
+    //         for(short_t I=0; I<geo_map::basisCardinality; ++I)
+    //         {
+    //             eval(out(point+counter)) = eval(out());
+    //             //check if the dof is on the lower or left boundary (I could know this a-priori)
+    //             int_t offset_i=eval(local_grid(I,0));
+    //             int_t offset_j=eval(local_grid(I,1));
+    //             int_t offset_k=eval(local_grid(I,2));
+
+    //             eval(out(point+counter)) += eval(out(i+offset_i, point+I));
+    //             eval(out(point+counter)) += eval(out(j+offset_j, point+I));
+    //             eval(out(point+counter)) += eval(out(k+offset_k, point+I));
+    //             counter++;
+    //             }
+    //     }
+    // };
 
     // template<typename T, typename U>
     // std::ostream& operator<<(std::ostream& s, integration<T,U> const) {
     //     return s << "integration";
     // }
 
-    template <typename StorageGradType>
-    bool test( StorageGradType& local_gradient, int cub_points ){
+    template <typename GridType, typename StorageGradType>
+    bool compute( GridType& element_grid, StorageGradType& local_gradient ){
 
-        uint_t d1=10;
-        uint_t d2=10;
-        uint_t d3=1;
+        uint_t d1=m_d1;
+        uint_t d2=m_d2;
+        uint_t d3=m_d3;
+        //uniform 3D grid
+        m_grid.initialize([d1, d2, d3, &element_grid](int i, int j, int k, int l){ return l==0 ? (float)(i/d1) : l==2 ? (float)(j/d2) : (float)(k/d3) + element_grid(k, 0)/d1 + element_grid(k, 1)/d2 + element_grid(k, 2)/d3; });
+        m_result.initialize(0.);
+        m_f.initialize(0.);
 
-        //                      dims  x y z  qp
-        //                   strides  1 x xy xyz
-        typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::layout_map<4,3,2,1,0> layout_jacobian_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_jacobian_t >::type jacobian_type;
-        typedef gridtools::layout_map<3,2,1,0> layout_grid_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_grid_t >::type grid_type;
         //I might want to store the jacobian as a temporary storage (will use less memory but
         //not reusing when I need the Jacobian for multiple things).
 
@@ -126,37 +217,26 @@ namespace assembly{
         // typedef arg<1, basis_func_type > p_psi;
         typedef arg<0, grid_type >       p_grid_points;
         typedef arg<1, jacobian_type >   p_jac;
-        typedef arg<2, StorageGradType > p_dphi;
-        // typedef arg<3, storage_type >    p_f;
-        // typedef arg<4, storage_type >    p_result;
+        typedef arg<2, storage_type >   p_jac_det;
+        typedef arg<3, StorageGradType > p_dphi;
+        typedef arg<4, storage_type >    p_f;
+        typedef arg<5, storage_type >    p_result;
 
-        typedef boost::mpl::vector<p_grid_points, p_jac, p_dphi// , p_f, p_result
-                                   > accessor_list;
+        typedef boost::mpl::vector<p_grid_points, p_jac, p_jac_det, p_dphi, p_f, p_result> accessor_list;
 
-        grid_type grid(d1, d2, fe::numNodes, 3);
-        grid.initialize(0.);
 
-        jacobian_type jac(d1, d2, cub_points, 3, 3);
-        jac.initialize(0.);
-
-        // storage_type f(d1, d2, d3, (float_type)1.3, "f");
-        // f.initialize(0.);
-
-        // storage_type result(d1, d2, d3, (float_type)0., "result");
-        // result.initialize(0.);
-
-        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&grid, &jac, &local_gradient));
+        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_jac_det, &local_gradient, &m_f, &m_result));
 
         /**
            - Definition of the physical dimensions of the problem.
            The coordinates constructor takes the horizontal plane dimensions,
            hile the vertical ones are set according the the axis property soon after
         */
-        uint_t di[5] = {1, 1, 1, d1-3, d1};
-        uint_t dj[5] = {1, 1, 1, d2-3, d2};
+        uint_t di[5] = {0, 0, 0, m_d1-1, m_d1};
+        uint_t dj[5] = {0, 0, 0, m_d2-1, m_d2};
         gridtools::coordinates<axis> coords(di,dj);
         coords.value_list[0] = 0;
-        coords.value_list[1] = d3;
+        coords.value_list[1] = m_d3-1;
 
 #ifdef __CUDACC__
         computation* fe_comp =
@@ -168,8 +248,9 @@ namespace assembly{
                 make_mss
                 (
                     execute<forward>(),
-                    make_esf<update>( p_grid_points(), p_jac(), p_dphi())
-                    //make_esf<integration<ref_FE, ref_FE> >(p_phi(), p_psi(), p_jac(), p_f(), p_result())
+                    make_esf<update_jac>( p_grid_points(), p_jac(), p_dphi())
+                    , make_esf<det>(p_jac(), p_jac_det())
+                    , make_esf<integration>(p_dphi(), p_jac_det(), p_f(), p_result())
                     ),
                 domain, coords);
 

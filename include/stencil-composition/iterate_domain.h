@@ -614,7 +614,7 @@ namespace gridtools {
                                     typename local_domain_t::esf_args,
                                     typename ArgType::index_type
                                     >::type::storage_type::space_dimensions),
-                                "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+                                "the dimension of the storage placeholder (accessor) is lower than the number of space dimensions of the corresponding storage. Either increase the number of storage dimensions, or decrease the dimension of the accessor.")
 
         using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
 

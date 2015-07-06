@@ -302,15 +302,17 @@ namespace gridtools {
 
 
         /** @brief initializes with a lambda function */
+        template <typename Callable>
         GT_FUNCTION
-        void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), ushort_t const& dims=field_dimensions)
+        void initialize(Callable lambda, ushort_t const& dims=field_dimensions)
             {
                 for(ushort_t f=0; f<dims; ++f)
                 {
                     for (uint_t i=0; i<this->m_dims[0]; ++i)
                         for (uint_t j=0; j<this->m_dims[1]; ++j)
                             for (uint_t k=0; k<this->m_dims[2]; ++k)
-                                (m_fields[f])[_index(strides(),i,j,k)]=lambda(i, j, k);
+                                for (uint_t m=0; m<this->m_dims[3]; ++m)
+                                    (m_fields[f])[_index(strides(),i,j,k,m)]=lambda(i, j, k, m);
                 }
             }
 
@@ -580,6 +582,10 @@ namespace gridtools {
                     *index_+=strides<Coordinate>(strides_)*steps_;
             }
         }
+
+        /**@brief returns the data field*/
+        GT_FUNCTION
+        void set(pointer_type ptr_) {m_fields[0]=ptr_;}
 
         /**@brief returns the data field*/
         GT_FUNCTION
