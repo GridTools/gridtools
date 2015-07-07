@@ -39,13 +39,13 @@ using namespace enumtype;
 //
 extern "C"
 {
-    void run (uint_t dim1, uint_t dim2, uint_t dim3, 
-              {%- for p in params %}
-              float_type *{{ p.name }}_buff
-                  {%- if not loop.last -%}
-                  ,
-                  {%- endif -%}
-              {% endfor -%});
+    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3, 
+                      {%- for p in params %}
+                      float_type *{{ p.name }}_buff
+                          {%- if not loop.last -%}
+                          ,
+                          {%- endif -%}
+                      {% endfor -%});
 }
 
 
@@ -57,13 +57,13 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 
 
-void run (uint_t d1, uint_t d2, uint_t d3,
-          {%- for p in params %}
-          float_type *{{ p.name }}_buff
-              {%- if not loop.last -%}
-              ,
-              {%- endif -%}
-          {% endfor -%})
+void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
+                      {%- for p in params %}
+                      float_type *{{ p.name }}_buff
+                          {%- if not loop.last -%}
+                          ,
+                          {%- endif -%}
+                      {% endfor -%})
 {
     //
     // C-like memory layout

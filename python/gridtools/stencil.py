@@ -5,9 +5,9 @@ import logging
 import numpy as np
 import networkx as nx
 
-from gridtools.utils   import Utilities
-from gridtools.symbol  import StencilScope
-from gridtools.functor import Functor
+from gridtools.symbol   import StencilScope
+from gridtools.functor  import Functor
+from gridtools.compiler import StencilCompiler
 
 
 
@@ -453,31 +453,19 @@ class Stencil ( ):
     A base stencil class.-
     """
     #
-    # a utilities class shared by all stencils
+    # a compiler class shared by all stencils
     #
-    utils = Utilities ( )
+    compiler = StencilCompiler ( )
 
     def __init__ (self):
         #
         # a unique name for the stencil object
         #
-        self.name = self.__class__.__name__.capitalize ( )
+        self.name = Stencil.compiler.register (self)
         #
         # the inspector object is used to JIT-compile this stencil
         #
         self.inspector = StencilInspector (self)
-        #
-        # these entities are automatically generated at compile time
-        #
-        self.src_dir      = None
-        self.lib_file     = None
-        self.cpp_file     = None
-        self.make_file    = None
-        self.fun_hdr_file = None
-        #
-        # a reference to the compiled dynamic library
-        #
-        self.lib_obj = None
         #
         # defines the way to execute the stencil, one of 'python' or 'c++'
         #
@@ -514,94 +502,6 @@ class Stencil ( ):
                                 arrows=True)
         nx.draw_networkx_labels (G,
                                  pos=pos)
-    
-    
-    def compile (self):
-        """
-        Compiles the translated code to a shared library, ready to be used.-
-        """
-        from os         import path, getcwd, chdir
-        from numpy      import ctypeslib
-        from subprocess import check_call
-
-        try:
-            #
-            # start the compilation of the dynamic library
-            #
-            current_dir = getcwd ( )
-            chdir (self.src_dir)
-            check_call (["make", 
-                         "--silent", 
-                         "--file=%s" % self.make_file])
-            chdir (current_dir)
-            #
-            # attach the library object
-            #
-            self.lib_obj = ctypeslib.load_library (self.lib_file,
-                                                   self.src_dir)
-        except Exception as e:
-            logging.error ("Compilation error")
-            self.lib_obj = None
-            raise e
-
-
-    def generate_code (self, src_dir=None):
-        """
-        Generates native code for this stencil:
-
-            src_dir     directory where the files should be saved (optional).-
-        """
-        from os        import write, path, makedirs
-        from tempfile  import mkdtemp
-        from gridtools import JinjaEnv
-
-        try:
-            #
-            # create directory and files for the generated code
-            #
-            if src_dir is None:
-                self.src_dir = mkdtemp (prefix="__gridtools_")
-            else:
-                if not path.exists (src_dir):
-                    makedirs (src_dir)
-                self.src_dir = src_dir
-
-            if self.backend == 'c++':
-                extension = 'cpp'
-            elif self.backend == 'cuda':
-                extension = 'cu'
-            else:
-                raise RuntimeError ("Unknown backend '%s' in while generating code" % self.backend)
-            self.cpp_file     = '%s.%s'    % (self.name, extension)
-            self.lib_file     = 'lib%s'    % self.name.lower ( )
-            self.make_file    = 'Makefile'
-            self.fun_hdr_file = '%sFunctors.h' % self.name
-
-            #
-            # ... and populate them
-            #
-            logging.info ("Generating %s code in '%s'" % (self.backend.upper ( ),
-                                                          self.src_dir))
-            #
-            # generate the code of *all* functors in this stencil,
-            # build a data-dependency graph among *all* data fields
-            #
-            for func in self.inspector.functors:
-                func.generate_code (self.inspector.src)
-                self.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
-            fun_src, cpp_src, make_src = self.translate ( )
-
-            with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-                functors  = JinjaEnv.get_template ("functors.h")
-                fun_hdl.write (functors.render (functor_src=fun_src))
-            with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
-                cpp_hdl.write (cpp_src)
-            with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
-                make_hdl.write (make_src)
-
-        except Exception as e:
-            logging.error ("Error while generating code:\n\t%s" % str (e))
-            raise e
 
 
     def get_interior_points (self, data_field):
@@ -691,19 +591,7 @@ class Stencil ( ):
 
 
     def recompile (self):
-        """
-        Marks the currently compiled library as dirty, needing recompilation.-
-        """
-        import _ctypes
-
-        #
-        # this only works in POSIX systems ...
-        #
-        if self.lib_obj is not None:
-            _ctypes.dlclose (self.lib_obj._handle)
-            del self.lib_obj
-            self.lib_obj   = None
-            self.inspector = StencilInspector (self)
+        Stencil.compiler.recompile (self)
 
 
     def resolve (self, **kwargs):
@@ -758,38 +646,7 @@ class Stencil ( ):
         #
         logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
         if self.backend == 'c++' or self.backend == 'cuda':
-            #
-            # automatic compilation only if the library is not available
-            #
-            if self.lib_obj is None:
-                #
-                # floating point precision validation
-                #
-                for key in kwargs:
-                      if isinstance(kwargs[key], np.ndarray):
-                          if not Stencil.utils.is_valid_float_type_size (kwargs[key]):
-                              raise TypeError ("Element size of '%s' does not match that of the C++ backend."
-                                               % key)
-                self.resolve (**kwargs)
-                self.generate_code ( )
-                self.compile ( )
-            #
-            # prepare the list of parameters to call the library function
-            #
-            lib_params = list (self.inspector.domain)
-
-            #
-            # extract the buffer pointers from the NumPy arrays
-            #
-            for p in self.scope.get_parameters ( ):
-                if p.name in kwargs.keys ( ):
-                    lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
-                else:
-                    logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
-            #
-            # call the compiled stencil
-            #
-            self.lib_obj.run (*lib_params)
+            Stencil.compiler.run_native (self, **kwargs)
         #
         # run in Python mode
         #
@@ -842,54 +699,6 @@ class Stencil ( ):
             logging.debug ("Setting k_direction to '%s'" % self.k_direction)
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
-
-
-    def translate (self):
-        """
-        Translates this stencil to C++, using the gridtools interface, returning
-        a string tuple of rendered files (functors, cpp, make).-
-        """
-        from gridtools import JinjaEnv
-
-        #
-        # render the source code for each of the functors
-        #
-        functor_src = ""
-        for f in self.inspector.functors:
-            functor_src += f.translate ( )
-        #
-        # instantiate each of the templates and render them
-        #
-        cpp    = JinjaEnv.get_template ("stencil.cpp")
-        make   = JinjaEnv.get_template ("Makefile.%s" % self.backend)
-
-        params = list (self.scope.get_parameters ( ))
-        temps  = list (self.scope.get_temporaries ( ))
-
-        functs     = dict ( )
-        ind_functs = dict ( )
-
-        functs[self.name]     = [f for f in self.inspector.functors if not f.independent]
-        ind_functs[self.name] = [f for f in self.inspector.functors if f.independent]
-       
-        #
-        # make sure there is at least one non-independent functor
-        #
-        if len (functs[self.name]) == 0:
-            functs[self.name]     = [ self.inspector.functors[-1] ]
-            ind_functs[self.name] = ind_functs[self.name][:-1]
-
-        return (functor_src,
-                cpp.render (fun_hdr_file         = self.fun_hdr_file,
-                            stencil_name         = self.name,
-                            stencils             = [self],
-                            scope                = self.scope,
-                            params               = params,
-                            temps                = temps,
-                            params_temps         = params + temps,
-                            functors             = functs,
-                            independent_functors = ind_functs),
-                make.render (stencil=self))
 
 
 
@@ -1126,7 +935,7 @@ class CombinedStencil (Stencil):
             for func in st.inspector.functors:
                 func.generate_code (st.inspector.src)
                 st.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
-            fun_src, _, _  = st.translate ( )
+            fun_src, _, _  = Stencil.compiler.translate (st)
             functor_src   += fun_src
 
         with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
@@ -1217,7 +1026,7 @@ class CombinedStencil (Stencil):
             #
             # automatic compilation only if the library is not available
             #
-            if self.lib_obj is None:
+            if Stencil.compiler.lib_obj is None:
                 self.resolve (**kwargs)
                 #
                 # add extra parameters needed to connect linked stencils
@@ -1236,7 +1045,7 @@ class CombinedStencil (Stencil):
                 # continue generating the code ...
                 #
                 self.generate_code ( )
-                self.compile ( )
+                Stencil.compiler.compile (self)
             #
             # prepare the list of parameters to call the library function
             #
