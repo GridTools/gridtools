@@ -789,7 +789,7 @@ class ChildTest (unittest.TestCase):
             insp.static_analysis ( )
 
 
-    def test_child_constructor_call_parent_constructor_after_computation (self):
+    def test_child_constructor_calls_parent_constructor_after_computation (self):
         with self.assertRaises (ReferenceError):
             self.stencil = ChildStencilParentConstructorAfterComputation ( )
             insp = self.stencil.inspector
