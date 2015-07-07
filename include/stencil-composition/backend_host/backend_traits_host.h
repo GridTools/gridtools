@@ -51,7 +51,7 @@ namespace gridtools{
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_i_pes(int = 0) {
+        static uint_t n_i_pes(uint_t = 0) {
 #ifdef _OPENMP
             return omp_get_max_threads();
 #else
@@ -64,7 +64,7 @@ namespace gridtools{
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_j_pes(int = 0) {
+        static uint_t n_j_pes(uint_t = 0) {
             return 1;
         }
 

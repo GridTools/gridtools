@@ -82,11 +82,11 @@ make tests_gpu;
 
 ./build/tests_gpu
 
-  if [ "$RUN_MPI_TESTS" == "ON" ]
-  then
+#  if [ "$RUN_MPI_TESTS" == "ON" ]
+#  then
       #TODO not updated to greina
       # ../examples/communication/run_communication_tests.sh
-  fi
+#  fi
 
 else
 make tests;

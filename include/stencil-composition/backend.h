@@ -132,8 +132,8 @@ namespace gridtools {
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
         */
-        typedef uint_t (*query_i_threads_f)(int);
-        typedef uint_t (*query_j_threads_f)(int);
+        typedef uint_t (*query_i_threads_f)(uint_t);
+        typedef uint_t (*query_j_threads_f)(uint_t);
 
         template <typename ValueType, typename Layout>
         struct storage_type {
