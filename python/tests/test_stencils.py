@@ -249,7 +249,6 @@ class CopyTest (unittest.TestCase):
         self.stencil.recompile ( )
         self.stencil.backend = backend
         self._run ( )
-        self.assertTrue ('_FuncPtr' in dir (self.stencil.lib_obj))
 
         nstep  = 100
         tstart = time.time ( )
