@@ -95,7 +95,8 @@ make tests;
   if [ "$RUN_MPI_TESTS" == "ON" ]
   then
       if [ "x$CXX_11_ON" == "xcxx11" ]
-      mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+         then
+         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
       fi
 
       #TODO not updated to greina
