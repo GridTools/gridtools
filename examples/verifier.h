@@ -64,7 +64,6 @@ public:
                 {
                     for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
-                        std::cout<<"processor (?), is "<<i<<", "<<j<<", "<<k<<" mine? : "<<field1.mine(i,j,k)<<std::endl;
                         if(field1.mine(i,j,k)){
                             typename storage_type::value_type expected = field2.get_value(i,j,k);
                             typename storage_type::value_type actual = field1.get_value(i,j,k);

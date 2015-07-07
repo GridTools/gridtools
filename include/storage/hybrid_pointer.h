@@ -196,7 +196,6 @@ namespace gridtools {
 
         /** the standard = operator */
         hybrid_pointer operator =(hybrid_pointer const& other){
-            printf("= operator for %x \n", this);
             this->m_cpu_p = other.m_cpu_p;
             this->m_externally_managed = other.m_externally_managed;
             m_gpu_p = other.m_gpu_p;

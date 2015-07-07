@@ -77,7 +77,7 @@ namespace gridtools{
 
         partitioner_trivial(const communicator_t& comm)
         : m_pid(comm.coordinates()),
-          m_ntasks(&comm.dimensions()[0]), m_comm(comm),
+          m_ntasks(&comm.dimensions()[0]),
           m_halo(NULL),
           m_pad(NULL),
           m_comm(comm)
