@@ -29,15 +29,24 @@ namespace gridtools {
 #endif
     };
 
-    template <int_t ... Coords>
-    struct staggered : public range<Coords ...> {};
-
     template <typename In>
     struct is_staggered : public boost::false_type {};
+
+#ifdef CXX11_ENABLED
+    template <int_t ... Coords>
+    struct staggered : public range<Coords ...> {};
 
     template <int_t ... Coords>
     struct is_staggered<staggered<Coords ...> > : public boost::true_type {};
 
+#else
+
+    template <int_t Coord1, int_t Coord2, int_t Coord3, int_t Coord4>
+    struct staggered : public range<Coord1, Coord2, Coord3, Coord4> {};
+
+    template <int_t Coord1, int_t Coord2, int_t Coord3, int_t Coord4>
+    struct is_staggered<staggered<Coord1, Coord2, Coord3, Coord4> > : public boost::true_type {};
+#endif
     /**
      * Output operator for ranges - for debug purposes
      *

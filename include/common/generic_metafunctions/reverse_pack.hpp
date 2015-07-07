@@ -9,6 +9,7 @@ namespace gridtools{
            ToBeReversed<Storage, 8, 2, 3, 4>::type
          */
         // forward decl
+#ifdef CXX11_ENABLED
         template<uint_t ...Tn>
             struct reverse_pack;
 
@@ -32,4 +33,5 @@ namespace gridtools{
                 typedef typename reverse_pack<Tn...>::template apply<ToBeReversed, ExtraArgument, T, Un...>::type type;
             };
         };
+#endif
 }//namespace gridtools
