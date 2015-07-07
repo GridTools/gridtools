@@ -1028,13 +1028,12 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #endif
    void set( typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
        {
-      for (uint_t i=0; i<this->m_dims[0]; ++i)
-          for (uint_t j=0; j<this->m_dims[1]; ++j)
-         for (uint_t k=0; k<this->m_dims[2]; ++k)
-             for (uint_t i=0; i<super::size(); ++i)
-               (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
-                   [super::_index(super::strides(), i,j,k)]=
-                   lambda(i, j, k);
+           for (uint_t i=0; i<this->m_dims[0]; ++i)
+               for (uint_t j=0; j<this->m_dims[1]; ++j)
+                   for (uint_t k=0; k<this->m_dims[2]; ++k)
+                       (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
+                           [super::_index(super::strides(), i,j,k)]=
+                           lambda(i, j, k);
        }
 
 

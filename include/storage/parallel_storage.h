@@ -48,7 +48,7 @@ namespace gridtools {
                 uint_t dims[3];
                 m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
                 super::setup(dims[0], dims[1], dims[2]);
-                super::allocate(1);
+                super::allocate();
             }
 
 #ifdef CXX11_ENABLED
@@ -61,19 +61,20 @@ namespace gridtools {
                     uint_t coords[super::space_dimensions]={coordinates_ ...};
                 bool result=true;
                 for(ushort_t i=0; i<super::space_dimensions; ++i)
-                    if(coords[i]<=m_low_bound[i] || coords[i]>m_up_bound[i] )
+                    if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
                         result=false;
                 return result;
             }
 
-        template <uint_t field_dim=0, uint_t snapshot=0, typename ... UInt>
-        typename super::value_type& get_value( UInt const& ... i )
+        //TODO generalize for arbitrary dimension
+        template <uint_t field_dim=0, uint_t snapshot=0, typename UInt>
+        typename super::value_type get_value( UInt const& i, UInt const& j, UInt const& k )
             {
-                if(mine(i...))
-                    return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i...)];
+                if(mine(i,j,k))
+                    return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i-m_low_bound[0], j-m_low_bound[1], k-m_low_bound[2])];
                 else
 #ifndef DNDEBUG
-                    printf("(%d, %d, %d) not available in processor %d \n\n", i ... , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
+                    printf("(%d, %d, %d) not available in processor %d \n\n", i, j, k , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
 #endif
                 return -1.;
             }

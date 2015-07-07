@@ -28,7 +28,7 @@ struct shallow_water_reference{
     static constexpr float_type height=2.;
     GT_FUNCTION
     static float_type droplet(uint_t const& i, uint_t const& j){
-        return 1.+height * std::exp(-5*(((i-9)*dx())*(((i-9)*dx()))+((j-3)*dy())*((j-3)*dy())));
+        return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-7)*dy())*((j-7)*dy())));
     }
 
     shallow_water_reference() : solution(){
@@ -36,15 +36,15 @@ struct shallow_water_reference{
     }
 
     void setup(){
-        u= pointer_type( u_array);
-        v= pointer_type( v_array);
-        h= pointer_type( h_array);
-        ux= pointer_type(ux_array);
-        vx= pointer_type(vx_array);
-        hx= pointer_type(hx_array);
-        uy= pointer_type(uy_array);
-        vy= pointer_type(vy_array);
-        hy= pointer_type(hy_array);
+        u= pointer_type( u_array, size, true);
+        v= pointer_type( v_array, size, true);
+        h= pointer_type( h_array, size, true);
+        ux= pointer_type(ux_array, size, true);
+        vx= pointer_type(vx_array, size, true);
+        hx= pointer_type(hx_array, size, true);
+        uy= pointer_type(uy_array, size, true);
+        vy= pointer_type(vy_array, size, true);
+        hy= pointer_type(hy_array, size, true);
         for (uint_t i=0; i<DimI; ++i)
             for (uint_t j=0; j<DimJ; ++j){
                 uint_t id=i*strides[0]+j*strides[1];

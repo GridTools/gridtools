@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef __Size0
 #define __Size0 12
 #endif

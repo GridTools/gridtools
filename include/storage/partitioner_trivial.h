@@ -62,8 +62,9 @@ namespace gridtools{
             where d is the number of dimensions of the processors grid.
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
         */
-        partitioner_trivial(// communicator_t const& comm,
-            const communicator_t& comm, const gridtools::array<ushort_t, space_dimensions>& halo, const gridtools::array<ushort_t, space_dimensions>& padding )
+        partitioner_trivial(const communicator_t& comm,
+                            const gridtools::array<ushort_t, space_dimensions>& halo,
+                            const gridtools::array<ushort_t, space_dimensions>& padding )
         : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
 
             m_boundary=0;//bitmap
@@ -75,7 +76,12 @@ namespace gridtools{
         }
 
         partitioner_trivial(const communicator_t& comm)
-        : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_comm(comm){
+        : m_pid(comm.coordinates()),
+          m_ntasks(&comm.dimensions()[0]), m_comm(comm),
+          m_halo(NULL),
+          m_pad(NULL),
+          m_comm(comm)
+            {
 
             m_boundary=0;//bitmap
 
