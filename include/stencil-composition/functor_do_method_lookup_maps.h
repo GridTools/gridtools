@@ -127,7 +127,6 @@ namespace gridtools {
             do_method_lookup_map_add<boost::mpl::_1, boost::mpl::_2>
             >::type DoMethodLookupMap;
 
-        // typedef typename DoMethodLookupMap::type::fuck fuck;
         // remove the do method iterator and return the map only
         typedef typename boost::mpl::first<DoMethodLookupMap>::type type;
     };
