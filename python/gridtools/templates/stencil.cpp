@@ -237,7 +237,18 @@ int main (int argc, char **argv)
     float_type *{{ p.name }}_buff = (float_type *) malloc (dim1*dim2*dim3 * sizeof (float_type));
     {% endfor -%}
 
-
+    // initialization
+    for (int i = 0; i<dim1; i++) {
+	    for (int j = 0; j<dim2; j++) {
+	    	for (int k = 0; k<dim3; k++) {
+            {% for p in params -%}
+			    {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k] = i*dim3*dim2 + j*dim3 + k;
+            {% endfor -%}
+            }
+        }
+    }
+ 				
+    // execution
     run (dim1, dim2, dim3,
           {%- for p in params %}
           {{ p.name }}_buff
@@ -245,9 +256,21 @@ int main (int argc, char **argv)
               ,
               {%- endif -%}
           {% endfor -%});
+    
+    // output
+    for (int i = 0; i<dim1; i++) {
+	    for (int j = 0; j<dim2; j++) {
+	    	for (int k = 0; k<dim3; k++) {
+			        printf ("(%d,%d,%d)", i,j,k);
+                {% for p in params -%}
+                    printf ("\t%.5f", {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k]);
+                {% endfor -%}
+                    printf ("\n");
+            }
+		}
+    }
+
 
     return EXIT_SUCCESS;
 }
 */
-
-
