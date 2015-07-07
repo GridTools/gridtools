@@ -49,7 +49,7 @@ USE_MPI=OFF
 fi
 echo "C++ 11 = $CXX_11"
 
-RUN_MPI_TESTS=OFF ##$SINGLE_PRECISION
+RUN_MPI_TESTS=ON ##$SINGLE_PRECISION
 
 pwd
 WHERE_=`pwd`
@@ -84,7 +84,8 @@ make tests_gpu;
 
   if [ "$RUN_MPI_TESTS" == "ON" ]
   then
-      ../examples/communication/run_communication_tests.sh
+      #TODO not updated to greina
+      # ../examples/communication/run_communication_tests.sh
   fi
 
 else
@@ -93,7 +94,10 @@ make tests;
 
   if [ "$RUN_MPI_TESTS" == "ON" ]
   then
-    ../examples/communication/run_communication_tests.sh
+      mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+
+      #TODO not updated to greina
+      #    ../examples/communication/run_communication_tests.sh
   fi
 
 fi

@@ -109,7 +109,7 @@ namespace shallow_water{
 // These are the stencil operators that compose the multistage stencil in this test
     struct first_step_x        : public functor_traits {
 
-      typedef accessor<1, range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+      typedef accessor<1, range<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
       typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
       using arg_list=boost::mpl::vector<tmpx, sol> ;
 
@@ -123,22 +123,22 @@ namespace shallow_water{
             using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>;
 
             eval(hx())=
-                eval((h(i+1,j+1) +h(j+1))/2. -
-                     (u(i+1,j+1) - u(j+1))*(dt()/(2*dx())));
+                eval((h() +h(i-1))/2. -
+                     (u() - u(i-1))*(dt()/(2*dx())));
 
             eval(ux())=
-                eval((u(i+1, j+1) +
-                      u(j+1))/2.-
-                     ((pow<2>(u(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
-                      (pow<2>(u(j+1))/h(j+1) +
-                       pow<2>(h(j+1))*(g()/2.)
+                eval((u() +
+                      u(i-1))/2.-
+                     ((pow<2>(u())/h()+pow<2>(h())*g()/2.)  -
+                      (pow<2>(u(i-1))/h(i-1) +
+                       pow<2>(h(i-1))*(g()/2.)
                           ))*(dt()/(2.*dx())));
 
             eval(vx())=
-                eval( (v(i+1,j+1) +
-                       v(j+1))/2. -
-                      (u(i+1,j+1)*v(i+1,j+1)/h(i+1,j+1) -
-                       u(j+1)*v(j+1)/h(j+1))*(dt()/(2*dx())) );
+                eval( (v() +
+                       v(i-1))/2. -
+                      (u()*v()/h() -
+                       u(i-1)*v(i-1)/h(i-1))*(dt()/(2*dx())) );
 
         }
     };
@@ -150,7 +150,7 @@ namespace shallow_water{
         // using xrange_subdomain=range<0,0,0,1>;
 
         typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1,range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -162,28 +162,25 @@ namespace shallow_water{
             using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
 
 
-            eval(hy())= eval((h(i+1,j+1) + h(i+1))/2. -
-                             (v(i+1,j+1) - v(i+1))*(dt()/(2*dy())) );
+            eval(hy())= eval((h() + h(j-1))/2. -
+                             (v() - v(j-1))*(dt()/(2*dy())) );
 
-            eval(uy())=eval( (u(i+1,j+1) +
-                              u(i+1))/2. -
-                             (v(i+1,j+1)*u(i+1,j+1)/h(i+1,j+1) -
-                              v(i+1)*u(i+1)/h(i+1))*(dt()/(2*dy())) );
+            eval(uy())=eval( (u() +
+                              u(j-1))/2. -
+                             (v()*u()/h() -
+                              v(j-1)*u(j-1)/h(j-1))*(dt()/(2*dy())) );
 
-            eval(vy())=eval((v(i+1, j+1) +
-                             v(i+1))/2.-
-                            ((pow<2>(v(i+1,j+1))/h(i+1,j+1)+pow<2>(h(i+1,j+1))*g()/2.)  -
-                             (pow<2>(v(i+1))/h(i+1) +
-                              pow<2>(h(i+1))*(g()/2.)
+            eval(vy())=eval((v() +
+                             v(j-1))/2.-
+                            ((pow<2>(v())/h()+pow<2>(h())*g()/2.)  -
+                             (pow<2>(v(j-1))/h(j-1) +
+                              pow<2>(h(j-1))*(g()/2.)
                                  ))*(dt()/(2.*dy())));
 
         }
     };
 
     struct final_step        : public functor_traits {
-
-        // using xrange=range<0,-2,0,-2>;
-        // using xrange_subdomain=range<1,1,1,1>;
 
         typedef accessor<0, range<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
         typedef accessor<1, range<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
@@ -228,30 +225,6 @@ namespace shallow_water{
                      (pow<2>(vy(j+1))                /hy(j+1)      +pow<2>(hy(j+1)     )*((g()/2.)) -
                       (pow<2>(vy())           /hy() +pow<2>(hy())*((g()/2.))   ))*((dt()/dy())));
 
-
-            // eval(sol()) =
-            //     eval(sol()-
-            //          (ux(j-1) - ux(i-1, j-1))*(dt()/dx())
-            //          -
-            //          (vy(i-1) - vy(i-1, j-1))*(dt()/dy())
-            //         );
-
-            // // eval(sol(comp(1))) = eval(hx());
-
-            // eval(sol(comp(1))) =
-            //     eval(sol(comp(1)) -
-            //          (pow<2>(ux(j-1))                / hx(j-1)    + hx(j-1)*hx(j-1)*((g()/2.))                 -
-            //           (pow<2>(ux(i-1,j-1))            / hx(i-1, j-1) +pow<2>(hx(i-1,j-1) )*((g()/2.))))*((dt()/dx())) -
-            //          (vy(i-1)*uy(i-1)          / hy(i-1)                                                   -
-            //           vy(i-1, j-1)*uy(i-1,j-1) / hy(i-1, j-1)) *(dt()/dy())
-            //         );
-
-            // eval(sol(comp(2))) =
-            //     eval(sol(comp(2)) -
-            //          (ux(j-1)    *vx(j-1)       /hx(j-1) -
-            //           (ux(i-1,j-1)*vx(i-1, j-1)) /hx(i-1, j-1))*((dt()/dx()))-
-            //          (pow<2>(vy(i-1))                /hy(i-1)      +pow<2>(hy(i-1)     )*((g()/2.)) -
-            //           (pow<2>(vy(i-1, j-1))           /hy(i-1, j-1) +pow<2>(hy(i-1, j-1))*((g()/2.))   ))*((dt()/dy())));
 
         }
 
@@ -345,7 +318,6 @@ namespace shallow_water{
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
-        sol.allocate();
 
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());
@@ -355,7 +327,7 @@ namespace shallow_water{
 
         // pointer_type out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(PID==1)
-            sol.set<0,0>( &bc_periodic<0,0>::droplet);//h
+            sol.set<0,0>( &bc_periodic<0,0>::droplet );//h
         else
             sol.set<0,0>( 1.);//h
         //sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
@@ -363,10 +335,10 @@ namespace shallow_water{
         sol.set<0,2>( 0.);//v
 
 #ifndef NDEBUG
-    std::ofstream myfile;
-    std::stringstream name;
-    name<<"example"<<PID<<".txt";
-    myfile.open (name.str().c_str());
+        std::ofstream myfile;
+        std::stringstream name;
+        name<<"example"<<PID<<".txt";
+        myfile.open (name.str().c_str());
 
 #endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -440,11 +412,6 @@ namespace shallow_water{
                     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
 
-#ifndef NDEBUG
-            shallow_water_stencil->finalize();
-            myfile<<"############## SOLUTION ################"<<std::endl;
-            sol.print(myfile);
-#endif
         }
 
 
@@ -454,11 +421,13 @@ namespace shallow_water{
 
         bool retval=true;
 
-#ifdef NDEBUG
         shallow_water_stencil->finalize();
-#else
-        verifier check_result(1e-10, 0);
-        shallow_water_reference<sol_type, 16, 16> reference;
+#ifndef NDEBUG
+        myfile<<"############## SOLUTION ################"<<std::endl;
+        sol.print(myfile);
+
+        verifier check_result(1e-8, 0);
+        shallow_water_reference<sol_type, 11, 11> reference;
         reference.setup();
         for (uint_t t=0;t < total_time; ++t)
         {
@@ -471,6 +440,7 @@ namespace shallow_water{
         myfile.close();
 #endif
 
+        std::cout<<"SUCCESS?= "<<retval<<std::endl;
         return retval;
 
     }

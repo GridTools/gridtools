@@ -8,10 +8,9 @@
 #include "../examples/positional_copy_stencil.h"
 #include "copies_2D_1D_0D.h"
 #include "../examples/tridiagonal.h"
-#include "../examples/extended_4D.h"
 #include "external_ptr_test/CopyStencil.h"
 #ifdef CXX11_ENABLED
-
+#include "../examples/extended_4D.h"
 #include "test-assign-placeholders.h"
 #endif
 #include "accessor_tests.h"
@@ -56,6 +55,10 @@ TEST(boundaryconditions, usingcopy3) {
     EXPECT_EQ(usingcopy_3(), true);
 }
 
+TEST(stencil, loop_hierarchy) {
+    EXPECT_EQ(loop_test::test(), true);
+}
+
 #define BACKEND_BLOCK
 #define TESTCLASS stencil_block
 #include "stencil_tests.h"
@@ -68,13 +71,6 @@ TEST(boundaryconditions, usingcopy3) {
 TEST(stencil, extended_4D) {
     EXPECT_EQ(assembly::test(5, 5, 6), true);
 }
-#endif
-
-TEST(stencil, loop_hierarchy) {
-    EXPECT_EQ(loop_test::test(), true);
-}
-
-#ifdef CXX11_ENABLED
 
 TEST(testdomain, assignplchdrs) {
     EXPECT_EQ(assign_placeholders(), true);

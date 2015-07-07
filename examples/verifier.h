@@ -51,9 +51,9 @@ public:
     template<typename Partitioner, typename storage_type>
     bool verify(gridtools::parallel_storage<storage_type, Partitioner>& field1, storage_type& field2)
     {
-        const gridtools::uint_t idim = field1.template dims<0>();
-        const gridtools::uint_t jdim = field1.template dims<1>();
-        const gridtools::uint_t kdim = field1.template dims<2>();
+        const gridtools::uint_t idim = field2.template dims<0>();
+        const gridtools::uint_t jdim = field2.template dims<1>();
+        const gridtools::uint_t kdim = field2.template dims<2>();
 
         bool verified = true;
 
@@ -64,9 +64,10 @@ public:
                 {
                     for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
+                        std::cout<<"processor (?), is "<<i<<", "<<j<<", "<<k<<" mine? : "<<field1.mine(i,j,k)<<std::endl;
                         if(field1.mine(i,j,k)){
-                            typename storage_type::value_type expected = field1.fields()[f][field1._index(i,j,k)];
-                            typename storage_type::value_type actual = field2.fields()[f][field2._index(i,j,k)];
+                            typename storage_type::value_type expected = field2.get_value(i,j,k);
+                            typename storage_type::value_type actual = field1.get_value(i,j,k);
 
                             if(!compare_below_threashold(expected, actual))
                             {
