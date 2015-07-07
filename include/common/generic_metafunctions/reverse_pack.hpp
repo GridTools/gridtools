@@ -2,11 +2,10 @@
 namespace gridtools{
         /**@brief metafunction for applying a parameter pack in reversed order
 
-           implemented for this specific case, could be generalized and used as a common tool
            usage example:
-           reverse<4, 3, 2>::apply<ToBeReversed, Storage, 8>::type::type
+           reverse<4, 3, 2>::apply<ToBeReversed, ExtraArgument, 8>::type::type
            gives
-           ToBeReversed<Storage, 8, 2, 3, 4>::type
+           ToBeReversed<ExtraArgument, 8, 2, 3, 4>::type
          */
         // forward decl
 #ifdef CXX11_ENABLED

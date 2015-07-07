@@ -206,9 +206,7 @@ namespace test_iterate_domain{
 
     array<int_t, 3> new_index;
     it_domain.increment<0,enumtype::forward>();//increment i
-    it_domain.get_index(new_index);
     it_domain.increment<1,enumtype::forward>();//increment j
-    it_domain.get_index(new_index);
     it_domain.increment<2,enumtype::forward>();//increment k
     it_domain.get_index(new_index);
 
