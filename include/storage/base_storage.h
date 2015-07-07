@@ -241,7 +241,7 @@ namespace gridtools {
             m_name(s)
             {
 	      setup(dim1, dim2, dim3);
-              m_fields[0]=pointer_type(ptr, true);
+              m_fields[0]=pointer_type(ptr, size(), true);
               if(FieldDimension>1)
                   allocate(FieldDimension, 1);
 	      set_name(s);
@@ -250,8 +250,8 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage(){
             for(ushort_t i=0; i<field_dimensions; ++i)
-                if(!m_fields[i].externally_managed())
-                    m_fields[i].free_it();
+                // if(!m_fields[i].externally_managed())
+                m_fields[i].free_it();
         }
 
         /**@brief device copy constructor*/
