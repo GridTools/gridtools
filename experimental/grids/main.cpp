@@ -314,7 +314,7 @@ int main() {
 
         accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
-            (ptrs, grid, 0,0);
+            (ptrs, grid);
 
 
         struct _coords {
@@ -346,7 +346,7 @@ int main() {
         accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+             (&cells_out, &cells, &edges_out, &edges), grid);
 
 
         struct _coords {
@@ -378,7 +378,7 @@ int main() {
         accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+             (&cells_out, &cells, &edges_out, &edges), grid);
 
 
         struct _coords {
@@ -410,7 +410,7 @@ int main() {
         accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
+             (&cells_out, &cells, &edges_out, &edges), grid);
 
 
         struct _coords {

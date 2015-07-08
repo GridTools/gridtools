@@ -25,21 +25,6 @@ namespace gridtools {
         template <typename LocationType>
         using storage_type = typename _storage_type<LocationType, void>::type;
 
-        template <typename Accessor, typename Computation, typename Coords>
-        static
-        void run(Accessor & acc, Computation const x, Coords const & coords)
-        {
-            /** Iteration on CELLS
-             */
-            for (int i = coords.lb0; i < coords.ub0; ++i) {
-                acc.set_ij(i, coords.lb1);
-                for (int j = coords.lb1; j < coords.ub1; ++j) {
-                    acc.inc_j();
-                    typename decltype(x)::functor()(acc);
-                }
-            }
-        }
-
     };
 
     struct colored_backend : public _backend {

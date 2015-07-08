@@ -237,8 +237,6 @@ private:
     storage_types storages;
     pointers_t pointers;
     grid_type const& m_grid;
-    int m_pos_i;
-    int m_pos_j;
 
     int m_ll_i;
     int m_ll_j;
@@ -336,28 +334,16 @@ private:
     }
 
 public:
-    accessor_type(storage_types const& storages, GridType const& m_grid, int pos_i, int pos_j)
+    accessor_type(storage_types const& storages, GridType const& m_grid)
         : storages(storages)
         , m_grid(m_grid)
-        , m_pos_i(pos_i)
-        , m_pos_j(pos_j)
     {
         _reset_pointers();
     }
 
     GridType const& grid() const {return m_grid;}
 
-    void inc_i() {++m_pos_i; _increment_pointers_i();}
-    void inc_j() {++m_pos_j; _increment_pointers_j();}
-
     void inc_ll_k() {++m_ll_k; _increment_pointers_j();}
-
-    void reset_i() {m_pos_i = 0;}
-    void reset_j() {m_pos_j = 0;}
-    void set_ij(int i, int j) {
-        m_pos_i = i;
-        m_pos_j = j;
-    }
 
     template <typename LocationT>
     void set_ll_ij(int i, int j, int k) {
@@ -366,9 +352,6 @@ public:
         m_ll_k = k;
         _set_pointers_to_ll<LocationT>();
     }
-
-    int i() const {return m_pos_i;}
-    int j() const {return m_pos_j;}
 
     template <typename ValueType, typename Arg, typename Accumulator>
     double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, void> onneighbors) const {
