@@ -213,7 +213,7 @@ namespace gridtools{
 #endif
 
 #ifdef CXX11_ENABLED
-    using int_t          = int;
+    using int_t          =int;
     using short_t        = int;
     using uint_t         = unsigned int;
     using ushort_t       = unsigned int;
