@@ -10,105 +10,35 @@ class Utilities ( ):
     Class to contain various helpful functions.
     Currently contains floating point precision validation.-
     """
-    def __init__ (self):
-        self.name = self.__class__.__name__.capitalize ( )
-        #
-        # these entities are automatically generated at compile time
-        #
-        self.ulib_file  = None
-        self.ucpp_file  = None
-        self.umake_file = None
-        #
-        # a reference to the compiled dynamic library
-        #
-        self.ulib_obj = None
+    def __init__ (self, compiler):
+        """
+        Creates a new Utilities class with a reference to the session's compiler.-
+        """
+        self.compiler  = compiler
+        self.tmpl_file = 'Utilities.cpp'
 
 
-    def validate_translate (self):
+    def initialize (self):
         """
-        Creates the C++ source file containing utilities to be used by Python.
-        Currently only consists of the function for checking the size of the floating
-        point type used in the backend.
+        Generates native code for this utilities class.-
         """
+        from os        import write, path
         from gridtools import JinjaEnv
+        
+        logging.debug ("Generating backend float type check code (C++) in '%s'" % self.compiler.src_dir)
 
-        #
-        # instantiate each of the templates and render them
-        #
-        cpp  = JinjaEnv.get_template ("Utilities.cpp")
-        make = JinjaEnv.get_template ("Makefile.utilities")
+        utils_tmpl = JinjaEnv.get_template (self.tmpl_file)
+        utils_src  = utils_tmpl.render ( )
 
-        return (cpp.render  ( ),
-                make.render (stencil=self))
-
-
-    def generate_validation_code (self):
-        """
-        Generates native code for validating the precision of the floating
-        point type.
-            src_dir     directory where the files should be saved (optional).-
-        """
-        from os        import write, path, makedirs
-        from tempfile  import mkdtemp
-        from gridtools import JinjaEnv
-        #
-        # create directory and files for the generated code
-        #
-        self.src_dir = mkdtemp (prefix="__gridtools_")
-
-        self.ulib_file  = 'libutilities'
-        self.ucpp_file  = 'Utilities.cpp'
-        self.umake_file = 'Makefile.utilities'
-
-        logging.info ("Generating backend float type check code (C++) in '%s'" % self.src_dir)
-
-        #
-        # code for the stencil, the library entry point and makefile
-        #
-        cpp_src, make_src = self.validate_translate ( )
-        with open (path.join (self.src_dir, self.ucpp_file), 'w') as cpp_hdl:
-            cpp_hdl.write (cpp_src)
-        with open (path.join (self.src_dir, self.umake_file), 'w') as make_hdl:
-            make_hdl.write (make_src)
-
-
-    def ucompile (self):
-        """
-        Compiles the translated code to a shared library, ready to be used.-
-        """
-        from os         import path, getcwd, chdir
-        from numpy      import ctypeslib
-        from subprocess import check_call
-
-        try:
-            #
-            # start the compilation of the dynamic library
-            #
-            current_dir = getcwd ( )
-            chdir (self.src_dir)
-            check_call (["make", 
-                         "--silent", 
-                         "--file=%s" % self.umake_file])
-            chdir (current_dir)
-            #
-            # attach the library object
-            #
-            self.ulib_obj = ctypeslib.load_library (self.ulib_file,
-                                                    self.src_dir)
-        except Exception as e:
-            logging.error ("Compilation error")
-            self.ulib_obj = None
-            raise e
+        with open (path.join (self.compiler.src_dir, 
+                              self.tmpl_file), 'w') as cpp_hdl:
+            cpp_hdl.write (utils_src)
 
 
     def is_valid_float_type_size (self, npfloat):
         rv = True
 
-        if self.ulib_obj is None:
-            self.generate_validation_code ( )
-            self.ucompile ( )
-
-        backendSize = self.ulib_obj.getFloatSize ( )
+        backendSize = self.compiler.lib_obj.get_backend_float_size ( )
         nptype      = npfloat.dtype
 
         logging.debug ("Backend Float Size: %d" % backendSize)
