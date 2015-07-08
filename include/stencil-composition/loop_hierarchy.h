@@ -22,7 +22,7 @@ namespace gridtools{
 
        It consists of the loop bounds, the step (whose default value is set to 1), the execution type (e.g. forward or backward), and an index identifying the space dimension this loop is acting on.
     */
-    template<ushort_t ID, enumtype::execution Execution, typename Integer=int_t, uint_t Step=1>
+    template<ushort_t ID, typename Integer=int_t, uint_t Step=1>
     struct loop_item{
 
         typedef Integer value_type;
@@ -46,10 +46,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr uint_t step(){return s_step; }
         static const ushort_t s_id=ID;
-        static const enumtype::execution s_execution=Execution;
 
-    private:
         static const uint_t s_step=Step;
+    private:
         loop_item();
         loop_item(loop_item const& other);
         Integer m_up_bound;
@@ -58,7 +57,7 @@ namespace gridtools{
 
     /**@class this class is useful to compare with the case in which the loop
        bounds are static const*/
-    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, typename Integer=int_t, uint_t Step=1>
+    template<ushort_t ID, uint_t LowBound, uint_t UpBound, typename Integer=int_t, uint_t Step=1>
     struct static_loop_item{
         typedef Integer value_type;
         constexpr Integer up_bound() const {return UpBound; }
@@ -66,26 +65,26 @@ namespace gridtools{
         constexpr uint_t step(){return s_step; }
         static const uint_t s_step=Step;
         static const  ushort_t s_id=ID;
-        static const enumtype::execution s_execution=Execution;
     };
 
     template<typename Loop>
     struct is_static_loop;
 
-    template<ushort_t ID, enumtype::execution Execution, uint_t LowBound, uint_t UpBound, typename Integer, uint_t Step>
-    struct is_static_loop< static_loop_item<ID, Execution, LowBound, UpBound, Integer, Step> > : public boost::true_type
+    template<ushort_t ID, uint_t LowBound, uint_t UpBound, typename Integer, uint_t Step>
+    struct is_static_loop< static_loop_item<ID// , Execution
+                                            , LowBound, UpBound, Integer, Step> > : public boost::true_type
     {};
 
-    template<ushort_t ID, enumtype::execution Execution, typename Integer, uint_t Step>
-    struct is_static_loop< loop_item<ID, Execution,Integer,  Step> > : public boost::false_type
+    template<ushort_t ID, typename Integer, uint_t Step>
+    struct is_static_loop< loop_item<ID,Integer,  Step> > : public boost::false_type
     {};
 
-    template<ushort_t ID, enumtype::execution Execution, typename Integer>
-    struct is_static_loop< loop_item<ID, Execution, Integer> > : public boost::false_type
+    template<ushort_t ID, typename Integer>
+    struct is_static_loop< loop_item<ID, Integer> > : public boost::false_type
     {};
 
-    template<ushort_t ID, enumtype::execution Execution>
-    struct is_static_loop< loop_item<ID, Execution> > : public boost::false_type
+    template<ushort_t ID>
+    struct is_static_loop< loop_item<ID> > : public boost::false_type
     {};
 
 #ifdef CXX11_ENABLED
@@ -191,7 +190,7 @@ namespace gridtools{
 #endif
                 next::apply(it_domain, kernel);
                 it_domain.set_index(restore_index);//redundant in the last iteration
-                it_domain.template increment<First::s_id, First::s_execution>();//redundant in the last iteration
+                it_domain.template increment<First::s_id, static_uint<First::s_step> >();//redundant in the last iteration
                 update_index(it_domain);
             }
         }
@@ -264,7 +263,7 @@ namespace gridtools{
 #endif
                 kernel();
                 it_domain.set_index(restore_index);//redundant in the last iteration
-                it_domain.template increment<First::s_id, First::s_execution>();
+                it_domain.template increment<First::s_id, static_uint<First::s_step> >();
                 update_index(it_domain);
             }
         }
