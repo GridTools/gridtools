@@ -25,7 +25,7 @@ namespace gridtools {
         array<uint_t, space_dimensions> m_dims;
         //uint_t m_strides[space_dimensions];
         array<uint_t, space_dimensions-1> m_strides;
-        
+
 #ifdef NDEBUG
     private:
         /**@brief noone calls the empty constructor*/
@@ -39,7 +39,7 @@ namespace gridtools {
 
 //         template <typename T, typename U, bool B>
 //         friend std::ostream& operator<<(std::ostream &, virtual_storage<T,U, B> const & );
-        
+
         template <typename Int>
         virtual_storage(  array<Int, space_dimensions> const& sizes ):
             m_dims{sizes},
@@ -90,19 +90,20 @@ namespace gridtools {
             return (vec_max<typename layout::layout_vector_t>::value < 0) ?0:( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 :  m_strides[layout::template at_<Coordinate>::value];
         }
 
+
         /**
            @brief computing index to access the storage relative to the coordinates passed as parameters.
 
            This interface must be used with unsigned integers of type uint_t, and the result must be a positive integer as well
         */
-        template <typename ... UInt>
+        template <typename ... Int>
         GT_FUNCTION
-        uint_t _index( UInt const& ... dims) const {
+        int_t _index( Int const& ... dims) const {
 #ifndef __CUDACC__
-            typedef boost::mpl::vector<UInt...> tlist;
+            typedef boost::mpl::vector<Int...> tlist;
             //boost::is_same<boost::mpl::_1, uint_t>
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
-            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
+            //NO YOU DONT GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(Int), "you have to pass in arguments of uint_t type");
 #endif
             return _impl::compute_offset<space_dimensions, layout>::apply(&m_strides[0], dims ...);
         }
