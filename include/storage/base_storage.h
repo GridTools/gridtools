@@ -49,6 +49,7 @@ namespace gridtools {
     }
 
     /**
+       \anchor descr_storage
        @brief main class for the basic storage
 
        We define here an important naming convention. We call:

@@ -57,6 +57,7 @@ namespace gridtools {
 
 
     /**
+       \anchor descr_halo_exchange_dynamic_ut
        This is the main class for the halo exchange pattern in the case
        in which the data pointers are not known before hand and they are
        passed to the pattern when packing and unpacking is needed.
