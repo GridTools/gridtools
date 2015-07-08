@@ -3,46 +3,60 @@ import logging
 
 import numpy as np
 
-from gridtools.utils   import Utilities
+from gridtools.utils import Utilities
 
 
 
 
 class StencilCompiler ( ):
     """
-    A global class that takes care of compiling the defined stencils using different backends.-
+    A global class that takes care of compiling the defined stencils 
+    using different backends.-
     """
-    #
-    # a utilities class shared by all stencils
-    #
-    utils = Utilities ( )
+    def _initialize (self):
+        """
+        Initializes this Stencil compiler.-
+        """
+        from tempfile import mkdtemp
+
+        logging.debug ("Initializing dynamic compiler ...")
+        self.src_dir = mkdtemp (prefix="__gridtools_")
+        self.utils.initialize ( )
+
 
     def __init__ (self):
+
         #
-        # a dictionary containing all the defined stencils (k=name, v=object)
+        # a dictionary containing the defined stencils (k=id(object), v=object)
         #
-        self.stencils = dict ( )
+        self.stencils     = dict ( )
+        self.lib_file     = "libgridtools4py"
+        self.make_file    = "Makefile"
         #
         # these entities are automatically generated at compile time
         #
         self.src_dir      = None
-        self.lib_file     = None
         self.cpp_file     = None
-        self.make_file    = None
         self.fun_hdr_file = None
         #
         # a reference to the compiled dynamic library
         #
-        self.lib_obj = None
+        self.lib_obj      = None
+        #
+        # a utilities class for this compiler
+        #
+        self.utils        = Utilities (self)
+        self._initialize ( )
 
 
     def compile (self, stencil):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os         import path, getcwd, chdir
-        from numpy      import ctypeslib
-        from subprocess import check_call
+        from os                        import path, getcwd, chdir
+        from ctypes                    import CDLL
+        from subprocess                import check_call
+        from numpy.distutils.misc_util import get_shared_lib_extension
 
         try:
             #
@@ -57,35 +71,30 @@ class StencilCompiler ( ):
             #
             # attach the library object
             #
-            self.lib_obj = ctypeslib.load_library (self.lib_file,
-                                                   self.src_dir)
+            self.lib_obj = CDLL ('%s/%s%s' % (self.src_dir,
+                                              self.lib_file,
+                                              get_shared_lib_extension ( )))
         except Exception as e:
             logging.error ("Error while compiling '%s'" % stencil.name)
             self.lib_obj = None
             raise e
 
 
-    def generate_code (self, stencil, src_dir=None):
+    def generate_code (self, stencil):
         """
         Generates native code for the received stencil:
 
-            stencil     stencil object for which the code whould be generated;
-            src_dir     directory where the files should be saved (optional).-
+            stencil     stencil object for which the code whould be generated.-
         """
         from os        import write, path, makedirs
-        from tempfile  import mkdtemp
         from gridtools import JinjaEnv
 
         try:
             #
             # create directory and files for the generated code
             #
-            if src_dir is None:
-                self.src_dir = mkdtemp (prefix="__gridtools_")
-            else:
-                if not path.exists (src_dir):
-                    makedirs (src_dir)
-                self.src_dir = src_dir
+            if not path.exists (self.src_dir):
+                makedirs (self.src_dir)
 
             if stencil.backend == 'c++':
                 extension = 'cpp'
@@ -94,9 +103,7 @@ class StencilCompiler ( ):
             else:
                 raise RuntimeError ("Unknown backend '%s' in while generating code" % stencil.backend)
             self.cpp_file     = '%s.%s'    % (stencil.name, extension)
-            self.lib_file     = 'lib%s'    % stencil.name.lower ( )
-            self.make_file    = 'Makefile'
-            self.fun_hdr_file = '%sFunctors.h' % stencil.name
+            self.fun_hdr_file = '%s_Functors.h' % stencil.name
 
             #
             # ... and populate them
@@ -139,23 +146,30 @@ class StencilCompiler ( ):
         if self.lib_obj is not None:
             _ctypes.dlclose (self.lib_obj._handle)
             del self.lib_obj
-            self.lib_obj   = None
+            self.lib_obj      = None
             stencil.inspector = StencilInspector (stencil)
 
 
     def register (self, stencil):
         """
-        Registers the received Stencil object `stencil_obj` with the compiler.
-        It returns a unique name for `stencil_obj`.-
+        Registers the received Stencil object `stencil` with the compiler.
+        It returns a unique name for `stencil`.-
         """
         #
-        # a unique name for this stencil object
+        # mark this stencil for recompilation ...
         #
-        name = '%s_%05d' % (stencil.__class__.__name__.capitalize ( ),
-                            len (self.stencils))
-        self.stencils[name] = stencil
-
-        return name
+        self.recompile (stencil)
+        #
+        # ... and add it to the registry if it is not there yet
+        #
+        if id(stencil) not in self.stencils.keys ( ):
+            #
+            # a unique name for this stencil object
+            #
+            stencil.name = '%s_%03d' % (stencil.__class__.__name__.capitalize ( ),
+                                        len (self.stencils))
+            self.stencils[id(stencil)] = stencil
+        return stencil.name
 
 
     def run_native (self, stencil, **kwargs):
@@ -165,24 +179,30 @@ class StencilCompiler ( ):
         import ctypes
 
         #
+        # make sure the stencil is registered
+        #
+        if id(stencil) not in self.stencils.keys ( ):
+            self.register (stencil)
+
+        #
         # run the selected backend version
         #
         if stencil.backend == 'c++' or stencil.backend == 'cuda':
             #
-            # automatic compilation only if the library is not available
+            # compile only if the library is not available
             #
             if self.lib_obj is None:
+                stencil.resolve (**kwargs)
+                self.generate_code (stencil)
+                self.compile (stencil)
                 #
                 # floating point precision validation
                 #
                 for key in kwargs:
-                      if isinstance(kwargs[key], np.ndarray):
-                          if not StencilCompiler.utils.is_valid_float_type_size (kwargs[key]):
-                              raise TypeError ("Element size of '%s' does not match that of the C++ backend."
-                                               % key)
-                stencil.resolve (**kwargs)
-                self.generate_code (stencil)
-                self.compile (stencil)
+                    if isinstance(kwargs[key], np.ndarray):
+                        if not self.utils.is_valid_float_type_size (kwargs[key]):
+                            raise TypeError ("Element size of '%s' does not match that of the C++ backend."
+                                              % key)
             #
             # prepare the list of parameters to call the library function
             #
@@ -222,7 +242,7 @@ class StencilCompiler ( ):
         # instantiate each of the templates and render them
         #
         cpp    = JinjaEnv.get_template ("stencil.cpp")
-        make   = JinjaEnv.get_template ("Makefile.%s" % stencil.backend)
+        make   = JinjaEnv.get_template ("Makefile.cuda")
 
         params = list (stencil.scope.get_parameters ( ))
         temps  = list (stencil.scope.get_temporaries ( ))
@@ -250,5 +270,6 @@ class StencilCompiler ( ):
                             params_temps         = params + temps,
                             functors             = functs,
                             independent_functors = ind_functs),
-                make.render (stencil=stencil))
+                make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
+                             compiler = self))
 

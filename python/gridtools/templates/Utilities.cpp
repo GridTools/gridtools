@@ -1,7 +1,10 @@
-#include "common/defs.h"
+#include <gridtools.h>
+
+
 
 extern "C"
-int
-getFloatSize() {
-	return sizeof(gridtools::float_type)*8;
+{
+    int get_backend_float_size ( ) {
+        return sizeof(gridtools::float_type) * 8;
+    };
 }

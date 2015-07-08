@@ -1068,7 +1068,7 @@ class CombinedStencil (Stencil):
             #
             # call the compiled stencil
             # 
-            self.lib_obj.run (*lib_params)
+            self.compiler.run_native (self, **kwargs)
         elif self.backend == 'python':
             #
             # execution order is from the leafs towards the root
@@ -1095,7 +1095,7 @@ class CombinedStencil (Stencil):
         # instantiate each of the templates and render them
         #
         cpp    = JinjaEnv.get_template ("stencil.cpp")
-        make   = JinjaEnv.get_template ("Makefile.%s" % self.backend)
+        make   = JinjaEnv.get_template ("Makefile.cuda")
 
         params = list (self.scope.get_parameters ( ))
         temps  = list (self.scope.get_temporaries ( ))
@@ -1141,5 +1141,6 @@ class CombinedStencil (Stencil):
                             params_temps         = params + temps,
                             functors             = functors,
                             independent_functors = independent_functors),
-                make.render (stencil=self))
+                make.render (stencil  = self,
+                             compiler = self.compiler))
 
