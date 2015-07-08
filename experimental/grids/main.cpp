@@ -1,4 +1,5 @@
 using uint_t = unsigned int;
+using int_t = int;
 #include <iostream>
 #include "grid.hpp"
 #include "base_storage.hpp"
@@ -42,7 +43,12 @@ struct stencil_on_cells {
         //           << " j = " << eval.j()
         //           << std::endl;
         auto ff = [](const double _in, const double _res) -> double
-            {std::cout << "#"; return _in+_res;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "#";
+#endif
+                return _in+_res;
+             };
 
         /**
            Interface that do not check if the location types are correct
@@ -79,11 +85,26 @@ struct stencil_on_edges_cells {
         //           << " j = " << eval.j()
         //           << std::endl;
         auto nested_reduction = [](const double _in, const double _res) -> double
-            {std::cout << "#"; return _in+_res;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "#";
+#endif
+                return _in+_res;
+            };
         auto map = [](const double _in, const double _from_neighbors) -> double
-            {std::cout << "."; return _in+_from_neighbors;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << ".";
+#endif
+                return _in+_from_neighbors;
+            };
         auto top_reduction = [](const double _in, const double _res) -> double
-            {std::cout << "+"; return _in+_res;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "+";
+#endif
+                return _in+_res;
+            };
 
         /**
            Interface that do not check if the location types are correct
@@ -121,11 +142,26 @@ struct stencil_on_cells_edges {
         //           << " j = " << eval.j()
         //           << std::endl;
         auto ff = [](const double _in, const double _res) -> double
-            {std::cout << "#"; return _in+_res;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "#";
+#endif
+                return _in+_res;
+            };
         auto gg = [](const double _in, const double _res) -> double
-            {std::cout << "m"; return _in+_res;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "m";
+#endif
+                return _in+_res;
+            };
         auto reduction = [](const double _in, const double _res) -> double
-            {std::cout << "r"; return _in+_res;};
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "r";
+#endif
+                return _in+_res;
+            };
 
         eval(out()) = eval(on_cells(in(), gg, on_edges(in_edges(), ff, 0.0), reduction, 0.0));
     }
@@ -143,7 +179,13 @@ struct stencil_on_edges {
         // std::cout << "i = " << eval.i()
         //           << " j = " << eval.j()
         //           << std::endl;
-        auto ff = [](const double _in, const double _res) -> double {std::cout << "e"; return _in+_res;};
+        auto ff = [](const double _in, const double _res) -> double
+            {
+#ifdef _MAIN_CPP_DEBUG_
+                std::cout << "e";
+#endif
+                return _in+_res;
+};
         eval(out_edges()) = eval(on_neighbors(in(), ff, 0.0))+ eval(on_neighbors(in_edges(), ff, 0.0));
     }
 };
@@ -249,6 +291,13 @@ int main() {
     typedef arg<2, trapezoid_2D::edges> out_edges;
     typedef arg<3, trapezoid_2D::edges> in_edges;
 
+
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 1" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+
     {
         auto x = make_esf<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
@@ -269,8 +318,8 @@ int main() {
 
 
         struct _coords {
-            int lb0, ub0;
-            int lb1, ub1;
+            int_t lb0, ub0;
+            int_t lb1, ub1;
 
             _coords(int lb0, int ub0, int lb1, int ub1)
                 : lb0(lb0)
@@ -284,19 +333,25 @@ int main() {
 
     }
 
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 2" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+
     {
         auto x = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
             (out_cells(), out_cells(), out_edges(), in_edges());
 
         accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::edges> acc
+                      trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
              (&cells_out, &cells, &edges_out, &edges), grid, 0,0);
 
 
         struct _coords {
-            int lb0, ub0;
-            int lb1, ub1;
+            int_t lb0, ub0;
+            int_t lb1, ub1;
 
             _coords(int lb0, int ub0, int lb1, int ub1)
                 : lb0(lb0)
@@ -304,11 +359,17 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NE-1-1, 3, ME-3-1);
+        } coords(1, NE-1-1, 3, ME-3);
 
         gridtools::colored_backend::run(acc, x, coords);
 
     }
+
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 3" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
         auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
@@ -321,8 +382,8 @@ int main() {
 
 
         struct _coords {
-            int lb0, ub0;
-            int lb1, ub1;
+            int_t lb0, ub0;
+            int_t lb1, ub1;
 
             _coords(int lb0, int ub0, int lb1, int ub1)
                 : lb0(lb0)
@@ -330,11 +391,17 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NE-1-1, 3, ME-3-1);
+        } coords(1, NC-1-1, 2, MC-2-1);
 
         gridtools::colored_backend::run(acc, x, coords);
 
     }
+
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 4" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
         auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
@@ -347,8 +414,8 @@ int main() {
 
 
         struct _coords {
-            int lb0, ub0;
-            int lb1, ub1;
+            int_t lb0, ub0;
+            int_t lb1, ub1;
 
             _coords(int lb0, int ub0, int lb1, int ub1)
                 : lb0(lb0)
@@ -356,7 +423,7 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NC-1-1, 3, MC-3-1);
+        } coords(1, NC-1-1, 2, MC-2-1);
 
         gridtools::colored_backend::run(acc, x, coords);
     }
