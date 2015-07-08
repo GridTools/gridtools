@@ -15,7 +15,7 @@ struct iterate_domain_{
     template <typename Index>
     void set_index(Index idx){}
 
-    template< ushort_t index, enumtype::execution>
+    template< ushort_t index, typename Step>
     void increment(){}
 };
 
@@ -36,9 +36,9 @@ bool test(){
     iterate_domain_ it_domain;
     functor fun;
 
-    loop_hierarchy<array_t, loop_item<1, enumtype::forward, int_t>, loop_item<5, enumtype::forward, short_t>
+    loop_hierarchy<array_t, loop_item<1, int_t, 1>, loop_item<5, short_t, 1>
 #ifdef CXX11_ENABLED
-                   , static_loop_item<0, enumtype::forward, 0u, 10u, uint_t>
+                   , static_loop_item<0, 0u, 10u, uint_t, 1>
 #endif
         > h(2, 5, 6, 8);
     h.apply(it_domain, fun);

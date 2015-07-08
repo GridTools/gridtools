@@ -119,8 +119,8 @@ struct execute_kernel_functor_host
 
         typedef array<int_t, iterate_domain_t::N_STORAGES> array_t;
         loop_hierarchy<
-            array_t, loop_item<0, enumtype::forward, int_t>,
-            loop_item<1, enumtype::forward, int_t>
+            array_t, loop_item<0, int_t, 1>,
+            loop_item<1, int_t, 1>
         > ij_loop(
                 (int_t) (m_first_pos[0] + range_t::iminus::value),
                 (int_t) (m_first_pos[0] + m_last_pos[0] + range_t::iplus::value),
