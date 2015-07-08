@@ -230,3 +230,4 @@ endif(ENABLE_PYTHON)
 
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
+add_subdirectory( experimental/grids )

@@ -5,6 +5,9 @@
 
 
 namespace gridtools {
+    /**
+       The backend is, as usual, declaring what the storage types are
+     */
     struct _backend {
     private:
         template <typename LocationType, typename X>
@@ -94,6 +97,11 @@ namespace gridtools {
 
     public:
 
+        /**
+           run needs to dispatch to the right implementation depending on
+           location types. In this particular example the two implementations
+           are identical, but this is not the general case.
+         */
         template <typename Accessor, typename Computation, typename Coords>
         static
         void
