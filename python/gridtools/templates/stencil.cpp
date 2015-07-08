@@ -3,12 +3,11 @@
  * the Python interface to the Gridtools library
  *
  */
-#pragma once
-
 #include <gridtools.h>
 #include <stencil-composition/backend.h>
 #include <stencil-composition/make_computation.h>
 #include <stencil-composition/interval.h>
+
 #include "{{ fun_hdr_file }}"
 
 

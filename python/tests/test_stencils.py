@@ -128,9 +128,9 @@ class CopyTest (unittest.TestCase):
         random.shuffle (backends)
 
         for backend in backends:
-            self.stencil.recompile ( )
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
+            stencil_native.recompile ( )
 
             #
             # data fields - Py and C++ sets

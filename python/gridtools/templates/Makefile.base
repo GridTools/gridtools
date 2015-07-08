@@ -35,7 +35,7 @@ ifeq ($(UNAME_S),Linux)
 endif
 LIBRARIES := -L$(BOOST)/lib -lpthread -lboost_timer -lboost_system -lboost_chrono
 INCLUDES  := -I. -I$(BOOST)/include -I$(GRIDTOOLS)/include -I$(GRIDTOOLS)/include/communication/high-level -isystem $(GRIDTOOLS)/fussion/include
-OBJS      := {{ stencil.name }}.o
+OBJS      := Utilities.o {% for s in stencils %} {{ s.name }}.o {% endfor %}
 ifeq ($(UNAME_S),Linux)
   LIBRARIES := $(LIBRARIES) -fopenmp
   GENCODE   := -shared -Wl,-soname
@@ -45,7 +45,7 @@ ifeq ($(UNAME_S),Darwin)
   GENCODE := -dynamiclib
   LIBEXT  := dylib
 endif
-BIN := lib{{ stencil.name|lower }}.$(LIBEXT)
+BIN := {{ compiler.lib_file }}.$(LIBEXT)
 ifeq ($(UNAME_S),Linux)
   GENCODE := $(GENCODE),$(BIN)
 endif
