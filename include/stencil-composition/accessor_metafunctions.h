@@ -54,11 +54,18 @@ struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >
     > type;
 };
 
+#ifdef CX11_ENABLED
     template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
-struct remap_accessor_type<Expression<Arguments ... >, ArgsMap >
+    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap >
     {
+        //Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
+        //where T1 and T2 are two accessors).
+        //Here we traverse the expression AST down to the leaves, and we assert if
+        //the leaves are not accessor types.
+
         //recursively remapping the template arguments,
         //until the specialization above stops the recursion
         typedef Expression<remap_accessor_type<Arguments, ArgsMap> ...> type;
     };
+#endif
 } //namespace gridtools

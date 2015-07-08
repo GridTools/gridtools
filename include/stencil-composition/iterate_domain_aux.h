@@ -81,12 +81,12 @@ namespace gridtools{
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
-        strides_cached():super(){
+            strides_cached():super(){
             GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<StorageList>::value > ID, "Library internal error: strides index exceeds the number of storages")
-        }
+                }
 
         template<short_t Idx>
-        GT_FUNCTION
+            GT_FUNCTION
 #ifdef CXX11_ENABLED
             return_t<Idx>
 #else
@@ -212,6 +212,7 @@ namespace gridtools{
     */
     template <typename StoragesVector, int_t EndIndex>
     struct total_storages{
+        DISALLOW_COPY_AND_ASSIGN(total_storages);
         //the index must not exceed the number of storages
         GRIDTOOLS_STATIC_ASSERT(EndIndex <= boost::mpl::size<StoragesVector>::type::value,
                 "the index must not exceed the number of storages")
@@ -243,7 +244,6 @@ namespace gridtools{
         static const uint_t value=type::value;
     private:
         total_storages();
-        total_storages(total_storages const&);
     };
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
