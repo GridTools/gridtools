@@ -2,6 +2,7 @@
 #include "location_type.hpp"
 #include <type_traits>
 
+#define _ACCESSOR_H_DEBUG_
 
 template <typename F1, typename F2>
 struct make_mapreduce {
@@ -236,12 +237,12 @@ private:
     storage_types storages;
     pointers_t pointers;
     grid_type const& m_grid;
-    uint_t m_pos_i;
-    uint_t m_pos_j;
+    int m_pos_i;
+    int m_pos_j;
 
-    uint_t m_ll_i;
-    uint_t m_ll_j;
-    uint_t m_ll_k;
+    int m_ll_i;
+    int m_ll_j;
+    int m_ll_k;
 
     template <typename PointersT, typename StoragesT>
     struct _set_pointers
@@ -253,7 +254,7 @@ private:
         template <typename Index>
         void operator()(Index) {
             double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr());
-            std::cout << " -------------------------> Pointer " << std::hex << ptr << std::dec << std::endl;
+
             boost::fusion::at_c<Index::value>(m_pt) = ptr;
         }
     };
@@ -264,16 +265,16 @@ private:
         PointersT &m_pt;
         StoragesT const &m_st;
         GridT const& m_g;
-        const uint_t m_ll_i;
-        const uint_t m_ll_j;
-        const uint_t m_ll_k;
+        const int m_ll_i;
+        const int m_ll_j;
+        const int m_ll_k;
 
         _set_pointers_to(PointersT& pt,
                          StoragesT const &st,
                          GridT const& g,
-                         const uint_t ll_i,
-                         const uint_t ll_j,
-                         const uint_t ll_k)
+                         const int ll_i,
+                         const int ll_j,
+                         const int ll_k)
             : m_pt(pt)
             , m_st(st)
             , m_g(g)
@@ -286,7 +287,7 @@ private:
         void operator()(Index) {
             double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr())
                 + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())->_index(m_ll_i, m_ll_j, m_ll_k));
-            std::cout << " -------------------------> Pointer_To " << std::hex << ptr << std::dec << std::endl;
+
             boost::fusion::at_c<Index::value>(m_pt) = ptr;
         }
     };
@@ -326,12 +327,6 @@ private:
         boost::mpl::for_each<indices>(_set_pointers<pointers_t, storage_types>(pointers, storages));
     }
 
-    struct printplc {
-        template <typename T>
-        void operator()(T const& e) const {
-            std::cout << "printing placeholders: " << e << std::endl;
-        }
-    };
 
 
     template <typename LocationT>
@@ -341,14 +336,13 @@ private:
     }
 
 public:
-    accessor_type(storage_types const& storages, GridType const& m_grid, uint_t pos_i, uint_t pos_j)
+    accessor_type(storage_types const& storages, GridType const& m_grid, int pos_i, int pos_j)
         : storages(storages)
         , m_grid(m_grid)
         , m_pos_i(pos_i)
         , m_pos_j(pos_j)
     {
         _reset_pointers();
-        boost::mpl::for_each<PlcVector>(printplc());
     }
 
     GridType const& grid() const {return m_grid;}
@@ -356,7 +350,7 @@ public:
     void inc_i() {++m_pos_i; _increment_pointers_i();}
     void inc_j() {++m_pos_j; _increment_pointers_j();}
 
-    void inc_ll_k() {_increment_pointers_j();}
+    void inc_ll_k() {++m_ll_k; _increment_pointers_j();}
 
     void reset_i() {m_pos_i = 0;}
     void reset_j() {m_pos_j = 0;}
@@ -373,29 +367,42 @@ public:
         _set_pointers_to_ll<LocationT>();
     }
 
-    uint_t i() const {return m_pos_i;}
-    uint_t j() const {return m_pos_j;}
+    int i() const {return m_pos_i;}
+    int j() const {return m_pos_j;}
 
     template <typename ValueType, typename Arg, typename Accumulator>
     double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, void> onneighbors) const {
 
-        auto neighbors = m_grid.neighbors( {m_pos_i, m_pos_j}, location_type(), typename Arg::location_type() );
+        auto neighbors = m_grid.neighbors_ll( {m_ll_i, m_ll_j, m_ll_k},
+                                              location_type(), typename Arg::location_type() );
         double result = onneighbors.value;
-        //std::cout << "on_cells " << Arg::value << std::endl;
 
         for (int i = 0; i<neighbors.size(); ++i) {
+#ifdef _ACCESSOR_H_DEBUG_
+            std::cout << "on neighbors of "
+                      << "(" << m_ll_i << ", " << m_ll_j << ", " << m_ll_k << "): "
+                      << location_type() << " -> "
+                      << typename Arg::location_type() << ", "
+                      << std::hex << (boost::fusion::at_c<Arg::value>(pointers)) << std::dec << " "
+                      << "neighbors[" << i << "] "
+                      << neighbors[i]
+                      << std::endl;
+#endif
             result = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+neighbors[i]), result);
         }
     }
 
     template <typename ValueType, typename Arg, typename Accumulator, typename NextLevel>
     double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> onneighbors) const {
-        auto neighbors = m_grid.ll_indices( {m_pos_i, m_pos_j}, location_type() );
+        auto neighbors = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
+                                                     static_cast<uint_t>(m_ll_j),
+                                                     static_cast<uint_t>(m_ll_k));
         __begin_iteration<location_type>(onneighbors, neighbors);
     }
 
     template <int I, typename LT>
     double& operator()(accessor<I,LT> const& arg) const {
+        //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
         return *(boost::fusion::at_c<I>(pointers));
     }
 
@@ -404,9 +411,12 @@ private:
     double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> __onneighbors,
                              gridtools::array<uint_t, 3> const& indices) const
     {
-        auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
+        const auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
         double result = __onneighbors.value;
-        std::cout << "<" << neighbors.size() << ">";
+
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << " ********__begin_iteation<NEXT>******** " << indices << " into " << neighbors << std::endl;
+#endif
         for (int i = 0; i<neighbors.size(); ++i) {
             result = __onneighbors.reduction(__onneighbors.map
                 (*(boost::fusion::at_c<Arg::value>(pointers)
@@ -420,8 +430,12 @@ private:
     double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, void> __onneighbors,
                              gridtools::array<uint_t, 3> const& indices) const
     {
-        auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
+        const auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
         double result = __onneighbors.value;
+
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << " ********__begin_iteation<void>******** " << indices << " into " << neighbors << std::endl;
+#endif
         for (int i = 0; i<neighbors.size(); ++i) {
             result = __onneighbors.ff
                 (*(boost::fusion::at_c<Arg::value>(pointers)
