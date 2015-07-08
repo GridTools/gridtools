@@ -1,7 +1,0 @@
-{% extends "Makefile.base" %}
-
-{% block extra_targets %}
-
-LIBRARIES := $(LIBRARIES) -lc
-
-{% endblock %}
