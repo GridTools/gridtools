@@ -302,6 +302,7 @@ namespace shallow_water{
 //! [storage_type]
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+        typedef storage_type::pointer_type pointer_type;
 //! [storage_type]
 
 //! [fields]
@@ -310,18 +311,23 @@ namespace shallow_water{
         typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
 //! [fields]
 
-        // Definition of placeholders. The order of them reflects the order the user will deal with them
+
+        // Definition of placeholders. The order of them reflects the order in which the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
+//! [args]
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
-        typedef storage_type::pointer_type pointer_type;
+//! [args]
 
-        gridtools::array<int, 3> dimensions(0,0,0);
+//! [proc_grid_dims]
+        array<int, 3> dimensions(0,0,0);
         MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
         dimensions[2]=1;
+//! [proc_grid_dims]
 
+//! [pattern_type]
         typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
@@ -333,26 +339,38 @@ namespace shallow_water{
                                                     gridtools::version_manual> pattern_type;
 
         pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
+//! [pattern_type]
 
+//! [partitioner]
         array<ushort_t, 3> padding={1,1,0};
         array<ushort_t, 3> halo={1,1,0};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
+//! [padding_halo]
+
+//! [parallel_storage]
         parallel_storage<sol_type, partitioner_t> sol(part);
         sol.setup(d1, d2, d3);
+//! [parallel_storage]
 
+//! [add_halo]
         he.add_halo<0>(sol.get_halo_gcl<0>());
         he.add_halo<1>(sol.get_halo_gcl<1>());
         he.add_halo<2>(sol.get_halo_gcl<2>());
 
         he.setup(3);
+//! [add_halo]
 
+//! [initialization_h]
         if(PID==1)
             sol.set<0,0>( &bc_periodic<0,0>::droplet );//h
         else
             sol.set<0,0>( 1.);//h
+//! [initialization_h]
+//! [initialization]
         sol.set<0,1>( 0.);//u
         sol.set<0,2>( 0.);//v
+//! [initialization]
 
 #ifndef NDEBUG
         std::ofstream myfile;
@@ -364,17 +382,21 @@ namespace shallow_water{
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+//! [domain_type]
         domain_type<accessor_list> domain
             (boost::fusion::make_vector(&sol));
+//! [domain_type]
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
+//! [coordinates]
         coordinates<axis, partitioner_t> coords(part, sol);
-
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
+//! [coordinates]
 
+//! [computation]
         auto shallow_water_stencil =
             make_computation<gridtools::BACKEND, layout_t>
             (
@@ -388,10 +410,13 @@ namespace shallow_water{
                     ),
                 domain, coords
                 );
+//! [computation]
 
+//! [setup]
         shallow_water_stencil->ready();
 
         shallow_water_stencil->steady();
+//! [setup]
 
         //the following might be runtime value
         uint_t total_time=t;
@@ -409,10 +434,12 @@ namespace shallow_water{
 //             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
 //             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
 #endif
+//! [exchange]
             std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
+//! [exchange]
 
 #ifndef NDEBUG
             myfile<<"INITIALIZED VALUES"<<std::endl;
@@ -424,7 +451,9 @@ namespace shallow_water{
                 boost::timer::cpu_timer time;
 #endif
 
+//! [run]
             shallow_water_stencil->run();
+//! [run]
 
 #ifndef CUDA_EXAMPLE
                 boost::timer::cpu_times lapse_time = time.elapsed();
@@ -434,7 +463,7 @@ namespace shallow_water{
 
         }
 
-
+//! [finalize]
         he.wait();
 
         GCL_Finalize();
@@ -442,6 +471,7 @@ namespace shallow_water{
         bool retval=true;
 
         shallow_water_stencil->finalize();
+//! [finalize]
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
