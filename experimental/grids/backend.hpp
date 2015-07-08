@@ -69,11 +69,11 @@ namespace gridtools {
                       << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
                       << std::endl;
             for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
-                for (int j = low_bounds[1]; i <= high_bounds[1]; ++i) { // they should always be 0 and 1 for cells
+                for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
                     acc.template set_ll_ij<location_type<0> >(i, j, low_bounds[2]);
                     for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
-                        acc.inc_ll_k();
                         typename decltype(x)::functor()(acc);
+                        acc.inc_ll_k();
                     }
                 }
             }
@@ -97,11 +97,11 @@ namespace gridtools {
                       << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
                       << std::endl;
             for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
-                for (int j = low_bounds[1]; i <= high_bounds[1]; ++i) { // they should always be 0 and 1 for cells
+                for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
                     acc.template set_ll_ij<location_type<1> >(i, j, low_bounds[2]);
                     for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
-                        acc.inc_ll_k();
                         typename decltype(x)::functor()(acc);
+                        acc.inc_ll_k();
                     }
                 }
             }
