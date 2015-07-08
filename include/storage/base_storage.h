@@ -4,47 +4,7 @@
 #include "../common/array.h"
 
 /**@file
-   @brief Implementation of the main storage class, used by all backends, for temporary and non-temporary storage
-
-   We define here an important naming convention. We call:
-
-   - the data fields: are contiguous chunks of memory, accessed by 3 (by default, but not necessarily) indexes.
-   These structures are univocally defined by 3 (by default) integers. These are currently 2 strides and the total size of the chunks. Note that (in 3D) the relation between these quantities (\f$stride_1\f$, \f$stride_2\f$ and \f$size\f$) and the dimensions x, y and z can be (depending on the storage layout chosen)
-   \f[
-   size=x*y*z //
-   stride_2=x*y //
-   stride_1=x .
-   \f]
-   The quantities \f$size\f$, \f$stride_2\f$ and \f$stride_1\f$ are arranged respectively in m_strides[0], m_strides[1], m_strides[2].
-   - the data snapshot: is a single pointer to one data field. The snapshots are arranged in the storages on a 1D array, regardless of the dimension and snapshot they refer to. The arg_type (or arg_decorator) class is
-   responsible of computing the correct offests (relative to the given dimension) and address the storages correctly.
-   - the storage: is an instance of any storage class, and can contain one or more fields and dimension. Every dimension consists of one or several snaphsots of the fields
-   (e.g. if the time T is the current dimension, 3 snapshots can be the fields at t, t+1, t+2)
-
-   The basic_storage class has a 1-1 relation with the data fields, while the subclasses extend the concept of storage to the structure represented in the ASCII picture below.
-
-   NOTE: the constraint of the data fields accessed by the same storage class are the following:
-   - the memory layout (strides, space dimensions) is one for all the data fields, all the snapshots
-     share the same access index
-\verbatim
-############### 2D Storage ################
-#                    ___________\         #
-#                      time     /         #
-#                  | |*|*|*|*|*|*|        #
-# space, pressure  | |*|*|*|              #
-#    energy,...    v |*|*|*|*|*|          #
-#                                         #
-#                     ^ ^ ^ ^ ^ ^         #
-#                     | | | | | |         #
-#                      snapshots          #
-#                                         #
-############### 2D Storage ################
-\endverbatim
-
-   The final storage which is effectly instantiated must be "clonable to the GPU", i.e. it must derive from the clonable_to_gpu struct.
-   This is achieved by defining a class with multiple inheritance.
-
-   NOTE CUDA: It is important when subclassing from a storage object to reimplement the __device__ copy constructor, and possibly the method 'copy_data_to_gpu' which are used when cloning the class to the CUDA device.
+   @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary and non-temporary storage
 */
 
 namespace gridtools {
@@ -90,6 +50,47 @@ namespace gridtools {
 
     /**
        @brief main class for the basic storage
+
+       We define here an important naming convention. We call:
+
+       - the storages (or storage snapshots): are contiguous chunks of memory, accessed by 3 (by default, but not necessarily) indexes.
+       These structures are univocally defined by 3 (by default) integers. These are currently 2 strides and the total size of the chunks. Note that (in 3D) the relation between these quantities
+       (\f$stride_1\f$, \f$stride_2\f$ and \f$size\f$) and the dimensions x, y and z can be (depending on the storage layout chosen)
+       \f[
+       size=x*y*z \;;\;
+       stride_2=x*y \;;\;
+       stride_1=x .
+       \f]
+       The quantities \f$size\f$, \f$stride_2\f$ and \f$stride_1\f$ are arranged respectively in m_strides[0], m_strides[1], m_strides[2].
+       - the \ref gridtools::storage_list "storage list": is a list of pointers (or snapshots) to storages. The snapshots are arranged on a 1D array. The \ref gridtools::accessor "accessor" class is
+       responsible of computing the correct offests (relative to the given dimension) and address the storages correctly.
+       - the \ref gridtools::data_field "data field": is a collection of storage lists, and can contain one or more storage lists of different sizes. It can be seen as a vector of vectors of storage pointers.
+       (e.g. if the time T is the current dimension, 3 snapshots can be the fields at t, t+1, t+2)
+
+       The base_storage class has a 1-1 relation with the storage concept, while the subclasses extend the concept of storage to the structure represented in the ASCII picture below.
+
+       NOTE: the constraint of the snapshots accessed by the same data field are the following:
+       - the memory layout (strides, space dimensions) is one for all the snapshots, and all the snapshots
+       share the same iteration point
+\verbatim
+############### 2D Storage ################
+#                    ___________\         #
+#                      time     /         #
+#                  | |*|*|*|*|*|*|        #
+# space, pressure  | |*|*|*|              #
+#    energy,...    v |*|*|*|*|*|          #
+#                                         #
+#                     ^ ^ ^ ^ ^ ^         #
+#                     | | | | | |         #
+#                      snapshots          #
+#                                         #
+############### 2D Storage ################
+\endverbatim
+
+       The final storage which is effectly instantiated must be "clonable to the GPU", i.e. it must derive from the clonable_to_gpu struct.
+       This is achieved by using multiple inheritance.
+
+       NOTE CUDA: It is important when subclassing from a storage object to reimplement the __device__ copy constructor, and possibly the method 'copy_data_to_gpu' which are used when cloning the class to the CUDA device.
 
        The base_storage class contains one snapshot. It univocally defines
        the access pattern with three integers: the total storage sizes and
@@ -634,6 +635,9 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 
     /** @brief storage class containing a buffer of data snapshots
 
+        it is a list of \ref gridtools::base_storage "storages"
+
+        \include storage.dox
 
     */
     template < typename Storage, short_t ExtraWidth>
@@ -888,7 +892,10 @@ const short_t base_storage<PointerType, Layout, IsTemporary, FieldDimension>::fi
 #if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
     /**@brief implements the discretized field structure
 
-       It is a collection of arbitrary length discretized scalar fields.
+       It is a collection of arbitrary length \ref gridtools::storage_list "storage lists".
+
+       \include storage.dox
+
     */
     template <typename First,  typename  ...  StorageExtended>
     struct data_field : public dimension_extension_traits<First, StorageExtended ... >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/

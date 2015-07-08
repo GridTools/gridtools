@@ -3,8 +3,9 @@
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
-#endif
+#else
 #define CXX11_DISABLED
+#endif
 #endif
 
 //defines how many threads participate to the (shared) memory initialization
@@ -78,7 +79,10 @@
     TypeName(const TypeName&);               \
     TypeName& operator=(const TypeName&)
 
-namespace gridtools{  namespace enumtype{
+namespace gridtools{
+    /** \namespace enumtype
+       @brief enumeration types*/
+    namespace enumtype{
         /**
            @section enumtypes Gridtools enumeration types
            @{

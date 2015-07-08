@@ -1,5 +1,5 @@
 #pragma once
-
+// [includes]
 #include <gridtools.h>
 #include <stencil-composition/make_computation.h>
 #include <storage/parallel_storage.h>
@@ -16,7 +16,11 @@
 
 #include "verifier.h"
 #include "shallow_water_reference.h"
+// [includes]
+
+// [backend]
 #define BACKEND_BLOCK 1
+//[backend]
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
@@ -26,29 +30,25 @@
   NOTE: It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
  */
 
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::range;
-using gridtools::arg;
-
-using gridtools::direction;
-using gridtools::sign;
-using gridtools::minus_;
-using gridtools::zero_;
-using gridtools::plus_;
-
+// [namespaces]
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
+// [namespaces]
 
 namespace shallow_water{
 // This is the definition of the special regions in the "vertical" direction
+// [intervals]
     typedef interval<level<0,-1>, level<1,-1> > x_interval;
     typedef interval<level<0,-2>, level<1,1> > axis;
+// [intervals]
 
-/**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
+// [functor_traits]
+    /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
+        //! [dimension]
         typedef Dimension<5> comp;
+        //! [dimension]
 
         /**@brief space discretization step in direction i */
         GT_FUNCTION
@@ -63,14 +63,18 @@ namespace shallow_water{
         GT_FUNCTION
         static float_type g(){return 9.81;}
 
+        //! [index]
         static x::Index i;
         static y::Index j;
+        //! [index]
         typedef decltype(i) i_t;        typedef decltype(j) j_t;
 
     };
     functor_traits::i_t functor_traits::i;
     functor_traits::j_t functor_traits::j;
+// [functor_traits]
 
+// [boundary_conditions]
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic : functor_traits {
         // periodic boundary conditions in I
@@ -98,33 +102,43 @@ namespace shallow_water{
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
         }
-
+//! [droplet]
         static constexpr float_type height=2.;
         GT_FUNCTION
         static float_type droplet(uint_t const& i, uint_t const& j, uint_t const& k){
             return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-3)*dy())*((j-3)*dy())));
        }
+//! [droplet]
 };
+// [boundary_conditions]
 
-// These are the stencil operators that compose the multistage stencil in this test
-    struct first_step_x        : public functor_traits {
 
-      typedef accessor<1, range<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
-      typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
-      using arg_list=boost::mpl::vector<tmpx, sol> ;
+    // These are the stencil operators that compose the multistage stencil in this test
+    // [flux_x]
+    struct flux_x        : public functor_traits {
+
+        //! [accessor]
+        typedef accessor<1, range<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        //! [accessor]
+        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+        using arg_list=boost::mpl::vector<tmpx, sol> ;
 
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
+            //![alias]
             using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>;
+            //![alias]
             using ux=alias<tmpx, comp>::set<1>; using u=alias<sol, comp>::set<1>;
             using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>;
 
+            //! [expression]
             eval(hx())=
                 eval((h() +h(i-1))/2. -
                      (u() - u(i-1))*(dt()/(2*dx())));
+            //! [expression]
 
             eval(ux())=
                 eval((u() +
@@ -142,12 +156,11 @@ namespace shallow_water{
 
         }
     };
+    // [flux_x]
 
 
-    struct second_step_y        : public functor_traits {
-
-        // using xrange=range<0,-2,0,-2>;
-        // using xrange_subdomain=range<0,0,0,1>;
+    // [flux_y]
+    struct flux_y        : public functor_traits {
 
         typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
         typedef accessor<1,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
@@ -179,7 +192,9 @@ namespace shallow_water{
 
         }
     };
+    // [flux_y]
 
+    // [final_step]
     struct final_step        : public functor_traits {
 
         typedef accessor<0, range<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
@@ -208,27 +223,26 @@ namespace shallow_water{
                      (vy(j+1) - vy())*(dt()/dy())
                     );
 
-            // eval(sol(comp(1))) = eval(hx());
-
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
-                     (pow<2>(ux(i+1))                / hx(i+1)    + hx(i+1)*hx(i+1)*((g()/2.))                 -
-                      (pow<2>(ux())            / hx() +pow<2>(hx() )*((g()/2.))))*((dt()/dx())) -
-                     (vy(j+1)*uy(j+1)          / hy(j+1)                                                   -
+                     (pow<2>(ux(i+1))  / hx(i+1)    + hx(i+1)*hx(i+1)*((g()/2.))        -
+                     (pow<2>(ux())     / hx() +pow<2>(hx() )*((g()/2.))))*((dt()/dx())) -
+                     (vy(j+1)*uy(j+1)  / hy(j+1)                                        -
                       vy()*uy() / hy()) *(dt()/dy())
                     );
 
             eval(sol(comp(2))) =
                 eval(sol(comp(2)) -
-                     (ux(i+1)    *vx(i+1)       /hx(i+1) -
-                      (ux()*vx()) /hx())*((dt()/dx()))-
-                     (pow<2>(vy(j+1))                /hy(j+1)      +pow<2>(hy(j+1)     )*((g()/2.)) -
-                      (pow<2>(vy())           /hy() +pow<2>(hy())*((g()/2.))   ))*((dt()/dy())));
+                     (ux(i+1)*vx(i+1) /hx(i+1) -
+                     (ux()*vx())      /hx())*((dt()/dx()))-
+                     (pow<2>(vy(j+1)) /hy(j+1) +pow<2>(hy(j+1))*((g()/2.)) -
+                     (pow<2>(vy())    /hy()    +pow<2>(hy())   *((g()/2.))))*((dt()/dy())));
 
 
         }
 
     };
+    // [final_step]
 
 
     uint_t final_step::current_time=0;
@@ -236,12 +250,12 @@ namespace shallow_water{
 /*
  * The following operators and structs are for debugging only
  */
-    std::ostream& operator<<(std::ostream& s, first_step_x const) {
+    std::ostream& operator<<(std::ostream& s, flux_x const) {
         return s << "initial step 1: ";
         // initiali_step.to_string();
     }
 
-    std::ostream& operator<<(std::ostream& s, second_step_y const) {
+    std::ostream& operator<<(std::ostream& s, flux_y const) {
         return s << "initial step 2: ";
     }
 
@@ -269,6 +283,7 @@ namespace shallow_water{
         uint_t d2 = y;
         uint_t d3 = z;
 
+//! [main]
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
 #else
@@ -278,15 +293,22 @@ namespace shallow_water{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-        //           dims  z y x
-        //           strides xy x 1
+//! [layout_map]
+        //           dims  x y z
+        //        strides yz z 1
         typedef layout_map<0,1,2> layout_t;
+//! [layout_map]
+
+//! [storage_type]
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+//! [storage_type]
 
-        /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
+//! [fields]
+        /*! The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
         typedef field<storage_type, 1, 1, 1>::type sol_type;
         typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
+//! [fields]
 
         // Definition of placeholders. The order of them reflects the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -325,12 +347,10 @@ namespace shallow_water{
 
         he.setup(3);
 
-        // pointer_type out7(sol.size()), out8(sol.size()), out9(sol.size());
         if(PID==1)
             sol.set<0,0>( &bc_periodic<0,0>::droplet );//h
         else
             sol.set<0,0>( 1.);//h
-        //sol.set<0,0>(out7, &bc_periodic<0,0>::droplet);//h
         sol.set<0,1>( 0.);//u
         sol.set<0,2>( 0.);//v
 
@@ -362,8 +382,8 @@ namespace shallow_water{
                 (
                     execute<forward>(),
                     make_independent(
-                        make_esf<first_step_x> (p_tmpx(), p_sol() ),
-                        make_esf<second_step_y>(p_tmpy(), p_sol() )),
+                        make_esf<flux_x> (p_tmpx(), p_sol() ),
+                        make_esf<flux_y>(p_tmpy(), p_sol() )),
                     make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
                     ),
                 domain, coords
@@ -442,7 +462,7 @@ namespace shallow_water{
 
         std::cout<<"SUCCESS?= "<<retval<<std::endl;
         return retval;
-
+//! [main]
     }
 
 }//namespace shallow_water

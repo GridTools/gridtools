@@ -12,6 +12,9 @@
   Then the Computation is defined by a tree of ESFs, forming a Multi Stage Stencil (MSS).This Computation implements the methods: \ref gridtools::intermediate::ready "ready", \ref gridtools::intermediate::steady "steady", \ref gridtools::intermediate::run "run", and \ref gridtools::intermediate::finalize "finalize", which are responsible for copying the memory on the devices, instantiating temporary storages when necessary, running the computation, and copying the result back to the host.
 
  \section examples Examples:
- \subpage Laplacian "Laplacian Finite Differences"
+
+\subpage Laplacian "Laplacian Finite Differences"
+
+\subpage ShallowWater "Shallow Water Finite Differences"
 
 */
