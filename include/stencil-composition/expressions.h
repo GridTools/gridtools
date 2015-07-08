@@ -284,7 +284,9 @@ namespace gridtools{
         template <typename Arg>
         struct is_accessor;
 
-    /**@brief Overloaded operators
+    /**
+       @namespace expressions
+       @brief Overloaded operators
        The algebraic operators are overloaded in order to deal with expressions. To enable these operators the user has to use the namespace expressions.*/
     namespace expressions{
 /**\section operator (Operators Overloaded)

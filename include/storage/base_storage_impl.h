@@ -106,14 +106,14 @@ namespace gridtools{
 
             template<typename IntType, typename StridesVector>
             GT_FUNCTION
-            static int_t apply(StridesVector const& RESTRICT /*strides*/, IntType* indices_){
+            static constexpr int_t apply(StridesVector const& RESTRICT /*strides*/, IntType* indices_){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices_);
             }
 
 #ifdef CXX11_ENABLED
             template<typename StridesVector, typename ... IntType>
             GT_FUNCTION
-            static int_t apply(StridesVector const& RESTRICT /*strides*/, IntType const& ... indices_){
+            static constexpr int_t apply(StridesVector const& RESTRICT /*strides*/, IntType const& ... indices_){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices_ ...);
             }
 #endif
@@ -123,7 +123,7 @@ namespace gridtools{
             */
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
-            static int_t apply(StridesVector const& RESTRICT /*strides*/, Tuple const&  indices_){
+            static constexpr int_t apply(StridesVector const& RESTRICT /*strides*/, Tuple const&  indices_){
                 return Layout::template find_val<space_dimensions-1, int, 0>(indices_);
             }
         };
