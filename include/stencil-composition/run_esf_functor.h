@@ -39,7 +39,7 @@ namespace gridtools {
         typedef typename _impl::run_esf_functor_run_functor_arguments<RunEsfFunctorImpl>::type run_functor_arguments_t;
         typedef typename _impl::run_esf_functor_interval<RunEsfFunctorImpl>::type interval_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<run_functor_arguments_t>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<run_functor_arguments_t>::value), "Internal Error: invalid type");
         typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
         typedef typename run_functor_arguments_t::functor_list_t run_functor_list_t;
 
@@ -82,6 +82,7 @@ namespace gridtools {
 		            in the functor definition (in the high level interface). This means that we cannot\n\
 		            (although in theory we could) pass placeholders to the computation which are not\n\
 		            also referenced in the functor.");
+
 
                 static_cast<const RunEsfFunctorImpl*>(this)->template do_impl<interval_type, esf_arguments_t>();
             }

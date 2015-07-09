@@ -62,7 +62,7 @@ namespace gridtools {
         typedef typename check_holes::index_set index_set;
 
         //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.")
+        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
 
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
@@ -74,7 +74,7 @@ namespace gridtools {
         typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
         //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
         GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
-The numeration of the placeholders is not contiguous. You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".")
+The numeration of the placeholders is not contiguous. You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".");
 
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
@@ -213,7 +213,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             view_type fview(storage_pointers);
 
-            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructin the domain_type is not the same as the number of placeholders to non-temporary storages.")
+            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructin the domain_type is not the same as the number of placeholders to non-temporary storages.");
 
 // #ifndef NDEBUG
                 //the following creates an empty storage (problems with its destruction)

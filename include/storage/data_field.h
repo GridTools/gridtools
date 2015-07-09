@@ -35,8 +35,8 @@ namespace gridtools{
     template<typename Storage, uint_t Id, uint_t IdMax>
     struct compute_storage_offset{
 
-        GRIDTOOLS_STATIC_ASSERT(IdMax>=Id && Id>=0, "Library internal error")
-            typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id+1, IdMax> > >::type type;
+        GRIDTOOLS_STATIC_ASSERT(IdMax>=Id && Id>=0, "Library internal error");
+        typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id+1, IdMax> > >::type type;
         static const uint_t value=type::value;
     };
 

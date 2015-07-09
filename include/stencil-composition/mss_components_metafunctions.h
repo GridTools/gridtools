@@ -14,12 +14,12 @@ namespace gridtools {
 template<typename MssArray>
 struct split_esfs_into_independent_mss
 {
-    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value), "Internal Error: wrong type");
 
     template<typename MssDescriptor>
     struct mss_split_esfs
     {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 
@@ -63,10 +63,10 @@ template<
 >
 struct build_mss_components_array
 {
-    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
-            boost::mpl::size<RangeSizes>::value), "Internal Error: wrong size")
+                             boost::mpl::size<RangeSizes>::value), "Internal Error: wrong size");
 
     template<typename _RangeSizes_>
     struct unroll_range_sizes
@@ -104,7 +104,7 @@ struct build_mss_components_array
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
         boost::mpl::size<range_sizes_unrolled_t>::value
-    ), "Internal Error: wrong size")
+                                ), "Internal Error: wrong size");
 
     typedef meta_array<
         typename boost::mpl::fold<
@@ -137,7 +137,7 @@ template<
 >
 struct mss_functor_do_methods
 {
-    GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
 
     /**
      *  compute the functor do methods - This is the most computationally intensive part
@@ -157,8 +157,8 @@ template<
 >
 struct mss_loop_intervals
 {
-    GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type")
-    GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
 
     /**
      *  compute the functor do methods - This is the most computationally intensive part
@@ -180,7 +180,7 @@ template<
     >
 struct mss_functor_do_method_lookup_maps
 {
-    GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
     typedef typename mss_functor_do_methods<MssComponents, Coords>::type functor_do_methods;
 
     typedef typename mss_loop_intervals<MssComponents, Coords>::type loop_intervals;

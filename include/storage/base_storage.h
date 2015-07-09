@@ -145,7 +145,7 @@ namespace gridtools {
             m_dims(),
             m_strides()
             {
-                GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension")
+                GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
                 setup(dim1, dim2, dim3);
                 allocate();
                 initialize(init, 1);
@@ -177,7 +177,9 @@ namespace gridtools {
             {
                 assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
+
                 GRIDTOOLS_STATIC_ASSERT(field_dimensions>0, "you specified a zero or negative value for a storage fields dimension");
+
                 m_strides[0] = accumulate( multiplies(), dims...) ;
                 _impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
 
@@ -185,6 +187,7 @@ namespace gridtools {
                 //the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
                 //You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
                 GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ), "You can disable this assertion by recompiling with the DISABLE_PEDANTIC flag set. This assert fails when we pass one or more arguments to the arbitrary dimensional storage constructor which are not of unsigned integer type (type uint_t). You can only pass the dimension sizes to this constructor." );
+
 #endif
             }
 
@@ -501,7 +504,7 @@ namespace gridtools {
             typedef boost::mpl::vector<UInt...> tlist;
             //boost::is_same<boost::mpl::_1, uint_t>
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
-            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type")
+            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(UInt), "you have to pass in arguments of uint_t type");
 #endif
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
@@ -552,11 +555,12 @@ namespace gridtools {
         void increment(int_t const& steps_, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
+
 #endif
             if( layout::template at_< Coordinate >::value >= 0 )//static if
             {
 #ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?")
+                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storage which does not have the same space dimensions. Are you explicitly incrementing the iteration space by calling base_storage::increment?");
 #endif
                     *index_ += strides<Coordinate>(strides_)*steps_;
             }
@@ -575,7 +579,7 @@ namespace gridtools {
             if( Coordinate < space_dimensions && layout::template at_< Coordinate >::value >= 0 )//static if
             {
 #ifdef CXX11_ENABLED
-                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?")
+                GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?");
 #endif
                     *index_+=strides<Coordinate>(strides_)*steps_;
             }
@@ -611,7 +615,7 @@ namespace gridtools {
          */
         GT_FUNCTION
         int_t const* strides() const {
-            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage")
+            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage");
             return (&m_strides[1]);
         }
 

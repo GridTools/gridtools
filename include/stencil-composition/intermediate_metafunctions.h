@@ -57,14 +57,14 @@ namespace gridtools {
     template<typename Intermediate>
     struct intermediate_mss_components_array
     {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
         typedef typename Intermediate::mss_components_array_t type;
     };
 
     template<typename Intermediate>
     struct intermediate_range_sizes
     {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
         typedef typename Intermediate::range_sizes_t type;
     };
 
@@ -99,7 +99,7 @@ namespace gridtools {
     template<typename Intermediate>
     struct intermediate_mss_local_domains
     {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
         typedef typename Intermediate::mss_local_domains_t type;
     };
 

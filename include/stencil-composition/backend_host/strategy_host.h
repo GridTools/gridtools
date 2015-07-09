@@ -28,7 +28,7 @@ namespace gridtools{
         template<typename MssComponentsArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
-            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
@@ -48,18 +48,18 @@ namespace gridtools{
         template<typename RunFunctorArgs, enumtype::backend BackendId>
         struct mss_loop
         {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
             template<typename LocalDomain, typename Coords>
             static void run(const LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size")
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
 
                 execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords)();
             }
@@ -111,13 +111,13 @@ namespace gridtools{
         template<typename MssComponentsArray, enumtype::backend BackendId>
         struct fused_mss_loop
         {
-            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Coords>
             static void run(LocalDomainListArray& local_domain_lists, const Coords& coords)
             {
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
                 typedef backend_traits_from_id<BackendId> backend_traits;
 
                 uint_t n = coords.i_high_bound() - coords.i_low_bound();
@@ -147,18 +147,18 @@ namespace gridtools{
         template<typename RunFunctorArgs, enumtype::backend BackendId>
         struct mss_loop
         {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
             template<typename LocalDomain, typename Coords>
             static void run(const LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
 
                 typedef backend_traits_from_id< BackendId > backend_traits_t;
 
                 typedef typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size")
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
 
                 uint_t n = coords.i_high_bound() - coords.i_low_bound() ;
                 uint_t m = coords.j_high_bound() - coords.j_low_bound() ;

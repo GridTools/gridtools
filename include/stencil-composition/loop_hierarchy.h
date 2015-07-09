@@ -130,8 +130,8 @@ namespace gridtools{
         GT_FUNCTION
         constexpr loop_hierarchy(value_type const& low_bound, value_type const& up_bound, ExtraArgs const& ... extra) : next(extra...), loop(low_bound, up_bound)
         {
-            //GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)>=sizeof...(Order), "not enough arguments passed to the constructor of the loops hierarchy")
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)/2<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy")
+            //GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)>=sizeof...(Order), "not enough arguments passed to the constructor of the loops hierarchy");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)/2<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy");
         }
 
         /**@brief constructor
@@ -144,7 +144,7 @@ namespace gridtools{
         GT_FUNCTION
         constexpr loop_hierarchy(ExtraArgs const& ... extra  ) : next(extra...), loop()
         {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy")
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs)<=sizeof...(Order), "too many arguments passed to the constructor of the loops hierarchy");
         }
 
 #else //for CXX11_ENABLED==false only 2 nested loops are allowed

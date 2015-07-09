@@ -36,11 +36,11 @@ namespace gridtools {
         enumtype::strategy StrategyId>              // the strategy id
     struct run_functor_arguments
     {
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: invalid type")
-        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: invalid type")
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), "Internal Error: invalid type")
-        GRIDTOOLS_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value), "Internal Error: invalid type")
-        GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Internal Error: invalid type");
 
         typedef enumtype::enum_type<enumtype::backend, BackendId> backend_id_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -97,7 +97,7 @@ namespace gridtools {
     template<typename RunFunctorArguments, typename Index>
     struct esf_arguments
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: invalid type");
 
         typedef typename boost::mpl::at<typename RunFunctorArguments::functor_list_t, Index>::type functor_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::esf_args_map_sequence_t, Index>::type esf_args_map_t;

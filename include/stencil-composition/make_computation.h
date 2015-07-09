@@ -48,7 +48,7 @@ namespace _impl {
     template<typename Sequence>
     struct get_mss_array
     {
-        GRIDTOOLS_STATIC_ASSERT(( boost::mpl::is_sequence<Sequence>::value ), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT(( boost::mpl::is_sequence<Sequence>::value ), "Internal Error: wrong type");
 
         typedef typename boost::mpl::fold<
             Sequence,

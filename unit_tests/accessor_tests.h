@@ -33,7 +33,7 @@ namespace interface{
         constexpr Dimension<4>::Index t;
         constexpr accessor<0, range<0,0,0,0>, 4> first(i-5, t+2, Dimension<3>(8));
 
-        GRIDTOOLS_STATIC_ASSERT(first.get<3-0>()==-5, "holy crap")
+        GRIDTOOLS_STATIC_ASSERT(first.get<3-0>()==-5, "holy crap");
         return first.get<3-0>()==-5 && first.get<3-1>()==0 && first.get<3-2>()==8 && first.get<3-3>()==2 ;
 
     }
@@ -52,7 +52,7 @@ namespace interface{
 
         alias_t first(Dimension<8>(23), z(-5));
 
-        GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr<14>()==4, "that's wrong man")
+        GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr<14>()==4, "that's wrong man");
         return first.get<14-6>()==2 && first.get<14-0>()==4 && first.get<14-14>()==-3 && first.get<14-7>()==23 && first.get<14-2>()==-5 ;
     }
 

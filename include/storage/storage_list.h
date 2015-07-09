@@ -15,7 +15,7 @@ namespace gridtools{
 
         typedef storage_list<Storage, ExtraWidth> type;
         /*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
-        GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.")
+        GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.");
         typedef Storage super;
         typedef typename super::pointer_type pointer_type;
 
@@ -49,6 +49,7 @@ namespace gridtools{
             : super(other)
             {
                 //GRIDTOOLS_STATIC_ASSERT(n_width==T::n_width, "Dimension analysis error: copying two vectors with different dimensions");
+
             }
 
         /**@brief copy all the data fields to the GPU*/

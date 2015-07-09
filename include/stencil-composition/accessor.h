@@ -108,6 +108,8 @@ namespace gridtools {
         arg_storage_pair<arg<I,T>, Storage>
         operator=(Storage& ref) {
             GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage, T>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
+
+
             return arg_storage_pair<arg<I,T>, Storage>(&ref);
         }
 
@@ -138,8 +140,8 @@ namespace gridtools {
                 {val}
 #endif
             {
-                GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1")
-                GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the accessor must be positive integerts")
+                GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1");
+                GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the accessor must be positive integerts");
             }
 
             /**@brief Constructor*/
@@ -226,10 +228,10 @@ namespace gridtools {
         static constexpr
         uint_t const
         get_constexpr(){
-            GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension")
-            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0")
+            GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension");
+            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0");
 
-            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.")
+            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
             return s_args_constexpr.template get<Idx>();
         }
 
