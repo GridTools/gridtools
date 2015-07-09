@@ -448,7 +448,7 @@ class StencilInspector (ast.NodeVisitor):
 
 
 
-class Stencil ( ):
+class Stencil (object):
     """
     A base stencil class.-
     """
@@ -467,9 +467,9 @@ class Stencil ( ):
         #
         self.inspector = StencilInspector (self)
         #
-        # defines the way to execute the stencil, one of 'python' or 'c++'
+        # defines the way to execute the stencil
         #
-        self.backend = "python"
+        self._backend = "python"
         #
         # a halo descriptor - see 'set_halo' below
         #
@@ -502,6 +502,17 @@ class Stencil ( ):
                                 arrows=True)
         nx.draw_networkx_labels (G,
                                  pos=pos)
+
+   
+    @property
+    def backend (self):
+        return self._backend
+
+
+    @backend.setter
+    def backend (self, value):
+        self._backend = value
+        self.recompile ( )
 
 
     def get_interior_points (self, data_field):
@@ -548,11 +559,6 @@ class Stencil ( ):
                 for j in range (start_j, end_j):
                     for k in range (start_k, end_k, inc_k):
                         yield InteriorPoint ((i, j, k))
-
-
-    @property
-    def scope (self):
-        return self.inspector.scope
 
 
     def kernel (self, *args, **kwargs):
@@ -654,6 +660,11 @@ class Stencil ( ):
             self.kernel (**kwargs)
         else:
             logging.error ("Unknown backend '%s'" % self.backend)
+
+
+    @property
+    def scope (self):
+        return self.inspector.scope
 
 
     def set_halo (self, halo=(0,0,0,0)):

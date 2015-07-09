@@ -59,7 +59,6 @@ class CopyTest (unittest.TestCase):
 
 
     def test_automatic_dependency_detection (self, deps=None, backend='c++'):
-        self.stencil.recompile ( )
         self.stencil.backend = backend
         self._run ( )
 
@@ -87,7 +86,6 @@ class CopyTest (unittest.TestCase):
 
 
     def test_automatic_range_detection (self, ranges=None, backend='c++'):
-        self.stencil.recompile ( )
         self.stencil.backend = backend
         self._run ( )
 
@@ -130,7 +128,6 @@ class CopyTest (unittest.TestCase):
         for backend in backends:
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
-            stencil_native.recompile ( )
 
             #
             # data fields - Py and C++ sets
@@ -158,7 +155,6 @@ class CopyTest (unittest.TestCase):
 
 
     def test_symbol_discovery (self, backend='c++'):
-        self.stencil.recompile ( )
         self.stencil.backend = backend
         self._run ( )
         #
@@ -246,7 +242,6 @@ class CopyTest (unittest.TestCase):
     def test_execution_performance_cpp (self, backend='c++'):
         import time
 
-        self.stencil.recompile ( )
         self.stencil.backend = backend
         self._run ( )
 
@@ -262,7 +257,6 @@ class CopyTest (unittest.TestCase):
 
 
     def test_k_directions (self, backend='c++'):
-        self.stencil.recompile ( )
         self.stencil.backend = backend
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
@@ -300,9 +294,6 @@ class FloatPrecisionTest (CopyTest):
 
 
     def test_float_input_type_validation_wrong_data_type (self):
-        """
-        Tests if input is of correct size but of wrong type.
-        """
         with self.assertRaises (TypeError):
             self.stencil.backend = 'c++'
             self.in_cpy = self.in_cpy.astype(np.int64)
@@ -310,11 +301,6 @@ class FloatPrecisionTest (CopyTest):
 
 
     def test_float_input_type_validation_potentially_correct_type_but_not_the_correct_size (self):
-        """
-        Unlike test_float_input_type_validation_wrong_data_size which tests a size that is not
-        supported at all, this test uses a type that is potentially accepted but in this case
-        does not match the backend.
-        """
         with self.assertRaises (TypeError):
             self.stencil.backend = 'c++'
             self.in_cpy = self.in_cpy.astype(np.float32)
@@ -332,24 +318,24 @@ class Power (MultiStageStencil):
         # iterate over the points, excluding halo ones
         #
         for p in self.get_interior_points (out_cpy):
-
-              out_cpy[p] =  5 **  0
-              out_cpy[p] =  5 **  1
-              out_cpy[p] =  5 **  2
-              out_cpy[p] =  5 **  3
-              out_cpy[p] =  5 **  +3
-              out_cpy[p] =  (-5) **  +3
-              out_cpy[p] =  5 ** -1
-              out_cpy[p] =  5 ** -2
-              out_cpy[p] =  5 ** -2*3
-              out_cpy[p] =  5 ** (-2*3)
-              out_cpy[p] = in_cpy[p] ** -1
-              out_cpy[p] = -in_cpy[p] ** -1
-              out_cpy[p] = (-in_cpy[p]) ** -1
-              out_cpy[p] = (-in_cpy[p]) ** -3
-              out_cpy[p] = (in_cpy[p] ** -1) * (in_cpy[p] ** 2)
-              out_cpy[p] = (((-in_cpy[p]) ** -2) * ((-in_cpy[p]) ** 2)) * (in_cpy[p])
-              out_cpy[p] = (in_cpy[p]**2)*(in_cpy[p] ** -1) # The final statement so that we can rerun test
+            out_cpy[p] =  5 **  0
+            out_cpy[p] =  5 **  1
+            out_cpy[p] =  5 **  2
+            out_cpy[p] =  5 **  3
+            out_cpy[p] =  5 **  +3
+            out_cpy[p] =  (-5) **  +3
+            out_cpy[p] =  5 ** -1
+            out_cpy[p] =  5 ** -2
+            out_cpy[p] =  5 ** -2*3
+            out_cpy[p] =  5 ** (-2*3)
+            out_cpy[p] = in_cpy[p] ** -1
+            out_cpy[p] = -in_cpy[p] ** -1
+            out_cpy[p] = (-in_cpy[p]) ** -1
+            out_cpy[p] = (-in_cpy[p]) ** -3
+            out_cpy[p] = (in_cpy[p] ** -1) * (in_cpy[p] ** 2)
+            out_cpy[p] = (((-in_cpy[p]) ** -2) * ((-in_cpy[p]) ** 2)) * (in_cpy[p])
+            # The final statement so that we can rerun test
+            out_cpy[p] = (in_cpy[p]**2)*(in_cpy[p] ** -1)
 
 
 
