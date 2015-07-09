@@ -1,5 +1,5 @@
-#include <gridtools.h>
-#include "copy_stencil_parallel.h"
+#include <gridtools.hpp>
+#include "copy_stencil_parallel.hpp"
 
 int main(int argc, char** argv)
 {

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/timer/timer.hpp>
-#include <common/defs.h>
+#include <common/defs.hpp>
 
 #define offs_(i,j,k,n,m,l) ((i)*(m)*(l)+(j)*(l)+(k))
 

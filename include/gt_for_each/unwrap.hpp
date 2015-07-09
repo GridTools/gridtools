@@ -14,7 +14,7 @@
 // $Revision: 49267 $
 
 #include <boost/ref.hpp>
-#include <common/defs.h>
+#include <common/defs.hpp>
 
 namespace gridtools {
     namespace gt_aux {

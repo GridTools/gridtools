@@ -7,8 +7,8 @@
 #endif
 
 
-#include <utils/ndloops.h>
-#include <utils/array.h>
+#include <utils/ndloops.hpp>
+#include <utils/array.hpp>
 #include <sys/time.h>
 struct sumup {
   mutable double res;

@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "meta_array_test.h"
+#include "meta_array_test.hpp"
 
 TEST(meta_array, test_meta_array_elements) {
     EXPECT_EQ(test_meta_array_elements(), true);

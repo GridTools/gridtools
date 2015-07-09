@@ -1,21 +1,21 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <stencil-composition/accessor.h>
-#include <stencil-composition/domain_type.h>
-#include <stencil-composition/backend.h>
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/domain_type.hpp>
+#include <stencil-composition/backend.hpp>
 
 #include <stdio.h>
-#include <common/gt_assert.h>
+#include <common/gt_assert.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/current_function.hpp>
 
-#include <gridtools.h>
+#include <gridtools.hpp>
 
 // #ifdef CUDA_EXAMPLE
-// #include <stencil-composition/backend_cuda.h>
+// #include <stencil-composition/backend_cuda.hpp>
 // #else
-// #include <stencil-composition/backend_naive.h>
+// #include <stencil-composition/backend_naive.hpp>
 // #endif
 
 #include <boost/fusion/include/nview.hpp>

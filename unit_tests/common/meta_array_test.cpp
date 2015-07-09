@@ -10,7 +10,7 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #include <boost/type_traits/is_integral.hpp>
-#include <common/meta_array.h>
+#include <common/meta_array.hpp>
 #include <boost/mpl/vector/vector10.hpp>
 /*
  *
