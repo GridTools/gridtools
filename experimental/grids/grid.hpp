@@ -12,7 +12,7 @@ namespace gridtools {
     /**
     */
     template <typename Backend>
-    class trapezoid_2D_no_tile {
+    class trapezoid_2D_colored {
     public :
         using cells = location_type<0>;
         using edges = location_type<1>;
@@ -85,10 +85,10 @@ namespace gridtools {
         uint_t u_edge_size_j() const {return (u_edge_size_j(M));}
         uint_t u_edge_size_i() const {return (u_edge_size_i(M));}
 
-        trapezoid_2D_no_tile() = delete;
+        trapezoid_2D_colored() = delete;
     public :
 
-        trapezoid_2D_no_tile(uint_t N, uint_t M)
+        trapezoid_2D_colored(uint_t N, uint_t M)
             : M{M}
             , N{N}
             , m_v_cell_storage(u_cell_size({u_cell_size_i(N),u_cell_size_j(M)}))

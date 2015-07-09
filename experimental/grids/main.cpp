@@ -16,15 +16,13 @@ using int_t = int;
 #include "array_addons.hpp"
 #include "placeholders.hpp"
 #include "make_stencil.hpp"
-#include "accessor.hpp"
-
-
+#include "iterate_domain.hpp"
 
 using gridtools::layout_map;
 using gridtools::wrap_pointer;
 
 
-using trapezoid_2D = gridtools::trapezoid_2D_no_tile<gridtools::_backend>;
+using trapezoid_2D = gridtools::trapezoid_2D_colored<gridtools::_backend>;
 
 using cell_storage_type = typename trapezoid_2D::cell_storage_t;
 using edge_storage_type = typename trapezoid_2D::edge_storage_t;
@@ -185,7 +183,7 @@ struct stencil_on_edges {
                 std::cout << "e";
 #endif
                 return _in+_res;
-};
+            };
         eval(out_edges()) = eval(on_neighbors(in(), ff, 0.0))+ eval(on_neighbors(in_edges(), ff, 0.0));
     }
 };
@@ -231,7 +229,7 @@ int main() {
     cell_storage_type cells(product(trapezoid_2D::u_cell_size(gridtools::array<uint_t, 2>{NC, MC})));
     edge_storage_type edges(product(trapezoid_2D::u_edge_size(gridtools::array<uint_t, 2>{NE, ME})));
 
-    trapezoid_2D grid(/*cells, edges,*/ 6, 12);
+    trapezoid_2D grid( 6, 12 );
 
     EVAL_C(cell2cells_ll_p0, 1, 1, (gridtools::array<uint_t,3>{9, 24, 25}));
     EVAL_C(cell2cells_ll_p0, 1, 2, (gridtools::array<uint_t,3>{10, 25, 26}));
@@ -312,7 +310,7 @@ int main() {
                                           edge_storage_type*>
             (&cells_out, &cells, &edges_out, &edges);
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (ptrs, grid);
 
@@ -343,7 +341,7 @@ int main() {
         auto x = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
             (out_cells(), out_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
              (&cells_out, &cells, &edges_out, &edges), grid);
@@ -375,7 +373,7 @@ int main() {
         auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
              (&cells_out, &cells, &edges_out, &edges), grid);
@@ -407,7 +405,7 @@ int main() {
         auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
 
-        accessor_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
             (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
              (&cells_out, &cells, &edges_out, &edges), grid);

@@ -199,7 +199,7 @@ struct accessor {
    ways to access data and the implementation of iterating on neighbors.
  */
 template <typename PlcVector, typename GridType, typename LocationType>
-struct accessor_type {
+struct iterate_domain {
 
 private:
 
@@ -307,16 +307,10 @@ private:
         }
     };
 
-    void _increment_pointers_i()
+    void _increment_pointers_k()
     {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_move_pointers<0, pointers_t, grid_type>(pointers, m_grid));
-    }
-
-    void _increment_pointers_j()
-    {
-        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_move_pointers<1, pointers_t, grid_type>(pointers, m_grid));
+        boost::mpl::for_each<indices>(_move_pointers<2, pointers_t, grid_type>(pointers, m_grid));
     }
 
     void _reset_pointers()
@@ -334,7 +328,7 @@ private:
     }
 
 public:
-    accessor_type(storage_types const& storages, GridType const& m_grid)
+    iterate_domain(storage_types const& storages, GridType const& m_grid)
         : storages(storages)
         , m_grid(m_grid)
     {
@@ -343,10 +337,10 @@ public:
 
     GridType const& grid() const {return m_grid;}
 
-    void inc_ll_k() {++m_ll_k; _increment_pointers_j();}
+    void inc_ll_k() {++m_ll_k; _increment_pointers_k();}
 
     template <typename LocationT>
-    void set_ll_ij(int i, int j, int k) {
+    void set_ll_ijk(int i, int j, int k) {
         m_ll_i = i;
         m_ll_j = j;
         m_ll_k = k;
