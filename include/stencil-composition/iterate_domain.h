@@ -179,8 +179,14 @@ namespace gridtools {
                     Coordinate,
                     strides_cached_t,
                     typename local_domain_t::local_args_type
-                >(local_domain.local_args, Execution::value, &m_index[0], *m_strides)
-            );
+                >(local_domain.local_args,
+#ifdef __CUDACC__ //stupid nvcc
+                  boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
+#else
+                  Execution::value
+#endif
+                  , &m_index[0], *m_strides)
+                );
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
