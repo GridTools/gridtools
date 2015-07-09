@@ -95,7 +95,9 @@ namespace test_iterate_domain{
     it_domain_t it_domain(local_domain1);
 
     GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES==3, "bug in iterate domain, incorrect number of storages");
+
     GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_DATA_POINTERS==23, "bug in iterate domain, incorrect number of data pointers");
+
 
     array<void* RESTRICT,it_domain_t::N_DATA_POINTERS> data_pointer;
     strides_cached<it_domain_t::N_STORAGES-1, typename decltype(local_domain1)::esf_args> strides;

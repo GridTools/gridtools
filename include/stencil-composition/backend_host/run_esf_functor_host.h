@@ -12,7 +12,7 @@ namespace gridtools {
     struct run_esf_functor_host : public
         run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > //CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
         typedef run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
@@ -28,7 +28,7 @@ namespace gridtools {
         GT_FUNCTION
         void do_impl() const
         {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
             functor_t::Do(this->m_iterate_domain, IntervalType());
         }

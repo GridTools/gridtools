@@ -107,12 +107,12 @@ namespace gridtools{
         template<typename RunFunctorArgs, enumtype::strategy StrategyId>
         struct mss_loop
         {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
             template<typename LocalDomain, typename Coords>
             static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
             {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
 
                 execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, coords, bi, bj)();
             }
@@ -146,7 +146,7 @@ namespace gridtools{
         template<enumtype::strategy StrategyId>
         struct requires_temporary_redundant_halos
         {
-            GRIDTOOLS_STATIC_ASSERT((StrategyId==enumtype::Block), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((StrategyId==enumtype::Block), "Internal Error: wrong type");
             typedef boost::mpl::true_ type;
         };
 
@@ -156,7 +156,7 @@ namespace gridtools{
         template<enumtype::strategy StrategyId>
         struct get_block_size {
             GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block,
-                    "For CUDA backend only Block strategy is supported")
+                                    "For CUDA backend only Block strategy is supported");
             typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
         };
 
@@ -168,7 +168,7 @@ namespace gridtools{
          */
         template <typename LocalDomain>
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
             template<typename _LocalDomain>
             struct select_positional_iterate_domain

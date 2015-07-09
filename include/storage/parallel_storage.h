@@ -56,9 +56,9 @@ namespace gridtools {
         template <typename ... UInt>
         bool mine(UInt const& ... coordinates_)
             {
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= super::space_dimensions), "not enough indices specified in the call to parallel_storage::mine()")
-                    GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= super::space_dimensions), "too many indices specified in the call to parallel_storage::mine()")
-                    uint_t coords[super::space_dimensions]={coordinates_ ...};
+                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= super::space_dimensions), "not enough indices specified in the call to parallel_storage::mine()");
+                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= super::space_dimensions), "too many indices specified in the call to parallel_storage::mine()");
+                uint_t coords[super::space_dimensions]={coordinates_ ...};
                 bool result=true;
                 for(ushort_t i=0; i<super::space_dimensions; ++i)
                     if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
@@ -87,7 +87,7 @@ namespace gridtools {
         */
         template<uint_t Component>
         uint_t const& local_to_global(uint_t const& value){
-            GRIDTOOLS_STATIC_ASSERT(Component<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of local_to_global")
+            GRIDTOOLS_STATIC_ASSERT(Component<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of local_to_global");
             return m_partitioner->template global_offset<Component>()+value;}
 
         /**
@@ -97,7 +97,7 @@ namespace gridtools {
         */
         template<ushort_t Dimension>
         halo_descriptor const& get_halo_descriptor() const {
-            GRIDTOOLS_STATIC_ASSERT(Dimension<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor")
+            GRIDTOOLS_STATIC_ASSERT(Dimension<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
             return m_coordinates[Dimension];}
 
         /**

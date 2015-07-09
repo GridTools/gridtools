@@ -49,7 +49,7 @@ struct execute_kernel_functor_host
         }
     };
 
-    GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
     typedef typename RunFunctorArguments::local_domain_t local_domain_t;
     typedef typename RunFunctorArguments::coords_t coords_t;
 
@@ -82,9 +82,9 @@ struct execute_kernel_functor_host
 
         // in the host backend there should be only one esf per mss
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::range_sizes_t>::value==1),
-                "Internal Error: wrong size")
+                                "Internal Error: wrong size");
         typedef typename boost::mpl::back<typename RunFunctorArguments::range_sizes_t>::type range_t;
-        GRIDTOOLS_STATIC_ASSERT((is_range<range_t>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_range<range_t>::value), "Internal Error: wrong type");
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Host> backend_traits_t;

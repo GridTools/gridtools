@@ -30,15 +30,15 @@ namespace gridtools {
           printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);
       }
         // check the parameters are of type level
-        GRIDTOOLS_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level")
-        GRIDTOOLS_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level")
+        GRIDTOOLS_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");
+        GRIDTOOLS_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level");
 
         // check the from level is lower or equal to the to level
         GRIDTOOLS_STATIC_ASSERT(
                             (TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
                             (TFromLevel::Splitter::value == TToLevel::Splitter::value && TFromLevel::Offset::value <= TToLevel::Offset::value),
                             "check the from level is lower or equal to the to level"
-                            )
+            );
 
         // define the from and to splitter indexes
         typedef TFromLevel FromLevel;

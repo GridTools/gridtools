@@ -22,7 +22,7 @@ namespace gridtools
     struct iterate_domain_local_domain<IterateDomainImpl<IterateDomainBase, LocalDomain> >
     {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomainImpl<IterateDomainBase, LocalDomain> >::value),
-                "Internal Error: wrong type")
+                                "Internal Error: wrong type");
         typedef LocalDomain type;
     };
 }

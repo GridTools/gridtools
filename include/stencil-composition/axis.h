@@ -33,7 +33,7 @@ namespace gridtools {
 
     template <typename Axis, typename Partitioner=partitioner_dummy>
     struct coordinates : public clonable_to_gpu<coordinates<Axis, Partitioner> > {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type");
         typedef Axis axis_type;
         typedef Partitioner partitioner_t;
 
@@ -50,7 +50,7 @@ namespace gridtools {
             m_direction_i(direction_i),
             m_direction_j(direction_j)
         {
-            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.");
         }
 
 
@@ -63,7 +63,7 @@ namespace gridtools {
             , m_direction_j(storage_.template get_halo_descriptor<1>())//copy
         {
             GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy<Partitioner>::value,
-                                    "you have to add the partitioner to the coordinates template parameters")
+                                    "you have to add the partitioner to the coordinates template parameters");
         }
 
         GT_FUNCTION
@@ -73,7 +73,7 @@ namespace gridtools {
             , m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
             , m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
         {
-            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.")
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.");
         }
 
         GT_FUNCTION
@@ -99,7 +99,7 @@ namespace gridtools {
         template <typename Level>
         GT_FUNCTION
         uint_t value_at() const {
-            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), "Internal Error: wrong type")
+            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), "Internal Error: wrong type");
             int_t offs = Level::Offset::value;
             if (offs < 0) offs += 1;
             return value_list[Level::Splitter::value] + offs;

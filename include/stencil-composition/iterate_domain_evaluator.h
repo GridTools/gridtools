@@ -55,7 +55,7 @@ public:
 
     typedef typename _impl::iterate_domain_evaluator_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
     typedef typename iterate_domain_local_domain<iterate_domain_t>::type local_domain_t;
 
 
@@ -96,7 +96,7 @@ class iterate_domain_evaluator : public
 {
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_evaluator);
 public:
-    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Internal Error: wrong type");
     typedef iterate_domain_evaluator_base<iterate_domain_evaluator<IterateDomain, EsfArgsMap> > super;
 
     GT_FUNCTION
@@ -116,7 +116,7 @@ class positional_iterate_domain_evaluator : public
 {
 DISALLOW_COPY_AND_ASSIGN(positional_iterate_domain_evaluator);
 public:
-    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Internal Error: wrong type");
     typedef iterate_domain_evaluator_base<positional_iterate_domain_evaluator<IterateDomain, EsfArgsMap> > super;
 
     GT_FUNCTION
@@ -145,7 +145,7 @@ public:
 template<typename IterateDomain, typename EsfArgsMap>
 struct get_iterate_domain_evaluator
 {
-    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Internal Error: wrong type");
     template<typename _IterateDomain, typename _EsfArgsMap>
     struct select_basic_iterate_domain_evaluator
     {

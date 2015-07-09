@@ -168,7 +168,7 @@ namespace gridtools {
     template <typename ExecutionEngine,
               typename EsfDescrSequence>
     struct mss_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
     };
 
     template<typename mss>
@@ -230,7 +230,7 @@ namespace gridtools {
     template<typename MssDescriptor>
     struct mss_compute_range_sizes
     {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
 
         /**
          * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
@@ -254,7 +254,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
-                    boost::mpl::size<type>::value), "Internal Error: wrong size")
+             boost::mpl::size<type>::value), "Internal Error: wrong size");
     };
 
 } // namespace gridtools

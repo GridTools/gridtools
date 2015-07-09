@@ -50,7 +50,7 @@ namespace gridtools {
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type");
 
                 elem.init(m_arg_list, 0,0,0);
                 elem.clone_to_gpu();
@@ -83,7 +83,7 @@ namespace gridtools {
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & mss_local_domain_list) const {
-                GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain<Elem>::value), "Internal Error: wrong type")
+                GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain<Elem>::value), "Internal Error: wrong type");
 
                 boost::fusion::for_each(mss_local_domain_list.local_domain_list,
                                         _impl::instantiate_local_domain<ArgList, IsStateful>(m_arg_list)
@@ -267,8 +267,8 @@ namespace gridtools {
         bool IsStateful
     > struct create_mss_local_domains
     {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
 
         struct get_the_mss_local_domain {
             template <typename T>
@@ -296,8 +296,8 @@ namespace gridtools {
     >
     struct create_actual_arg_list
     {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type")
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -341,11 +341,11 @@ namespace gridtools {
               typename Coords,
               bool IsStateful>
     struct intermediate : public computation {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type")
-        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type")
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type")
-        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type")
-        GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type");
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
@@ -507,7 +507,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
-                    "Internal Error")
+                    "Internal Error");
 
             Backend::template run<mss_components_array_t>( m_coords, mss_local_domain_list );
         }

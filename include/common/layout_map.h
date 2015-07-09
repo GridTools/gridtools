@@ -183,6 +183,7 @@ namespace gridtools {
         static constexpr typename _impl::first_type<Indices...>::type
         find(Indices & ... indices) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)<=length, "Too many arguments");
+
             return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
         }
 
@@ -291,8 +292,8 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type")
-                return ((pos_<I>::value >= length)) ?
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type");
+            return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
                 indices.template get<Tuple::n_dim-pos_<I>::value-1>();
@@ -846,8 +847,8 @@ namespace gridtools {
                 return DefaultVal;
             } else {
                 assert( Tuple::n_dim-pos_<I>::value-1 >=0 );
-                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a negative index")
-                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets out of bounds")
+                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a negative index");
+                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets out of bounds");
                 return indices.template get<Tuple::n_dim-pos_<I>::value-1>();
             }
         }

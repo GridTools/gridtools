@@ -127,8 +127,8 @@ namespace gridtools {
     template <typename Range1,
               typename Range2>
     struct union_ranges {
-        GRIDTOOLS_STATIC_ASSERT((is_range<Range1>::value), "Internal Error: invalid type")
-        GRIDTOOLS_STATIC_ASSERT((is_range<Range2>::value), "Internal Error: invalid type")
+        GRIDTOOLS_STATIC_ASSERT((is_range<Range1>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_range<Range2>::value), "Internal Error: invalid type");
 
         typedef range<
             (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,

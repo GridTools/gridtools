@@ -38,7 +38,7 @@ namespace gridtools{
 
         static const ushort_t space_dimensions=topology_t::space_dimensions;
 
-        GRIDTOOLS_STATIC_ASSERT(is_cell_topology<GridTopology>::value, "check that the first template argument to the partitioner is a supported cell_topology type")
+        GRIDTOOLS_STATIC_ASSERT(is_cell_topology<GridTopology>::value, "check that the first template argument to the partitioner is a supported cell_topology type");
         /**@brief constructor
 
            suppose we are using an MPI cartesian communicator:

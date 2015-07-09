@@ -69,7 +69,7 @@ namespace _impl_cuda {
 template <typename RunFunctorArguments >
 struct execute_kernel_functor_cuda
 {
-    GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type")
+    GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
     typedef typename RunFunctorArguments::local_domain_t local_domain_t;
     typedef typename RunFunctorArguments::coords_t coords_t;
 

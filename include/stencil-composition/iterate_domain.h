@@ -57,7 +57,7 @@ namespace gridtools {
         template<template<typename> class, typename> class IterateDomainImpl >
     struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
     {
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
         typedef LocalDomain type;
     };
 
@@ -66,7 +66,7 @@ namespace gridtools {
     struct iterate_domain {
         typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type")
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
                 typename local_domain_t::mpl_storages, 0>::type
@@ -139,7 +139,7 @@ namespace gridtools {
         template<typename BackendType, typename Strides>
         GT_FUNCTION
         void assign_stride_pointers( Strides * RESTRICT strides_){
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type")
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
             assert(strides_);
             m_strides=strides_;
             for_each< typename reversed_range<int_t, 0, N_STORAGES >::type > (
@@ -518,12 +518,13 @@ namespace gridtools {
         //which does not correspond to the size of the extended placeholder for that storage
         GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions+2/*max. extra dimensions*/>=ArgType::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
 
+
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
-        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
+        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
-        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(Dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, Dimension<5> >::set<2> z_field; \n eval(z_field()); \n")
+        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(Dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, Dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
             //dimension/snapshot offsets must be non negative
         assert(arg.template get<0>()>=0);
@@ -567,13 +568,13 @@ namespace gridtools {
 
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
-        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor")
-        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+        GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
+        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
         GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>()>=0,
-                                    "offset specified for the dimension corresponding to the number of snapshots must be non negative")
+                                "offset specified for the dimension corresponding to the number of snapshots must be non negative");
         GRIDTOOLS_STATIC_ASSERT( (ArgType::type::n_dim <= storage_type::space_dimensions+1) ||
                                      (accessor_mixed_t::template get_constexpr<1>()>=0),
-                                     "offset specified for the dimension corresponding to the number of field components must be non negative")
+                                 "offset specified for the dimension corresponding to the number of field components must be non negative");
 
         return get_value(arg,
                          (*m_data_pointer)[ //static if
@@ -614,7 +615,7 @@ namespace gridtools {
                                     typename local_domain_t::esf_args,
                                     typename ArgType::index_type
                                     >::type::storage_type::space_dimensions),
-                                "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.")
+                                "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
 
