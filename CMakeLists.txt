@@ -150,7 +150,7 @@ endif()
 ##################################################################
 
 ######################### set the type of floats #################
-set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.h for configuration)" )
+set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 if(SINGLE_PRECISION)
   add_definitions(-DFLOAT_PRECISION=4)
   message("-- computations in single precision")
@@ -185,7 +185,7 @@ if( USE_MPI )
 endif()
 
 
-ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h )
+ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
 
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXX_FLAGS}" )
 
