@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <fstream>
 
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/interval.h>
-#include <stencil-composition/make_computation.h>
+#include <gridtools.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/make_computation.hpp>
 // [includes]
 
 /*! @file

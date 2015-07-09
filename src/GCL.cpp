@@ -1,4 +1,4 @@
-#include <communication/GCL.h>
+#include <communication/GCL.hpp>
 
 #ifdef _GCL_GPU_
 #ifdef GCL_MULTI_STREAMS

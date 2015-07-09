@@ -1,14 +1,14 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 #include <iostream>
-#include <common/defs.h>
-#include <stencil-composition/intermediate_metafunctions.h>
-#include <stencil-composition/make_computation.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/interval.h>
-#include <stencil-composition/local_domain.h>
-#include <stencil-composition/backend_host/iterate_domain_host.h>
-#include <stencil-composition/accessor.h>
+#include <common/defs.hpp>
+#include <stencil-composition/intermediate_metafunctions.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/local_domain.hpp>
+#include <stencil-composition/backend_host/iterate_domain_host.hpp>
+#include <stencil-composition/accessor.hpp>
 
 namespace test_iterate_domain{
     using namespace gridtools;

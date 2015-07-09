@@ -9,17 +9,17 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <cuda_runtime.h>
+#include <cuda_runtime.hpp>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
-#include <stencil-composition/domain_type.h>
-#include <stencil-composition/accessor.h>
-#include <stencil-composition/intermediate.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/intermediate.h>
+#include <common/gpu_clone.hpp>
+#include <storage/hybrid_pointer.hpp>
+#include <stencil-composition/domain_type.hpp>
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/intermediate.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/intermediate.hpp>
 #include <boost/current_function.hpp>
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>
