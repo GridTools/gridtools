@@ -9,7 +9,7 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <cuda_runtime.hpp>
+#include <cuda_runtime.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>

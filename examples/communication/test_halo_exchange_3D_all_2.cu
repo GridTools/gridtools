@@ -5,15 +5,15 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.h>
+#include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <common/layout_map.h>
-#include <common/boollist.h>
+#include <common/layout_map.hpp>
+#include <common/boollist.hpp>
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "triplet.h"
+#include "triplet.hpp"
 
 int pid;
 int nprocs;

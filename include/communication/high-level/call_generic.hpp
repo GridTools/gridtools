@@ -5,7 +5,7 @@
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 
-#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, <call_generic.h>))
+#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, <call_generic.hpp>))
 #include BOOST_PP_ITERATE()
 
 #else
@@ -15,7 +15,7 @@
 #define _PACK_F_NAME(x) m_pack ## x ##_generic_nv
 #define PACK_F_NAME(x) _PACK_F_NAME(x)
 
-#define _PACK_FILE_NAME(x) invoke_kernels_ ## x ## _PP.h
+#define _PACK_FILE_NAME(x) invoke_kernels_ ## x ## _PP.hpp
 #define PACK_FILE_NAME(x) _PACK_FILE_NAME(x)
 
 
@@ -24,8 +24,8 @@
 
 
 template < BOOST_PP_ENUM_PARAMS(noi, typename FOTF_T) >
-void PACK_F_NAME(KERNEL_TYPE)( BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &field) , 
-                               void** d_msgbufTab, 
+void PACK_F_NAME(KERNEL_TYPE)( BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &field) ,
+                               void** d_msgbufTab,
                                const int * d_msgsize)
 {
   //print_FIELDS(noi);
@@ -35,19 +35,19 @@ void PACK_F_NAME(KERNEL_TYPE)( BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &f
 #include _QUOTE(PACK_FILE_NAME(KERNEL_TYPE))
 #undef QUOTE
 #undef _QUOTE
-} 
+}
 
 #define _UNPACK_F_NAME(x) m_unpack ## x ##_generic_nv
 #define UNPACK_F_NAME(x) _UNPACK_F_NAME(x)
 
-#define _UNPACK_FILE_NAME(x) invoke_kernels_U_ ## x ## _PP.h
+#define _UNPACK_FILE_NAME(x) invoke_kernels_U_ ## x ## _PP.hpp
 #define UNPACK_FILE_NAME(x)  _UNPACK_FILE_NAME(x)
 
 #define MSTR(x) #x
 
 template < BOOST_PP_ENUM_PARAMS(noi, typename FOTF_T) >
-void UNPACK_F_NAME(KERNEL_TYPE)( BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &field) , 
-                                 void** d_msgbufTab_r, 
+void UNPACK_F_NAME(KERNEL_TYPE)( BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &field) ,
+                                 void** d_msgbufTab_r,
                                  int * d_msgsize_r)
 {
 
@@ -57,7 +57,7 @@ void UNPACK_F_NAME(KERNEL_TYPE)( BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const 
 #undef QUOTE
 #undef _QUOTE
 
-} 
+}
 
 #undef PACK_F_NAME
 #undef _PACK_F_NAME
