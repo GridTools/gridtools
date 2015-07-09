@@ -58,32 +58,28 @@ public:
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type")
     typedef typename iterate_domain_local_domain<iterate_domain_t>::type local_domain_t;
 
+
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-    template <template<uint_t ID, typename Range, ushort_t Number> class AccessorType, uint_t ID, typename Range// =range<0,0,0,0>
-              , ushort_t Number// =3
-              >
+
+    /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
+    template <typename Expression>
     GT_FUNCTION
+#ifdef CXX11_ENABLED
+    auto
+    operator() (Expression const&  arg) const -> decltype(m_iterate_domain(arg))
+#else
     typename boost::mpl::at<
         typename local_domain_t::esf_args,
-        typename AccessorType<ID, Range, Number>::type::index_type
+        typename Expression::type::index_type
     >::type::value_type& RESTRICT
-    operator()(AccessorType<ID, Range, Number> const& accessor) const {
-        typedef typename remap_accessor_type<AccessorType<ID, Range, Number>, esf_args_map_t>::type remap_accessor_t;
-        return m_iterate_domain(remap_accessor_t(accessor));
-    }
-
-#ifdef CXX11_ENABLED
-    /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
-    template <template<typename ... Args> class Expression, typename ... Arguments>
-    GT_FUNCTION
-    auto operator() (Expression<Arguments ... >  arg) const -> decltype(m_iterate_domain(arg))
+    operator() (Expression const&  arg) const
+#endif
         {
-            typedef typename remap_accessor_type<Expression<Arguments...>, esf_args_map_t>::type remap_accessor_t;
+            typedef typename remap_accessor_type<Expression, esf_args_map_t>::type remap_accessor_t;
             return m_iterate_domain(remap_accessor_t(arg));
         }
-#endif
 
 protected:
 };

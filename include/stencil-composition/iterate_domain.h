@@ -170,7 +170,7 @@ namespace gridtools {
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
          */
-        template <ushort_t Coordinate, enumtype::execution Execution>
+        template <ushort_t Coordinate, typename Execution>
         GT_FUNCTION
         void increment()
         {
@@ -179,15 +179,20 @@ namespace gridtools {
                     Coordinate,
                     strides_cached_t,
                     typename local_domain_t::local_args_type
-                >(local_domain.local_args, Execution==enumtype::forward ? 1:-1, &m_index[0], *m_strides)
-            );
+                >(local_domain.local_args,
+#ifdef __CUDACC__ //stupid nvcc
+                  boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
+#else
+                  Execution::value
+#endif
+                  , &m_index[0], *m_strides)
+                );
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
 
            \param steps_ the increment
            \tparam Coordinate dimension being incremented
-           \tparam Execution the policy for the increment (e.g. forward/backward)
          */
         template <ushort_t Coordinate>
         GT_FUNCTION
@@ -382,22 +387,19 @@ namespace gridtools {
 #endif
 
         /**@brief method for incrementing the index when moving forward along the k direction */
-        template <ushort_t Coordinate, enumtype::execution Execution>
+        template <ushort_t Coordinate, typename Execution>
         GT_FUNCTION
         void increment()
         {
-            //TODOCOSUNA recover
-            //            assert(Execution == enumtype::forward || Execution == enumtype::backward);
             if (Coordinate==0) {
-                (Execution == enumtype::backward) ? m_i -= 1 : m_i += 1;
+                m_i += Execution::value;
             }
             if (Coordinate==1) {
-                (Execution == enumtype::backward) ? m_j -= 1 : m_j += 1;
+                m_j += Execution::value;
             }
-            //TODOCOSUNA what with the increment of k? Is it GONE?
-            base_t::template increment<Coordinate, Execution>();
             if( Coordinate==2)
-                (Execution == enumtype::backward) ? m_k -= 1 : m_k += 1;
+                m_k += Execution::value;
+            base_t::template increment<Coordinate, Execution>();
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
@@ -405,8 +407,6 @@ namespace gridtools {
         GT_FUNCTION
         void increment(const uint_t steps_)
         {
-            //TODOCOSUNA recover
-            //            assert(Execution == enumtype::forward || Execution == enumtype::backward);
             if (Coordinate==0) {
                 m_i+=steps_;
             }
