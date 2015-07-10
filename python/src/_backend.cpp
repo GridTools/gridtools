@@ -1,11 +1,11 @@
 #include <iostream>
 #include <boost/numpy.hpp>
 
-#include "IJKSizeConverter.h"
-#include "DataFieldRepositoryPy.h"
+#include "IJKSizeConverter.hpp"
+#include "DataFieldRepositoryPy.hpp"
 
-#include "Coriolis.h"
-#include "HorizontalAdvection.h"
+#include "Coriolis.hpp"
+#include "HorizontalAdvection.hpp"
 
 
 
@@ -43,7 +43,7 @@ BOOST_PYTHON_MODULE (_backend)
     //
     // 3D calculation domain
     //
-    bp::class_<IJKSize> ("IJKSize") 
+    bp::class_<IJKSize> ("IJKSize")
         .def ("get_i",
               &IJKSize::iSize)
         .def ("get_j",
@@ -68,7 +68,7 @@ BOOST_PYTHON_MODULE (_backend)
     //
     // register shared pointers to different C++ types as valid Python objects;
     // the registration also prevents Python from copying, creating (i.e. no_init),
-    // and destroying objects of these classes, since their memory management 
+    // and destroying objects of these classes, since their memory management
     // is controlled from C++
     //
     bp::class_<JRealField, boost::shared_ptr<JRealField>, boost::noncopyable> ("JRealField", bp::no_init);
@@ -77,17 +77,17 @@ BOOST_PYTHON_MODULE (_backend)
 
     //
     // stencils exported from the backend, which are used by the proxy
-    // classes in the 'stella.stencils' Python module. 
+    // classes in the 'stella.stencils' Python module.
     // They are easily recognizable because they have the same name.
     //
 
     //
     // select the correct version of the overloaded function ...
     //
-    void (Coriolis::*CoriolisInit)(IJKRealField&, 
-                                   IJKRealField&, 
-                                   IJKRealField&, 
-                                   IJKRealField&, 
+    void (Coriolis::*CoriolisInit)(IJKRealField&,
+                                   IJKRealField&,
+                                   IJKRealField&,
+                                   IJKRealField&,
                                    IJRealField&) = &Coriolis::Init;
     //
     // ... before exposing it
@@ -124,4 +124,3 @@ BOOST_PYTHON_MODULE (_backend)
               &HorizontalAdvectionUV::Apply)
     ;
 }
-

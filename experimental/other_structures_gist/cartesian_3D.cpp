@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
-#include <boost/timer/timer.hpp>
+#include <boost/timer/timer.hpppp>
 #include <thread>
 #include <cstdlib>
 
@@ -18,14 +18,14 @@
 struct neighbor_offsets {
     int m_offset[6];
     static const int n_neighbors = 6;
-    neighbor_offsets(int , int b, int c) 
-        : m_offset{-b*c, b*c, -c, c, -1, 1} 
+    neighbor_offsets(int , int b, int c)
+        : m_offset{-b*c, b*c, -c, c, -1, 1}
     {
         // int i=0;
         // std::for_each(&m_offset[0], &m_offset[6], [&i](int x) {std::cout << "Offset " << i++ << " " << x << std::endl;});
     }
 
-    neighbor_offsets() 
+    neighbor_offsets()
         : m_offset{0,0,0,0,0,0}
     {}
 
@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
         boost::timer::cpu_timer time_lap;
         for (int th=0; th<n_threads; ++th) {
             threads[th] = std::thread([th, n,m,l,iter_space,&lap, &storage,&th_output]{
-                    th_output[th] = std::to_string(1+(iter_space)*th) + " to " + std::to_string((iter_space)*(th+1)) 
+                    th_output[th] = std::to_string(1+(iter_space)*th) + " to " + std::to_string((iter_space)*(th+1))
                         + " n=" + std::to_string(n)
                         + " m=" + std::to_string(m)
                         + " l=" + std::to_string(l);
@@ -331,9 +331,9 @@ int main(int argc, char** argv) {
 
         if (std::equal(lap.begin(), lap.end(), lap_cool.begin(),
                        [] (double const & v1
-                          , double const & v2) 
+                          , double const & v2)
                         ->bool
-                       { /* if (std::abs((v1)-(v2))>=1e-10) 
+                       { /* if (std::abs((v1)-(v2))>=1e-10)
                             {std::cout << std::abs((v1)-(v2)) << std::endl;} */
                            return (std::abs((v1)-(v2))<1e-10);})) {
             std::cout << "PASSED!" << std::endl;

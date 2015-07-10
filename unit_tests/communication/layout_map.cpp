@@ -7,7 +7,7 @@
 #endif
 
 #include <iostream>
-#include <common/layout_map.h>
+#include <common/layout_map.hpp>
 
 #ifndef NDEBUG
 #define _output(x)         std::cout << x << std::endl;

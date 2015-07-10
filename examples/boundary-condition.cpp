@@ -1,10 +1,10 @@
-#include <gridtools.h>
-#include <common/halo_descriptor.h>
+#include <gridtools.hpp>
+#include <common/halo_descriptor.hpp>
 
 #ifdef CUDA_EXAMPLE
-#include <boundary-conditions/apply_gpu.h>
+#include <boundary-conditions/apply_gpu.hpp>
 #else
-#include <boundary-conditions/apply.h>
+#include <boundary-conditions/apply.hpp>
 #endif
 
 using gridtools::direction;
@@ -13,7 +13,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.h>
+#include <stencil-composition/backend.hpp>
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
     coeff.initialize(8);
     coeff.set_name("coeff");
 #pragma GCC diagnostic pop
-    
+
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {

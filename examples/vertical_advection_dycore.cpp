@@ -1,4 +1,4 @@
-#include "vertical_advection_dycore.h"
+#include "vertical_advection_dycore.hpp"
 
 int main(int argc, char** argv)
 {

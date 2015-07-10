@@ -1,14 +1,14 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 #include <iostream>
-#include <common/defs.h>
-#include <stencil-composition/intermediate_metafunctions.h>
-#include <stencil-composition/make_computation.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/interval.h>
-#include <stencil-composition/local_domain.h>
-#include <stencil-composition/backend_host/iterate_domain_host.h>
-#include <stencil-composition/accessor.h>
+#include <common/defs.hpp>
+#include <stencil-composition/intermediate_metafunctions.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/local_domain.hpp>
+#include <stencil-composition/backend_host/iterate_domain_host.hpp>
+#include <stencil-composition/accessor.hpp>
 
 namespace test_iterate_domain{
     using namespace gridtools;
@@ -95,7 +95,9 @@ namespace test_iterate_domain{
     it_domain_t it_domain(local_domain1);
 
     GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES==3, "bug in iterate domain, incorrect number of storages");
+
     GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_DATA_POINTERS==23, "bug in iterate domain, incorrect number of data pointers");
+
 
     array<void* RESTRICT,it_domain_t::N_DATA_POINTERS> data_pointer;
     strides_cached<it_domain_t::N_STORAGES-1, typename decltype(local_domain1)::esf_args> strides;

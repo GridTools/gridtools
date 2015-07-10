@@ -1,20 +1,20 @@
 #include "gtest/gtest.h"
 
 #define SILENT_RUN
-#include "test_domain_indices.h"
-#include "test_smallstorage_indices.h"
-#include "boundary_conditions_test.h"
-#include "../examples/interface1.h"
-#include "../examples/positional_copy_stencil.h"
-#include "copies_2D_1D_0D.h"
-#include "../examples/tridiagonal.h"
-#include "external_ptr_test/CopyStencil.h"
+#include "test_domain_indices.hpp"
+#include "test_smallstorage_indices.hpp"
+#include "boundary_conditions_test.hpp"
+#include "../examples/interface1.hpp"
+#include "../examples/positional_copy_stencil.hpp"
+#include "copies_2D_1D_0D.hpp"
+#include "../examples/tridiagonal.hpp"
+#include "external_ptr_test/CopyStencil.hpp"
 #ifdef CXX11_ENABLED
-#include "../examples/extended_4D.h"
-#include "test-assign-placeholders.h"
+#include "../examples/extended_4D.hpp"
+#include "test-assign-placeholders.hpp"
 #endif
-#include "accessor_tests.h"
-#include "loop_hierarchy_test.h"
+#include "accessor_tests.hpp"
+#include "loop_hierarchy_test.hpp"
 
 #include "communication/layout_map.cpp"
 
@@ -61,11 +61,11 @@ TEST(stencil, loop_hierarchy) {
 
 #define BACKEND_BLOCK
 #define TESTCLASS stencil_block
-#include "stencil_tests.h"
+#include "stencil_tests.hpp"
 #undef BACKEND_BLOCK
 #undef TESTCLASS
 #define TESTCLASS stencil
-#include "stencil_tests.h"
+#include "stencil_tests.hpp"
 
 #ifdef CXX11_ENABLED
 TEST(stencil, extended_4D) {
