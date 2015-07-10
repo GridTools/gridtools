@@ -22,8 +22,8 @@
 #include "Shards_CellTopologyData.h"
 #include "Shards_BasicTopologies.hpp"
 
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
+#include <gridtools.hpp>
+#include <stencil-composition/backend.hpp>
 
 namespace gridtools{
 #ifdef CUDA_EXAMPLE

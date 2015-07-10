@@ -1,7 +1,7 @@
 #pragma once
 
-#include <gridtools.h>
-#include <stencil-composition/accessor.h>
+#include <gridtools.hpp>
+#include <stencil-composition/accessor.hpp>
 
 #include <boost/type_traits.hpp>
 
@@ -11,7 +11,7 @@
 
 //just some of the possible discretizations
 #include "assembly_reference.h"
-#include <stencil-composition/interval.h>
+#include <stencil-composition/interval.hpp>
 
 
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;

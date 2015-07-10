@@ -1,7 +1,7 @@
 #pragma once
 
 // [includes]
-#include <stencil-composition/make_computation.h>
+#include <stencil-composition/make_computation.hpp>
 #include "basis_functions.h"
 
 #ifdef CXX11_ENABLED
