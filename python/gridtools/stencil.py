@@ -310,8 +310,8 @@ class StencilInspector (ast.NodeVisitor):
                     # found a new stage
                     #
                     funct_name  = '%s_%s_%03d' % (self.stencil.name.lower ( ),
-                                                    call.func.attr,
-                                                    len (self.scope.functor_scopes))
+                                                  call.func.attr,
+                                                  len (self.scope.functor_scopes))
                     funct_scope = self.scope.add_functor (funct_name)
                     #
                     # extract its parameters
@@ -338,9 +338,9 @@ class StencilInspector (ast.NodeVisitor):
                             for node in fun_def.body:
                                 if isinstance (node, ast.For):
                                     self.visit_For (node,
-                                                    funct_name=funct_name,
-                                                    funct_scope=funct_scope,
-                                                    independent=True)
+                                                    funct_name  = funct_name,
+                                                    funct_scope = funct_scope,
+                                                    independent = True)
 
 
     def visit_For (self, node, funct_name=None, funct_scope=None, independent=False):

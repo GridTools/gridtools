@@ -165,30 +165,26 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
 #else
     boost::shared_ptr<gridtools::computation> 
 #endif
+    {% set inside_independent_block = False %}
+
     comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND, layout_t>
       (
             gridtools::make_mss
             (
                 execute<{{ s.k_direction }}>(),
-                {% if independent_functors[s.name]|length > 0 %}
-                gridtools::make_independent (
-                {% for f in independent_functors[s.name] -%}
-                    gridtools::make_esf<{{ f.name }}>(
-                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
-                       {%- if not loop.last -%}
-                       ,
-                       {%- endif %}
-                {% endfor -%}
-                )
-                {%- endif -%}
                 {% for f in functors[s.name] -%}
-                    {%- if independent_functors[s.name]|length > 0 and loop.first -%}
-                    ,
-                    {%- endif %}
+                    {% if f.independent and not inside_independent_block -%}
+                        gridtools::make_independent (
+                        {% set inside_independent_block = True -%}
+                    {% endif -%}
+                    {% if not f.independent and inside_independent_block -%}
+                        ),
+                        {% set inside_independent_block = False -%}
+                    {% endif -%}
                     gridtools::make_esf<{{ f.name }}>(
-                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
-                       {%- if not loop.last -%}
+                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}() )
+                       {%- if not (loop.index0 in independent_funct_idx or loop.last) -%}
                        ,
                        {%- endif %}
                 {% endfor -%}
@@ -235,6 +231,7 @@ int main (int argc, char **argv)
     {% for p in params -%}
     float_type *{{ p.name }}_buff = (float_type *) malloc (dim1*dim2*dim3 * sizeof (float_type));
     {% endfor -%}
+
 
     // initialization
     for (int i = 0; i<dim1; i++) {
