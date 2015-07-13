@@ -25,9 +25,10 @@ if (GTEST_FOUND)
     set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp stencil-composition/test_iterate_domain.cpp)
 
     if ( ENABLE_CXX11 )
-        add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})
+      set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)
+      add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})
     else()
-        add_executable(tests ${COMMON_TESTS})
+      add_executable(tests ${COMMON_TESTS})
     endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
