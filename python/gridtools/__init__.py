@@ -5,6 +5,11 @@ from jinja2 import Environment, PackageLoader
 
 
 #
+# supported backends
+#
+BACKENDS = ('python', 'c++', 'cuda')
+
+#
 # initialize the template renderer environment
 #
 logging.debug ("Initializing the template environment ...")
