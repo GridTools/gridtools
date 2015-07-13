@@ -34,13 +34,6 @@
   In this example we introduce also another syntactic element in the high level expression: the operator exclamation mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like. It is used in this case to address the basis functions values.
 */
 
-#pragma once
-
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/interval.h>
-#include <stencil-composition/make_computation.h>
-
 #ifdef CXX11_ENABLED
 
 using namespace gridtools;

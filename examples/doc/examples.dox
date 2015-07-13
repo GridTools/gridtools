@@ -17,4 +17,6 @@
 
 \subpage ShallowWater "Shallow Water Finite Differences"
 
+\subpage Galerkin "Laplacian Finite Elements"
+
 */

@@ -71,7 +71,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(
                     (level_to_index<typename coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
                     level_to_index<typename coords_t::axis_type::ToLevel>::value >= Interval::second::value) ,
-                    "the k interval exceeds the axis you specified for the coordinates instance");
+                    "the k interval exceeds the axis you specified for the coordinates instance");;
 
 
                 typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;

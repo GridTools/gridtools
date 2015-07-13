@@ -264,6 +264,16 @@ namespace gridtools {
         }
 #endif
 
+        template<typename Accessor>
+        int_t const* get_storage_dims(Accessor const&){
+            boost::fusion::at_c<Accessor::index_type>(local_domain.local_args).dims();
+        }
+
+        template<typename Accessor>
+        int_t const* get_storage_strides(Accessor const&){
+            boost::fusion::at_c<Accessor::index_type>(local_domain.local_args).strides();
+        }
+
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders
 

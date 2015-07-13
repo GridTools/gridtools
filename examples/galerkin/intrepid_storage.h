@@ -76,9 +76,9 @@ namespace gridtools{
 
         template<typename ... UInt>
         typename storage_t::value_type const& operator()(UInt ... indices) const {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)<=Storage::space_dimensions, "accessing the storage using too many indices")
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)<=Storage::space_dimensions, "accessing the storage using too many indices");
                 return operator_selector<Storage::space_dimensions>::apply(&m_storage, indices ...);
-            // GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)>=Storage::space_dimensions, "accessing the storage using too few indices")
+            // GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)>=Storage::space_dimensions, "accessing the storage using too few indices");
         }
 
         template <typename ... UInt>

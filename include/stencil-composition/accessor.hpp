@@ -135,7 +135,7 @@ namespace gridtools {
             GT_FUNCTION
             constexpr Dimension(IntType val) : value
 #if( (!defined(CXX11_ENABLED)) )
-                                             (val)
+                                               (val)
 #else
                 {val}
 #endif

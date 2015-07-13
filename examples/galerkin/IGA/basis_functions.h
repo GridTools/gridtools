@@ -1,9 +1,9 @@
 #pragma once
 #define PEDANTIC_DISABLED
-#include <gridtools.h>
-#include <storage/storage.h>
-#include <stencil-composition/make_computation.h>
-#include <stencil-composition/backend.h>
+#include <gridtools.hpp>
+#include <storage/storage.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/backend.hpp>
 #include <type_traits>
 using namespace gridtools;
 using namespace expressions;
@@ -201,7 +201,7 @@ namespace b_spline{
         };
     };
 
-void test(int_t d1, int_t d2, int_t d3){
+void test(uint_t d1, uint_t d2, uint_t d3){
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<enumtype::Cuda, enumtype::Naive >

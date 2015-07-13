@@ -307,17 +307,16 @@ namespace gridtools {
 
 
         /** @brief initializes with a lambda function */
-        template <typename Callable>
         GT_FUNCTION
-        void initialize(Callable lambda, ushort_t const& dims=field_dimensions)
+        void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), ushort_t const& dims=field_dimensions)
             {
+
                 for(ushort_t f=0; f<dims; ++f)
                 {
                     for (uint_t i=0; i<this->m_dims[0]; ++i)
                         for (uint_t j=0; j<this->m_dims[1]; ++j)
                             for (uint_t k=0; k<this->m_dims[2]; ++k)
-                                for (uint_t m=0; m<this->m_dims[3]; ++m)
-                                    (m_fields[f])[_index(strides(),i,j,k,m)]=lambda(i, j, k, m);
+                                    (m_fields[f])[_index(strides(),i,j,k)]=lambda(i, j, k);
                 }
             }
 
@@ -600,14 +599,18 @@ namespace gridtools {
         GT_FUNCTION
         pointer_type const* fields() const {return &(m_fields[0]);}
 
-        /** @brief returns the dimension fo the field along I*/
+        /** @brief returns the dimension of the storage along I*/
         template<ushort_t I>
         GT_FUNCTION
-        uint_t dims() const {return m_dims[I];}
+        uint_t dims() const __attribute__ ((deprecated)) {return m_dims[I];}
 
-        /** @brief returns the dimension fo the field along I*/
+        /** @brief returns the dimension of the storage along I*/
         GT_FUNCTION
         uint_t dims(const ushort_t I) const {return m_dims[I];}
+
+        /** @brief returns the constant reference to the vector of dimensions*/
+        GT_FUNCTION
+        uint_t const* dims() const {return &m_dims[0];}
 
         /**@brief returns the storage strides
          */

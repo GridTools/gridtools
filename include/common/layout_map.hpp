@@ -12,13 +12,17 @@
 #ifdef CXX11_ENABLED
 #include <tuple>
 #endif
-
+#include "generic_metafunctions/gt_expand.hpp"
 /**
    @file
    @brief definifion of the data layout
    Here are defined the classes select_s and layout_map.
 */
 namespace gridtools {
+
+    //fwd decl
+    template <typename T>
+    struct is_layout_map;
 
 /**
    @struct
@@ -72,6 +76,7 @@ namespace gridtools {
     struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
 #endif
 
+
     /**
        Layout maps are simple sequences of integers specified
        statically. The specification happens as
@@ -100,6 +105,17 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
         typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
         /* BOOST_STATIC_ASSERT(s); */
+
+        template <class Layout >
+        struct append{
+
+            GRIDTOOLS_STATIC_ASSERT( is_layout_map<Layout>::value, "internal error" );
+
+            typedef typename boost::mpl::fold<
+                typename Layout::layout_vector_t,
+                layout_map<Args ... >,
+                layout_map<Args ..., boost::mpl::plus<boost::mpl::_2, static_ushort<length> >::value > >::type type;
+        };
 
         /** This function returns the value in the map that is stored at
             position 'I', where 'I' is passed in input as template
@@ -241,7 +257,7 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
         GT_FUNCTION
         static constexpr T find_val(First first, Indices ... indices) {
-            static_assert(sizeof...(Indices)<length, "Too many arguments");
+            static_assert(sizeof...(Indices)<=length, "Too many arguments");
             //lazy template instantiation
             typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) +1 ),
                 identity<T, DefaultVal>
@@ -384,6 +400,11 @@ namespace gridtools {
 
     template <typename layout> struct is_layout_map : boost::mpl::false_{};
     template <short_t ... Args> struct is_layout_map<layout_map<Args...> > : boost::mpl::true_{};
+
+    template < typename Map, ushort_t Pre, ushort_t Post >
+    struct sub_map{
+        typedef typename gt_expand<typename Map::layout_vector_t, layout_map, Pre, Post>::type type;
+    };
 
 #else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
 
