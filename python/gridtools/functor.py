@@ -171,10 +171,7 @@ class FunctorBody (ast.NodeVisitor):
             if self.scope.is_constant (name):
                 return str (symbol.value)
             else:
-                #
-                # replacing the dot with underscore gives a valid C++ name
-                #
-                return name.replace ('.', '_')
+                return name
         #
         # then within the enclosing scope, so to enforce correct scope shadowing
         #
@@ -193,10 +190,7 @@ class FunctorBody (ast.NodeVisitor):
                 self.scope.add_parameter (name,
                                           symbol.value,
                                           read_only=symbol.read_only)
-                #
-                # replacing the dot with underscore gives a valid C++ name
-                #
-                return name.replace ('.', '_')
+                return name
         else:
             raise RuntimeError ("Unknown symbol '%s'" % attr_name)
 
@@ -277,7 +271,7 @@ class FunctorBody (ast.NodeVisitor):
             self.scope.add_parameter (aliased.name,
                                       aliased.value,
                                       read_only=symbol.read_only)
-            return aliased.name.replace ('.', '_')
+            return aliased.name
         #
         # try to inline the value of this symbol
         #
@@ -326,8 +320,9 @@ class FunctorBody (ast.NodeVisitor):
                     #
                     # range detection for data fields
                     #
-                    if isinstance (node.value, ast.Name):
-                        name   = self.visit_Name (node.value)
+                    if (isinstance (node.value, ast.Name) or 
+                        isinstance (node.value, ast.Attribute)):
+                        name   = self.visit (node.value)
                         symbol = self.scope[name]
                         #
                         # range only makes sense for data fields, i.e., NumPy arrays
@@ -351,7 +346,7 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
 
-            return "eval(%s%s)" % (self.visit (node.value), 
+            return "eval(%s%s)" % (self.visit (node.value).replace ('.', '_'), 
                                    indexing)
         else:
             logging.warning ("Slicing operations cannot be translated")
@@ -364,7 +359,6 @@ class FunctorBody (ast.NodeVisitor):
         sign = self._sign_operator (node.op)
         return "%s%s" % (sign,
                          self.visit (node.operand))
-
 
 
 
