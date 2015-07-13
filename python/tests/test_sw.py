@@ -143,7 +143,7 @@ class SW (MultiStageStencil):
 
 class SWTest (CopyTest):
     def setUp (self):
-        logging.basicConfig (level=logging.DEBUG)
+        super ( ).setUp ( )
 
         self.domain = (64, 64, 1)
 
@@ -305,32 +305,71 @@ class SWTest (CopyTest):
         super ( ).test_automatic_dependency_detection (deps=expected_deps)
 
 
-    def test_automatic_range_detection (self, ranges=None, backend='c++'):
-        expected_ranges = {'in_Hd'    : None,
-                           'in_Ud'    : None,
-                           'in_Vd'    : None,
-                           'in_Hx'    : None,
-                           'in_Ux'    : None,
-                           'in_Vx'    : None,
-                           'in_Hy'    : None,
-                           'in_Uy'    : None,
-                           'in_Vy'    : None,
-                           'self.Hd'  : None,
-                           'self.Ud'  : None,
-                           'self.Vd'  : None,
-                           'self.Hx'  : None,
-                           'self.Ux'  : None,
-                           'self.Vx'  : None,
-                           'self.Hy'  : None,
-                           'self.Uy'  : None,
-                           'self.Vy'  : None,
-                           'self.Dh'  : None,
-                           'self.Du'  : None,
-                           'self.Dv'  : None,
-                           'out_H'     : ([-1,1,-1,1], None),
-                           'out_U'     : ([-1,1,-1,1], None),
-                           'out_V'     : ([-1,1,-1,1], None)}
-        super ( ).test_automatic_range_detection (ranges=expected_ranges)
+    @attr (lang='python')
+    def test_automatic_range_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # add the fields and their ranges
+        #
+        self.add_expected_range ('in_Hd',   None)
+        self.add_expected_range ('in_Ud',   None)
+        self.add_expected_range ('in_Vd',   None)
+        self.add_expected_range ('in_Hx',   None)
+        self.add_expected_range ('in_Ux',   None)
+        self.add_expected_range ('in_Vx',   None)
+        self.add_expected_range ('in_Hy',   None)
+        self.add_expected_range ('in_Uy',   None)
+        self.add_expected_range ('in_Vy',   None)
+        self.add_expected_range ('self.L',  None)
+        self.add_expected_range ('self.L',  None)
+        self.add_expected_range ('self.L',  None)
+        self.add_expected_range ('self.R',  None)
+        self.add_expected_range ('self.R',  None)
+        self.add_expected_range ('self.R',  None)
+        self.add_expected_range ('self.T',  None)
+        self.add_expected_range ('self.T',  None)
+        self.add_expected_range ('self.T',  None)
+        self.add_expected_range ('self.B',  None)
+        self.add_expected_range ('self.B',  None)
+        self.add_expected_range ('self.B',  None)
+        self.add_expected_range ('self.Hd', None)
+        self.add_expected_range ('self.Hd', None)
+        self.add_expected_range ('self.Hd', None)
+        self.add_expected_range ('self.Ud', None)
+        self.add_expected_range ('self.Ud', None)
+        self.add_expected_range ('self.Ud', None)
+        self.add_expected_range ('self.Ud', None)
+        self.add_expected_range ('self.Ud', None)
+        self.add_expected_range ('self.Vd', None)
+        self.add_expected_range ('self.Vd', None)
+        self.add_expected_range ('self.Vd', None)
+        self.add_expected_range ('self.Vd', None)
+        self.add_expected_range ('self.Vd', None)
+        self.add_expected_range ('self.Hx', None)
+        self.add_expected_range ('self.Hx', None)
+        self.add_expected_range ('self.Hx', None)
+        self.add_expected_range ('self.Hd', None)
+        self.add_expected_range ('self.Hd', None)
+        self.add_expected_range ('self.Ux', None)
+        self.add_expected_range ('self.Vx', None)
+        self.add_expected_range ('self.Hy', None)
+        self.add_expected_range ('self.Uy', None)
+        self.add_expected_range ('self.Vy', None)
+        self.add_expected_range ('self.Dh', None)
+        self.add_expected_range ('self.Du', None)
+        self.add_expected_range ('self.Dv', None)
+        self.add_expected_range ('out_H',   None)
+        self.add_expected_range ('out_H',   [-1,1,-1,1])
+        self.add_expected_range ('out_U',   None)
+        self.add_expected_range ('out_U',   [-1,1,-1,1])
+        self.add_expected_range ('out_V',   None)
+        self.add_expected_range ('out_V',   [-1,1,-1,1])
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_range_detection (self.stencil)
 
 
     @attr(lang='cuda')

@@ -8,6 +8,49 @@ from nose.plugins.attrib import attr
 from gridtools.stencil import MultiStageStencil, StencilInspector
 
 
+
+
+class RangeDetectionTest (unittest.TestCase):
+    def setUp (self):
+        logging.basicConfig (level=logging.INFO)
+        self.field_ranges = dict ( )
+
+
+    def add_expected_range (self, field, expected_range):
+        if field not in self.field_ranges.keys ( ):
+            self.field_ranges[field] = list ( )
+        self.field_ranges[field].append (expected_range)
+
+
+    def automatic_range_detection (self, stencil):
+        import copy
+
+        fld_rgs = copy.deepcopy (self.field_ranges)
+        #
+        # check the range detection within each functor of the stencil
+        #
+        for f in stencil.inspector.functors:
+            sc = f.scope
+            for p in sc.get_all ( ):
+                if not sc.is_alias (p.name):
+                    try:
+                        expected = fld_rgs[p.name]
+                        self.assertIn (sc[p.name].range, expected,
+                                       "Range '%s' of '%s' does not match any of %s" %
+                                       (sc[p.name].range, p.name, expected))
+                        #
+                        # remove the correct range to avoid finding it twice
+                        #
+                        index = fld_rgs[p.name].index (sc[p.name].range)
+                        fld_rgs[p.name].pop (index)
+                    except KeyError:
+                        logging.error ("No range given for field '%s'"
+                                       % p.name)
+                        self.assertTrue (False)
+
+
+    
+
 class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
@@ -24,7 +67,7 @@ class Copy (MultiStageStencil):
 
 
 
-class CopyTest (unittest.TestCase):
+class CopyTest (RangeDetectionTest):
     """
     A test case for the copy stencil defined above.-
     """
@@ -36,7 +79,7 @@ class CopyTest (unittest.TestCase):
 
 
     def setUp (self):
-        logging.basicConfig (level=logging.INFO)
+        super ( ).setUp ( )
 
         self.domain = (64, 64, 32)
         self.params = ('out_cpy', 'in_cpy')
@@ -85,47 +128,28 @@ class CopyTest (unittest.TestCase):
                                                   backend=backend)
 
 
-    def test_automatic_range_detection (self, ranges=None, backend='c++'):
-        self.stencil.backend = backend
-        self._run ( )
+    def test_automatic_range_detection (self):
+        from gridtools import BACKENDS
 
         #
-        # check the range detection within each functor
+        # add the fields and its ranges
         #
-        expected = None
-        for f in self.stencil.inspector.functors:
-            sc = f.scope
-            for p in sc.get_all ( ):
-                if not sc.is_alias (p.name):
-                    try:
-                        expected = ranges[p.name]
-                        #
-                        # in case one symbol appears with different ranges
-                        #
-                        if isinstance (expected, tuple):
-                            self.assertIn (sc[p.name].range, expected)
-                        else:
-                            self.assertEqual (sc[p.name].range, expected,
-                                              "Range of '%s' does not match" % p.name)
-                    except (TypeError, KeyError):
-                        logging.warning ("Exception raised while checking range of symbol '%s'"
-                                         % p.name)
+        self.add_expected_range ('in_cpy',  None)
+        self.add_expected_range ('out_cpy', None)
 
-
-    def test_automatic_range_detection_cuda (self, ranges=None, backend='cuda'):
-        self.test_automatic_range_detection (ranges=ranges,
-                                             backend=backend)
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_range_detection (self.stencil)
 
 
     @attr(lang='cuda')
     def test_compare_python_cpp_and_cuda_results (self):
         import copy
         import random
+        from gridtools import BACKENDS
 
-        backends = ['cuda', 'c++']
-        random.shuffle (backends)
-
-        for backend in backends:
+        for backend in BACKENDS:
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
 
@@ -272,20 +296,6 @@ class FloatPrecisionTest (CopyTest):
     """
     Tests for the exceptions raised by the floating point precision validation.
     """
-    def setUp (self):
-        logging.basicConfig (level=logging.INFO)
-
-        self.domain = (64, 64, 32)
-        self.params = ('out_cpy', 'in_cpy')
-        self.temps  = ( )
-
-        self.out_cpy = np.zeros (self.domain,
-                                 dtype=np.float64)
-        self.in_cpy  = np.zeros (self.domain,
-                                 dtype=np.float64)
-        self.stencil = Copy ( )
-
-
     def test_float_input_type_validation_wrong_data_size (self):
         with self.assertRaises (TypeError):
             self.stencil.backend = 'c++'
@@ -343,7 +353,7 @@ class PowerTest (CopyTest):
     def setUp (self):
         super ( ).setUp ( )
         self.stencil = Power ( )
-        self.stencil.set_k_direction ("forward")
+
 
 
 
@@ -351,17 +361,25 @@ class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+        #
+        # temporary data fields to share data among the different stages
+        #
+        self.out_cpy = np.zeros (domain)
+
+
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
         """
-        #
-        # iterate over the interior points
-        #
         for p in self.get_interior_points (out_data):
-            out_data[p] = -4.0 * in_data[p] + (
-                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
-                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+            self.out_cpy[p] = -4.0 * in_data[p] + (
+                              in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                              in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+        for p in self.get_interior_points (out_data):
+            out_data[p] = self.out_cpy[p]
 
 
 
@@ -370,7 +388,7 @@ class LaplaceTest (CopyTest):
     Testing the Laplace operator.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.INFO)
+        super ( ).setUp ( )
 
         self.domain = (64, 64, 32)
         self.params = ('out_data', 'in_data')
@@ -383,15 +401,24 @@ class LaplaceTest (CopyTest):
                 for k in range (self.domain[2]):
                     self.in_data[i,j,k] = i**3 + j
 
-        self.stencil = Laplace ( ) 
+        self.stencil = Laplace (self.domain) 
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_range_detection (self, ranges=None, backend='c++'):
-        expected_ranges = {'out_data': None,
-                           'in_data':  [-1,1,-1,1]}
-        super ( ).test_automatic_range_detection (ranges=expected_ranges)
+    def test_automatic_range_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # add the fields and its ranges
+        #
+        self.add_expected_range ('in_data', [-1,1,-1,1])
+        self.add_expected_range ('out_cpy', None)
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_range_detection (self.stencil)
 
 
     @attr(lang='python')
@@ -414,6 +441,16 @@ class HorizontalDiffusion (MultiStageStencil):
         self.flj = np.zeros (domain)
 
 
+    def stage_flux_i (self, out_fli, in_lap):
+        for p in self.get_interior_points (in_lap):
+            out_fli[p] = in_lap[p + (1,0,0)] - in_lap[p]
+
+
+    def stage_flux_j (self, out_flj, in_lap):
+        for p in self.get_interior_points (in_lap):
+            out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
+
+
     def kernel (self, out_data, in_data, in_wgt):
         #
         # Laplace
@@ -423,15 +460,12 @@ class HorizontalDiffusion (MultiStageStencil):
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
         #
-        # Flux over 'i'
+        # The fluxes over 'i' and 'j' are independent
         #
-        for p in self.get_interior_points (self.lap):
-            self.fli[p] = self.lap[p + (1,0,0)] - self.lap[p]
-        #
-        # Flux over 'j'
-        #
-        for p in self.get_interior_points (self.lap):
-            self.flj[p] = self.lap[p + (0,1,0)] - self.lap[p]
+        self.stage_flux_i (out_fli = self.fli,
+                           in_lap  = self.lap)
+        self.stage_flux_j (out_flj = self.flj,
+                           in_lap  = self.lap)
         #
         # Last stage
         #
@@ -442,13 +476,12 @@ class HorizontalDiffusion (MultiStageStencil):
 
 
 
-
 class HorizontalDiffusionTest (CopyTest):
     """
     A test case for the HorizontalDiffusion stencil defined above.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.DEBUG)
+        super ( ).setUp ( )
 
         self.domain = (64, 64, 32)
         self.params = ('out_data', 
@@ -464,10 +497,10 @@ class HorizontalDiffusionTest (CopyTest):
         for i in range (self.domain[0]):
             for j in range (self.domain[1]):
                 for k in range (self.domain[2]):
-                    self.in_data[i,j,k] = i**3 + j
+                    self.in_data[i,j,k] = i**5 + j
 
         self.stencil = HorizontalDiffusion (self.domain)
-        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_halo ( (2, 2, 2, 2) )
         self.stencil.set_k_direction ("forward")
 
 
@@ -483,15 +516,27 @@ class HorizontalDiffusionTest (CopyTest):
                                                        backend='cuda')
 
 
-    def test_automatic_range_detection (self, ranges=None, backend='c++'):
-        expected_ranges = {'out_data': None,
-                           'in_data' : [-1,1,-1,1],
-                           'in_wgt'  : None,
-                           'lap'     : [0,1,0,0],
-                           'fli'     : [-1,0,0,0],
-                           'flj'     : [0,0,-1,0]}
-        super ( ).test_automatic_range_detection (ranges=expected_ranges,
-                                                  backend=backend)
+    def test_automatic_range_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # add the fields and its ranges
+        #
+        self.add_expected_range ('in_data',  [-1,1,-1,1])
+        self.add_expected_range ('in_wgt',   None)
+        self.add_expected_range ('out_data', None)
+        self.add_expected_range ('self.fli', None)
+        self.add_expected_range ('self.fli', [-1,0,0,0])
+        self.add_expected_range ('self.flj', None)
+        self.add_expected_range ('self.flj', [0,0,-1,0])
+        self.add_expected_range ('self.lap', None)
+        self.add_expected_range ('self.lap', [0,1,0,0])
+        self.add_expected_range ('self.lap', [0,0,0,1])
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_range_detection (self.stencil)
 
 
     @attr(lang='python')
@@ -694,7 +739,7 @@ class ChildStencilParentConstructorAfterComputation (MultiStageStencil):
 
 
 
-class ChildTest (unittest.TestCase):
+class ChildStencilTest (unittest.TestCase):
     """
     A test case for the copy stencil defined above.-
     """
