@@ -39,8 +39,21 @@ struct on_neighbors_impl {
    This struct is the one holding the function to apply when iterating
    on neighbors of neighbors
  */
-template <typename ValueType, typename Accessor, typename MapReduce, typename NestedValueType, typename NestedAccessor, typename NestedLambda, typename NestedNext>
-struct on_neighbors_impl<ValueType, Accessor, MapReduce, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, NestedNext> > {
+template <typename ValueType
+          , typename Accessor
+          , typename MapReduce
+          , typename NestedValueType
+          , typename NestedAccessor
+          , typename NestedLambda
+          , typename NestedNext>
+struct on_neighbors_impl<ValueType
+                         , Accessor
+                         , MapReduce
+                         , on_neighbors_impl<NestedValueType
+                                             , NestedAccessor
+                                             , NestedLambda
+                                             , NestedNext>
+                         > {
     using accessor = Accessor;
     using next_accessor = on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda>;
     using map_function = typename MapReduce::map_type;
@@ -83,11 +96,35 @@ on_neighbors(Accessor, Lambda l, ValueType initial)
     return on_neighbors_impl<ValueType, Accessor, Lambda, void>(l, initial);
 }
 
-template <typename ValueType, typename Accessor, typename NestedAccessor, typename NestedLambda, typename NestedValueType, typename Map, typename Reduce, typename Rest>
-on_neighbors_impl<ValueType, Accessor, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >
-on_neighbors(Accessor, Map l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy, Reduce reduce, ValueType initial)
+template <typename ValueType
+          , typename Accessor
+          , typename NestedAccessor
+          , typename NestedLambda
+          , typename NestedValueType
+          , typename Map
+          , typename Reduce
+          , typename Rest>
+on_neighbors_impl<ValueType
+                  , Accessor
+                  , make_mapreduce<Map, Reduce>
+                  , on_neighbors_impl<NestedValueType
+                                      , NestedAccessor
+                                      , NestedLambda
+                                      , Rest> >
+on_neighbors(Accessor
+             , Map l
+             , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy
+             , Reduce reduce
+             , ValueType initial)
 {
-    return on_neighbors_impl<ValueType, Accessor, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >(l, reduce, nested_guy, initial);
+    return on_neighbors_impl<ValueType
+                             , Accessor
+                             , make_mapreduce<Map, Reduce>
+                             , on_neighbors_impl<NestedValueType
+                                                 , NestedAccessor
+                                                 , NestedLambda
+                                                 , Rest>
+                             >(l, reduce, nested_guy, initial);
 }
 
 
@@ -102,13 +139,38 @@ on_cells(Accessor, Lambda l, ValueType initial) {
     return on_neighbors_impl<ValueType, Accessor, Lambda>(l, initial);
 }
 
-template <typename ValueType, typename Accessor, typename NestedAccessor, typename NestedLambda, typename NestedValueType, typename Map, typename Reduce, typename Rest>
-on_neighbors_impl<ValueType, Accessor, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >
-on_cells(Accessor, Map l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy, Reduce reduce, ValueType initial)
+template <typename ValueType
+          , typename Accessor
+          , typename NestedAccessor
+          , typename NestedLambda
+          , typename NestedValueType
+          , typename Map
+          , typename Reduce
+          , typename Rest>
+on_neighbors_impl<ValueType
+                  , Accessor
+                  , make_mapreduce<Map, Reduce>
+                  , on_neighbors_impl<NestedValueType
+                                      , NestedAccessor
+                                      , NestedLambda
+                                      , Rest>
+                  >
+on_cells(Accessor
+         , Map l
+         , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy
+         , Reduce reduce
+         , ValueType initial)
 {
     static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
         "The accessor (for a nested call) provided to 'on_cells' is not on cells");
-    return on_neighbors_impl<ValueType, Accessor, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >(l, reduce, nested_guy, initial);
+    return on_neighbors_impl<ValueType
+                             , Accessor
+                             , make_mapreduce<Map, Reduce>
+                             , on_neighbors_impl<NestedValueType
+                                                 , NestedAccessor
+                                                 , NestedLambda
+                                                 , Rest>
+                             >(l, reduce, nested_guy, initial);
 }
 
 /**
@@ -122,13 +184,38 @@ on_edges(Accessor, Lambda l, ValueType initial) {
     return on_neighbors_impl<ValueType, Accessor, Lambda>(l, initial);
 }
 
-template <typename ValueType, typename Accessor, typename NestedAccessor, typename NestedLambda, typename NestedValueType, typename Map, typename Reduce, typename Rest>
-on_neighbors_impl<ValueType, Accessor, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >
-on_edges(Accessor, Map l, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy, Reduce reduce, ValueType initial)
+template <typename ValueType
+          , typename Accessor
+          , typename NestedAccessor
+          , typename NestedLambda
+          , typename NestedValueType
+          , typename Map
+          , typename Reduce
+          , typename Rest>
+on_neighbors_impl<ValueType
+                  , Accessor
+                  , make_mapreduce<Map, Reduce>
+                  , on_neighbors_impl<NestedValueType
+                                      , NestedAccessor
+                                      , NestedLambda
+                                      , Rest>
+                  >
+on_edges(Accessor
+         , Map l
+         , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy
+         , Reduce reduce
+         , ValueType initial)
 {
     static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<1>>::value,
         "The accessor (for a nested call) provided to 'on_edges' is not on cells");
-    return on_neighbors_impl<ValueType, Accessor, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> >(l, reduce, nested_guy, initial);
+    return on_neighbors_impl<ValueType
+                             , Accessor
+                             , make_mapreduce<Map, Reduce>
+                             , on_neighbors_impl<NestedValueType
+                                                 , NestedAccessor
+                                                 , NestedLambda
+                                                 , Rest>
+                             >(l, reduce, nested_guy, initial);
 }
 
 
@@ -171,7 +258,13 @@ struct accessor {
                Reduce reduce,
                ValueType initial) const
     {
-        return on_neighbors_impl<ValueType, this_type, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >(l, reduce, nested_guy, initial);
+        return on_neighbors_impl<ValueType
+                                 , this_type
+                                 , make_mapreduce<Map, Reduce>
+                                 , on_neighbors_impl<NestedValueType
+                                                     , NestedAccessor
+                                                     , NestedLambda>
+                                 >(l, reduce, nested_guy, initial);
     }
 
     template <typename ValueType,
@@ -189,7 +282,13 @@ struct accessor {
               on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> nested_guy,
               Reduce reduce,
               ValueType initial) {
-        return on_neighbors_impl<ValueType, this_type, make_mapreduce<Map, Reduce>, on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >(l, reduce, nested_guy, initial);
+        return on_neighbors_impl<ValueType
+                                 , this_type
+                                 , make_mapreduce<Map, Reduce>
+                                 , on_neighbors_impl<NestedValueType
+                                                     , NestedAccessor
+                                                     , NestedLambda>
+                                 >(l, reduce, nested_guy, initial);
     }
 };
 
