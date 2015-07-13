@@ -232,11 +232,13 @@ class StencilCompiler ( ):
         """
         from gridtools import JinjaEnv
 
+        functs               = dict ( )
+        functs[stencil.name] = stencil.inspector.functors
         #
         # render the source code for each of the functors
         #
         functor_src = ""
-        for f in stencil.inspector.functors:
+        for f in functs[stencil.name]:
             functor_src += f.translate ( )
         #
         # instantiate each of the templates and render them
@@ -247,29 +249,31 @@ class StencilCompiler ( ):
         params = list (stencil.scope.get_parameters ( ))
         temps  = list (stencil.scope.get_temporaries ( ))
 
-        functs     = dict ( )
-        ind_functs = dict ( )
+        #
+        # make sure the last stage is not independent
+        #
+        functs[stencil.name][-1].independent = False
 
-        functs[stencil.name]     = [f for f in stencil.inspector.functors if not f.independent]
-        ind_functs[stencil.name] = [f for f in stencil.inspector.functors if f.independent]
-       
         #
-        # make sure there is at least one non-independent functor
+        # indices of the independent stencils needed to generate C++ code blocks
         #
-        if len (functs[stencil.name]) == 0:
-            functs[stencil.name]     = [ stencil.inspector.functors[-1] ]
-            ind_functs[stencil.name] = ind_functs[stencil.name][:-1]
+        ind_funct_idx = list ( )
+        for i in range (1, len (functs[stencil.name])):
+            f = functs[stencil.name][i]
+            if not f.independent:
+                if functs[stencil.name][i - 1].independent:
+                    ind_funct_idx.append (i - 1)
 
         return (functor_src,
-                cpp.render (fun_hdr_file         = self.fun_hdr_file,
-                            stencil_name         = stencil.name,
-                            stencils             = [stencil],
-                            scope                = stencil.scope,
-                            params               = params,
-                            temps                = temps,
-                            params_temps         = params + temps,
-                            functors             = functs,
-                            independent_functors = ind_functs),
+                cpp.render (fun_hdr_file          = self.fun_hdr_file,
+                            stencil_name          = stencil.name,
+                            stencils              = [stencil],
+                            scope                 = stencil.scope,
+                            params                = params,
+                            temps                 = temps,
+                            params_temps          = params + temps,
+                            functors              = functs,
+                            independent_funct_idx = ind_funct_idx),
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
                              compiler = self))
 
