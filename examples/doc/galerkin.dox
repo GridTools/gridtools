@@ -1,0 +1,195 @@
+/*!
+\page Galerkin  Galerking Discretization of a Lapplace Operator
+
+This example shows an example on how a Laplace can be discretized using Galerkin Finite Elements methods, using tensor product brick elements.
+
+The goal of this example is to show as a proof of concept the possibility of using a third party library
+(in this case the Intrepid packege in Trilinos) with the numerical tools and basic  definitions already in place, in order to build a custom
+finite element assembly of a differential operator using gridtools, thus taking advantage of all the advanced multi-platform
+optimizations of the library.
+
+The Intrepid TPL provides the definition of several basis functions, quadrature rules, elemantal operations (e.g. scalar/vector products, curl, gradient, divergence, ...).
+This library has the advantage of allowing a user to provide its own storage class, implementing a specific interface. Tihs allows us to be completely general on the
+storage layuot requirements, and to taylor once again the computation to the specific backend at hand.
+
+\section sec_fe_pb_description Problem Description
+
+Let us describe in detail the problem that we want to solve. We aim at solving integrals of the following type
+
+\f[
+    \int_{\Omega}{\phi(\mathbf x)\psi(\mathbf x)J(\mathbf x)}d\Omega
+\f]
+
+where \f$\psi\f$, \f$\phi\f$, and \f$J\f$ are known polynomials and \f$\Omega\f$ is a the domain.
+In the classical Galerkin methods the domain is split into mesh "elements", and the integral above is computed elementwise, as sum of all the ocntributions
+\f[
+    \sum_e\int_{\Omega_e}{\phi(\mathbf x)\psi(\mathbf x)}d\Omega
+\f]
+
+The next step of the discretization is the finite elements map to the reference element (an hypercube with coordinates \f$\{(\pm1,0,0...), (0,\pm1,0,...), (0,0,\pm1,...) ...\}\f$): to solve the integral we change the metric and build a map \f[ x:\mathbb R^n \rightarrow \mathbb R^n \f]
+such that \f[ \Omega_e\mapsto\hat\Omega_e \f]
+
+The integral above after the change of coordinates becomes
+
+\f[
+    \int_{\hat\Omega_e}{\phi(\hat{\mathbf x})\psi(\hat{\mathbf x})J(\hat{\mathbf x})}d\hat\Omega
+\f]
+
+where \f[J=\frac{\partial x}{\partial\hat x}\f] is the jacobian of the transformation (a constant in case of an affine map).
+
+One main difference between the usual finite-difference stencil-like computations is that we iterate over points in the global domain, while now we want to iterate over elements.
+To this end we generalize the concept of iteration point to an element by extending the storage dimensionality:
+if for the finite difference case we had a 3D storage and we were iterating on i, j, and k, now each (i,j,k) point identifies an element, and the points inside the element will be
+accessed using 6 indices (i,j,k,pi,pj,pk) for the point (pi,pj,pk) whithin element (i,j,k).
+
+Notice that we could have extended the storage by only one dimension containing all the degrees of freedom inside the element, as it is usually done
+in finite elements codes. However using this layout allows us to exploit the hypercubes structure in order to reduce the algorithm complexity, as will become clear later on.
+
+We have, as input, the grid (i.e. the location of the dicretization points in the actual domain), the evaluation of the basis functions computed in the quadrature points in the reference element,
+and the evaluation of the geometric map in the same quadrature points.
+The integration can be carried out in the following steps (stages)
+- compute the jacobian in the quadrature points
+- compute the value of the integral locally to each element
+- assembly the contribution of the different elements (i.e. sum up the contributions in the nodes which are overlapping between several elements)
+
+Notice that the last point is not necessary if the discrete finite elements space is discontinuous between the elements, since in the latter case there is no overlap between elements.
+On the other hand when the finite elements space is piecewise linear, we have to sum up the contributions on the boundary of the element, and if the continuity degree increases
+(\f$\mathcal C^k\f$ continuity across element boundary) the overlap spans several elements.
+
+In the simplistic case of 4 linear quadrilateral elements, as shown in the picture below, we have to merge the 4 quadrilaterals into the one on the right:
+\f[
+  \fbox{
+  \begin{tikzpicture}[shorten >=1pt,auto,node distance=1.5cm,
+    thick,main node/.style={circle,fill=blue!40,draw,font=\sffamily\small\bfseries},
+    thick,main node2/.style={circle,fill=green!40,draw,font=\sffamily\small\bfseries},
+    thick,main node3/.style={circle,fill=cyan!40,draw,font=\sffamily\small\bfseries},
+    thick,other node/.style={circle,fill=yellow!40,draw,font=\sffamily\small\bfseries},
+    thick,white node/.style={circle,draw,font=\sffamily\small\bfseries}
+    ]
+  \node[main node] (21) {$e_1$};
+  \node[main node] (22) [left of=21] {$e_1$};
+  \node[main node] (23) [below of=22] {$e_1$};
+  \node[main node] (24) [right of=23] {$e_1$};
+  \node[main node2] (2) [right of=21] {$e_2$};
+  \node[main node2] (1) [right of=2] {$e_2$};
+  \node[main node2] (3) [below of=2] {$e_2$};
+  \node[main node2] (4) [right of=3] {$e_2$};
+  \node[other node] (5) [below of=4] {$e_4$};
+  \node[other node] (6) [left of=5] {$e_4$};
+  \node[other node] (7) [below of=6] {$e_4$};
+  \node[other node] (8) [right of=7] {$e_4$};
+  \node[main node3] (31) [left of=6] {$e_3$};
+  \node[main node3] (32) [left of=31] {$e_3$};
+  \node[main node3] (33) [below of=32] {$e_3$};
+  \node[main node3] (34) [right of=33] {$e_3$};
+  \node[main node3] (9) [below right of=4] {$e_{13}$};
+  \node[other node] (10) [right of=9] {$e_{1234}$};
+  \node[main node] (11) [below right of=1] {$e_{1}$};
+  \node[white node] (12) [below right of=5] {$e_{3}$};
+  \node[main node2] (13) [right of=11] {$e_{12}$};
+  \node[white node] (14) [right of=12] {$e_{34}$};
+  \node[white node] (15) [right of=14] {$e_{4}$};
+  \node[white node] (16) [right of=10] {$e_{24}$};
+  \node[white node] (17) [right of=13] {$e_2$};
+  \path[every node/.style={font=\sffamily\small}]
+  (1) edge node [left] {} (4)
+  (2) edge node [right] {} (1)
+  (3) edge node [right] {} (2)
+  (4) edge node [left] {} (3)
+  (5) edge node [left] {} (8)
+  (6) edge node [right] {} (5)
+  (7) edge node [right] {} (6)
+  (8) edge node [left] {} (7)
+  (22) edge node {} (21)
+  (22) edge node {} (23)
+  (23) edge node {} (24)
+  (24) edge node {} (21)
+  (32) edge node {} (31)
+  (32) edge node {} (33)
+  (33) edge node {} (34)
+  (34) edge node {} (31)
+  (17) edge node {} (13)
+  (16) edge node {} (10)
+  (17) edge node {} (16)
+  (16) edge node {} (15);
+  \path[every node/.style={font=\sffamily\small}]
+  (11) edge node {} (9)
+  (12) edge node {} (9)
+  (10) edge  node {} (13)
+  (10) edge node {} (14)
+  (9) edge  node {} (10)
+  (11) edge node {} (13)
+  (12) edge  node {} (14)
+  (14) edge  node {} (15) ;
+\end{tikzpicture}
+}\f]
+where the pedix index represents the elements which contributed to the value on the node.
+
+The operation performed is a reduction of k values, where k is the number of elements sharing the same point, as shown schematically in the next picture
+\f[
+\fbox{
+\newcommand\crule[3][black]{\textcolor{#1}{\rule{#2}{#3}}}
+  \begin{tikzpicture}[shorten >=1pt,auto,node distance=1.5cm,
+    thick,main node/.style={font=\sffamily\small\bfseries}
+    ]
+  \node[main node] (1) {\crule[black]{10pt}{10pt}\crule[red]{10pt}{10pt}\crule[black]{10pt}{10pt}\crule[green]{10pt}{10pt}};
+  \node[main node] (2) [right of=1] {\crule{10pt}{10pt}};
+  \node[main node] (3) [below of=1]{\crule[black]{10pt}{10pt}\crule[red]{10pt}{10pt}\crule[black]{10pt}{10pt}\crule[green]{10pt}{10pt}};
+  \node[main node] (4) [right of=3] {\crule{10pt}{10pt}};
+  \node[main node] (5) [below of=3]{\crule[black]{10pt}{10pt}\crule[red]{10pt}{10pt}\crule[black]{10pt}{10pt}\crule[green]{10pt}{10pt}};
+  \node[main node] (6) [right of=5] {\crule{10pt}{10pt}};
+  \node[main node] (7) [below of=5]{\crule[black]{10pt}{10pt}\crule[red]{10pt}{10pt}\crule[black]{10pt}{10pt}\crule[green]{10pt}{10pt}};
+  \node[main node] (8) [right of=7] {\crule{10pt}{10pt}};
+  \draw[in=90, out=90] ([xshift=-15pt]1.north) to node [below] {} (2) ;
+  \draw[in=-90, out=90] ([xshift=-5pt]3.north) to node [below] {} (2) ;
+  \draw[in=-90, out=90] ([xshift=5pt]5.north) to node [below] {} (2) ;
+  \draw[in=-90, out=90] ([xshift=15pt]7.north) to node [below] {} (2) ;
+  \end{tikzpicture} }
+\f]
+
+\section sec_code Code Step by Step
+
+We begin the description of this example by analyzing the file "basis_functions.hpp", which wraps all what is needed from the third party library. In this file the discretization type and order are fixed, while in the other files (depending on this one) no assumption is made, except for the element topology (tensor-product hypercubes).
+
+Here is the list of the files included:
+\snippet galerkin/basis_functions.h includes
+i.e., besides the file backend.hpp included from the gridtools library (and used in order to select the appropriate storage class), there is a list of files from the Intrepid library,
+defining the possible discretizations and tools for the finite elements machinery. Then there are few files from the Shards library, which is used by Intrepid and describes a set of possible cell topologies.
+
+We then include the files
+\snippet galerkin/basis_functions.h wrapper
+The first one is necessary to work with the Intrepid TPL: it is a wrapper for the gridtools storage
+which implements the interface used inside Intrepid to access a multidimensional array. The second included file is not strictly necessary, since all the information it provides is also available
+from the cell topology data included by the Shards TPL (a dependency of Intrepid containing elemental topology information). However in order to enhance the compiler optimization we implement a class
+providing all the topological information for tensor product elements as compile-time constants, so that the information gets embedded in the executable program and we do not need to allocate a storage
+for it.
+A detaiiled documentation of these files goes beyond the scope of this example, and we address the curious reader to the \subpage IntrepidStorage "Intrepid storage wrapper", and \subpage TensorProductElement "tensor product element" pages.
+
+It follows the definition of the starage types which will be used in the example:
+\snippet galerkin/basis_functions.h storage definition
+
+Then we define two similar namespaces, one containing the finite elements basis functions description,
+and another one for the geometric map. In the special case of isoparametric finite elements
+(i.e. the case in which the polynomial order of the solution is the same as the one of the polynomials used for the mesh representation)
+these two are the same.
+
+below we report the definitions corresponding to the discretization of the finite elements solution
+\snippet galerkin/basis_functions.h fe namespace
+It consists mainly of calls to the Intrepid library.
+Notice that the TPLs not defining theit getters as constexpr prevents us from defining all these global
+variables as compile-time constants (as they hsould be). For this reason we have to define the \ref gridtools::tensor_product_element "tensor product element" hardcoding its two template parameters (which must correspond to the space dimensionality and polynomial order respectively).
+
+\snippet galerkin/basis_functions.h tensor product
+
+Next we report the same definitions for the geometric map
+\snippet galerkin/basis_functions.h geomap namespace
+
+Eventually we instantiate the quadrature rule using the Intrepid TPL as a bunch of static global variables in
+a diferent namespace
+\snippet galerkin/basis_functions.h quadrature
+
+This file contains all the interaction with the third party libraries. Now we move on, and show how to
+implement the integral computation.
+We write a file
+
+*/
