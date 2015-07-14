@@ -4,218 +4,132 @@
 
 #define _ACCESSOR_H_DEBUG_
 
-template <typename F1, typename F2>
-struct make_mapreduce {
-    using map_type = F1;
-    using reduce_type = F2;
+// template <typename F1, typename F2>
+// struct make_mapreduce {
+//     using map_type = F1;
+//     using reduce_type = F2;
+// };
+
+
+/**
+   Map function that uses compile time (stateless) accessors to be
+   evaluated later. Another version would have the Arguments to be
+   a fusion vector (for instance), so that each argument can carry
+   additional state, like a constant value.
+ */
+template <typename MapF, typename LocationType, typename ... Arguments>
+struct map_function {
+    using location_type = LocationType;
+    using argument_types = std::tuple<Arguments...>;
+    using function_type = MapF;
+
+    const function_type m_function;
+    argument_types m_arguments;
+
+    map_function(function_type f, Arguments... args)
+        : m_function(f)
+        , m_arguments(args...)
+    {}
+
+    template <int I>
+    typename std::tuple_element<I, argument_types>::type const&
+    argument() const {
+        return std::get<I>(m_arguments);
+    }
+
+    location_type location() const {return location_type();}
+
+    function_type function() const {return m_function;}
+};
+
+/**
+initial version of this that should check if all args have the same location type
+*/
+template <typename Arg0, typename ... Args>
+struct get_location_type_of {
+    using type = typename Arg0::location_type;
+};
+
+template <typename MapF, typename ... Args>
+map_function<MapF, typename get_location_type_of<Args...>::type, Args...>
+map(MapF const& f, Args... args) {
+    return map_function<MapF, typename get_location_type_of<Args...>::type, Args...>(f, args...);
+}
+
+template <typename T>
+struct identity {
+    T operator()(T v) const
+    {
+        return v;
+    }
 };
 
 /**
    This struct is the one holding the function to apply when iterating
    on neighbors
  */
-template <typename ValueType, typename Accessor, typename Lambda, typename Nested = void>
-struct on_neighbors_impl {
-    using accessor = Accessor;
-    using function = Lambda;
-    using location_type = typename accessor::location_type;
-    using value_type = ValueType;
-
-    const function ff;
-    const value_type value;
-
-    on_neighbors_impl(const function l, value_type value)
-        : ff(l)
-        , value(value)
-    {}
-
-    on_neighbors_impl(on_neighbors_impl const& other)
-        : ff(other.ff)
-        , value(other.value)
-    {}
-};
-
-/**
-   This struct is the one holding the function to apply when iterating
-   on neighbors of neighbors
- */
 template <typename ValueType
-          , typename Accessor
-          , typename MapReduce
-          , typename NestedValueType
-          , typename NestedAccessor
-          , typename NestedLambda
-          , typename NestedNext>
-struct on_neighbors_impl<ValueType
-                         , Accessor
-                         , MapReduce
-                         , on_neighbors_impl<NestedValueType
-                                             , NestedAccessor
-                                             , NestedLambda
-                                             , NestedNext>
-                         > {
-    using accessor = Accessor;
-    using next_accessor = on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda>;
-    using map_function = typename MapReduce::map_type;
-    using reduce_function = typename MapReduce::reduce_type;
-    using location_type = typename accessor::location_type;
+          , typename DstLocationType
+          , typename ReductionFunction
+          , typename MapFunction
+          >
+class on_neighbors_impl {
+    using map_function = MapFunction;
+    using reduction_function = ReductionFunction;
+    using dst_location_type = DstLocationType;
     using value_type = ValueType;
 
-    const map_function map;
-    const reduce_function reduction;
-    const next_accessor nested_guy;
-    const value_type value;
+    const reduction_function m_reduction;
+    const map_function m_map;
+    const value_type m_value;
 
-    on_neighbors_impl(map_function m, reduce_function r, next_accessor ng, value_type value)
-        : map(m)
-        , reduction(r)
-        , nested_guy(ng)
-        , value(value)
+public:
+    on_neighbors_impl(const reduction_function l, map_function a, value_type v)
+        : m_reduction(l)
+        , m_map(a)
+        , m_value(v)
     {}
+
+    value_type value() const {return m_value;}
+
+    reduction_function reduction() const {return m_reduction;}
+
+    map_function map() const {return m_map;}
 
     on_neighbors_impl(on_neighbors_impl const& other)
-        : map(other.map)
-        , reduction(other.reduction)
-        , nested_guy(other.nested_guy)
-        , value(other.value)
+        : m_reduction(other.m_reduction)
+        , m_map(other.m_map)
+        , m_value(other.m_value)
     {}
 
-    next_accessor next() const {
-        return nested_guy;
+    dst_location_type location() const
+    {
+        return dst_location_type();
     }
 };
 
-/**
-   User friendly interface to let iterate on neighbors of a location of a location type
-   (the one of the iteraion space). The neighbors are of a location type Accessor::location_type
- */
-template <typename Accessor, typename Lambda, typename ValueType>
-on_neighbors_impl<ValueType, Accessor, Lambda, void>
-on_neighbors(Accessor, Lambda l, ValueType initial)
-{
-    return on_neighbors_impl<ValueType, Accessor, Lambda, void>(l, initial);
-}
 
-template <typename ValueType
-          , typename Accessor
-          , typename NestedAccessor
-          , typename NestedLambda
-          , typename NestedValueType
-          , typename Map
-          , typename Reduce
-          , typename Rest>
+template <typename Reduction
+          , typename ValueType
+          , typename MapF
+          , typename ... Args
+          >
 on_neighbors_impl<ValueType
-                  , Accessor
-                  , make_mapreduce<Map, Reduce>
-                  , on_neighbors_impl<NestedValueType
-                                      , NestedAccessor
-                                      , NestedLambda
-                                      , Rest> >
-on_neighbors(Accessor
-             , Map l
-             , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy
-             , Reduce reduce
-             , ValueType initial)
-{
-    return on_neighbors_impl<ValueType
-                             , Accessor
-                             , make_mapreduce<Map, Reduce>
-                             , on_neighbors_impl<NestedValueType
-                                                 , NestedAccessor
-                                                 , NestedLambda
-                                                 , Rest>
-                             >(l, reduce, nested_guy, initial);
-}
-
-
-/**
-   User friendly interface to let iterate on neighbor cells of a cell
- */
-template <typename ValueType, typename Accessor, typename Lambda>
-on_neighbors_impl<ValueType, Accessor, Lambda>
-on_cells(Accessor, Lambda l, ValueType initial) {
-    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
-        "The accessor provided to 'on_cells' is not on cells");
-    return on_neighbors_impl<ValueType, Accessor, Lambda>(l, initial);
-}
-
-template <typename ValueType
-          , typename Accessor
-          , typename NestedAccessor
-          , typename NestedLambda
-          , typename NestedValueType
-          , typename Map
-          , typename Reduce
-          , typename Rest>
-on_neighbors_impl<ValueType
-                  , Accessor
-                  , make_mapreduce<Map, Reduce>
-                  , on_neighbors_impl<NestedValueType
-                                      , NestedAccessor
-                                      , NestedLambda
-                                      , Rest>
+                  , gridtools::location_type<1>
+                  , Reduction
+                  , map_function<MapF, gridtools::location_type<1>, Args...>
                   >
-on_cells(Accessor
-         , Map l
-         , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy
-         , Reduce reduce
-         , ValueType initial)
+reduce_on_edges(Reduction function
+                , ValueType initial
+                , map_function<MapF, gridtools::location_type<1>, Args...> mapf)
 {
-    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<0>>::value,
-        "The accessor (for a nested call) provided to 'on_cells' is not on cells");
+    // static_assert(std::is_same<typename ValueDescriptor::location_type, gridtools::location_type<1>>::value,
+    //     "The accessor (for a nested call) provided to 'on_edges' is not on cells");
     return on_neighbors_impl<ValueType
-                             , Accessor
-                             , make_mapreduce<Map, Reduce>
-                             , on_neighbors_impl<NestedValueType
-                                                 , NestedAccessor
-                                                 , NestedLambda
-                                                 , Rest>
-                             >(l, reduce, nested_guy, initial);
-}
-
-/**
-   User friendly interface to let iterate on neighbor edges of a edge
- */
-template <typename ValueType, typename Accessor, typename Lambda>
-on_neighbors_impl<ValueType, Accessor, Lambda>
-on_edges(Accessor, Lambda l, ValueType initial) {
-    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<1>>::value,
-        "The accessor provided to 'on_edges' is not on edges");
-    return on_neighbors_impl<ValueType, Accessor, Lambda>(l, initial);
-}
-
-template <typename ValueType
-          , typename Accessor
-          , typename NestedAccessor
-          , typename NestedLambda
-          , typename NestedValueType
-          , typename Map
-          , typename Reduce
-          , typename Rest>
-on_neighbors_impl<ValueType
-                  , Accessor
-                  , make_mapreduce<Map, Reduce>
-                  , on_neighbors_impl<NestedValueType
-                                      , NestedAccessor
-                                      , NestedLambda
-                                      , Rest>
-                  >
-on_edges(Accessor
-         , Map l
-         , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda, Rest> nested_guy
-         , Reduce reduce
-         , ValueType initial)
-{
-    static_assert(std::is_same<typename Accessor::location_type, gridtools::location_type<1>>::value,
-        "The accessor (for a nested call) provided to 'on_edges' is not on cells");
-    return on_neighbors_impl<ValueType
-                             , Accessor
-                             , make_mapreduce<Map, Reduce>
-                             , on_neighbors_impl<NestedValueType
-                                                 , NestedAccessor
-                                                 , NestedLambda
-                                                 , Rest>
-                             >(l, reduce, nested_guy, initial);
+                             , gridtools::location_type<1>
+                             , Reduction
+                             , map_function<MapF, gridtools::location_type<1>, Args...>
+                             >(function, mapf, initial);
 }
 
 
@@ -230,65 +144,17 @@ struct accessor {
     using location_type = LocationType;
     static const int value = I;
 
-    template <typename ValueType, typename Lambda>
-    on_neighbors_impl<ValueType, this_type, Lambda>
-    operator()(Lambda l, ValueType initial) const {
-        return on_neighbors_impl<ValueType, this_type, Lambda>(l, initial);
-    }
-    template <typename ValueType, typename Lambda>
+    template <typename Reduction
+              , typename ValueType
+              , typename Map>
     static
-    on_neighbors_impl<ValueType, this_type, Lambda>
-    neighbors(Lambda l, ValueType initial) {
-        return on_neighbors_impl<ValueType, this_type, Lambda>(l, initial);
-    }
-
-    template <typename ValueType,
-              typename Map,
-              typename Reduce,
-              typename NestedValueType,
-              typename NestedAccessor,
-              typename NestedLambda>
-    on_neighbors_impl<ValueType
-                      , this_type
-                      , make_mapreduce<Map, Reduce>
-                      , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda>
-                      >
-    operator()(Map l,
-               on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> nested_guy,
-               Reduce reduce,
-               ValueType initial) const
-    {
-        return on_neighbors_impl<ValueType
-                                 , this_type
-                                 , make_mapreduce<Map, Reduce>
-                                 , on_neighbors_impl<NestedValueType
-                                                     , NestedAccessor
-                                                     , NestedLambda>
-                                 >(l, reduce, nested_guy, initial);
-    }
-
-    template <typename ValueType,
-              typename Map,
-              typename Reduce,
-              typename NestedValueType,
-              typename NestedAccessor,
-              typename NestedLambda>
-    static
-    on_neighbors_impl<ValueType
-                      , this_type
-                      , make_mapreduce<Map, Reduce>
-                      , on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> >
-    neighbors(Map l,
-              on_neighbors_impl<NestedValueType, NestedAccessor, NestedLambda> nested_guy,
-              Reduce reduce,
-              ValueType initial) {
-        return on_neighbors_impl<ValueType
-                                 , this_type
-                                 , make_mapreduce<Map, Reduce>
-                                 , on_neighbors_impl<NestedValueType
-                                                     , NestedAccessor
-                                                     , NestedLambda>
-                                 >(l, reduce, nested_guy, initial);
+    on_neighbors_impl<ValueType, gridtools::location_type<0>, Reduction, Map>
+    reduce_on_cells(Reduction red, ValueType initial, Map map) {
+    return on_neighbors_impl<ValueType
+                             , gridtools::location_type<0>
+                             , Reduction
+                             , Map
+                             >(red, map, initial);
     }
 };
 
@@ -446,34 +312,29 @@ public:
         _set_pointers_to_ll<LocationT>();
     }
 
-    template <typename ValueType, typename Arg, typename Accumulator>
-    double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, void> onneighbors) const {
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , typename MapF
+              , typename ...Arg0
+              >
+    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
+        auto current_position = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
+                                                            static_cast<uint_t>(m_ll_j),
+                                                            static_cast<uint_t>(m_ll_k));
 
-        auto neighbors = m_grid.neighbors_ll( {m_ll_i, m_ll_j, m_ll_k},
-                                              location_type(), typename Arg::location_type() );
-        double result = onneighbors.value;
+        const auto neighbors = m_grid.neighbors_indices_3(current_position
+                                                          , location_type()
+                                                          , onneighbors.location() );
+        std::cout << "Entry point " << current_position << " Neighbors: " << neighbors << std::endl;
+
+        double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "on neighbors of "
-                      << "(" << m_ll_i << ", " << m_ll_j << ", " << m_ll_k << "): "
-                      << location_type() << " -> "
-                      << typename Arg::location_type() << ", "
-                      << std::hex << (boost::fusion::at_c<Arg::value>(pointers)) << std::dec << " "
-                      << "neighbors[" << i << "] "
-                      << neighbors[i]
-                      << std::endl;
-#endif
-            result = onneighbors.ff(*(boost::fusion::at_c<Arg::value>(pointers)+neighbors[i]), result);
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
         }
-    }
 
-    template <typename ValueType, typename Arg, typename Accumulator, typename NextLevel>
-    double operator()(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> onneighbors) const {
-        auto neighbors = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
-                                                     static_cast<uint_t>(m_ll_j),
-                                                     static_cast<uint_t>(m_ll_k));
-        __begin_iteration<location_type>(onneighbors, neighbors);
+        return result;
     }
 
     template <int I, typename LT>
@@ -483,42 +344,46 @@ public:
     }
 
 private:
-    template <typename LocationTypeSrc, typename ValueType, typename Arg, typename Accumulator, typename NextLevel>
-    double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, NextLevel> __onneighbors,
-                             gridtools::array<uint_t, 3> const& indices) const
-    {
-        const auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
-        double result = __onneighbors.value;
 
-#ifdef _ACCESSOR_H_DEBUG_
-        std::cout << " ********__begin_iteation<NEXT>******** " << indices << " into " << neighbors << std::endl;
-#endif
-        for (int i = 0; i<neighbors.size(); ++i) {
-            result = __onneighbors.reduction(__onneighbors.map
-                (*(boost::fusion::at_c<Arg::value>(pointers)
-                   +m_grid.ll_offset(neighbors[i], typename Arg::location_type())),
-                 __begin_iteration<typename Arg::location_type>(__onneighbors.next(), neighbors[i])), result);
-        }
-        return result;
+    template <int I, typename L, typename IndexArray>
+    double _evaluate(accessor<I,L>, IndexArray const& position) const {
+        std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
+        int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
+        return *(boost::fusion::at_c<accessor<I,L>::value>(pointers)+offset);
     }
 
-    template <typename LocationTypeSrc, typename ValueType, typename Arg, typename Accumulator>
-    double __begin_iteration(on_neighbors_impl<ValueType, Arg, Accumulator, void> __onneighbors,
-                             gridtools::array<uint_t, 3> const& indices) const
-    {
-        const auto neighbors = m_grid.neighbors_indices_3( indices, LocationTypeSrc(), typename Arg::location_type() );
-        double result = __onneighbors.value;
+    template <typename MapF, typename LT, typename Arg0, typename IndexArray>
+    double _evaluate(map_function<MapF, LT, Arg0> map, IndexArray const& position) const {
+        std::cout << "_evaluate(map_function<MapF, LT, Arg0>...) " << LT() << ", " << position << std::endl;
+        int offset = m_grid.ll_offset(position, map.location());
+        return map.function()(_evaluate(map.template argument<0>(), position));
+    }
 
-#ifdef _ACCESSOR_H_DEBUG_
-        std::cout << " ********__begin_iteation<void>******** " << indices << " into " << neighbors << std::endl;
-#endif
+    template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
+    double _evaluate(map_function<MapF, LT, Arg0, Arg1> map, IndexArray const& position) const {
+        std::cout << "_evaluate(map_function<MapF, LT, Arg0, Arg1>...) " << LT() << ", " << position << std::endl;
+        int offset = m_grid.ll_offset(position, map.location());
+        return map.function()(_evaluate(map.template argument<0>(), position)
+                              , _evaluate(map.template argument<1>(), position));
+    }
+
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , typename Map
+              , typename IndexArray>
+    double _evaluate(on_neighbors_impl<ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const& position) const {
+        std::cout << "_evaluate(on_neighbors_impl<ValueType, ...) " << LocationTypeT() << ", " << position << std::endl;
+        const auto neighbors = m_grid.neighbors_indices_3(position
+                                                          , onn.location()
+                                                          , onn.location() );
+
+        double result = onn.value();
+
         for (int i = 0; i<neighbors.size(); ++i) {
-            result = __onneighbors.ff
-                (*(boost::fusion::at_c<Arg::value>(pointers)
-                   +m_grid.ll_offset(neighbors[i], typename Arg::location_type())),
-                 result
-                 );
+            result = onn.reduction()(_evaluate(onn.map(), neighbors[i]), result);
         }
+
         return result;
     }
 
