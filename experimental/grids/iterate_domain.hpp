@@ -147,6 +147,24 @@ reduce_on_edges(Reduction function
     return reduce_on_something(function, initial, mapf);
 }
 
+template <typename Reduction
+          , typename ValueType
+          , typename Map
+          >
+on_neighbors_impl<ValueType
+                  , typename Map::location_type
+                  , Reduction
+                  , Map
+                  >
+reduce_on_cells(Reduction function
+                , ValueType initial
+                , Map mapf)
+{
+    static_assert(std::is_same<typename Map::location_type, gridtools::location_type<0>>::value,
+                  "The map function (for a nested call) provided to 'on_cellss' is not on cells");
+    return reduce_on_something(function, initial, mapf);
+}
+
 /**
    This is the type of the accessors accessed by a stencil functor.
    It's a pretty minima implementation.
@@ -169,6 +187,10 @@ struct accessor {
                              , Reduction
                              , Map
                              >(red, map, initial);
+    }
+
+    location_type location() const {
+        return location_type();
     }
 };
 
@@ -333,6 +355,31 @@ public:
               , typename ...Arg0
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
+        auto current_position = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
+                                                            static_cast<uint_t>(m_ll_j),
+                                                            static_cast<uint_t>(m_ll_k));
+
+        const auto neighbors = m_grid.neighbors_indices_3(current_position
+                                                          , location_type()
+                                                          , onneighbors.location() );
+        std::cout << "Entry point " << current_position << " Neighbors: " << neighbors << std::endl;
+
+        double result = onneighbors.value();
+
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+        }
+
+        return result;
+    }
+
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , int I
+              , typename L
+              >
+    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, accessor<I,L>> onneighbors) const {
         auto current_position = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
                                                             static_cast<uint_t>(m_ll_j),
                                                             static_cast<uint_t>(m_ll_k));
