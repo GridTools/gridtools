@@ -200,6 +200,15 @@ COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
 
+set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
+file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
+
+function(gridtools_add_test test_script test_name test_exec)
+  add_test(${test_name} ${test_exec} ${ARGN})
+  file(APPEND ${TEST_SCRIPT} ${test_exec} ${ARGN} "\n")
+endfunction(gridtools_add_test)
+
+
 if (ENABLE_PYTHON)
     find_package(PythonLibs)
     find_package(PythonInterp)
