@@ -111,28 +111,41 @@ public:
 
 template <typename Reduction
           , typename ValueType
-          , typename MapF
-          , typename ... Args
+          , typename Map
           >
 on_neighbors_impl<ValueType
-                  , gridtools::location_type<1>
+                  , typename Map::location_type
                   , Reduction
-                  , map_function<MapF, gridtools::location_type<1>, Args...>
+                  , Map
                   >
-reduce_on_edges(Reduction function
-                , ValueType initial
-                , map_function<MapF, gridtools::location_type<1>, Args...> mapf)
+reduce_on_something(Reduction function
+                    , ValueType initial
+                    , Map mapf)
 {
-    // static_assert(std::is_same<typename ValueDescriptor::location_type, gridtools::location_type<1>>::value,
-    //     "The accessor (for a nested call) provided to 'on_edges' is not on cells");
     return on_neighbors_impl<ValueType
-                             , gridtools::location_type<1>
+                             , typename Map::location_type
                              , Reduction
-                             , map_function<MapF, gridtools::location_type<1>, Args...>
+                             , Map
                              >(function, mapf, initial);
 }
 
-
+template <typename Reduction
+          , typename ValueType
+          , typename Map
+          >
+on_neighbors_impl<ValueType
+                  , typename Map::location_type
+                  , Reduction
+                  , Map
+                  >
+reduce_on_edges(Reduction function
+                , ValueType initial
+                , Map mapf)
+{
+    static_assert(std::is_same<typename Map::location_type, gridtools::location_type<1>>::value,
+                  "The map function (for a nested call) provided to 'on_edges' is not on edges");
+    return reduce_on_something(function, initial, mapf);
+}
 
 /**
    This is the type of the accessors accessed by a stencil functor.
@@ -146,7 +159,8 @@ struct accessor {
 
     template <typename Reduction
               , typename ValueType
-              , typename Map>
+              , typename Map // Can be an accessor, too
+              >
     static
     on_neighbors_impl<ValueType, gridtools::location_type<0>, Reduction, Map>
     reduce_on_cells(Reduction red, ValueType initial, Map map) {
@@ -373,10 +387,11 @@ private:
               , typename Map
               , typename IndexArray>
     double _evaluate(on_neighbors_impl<ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const& position) const {
-        std::cout << "_evaluate(on_neighbors_impl<ValueType, ...) " << LocationTypeT() << ", " << position << std::endl;
         const auto neighbors = m_grid.neighbors_indices_3(position
                                                           , onn.location()
                                                           , onn.location() );
+
+        std::cout << "_evaluate(on_neighbors_impl<ValueType, ...) " << LocationTypeT() << ", " << position << " Neighbors: " << neighbors << std::endl;
 
         double result = onn.value();
 
