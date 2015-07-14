@@ -48,90 +48,22 @@ struct stencil_on_cells {
                 return _in+_res;
              };
 
-        /**
-           Interface that do not check if the location types are correct
-         */
-        eval(out()) = eval(on_neighbors(in(), ff, 0.0)) + eval(on_neighbors(in_edges(), ff, 0.0));
 
         /**
            This interface checks that the location types are compatible with the accessors
          */
-        eval(out()) = eval(on_cells(in(), ff, 0.0)) + eval(on_edges(in_edges(),ff, 0.0));
-
-        /**
-           This is the most concise interface but maybe not intuitive
-         */
-        eval(out()) = eval(in()(ff, 0.0)) + eval(in_edges()(ff, 0.0));
-
-        /**
-           This interface cannot mistake the location types, since they are incoded in the accessor types ones
-         */
-        eval(out()) = eval(in::neighbors(ff, 0.0)) + eval(in_edges::neighbors(ff, 0.0));
+        eval(out()) = eval(reduce_on_cells(ff, 0.0, in())) + eval(reduce_on_edges(ff, 0.0, in_edges()));
     }
 };
 
-struct stencil_on_edges_cells {
+
+#define _MAIN_CPP_DEBUG_
+
+struct nested_stencil {
     typedef accessor<0, trapezoid_2D::cells> out;
     typedef accessor<1, trapezoid_2D::cells> in;
-    typedef accessor<2, trapezoid_2D::edges> out_edges_NOT_USED;
-    typedef accessor<3, trapezoid_2D::edges> in_edges;
-
-    template <typename GridAccessors>
-    void
-    operator()(GridAccessors /*const*/& eval/*, region*/) const {
-        // std::cout << "i = " << eval.i()
-        //           << " j = " << eval.j()
-        //           << std::endl;
-        auto nested_reduction = [](const double _in, const double _res) -> double
-            {
-#ifdef _MAIN_CPP_DEBUG_
-                std::cout << "#";
-#endif
-                return _in+_res;
-            };
-        auto map = [](const double _in, const double _from_neighbors) -> double
-            {
-#ifdef _MAIN_CPP_DEBUG_
-                std::cout << ".";
-#endif
-                return _in+_from_neighbors;
-            };
-        auto top_reduction = [](const double _in, const double _res) -> double
-            {
-#ifdef _MAIN_CPP_DEBUG_
-                std::cout << "+";
-#endif
-                return _in+_res;
-            };
-
-        /**
-           Interface that do not check if the location types are correct
-         */
-        eval(out()) = eval(on_neighbors(in_edges(), map, on_neighbors(in(), nested_reduction, 0.0), top_reduction, 0.0 ));
-
-        /**
-           This interface checks that the location types are compatible with the accessors
-         */
-        eval(out()) = eval(on_edges(in_edges(), map, on_cells(in(), nested_reduction, 0.0), top_reduction, 0.0));
-
-        /**
-           This interface cannot mistake the location types, since they are incoded in the accessor types ones
-         */
-        eval(out()) = eval(in_edges::neighbors(map, in::neighbors(nested_reduction, 0.0), top_reduction, 0.0));
-
-        /**
-           You can mix interfaces!
-         */
-        eval(out()) = eval(in_edges()(map, in::neighbors(nested_reduction, 0.0), top_reduction, 0.0));
-
-    }
-};
-
-struct stencil_on_cells_edges {
-    typedef accessor<0, trapezoid_2D::cells> out;
-    typedef accessor<1, trapezoid_2D::cells> in;
-    typedef accessor<2, trapezoid_2D::edges> out_edges_NOT_USED;
-    typedef accessor<3, trapezoid_2D::edges> in_edges;
+    typedef accessor<2, trapezoid_2D::edges> edges0;
+    typedef accessor<3, trapezoid_2D::edges> edges1;
 
     template <typename GridAccessors>
     void
@@ -144,24 +76,28 @@ struct stencil_on_cells_edges {
 #ifdef _MAIN_CPP_DEBUG_
                 std::cout << "#";
 #endif
-                return _in+_res;
+                return _in+_res+1;
             };
         auto gg = [](const double _in, const double _res) -> double
             {
 #ifdef _MAIN_CPP_DEBUG_
                 std::cout << "m";
 #endif
-                return _in+_res;
+                return _in+_res+2;
             };
         auto reduction = [](const double _in, const double _res) -> double
             {
 #ifdef _MAIN_CPP_DEBUG_
                 std::cout << "r";
 #endif
-                return _in+_res;
+                return _in+_res+3;
             };
 
-        eval(out()) = eval(on_cells(in(), gg, on_edges(in_edges(), ff, 0.0), reduction, 0.0));
+        auto x = eval(reduce_on_edges(reduction, 0.0, map(gg, edges0(), edges1::reduce_on_cells(ff, 0.0, map(identity<double>(), in())))));
+        auto y = eval(reduce_on_edges(reduction, 0.0, map(gg, edges0(), edges1::reduce_on_cells(ff, 0.0, in()))));
+        assert(x==y);
+        std:: cout << x << " == " << y << std::endl;
+        //eval(out()) = eval(reduce_on_edges(reduction, 0.0, edges0::reduce_on_cells(gg, in()), edges1()));
     }
 };
 
@@ -184,7 +120,7 @@ struct stencil_on_edges {
 #endif
                 return _in+_res;
             };
-        eval(out_edges()) = eval(on_neighbors(in(), ff, 0.0))+ eval(on_neighbors(in_edges(), ff, 0.0));
+        eval(out_edges()) = eval(reduce_on_cells(ff, 0.0, in()))+ eval(reduce_on_edges(ff, 0.0, in_edges()));
     }
 };
 
@@ -363,6 +299,7 @@ int main() {
 
     }
 
+
     std::cout << "#############################################################################################################################################################" << std::endl;
     std::cout << "#############################################################################################################################################################" << std::endl;
     std::cout << "CASE # 3" << std::endl;
@@ -370,39 +307,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_edges_cells, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
-
-        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-                      trapezoid_2D, trapezoid_2D::cells> acc
-            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-             (&cells_out, &cells, &edges_out, &edges), grid);
-
-
-        struct _coords {
-            int_t lb0, ub0;
-            int_t lb1, ub1;
-
-            _coords(int lb0, int ub0, int lb1, int ub1)
-                : lb0(lb0)
-                , ub0(ub0)
-                , lb1(lb1)
-                , ub1(ub1)
-            {}
-        } coords(1, NC-1-1, 2, MC-2-1);
-
-        gridtools::colored_backend::run(acc, x, coords);
-
-    }
-
-    std::cout << "#############################################################################################################################################################" << std::endl;
-    std::cout << "#############################################################################################################################################################" << std::endl;
-    std::cout << "CASE # 4" << std::endl;
-    std::cout << "#############################################################################################################################################################" << std::endl;
-    std::cout << "#############################################################################################################################################################" << std::endl;
-
-    {
-        auto x = make_esf<stencil_on_cells_edges, trapezoid_2D, trapezoid_2D::cells>
+        auto x = make_esf<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
