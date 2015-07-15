@@ -148,13 +148,11 @@ uint_t product(Array && x) {
 };
 
 int main() {
-    auto dims_c = trapezoid_2D::u_cell_size(6,12);
-    uint_t NC = dims_c[0];
-    uint_t MC = dims_c[1];
+    uint_t NC = trapezoid_2D::u_cell_size_i(6);
+    uint_t MC = trapezoid_2D::u_cell_size_j(12);
 
-    auto dims_e = trapezoid_2D::u_edge_size(6,12);
-    uint_t NE = dims_e[0];
-    uint_t ME = dims_e[1];
+    uint_t NE = trapezoid_2D::u_edge_size_i(6);
+    uint_t ME = trapezoid_2D::u_edge_size_j(12);
 
     std::cout << "NC = " << NC << " "
               << "MC = " << MC
@@ -164,10 +162,10 @@ int main() {
               << "ME = " << ME
               << std::endl;
 
-    cell_storage_type cells(product(trapezoid_2D::u_cell_size(NC, MC)));
-    edge_storage_type edges(product(trapezoid_2D::u_edge_size(NE, ME)));
-
     trapezoid_2D grid( 6, 12, 5 );
+
+    cell_storage_type cells(grid.size(gridtools::location_type<0>()));
+    edge_storage_type edges(grid.size(gridtools::location_type<1>()));
 
     EVAL_C(cell2cells_ll_p0, 1, 1, (gridtools::array<uint_t,3>{9, 24, 25}));
     EVAL_C(cell2cells_ll_p0, 1, 2, (gridtools::array<uint_t,3>{10, 25, 26}));
@@ -217,8 +215,10 @@ int main() {
     _EVAL_I(edges,cells, 2, 5);
 
 
-    cell_storage_type cells_out(product(trapezoid_2D::u_cell_size(NC, MC)));
-    edge_storage_type edges_out(product(trapezoid_2D::u_edge_size(NE, ME)));
+    cell_storage_type cells_out(grid.size(gridtools::location_type<0>()));
+    edge_storage_type edges_out(grid.size(gridtools::location_type<1>()));
+    // cell_storage_type cells_out(product(trapezoid_2D::u_cell_size(NC, MC)));
+    // edge_storage_type edges_out(product(trapezoid_2D::u_edge_size(NE, ME)));
 
 
 

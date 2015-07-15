@@ -32,7 +32,7 @@ namespace gridtools {
         using v_cell_storage_t = virtual_storage<typename cell_storage_t::layout>;
         using v_edge_storage_t = virtual_storage<typename edge_storage_t::layout>;
 
-        const uint_t m_dims[v_cell_storage_t::space_dimensions]; // Sizes as cells in a multi-dimensional Cell array
+        const gridtools::array<uint_t, v_cell_storage_t::space_dimensions> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
         static constexpr int Dims = 2;
 
@@ -42,6 +42,10 @@ namespace gridtools {
         using storage_types = typename boost::mpl::vector<cell_storage_t*, edge_storage_t*>;
         virtual_storage_types m_virtual_storages;
     public:
+
+        uint_t size(cells){return m_v_cell_storage.size();}
+        uint_t size(edges){return m_v_edge_storage.size();}
+
         template <typename T>
         struct virtual_storage_type;
 
@@ -59,29 +63,15 @@ namespace gridtools {
         };
 
 
-        // static constexpr uint_t u_cell_size_j(int _M) {return _M+4;}
-        // static constexpr uint_t u_cell_size_i(int _N) {return _N+2;}
-        // static constexpr uint_t u_edge_size_j(int _M) {return 3*(_M/2)+6;}
-        // static constexpr uint_t u_edge_size_i(int _N) {return _N+2;}
-        template <typename ... UInt>
-        static constexpr gridtools::array<uint_t, sizeof...(UInt)+2> u_cell_size_(uint_t first_, uint_t second_, UInt ... dims_) {return {first_+4, second_+2, dims_...};}
-        template <typename ... UInt>
-        static constexpr gridtools::array<uint_t, sizeof...(UInt)+2> u_edge_size_(uint_t first_, uint_t second_, UInt ... dims_) {return {3*(first_/2)+6, second_+2, dims_...};}
+        static constexpr uint_t u_cell_size_j(int _M) {return _M+4;}
+        static constexpr uint_t u_cell_size_i(int _N) {return _N+2;}
+        static constexpr uint_t u_edge_size_j(int _M) {return 3*(_M/2)+6;}
+        static constexpr uint_t u_edge_size_i(int _N) {return _N+2;}
+        // static constexpr gridtools::array<uint_t, 2> u_cell_size_(uint_t first_, uint_t second_) {return {first_+4, second_+2};}
+        // static constexpr gridtools::array<uint_t, 2> u_edge_size_(uint_t first_, uint_t second_) {return {3*(first_/2)+6, second_+2};}
 
-        template <typename ... UInt>
-        static constexpr gridtools::array<uint_t, sizeof...(UInt)+3> u_cell_size(uint_t first_, uint_t second_, UInt ... dims_) {return array<uint_t, sizeof...(UInt)+3>{first_,2,second_/2, dims_...};}
-        template <typename ... UInt>
-        static constexpr gridtools::array<uint_t, sizeof...(UInt)+3> u_edge_size(uint_t first_, uint_t second_, UInt ... dims_) {return array<uint_t, sizeof...(UInt)+3>{first_,3,second_/3, dims_...};}
-
-        // /** i[1] must be even */
-        // static /*constexpr*/ array<uint_t, Dims+1> u_cell_size(array<uint_t, Dims> const& i) {
-        //     return array<uint_t, Dims+1>{i[0], 2, i[1]/2};
-        // }
-
-        // /** i[1] must be even */
-        // static /*constexpr*/ array<uint_t, Dims+1> u_edge_size(array<uint_t, Dims> const& i) {
-        //     return array<uint_t, Dims+1>{i[0]+1, 3, (i[1])/3};
-        // }
+        // static constexpr gridtools::array<uint_t, 3> u_cell_size(uint_t first_, uint_t second_) {return {first_,2,second_/2};}
+        // static constexpr gridtools::array<uint_t, 3> u_edge_size(uint_t first_, uint_t second_) {return {first_,3,second_/3};}
 
     private:
         // int cell_size_j() const {return static_cast<int>(u_cell_size_j(M));}
@@ -98,10 +88,10 @@ namespace gridtools {
     public :
 
         template<typename ... UInt>
-        trapezoid_2D_colored(UInt ... dims)
-            : m_dims{dims...}
-            , m_v_cell_storage(u_cell_size(dims...))
-            , m_v_edge_storage(u_edge_size(dims...))
+        trapezoid_2D_colored(uint_t first_, uint_t second_, UInt ... dims)
+            : m_dims{first_, second_, dims...}
+            , m_v_cell_storage(array<uint_t, v_cell_storage_t::space_dimensions>{first_, 2, second_/2, dims...})
+            , m_v_edge_storage(array<uint_t, v_edge_storage_t::space_dimensions>{first_, 3, second_/3, dims...})
         {
             boost::fusion::at_c<cells::value>(m_virtual_storages) = &m_v_cell_storage;
             boost::fusion::at_c<edges::value>(m_virtual_storages) = &m_v_edge_storage;
@@ -114,20 +104,17 @@ namespace gridtools {
         m_v_ ## stor ## _storage._index(i,j,k)
 
 
-        template <typename Array>
-        Array ll_indices(Array const& i, cells) const {
+        array<int_t, 3> ll_indices(array<int_t, 2> const& i, cells) const {
             // std::cout << " *cells* " << std::endl;
             return array<int_t, 3>{i[0], i[1]%2, i[1]/2};
         }
 
-        template <typename Array>
-        array<int_t, 3> ll_indices(Array const& i, edges) const {
+        array<int_t, 3> ll_indices(array<int_t, 2> const& i, edges) const {
             // std::cout << " *edges* " << std::endl;
             return array<int_t, 3>{i[0], i[1]%3, i[1]/3};
         }
 
-        template <typename Array>
-        int_t ll_offset(Array const& i, cells) const {
+        int_t ll_offset(array<uint_t, 3> const& i, cells) const {
 #ifdef _GRID_H_DEBUG
             std::cout << " **cells offsets** "
                       << m_v_cell_storage._index(i[0], i[1], i[2]) << " from ("
@@ -139,8 +126,7 @@ namespace gridtools {
             return m_v_cell_storage._index(&i[0]);
         }
 
-        template <typename Array>
-        int_t ll_offset(Array const& i, edges) const {
+        int_t ll_offset(array<uint_t, 3> const& i, edges) const {
 #ifdef _GRID_H_DEBUG
             std::cout << " **edges offsets** "
                       << m_v_cell_storage._index(i[0], i[1], i[2]) << " from ("
@@ -152,9 +138,8 @@ namespace gridtools {
             return m_v_edge_storage._index(&i[0]);
         }
 
-        template <typename Array>
         array<int_t, 3>
-        cell2cells_ll_p1(Array const& i) const
+        cell2cells_ll_p1(array<int_t, 2> const& i) const
         {
             return array<int_t, 3>{
                 DO_THE_MATH(cell, i[0], 0, i[1]),
@@ -162,9 +147,8 @@ namespace gridtools {
                 DO_THE_MATH(cell, i[0]+1, 0, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 3>
-        cell2cells_ll_p0(Array const& i) const
+        cell2cells_ll_p0(array<int_t, 2> const& i) const
         {
             return array<int_t, 3>{
                 DO_THE_MATH(cell, i[0], 1, i[1]-1),
@@ -172,9 +156,8 @@ namespace gridtools {
                 DO_THE_MATH(cell, i[0]-1, 1, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 4>
-        edge2edges_ll_p0(Array const& i) const
+        edge2edges_ll_p0(array<int_t, 2> const& i) const
         {
             return array<int_t, 4>{
                 DO_THE_MATH(edge, i[0], 1, i[1]),
@@ -183,9 +166,8 @@ namespace gridtools {
                 DO_THE_MATH(edge, i[0], 2, i[1]-1)};
         }
 
-        template <typename Array>
         array<int_t, 4>
-        edge2edges_ll_p1(Array const& i) const
+        edge2edges_ll_p1(array<int_t, 2> const& i) const
         {
             return array<int_t, 4>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
@@ -194,9 +176,8 @@ namespace gridtools {
                 DO_THE_MATH(edge, i[0]-1, 2, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 4>
-        edge2edges_ll_p2(Array const& i) const
+        edge2edges_ll_p2(array<int_t, 2> const& i) const
         {
             return array<int_t, 4>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
@@ -205,9 +186,8 @@ namespace gridtools {
                 DO_THE_MATH(edge, i[0]+1, 1, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 3>
-        cell2edges_ll_p1(Array const& i) const
+        cell2edges_ll_p1(array<int_t, 2> const& i) const
         {
             return array<int_t, 3>{
                 DO_THE_MATH(edge, i[0], 2, i[1]),
@@ -215,9 +195,8 @@ namespace gridtools {
                 DO_THE_MATH(edge, i[0]+1, 1, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 3>
-        cell2edges_ll_p0(Array const& i) const
+        cell2edges_ll_p0(array<int_t, 2> const& i) const
         {
             return array<int_t, 3>{
                 DO_THE_MATH(edge, i[0], 0, i[1]),
@@ -225,51 +204,46 @@ namespace gridtools {
                 DO_THE_MATH(edge, i[0], 2, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 2>
-        edge2cells_ll_p0(Array const& i) const
+        edge2cells_ll_p0(array<int_t, 2> const& i) const
         {
             return array<int_t, 2>{
                 DO_THE_MATH(cell, i[0], 1, i[1]-1),
                 DO_THE_MATH(cell, i[0], 0, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 2>
-        edge2cells_ll_p1(Array const& i) const
+        edge2cells_ll_p1(array<int_t, 2> const& i) const
         {
             return array<int_t, 2>{
                 DO_THE_MATH(cell, i[0]-1, 1, i[1]),
                 DO_THE_MATH(cell, i[0], 0, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 2>
-        edge2cells_ll_p2(Array const& i) const
+        edge2cells_ll_p2(array<int_t, 2> const& i) const
         {
             return array<int_t, 2>{
                 DO_THE_MATH(cell, i[0], 0, i[1]),
                 DO_THE_MATH(cell, i[0], 1, i[1])};
         }
 
-        template <typename Array>
         array<int_t, 3>
-        neighbors(Array const& i, cells, cells) const
+        neighbors(array<int_t, 2> const& i, cells, cells) const
         {
             // std::cout << "grid.neighbors cells->cells "
             //           << i[0] << ", "
             //           << i[1]
             //           << std::endl;
             if (i[1]&1) {
-                return cell2cells_ll_p1(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2cells_ll_p1({i[0], i[1]/2});
             } else {
-                return cell2cells_ll_p0(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2cells_ll_p0({i[0], i[1]/2});
             }
         }
 
-        template <typename Array>
         array<int_t, 4>
-        neighbors(Array const& i, edges, edges) const
+        neighbors(array<int_t, 2> const& i, edges, edges) const
         {
             // std::cout << "grid.neighbors edges->edges "
             //           << i[0] << ", "
@@ -277,32 +251,30 @@ namespace gridtools {
             //           << std::endl;
             switch (i[1]%3) {
             case 0:
-                return edge2edges_ll_p0(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2edges_ll_p0({i[0], i[1]/3});
             case 1:
-                return edge2edges_ll_p1(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2edges_ll_p1({i[0], i[1]/3});
             case 2:
-                return edge2edges_ll_p2(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2edges_ll_p2({i[0], i[1]/3});
             }
         }
 
-        template<typename Array>
         array<int_t, 3>
-        neighbors(Array const& i, cells, edges) const
+        neighbors(array<int_t, 2> const& i, cells, edges) const
         {
             // std::cout << "grid.neighbors cells->edges "
             //           << i[0] << ", "
             //           << i[1]
             //           << std::endl;
             if (i[1]&1) {
-                return cell2edges_ll_p1(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2edges_ll_p1({i[0], i[1]/2});
             } else {
-                return cell2edges_ll_p0(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2edges_ll_p0({i[0], i[1]/2});
             }
         }
 
-        template <typename Array>
         array<int_t, 2>
-        neighbors(Array const& i, edges, cells) const
+        neighbors(array<int_t, 2> const& i, edges, cells) const
         {
             // std::cout << "grid.neighbors edges->cells "
             //           << i[0] << ", "
@@ -310,35 +282,33 @@ namespace gridtools {
             //           << std::endl;
             switch (i[1]%3) {
             case 0:
-                return edge2cells_ll_p0(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2cells_ll_p0({i[0], i[1]/3});
             case 1:
-                return edge2cells_ll_p1(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2cells_ll_p1({i[0], i[1]/3});
             case 2:
-                return edge2cells_ll_p2(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2cells_ll_p2({i[0], i[1]/3});
             }
         }
 
 
 
         /////////////////////////////////////////////////////////////////////
-        template <typename Array>
         array<int_t, 3>
-        neighbors_ll(Array const& i, cells, cells) const
+        neighbors_ll(array<int_t, 3> const& i, cells, cells) const
         {
             // std::cout << "grid.neighbors cells->cells "
             //           << i[0] << ", "
             //           << i[1]
             //           << std::endl;
             if (i[1]&1) {
-                return cell2cells_ll_p1(array<uint_t, 2>{i[0], i[2]});
+                return cell2cells_ll_p1({i[0], i[2]});
             } else {
-                return cell2cells_ll_p0(array<uint_t, 2>{i[0], i[2]});
+                return cell2cells_ll_p0({i[0], i[2]});
             }
         }
 
-        template <typename Array>
         array<int_t, 4>
-        neighbors_ll(Array const& i, edges, edges) const
+        neighbors_ll(array<int_t, 3> const& i, edges, edges) const
         {
             // std::cout << "grid.neighbors edges->edges "
             //           << i[0] << ", "
@@ -346,32 +316,30 @@ namespace gridtools {
             //           << std::endl;
             switch (i[1]%3) {
             case 0:
-                return edge2edges_ll_p0(array<uint_t, 2>{i[0], i[2]});
+                return edge2edges_ll_p0({i[0], i[2]});
             case 1:
-                return edge2edges_ll_p1(array<uint_t, 2>{i[0], i[2]});
+                return edge2edges_ll_p1({i[0], i[2]});
             case 2:
-                return edge2edges_ll_p2(array<uint_t, 2>{i[0], i[2]});
+                return edge2edges_ll_p2({i[0], i[2]});
             }
         }
 
-        template <typename Array>
         array<int_t, 3>
-        neighbors_ll(Array const& i, cells, edges) const
+        neighbors_ll(array<int_t, 3> const& i, cells, edges) const
         {
             // std::cout << "grid.neighbors cells->edges "
             //           << i[0] << ", "
             //           << i[1]
             //           << std::endl;
             if (i[1]&1) {
-                return cell2edges_ll_p1(array<uint_t, 2>{i[0], i[2]});
+                return cell2edges_ll_p1({i[0], i[2]});
             } else {
-                return cell2edges_ll_p0(array<uint_t, 2>{i[0], i[2]});
+                return cell2edges_ll_p0({i[0], i[2]});
             }
         }
 
-        template <typename Array>
         array<int_t, 2>
-        neighbors_ll(Array const& i, edges, cells) const
+        neighbors_ll(array<int_t, 3> const& i, edges, cells) const
         {
             // std::cout << "grid.neighbors edges->cells "
             //           << i[0] << ", "
@@ -379,19 +347,19 @@ namespace gridtools {
             //           << std::endl;
             switch (i[1]%3) {
             case 0:
-                return edge2cells_ll_p0(array<uint_t, 2>{i[0], i[2]});
+                return edge2cells_ll_p0({i[0], i[2]});
             case 1:
-                return edge2cells_ll_p1(array<uint_t, 2>{i[0], i[2]});
+                return edge2cells_ll_p1({i[0], i[2]});
             case 2:
-                return edge2cells_ll_p2(array<uint_t, 2>{i[0], i[2]});
+                return edge2cells_ll_p2({i[0], i[2]});
             }
         }
 
         ///////////////////////////////////
 
-        template <typename Array>
+
         array<array<uint_t, 3>, 3>
-        cell2cells_ll_p1_indices(Array const& i) const
+        cell2cells_ll_p1_indices(array<uint_t, 2> const& i) const
         {
             return array<array<uint_t, 3>, 3>{
                 { i[0], 0, i[1]},
@@ -399,9 +367,8 @@ namespace gridtools {
                 { i[0]+1, 0, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        cell2cells_ll_p0_indices(Array const& i) const
+        cell2cells_ll_p0_indices(array<uint_t, 2> const& i) const
         {
             assert(i[1] > 0);
             return array<array<uint_t, 3>, 3>{
@@ -410,9 +377,8 @@ namespace gridtools {
                 { i[0]-1, 1, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 4>
-        edge2edges_ll_p0_indices(Array const& i) const
+        edge2edges_ll_p0_indices(array<uint_t, 2> const& i) const
         {
             assert(i[1] > 0);
             return array<array<uint_t, 3>, 4>{
@@ -422,9 +388,8 @@ namespace gridtools {
                 { i[0], 2, i[1]-1}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 4>
-        edge2edges_ll_p1_indices(Array const& i) const
+        edge2edges_ll_p1_indices(array<uint_t, 2> const& i) const
         {
             assert(i[0] > 0);
             return array<array<uint_t, 3>, 4>{
@@ -434,9 +399,8 @@ namespace gridtools {
                 { i[0]-1, 2, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 4>
-        edge2edges_ll_p2_indices(Array const& i) const
+        edge2edges_ll_p2_indices(array<uint_t, 2> const& i) const
         {
             return array<array<uint_t, 3>, 4>{
                 { i[0], 0, i[1]},
@@ -445,9 +409,8 @@ namespace gridtools {
                 { i[0]+1, 1, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        cell2edges_ll_p1_indices(Array const& i) const
+        cell2edges_ll_p1_indices(array<uint_t, 2> const& i) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "cell2edges_ll_p1_indices " << i[0] << ", " << i[1] << std::endl;
@@ -458,9 +421,8 @@ namespace gridtools {
                 { i[0]+1, 1, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        cell2edges_ll_p0_indices(Array const& i) const
+        cell2edges_ll_p0_indices(array<uint_t, 2> const& i) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "cell2edges_ll_p0_indices " << i[0] << ", " << i[1] << std::endl;
@@ -471,9 +433,8 @@ namespace gridtools {
                 { i[0], 2, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 2>
-        edge2cells_ll_p0_indices(Array const& i) const
+        edge2cells_ll_p0_indices(array<uint_t, 2> const& i) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "edge2cells_ll_p0_indices " << i[0] << " " << i[1] << std::endl;
@@ -484,9 +445,8 @@ namespace gridtools {
                 { i[0], 0, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 2>
-        edge2cells_ll_p1_indices(Array const& i) const
+        edge2cells_ll_p1_indices(array<uint_t, 2> const& i) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "edge2cells_ll_p1_indices " << i[0] << " " << i[1] << std::endl;
@@ -497,9 +457,8 @@ namespace gridtools {
                 { i[0], 0, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 2>
-        edge2cells_ll_p2_indices(Array const& i) const
+        edge2cells_ll_p2_indices(array<uint_t, 2> const& i) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "edge2cells_ll_p2_indices " << i[0] << " " << i[1] << std::endl;
@@ -509,61 +468,56 @@ namespace gridtools {
                 { i[0], 1, i[1]}};
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        neighbors_indices(Array const& i, cells, cells) const
+        neighbors_indices(array<uint_t, 2> const& i, cells, cells) const
         {
             if (i[1]&1) {
-                return cell2cells_ll_p1_indices(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2cells_ll_p1_indices({i[0], i[1]/2});
             } else {
-                return cell2cells_ll_p0_indices(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2cells_ll_p0_indices({i[0], i[1]/2});
             }
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 4>
-        neighbors_indices(Array const& i, edges, edges) const
+        neighbors_indices(array<uint_t, 2> const& i, edges, edges) const
         {
             switch (i[1]%3) {
             case 0:
-                return edge2edges_ll_p0_indices(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2edges_ll_p0_indices({i[0], i[1]/3});
             case 1:
-                return edge2edges_ll_p1_indices(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2edges_ll_p1_indices({i[0], i[1]/3});
             case 2:
-                return edge2edges_ll_p2_indices(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2edges_ll_p2_indices({i[0], i[1]/3});
             }
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        neighbors_indices(Array const& i, cells, edges) const
+        neighbors_indices(array<uint_t, 2> const& i, cells, edges) const
         {
             if (i[1]&1) {
-                return cell2edges_ll_p1_indices(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2edges_ll_p1_indices({i[0], i[1]/2});
             } else {
-                return cell2edges_ll_p0_indices(array<uint_t, 2>{i[0], i[1]/2});
+                return cell2edges_ll_p0_indices({i[0], i[1]/2});
             }
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 2>
-        neighbors_indices(Array const& i, edges, cells) const
+        neighbors_indices(array<uint_t, 2> const& i, edges, cells) const
         {
             switch (i[1]%3) {
             case 0:
-                return edge2cells_ll_p0_indices(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2cells_ll_p0_indices({i[0], i[1]/3});
             case 1:
-                return edge2cells_ll_p1_indices(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2cells_ll_p1_indices({i[0], i[1]/3});
             case 2:
-                return edge2cells_ll_p2_indices(array<uint_t, 2>{i[0], i[1]/3});
+                return edge2cells_ll_p2_indices({i[0], i[1]/3});
             }
         }
 
 
         /**************************************************************************/
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        neighbors_indices_3(Array const& i, cells, cells) const
+        neighbors_indices_3(array<uint_t, 3> const& i, cells, cells) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "neighbors_indices_3 cells cells "
@@ -571,15 +525,14 @@ namespace gridtools {
                       << std::endl;
 #endif
             if (i[1]&1) {
-                return cell2cells_ll_p1_indices(array<uint_t, 2>{i[0], i[2]});
+                return cell2cells_ll_p1_indices({i[0], i[2]});
             } else {
-                return cell2cells_ll_p0_indices(array<uint_t, 2>{i[0], i[2]});
+                return cell2cells_ll_p0_indices({i[0], i[2]});
             }
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 4>
-        neighbors_indices_3(Array const& i, edges, edges) const
+        neighbors_indices_3(array<uint_t, 3> const& i, edges, edges) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "neighbors_indices_3 edges edges "
@@ -588,17 +541,16 @@ namespace gridtools {
 #endif
             switch (i[1]%3) {
             case 0:
-                return edge2edges_ll_p0_indices(array<uint_t, 2>{i[0], i[2]});
+                return edge2edges_ll_p0_indices({i[0], i[2]});
             case 1:
-                return edge2edges_ll_p1_indices(array<uint_t, 2>{i[0], i[2]});
+                return edge2edges_ll_p1_indices({i[0], i[2]});
             case 2:
-                return edge2edges_ll_p2_indices(array<uint_t, 2>{i[0], i[2]});
+                return edge2edges_ll_p2_indices({i[0], i[2]});
             }
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 3>
-        neighbors_indices_3(Array const& i, cells, edges) const
+        neighbors_indices_3(array<uint_t, 3> const& i, cells, edges) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "neighbors_indices_3 cells edges "
@@ -606,15 +558,14 @@ namespace gridtools {
                       << std::endl;
 #endif
             if (i[1]&1) {
-                return cell2edges_ll_p1_indices(array<uint_t, 2>{i[0], i[2]});
+                return cell2edges_ll_p1_indices({i[0], i[2]});
             } else {
-                return cell2edges_ll_p0_indices(array<uint_t, 2>{i[0], i[2]});
+                return cell2edges_ll_p0_indices({i[0], i[2]});
             }
         }
 
-        template <typename Array>
         array<array<uint_t, 3>, 2>
-        neighbors_indices_3(Array const& i, edges, cells) const
+        neighbors_indices_3(array<uint_t, 3> const& i, edges, cells) const
         {
 #ifdef _GRID_H_DEBUG
             std::cout << "neighbors_indices_3 edges cells "
@@ -623,11 +574,11 @@ namespace gridtools {
 #endif
             switch (i[1]%3) {
             case 0:
-                return edge2cells_ll_p0_indices(array<uint_t, 2>{i[0], i[2]});
+                return edge2cells_ll_p0_indices({i[0], i[2]});
             case 1:
-                return edge2cells_ll_p1_indices(array<uint_t, 2>{i[0], i[2]});
+                return edge2cells_ll_p1_indices({i[0], i[2]});
             case 2:
-                return edge2cells_ll_p2_indices(array<uint_t, 2>{i[0], i[2]});
+                return edge2cells_ll_p2_indices({i[0], i[2]});
             }
         }
 
