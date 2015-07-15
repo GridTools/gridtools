@@ -208,6 +208,10 @@ function(gridtools_add_test test_script test_name test_exec)
   file(APPEND ${TEST_SCRIPT} ${test_exec} ${ARGN} "\n")
 endfunction(gridtools_add_test)
 
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+if( NOT ENABLE_CACHING )
+    add_definitions( -D__DISABLE_CACHING__ )
+endif( NOT ENABLE_CACHING )
 
 if (ENABLE_PYTHON)
     find_package(PythonLibs)
