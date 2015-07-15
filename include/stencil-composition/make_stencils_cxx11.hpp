@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mss_metafunctions.hpp"
+
 namespace gridtools {
 
     /*!
@@ -41,10 +43,18 @@ namespace gridtools {
     }
 
     template <typename ExecutionEngine,
-        typename ... EsfDescr >
-    mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >
-    make_mss(ExecutionEngine&& /**/, EsfDescr&& ...  ) {
-        return mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >();
+        typename ... MssParameters >
+    mss_descriptor<
+        ExecutionEngine,
+        typename extract_mss_esfs<boost::mpl::vector<MssParameters ... > >::type,
+        typename extract_mss_caches<boost::mpl::vector<MssParameters ...> >::type
+    >
+    make_mss(ExecutionEngine&& /**/, MssParameters&& ...  ) {
+        return mss_descriptor<
+            ExecutionEngine,
+            typename extract_mss_esfs<boost::mpl::vector<MssParameters ... > >::type,
+            typename extract_mss_caches<boost::mpl::vector<MssParameters ...> >::type
+        >();
     }
 
 
