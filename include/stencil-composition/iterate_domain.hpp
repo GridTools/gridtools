@@ -84,21 +84,25 @@ namespace gridtools {
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
 
+        GT_FUNCTION
         data_pointer_array_t* RESTRICT data_pointer() const
         {
             return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
+        GT_FUNCTION
         void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
         {
             static_cast<IterateDomainImpl*>(this)->set_data_pointer_impl(data_pointer);
         }
 
+        GT_FUNCTION
         strides_cached_t* RESTRICT strides() const
         {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
+        GT_FUNCTION
         void set_strides(strides_cached_t* RESTRICT strides)
         {
             static_cast<IterateDomainImpl*>(this)->set_strides_impl(strides);
@@ -126,6 +130,7 @@ namespace gridtools {
         iterate_domain(local_domain_t const& local_domain_)
             : local_domain(local_domain_) {}
 
+        GT_FUNCTION
         const void* data_pointer(ushort_t i){return (* data_pointer() )[i];}
 
         /** This functon set the addresses of the data values  before the computation
@@ -168,9 +173,9 @@ namespace gridtools {
         /**@brief getter for the index array */
         GT_FUNCTION
         void get_index(array<int_t, N_STORAGES>& index) const
-            {
-                set_index_recur< N_STORAGES-1>::set(m_index, index);
-            }
+        {
+            set_index_recur< N_STORAGES-1>::set(m_index, index);
+        }
 
         /**@brief method for setting the index array */
         template <typename Input>
@@ -238,9 +243,9 @@ namespace gridtools {
         template <typename T>
         GT_FUNCTION
         void info(T const &x) const
-            {
-                local_domain.info(x);
-            }
+        {
+            local_domain.info(x);
+        }
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
            \param arg placeholder containing the storage ID and the offsets
