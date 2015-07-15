@@ -107,7 +107,7 @@ namespace gridtools {
 
             \tparam I The index to be queried
         */
-        template <ushort_t I>
+        template <short_t I>
         GT_FUNCTION
         static constexpr short_t at() {
             BOOST_STATIC_ASSERT( I<length );
@@ -781,7 +781,7 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I, typename T, T DefaultVal>
+        template <short_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const& a, T const& b, T const& c) {
             if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
@@ -814,7 +814,7 @@ namespace gridtools {
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <ushort_t I, typename T, T DefaultVal>
+        template <short_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
@@ -839,7 +839,7 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        template <short_t I, typename T, T DefaultVal, typename Tuple>
             GT_FUNCTION
             static T find_val(Tuple const& indices) {
             if ((pos_<I>::value >= length))
