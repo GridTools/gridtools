@@ -40,17 +40,17 @@ namespace gridtools {
         return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...>, Staggering >();
     }
 
-        template <typename ExecutionEngine,
-                  typename ... EsfDescr >
-        mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >
-        make_mss(ExecutionEngine&& /**/, EsfDescr&& ...  ) {
+    template <typename ExecutionEngine,
+        typename ... EsfDescr >
+    mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >
+    make_mss(ExecutionEngine&& /**/, EsfDescr&& ...  ) {
         return mss_descriptor<ExecutionEngine, boost::mpl::vector<EsfDescr ... > >();
     }
 
 
-        template <typename ... EsfDescr >
-        independent_esf< boost::mpl::vector<EsfDescr ...> >
-        make_independent(EsfDescr&& ... ) {
+    template <typename ... EsfDescr >
+    independent_esf< boost::mpl::vector<EsfDescr ...> >
+    make_independent(EsfDescr&& ... ) {
         return independent_esf<boost::mpl::vector<EsfDescr... > >();
     }
 
