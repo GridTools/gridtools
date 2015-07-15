@@ -13,6 +13,9 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, LocalDomain> > super;
+    typedef typename super::data_pointer_array_t data_pointer_array_t;
+    typedef typename super::strides_cached_t strides_cached_t;
+
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
@@ -22,9 +25,7 @@ private:
 public:
     GT_FUNCTION
     explicit iterate_domain_cuda(LocalDomain const& local_domain, const uint_t block_size_i, const uint_t block_size_j)
-        : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j),
-         ,m_data_pointer(0)
-         ,m_strides(0) {}
+        : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j), m_data_pointer(0), m_strides(0) {}
 
     GT_FUNCTION
     uint_t thread_position_x() const
