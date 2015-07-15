@@ -70,7 +70,11 @@ struct extract_mss_caches
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"
             " * esf descriptors from make_esf(...) or make_independent(...)");
+#ifdef __DISABLE_CACHING__
+    typedef boost::mpl::void_ type;
+#else
     typedef typename boost::mpl::copy_if<MssParameterSequence, boost::mpl::quote1<is_cache> >::type type;
+#endif
 };
 
 /**
