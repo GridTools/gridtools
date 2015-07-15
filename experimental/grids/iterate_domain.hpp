@@ -4,12 +4,6 @@
 
 #define _ACCESSOR_H_DEBUG_
 
-// template <typename F1, typename F2>
-// struct make_mapreduce {
-//     using map_type = F1;
-//     using reduce_type = F2;
-// };
-
 
 /**
    Map function that uses compile time (stateless) accessors to be
@@ -175,20 +169,6 @@ struct accessor {
     using location_type = LocationType;
     static const int value = I;
 
-    template <typename Reduction
-              , typename ValueType
-              , typename Map // Can be an accessor, too
-              >
-    static
-    on_neighbors_impl<ValueType, gridtools::location_type<0>, Reduction, Map>
-    reduce_on_cells(Reduction red, ValueType initial, Map map) {
-    return on_neighbors_impl<ValueType
-                             , gridtools::location_type<0>
-                             , Reduction
-                             , Map
-                             >(red, map, initial);
-    }
-
     location_type location() const {
         return location_type();
     }
@@ -239,9 +219,7 @@ private:
     pointers_t pointers;
     grid_type const& m_grid;
 
-    int m_ll_i;
-    int m_ll_j;
-    int m_ll_k;
+    gridtools::array<u_int, 3> m_ll_indices;
 
     template <typename PointersT, typename StoragesT>
     struct _set_pointers
@@ -264,28 +242,22 @@ private:
         PointersT &m_pt;
         StoragesT const &m_st;
         GridT const& m_g;
-        const int m_ll_i;
-        const int m_ll_j;
-        const int m_ll_k;
+        gridtools::array<uint_t, 3> const& _m_ll_indices;
 
         _set_pointers_to(PointersT& pt,
                          StoragesT const &st,
                          GridT const& g,
-                         const int ll_i,
-                         const int ll_j,
-                         const int ll_k)
+                         gridtools::array<uint_t, 3> const & ll_ind)
             : m_pt(pt)
             , m_st(st)
             , m_g(g)
-            , m_ll_i(ll_i)
-            , m_ll_j(ll_j)
-            , m_ll_k(ll_k)
+            , _m_ll_indices(ll_ind)
         {}
 
         template <typename Index>
         void operator()(Index) {
             double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr())
-                + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())->_index(m_ll_i, m_ll_j, m_ll_k));
+                + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())->_index(&_m_ll_indices[0]));
 
             boost::fusion::at_c<Index::value>(m_pt) = ptr;
         }
@@ -325,7 +297,7 @@ private:
     template <typename LocationT>
     void _set_pointers_to_ll() {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_set_pointers_to<LocationT, pointers_t, storage_types, grid_type>(pointers, storages, m_grid, m_ll_i, m_ll_j, m_ll_k));
+        boost::mpl::for_each<indices>(_set_pointers_to<LocationT, pointers_t, storage_types, grid_type>(pointers, storages, m_grid, m_ll_indices));
     }
 
 public:
@@ -338,13 +310,11 @@ public:
 
     GridType const& grid() const {return m_grid;}
 
-    void inc_ll_k() {++m_ll_k; _increment_pointers_k();}
+    void inc_ll_k() {++m_ll_indices[2]; _increment_pointers_k();}
 
     template <typename LocationT>
-    void set_ll_ijk(int i, int j, int k) {
-        m_ll_i = i;
-        m_ll_j = j;
-        m_ll_k = k;
+    void set_ll_ijk(u_int i, u_int j, u_int k) {
+        m_ll_indices = {i, j, k};
         _set_pointers_to_ll<LocationT>();
     }
 
@@ -355,15 +325,14 @@ public:
               , typename ...Arg0
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
-        auto current_position = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
-                                                            static_cast<uint_t>(m_ll_j),
-                                                            static_cast<uint_t>(m_ll_k));
+        auto current_position = m_ll_indices;
 
         const auto neighbors = m_grid.neighbors_indices_3(current_position
                                                           , location_type()
                                                           , onneighbors.location() );
-        std::cout << "Entry point " << current_position << " Neighbors: " << neighbors << std::endl;
-
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
+#endif
         double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
@@ -380,14 +349,14 @@ public:
               , typename L
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, accessor<I,L>> onneighbors) const {
-        auto current_position = gridtools::array<uint_t, 3>(static_cast<uint_t>(m_ll_i),
-                                                            static_cast<uint_t>(m_ll_j),
-                                                            static_cast<uint_t>(m_ll_k));
+        auto current_position = m_ll_indices;
 
         const auto neighbors = m_grid.neighbors_indices_3(current_position
                                                           , location_type()
                                                           , onneighbors.location() );
-        std::cout << "Entry point " << current_position << " Neighbors: " << neighbors << std::endl;
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
+#endif
 
         double result = onneighbors.value();
 
@@ -408,21 +377,27 @@ private:
 
     template <int I, typename L, typename IndexArray>
     double _evaluate(accessor<I,L>, IndexArray const& position) const {
+#ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
+#endif
         int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
         return *(boost::fusion::at_c<accessor<I,L>::value>(pointers)+offset);
     }
 
     template <typename MapF, typename LT, typename Arg0, typename IndexArray>
     double _evaluate(map_function<MapF, LT, Arg0> map, IndexArray const& position) const {
+#ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(map_function<MapF, LT, Arg0>...) " << LT() << ", " << position << std::endl;
+#endif
         int offset = m_grid.ll_offset(position, map.location());
         return map.function()(_evaluate(map.template argument<0>(), position));
     }
 
     template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
     double _evaluate(map_function<MapF, LT, Arg0, Arg1> map, IndexArray const& position) const {
+#ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(map_function<MapF, LT, Arg0, Arg1>...) " << LT() << ", " << position << std::endl;
+#endif
         int offset = m_grid.ll_offset(position, map.location());
         return map.function()(_evaluate(map.template argument<0>(), position)
                               , _evaluate(map.template argument<1>(), position));
@@ -438,7 +413,9 @@ private:
                                                           , onn.location()
                                                           , onn.location() );
 
+#ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(on_neighbors_impl<ValueType, ...) " << LocationTypeT() << ", " << position << " Neighbors: " << neighbors << std::endl;
+#endif
 
         double result = onn.value();
 
