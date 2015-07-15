@@ -5,6 +5,7 @@
 #include "functor_do_methods.hpp"
 #include "esf.hpp"
 #include "../common/meta_array.hpp"
+#include "caches/cache_metafunctions.hpp"
 
 /**
 @file
@@ -166,23 +167,27 @@ namespace gridtools {
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
+              typename EsfDescrSequence,
+              typename CacheSequence = boost::mpl::void_>
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value || boost::mpl::is_void_<CacheSequence>::value),
+                "Internal Error: invalid type");
     };
 
     template<typename mss>
     struct is_mss_descriptor : boost::mpl::false_{};
 
-    template <typename ExecutionEngine, typename EsfDescrSequence>
-    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence> > : boost::mpl::true_{};
+    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
+    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> > : boost::mpl::true_{};
 
     template<typename Mss>
     struct mss_descriptor_esf_sequence {};
 
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
-    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef EsfDescrSequence type;
     };
@@ -191,8 +196,9 @@ namespace gridtools {
     struct mss_descriptor_linear_esf_sequence;
 
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
-    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         template <typename State, typename SubArray>
         struct keep_scanning
@@ -221,8 +227,9 @@ namespace gridtools {
     struct mss_descriptor_execution_engine {};
 
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
-    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef ExecutionEngine type;
     };

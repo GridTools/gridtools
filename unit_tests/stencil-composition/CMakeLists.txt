@@ -15,3 +15,5 @@ set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_
 target_link_libraries(test_iterate_domain ${exe_LIBS})
 endif( ENABLE_CXX11 )
 
+
+add_subdirectory(caches)
