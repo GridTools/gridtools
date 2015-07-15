@@ -93,8 +93,8 @@ struct nested_stencil {
                 return _in+_res+3;
             };
 
-        auto x = eval(reduce_on_edges(reduction, 0.0, map(gg, edges0(), edges1::reduce_on_cells(ff, 0.0, map(identity<double>(), in())))));
-        auto y = eval(reduce_on_edges(reduction, 0.0, map(gg, edges0(), edges1::reduce_on_cells(ff, 0.0, in()))));
+        auto x = eval(reduce_on_edges(reduction, 0.0, map(gg, edges0(), reduce_on_cells(ff, 0.0, map(identity<double>(), in())))));
+        auto y = eval(reduce_on_edges(reduction, 0.0, map(gg, edges0(), reduce_on_cells(ff, 0.0, in()))));
         assert(x==y);
         std:: cout << x << " == " << y << std::endl;
         //eval(out()) = eval(reduce_on_edges(reduction, 0.0, edges0::reduce_on_cells(gg, in()), edges1()));
