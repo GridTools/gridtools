@@ -118,6 +118,12 @@ namespace gridtools {
         }
     };
 
+    template<typename T>
+    struct is_arg : boost::mpl::false_{};
+
+    template<uint_t I, typename Storage>
+    struct is_arg<arg<I, Storage> > : boost::mpl::true_{};
+
     namespace enumtype
     {
         /**
