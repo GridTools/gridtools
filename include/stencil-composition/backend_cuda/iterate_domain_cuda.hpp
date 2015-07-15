@@ -99,19 +99,25 @@ public:
         return m_block_size_j;
     }
 
+    GT_FUNCTION
     void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
     {
         m_data_pointer = data_pointer;
     }
 
+    GT_FUNCTION
     data_pointer_array_t* RESTRICT data_pointer_impl() const
     {
         return m_data_pointer;
     }
+
+    GT_FUNCTION
     strides_cached_t* RESTRICT strides_impl() const
     {
         return m_strides;
     }
+
+    GT_FUNCTION
     void set_strides_impl(strides_cached_t* RESTRICT strides)
     {
         m_strides = strides;
