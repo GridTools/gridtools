@@ -2,6 +2,7 @@
 
 #include "../iterate_domain.hpp"
 #include "../iterate_domain_metafunctions.hpp"
+#include "shared_iterate_domain.hpp"
 
 namespace gridtools {
 
@@ -20,9 +21,6 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-
-//    data_pointer_array_t* RESTRICT m_data_pointer;
-//    strides_cached_t* RESTRICT m_strides;
 
     shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
@@ -108,15 +106,28 @@ public:
     GT_FUNCTION
     data_pointer_array_t const & RESTRICT data_pointer_impl() const
     {
-        assert(m_pshared_iterate_domain);
-        return m_pshared_iterate_domain->data_pointer;
+//        assert(m_pshared_iterate_domain);
+        return m_pshared_iterate_domain->data_pointer();
+    }
+
+    GT_FUNCTION
+    data_pointer_array_t & RESTRICT data_pointer_impl()
+    {
+//        assert(m_pshared_iterate_domain);
+        return m_pshared_iterate_domain->data_pointer();
     }
 
     GT_FUNCTION
     strides_cached_t const & RESTRICT strides_impl() const
     {
-        assert(m_pshared_iterate_domain);
-        return m_pshared_iterate_domain;
+//        assert(m_pshared_iterate_domain);
+        return m_pshared_iterate_domain->strides();
+    }
+    GT_FUNCTION
+    strides_cached_t & RESTRICT strides_impl()
+    {
+//        assert(m_pshared_iterate_domain);
+        return m_pshared_iterate_domain->strides();
     }
 };
 
