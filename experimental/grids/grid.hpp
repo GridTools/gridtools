@@ -32,7 +32,7 @@ namespace gridtools {
         using v_cell_storage_t = virtual_storage<typename cell_storage_t::layout>;
         using v_edge_storage_t = virtual_storage<typename edge_storage_t::layout>;
 
-        const gridtools::array<uint_t, v_cell_storage_t::space_dimensions> m_dims; // Sizes as cells in a multi-dimensional Cell array
+        const gridtools::array<uint_t, 2> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
         static constexpr int Dims = 2;
 
@@ -89,9 +89,9 @@ namespace gridtools {
 
         template<typename ... UInt>
         trapezoid_2D_colored(uint_t first_, uint_t second_, UInt ... dims)
-            : m_dims{first_, second_, dims...}
-            , m_v_cell_storage(array<uint_t, v_cell_storage_t::space_dimensions>{first_, 2, second_/2, dims...})
-            , m_v_edge_storage(array<uint_t, v_edge_storage_t::space_dimensions>{first_, 3, second_/3, dims...})
+            : m_dims{second_, first_}
+            , m_v_cell_storage(array<uint_t, v_cell_storage_t::space_dimensions>{u_cell_size_i(first_), 2, u_cell_size_j(second_)/2, dims...})
+            , m_v_edge_storage(array<uint_t, v_edge_storage_t::space_dimensions>{u_edge_size_i(first_), 3, u_edge_size_j(second_)/3, dims...})
         {
             boost::fusion::at_c<cells::value>(m_virtual_storages) = &m_v_cell_storage;
             boost::fusion::at_c<edges::value>(m_virtual_storages) = &m_v_edge_storage;

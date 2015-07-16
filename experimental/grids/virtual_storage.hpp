@@ -103,7 +103,7 @@ namespace gridtools {
             typedef boost::mpl::vector<Int...> tlist;
             //boost::is_same<boost::mpl::_1, uint_t>
             typedef typename boost::mpl::find_if<tlist, boost::mpl::not_< boost::is_integral<boost::mpl::_1> > >::type iter;
-            //NO YOU DONT GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(Int), "you have to pass in arguments of uint_t type");
+            GRIDTOOLS_STATIC_ASSERT(iter::pos::value==sizeof...(Int), "you have to pass in arguments of integral type");
 #endif
             return _impl::compute_offset<space_dimensions, layout>::apply(&m_strides[0], dims ...);
         }
