@@ -23,6 +23,7 @@ public:
 
     void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
     {
+        assert(data_pointer);
         m_data_pointer = data_pointer;
     }
 
@@ -49,8 +50,9 @@ public:
         return *m_strides;
     }
 
-    void set_strides_impl(strides_cached_t* RESTRICT strides)
+    void set_strides_pointer_impl(strides_cached_t* RESTRICT strides)
     {
+        assert(strides);
         m_strides = strides;
     }
 
