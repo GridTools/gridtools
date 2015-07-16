@@ -248,35 +248,37 @@ namespace gridtools {
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
-        template <typename ArgType, typename StoragePointer>
+        template <typename Accessor, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-        get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const;
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename Accessor::index_type>::type::value_type& RESTRICT
+        get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const;
 
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
-        template <bool condition, typename LocalD, typename ArgType>
+        template <bool condition, typename LocalD, typename Accessor>
         struct current_storage;
 
-        template < typename LocalD, typename ArgType>
-        struct current_storage<true, LocalD, ArgType>{
+        template < typename LocalD, typename Accessor>
+        struct current_storage<true, LocalD, Accessor>{
             static const uint_t value=0;
         };
 
-        template < typename LocalD, typename ArgType>
-        struct current_storage<false, LocalD, ArgType>{
-            static const uint_t value=(total_storages< typename LocalD::local_args_type, ArgType::index_type::value >::value);
+        template < typename LocalD, typename Accessor>
+        struct current_storage<false, LocalD, Accessor>{
+            static const uint_t value=(total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
         };
 
 #ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors.
             specialization for the expr_direct_access<accessor> placeholders
         */
-        template <typename ArgType>
+        template <typename Accessor>
         GT_FUNCTION
-        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::type::index_type>::type::value_type& RESTRICT
-        operator()(expr_direct_access<ArgType > const& arg) const {
-            return get_value(arg, (data_pointer())[current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type >::value]);
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename Accessor::type::index_type>::type::value_type& RESTRICT
+        operator()(expr_direct_access<Accessor > const& accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+            return get_value(accessor, (data_pointer())[current_storage<(Accessor::type::index_type::value==0), local_domain_t, typename Accessor::type >::value]);
         }
 #endif
 
@@ -286,20 +288,20 @@ namespace gridtools {
             this method is enabled only if the current placeholder dimension does not exceed the number of space dimensions of the storage class.
             I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for definitions)
         */
-        template <typename ArgType>
+        template <typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename boost::mpl::bool_< (ArgType::type::n_dim <=
+            typename boost::mpl::bool_< (Accessor::type::n_dim <=
                                          boost::mpl::at<
                                          typename local_domain_t::esf_args
-                                         , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+                                         , typename Accessor::type::index_type>::type::storage_type::space_dimensions)>::type
                                         , typename boost::mpl::at<typename local_domain_t::esf_args
-                                                                  , typename ArgType::type::index_type>::type::value_type
+                                                                  , typename Accessor::type::index_type>::type::value_type
                                         >::type& RESTRICT
-        operator()(ArgType const& arg) const {
-
-            return get_value(arg, (data_pointer())[current_storage<(ArgType::index_type::value==0)
-                                                    , local_domain_t, typename ArgType::type >::value]);
+        operator()(Accessor const& accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
+                                                    , local_domain_t, typename Accessor::type >::value]);
         }
 
         /** @brief method called in the Do methods of the functors.
@@ -309,17 +311,17 @@ namespace gridtools {
             I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
             TODO: This and the above version will be eventually merged.
         */
-        template < typename ArgType>
+        template < typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename boost::mpl::bool_<(ArgType::type::n_dim >
+            typename boost::mpl::bool_<(Accessor::type::n_dim >
             boost::mpl::at<
             typename local_domain_t::esf_args
-            , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+            , typename Accessor::type::index_type>::type::storage_type::space_dimensions)>::type
             , typename boost::mpl::at<typename local_domain_t::esf_args
-            , typename ArgType::type::index_type>::type::value_type
+            , typename Accessor::type::index_type>::type::value_type
         >::type&  RESTRICT
-        operator()(ArgType const& arg) const;
+        operator()(Accessor const& accessor) const;
 
 
 #if defined(CXX11_ENABLED)
@@ -327,11 +329,11 @@ namespace gridtools {
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
-        template < typename ArgType, typename ... Pairs>
+        template < typename Accessor, typename ... Pairs>
         GT_FUNCTION
         typename boost::mpl::at<typename local_domain_t::esf_args
-                                , typename ArgType::index_type>::type::value_type& RESTRICT
-        operator()(accessor_mixed<ArgType, Pairs ... > const& arg) const;
+                                , typename Accessor::index_type>::type::value_type& RESTRICT
+        operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const;
 
 #endif //ifndef __CUDACC__
 
@@ -340,13 +342,13 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors.
 
-            specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
+            specialization for the expr_direct_access<Accessor> placeholders (high level syntax: '@plch').
             Allows direct access to the storage by only using the offsets
         */
-        template <typename ArgType, typename StoragePointer>
+        template <typename Accessor, typename StoragePointer>
         GT_FUNCTION
-        typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-        get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const;
+        typename boost::mpl::at<typename local_domain_t::esf_args, typename Accessor::index_type>::type::value_type& RESTRICT
+        get_value (expr_direct_access<Accessor> const& accessor, StoragePointer & RESTRICT storage_pointer) const;
 
 
         /** @brief method called in the Do methods of the functors. */
@@ -359,10 +361,11 @@ namespace gridtools {
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for double (or float)*/
-        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+        template <typename Accessor, template<typename Arg1, typename Arg2> class Expression, typename FloatType
                   , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Arg, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+        auto operator() (Expression<Accessor, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             return evaluation::value_scalar((*this), arg);
         }
 
@@ -370,17 +373,21 @@ namespace gridtools {
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
         // template <typename Arg, int Arg2, template<typename Arg1, int a> class Expression >
-        template <typename Arg, template<typename Arg1, typename Arg2> class Expression, typename IntType
+        template <typename Accessor, template<typename Arg1, typename Arg2> class Expression, typename IntType
                   , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Arg, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+        auto operator() (Expression<Accessor, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
             return evaluation::value_int((*this), arg);
         }
 
-        template <typename Arg, template<typename Arg1, int Arg2> class Expression
+        template <typename Accessor, template<typename Arg1, int Arg2> class Expression
                   , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
         GT_FUNCTION
-        auto operator() (Expression<Arg, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+        auto operator() (Expression<Accessor, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
             return evaluation::value_int((*this), arg);
         }
 
@@ -470,16 +477,17 @@ namespace gridtools {
        \param storage_pointer pointer to the first element of the specific data field used
     */
     template<typename IterateDomainImpl>
-    template <typename ArgType, typename StoragePointer>
+    template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
-    typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-    iterate_domain<IterateDomainImpl>::get_value(ArgType const& arg , StoragePointer & RESTRICT storage_pointer) const {
+    typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename Accessor::index_type>::type::value_type& RESTRICT
+    iterate_domain<IterateDomainImpl>::get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const {
 
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))>::type;
 #else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)) )>::type storage_type;
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
@@ -487,9 +495,9 @@ namespace gridtools {
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
-        assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
-               +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-               ->_index(strides().template get<ArgType::index_type::value>(), arg)
+        assert(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)->size() >  m_index[Accessor::index_type::value]
+               +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+               ->_index(strides().template get<Accessor::index_type::value>(), accessor)
             );
 
         //the following assert fails when an out of bound access is observed,
@@ -500,17 +508,17 @@ namespace gridtools {
         //in the placehoders definition.
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
-        // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_dim>())<<std::endl;
-        assert( (int_t)(m_index[ArgType::index_type::value])
-                +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                ->_index(strides().template get<ArgType::index_type::value>(), arg)
+        // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
+        assert( (int_t)(m_index[Accessor::index_type::value])
+                +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+                ->_index(strides().template get<Accessor::index_type::value>(), accessor)
                 >= 0);
 
         return *(real_storage_pointer
-                 +(m_index[ArgType::index_type::value])
-                 +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                 //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                 ->_index(strides().template get<ArgType::index_type::value>(), arg)
+                 +(m_index[Accessor::index_type::value])
+                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+                 //here we suppose for the moment that Accessor::index_types are ordered like the LocalDomain::esf_args mpl vector
+                 ->_index(strides().template get<Accessor::index_type::value>(), accessor)
             );
     }
 
@@ -518,49 +526,51 @@ namespace gridtools {
     /** @brief method called in the Do methods of the functors.
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
     template<typename IterateDomainImpl>
-    template < typename ArgType>
+    template < typename Accessor>
     GT_FUNCTION
     typename boost::enable_if<
-        typename boost::mpl::bool_<(ArgType::type::n_dim > boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
-        , typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename ArgType::type::index_type>::type::value_type >::type&  RESTRICT
-    iterate_domain<IterateDomainImpl>::operator()(ArgType const& arg) const {
+        typename boost::mpl::bool_<(Accessor::type::n_dim > boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename Accessor::type::index_type>::type::storage_type::space_dimensions)>::type
+        , typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename Accessor::type::index_type>::type::value_type >::type&  RESTRICT
+    iterate_domain<IterateDomainImpl>::operator()(Accessor const& accessor) const {
+
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args))>::type;
 #else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args)) )>::type storage_type;
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args)) )>::type storage_type;
 #endif
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
-        GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions+2/*max. extra dimensions*/>=ArgType::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
+        GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions+2/*max. extra dimensions*/>=Accessor::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
 
 
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+        GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(Dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, Dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
             //dimension/snapshot offsets must be non negative
-        assert(arg.template get<0>()>=0);
-        assert( (ArgType::type::n_dim <= storage_type::space_dimensions+1) ||
-                (arg.template get<1>()>=0) );
+        assert(accessor.template get<0>()>=0);
+        assert( (Accessor::type::n_dim <= storage_type::space_dimensions+1) ||
+                (accessor.template get<1>()>=0) );
              // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
-        return get_value(arg,
+        return get_value(accessor,
                          (data_pointer())[
                              (
-                                 ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
-                                 arg.template get<0>() //offset for the current dimension
+                                 Accessor::type::n_dim <= storage_type::space_dimensions+1 ? // static if
+                                 accessor.template get<0>() //offset for the current dimension
                                  :
-                                 arg.template get<1>() //offset for the current snapshot
+                                 accessor.template get<1>() //offset for the current snapshot
                                  //limitation to "rectangular" vector fields for non-static fields dimensions
-                                 +  arg.template get<0>() //select the dimension
+                                 +  accessor.template get<0>() //select the dimension
                                  * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
                                  )
                                      //+ the offset of the other extra dimension
-                             + current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type>::value
+                             + current_storage<(Accessor::type::index_type::value==0), local_domain_t, typename Accessor::type>::value
                              ]);
     }
 
@@ -569,34 +579,36 @@ namespace gridtools {
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
     template <typename IterateDomainImpl>
-    template < typename ArgType, typename ... Pairs>
+    template < typename Accessor, typename ... Pairs>
     GT_FUNCTION
     typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args
-                            , typename ArgType::index_type>::type::value_type& RESTRICT
-    iterate_domain<IterateDomainImpl>::operator()(accessor_mixed<ArgType, Pairs ... > const& arg) const{
+                            , typename Accessor::index_type>::type::value_type& RESTRICT
+    iterate_domain<IterateDomainImpl>::operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const{
 
-        typedef accessor_mixed<ArgType, Pairs ... > accessor_mixed_t;
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::type::index_type>(local_domain.local_args))>::type;
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+        typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args))>::type;
 
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
-        /* BOOST_STATIC_ASSERT(storage_type::n_fields==ArgType::n_dim); */
+        /* BOOST_STATIC_ASSERT(storage_type::n_fields==Accessor::n_dim); */
 
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(ArgType::type::n_dim <= ArgType::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+        GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
         GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>()>=0,
                                 "offset specified for the dimension corresponding to the number of snapshots must be non negative");
-        GRIDTOOLS_STATIC_ASSERT( (ArgType::type::n_dim <= storage_type::space_dimensions+1) ||
+        GRIDTOOLS_STATIC_ASSERT( (Accessor::type::n_dim <= storage_type::space_dimensions+1) ||
                                      (accessor_mixed_t::template get_constexpr<1>()>=0),
                                  "offset specified for the dimension corresponding to the number of field components must be non negative");
 
-        return get_value(arg,
+        return get_value(accessor,
                          (data_pointer())[ //static if
                              //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
                (
-                   ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
+                   Accessor::type::n_dim <= storage_type::space_dimensions+1 ? // static if
                    accessor_mixed_t::template get_constexpr<0>() //offset for the current snapshot
                    :
                    accessor_mixed_t::template get_constexpr<1>() //offset for the current snapshot
@@ -605,41 +617,42 @@ namespace gridtools {
                    , accessor_mixed_t::template get_constexpr<0>()
                    , storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
                    )//+ the offset of the other extra dimension
-               + current_storage<(ArgType::index_type::value==0), local_domain_t, typename ArgType::type>::value
+               + current_storage<(Accessor::index_type::value==0), local_domain_t, typename Accessor::type>::value
                              ]);
     }
 
 
     /** @brief method called in the Do methods of the functors.
 
-        specialization for the expr_direct_access<ArgType> placeholders (high level syntax: '@plch').
+        specialization for the expr_direct_access<Accessor> placeholders (high level syntax: '@plch').
         Allows direct access to the storage by only using the offsets
     */
     template <typename IterateDomainImpl>
-    template <typename ArgType, typename StoragePointer>
+    template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
-    typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename ArgType::index_type>::type::value_type& RESTRICT
-    iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const {
+    typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename Accessor::index_type>::type::value_type& RESTRICT
+    iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& accessor, StoragePointer & RESTRICT storage_pointer) const {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-        assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-               ->_index(strides().template get<ArgType::index_type::value>(), arg.first_operand));
+        assert(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+               ->_index(strides().template get<Accessor::index_type::value>(), accessor.first_operand));
 
-        assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-               ->_index(strides().template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
+        assert((boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+               ->_index(strides().template get<Accessor::index_type::value>(), accessor.first_operand) >= 0);
         GRIDTOOLS_STATIC_ASSERT((
-                                    ArgType::n_dim <= boost::mpl::at<
+                                    Accessor::n_dim <= boost::mpl::at<
                                     typename local_domain_t::esf_args,
-                                    typename ArgType::index_type
+                                    typename Accessor::index_type
                                     >::type::storage_type::space_dimensions),
                                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))>::type;
 
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
         return *(real_storage_pointer
-                 +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                 ->_index(strides().template get<ArgType::index_type::value>(), arg.first_operand));
+                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+                 ->_index(strides().template get<Accessor::index_type::value>(), accessor.first_operand));
     }
 #endif //ifndef CXX11_ENABLED
 
