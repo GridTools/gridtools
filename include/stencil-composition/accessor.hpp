@@ -1,5 +1,7 @@
 #pragma once
 #include "accessor_impl.hpp"
+#include "arg.h"
+
 /**
    @file
    @brief File containing the definition of the placeholders used to address the storage from whithin the functors.
@@ -26,6 +28,7 @@ namespace gridtools {
     template < uint_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
     struct accessor : public accessor_base<ID, Range, Number> {
         typedef accessor_base<ID, Range, Number> super;
+        typedef typename super::index_type index_type;
 #ifdef CXX11_ENABLED
 
         GT_FUNCTION
@@ -87,42 +90,6 @@ namespace gridtools {
 
 #endif
     };
-
-    /**
-     * Type to create placeholders for data fields.
-     *
-     * There is a specialization for the case in which T is a temporary
-     *
-     * @tparam I Integer index (unique) of the data field to identify it
-     * @tparam T The type of the storage used to store data
-     */
-    template <uint_t I, typename T>
-    struct arg {
-        typedef T storage_type;
-        typedef typename T::iterator_type iterator_type;
-        typedef typename T::value_type value_type;
-        typedef static_uint<I> index_type;
-        typedef static_uint<I> index;
-
-        template<typename Storage>
-        arg_storage_pair<arg<I,T>, Storage>
-        operator=(Storage& ref) {
-            GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage, T>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
-
-
-            return arg_storage_pair<arg<I,T>, Storage>(&ref);
-        }
-
-        static void info() {
-            std::cout << "Arg on real storage with index " << I;
-        }
-    };
-
-    template<typename T>
-    struct is_arg : boost::mpl::false_{};
-
-    template<uint_t I, typename Storage>
-    struct is_arg<arg<I, Storage> > : boost::mpl::true_{};
 
     namespace enumtype
     {
