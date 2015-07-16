@@ -26,13 +26,27 @@ public:
         m_data_pointer = data_pointer;
     }
 
-    data_pointer_array_t* RESTRICT data_pointer_impl() const
+    data_pointer_array_t& RESTRICT data_pointer_impl()
     {
-        return m_data_pointer;
+        assert(m_data_pointer);
+        return *m_data_pointer;
     }
-    strides_cached_t* RESTRICT strides_impl() const
+    data_pointer_array_t const & RESTRICT data_pointer_impl() const
     {
-        return m_strides;
+        assert(m_data_pointer);
+        return *m_data_pointer;
+    }
+
+    strides_cached_t& RESTRICT strides_impl()
+    {
+        assert(m_strides);
+        return *m_strides;
+    }
+
+    strides_cached_t const & RESTRICT strides_impl() const
+    {
+        assert(m_strides);
+        return *m_strides;
     }
 
     void set_strides_impl(strides_cached_t* RESTRICT strides)

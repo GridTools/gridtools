@@ -85,7 +85,13 @@ namespace gridtools {
         typedef strides_cached<N_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
 
         GT_FUNCTION
-        data_pointer_array_t* RESTRICT data_pointer() const
+        data_pointer_array_t& RESTRICT data_pointer()
+        {
+            return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
+        }
+
+        GT_FUNCTION
+        data_pointer_array_t const & RESTRICT data_pointer() const
         {
             return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
         }
@@ -97,7 +103,13 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        strides_cached_t* RESTRICT strides() const
+        strides_cached_t& RESTRICT strides()
+        {
+            return static_cast<IterateDomainImpl*>(this)->strides_impl();
+        }
+
+        GT_FUNCTION
+        strides_cached_t const & RESTRICT strides() const
         {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
@@ -131,7 +143,7 @@ namespace gridtools {
             : local_domain(local_domain_) {}
 
         GT_FUNCTION
-        const void* data_pointer(ushort_t i){return (* data_pointer() )[i];}
+        const void* data_pointer(ushort_t i){return ( data_pointer() )[i];}
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -152,7 +164,7 @@ namespace gridtools {
                     BackendType,
                     data_pointer_array_t,
                     typename local_domain_t::local_args_type
-                >(*(data_pointer()), local_domain.local_args,  EU_id_i, EU_id_j));
+                >(data_pointer(), local_domain.local_args,  EU_id_i, EU_id_j));
         }
 
         template<typename BackendType, typename Strides>
@@ -166,7 +178,7 @@ namespace gridtools {
                     BackendType,
                     Strides,
                     typename local_domain_t::local_args_type
-                >(*(strides()), local_domain.local_args));
+                >(strides(), local_domain.local_args));
         }
 
 
@@ -204,7 +216,7 @@ namespace gridtools {
 #else
                   Execution::value
 #endif
-                  , &m_index[0], *(strides()))
+                  , &m_index[0], strides())
                 );
         }
 
@@ -222,7 +234,7 @@ namespace gridtools {
                     Coordinate,
                     strides_cached_t,
                     typename local_domain_t::local_args_type
-                >(local_domain.local_args, steps_, &m_index[0], *(strides()))
+                >(local_domain.local_args, steps_, &m_index[0], strides())
             );
         }
 
@@ -236,7 +248,7 @@ namespace gridtools {
                     Coordinate,
                     strides_cached_t,
                     typename local_domain_t::local_args_type
-                >(*(strides()), local_domain.local_args, initial_pos, block, &m_index[0])
+                >(strides(), local_domain.local_args, initial_pos, block, &m_index[0])
             );
         }
 
@@ -279,7 +291,7 @@ namespace gridtools {
         GT_FUNCTION
         typename boost::mpl::at<typename local_domain_t::esf_args, typename ArgType::type::index_type>::type::value_type& RESTRICT
         operator()(expr_direct_access<ArgType > const& arg) const {
-            return get_value(arg, (*(data_pointer()))[current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type >::value]);
+            return get_value(arg, (data_pointer())[current_storage<(ArgType::type::index_type::value==0), local_domain_t, typename ArgType::type >::value]);
         }
 #endif
 
@@ -301,7 +313,7 @@ namespace gridtools {
                                         >::type& RESTRICT
         operator()(ArgType const& arg) const {
 
-            return get_value(arg, (*(data_pointer()))[current_storage<(ArgType::index_type::value==0)
+            return get_value(arg, (data_pointer())[current_storage<(ArgType::index_type::value==0)
                                                     , local_domain_t, typename ArgType::type >::value]);
         }
 
@@ -492,7 +504,7 @@ namespace gridtools {
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
         assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  m_index[ArgType::index_type::value]
                +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-               ->_index(strides()->template get<ArgType::index_type::value>(), arg)
+               ->_index(strides().template get<ArgType::index_type::value>(), arg)
             );
 
         //the following assert fails when an out of bound access is observed,
@@ -506,14 +518,14 @@ namespace gridtools {
         // std::cout<<"Storage Index: "<<ArgType::index_type::value<<" + "<<(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))->_index(arg.template n<ArgType::n_dim>())<<std::endl;
         assert( (int_t)(m_index[ArgType::index_type::value])
                 +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                ->_index(strides()->template get<ArgType::index_type::value>(), arg)
+                ->_index(strides().template get<ArgType::index_type::value>(), arg)
                 >= 0);
 
         return *(real_storage_pointer
                  +(m_index[ArgType::index_type::value])
                  +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
                  //here we suppose for the moment that ArgType::index_types are ordered like the LocalDomain::esf_args mpl vector
-                 ->_index(strides()->template get<ArgType::index_type::value>(), arg)
+                 ->_index(strides().template get<ArgType::index_type::value>(), arg)
             );
     }
 
@@ -552,7 +564,7 @@ namespace gridtools {
              // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
         return get_value(arg,
-                         (*(data_pointer()))[
+                         (data_pointer())[
                              (
                                  ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
                                  arg.template get<0>() //offset for the current dimension
@@ -596,7 +608,7 @@ namespace gridtools {
                                  "offset specified for the dimension corresponding to the number of field components must be non negative");
 
         return get_value(arg,
-                         (*(data_pointer()))[ //static if
+                         (data_pointer())[ //static if
                              //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
                (
                    ArgType::type::n_dim <= storage_type::space_dimensions+1 ? // static if
@@ -625,10 +637,10 @@ namespace gridtools {
     iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<ArgType> const& arg, StoragePointer & RESTRICT storage_pointer) const {
 
         assert(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-               ->_index(strides()->template get<ArgType::index_type::value>(), arg.first_operand));
+               ->_index(strides().template get<ArgType::index_type::value>(), arg.first_operand));
 
         assert((boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-               ->_index(strides()->template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
+               ->_index(strides().template get<ArgType::index_type::value>(), arg.first_operand) >= 0);
         GRIDTOOLS_STATIC_ASSERT((
                                     ArgType::n_dim <= boost::mpl::at<
                                     typename local_domain_t::esf_args,
@@ -642,7 +654,7 @@ namespace gridtools {
 
         return *(real_storage_pointer
                  +(boost::fusion::at<typename ArgType::index_type>(local_domain.local_args))
-                 ->_index(strides()->template get<ArgType::index_type::value>(), arg.first_operand));
+                 ->_index(strides().template get<ArgType::index_type::value>(), arg.first_operand));
     }
 #endif //ifndef CXX11_ENABLED
 
