@@ -97,12 +97,6 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
-        {
-            static_cast<IterateDomainImpl*>(this)->set_data_pointer_impl(data_pointer);
-        }
-
-        GT_FUNCTION
         strides_cached_t& RESTRICT strides()
         {
             return static_cast<IterateDomainImpl*>(this)->strides_impl();
@@ -114,11 +108,6 @@ namespace gridtools {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
-        GT_FUNCTION
-        void set_strides(strides_cached_t* RESTRICT strides)
-        {
-            static_cast<IterateDomainImpl*>(this)->set_strides_impl(strides);
-        }
     private:
         // iterate_domain remembers the state. This is necessary when
         // we do finite differences and don't want to recompute all
@@ -154,11 +143,9 @@ namespace gridtools {
         */
         template<typename BackendType>
         GT_FUNCTION
-        void assign_storage_pointers( data_pointer_array_t* RESTRICT _data_pointer ){
-            assert(_data_pointer);
+        void assign_storage_pointers(){
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
-            set_data_pointer(_data_pointer);
             for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
                 assign_storage_functor<
                     BackendType,
@@ -169,10 +156,8 @@ namespace gridtools {
 
         template<typename BackendType, typename Strides>
         GT_FUNCTION
-        void assign_stride_pointers( Strides * RESTRICT strides_){
+        void assign_stride_pointers(){
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
-            assert(strides_);
-            set_strides(strides_);
             for_each< typename reversed_range<int_t, 0, N_STORAGES >::type > (
                 assign_strides_functor<
                     BackendType,

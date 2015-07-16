@@ -105,12 +105,15 @@ struct execute_kernel_functor_host
 #endif
 
         array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
-        strides_cached<iterate_domain_t::N_STORAGES-1, typename local_domain_t::esf_args> strides;
+        typedef strides_cached<iterate_domain_t::N_STORAGES-1, typename local_domain_t::esf_args> strides_t;
+        strides_t strides;
 
         iterate_domain_t it_domain(m_local_domain);
-        it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
+        it_domain.set_data_pointer_impl(&data_pointer);
+        it_domain.set_strides_pointer_impl(&strides);
 
-        it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
+        it_domain.template assign_storage_pointers<backend_traits_t >();
+        it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host>, strides_t>();
 
         typedef typename boost::mpl::front<loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;

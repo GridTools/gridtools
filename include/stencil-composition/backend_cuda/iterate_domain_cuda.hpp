@@ -24,7 +24,7 @@ private:
 //    data_pointer_array_t* RESTRICT m_data_pointer;
 //    strides_cached_t* RESTRICT m_strides;
 
-    shared_iterate_domain_t* RESTRICT m_shared_iterate_domain;
+    shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
 public:
     GT_FUNCTION
@@ -100,29 +100,23 @@ public:
     }
 
     GT_FUNCTION
-    void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
+    void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t* ptr)
     {
-//        m_data_pointer = data_pointer;
+        m_pshared_iterate_domain = ptr;
     }
 
     GT_FUNCTION
     data_pointer_array_t const & RESTRICT data_pointer_impl() const
     {
-        assert(m_shared_iterate_domain);
-        return m_shared_iterate_domain->data_pointer;
+        assert(m_pshared_iterate_domain);
+        return m_pshared_iterate_domain->data_pointer;
     }
 
     GT_FUNCTION
     strides_cached_t const & RESTRICT strides_impl() const
     {
-        assert(m_shared_iterate_domain);
-        return m_shared_iterate_domain;
-    }
-
-    GT_FUNCTION
-    void set_strides_impl(strides_cached_t* RESTRICT strides)
-    {
-//        m_strides = strides;
+        assert(m_pshared_iterate_domain);
+        return m_pshared_iterate_domain;
     }
 };
 
