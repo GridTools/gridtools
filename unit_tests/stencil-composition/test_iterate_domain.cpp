@@ -99,12 +99,18 @@ namespace test_iterate_domain{
     GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_DATA_POINTERS==23, "bug in iterate domain, incorrect number of data pointers");
 
 
-    array<void* RESTRICT,it_domain_t::N_DATA_POINTERS> data_pointer;
-    strides_cached<it_domain_t::N_STORAGES-1, typename decltype(local_domain1)::esf_args> strides;
+    typedef array<void* RESTRICT,it_domain_t::N_DATA_POINTERS> data_pointer_t;
+    typedef strides_cached<it_domain_t::N_STORAGES-1, typename decltype(local_domain1)::esf_args> strides_t;
+    data_pointer_t data_pointer;
+    strides_t strides;
 
     typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
-    it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
-    it_domain.template assign_stride_pointers <backend_traits_t >(&strides);
+
+    it_domain.set_data_pointer_impl(&data_pointer);
+    it_domain.set_strides_pointer_impl(&strides);
+
+    it_domain.template assign_storage_pointers<backend_traits_t >();
+    it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
 
     //check data pointers initialization
 
