@@ -71,31 +71,47 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
         template <short_t Idx>
-            using return_t = typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx> >::type;
+        using return_t = typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx> >::type;
 #else
         template <short_t Idx>
-            struct return_t{
+        struct return_t{
             typedef typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx>::type >::type type;
         };
 #endif
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
-            strides_cached():super(){
+        strides_cached():super(){
             GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<StorageList>::value > ID, "Library internal error: strides index exceeds the number of storages");
         }
 
         template<short_t Idx>
-            GT_FUNCTION
+        GT_FUNCTION
 #ifdef CXX11_ENABLED
-            return_t<Idx>
+        return_t<Idx>
 #else
-            typename return_t<Idx>::type
+        typename return_t<Idx>::type
 #endif
-            & RESTRICT
-            get() {
+        const & RESTRICT
+        get() const {
+            return static_if<(Idx==ID)>::apply(
+                    m_data ,
+                    super::template get<Idx>()
+            );
+        }
+
+        template<short_t Idx>
+        GT_FUNCTION
+#ifdef CXX11_ENABLED
+        return_t<Idx>
+#else
+        typename return_t<Idx>::type
+#endif
+        & RESTRICT
+        get() {
             return static_if<(Idx==ID)>::apply( m_data , super::template get<Idx>());
         }
+
 
     private:
         data_array_t m_data;
@@ -127,6 +143,13 @@ namespace gridtools{
         GT_FUNCTION
         data_array_t & RESTRICT
         get()  {//stop recursion
+            return m_data;
+        }
+
+        template<short_t Idx>
+        GT_FUNCTION
+        data_array_t const & RESTRICT
+        get() const {//stop recursion
             return m_data;
         }
 

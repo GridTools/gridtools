@@ -16,30 +16,30 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
 
+    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t> shared_iterate_domain_t;
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-    data_pointer_array_t* RESTRICT m_data_pointer;
-    strides_cached_t* RESTRICT m_strides;
+
+//    data_pointer_array_t* RESTRICT m_data_pointer;
+//    strides_cached_t* RESTRICT m_strides;
+
+    shared_iterate_domain_t* RESTRICT m_shared_iterate_domain;
 
 public:
     GT_FUNCTION
     explicit iterate_domain_cuda(LocalDomain const& local_domain, const uint_t block_size_i, const uint_t block_size_j)
-        : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j), m_data_pointer(0), m_strides(0) {}
+        : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
     GT_FUNCTION
     uint_t thread_position_x() const
     {
-        //TODOCOSUNA implement an acc assert
-//        assert(idx < 2);
         return threadIdx.x;
     }
 
     GT_FUNCTION
     uint_t thread_position_y() const
     {
-        //TODOCOSUNA implement an acc assert
-//        assert(idx < 2);
         return threadIdx.y;
     }
 
@@ -102,25 +102,27 @@ public:
     GT_FUNCTION
     void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
     {
-        m_data_pointer = data_pointer;
+//        m_data_pointer = data_pointer;
     }
 
     GT_FUNCTION
-    data_pointer_array_t* RESTRICT data_pointer_impl() const
+    data_pointer_array_t const & RESTRICT data_pointer_impl() const
     {
-        return m_data_pointer;
+        assert(m_shared_iterate_domain);
+        return m_shared_iterate_domain->data_pointer;
     }
 
     GT_FUNCTION
-    strides_cached_t* RESTRICT strides_impl() const
+    strides_cached_t const & RESTRICT strides_impl() const
     {
-        return m_strides;
+        assert(m_shared_iterate_domain);
+        return m_shared_iterate_domain;
     }
 
     GT_FUNCTION
     void set_strides_impl(strides_cached_t* RESTRICT strides)
     {
-        m_strides = strides;
+//        m_strides = strides;
     }
 };
 
