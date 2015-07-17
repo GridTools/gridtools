@@ -26,14 +26,9 @@ namespace gridtools {
         //uint_t m_strides[space_dimensions];
         array<uint_t, space_dimensions-1> m_strides;
 
-#ifdef NDEBUG
     private:
         /**@brief noone calls the empty constructor*/
         virtual_storage();
-#else
-        /**only for stdcout purposes*/
-        virtual_storage(){}
-#endif
 
     public:
 
