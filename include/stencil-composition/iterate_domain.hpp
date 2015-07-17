@@ -9,6 +9,7 @@
 #endif
 #include "local_domain.hpp"
 #include "../common/gt_assert.hpp"
+#include "run_functor_arguments.hpp"
 
 /**@file
    @brief file handling the access to the storage.
@@ -52,13 +53,13 @@ namespace gridtools {
     template< typename Impl>
     struct iterate_domain_impl_local_domain;
 
-    template< typename LocalDomain,
+    template< typename IterateDomainArguments,
         template<typename> class IterateDomainBase,
         template<template<typename> class, typename> class IterateDomainImpl >
-    struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, LocalDomain> >
+    struct iterate_domain_impl_local_domain < IterateDomainImpl<IterateDomainBase, IterateDomainArguments> >
     {
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
-        typedef LocalDomain type;
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
+        typedef typename IterateDomainArguments::local_domain_t type;
     };
 
     /**@brief class handling the computation of the */

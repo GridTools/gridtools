@@ -11,8 +11,29 @@
 #include "block_size.hpp"
 #include "local_domain.hpp"
 #include "axis.hpp"
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "caches/cache_metafunctions.hpp"
+#include "backend_traits_fwd.hpp"
 
 namespace gridtools {
+
+    template<typename LocalDomain, typename CacheSequence>
+    struct iterate_domain_arguments
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Iternal Error: wrong type");
+
+        typedef LocalDomain local_domain_t;
+        typedef CacheSequence cache_sequence_t;
+    };
+
+    template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
+
+    template<typename LocalDomain, typename CacheSequence>
+    struct is_iterate_domain_arguments<iterate_domain_arguments<LocalDomain, CacheSequence> > :
+        boost::mpl::true_{};
+
+
 
     /**
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
@@ -54,7 +75,9 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
-                template select_iterate_domain<local_domain_t>::type iterate_domain_t;
+                template select_iterate_domain<
+                    iterate_domain_arguments<LocalDomain, CacheSequence>
+                >::type iterate_domain_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=StrategyId;
