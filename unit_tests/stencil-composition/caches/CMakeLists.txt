@@ -6,7 +6,7 @@ include_directories( ../../../include/common ) ## Library header files
 ### Executables
 #CPU tests
 if ( ENABLE_CXX11 )
-  add_executable(cache_tests test_define_caches.cpp)
+  add_executable(cache_tests test_define_caches.cpp test_cache_metafunctions.cpp)
   gridtools_add_test(tests.caches ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests")
 
   set_target_properties(cache_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})

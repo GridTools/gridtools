@@ -225,6 +225,8 @@ namespace gridtools{
     using  static_short=boost::mpl::integral_c<short_t,N>;
     template<ushort_t N>
     using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
+    template<bool B>
+    using  static_bool=boost::mpl::integral_c<bool,B>;
 #else
     typedef int                     int_t;
     typedef int                     short_t;
@@ -246,6 +248,11 @@ namespace gridtools{
     struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
         typedef boost::mpl::integral_c<ushort_t,N> type;
     };
+    template<bool B>
+    struct static_bool : boost::mpl::integral_c<bool,B>{
+        typedef boost::mpl::integral_c<bool,B> type;
+    };
+
     /**
        @}
      */

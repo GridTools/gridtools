@@ -29,6 +29,7 @@ namespace gridtools{
 template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
 struct cache
 {
+    typedef Arg arg_t;
     GRIDTOOLS_STATIC_ASSERT((is_arg<Arg>::value), "argument passed to ij cache is not of the right arg<> type");
 };
 
