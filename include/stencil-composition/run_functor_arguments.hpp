@@ -31,6 +31,7 @@ namespace gridtools {
         typename FunctorsMap,                       // functors map
         typename RangeSizes,                        // ranges of each ESF
         typename LocalDomain,                       // local domain type
+        typename CacheSequence,                     // sequence of user specified caches
         typename Coords,                            // the coordinates
         typename ExecutionEngine,                   // the execution engine
         enumtype::strategy StrategyId>              // the strategy id
@@ -51,6 +52,7 @@ namespace gridtools {
         typedef FunctorsMap functors_map_t;
         typedef RangeSizes range_sizes_t;
         typedef LocalDomain local_domain_t;
+        typedef CacheSequence cache_sequence_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<local_domain_t>::type iterate_domain_t;
         typedef Coords coords_t;
@@ -70,6 +72,7 @@ namespace gridtools {
         typename FunctorsMap,
         typename RangeSizes,
         typename LocalDomain,
+        typename CacheSequence,
         typename Coords,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
@@ -84,6 +87,7 @@ namespace gridtools {
             FunctorsMap,
             RangeSizes,
             LocalDomain,
+            CacheSequence,
             Coords,
             ExecutionEngine,
             StrategyId

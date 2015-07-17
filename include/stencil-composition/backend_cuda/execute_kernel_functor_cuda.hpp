@@ -180,6 +180,7 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::functors_map_t,
             typename RunFunctorArguments::range_sizes_t,
             typename RunFunctorArguments::local_domain_t,
+            typename RunFunctorArguments::cache_sequence_t,
             typename RunFunctorArguments::coords_t,
             typename RunFunctorArguments::execution_type_t,
             RunFunctorArguments::s_strategy_id

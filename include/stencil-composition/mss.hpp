@@ -173,6 +173,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value || boost::mpl::is_void_<CacheSequence>::value),
                 "Internal Error: invalid type");
+        typedef CacheSequence cache_sequence_t;
     };
 
     template<typename mss>
