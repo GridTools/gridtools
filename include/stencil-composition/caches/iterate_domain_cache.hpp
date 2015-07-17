@@ -6,8 +6,8 @@
  */
 
 #pragma once
+#include <boost/mpl/copy_if.hpp>
 #include "../run_functor_arguments.hpp"
-
 
 namespace gridtools {
 
@@ -22,7 +22,7 @@ class iterate_domain_cache
 {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
 
-    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Interval error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
     typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
     typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 private:
@@ -31,11 +31,13 @@ public:
     iterate_domain_cache() {}
     ~iterate_domain_cache() {}
 
-//    // remove caches which are not used by the stencil stages
-//    typedef typename boost::mpl::copy_if<
-//        TCaches,
-//        stencil_stages_have_parameter<TStencilStages, FullDomain, cache_index<boost::mpl::_> >
-//    >::type Caches;
+    // remove caches which are not used by the stencil stages
+    typedef typename boost::mpl::copy_if<
+        cache_sequence_t,
+        cache_used_by_esfs<boost::mpl::_, esf_sequence_t>
+    >::type caches_t;
+
+
 
 //    typedef typename boost::mpl::copy_if<
 //        Caches,
