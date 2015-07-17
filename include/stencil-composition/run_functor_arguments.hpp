@@ -18,20 +18,22 @@
 
 namespace gridtools {
 
-    template<typename LocalDomain, typename CacheSequence>
+    template<typename LocalDomain, typename EsfSequence, typename CacheSequence>
     struct iterate_domain_arguments
     {
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Iternal Error: wrong type");
 
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
+        typedef EsfSequence esf_sequence_t;
     };
 
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
 
-    template<typename LocalDomain, typename CacheSequence>
-    struct is_iterate_domain_arguments<iterate_domain_arguments<LocalDomain, CacheSequence> > :
+    template<typename LocalDomain, typename EsfSequence, typename CacheSequence>
+    struct is_iterate_domain_arguments<iterate_domain_arguments<LocalDomain, EsfSequence, CacheSequence> > :
         boost::mpl::true_{};
 
 
@@ -80,7 +82,7 @@ namespace gridtools {
         typedef CacheSequence cache_sequence_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<
-                    iterate_domain_arguments<LocalDomain, CacheSequence>
+                    iterate_domain_arguments<LocalDomain, EsfSequence, CacheSequence>
                 >::type iterate_domain_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
