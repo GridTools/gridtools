@@ -17,12 +17,12 @@ namespace gridtools
     template<
         template<template<class> class, typename> class IterateDomainImpl,
         template<class> class IterateDomainBase,
-        typename LocalDomain
+        typename IterateDomainArguments
     >
-    struct iterate_domain_local_domain<IterateDomainImpl<IterateDomainBase, LocalDomain> >
+    struct iterate_domain_local_domain<IterateDomainImpl<IterateDomainBase, IterateDomainArguments> >
     {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomainImpl<IterateDomainBase, LocalDomain> >::value),
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomainImpl<IterateDomainBase, IterateDomainArguments> >::value),
                                 "Internal Error: wrong type");
-        typedef LocalDomain type;
+        typedef typename IterateDomainArguments::local_domain_t type;
     };
 }

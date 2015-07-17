@@ -8,17 +8,20 @@ namespace gridtools {
 /**
  * @brief iterate domain class for the Host backend
  */
-template<template<class> class IterateDomainBase, typename LocalDomain>
-class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > //CRTP
+template<template<class> class IterateDomainBase, typename IterateDomainArguments>
+class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
 {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
-    typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > super;
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
+
+    typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > super;
+    typedef typename IterateDomainArguments::local_domain_t local_domain_t;
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
 
 public:
     GT_FUNCTION
-    explicit iterate_domain_host(LocalDomain const& local_domain)
+    explicit iterate_domain_host(local_domain_t const& local_domain)
         : super(local_domain), m_data_pointer(0), m_strides(0) {}
 
     void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
@@ -62,16 +65,16 @@ private:
 };
 
 template<
-    template<class> class IterateDomainBase, typename LocalDomain>
+    template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct is_iterate_domain<
-    iterate_domain_host<IterateDomainBase, LocalDomain>
+    iterate_domain_host<IterateDomainBase, IterateDomainArguments>
 > : public boost::mpl::true_{};
 
 template<
     template<class> class IterateDomainBase,
-    typename LocalDomain
+    typename IterateDomainArguments
 >
-struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, LocalDomain> > :
-    is_positional_iterate_domain<IterateDomainBase<iterate_domain_host<IterateDomainBase, LocalDomain> > > {};
+struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > :
+    is_positional_iterate_domain<IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > > {};
 
 }

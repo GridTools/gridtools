@@ -168,10 +168,10 @@ namespace gridtools {
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
-              typename CacheSequence = boost::mpl::void_>
+              typename CacheSequence = boost::mpl::vector0<> >
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value || boost::mpl::is_void_<CacheSequence>::value),
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value),
                 "Internal Error: invalid type");
         typedef CacheSequence cache_sequence_t;
     };
