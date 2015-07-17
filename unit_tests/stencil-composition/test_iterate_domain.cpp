@@ -80,6 +80,8 @@ namespace test_iterate_domain{
             domain, coords
         );
 
+    typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+
     computation->ready();
     computation->steady();
 
@@ -92,6 +94,7 @@ namespace test_iterate_domain{
         iterate_domain,
         iterate_domain_arguments<
             boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
+            boost::mpl::vector1<esf_t>,
             boost::mpl::vector0<>
         >
     > it_domain_t;
