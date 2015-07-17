@@ -88,7 +88,13 @@ namespace test_iterate_domain{
 
     typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
 
-    typedef iterate_domain_host<iterate_domain, boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type > it_domain_t;
+    typedef iterate_domain_host<
+        iterate_domain,
+        iterate_domain_arguments<
+            boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
+            boost::mpl::vector0<>
+        >
+    > it_domain_t;
 
     mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list);
     auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
