@@ -9,8 +9,6 @@
  * data structure that holds data members of the iterate domain that must be stored in shared memory.
  * @tparam
  */
-//    typedef typename super::data_pointer_array_t data_pointer_array_t;
-//    typedef typename super::strides_cached_t strides_cached_t;
 template<typename DataPointerArray, typename StridesType>
 class shared_iterate_domain
 {
