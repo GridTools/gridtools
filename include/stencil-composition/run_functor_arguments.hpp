@@ -14,6 +14,7 @@
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
+#include "esf.hpp"
 
 namespace gridtools {
 
@@ -46,6 +47,7 @@ namespace gridtools {
         typename PhysicalDomainBlockSize,           // block size of processing elements (i.e. threads)
                                                     //    taking part in the computation of a physical block size
         typename FunctorList,                       // sequence of functors (one per ESF)
+        typename EsfSequence,                        // sequence of ESF
         typename EsfArgsMapSequence,                // map of arg indices from local functor position to a merged
                                                     //    local domain
         typename LoopIntervals,                     // loop intervals
@@ -63,11 +65,13 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
 
         typedef enumtype::enum_type<enumtype::backend, BackendId> backend_id_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef FunctorList functor_list_t;
+        typedef EsfSequence esf_sequence_t;
         typedef EsfArgsMapSequence esf_args_map_sequence_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
@@ -90,6 +94,7 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename FunctorList,
+        typename EsfSequence,
         typename EsfArgsMapSequence,
         typename LoopIntervals,
         typename FunctorsMap,
@@ -105,6 +110,7 @@ namespace gridtools {
             ProcessingElementsBlockSize,
             PhysicalDomainBlockSize,
             FunctorList,
+            EsfSequence,
             EsfArgsMapSequence,
             LoopIntervals,
             FunctorsMap,

@@ -175,6 +175,7 @@ struct execute_kernel_functor_cuda
             cuda_block_size_t,
             typename RunFunctorArguments::physical_domain_block_size_t,
             typename RunFunctorArguments::functor_list_t,
+            typename RunFunctorArguments::esf_sequence_t,
             typename RunFunctorArguments::esf_args_map_sequence_t,
             typename RunFunctorArguments::loop_intervals_t,
             typename RunFunctorArguments::functors_map_t,
