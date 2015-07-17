@@ -315,7 +315,7 @@ namespace gridtools {
         */
         template <typename Accessor>
         GT_FUNCTION
-        typename boost::mpl::at<typename local_domain_t::esf_args, typename Accessor::type::index_type>::type::value_type& RESTRICT
+        typename accessor_return_type<Accessor>::type::value_type& RESTRICT
         operator()(expr_direct_access<Accessor > const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -662,14 +662,14 @@ namespace gridtools {
     template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
     typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& accessor, StoragePointer & RESTRICT storage_pointer) const {
+    iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& expr, StoragePointer & RESTRICT storage_pointer) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
         assert(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
-               ->_index(strides().template get<Accessor::index_type::value>(), accessor.first_operand));
+               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
 
         assert((boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
-               ->_index(strides().template get<Accessor::index_type::value>(), accessor.first_operand) >= 0);
+               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand) >= 0);
         GRIDTOOLS_STATIC_ASSERT((
                                     Accessor::n_dim <= boost::mpl::at<
                                     typename local_domain_t::esf_args,
@@ -683,7 +683,7 @@ namespace gridtools {
 
         return *(real_storage_pointer
                  +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
-                 ->_index(strides().template get<Accessor::index_type::value>(), accessor.first_operand));
+                 ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
     }
 #endif //ifndef CXX11_ENABLED
 
