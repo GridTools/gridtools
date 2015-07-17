@@ -23,7 +23,7 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 
     typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t> shared_iterate_domain_t;
 
-    typedef iterate_domain_cache<typename IterateDomainArguments::cache_sequence_t> iterate_domain_cache_t;
+    typedef iterate_domain_cache<IterateDomainArguments> iterate_domain_cache_t;
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
