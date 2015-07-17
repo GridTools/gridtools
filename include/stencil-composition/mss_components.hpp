@@ -40,6 +40,7 @@ struct mss_components
     >::type functors_list_t;
 
     typedef RangeSizes range_sizes_t;
+    typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 };
 
 template<typename T> struct is_mss_components : boost::mpl::false_{};

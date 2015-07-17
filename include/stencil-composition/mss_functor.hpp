@@ -85,6 +85,7 @@ namespace gridtools {
                 FunctorsMap,
                 range_sizes,
                 local_domain_t,
+                typename mss_components_t::cache_sequence_t,
                 Coords,
                 ExecutionEngine,
                 StrategyId
