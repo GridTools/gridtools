@@ -95,7 +95,7 @@ namespace gridtools {
         {
             boost::fusion::at_c<cells::value>(m_virtual_storages) = &m_v_cell_storage;
             boost::fusion::at_c<edges::value>(m_virtual_storages) = &m_v_edge_storage;
-            assert(accumulate(logical_and(), (dims&1 == 0)...));
+            //assert(accumulate(logical_and(), (dims&1 == 0)...));
         }
 
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
@@ -123,7 +123,7 @@ namespace gridtools {
                       << i[2] << ")"
                       << std::endl;
 #endif
-            return m_v_cell_storage._index(&i[0]);
+            return m_v_cell_storage._index(i[0], i[1], i[2]);
         }
 
         int_t ll_offset(array<uint_t, 3> const& i, edges) const {
@@ -135,7 +135,7 @@ namespace gridtools {
                       << i[2] << ")"
                       << std::endl;
 #endif
-            return m_v_edge_storage._index(&i[0]);
+            return m_v_edge_storage._index(i[0], i[1], i[2]);
         }
 
         array<int_t, 3>
