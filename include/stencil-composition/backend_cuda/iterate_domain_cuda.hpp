@@ -3,6 +3,7 @@
 #include "../iterate_domain.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 #include "shared_iterate_domain.hpp"
+#include "../caches/iterate_domain_cache.hpp"
 
 namespace gridtools {
 
@@ -21,6 +22,8 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef typename super::strides_cached_t strides_cached_t;
 
     typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t> shared_iterate_domain_t;
+
+    typedef iterate_domain_cache<typename IterateDomainArguments::cache_sequence_t> iterate_domain_cache_t;
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
