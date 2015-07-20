@@ -160,7 +160,7 @@ class Scope (object):
         # a data-dependency graph
         #
         #
-        self.depency_graph = nx.DiGraph ( )
+        self.dependency_graph = nx.DiGraph ( )
 
 
     def __contains__ (self, name):
@@ -223,8 +223,8 @@ class Scope (object):
         Creates a dependency between 'left_symbol' and 'right_symbol'.-
         """
         if (left_symbol.name in self) and (right_symbol.name in self):
-            self.depency_graph.add_edge (left_symbol,
-                                         right_symbol)
+            self.dependency_graph.add_edge (left_symbol,
+                                            right_symbol)
         else:
             raise ValueError ("Trying to add a dependency between non-existent symbols")
 
