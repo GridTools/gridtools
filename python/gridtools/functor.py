@@ -192,7 +192,7 @@ class FunctorBody (ast.NodeVisitor):
                                           read_only=symbol.read_only)
                 return name
         else:
-            raise RuntimeError ("Unknown symbol '%s'" % attr_name)
+            raise RuntimeError ("Unknown symbol '%s'" % name)
 
 
     def visit_AugAssign (self, node):
@@ -406,6 +406,10 @@ class Functor ( ):
         return self.name.__hash__ ( )
 
 
+    def __repr__ (self):
+        return self.name
+
+
     def generate_code (self, src):
         """
         Generates the C++ code of this functor:
@@ -417,7 +421,7 @@ class Functor ( ):
 
 
     def get_dependency_graph (self):
-        return self.scope.depency_graph
+        return self.scope.dependency_graph
 
 
     def translate (self):
