@@ -308,6 +308,7 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
             GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of type other than accessor");
+            GRIDTOOLS_STATIC_ASSERT(Tuple::n_dim-pos_<I>::value-1>=0, "write a message here")
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :

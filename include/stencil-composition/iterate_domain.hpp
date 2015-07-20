@@ -321,10 +321,20 @@ namespace gridtools {
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+        // typename boost::mpl::at<typename local_domain_t::esf_args
+        //                         , typename ArgType::index_type>::type::value_type& RESTRICT
+
+
         template < typename ArgType, typename ... Pairs>
         GT_FUNCTION
-        typename boost::mpl::at<typename local_domain_t::esf_args
-                                , typename ArgType::index_type>::type::value_type& RESTRICT
+        typename boost::enable_if<
+            typename boost::mpl::bool_<(ArgType::type::n_dim >
+            boost::mpl::at<
+            typename local_domain_t::esf_args
+            , typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+            , typename boost::mpl::at<typename local_domain_t::esf_args
+            , typename ArgType::type::index_type>::type::value_type
+        >::type&  RESTRICT
         operator()(accessor_mixed<ArgType, Pairs ... > const& arg) const;
 
 #endif //ifndef __CUDACC__
@@ -562,11 +572,16 @@ namespace gridtools {
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
+
+    // typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args
+    //                         , typename ArgType::index_type>::type::value_type& RESTRICT
+
     template <typename IterateDomainImpl>
     template < typename ArgType, typename ... Pairs>
     GT_FUNCTION
-    typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args
-                            , typename ArgType::index_type>::type::value_type& RESTRICT
+    typename boost::enable_if<
+        typename boost::mpl::bool_<(ArgType::type::n_dim > boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename ArgType::type::index_type>::type::storage_type::space_dimensions)>::type
+            , typename boost::mpl::at<typename iterate_domain_impl_local_domain<IterateDomainImpl>::type::esf_args, typename ArgType::type::index_type>::type::value_type >::type& RESTRICT
     iterate_domain<IterateDomainImpl>::operator()(accessor_mixed<ArgType, Pairs ... > const& arg) const{
 
         typedef accessor_mixed<ArgType, Pairs ... > accessor_mixed_t;

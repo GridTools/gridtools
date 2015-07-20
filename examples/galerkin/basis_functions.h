@@ -3,6 +3,10 @@
 //! [includes]
 #include <Intrepid_Basis.hpp>
 #include <Intrepid_Types.hpp>
+#include <Intrepid_FieldContainer.hpp>
+
+#include <Intrepid_Cubature.hpp>
+#include <Intrepid_DefaultCubatureFactory.hpp>
 
 #include "Intrepid_HGRAD_TET_Cn_FEM_ORTH.hpp"
 #include "Intrepid_HGRAD_TET_Cn_FEM.hpp"
@@ -44,10 +48,9 @@ namespace gridtools{
 #endif
 
     template <typename LayoutType>
-    using storage_t = gridtools::intrepid_storage<typename gridtools::BACKEND::storage_type<float_type, LayoutType >::type>;
-    using storage4=storage_t<layout_map<0,1,2,3> >;
-    using storage3=storage_t<layout_map<0,1,2> >;
-    using storage2=storage_t<layout_map<0,1> >;
+    using storage_t = gridtools::intrepid_storage<
+        typename gridtools::BACKEND::storage_type<float_type, LayoutType >::type >
+        ;
 //! [storage definition]
 
 //! [fe namespace]
@@ -55,13 +58,15 @@ namespace gridtools{
         using namespace Intrepid;
         static const shards::CellTopology cellType = shards::getCellTopologyData< shards::Hexahedron<> >(); // cell type: hexahedron
 
-        static const Basis_HGRAD_HEX_C1_FEM<double, storage3 > hexBasis;                       // create hex basis
+        static const Basis_HGRAD_HEX_C1_FEM<double, storage_t<layout_map<0,1,2> >// Intrepid::FieldContainer<double>
+                                            > hexBasis;                       // create hex basis
+        static const uint_t order=1;
         static const /*constexpr*/ int spaceDim = cellType.getDimension();                                                // retrieve spatial dimension
         static const /*constexpr*/ int numNodes = cellType.getNodeCount();                                                // retrieve number of 0-cells (nodes)
         static const /*constexpr*/ int basisCardinality = hexBasis.getCardinality();                                              // get basis cardinality
 
         //! [tensor product]
-        assert(spaceDim==3);
+        //assert(spaceDim==3);
         using hypercube_t = tensor_product_element<3,1>;
         //! [tensor product]
     } //namespace fe
@@ -74,7 +79,9 @@ namespace gridtools{
         static const shards::CellTopology cellType = shards::getCellTopologyData< shards::Hexahedron<> >(); // cell type: hexahedron
 
         // using hypercube_t=tensor_product_element<3,2>;
-        static const Basis_HGRAD_HEX_C1_FEM<double, storage3 > hexBasis;                       // create hex basis
+        static const Basis_HGRAD_HEX_C1_FEM<double, storage_t<layout_map<0,1,2> >// Intrepid::FieldContainer<double>
+                                            > hexBasis;                       // create hex basis
+        static const uint_t order=1;
         static const /*constexpr*/ int spaceDim = cellType.getDimension();
         // retrieve spatial dimension
         static const /*constexpr*/ int numNodes = cellType.getNodeCount();
@@ -87,15 +94,17 @@ namespace gridtools{
 
 
 //! [quadrature]
-    namespace cub{
+    namespace cubature{
         // set cubature degree, e.g. 2
-        static const int cubDegree = basisCardinality;
+        static const int cubDegree = fe::order+1;
         // create cubature factory
-        static Intrepid::DefaultCubatureFactory<double, storage3> cubFactory;
+        static Intrepid::DefaultCubatureFactory<double, storage_t<layout_map<0,1,2> >// Intrepid::FieldContainer<double>
+                                                > cubFactory;
     // create default cubature
-        static const Teuchos::RCP<Cubature<double, storage3> > cub = cubFactory.create(fe::cellType, cubDegree);
+        static const Teuchos::RCP<Intrepid::Cubature<double, storage_t<layout_map<0,1,2> >// Intrepid::FieldContainer<double>
+                                                     > > cub = cubFactory.create(fe::cellType, cubDegree);
         // retrieve number of cubature points
-        static const int numCubPoints = myCub->getNumPoints();
+        static const int numCubPoints = cub->getNumPoints();
     }
 //! [quadrature]
 

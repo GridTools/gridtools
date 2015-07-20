@@ -138,28 +138,28 @@ namespace gridtools{
     template<typename T>
     struct is_backend_enum : boost::mpl::false_ {};
 
-#ifdef CXX11_ENABLED
-    /** checking that no arithmetic operation is performed on enum types*/
-    template<>
-    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
-    struct error_no_operator_overload{};
+// #ifdef CXX11_ENABLED
+//     /** checking that no arithmetic operation is performed on enum types*/
+//     template<>
+//     struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+//     struct error_no_operator_overload{};
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
-#endif
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+// #endif
 
     template<typename T>
     struct is_execution_engine : boost::mpl::false_{};

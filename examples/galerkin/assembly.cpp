@@ -1,6 +1,6 @@
+#define PEDANTIC_DISABLED
 #include "intrepid.h"
 #include <iostream>
-#define PEDANTIC_DISABLED
 
 int main(int argc, char** argv)
 {

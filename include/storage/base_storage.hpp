@@ -97,6 +97,7 @@ namespace gridtools {
        the access pattern with three integers: the total storage sizes and
        the two strides different from one.
     */
+    struct dimension_extension_null;
     template < typename PointerType,
                typename Layout,
                bool IsTemporary = false,
@@ -110,6 +111,7 @@ namespace gridtools {
         typedef typename pointer_type::pointee_t value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
+        typedef dimension_extension_null traits;
 
         // TODO: Keep only one of these
         typedef base_storage<PointerType, Layout, IsTemporary, FieldDimension> basic_type;
@@ -129,7 +131,8 @@ namespace gridtools {
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage() :
             is_set( false ),
-            m_name("default_storage")
+            m_name("default_storage"),
+            m_view(false)
             {}
 
 #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
@@ -143,7 +146,8 @@ namespace gridtools {
             is_set( true ),
             m_name(s),
             m_dims(),
-            m_strides()
+            m_strides(),
+            m_view(false)
             {
                 GRIDTOOLS_STATIC_ASSERT( boost::is_float<FloatType>::value, "The initialization value in the storage constructor must be a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
                 setup(dim1, dim2, dim3);
@@ -166,7 +170,8 @@ namespace gridtools {
             is_set( false ),
             m_name("default_storage"),
             m_dims(),
-            m_strides()
+            m_strides(),
+            m_view(false)
             {
                 setup(args ...);
                 allocate();
@@ -181,6 +186,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(field_dimensions>0, "you specified a zero or negative value for a storage fields dimension");
 
                 m_strides[0] = accumulate( multiplies(), dims...) ;
+                // if(space_dimensions>1)
                 _impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
 
 #ifdef PEDANTIC
@@ -200,6 +206,7 @@ namespace gridtools {
            value_type init = value_type(0.), char const* s="default storage" ) :
        is_set( true )
        , m_name(s)
+       , m_view(false)
             {
                 setup(dim1, dim2, dim3);
                 allocate();
@@ -215,6 +222,7 @@ namespace gridtools {
            value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), char const* s="default storage" ):
        is_set( true )
        , m_name(s)
+       , m_view(false)
             {
                 setup(dim1, dim2, dim3);
                 allocate();
@@ -244,6 +252,7 @@ namespace gridtools {
             ):
             is_set( true ),
             m_name(s)
+            , m_view(false)
             {
 	      setup(dim1, dim2, dim3);
               m_fields[0]=pointer_type(ptr, size(), true);
@@ -255,18 +264,19 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage(){
             for(ushort_t i=0; i<field_dimensions; ++i)
-                // if(!m_fields[i].externally_managed())
-                m_fields[i].free_it();
+                if(m_view)
+                    m_fields[i].free_it();
         }
 
+#ifdef __CUDACC__
         /**@brief device copy constructor*/
-        template<typename T>
         __device__
-        base_storage(T const& other)
+        base_storage(base_storage const& other)
             :
             is_set(other.is_set)
             , m_name(other.m_name)
             , m_fields(other.m_fields)
+            , m_view(other.m_view)
             {
                 // for (uint_t i=0; i< field_dimensions; ++i)
                 //     m_fields[i]=pointer_type(other.m_fields[i]);
@@ -277,6 +287,11 @@ namespace gridtools {
                 m_strides[1] = other.strides(1);
                 m_strides[2] = other.strides(2);
             }
+#else
+    private:
+        base_storage(base_storage const& other);
+    public:
+#endif
 
         void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
             assert(dims>offset);
@@ -602,7 +617,7 @@ namespace gridtools {
         /** @brief returns the dimension of the storage along I*/
         template<ushort_t I>
         GT_FUNCTION
-        uint_t dims() const __attribute__ ((deprecated)) {return m_dims[I];}
+        uint_t dims() const {return m_dims[I];}
 
         /** @brief returns the dimension of the storage along I*/
         GT_FUNCTION
@@ -629,17 +644,29 @@ namespace gridtools {
             return (&m_strides[1]);
         }
 
-    protected:
-        bool is_set;
-        const char* m_name;
+    // template < typename PT,
+    //            typename L,
+    //            bool IT,
+    //            short_t FD
+    //            >
+    // void reinterpret(base_storage<PT, L, IT, FD> const& other){
+    //     m_fields=other.m_fields;
+    //     m_view=true;
+    // }
+
 #ifdef __CUDACC__ // this is related to the fact that the gridtools::array should not be templated to a const type when CXX11 disabled
         pointer_type m_fields[field_dimensions];
 #else
         array<pointer_type, field_dimensions> m_fields;
 #endif
+
+    protected:
+        bool is_set;
+        const char* m_name;
         array<uint_t, space_dimensions> m_dims;
         array<int_t, space_dimensions> m_strides;
-
+    private:
+        bool m_view;
     };
 
 template < typename PointerType,

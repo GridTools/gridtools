@@ -1,5 +1,5 @@
 /*!
-\page Galerkin  Galerking Discretization of a Lapplace Operator
+\page Galerkin  Galerking Discretization of a Laplace Operator
 
 This example shows an example on how a Laplace can be discretized using Galerkin Finite Elements methods, using tensor product brick elements.
 
@@ -17,7 +17,7 @@ storage layuot requirements, and to taylor once again the computation to the spe
 Let us describe in detail the problem that we want to solve. We aim at solving integrals of the following type
 
 \f[
-    \int_{\Omega}{\phi(\mathbf x)\psi(\mathbf x)J(\mathbf x)}d\Omega
+    \int_{\Omega}{\phi(\mathbf x)\psi(\mathbf x)}d\Omega
 \f]
 
 where \f$\psi\f$, \f$\phi\f$, and \f$J\f$ are known polynomials and \f$\Omega\f$ is a the domain.
@@ -190,6 +190,132 @@ a diferent namespace
 
 This file contains all the interaction with the third party libraries. Now we move on, and show how to
 implement the integral computation.
-We write a file
+
+We implement now the actual stages reported in the bullet list shown in \ref sec_fe_pb_description "the previous section", which we rewrite below:
+- compute the jacobian in the quadrature points
+- compute the value of the integral locally to each element
+- assembly the contribution of the different elements (i.e. sum up the contributions in the nodes which are overlapping between several elements)
+
+All these three different steps will correspond to a different stage in a Multi-Stage Stencil (MSS)
+definition, in the file "assembly.h".
+
+In this file as usual we include the \ref gridtools::intermediate "make computation header", togather with the "basis_functions.h" header we just described
+\snippet galerkin/assembly.h includes
+
+we use the following namespaces
+
+\snippet galerkin/assembly.h namespaces
+
+and we define the storage types and compile-time constants we will need inside the \ref assembly "assembly" structure
+
+\snippet galerkin/assembly.h storage_types
+
+We then define the list of data members, their getter methods, and their initialization in the assembly constructor
+
+\snippet galerkin/assembly.h private members
+
+These members consist of:
+- the dimension of the problem in terms of number of elements in each direction
+- the grid: a multidimensional array with dimensions m_d1 x m_d2 x m_d3 x \ref geomap::basisCardinality "#DofGeo", 3, where "DofGeo" is related to the
+degree of the geometric map, while the last argument is the number of dimensions.
+- the jacobian matrix: a multidimensional array with dimensions m_d1 x m_d2 x m_d3 x \ref cubature::numCubPoints "#quad" x3 x3, where the "quad" argument
+refers to the quadrature points
+- m_jac_det is the determinant of the abovementioned determinant, i.e. a multidimenaional array with dimensions m_d1 x m_d2 x m_d3 x \ref cubature::numCubPoints "#quad".
+- m_f is an input function which micht want to be projected in our FEM space
+- m_result is the final result (i.e. the assembled vector)
+
+In the first stage, given the grid, we compute the Jacobian for each elements as, if \f$x\f$ are the images of the reference nodes under the geometric map, \f$ \phi is the vectorial basis function of
+the geometry interpolation\f$, \f$x_q\f$ are the quadrature points, e is te current element, and l is the local node inside the elements:
+\f$ J_{i,j}(e,l)=\sum_q x_i\frac{\partial \phi^{e,l}_j(x_q)}{\partial\hat x} \f$
+\snippet galerkin/assembly.h update_jac
+The values \f$\phi^{e,l}_j(x_q)\f$ are provided by the Intrepid library, as will be shown later.
+It is worth noticing that the Jacobian might be considered as a temporary field, if its result is only used in the assembly testcase.
+
+The second stage computes the determinant of the Jacobian matrix
+\snippet galerkin/assembly.h det
+where the Jacobian matrix at a given quadrature point would look like
+\f[
+J=\left(
+\begin{array}{ccc}
+\mathrm{jac}(\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimx}+1,\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimx}+2,\mathrm{qp+q})\\
+\mathrm{jac}(\mathrm{dimy}+1\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+1, \mathrm{dimx}+1,\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+1, \mathrm{dimx}+2,\mathrm{qp+q})\\
+\mathrm{jac}(\mathrm{dimy}+2\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+2, \mathrm{dimx}+1,\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+2, \mathrm{dimx}+2,\mathrm{qp+q})\\
+\end{array}
+\right)
+\f]
+
+The integration follows,
+\snippet galerkin/assembly.h integration
+a nested loop is carried out on the elements, the degrees of freedom per element, and the quadrature points. The loop over the degrees of freedom is split into the three dimensions, so that the local
+coordinates of the points are (Pi, Pj, Pk).
+
+The only part remaining is the assembly, i.e. the sum of the contributions on the edge of the elements. This is done in the following snippet
+\snippet galerkin/assembly.h assembly
+Here we exploit the tensor product structure of the local element. In fact if you consider the following 2d indexes, the number in the circles representing the I, J indexes, with bd_dim=2,
+
+\f[
+  \fbox{
+  \begin{tikzpicture}[shorten >=1pt,auto,node distance=1.5cm,
+    thick,main node/.style={circle,fill=blue!40,draw,font=\sffamily\small\bfseries}]
+  \node[main node] (1)                {$2,2$};
+  \node[main node] (10) [left of=1]   {$2,1$};
+  \node[main node] (2) [left of=10]   {$2,0$};
+  \node[main node] (20) [below of=2]  {$1,0$};
+  \node[main node] (3) [below of=20]  {$0,0$};
+  \node[main node] (30) [right of=3]  {$0,1$};
+  \node[main node] (4) [right of=30]  {$0,2$};
+  \node[main node] (40) [above of=4]  {$1,2$};
+  \node[main node] (50) [left of=40] {$1,1$};
+  \path[every node/.style={font=\sffamily\small}]
+  (1) edge node [left] {} (10)
+  (10) edge node [left] {} (2)
+  (2) edge node [right] {} (20)
+  (20) edge node [right] {} (3)
+  (3) edge node [right] {} (30)
+  (30) edge node [right] {} (4)
+  (4) edge node [left] {} (40)
+  (40) edge node [left] {} (1);
+  \node[main node] (200)   [right of=1]   {$2,0$};
+  \node[main node] (1000)  [right of=200]   {$2,1$};
+  \node[main node] (100)   [right of=1000 ]   {$2,2$};
+  \node[main node] (2000) [below of=200]  {$1,0$};
+  \node[main node] (300)  [below of=2000]  {$0,0$};
+  \node[main node] (3000) [right of=300]  {$0,1$};
+  \node[main node] (400)  [right of=3000]  {$0,2$};
+  \node[main node] (4000) [above of=400]  {$1,2$};
+  \node[main node] (10000) [left of=4000] {$1,1$};
+  \path[every node/.style={font=\sffamily\small}]
+  (100) edge node [left] {}   (1000)
+  (1000) edge node [left] {}  (200)
+  (200) edge node [right] {}  (2000)
+  (2000) edge node [right] {} (300)
+  (300) edge node [right] {}  (3000)
+  (3000) edge node [right] {} (400)
+  (400) edge node [left] {}   (4000)
+  (4000) edge node [left] {}  (100);
+\end{tikzpicture}
+}\f]
+we would have, for the element on the right,
+\code
+out(0,0) += out(i-1, bd_dim,0)
+out(0,1) += out(i-1, bd_dim,1)
+out(0,2) += out(i-1, bd_dim,2)
+\endcode
+where i is the index of the current element in the horizontal dimension.
+
+The above functors represent the core of the computation, and are executed on the backend (e.g. an accelerator). The core part executed
+by the frontend (i.e. the preparation of the storages and the definition of the multi-stage stencil) is partially handled in the code snippet below
+\snippet galerkin/assembly.h compute
+
+
+The missing part to close the chain is a driver function, which is connecting the third party library definitions with the assembly. In particular it is calling the third party library
+in order to populate the storages which are passed as input to the assembly routine, it is running the tests, and checking the correctness of the result.
+We report this funciton in the following code snippet
+\snippet galerkin/intrepid.h test
+
+The criptic and annoying part of this function is the reordering of the local (on the reference element) grid, which is necessary since Intrepid does not guarantee any order of the points in the grids,
+and we want to exploit this knowledge in order to gain performance.
+\snippet galerkin/intrepid.h reorder
+
 
 */

@@ -199,6 +199,7 @@ namespace gridtools {
     struct accessor_mixed{
 
         static const ushort_t n_dim = ArgType::n_dim;
+        typedef ArgType type;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
     private:
