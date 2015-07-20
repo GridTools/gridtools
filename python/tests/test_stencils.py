@@ -68,6 +68,7 @@ class CopyTest (unittest.TestCase):
         with self.assertLogs () as cm:
             """
             Test first that the C++ backend doesn't perform the check
+            ... Test change to test git pull
             """
             logging.info("")
             self.stencil.backend = 'c++'
