@@ -37,6 +37,8 @@ public:
         is_there_in_sequence<esf_sequence_t, boost::mpl::_>
     >::type caches_t;
 
+    typedef typename extract_ranges_for_caches<caches_t, IterateDomainArguments>::type cache_ranges_t;
+
     typedef typename boost::mpl::copy_if<
         caches_t, cache_is_type<IJ>
     >::type ij_caches_t;
