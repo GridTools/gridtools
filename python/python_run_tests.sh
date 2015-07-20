@@ -45,7 +45,7 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
 fi
 
 echo "Running python tests ..."
-nosetests -v -s -x --with-coverage --cover-package=gridtools --cover-erase --cover-html tests.test_sw tests.test_combined_stencils tests.test_stencils
+nosetests -v -s --with-coverage --cover-package=gridtools --cover-erase --cover-html tests.test_sw tests.test_stencils
 if [ $? -ne 0 ]; then
     echo "Error running python tests. EXIT NOW"
     exit 1
