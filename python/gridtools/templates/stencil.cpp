@@ -3,10 +3,10 @@
  * the Python interface to the Gridtools library
  *
  */
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/make_computation.h>
-#include <stencil-composition/interval.h>
+#include <gridtools.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/interval.hpp>
 
 #include "{{ fun_hdr_file }}"
 
