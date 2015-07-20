@@ -6,7 +6,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "defs.hpp"
+#include <boost/mpl/equal.hpp>
+#include <common/defs.hpp>
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/caches/cache_metafunctions.hpp>
 #include <stencil-composition/interval.hpp>
@@ -28,6 +29,8 @@ struct functor1 {
     static void Do(Evaluation const & eval, x_interval) {}
 };
 
+template<typename T> struct printy{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYY, (T));};
+
 TEST(cache_metafunction, cache_used_by_esfs)
 {
     typedef layout_map<0,1> layout_ij_t;
@@ -45,10 +48,10 @@ TEST(cache_metafunction, cache_used_by_esfs)
     typedef cache<IJ, p_in, cFill> cache1_t;
     typedef cache<IJ, p_buff, cFill> cache2_t;
     typedef cache<K, p_notin, cLocal> cache3_t;
+    typedef boost::mpl::vector3<cache1_t, cache2_t, cache3_t> caches_t;
 
-    GRIDTOOLS_STATIC_ASSERT((cache_used_by_esfs<cache1_t, esf_sequence_t>::value),"ERROR");
-    GRIDTOOLS_STATIC_ASSERT((cache_used_by_esfs<cache2_t, esf_sequence_t>::value),"ERROR");
-    GRIDTOOLS_STATIC_ASSERT((! cache_used_by_esfs<cache3_t, esf_sequence_t>::value),"ERROR");
+    typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
 
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_used_t, boost::mpl::vector2<cache1_t, cache2_t> >::value), "WRONG");
     ASSERT_TRUE(true);
 }

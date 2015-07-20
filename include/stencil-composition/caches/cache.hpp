@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "cache_definitions.hpp"
-#include "../accessor.hpp"
+#include <common/defs.hpp>
+#include <stencil-composition/caches/cache_definitions.hpp>
+#include <stencil-composition/accessor.hpp>
 
 namespace gridtools{
 
@@ -30,6 +31,7 @@ template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
 struct cache
 {
     typedef Arg arg_t;
+    typedef enumtype::enum_type<CacheType, cacheType> cache_type_t;
     GRIDTOOLS_STATIC_ASSERT((is_arg<Arg>::value), "argument passed to ij cache is not of the right arg<> type");
 };
 

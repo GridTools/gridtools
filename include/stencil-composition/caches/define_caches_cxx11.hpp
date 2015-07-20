@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cache.hpp"
+#include <stencil-composition/caches/cache.hpp>
 
 namespace gridtools {
 

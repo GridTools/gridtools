@@ -7,9 +7,9 @@
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/intercept.hpp>
 
-#include "cache.hpp"
-#include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "cache_metafunctions.hpp"
+#include <stencil-composition/caches/cache.hpp>
+#include <common/generic_metafunctions/is_sequence_of.hpp>
+#include <stencil-composition/caches/cache_metafunctions.hpp>
 
 namespace gridtools {
 
