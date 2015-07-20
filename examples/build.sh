@@ -2,7 +2,7 @@
 
 if [ -f "examples/build_$1.sh" ]
 then
-    echo "build_$1.sh $2 $3 $4"
+    echo "build_$1.sh $2 $3 $4 $5"
     if [ -d fusion ]
     then
         echo "fusion already there, replacing it"
@@ -20,7 +20,7 @@ then
     mkdir -p build;
     cd build;
 
-    eval "../examples/build_$1.sh $2 $3 $4"
+    eval "../examples/build_$1.sh $2 $3 $4 $5"
 else
     echo "ERROR: node $1 not supported"
 fi

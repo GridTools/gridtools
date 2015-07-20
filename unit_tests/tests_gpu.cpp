@@ -3,17 +3,17 @@
 #include "gtest/gtest.h"
 
 #define CUDA_EXAMPLE
-#include "gpu_clone.cu.h"
-#include "cloningstuff.cu.h"
-#include "test_domain.h"
-#include "test_cuda_storage.h"
-#include "test_hybrid_pointer.h"
-#include "../examples/interface1.h"
-#include "copies_2D_1D_0D.h"
-#include "../examples/tridiagonal.h"
-#include "../examples/positional_copy_stencil.h"
+#include "gpu_clone.cu.hpp"
+#include "cloningstuff.cu.hpp"
+#include "test_domain.hpp"
+#include "test_cuda_storage.hpp"
+#include "test_hybrid_pointer.hpp"
+#include "../examples/interface1.hpp"
+#include "copies_2D_1D_0D.hpp"
+#include "../examples/tridiagonal.hpp"
+#include "../examples/positional_copy_stencil.hpp"
 
-#include "boundary_conditions_test.h"
+#include "boundary_conditions_test.hpp"
 
 // TODO modify after the memory leak fix
 // TEST(testdomain, testallocationongpu) {
@@ -69,7 +69,7 @@ TEST(testgpuclone, testcloningstuff) {
 #define __Size2 60
 
 #define TESTCLASS stencil_cuda
-#include "stencil_tests.h"
+#include "stencil_tests.hpp"
 #undef TESTCLASS
 
 

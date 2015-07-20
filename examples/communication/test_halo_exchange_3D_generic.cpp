@@ -3,13 +3,13 @@
 
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.h>
+#include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <common/layout_map.h>
-#include <common/boollist.h>
+#include <common/layout_map.hpp>
+#include <common/boollist.hpp>
 #include <sys/time.h>
-#include "triplet.h"
+#include "triplet.hpp"
 
 int pid;
 int nprocs;
@@ -68,7 +68,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
     for (int jj=0; jj<DIM2+2*H; ++jj) {
       for (int kk=0; kk<DIM3+2*H; ++kk) {
         a(ii,jj,kk) = triple_t<USE_DOUBLE>();
-        b(ii,jj,kk) = triple_t<USE_DOUBLE>();                                      
+        b(ii,jj,kk) = triple_t<USE_DOUBLE>();
         c(ii,jj,kk) = triple_t<USE_DOUBLE>();
       }
     }
@@ -137,17 +137,17 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
   /* Data is initialized in the inner region of size DIM1xDIM2
    */
   for (int ii=H; ii<DIM1+H; ++ii)
-      for (int jj=H; jj<DIM2+H; ++jj) 
+      for (int jj=H; jj<DIM2+H; ++jj)
           for (int kk=H; kk<DIM3+H; ++kk) {
-              a(ii,jj,kk) = 
+              a(ii,jj,kk) =
                   triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+A_ADD,
                                        jj-H+(DIM2)*coords[1]+A_ADD,
                                        kk-H+(DIM3)*coords[2]+A_ADD);
-              b(ii,jj,kk) = 
+              b(ii,jj,kk) =
                   triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+B_ADD,
                                        jj-H+(DIM2)*coords[1]+B_ADD,
                                        kk-H+(DIM3)*coords[2]+B_ADD);
-              c(ii,jj,kk) = 
+              c(ii,jj,kk) =
                   triple_t<USE_DOUBLE>(ii-H+(DIM1)*coords[0]+C_ADD,
                                        jj-H+(DIM2)*coords[1]+C_ADD,
                                        kk-H+(DIM3)*coords[2]+C_ADD);
@@ -156,7 +156,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
   printbuff(file,a, DIM1+2*H, DIM2+2*H, DIM3+2*H);
   printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
   printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-  
+
   /* This is self explanatory now
    */
 
@@ -169,7 +169,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
 
 
   MPI_Barrier(gridtools::GCL_WORLD);
-  
+
   gettimeofday(&start_tv, NULL);
 
   he.pack(vect);
@@ -254,7 +254,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         tcz = modulus(kk-H+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H)) || 
+          if ( ((coords[0]==0) && (ii<H)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H)) ) {
             tax=triple_t<USE_DOUBLE>().x();
             tbx=triple_t<USE_DOUBLE>().x();
@@ -263,7 +263,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H)) || 
+          if ( ((coords[1]==0) && (jj<H)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H)) ) {
             tay=triple_t<USE_DOUBLE>().y();
             tby=triple_t<USE_DOUBLE>().y();
@@ -272,7 +272,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H)) || 
+          if ( ((coords[2]==0) && (kk<H)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H)) ) {
             taz=triple_t<USE_DOUBLE>().z();
             tbz=triple_t<USE_DOUBLE>().z();
@@ -287,7 +287,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         if (a(ii,jj,kk) != ta) {
           passed = false;
           file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
-               << "a " << a(ii,jj,kk) << " != " 
+               << "a " << a(ii,jj,kk) << " != "
                << ta
                << "\n";
         }
@@ -295,7 +295,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         if (b(ii,jj,kk) != tb) {
           passed = false;
           file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
-               << "b " << b(ii,jj,kk) << " != " 
+               << "b " << b(ii,jj,kk) << " != "
                << tb
                << "\n";
         }
@@ -303,7 +303,7 @@ inline void run(ST & file, int DIM1, int DIM2, int DIM3, int H, triple_t<USE_DOU
         if (c(ii,jj,kk) != tc) {
           passed = false;
           file << ii << ", " << jj << ", " << kk << " values found != expct: " << " -> "
-               << "c " << c(ii,jj,kk) << " != " 
+               << "c " << c(ii,jj,kk) << " != "
                << tc
                << "\n";
         }
@@ -392,7 +392,7 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   MPI_Cart_get(CartComm, 3, dims, period, coords);

@@ -1,11 +1,11 @@
-#include <communication/low-level/proc_grids_3D.h>
-#include <communication/all_to_all_halo.h>
+#include <communication/low-level/proc_grids_3D.hpp>
+#include <communication/all_to_all_halo.hpp>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <common/array.h>
-#include <common/boollist.h>
+#include <common/array.hpp>
+#include <common/boollist.hpp>
 
 template <typename STREAM, typename T>
 void print(STREAM & cout, std::vector<T> const& v, int n, int m, int l) {
