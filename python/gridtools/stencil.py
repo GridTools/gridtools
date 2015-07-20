@@ -515,11 +515,13 @@ class Stencil (object):
         self.recompile ( )
 
 
-    def get_interior_points (self, data_field):
+    def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
         """
         Returns an iterator over the 'data_field' without including the halo:
 
             data_field      a NumPy array;
+            ghost_cell      access pattern for the current field, which depends
+                            on the following stencil stages.-
         """
         try:
             if len (data_field.shape) != 3:
@@ -529,14 +531,15 @@ class Stencil (object):
             raise TypeError ("Calling 'get_interior_points' without a NumPy array")
         else:
             #
-            # calculate 'i','j' iteration boundaries based on 'halo'
+            # calculate 'i','j','k' iteration boundaries
+            # based on 'halo' and access ranges
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0 + self.halo[1]
-            end_i   = i_dim - self.halo[0]
-            start_j = 0 + self.halo[3]
-            end_j   = j_dim - self.halo[2]
+            start_i = 0     + self.halo[1] + ghost_cell[0]
+            end_i   = i_dim - self.halo[0] + ghost_cell[1]
+            start_j = 0     + self.halo[3] + ghost_cell[2]
+            end_j   = j_dim - self.halo[2] + ghost_cell[3]
 
             #
             # calculate 'k' iteration boundaries based 'k_direction'
@@ -550,8 +553,7 @@ class Stencil (object):
                 end_k   = -1
                 inc_k   = -1
             else:
-                logging.warning ("Ignoring unknown direction '%s'" % self.k_direction)
-
+                logging.warning ("Ignoring unknown K direction '%s'" % self.k_direction)
             #
             # return the coordinate tuples in the correct order
             #
@@ -593,7 +595,7 @@ class Stencil (object):
         """
         Renders the data depencency graph using 'matplotlib'.-
         """
-        self._plot_graph (self.scope.depency_graph)
+        self._plot_graph (self.scope.dependency_graph)
 
 
     def recompile (self):
@@ -646,7 +648,6 @@ class Stencil (object):
         #
         self.set_halo        (halo)
         self.set_k_direction (k_direction)
-
         #
         # run the selected backend version
         #

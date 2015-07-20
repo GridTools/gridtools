@@ -108,7 +108,7 @@ class CopyTest (RangeDetectionTest):
         if deps is None:
             deps = [ self.params ]
 
-        stencil_deps = self.stencil.scope.depency_graph.edges ( )
+        stencil_deps = self.stencil.scope.dependency_graph.edges ( )
         #
         # check the dependency detection for the whole stencil
         #
@@ -132,7 +132,7 @@ class CopyTest (RangeDetectionTest):
         from gridtools import BACKENDS
 
         #
-        # add the fields and its ranges
+        # fields and their ranges
         #
         self.add_expected_range ('in_cpy',  None)
         self.add_expected_range ('out_cpy', None)
@@ -361,25 +361,14 @@ class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        #
-        # temporary data fields to share data among the different stages
-        #
-        self.out_cpy = np.zeros (domain)
-
-
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
         """
         for p in self.get_interior_points (out_data):
-            self.out_cpy[p] = -4.0 * in_data[p] + (
-                              in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
-                              in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
-
-        for p in self.get_interior_points (out_data):
-            out_data[p] = self.out_cpy[p]
+            out_data[p] = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
 
@@ -401,7 +390,7 @@ class LaplaceTest (CopyTest):
                 for k in range (self.domain[2]):
                     self.in_data[i,j,k] = i**3 + j
 
-        self.stencil = Laplace (self.domain) 
+        self.stencil = Laplace ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
@@ -410,10 +399,10 @@ class LaplaceTest (CopyTest):
         from gridtools import BACKENDS
 
         #
-        # add the fields and its ranges
+        # fields and their ranges
         #
-        self.add_expected_range ('in_data', [-1,1,-1,1])
-        self.add_expected_range ('out_cpy', None)
+        self.add_expected_range ('in_data',  [-1,1,-1,1])
+        self.add_expected_range ('out_data', None)
 
         for backend in BACKENDS:
             self.stencil.backend = backend
@@ -442,12 +431,14 @@ class HorizontalDiffusion (MultiStageStencil):
 
 
     def stage_flux_i (self, out_fli, in_lap):
-        for p in self.get_interior_points (in_lap):
+        for p in self.get_interior_points (out_fli,
+                                           ghost_cell=[-1,0,-1,0]):
             out_fli[p] = in_lap[p + (1,0,0)] - in_lap[p]
 
 
     def stage_flux_j (self, out_flj, in_lap):
-        for p in self.get_interior_points (in_lap):
+        for p in self.get_interior_points (out_flj,
+                                           ghost_cell=[-1,0,-1,0]):
             out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
 
 
@@ -455,21 +446,23 @@ class HorizontalDiffusion (MultiStageStencil):
         #
         # Laplace
         #
-        for p in self.get_interior_points (in_data):
+        for p in self.get_interior_points (self.lap,
+                                           ghost_cell=[-1,1,-1,1]):
             self.lap[p] = -4.0 * in_data[p] +  (
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
         #
-        # The fluxes over 'i' and 'j' are independent
+        # the fluxes are independent, because they depend on 'self.lap.
         #
         self.stage_flux_i (out_fli = self.fli,
                            in_lap  = self.lap)
         self.stage_flux_j (out_flj = self.flj,
                            in_lap  = self.lap)
-        #
-        # Last stage
-        #
+
         for p in self.get_interior_points (out_data):
+            #
+            # Last stage
+            #
             out_data[p] = in_wgt[p] * (
                           self.fli[p + (-1,0,0)] - self.fli[p] + 
                           self.flj[p + (0,-1,0)] - self.flj[p] )
@@ -494,6 +487,7 @@ class HorizontalDiffusionTest (CopyTest):
         self.out_data = np.zeros (self.domain)
         self.in_wgt   = np.ones  (self.domain)
         self.in_data  = np.zeros (self.domain)
+
         for i in range (self.domain[0]):
             for j in range (self.domain[1]):
                 for k in range (self.domain[2]):
@@ -520,7 +514,7 @@ class HorizontalDiffusionTest (CopyTest):
         from gridtools import BACKENDS
 
         #
-        # add the fields and its ranges
+        # fields and their ranges
         #
         self.add_expected_range ('in_data',  [-1,1,-1,1])
         self.add_expected_range ('in_wgt',   None)
@@ -544,7 +538,6 @@ class HorizontalDiffusionTest (CopyTest):
         self.out_data = np.random.rand (*self.domain)
         super ( ).test_python_results (out_param='out_data',
                                        result_file='horizontaldiffusion_result.npy')
-
 
 
 class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):

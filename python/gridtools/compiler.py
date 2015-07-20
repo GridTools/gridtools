@@ -96,12 +96,10 @@ class StencilCompiler ( ):
             if not path.exists (self.src_dir):
                 makedirs (self.src_dir)
 
-            if stencil.backend == 'c++':
-                extension = 'cpp'
-            elif stencil.backend == 'cuda':
+            if stencil.backend == 'cuda':
                 extension = 'cu'
             else:
-                raise RuntimeError ("Unknown backend '%s' in while generating code" % stencil.backend)
+                extension = 'cpp'
             self.cpp_file     = '%s.%s'    % (stencil.name, extension)
             self.fun_hdr_file = '%s_Functors.h' % stencil.name
 
@@ -121,7 +119,7 @@ class StencilCompiler ( ):
 
 
             with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-                functors  = JinjaEnv.get_template ("functors.h")
+                functors = JinjaEnv.get_template ("functors.h")
                 fun_hdl.write (functors.render (functor_src=fun_src))
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
                 cpp_hdl.write (cpp_src)
@@ -169,6 +167,7 @@ class StencilCompiler ( ):
             stencil.name = '%s_%03d' % (stencil.__class__.__name__.capitalize ( ),
                                         len (self.stencils))
             self.stencils[id(stencil)] = stencil
+            logging.debug ("Stencil '%s' has been registered" % stencil.name)
         return stencil.name
 
 
@@ -192,9 +191,9 @@ class StencilCompiler ( ):
             # compile only if the library is not available
             #
             if self.lib_obj is None:
-                stencil.resolve (**kwargs)
+                stencil.resolve    (**kwargs)
                 self.generate_code (stencil)
-                self.compile (stencil)
+                self.compile       (stencil)
                 #
                 # floating point precision validation
                 #
@@ -234,6 +233,7 @@ class StencilCompiler ( ):
 
         functs               = dict ( )
         functs[stencil.name] = stencil.inspector.functors
+
         #
         # render the source code for each of the functors
         #
