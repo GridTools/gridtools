@@ -131,11 +131,10 @@ struct get_cache_storage_tuple
 
     typedef typename boost::mpl::fold<
         CacheSequence,
-        boost::mpl::map0<>,
+        boost::mpl::vector0<>,
         boost::mpl::if_<
             typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
-            boost::mpl::insert<
-                boost::mpl::_1,
+            boost::mpl::push_back<
                 boost::mpl::pair<boost::mpl::_2, get_cache_storage<boost::mpl::_2> >
             >,
             boost::mpl::_1
