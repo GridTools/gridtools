@@ -136,15 +136,3 @@ class Utilities ( ):
             rv = False
 
         return rv
-
-    def is_c_array_layout (self, nparray):
-        rv = False
-
-        if nparray.flags['C_CONTIGUOUS']:
-            logging.debug("C array layout in use.")
-            rv = True
-        else:
-            logging.debug("Non C array layout in use!!!")
-            rv = False
-
-        return rv

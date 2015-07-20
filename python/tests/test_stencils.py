@@ -57,66 +57,6 @@ class CopyTest (unittest.TestCase):
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
-    def _find_and_count_error_messages(self, output, term):
-        count = 0
-        for key in output:
-            if key == term:
-                count = count + 1
-        return count
-
-    def test_cuda_arrays_have_fortran_layout_but_cpp_not_affected (self):
-        with self.assertLogs () as cm:
-            """
-            Test first that the C++ backend doesn't perform the check
-            ... Test change to test git pull
-            """
-            logging.info("")
-            self.stencil.backend = 'c++'
-            self.in_cpy = np.random.random_integers (10, size=self.domain)
-            self.in_cpy = self.in_cpy.astype (np.float64)
-            self.out_cpy = np.random.random_integers (10, size=self.domain)
-            self.out_cpy = self.out_cpy.astype (np.float64)
-            self._run()
-            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Checking if it can be converted.")
-            self.assertEqual(count, 0)
-
-    def test_cuda_arrays_have_fortran_layout_clayout_converted_to_flayout (self):
-        with self.assertLogs () as cm:
-            """
-            Test that the Cuda backend with C-layout is caught and corrected
-            There should be two occurrances of the message; one for each argument.
-            """
-            self.stencil.backend = 'cuda'
-            self.in_cpy = np.random.random_integers (10, size=self.domain)
-            self.in_cpy = self.in_cpy.astype (np.float64)
-            self.out_cpy = np.random.random_integers (10, size=self.domain)
-            self.out_cpy = self.out_cpy.astype (np.float64)
-            self._run()
-            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Checking if it can be converted.")
-            self.assertEqual(count, 2)
-
-    def test_cuda_arrays_have_fortran_layout_flayout_needs_no_conversion (self):
-        with self.assertLogs () as cm:
-            """
-            Test that the Cuda backend, when passed arrays with Fortran layout, is OK.
-            To test this, we check that the warning message that would appear
-            if the arguments were not of Fortray-layout does NOT occur;
-            that is, we should have a count of zero (0) for that message.
-            The empty message at the start ensures that there is at least one message
-            returned so that we don't receive an erroneous AssertionError.
-            """
-            logging.info("")
-            self.stencil.backend = 'cuda'
-            self.in_cpy = np.random.random_integers (10, size=self.domain)
-            self.in_cpy = self.in_cpy.astype (np.float64)
-            self.in_cpy = np.asfortranarray (self.in_cpy)
-            self.out_cpy = np.random.random_integers (10, size=self.domain)
-            self.out_cpy = self.out_cpy.astype (np.float64)
-            self.out_cpy = np.asfortranarray (self.out_cpy)
-            self._run()
-            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Checking if it can be converted.")
-            self.assertEqual(count, 0)
-
     def test_automatic_dependency_detection (self, deps=None, backend='c++'):
         self.stencil.recompile ( )
         self.stencil.backend = backend
@@ -380,6 +320,95 @@ class FloatPrecisionTest (CopyTest):
             self.in_cpy = self.in_cpy.astype(np.float32)
             self._run ( )
 
+
+
+class ArrayLayoutTest (CopyTest):
+    """
+    Perform various direct and indeirect tests of the code to detect
+    an array's layout.
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+        self.utils        = Utilities (self)
+
+    def test_utils_is_fortran_layout_check_true_path(self):
+        """
+        Test the utility function is_fortran_array_layout to see if it
+        correctly identifies an array with Fortran layout.
+        """
+        rv = self.utils.is_fortran_array_layout(self.in_cpy)
+        self.assertTrue(rv)
+
+    def test_utils_is_fortran_layout_check_false_path(self):
+        """
+        Test the utility function is_fortran_array_layout to see if it
+        correctly identifies an array not having Fortran layout.
+        """
+        self.in_cpy = np.random.random_integers (10, size=self.domain)
+        rv = self.utils.is_fortran_array_layout(self.in_cpy)
+        self.assertFalse(rv)
+
+    def _find_and_count_error_messages(self, output, term):
+        count = 0
+        for key in output:
+            if key == term:
+                count = count + 1
+        return count
+
+    def test_cuda_arrays_have_fortran_layout_but_cpp_not_affected (self):
+        with self.assertLogs () as cm:
+            """
+            Test first that the C++ backend doesn't perform the check
+            (Indirect test)
+            """
+            logging.info("")
+            self.stencil.backend = 'c++'
+            self.in_cpy = np.random.random_integers (10, size=self.domain)
+            self.in_cpy = self.in_cpy.astype (np.float64)
+            self.out_cpy = np.random.random_integers (10, size=self.domain)
+            self.out_cpy = self.out_cpy.astype (np.float64)
+            self._run()
+            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Converting it.")
+            self.assertEqual(count, 0)
+
+    def test_cuda_arrays_have_fortran_layout_clayout_converted_to_flayout (self):
+        with self.assertLogs () as cm:
+            """
+            Test that the Cuda backend with C-layout is caught and corrected
+            There should be two occurrances of the message; one for each argument.
+            (Indirect test)
+            """
+            self.stencil.backend = 'cuda'
+            self.in_cpy = np.random.random_integers (10, size=self.domain)
+            self.in_cpy = self.in_cpy.astype (np.float64)
+            self.out_cpy = np.random.random_integers (10, size=self.domain)
+            self.out_cpy = self.out_cpy.astype (np.float64)
+            self._run()
+            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Converting it.")
+            self.assertEqual(count, 2)
+
+    def test_cuda_arrays_have_fortran_layout_flayout_needs_no_conversion (self):
+        with self.assertLogs () as cm:
+            """
+            Test that the Cuda backend, when passed arrays with Fortran layout, is OK.
+            To test this, we check that the warning message that would appear
+            if the arguments were not of Fortray-layout does NOT occur;
+            that is, we should have a count of zero (0) for that message.
+            The empty message at the start ensures that there is at least one message
+            returned so that we don't receive an erroneous AssertionError.
+            (Indirect test)
+            """
+            logging.info("")
+            self.stencil.backend = 'cuda'
+            self.in_cpy = np.random.random_integers (10, size=self.domain)
+            self.in_cpy = self.in_cpy.astype (np.float64)
+            self.in_cpy = np.asfortranarray (self.in_cpy)
+            self.out_cpy = np.random.random_integers (10, size=self.domain)
+            self.out_cpy = self.out_cpy.astype (np.float64)
+            self.out_cpy = np.asfortranarray (self.out_cpy)
+            self._run()
+            count = _find_and_count_error_messages(cm.output, "WARNING:root:Detected an incorrect array layout.  Converting it.")
+            self.assertEqual(count, 0)
 
 
 
