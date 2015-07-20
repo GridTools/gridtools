@@ -25,7 +25,11 @@ namespace _impl_cuda {
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
         typedef strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides_t;
         typedef array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer_t;
-        typedef shared_iterate_domain<data_pointer_t, strides_t> shared_iterate_domain_t;
+        typedef shared_iterate_domain<
+            data_pointer_t,
+            strides_t,
+            typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
+        > shared_iterate_domain_t;
 
         const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
                 block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;

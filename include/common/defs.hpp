@@ -26,11 +26,10 @@
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 
-#ifdef FUSION_MAX_VECTOR_SIZE
-#undef FUSION_MAX_VECTOR_SIZE
+#ifndef FUSION_MAX_VECTOR_SIZE
+    #define FUSION_MAX_VECTOR_SIZE 20
+    #define FUSION_MAX_MAP_SIZE 20
 #endif
-
-#define FUSION_MAX_VECTOR_SIZE 20
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3

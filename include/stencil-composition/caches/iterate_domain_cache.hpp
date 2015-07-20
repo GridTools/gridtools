@@ -6,6 +6,17 @@
  */
 
 #pragma once
+
+#include <common/defs.hpp>
+//#include <boost/fusion/adapted/mpl.hpp>
+//#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/container/map/convert.hpp>
+#include <boost/fusion/include/as_map.hpp>
+//#include <boost/fusion/container/map.hpp>
+//#include <boost/fusion/include/map.hpp>
+//#include <boost/fusion/container/map/map_fwd.hpp>
+//#include <boost/fusion/include/map_fwd.hpp>
+//#include <boost/fusion/include/mpl.hpp>
 #include <boost/mpl/copy_if.hpp>
 #include <stencil-composition/run_functor_arguments.hpp>
 
@@ -31,24 +42,31 @@ public:
     iterate_domain_cache() {}
     ~iterate_domain_cache() {}
 
+    template<typename T> struct printp{BOOST_MPL_ASSERT_MSG((false), YYYYYYY, (T));};
+
     // remove caches which are not used by the stencil stages
     typedef typename boost::mpl::copy_if<
         cache_sequence_t,
         is_there_in_sequence<esf_sequence_t, boost::mpl::_>
     >::type caches_t;
 
-    typedef typename extract_ranges_for_caches<caches_t, IterateDomainArguments>::type cache_ranges_t;
+    typedef typename extract_ranges_for_caches<IterateDomainArguments>::type cache_ranges_t;
 
     typedef typename get_cache_storage_tuple<
         IJ,
         caches_t,
         cache_ranges_t,
         typename IterateDomainArguments::physical_domain_block_size_t
-    >::type ij_caches_tuple_t;
-//
-//        caches_t, cache_is_type<IJ>
-//    >::type ij_caches_t;
+    >::type ij_caches_vectormap_t;
 
+    typedef typename boost::fusion::result_of::as_map<ij_caches_vectormap_t>::type ij_caches_tuple_t;
+
+//    typedef boost::fusion::result_of::as_map<boost::fusion::vector<
+//        boost::fusion::pair<int, char>
+//      , boost::fusion::pair<double, std::string> > >::type ij_caches_tuple_t;
+
+
+//    printp<ij_caches_tuple_t> oi;
 //    typedef typename boost::mpl::copy_if<
 //        Caches,
 //        is_ijk_cache<boost::mpl::_>

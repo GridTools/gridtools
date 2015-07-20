@@ -21,6 +21,11 @@ message ("-- building profiled executables")
 endif()
 
 
+set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
+add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
+add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
+
+
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

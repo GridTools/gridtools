@@ -21,9 +21,11 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
 
-    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t> shared_iterate_domain_t;
-
     typedef iterate_domain_cache<IterateDomainArguments> iterate_domain_cache_t;
+
+    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
+        shared_iterate_domain_t;
+
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;

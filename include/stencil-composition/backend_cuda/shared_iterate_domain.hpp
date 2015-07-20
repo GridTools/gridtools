@@ -9,7 +9,7 @@
  * data structure that holds data members of the iterate domain that must be stored in shared memory.
  * @tparam
  */
-template<typename DataPointerArray, typename StridesType>
+template<typename DataPointerArray, typename StridesType, typename IJCachesTuple>
 class shared_iterate_domain
 {
     DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
