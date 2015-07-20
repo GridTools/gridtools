@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <common/defs.h>
-#include <common/gpu_clone.h>
+#include <common/defs.hpp>
+#include <common/gpu_clone.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

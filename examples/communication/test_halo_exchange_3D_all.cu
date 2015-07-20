@@ -3,12 +3,12 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.h>
+#include <communication/halo_exchange.hpp>
 #include <string>
 #include <algorithm>
 #include <stdlib.h>
-#include <common/layout_map.h>
-#include <common/boollist.h>
+#include <common/layout_map.hpp>
+#include <common/boollist.hpp>
 #include <sys/time.h>
 
 int pid;
@@ -30,7 +30,7 @@ double lapse_time3;
 
 typedef gridtools::gcl_gpu arch_type;
 
-#include "triplet.h"
+#include "triplet.hpp"
 
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>

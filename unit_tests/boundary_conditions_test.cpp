@@ -1,15 +1,15 @@
-#include <gridtools.h>
-#include <common/halo_descriptor.h>
+#include <gridtools.hpp>
+#include <common/halo_descriptor.hpp>
 
 #ifdef __CUDACC__
-#include <boundary-conditions/apply_gpu.h>
+#include <boundary-conditions/apply_gpu.hpp>
 #else
-#include <boundary-conditions/apply.h>
+#include <boundary-conditions/apply.hpp>
 #endif
 
-#include <boundary-conditions/zero.h>
-#include <boundary-conditions/value.h>
-#include <boundary-conditions/copy.h>
+#include <boundary-conditions/zero.hpp>
+#include <boundary-conditions/value.hpp>
+#include <boundary-conditions/copy.hpp>
 
 using gridtools::direction;
 using gridtools::sign;
@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.h>
+#include <stencil-composition/backend.hpp>
 
 #include <stdlib.h>
 #include <stdio.h>

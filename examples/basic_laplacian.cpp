@@ -1,5 +1,5 @@
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
+#include <gridtools.hpp>
+#include <stencil-composition/backend.hpp>
 
 int main_naive(int argc, char** argv) {
 

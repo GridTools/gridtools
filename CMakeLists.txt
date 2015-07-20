@@ -150,7 +150,7 @@ endif()
 ##################################################################
 
 ######################### set the type of floats #################
-set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.h for configuration)" )
+set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 if(SINGLE_PRECISION)
   add_definitions(-DFLOAT_PRECISION=4)
   message("-- computations in single precision")
@@ -185,7 +185,7 @@ if( USE_MPI )
 endif()
 
 
-ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h )
+ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
 
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXX_FLAGS}" )
 
@@ -199,6 +199,15 @@ WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
+
+set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
+file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
+
+function(gridtools_add_test test_script test_name test_exec)
+  add_test(${test_name} ${test_exec} ${ARGN})
+  file(APPEND ${TEST_SCRIPT} ${test_exec} ${ARGN} "\n")
+endfunction(gridtools_add_test)
+
 
 if (ENABLE_PYTHON)
     message ("PYTHON enabled ")

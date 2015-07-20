@@ -1,4 +1,4 @@
-#include <stencil_composition/execution_policy.h>
+#include <stencil_composition/execution_policy.hpp>
 using namespace gridtools;
 using namespace enumtype;
 

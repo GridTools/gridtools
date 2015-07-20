@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "range.h"
+#include "range.hpp"
 #include <boost/mpl/for_each.hpp>
 
 using namespace gridtools;
