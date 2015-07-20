@@ -6,10 +6,10 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "define_caches.hpp"
-#include "accessor.hpp"
-#include "backend.hpp"
-#include "defs.hpp"
+#include <stencil-composition/caches/define_caches.hpp>
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/backend.hpp>
+#include <common/defs.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

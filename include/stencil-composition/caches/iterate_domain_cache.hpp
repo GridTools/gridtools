@@ -7,7 +7,7 @@
 
 #pragma once
 #include <boost/mpl/copy_if.hpp>
-#include "../run_functor_arguments.hpp"
+#include <stencil-composition/run_functor_arguments.hpp>
 
 namespace gridtools {
 
@@ -34,10 +34,12 @@ public:
     // remove caches which are not used by the stencil stages
     typedef typename boost::mpl::copy_if<
         cache_sequence_t,
-        cache_used_by_esfs<boost::mpl::_, esf_sequence_t>
+        is_there_in_sequence<esf_sequence_t, boost::mpl::_>
     >::type caches_t;
 
-
+    typedef typename boost::mpl::copy_if<
+        caches_t, cache_is_type<IJ>
+    >::type ij_caches_t;
 
 //    typedef typename boost::mpl::copy_if<
 //        Caches,

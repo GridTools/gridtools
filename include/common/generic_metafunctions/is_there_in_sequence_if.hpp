@@ -13,12 +13,12 @@
 
 namespace gridtools {
 
-template<typename Sequence, typename Key>
-struct is_there_in_sequence
+template<typename Sequence, typename Pred>
+struct is_there_in_sequence_if
 {
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence<Sequence>::value), "Wrong input sequence");
     typedef typename is_not_same<
-        typename boost::mpl::find<Sequence, Key>::type,
+        typename boost::mpl::find_if<Sequence, Pred>::type,
         typename boost::mpl::end<Sequence>::type
     >::type type;
     BOOST_STATIC_CONSTANT(bool, value = (type::value));
