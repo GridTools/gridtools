@@ -39,9 +39,15 @@ public:
 
     typedef typename extract_ranges_for_caches<caches_t, IterateDomainArguments>::type cache_ranges_t;
 
-    typedef typename boost::mpl::copy_if<
-        caches_t, cache_is_type<IJ>
-    >::type ij_caches_t;
+    typedef typename get_cache_storage_tuple<
+        IJ,
+        caches_t,
+        cache_ranges_t,
+        typename IterateDomainArguments::physical_domain_block_size_t
+    >::type ij_caches_tuple_t;
+//
+//        caches_t, cache_is_type<IJ>
+//    >::type ij_caches_t;
 
 //    typedef typename boost::mpl::copy_if<
 //        Caches,
