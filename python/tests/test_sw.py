@@ -310,7 +310,7 @@ class SWTest (CopyTest):
         from gridtools import BACKENDS
 
         #
-        # add the fields and their ranges
+        # fields and their ranges
         #
         self.add_expected_range ('in_Hd',   None)
         self.add_expected_range ('in_Ud',   None)
@@ -352,9 +352,16 @@ class SWTest (CopyTest):
         self.add_expected_range ('self.Hd', None)
         self.add_expected_range ('self.Hd', None)
         self.add_expected_range ('self.Ux', None)
+        self.add_expected_range ('self.Ux', None)
+        self.add_expected_range ('self.Ux', None)
+        self.add_expected_range ('self.Vx', None)
         self.add_expected_range ('self.Vx', None)
         self.add_expected_range ('self.Hy', None)
+        self.add_expected_range ('self.Hy', None)
         self.add_expected_range ('self.Uy', None)
+        self.add_expected_range ('self.Uy', None)
+        self.add_expected_range ('self.Vy', None)
+        self.add_expected_range ('self.Vy', None)
         self.add_expected_range ('self.Vy', None)
         self.add_expected_range ('self.Dh', None)
         self.add_expected_range ('self.Du', None)
