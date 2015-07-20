@@ -10,6 +10,7 @@
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <stencil-composition/caches/cache.hpp>
+#include <stencil-composition/caches/cache_storage.hpp>
 #include <stencil-composition/esf_metafunctions.hpp>
 
 #include <common/generic_metafunctions/is_there_in_sequence_if.hpp>
@@ -117,4 +118,30 @@ struct extract_ranges_for_caches
 
 };
 
-}
+template<CacheType cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize>
+struct get_cache_storage_tuple
+{
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Internal Error: Wrong Type");
+
+    template<typename Cache>
+    struct get_cache_storage
+    {
+        typedef cache_storage<float_type, BlockSize, typename boost::mpl::at<CacheRangesMap, Cache>::type > type;
+    };
+
+    typedef typename boost::mpl::fold<
+        CacheSequence,
+        boost::mpl::map0<>,
+        boost::mpl::if_<
+            typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
+            boost::mpl::insert<
+                boost::mpl::_1,
+                boost::mpl::pair<boost::mpl::_2, get_cache_storage<boost::mpl::_2> >
+            >,
+            boost::mpl::_1
+        >
+    >::type type;
+};
+
+
+} // namespace gridtools

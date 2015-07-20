@@ -66,7 +66,7 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
 
     typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
 
-    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t> iterate_domain_arguments_t;
+    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t, block_size<32,4> > iterate_domain_arguments_t;
 
     typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
 
@@ -77,4 +77,29 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
                 boost::mpl::pair<cache3_t, range<-2,1,-3,2> >
             > >::value), "ERROR"
     );
+}
+
+TEST(cache_metafunctions, get_cache_storage_tuple)
+{
+
+    typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
+    typedef local_domain< boost::mpl::void_, esf_args_t, false> local_domain_t;
+
+    typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
+
+    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t, block_size<32,4> > iterate_domain_arguments_t;
+
+    typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
+
+    typedef get_cache_storage_tuple<IJ, caches_t, ranges_map_t, block_size<32,4> >::type cache_storage_tuple_t;
+
+    GRIDTOOLS_STATIC_ASSERT((
+        boost::mpl::equal<
+            cache_storage_tuple_t,
+            boost::mpl::map2<
+                boost::mpl::pair<cache1_t, cache_storage<float_type, block_size<32,4>, range<-1,2,-2,1> > >,
+                boost::mpl::pair<cache2_t, cache_storage<float_type, block_size<32,4>, range<-2,2,-3,2> > >
+            >
+        >::value),"ERROR");
+
 }
