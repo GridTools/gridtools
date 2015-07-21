@@ -1,4 +1,3 @@
-#pragma once
 #include <common/defs.hpp>
 #include <stencil-composition/make_stencils.hpp>
 #include <stencil-composition/backend.hpp>
