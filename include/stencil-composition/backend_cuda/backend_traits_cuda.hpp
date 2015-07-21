@@ -188,6 +188,12 @@ namespace gridtools{
                 select_basic_iterate_domain<IterateDomainArguments>
             >::type type;
         };
+
+        template<typename IterateDomainArguments>
+        struct select_iterate_domain_cache
+        {
+            typedef iterate_domain_cache<IterateDomainArguments> type;
+        };
     };
 
 }//namespace gridtools

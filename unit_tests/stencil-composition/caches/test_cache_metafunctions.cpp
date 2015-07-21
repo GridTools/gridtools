@@ -79,6 +79,7 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
     );
 }
 
+template<typename T> struct printe{BOOST_MPL_ASSERT_MSG((false),  WWWWWWWWWWWWWWw, (T));};
 TEST(cache_metafunctions, get_cache_storage_tuple)
 {
 

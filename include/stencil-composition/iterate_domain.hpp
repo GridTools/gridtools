@@ -49,6 +49,8 @@
 
 namespace gridtools {
 
+    template<typename T>
+    struct iterate_domain_impl_ij_caches_map;
 
     template< typename Impl>
     struct iterate_domain_impl_local_domain;
@@ -62,11 +64,50 @@ namespace gridtools {
         typedef typename IterateDomainArguments::local_domain_t type;
     };
 
+    template< typename Impl>
+    struct iterate_domain_impl_arguments;
+
+    template< typename IterateDomainArguments,
+        template<typename> class IterateDomainBase,
+        template<template<typename> class, typename> class IterateDomainImpl >
+    struct iterate_domain_impl_arguments < IterateDomainImpl<IterateDomainBase, IterateDomainArguments> >
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
+        typedef IterateDomainArguments type;
+    };
+
+
+    template<typename IterateDomainImpl>
+    struct iterate_domain_backend_id;
+
+//    template< typename Impl>
+//    struct iterate_domain_impl_ij_caches_map;
+//
+//    template< typename IterateDomainArguments,
+//        template<typename> class IterateDomainBase,
+//        template<template<typename> class, typename> class IterateDomainImpl >
+//    struct iterate_domain_impl_ij_caches_map < IterateDomainImpl<IterateDomainBase, IterateDomainArguments> >
+//    {
+//        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
+//        typedef typename IterateDomainImpl<IterateDomainBase, IterateDomainArguments>::ij_caches_map_t type;
+//    };
+
     /**@brief class handling the computation of the */
     template <typename IterateDomainImpl>
     struct iterate_domain {
         typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
+        typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+
         typedef typename local_domain_t::esf_args esf_args_t;
+
+//        typedef select_iterate_domain_cache<IterateDomainArguments> iterate_domain_cache_t;
+
+        typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
+
+        typedef typename backend_traits_from_id< backend_id_t::value >::
+                template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
+
+//        typedef typename backend_traits_from_id<IterateDomainImpl>::type ij_caches_map_t;
 
         /**
          * metafunction that retrieves the arg type associated with an accessor
