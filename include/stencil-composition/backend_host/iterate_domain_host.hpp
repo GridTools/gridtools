@@ -20,6 +20,8 @@ class iterate_domain_host : public IterateDomainBase<iterate_domain_host<Iterate
     typedef typename super::strides_cached_t strides_cached_t;
 
 public:
+    typedef boost::mpl::map0<> ij_caches_map_t;
+
     GT_FUNCTION
     explicit iterate_domain_host(local_domain_t const& local_domain)
         : super(local_domain), m_data_pointer(0), m_strides(0) {}
@@ -77,4 +79,10 @@ template<
 struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > > {};
 
-}
+template<template<class> class IterateDomainBase, typename IterateDomainArguments>
+struct iterate_domain_backend_id<iterate_domain_host<IterateDomainBase, IterateDomainArguments> >
+{
+    typedef enumtype::enum_type< enumtype::backend, enumtype::Host > type;
+};
+
+}  //namespace gridtools

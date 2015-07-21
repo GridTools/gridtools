@@ -19,6 +19,7 @@
 //#include <boost/fusion/include/mpl.hpp>
 #include <boost/mpl/copy_if.hpp>
 #include <stencil-composition/run_functor_arguments.hpp>
+#include <common/generic_metafunctions/vector_to_map.hpp>
 
 namespace gridtools {
 
@@ -57,20 +58,11 @@ public:
         caches_t,
         cache_ranges_t,
         typename IterateDomainArguments::physical_domain_block_size_t
-    >::type ij_caches_vectormap_t;
+    >::type ij_caches_vector_t;
 
-    typedef typename boost::fusion::result_of::as_map<ij_caches_vectormap_t>::type ij_caches_tuple_t;
+    typedef typename vector_to_map<ij_caches_vector_t>::type ij_caches_map_t;
 
-//    typedef boost::fusion::result_of::as_map<boost::fusion::vector<
-//        boost::fusion::pair<int, char>
-//      , boost::fusion::pair<double, std::string> > >::type ij_caches_tuple_t;
-
-
-//    printp<ij_caches_tuple_t> oi;
-//    typedef typename boost::mpl::copy_if<
-//        Caches,
-//        is_ijk_cache<boost::mpl::_>
-//    >::type IJKCaches;
+    typedef typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type ij_caches_tuple_t;
 
 };
 

@@ -9,6 +9,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/fusion/container/map/convert.hpp>
 #include <stencil-composition/caches/cache.hpp>
 #include <stencil-composition/caches/cache_storage.hpp>
 #include <stencil-composition/esf_metafunctions.hpp>
@@ -132,12 +133,12 @@ struct get_cache_storage_tuple
     typedef typename boost::mpl::fold<
         CacheSequence,
         boost::mpl::vector0<>,
-        boost::mpl::if_<
+        boost::mpl::eval_if<
             typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
             boost::mpl::push_back<
-                boost::mpl::pair<boost::mpl::_2, get_cache_storage<boost::mpl::_2> >
+                boost::mpl::_1, boost::mpl::pair<boost::mpl::_2, get_cache_storage<boost::mpl::_2> >
             >,
-            boost::mpl::_1
+            boost::mpl::identity<boost::mpl::_1>
         >
     >::type type;
 };

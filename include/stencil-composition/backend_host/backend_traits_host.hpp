@@ -5,6 +5,7 @@
 #include "../block_size.hpp"
 #include "iterate_domain_host.hpp"
 #include "strategy_host.hpp"
+#include "empty_iterate_domain_cache.hpp"
 
 /**@file
 @brief type definitions and structures specific for the Host backend
@@ -185,6 +186,12 @@ namespace gridtools{
                 select_positional_iterate_domain<IterateDomainArguments>,
                 select_basic_iterate_domain<IterateDomainArguments>
             >::type type;
+        };
+
+        template<typename IterateDomainArguments>
+        struct select_iterate_domain_cache
+        {
+            typedef empty_iterate_domain_cache type;
         };
     };
 

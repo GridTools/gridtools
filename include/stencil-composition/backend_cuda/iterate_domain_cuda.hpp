@@ -2,10 +2,12 @@
 
 #include "../iterate_domain.hpp"
 #include "../iterate_domain_metafunctions.hpp"
+#include "iterate_domain_cache.hpp"
 #include "shared_iterate_domain.hpp"
-#include "../caches/iterate_domain_cache.hpp"
 
 namespace gridtools {
+
+
 
 /**
  * @brief iterate domain class for the CUDA backend
@@ -21,10 +23,12 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
 
-    typedef iterate_domain_cache<IterateDomainArguments> iterate_domain_cache_t;
+    typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
     typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
+
+    typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
 
 private:
     const uint_t m_block_size_i;
@@ -151,5 +155,12 @@ template<
 >
 struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
+
+template<template<class> class IterateDomainBase, typename IterateDomainArguments>
+struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >
+{
+    typedef enumtype::enum_type< enumtype::backend, enumtype::Cuda > type;
+};
+
 
 }
