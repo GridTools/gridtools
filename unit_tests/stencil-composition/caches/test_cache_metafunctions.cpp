@@ -98,8 +98,8 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         boost::mpl::equal<
             cache_storage_tuple_t,
             boost::mpl::map2<
-                boost::mpl::pair<cache1_t, cache_storage<float_type, block_size<32,4>, range<-1,2,-2,1> > >,
-                boost::mpl::pair<cache2_t, cache_storage<float_type, block_size<32,4>, range<-2,2,-3,2> > >
+                boost::mpl::pair<p_in, cache_storage<float_type, block_size<32,4>, range<-1,2,-2,1> > >,
+                boost::mpl::pair<p_buff, cache_storage<float_type, block_size<32,4>, range<-2,2,-3,2> > >
             >
         >::value),"ERROR");
 
