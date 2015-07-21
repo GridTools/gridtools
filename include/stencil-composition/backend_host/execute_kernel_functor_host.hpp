@@ -73,7 +73,7 @@ struct execute_kernel_functor_host
     , m_coords(coords)
     , m_first_pos(coords.i_low_bound(), coords.j_low_bound())
     , m_last_pos(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
-    , m_block_id(0, 0) {}
+    , m_block_id(0u, 0u) {}
 
     void operator()()
     {

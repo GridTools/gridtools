@@ -5,6 +5,7 @@
 #include "accessor.hpp"
 #include "domain_type.hpp"
 
+#include "stencil-composition/accessor.hpp"
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)

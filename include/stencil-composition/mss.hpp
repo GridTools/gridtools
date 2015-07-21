@@ -36,6 +36,18 @@ namespace gridtools {
             };
         };
 
+        template <typename T>
+        struct extract_staggering {
+                typedef typename T::staggering_t type;
+        };
+
+        template <typename ESF, typename Staggering>
+        struct decorate_with_staggering : public ESF {
+            typedef Staggering staggering_t;
+            using ESF::Do;
+            using ESF::ESF;
+        };
+
         template <typename FunctorDesc>
         struct extract_ranges {
             typedef typename FunctorDesc::esf_function Functor;
@@ -216,6 +228,7 @@ namespace gridtools {
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
+
 
     template<typename Mss>
     struct mss_descriptor_execution_engine {};
