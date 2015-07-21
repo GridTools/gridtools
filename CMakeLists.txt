@@ -212,10 +212,12 @@ endif(DOXYGEN_FOUND)
 
 set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
+file(APPEND ${TEST_SCRIPT} "res = 0\n")
 
 function(gridtools_add_test test_name test_script test_exec)
   add_test(${test_name} ${test_exec} ${ARGN})
   file(APPEND ${test_script} ${test_exec} ${ARGN} "\n")
+  file(APPEND ${test_script} "res=$((res || $? ))\n")
 endfunction(gridtools_add_test)
 
 
@@ -256,6 +258,7 @@ endif(ENABLE_PYTHON)
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
 
+file(APPEND ${TEST_SCRIPT} "return $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
