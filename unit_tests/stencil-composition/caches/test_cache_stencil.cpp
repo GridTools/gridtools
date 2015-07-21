@@ -10,6 +10,7 @@
 #include <common/defs.hpp>
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/caches/cache_metafunctions.hpp>
+#include <stencil-composition/caches/define_caches.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
@@ -70,13 +71,14 @@ TEST(cache_stencil, ij_cache)
 #else
         boost::shared_ptr<gridtools::computation> pstencil =
 #endif
-        gridtools::make_computation<gridtools::BACKEND, layout_ijk_t>
+        make_computation<gridtools::BACKEND, layout_ijk_t>
         (
-            gridtools::make_mss // mss_descriptor
+            make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
-                gridtools::make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
+                define_caches(cache<IJ, p_buff, cLocal>() , cache<IJ, p_out, cLocal>()),
+                make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
+                make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
             ),
             domain, coords
         );

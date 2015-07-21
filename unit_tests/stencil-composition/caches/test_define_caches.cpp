@@ -3,7 +3,6 @@
    @brief File containing tests for the define_cache construct
 */
 
-
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/caches/define_caches.hpp>
@@ -24,7 +23,7 @@ using namespace enumtype;
   #endif
 #endif
 
-TEST(define_caches, define_mixed_caches)
+TEST(define_caches, test_sequence_caches)
 {
 #ifdef __CUDACC__
     typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/generic_metafunctions/variadic_to_vector.hpp>
 #include "mss_metafunctions.hpp"
 
 namespace gridtools {
@@ -46,14 +47,14 @@ namespace gridtools {
         typename ... MssParameters >
     mss_descriptor<
         ExecutionEngine,
-        typename extract_mss_esfs<boost::mpl::vector<MssParameters ... > >::type,
-        typename extract_mss_caches<boost::mpl::vector<MssParameters ...> >::type
+        typename extract_mss_esfs<typename variadic_to_vector<MssParameters ... >::type >::type,
+        typename extract_mss_caches<typename variadic_to_vector<MssParameters ...>::type >::type
     >
-    make_mss(ExecutionEngine&& /**/, MssParameters&& ...  ) {
+    make_mss(ExecutionEngine&& /**/, MssParameters ...  ) {
         return mss_descriptor<
             ExecutionEngine,
-            typename extract_mss_esfs<boost::mpl::vector<MssParameters ... > >::type,
-            typename extract_mss_caches<boost::mpl::vector<MssParameters ...> >::type
+            typename extract_mss_esfs<typename variadic_to_vector<MssParameters ... >::type >::type,
+            typename extract_mss_caches<typename variadic_to_vector<MssParameters ... >::type >::type
         >();
     }
 
