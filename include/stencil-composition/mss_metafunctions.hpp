@@ -55,7 +55,7 @@ struct mss_intervals
 template<typename T>
 struct is_mss_parameter
 {
-    typedef typename boost::mpl::or_< is_cache<T>, is_esf_descriptor<T> >::type type;
+    typedef typename boost::mpl::or_< is_sequence_of<T, is_cache >, is_esf_descriptor<T> >::type type;
 };
 
 /**
@@ -65,15 +65,30 @@ struct is_mss_parameter
 template<typename MssParameterSequence>
 struct extract_mss_caches
 {
-    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssParameterSequence, is_mss_parameter>::value),
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssParameterSequence, is_mss_parameter >::value),
             "wrong set of mss parameters passed to make_mss construct.\n"
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"
             " * esf descriptors from make_esf(...) or make_independent(...)");
+    template<typename T>
+    struct is_sequence_of_caches{
+        typedef typename is_sequence_of<T, is_cache>::type type;
+    };
+
 #ifdef __DISABLE_CACHING__
-    typedef boost::mpl::void_ type;
+    typedef boost::mpl::vector0<> type;
 #else
-    typedef typename boost::mpl::copy_if<MssParameterSequence, boost::mpl::quote1<is_cache> >::type type;
+    typedef typename boost::mpl::copy_if<MssParameterSequence, boost::mpl::quote1<is_sequence_of_caches> >::type sequence_of_caches;
+
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<sequence_of_caches>::value==1 || boost::mpl::size<sequence_of_caches>::value==0),
+        "Wrong number of sequence of caches. Probably caches are defined in multiple dinstinct instances of define_caches\n"
+        "Only one instance of define_caches is allowed." );
+
+    typedef typename boost::mpl::eval_if<
+        boost::mpl::empty<sequence_of_caches>,
+        boost::mpl::identity<boost::mpl::vector0<> >,
+        boost::mpl::front<sequence_of_caches>
+    >::type type;
 #endif
 };
 
