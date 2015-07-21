@@ -14,14 +14,14 @@ namespace gridtools {
         template <typename LocationType, typename X, typename LayoutMap>
         struct _storage_type;
 
-        template <typename X, typename LayoutMap>
-        struct _storage_type<location_type<0>, X, LayoutMap> {
-            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<0> >;
+        template <ushort_t NColors, char const* Name, typename X, typename LayoutMap>
+        struct _storage_type<location_type<0, NColors, Name>, X, LayoutMap> {
+            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<0, NColors, Name> >;
         };
 
-        template <typename X, typename LayoutMap>
-        struct _storage_type<location_type<1>, X, LayoutMap> {
-            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<1> >;
+        template <ushort_t NColors, char const* Name, typename X, typename LayoutMap>
+        struct _storage_type<location_type<1, NColors, Name>, X, LayoutMap> {
+            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<1, NColors, Name> >;
         };
 
         template <typename LocationType>
@@ -32,16 +32,16 @@ namespace gridtools {
     struct colored_backend : public _backend {
     private:
 
-        template <typename Accessor, typename Computation, typename Coords>
+        template <ushort_t NColors, char const* Name, typename Accessor, typename Computation, typename Coords>
         static
         void
-        dispatch_on_locationtype(location_type<0>,
+        dispatch_on_locationtype(location_type<0, NColors, Name>,
                                  Accessor & acc,
                                  Computation const x,
                                  Coords const & coords)
         {
-            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<0>());
-            const auto high_bounds = acc.grid().ll_indices({coords.ub0, coords.ub1}, location_type<0>());
+            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<0, NColors, Name>());
+            const auto high_bounds = acc.grid().ll_indices({coords.ub0, coords.ub1}, location_type<0, NColors, Name>());
 
             std::cout << "User Level Iteration (closed) \n"
                       << "    from " << coords.lb0 << " to " << coords.ub0 << " \n"
@@ -57,7 +57,7 @@ namespace gridtools {
                       << std::endl;
             for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
                 for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
-                    acc.template set_ll_ijk<location_type<0> >(i, j, low_bounds[2]);
+                    acc.template set_ll_ijk<location_type<0, NColors, Name> >(i, j, low_bounds[2]);
                     for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
                         typename decltype(x)::functor()(acc);
                         acc.inc_ll_k();
@@ -66,16 +66,16 @@ namespace gridtools {
             }
         }
 
-        template <typename Accessor, typename Computation, typename Coords>
+        template <ushort_t NColors, char* Name, typename Accessor, typename Computation, typename Coords>
         static
         void
-        dispatch_on_locationtype(location_type<1>,
+        dispatch_on_locationtype(location_type<1, NColors, Name>,
                                  Accessor & acc,
                                  Computation const x,
                                  Coords const & coords)
         {
-            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<1>());
-            const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1}, location_type<1>());
+            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<1, NColors, Name>());
+            const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1}, location_type<1, NColors, Name>());
             std::cout << "Low bounds  " << low_bounds << std::endl;
             std::cout << "High bounds " << high_bounds << std::endl;
             std::cout << "Iteration space on Edges "
@@ -85,7 +85,7 @@ namespace gridtools {
                       << std::endl;
             for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
                 for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
-                    acc.template set_ll_ijk<location_type<1> >(i, j, low_bounds[2]);
+                    acc.template set_ll_ijk<location_type<1, NColors, Name> >(i, j, low_bounds[2]);
                     for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
                         typename decltype(x)::functor()(acc);
                         acc.inc_ll_k();
