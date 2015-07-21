@@ -3,6 +3,7 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project( GRIDTOOLS )
 enable_language( CXX )
+enable_testing()
 
 SET(SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
 if(SUPPRESS_MESSAGES)
@@ -212,10 +213,11 @@ endif(DOXYGEN_FOUND)
 set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
 
-function(gridtools_add_test test_script test_name test_exec)
+function(gridtools_add_test test_name test_script test_exec)
   add_test(${test_name} ${test_exec} ${ARGN})
-  file(APPEND ${TEST_SCRIPT} ${test_exec} ${ARGN} "\n")
+  file(APPEND ${test_script} ${test_exec} ${ARGN} "\n")
 endfunction(gridtools_add_test)
+
 
 set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
 if( NOT ENABLE_CACHING )
@@ -253,3 +255,9 @@ endif(ENABLE_PYTHON)
 
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
+
+file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
+   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+)
+
+

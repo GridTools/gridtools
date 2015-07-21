@@ -84,7 +84,7 @@ TEST(cache_stencil, ij_cache)
 //    typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
 
 //    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_used_t, boost::mpl::vector3<cache1_t, cache2_t, cache3_t> >::value), "WRONG");
-//    ASSERT_TRUE(true);
+    ASSERT_TRUE(false);
 }
 
 
