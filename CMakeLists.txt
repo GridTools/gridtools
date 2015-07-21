@@ -4,6 +4,10 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 project( GRIDTOOLS )
 enable_language( CXX )
 
+SET(SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
+if(SUPPRESS_MESSAGES)
+    add_definitions(-DSUPPRESS_MESSAGES)
+endif(SUPPRESS_MESSAGES)
 
 ## enable to use ctest:
 ## enable_testing()
