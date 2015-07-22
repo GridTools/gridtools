@@ -20,13 +20,13 @@ int main(){
     typedef arg<assembly::size+1, matrix_storage_type> p_mass;
     assembly.domain_append(p_mass(), mass);
 
-    intrepid fe_backend;
+    intrepid fe_backend; //! <- setup all the definitions from TPLs
     assembly<intrepid> assembler(fe_backend,d1,d2,d3);
 
     //! assembles \f$ \int_{\hat\Omega} (J^{-1}\nabla\phi) \cdot (J^{-1}\nabla\psi) |J|\;d{\hat\Omega} \f$
-    assembler.matrix->append_esf(
-        make_esf<integration>(p_mass(), p_dphi(), p_dphi())
-        );
+    // from the dimensionality of their storages I can device wether to assemble a matrix or a vector
+    // first argument: output
+    assembler.template append_esf<integration>(p_mass(), p_dphi(), p_dphi());
 
     assembler.matrix->ready();
     assembler.matrix->steady();
