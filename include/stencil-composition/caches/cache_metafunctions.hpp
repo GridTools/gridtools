@@ -10,6 +10,18 @@
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/container/map/convert.hpp>
+#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/support/pair.hpp>
+#include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/algorithm/transformation/push_back.hpp>
+#include <boost/fusion/include/push_back.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/container/vector/vector_fwd.hpp>
+#include <boost/fusion/include/vector_fwd.hpp>
+
 #include <stencil-composition/caches/cache.hpp>
 #include <stencil-composition/caches/cache_storage.hpp>
 #include <stencil-composition/esf_metafunctions.hpp>
@@ -25,6 +37,14 @@ template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
 struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
 {
     typedef Arg type;
+};
+
+template<typename T> struct cache_to_accessor;
+
+template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+struct cache_to_accessor<cache<cacheType, Arg, cacheIOPolicy> >
+{
+    typedef accessor<Arg::index_type::value> type;
 };
 
 /**
@@ -130,18 +150,37 @@ struct get_cache_storage_tuple
         typedef cache_storage<float_type, BlockSize, typename boost::mpl::at<CacheRangesMap, Cache>::type > type;
     };
 
+    //first we build an mpl vector
     typedef typename boost::mpl::fold<
         CacheSequence,
         boost::mpl::vector0<>,
         boost::mpl::eval_if<
             typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
             boost::mpl::push_back<
-                boost::mpl::_1, boost::mpl::pair<cache_parameter<boost::mpl::_2>, get_cache_storage<boost::mpl::_2> >
+                boost::mpl::_1, boost::mpl::pair<cache_to_accessor<boost::mpl::_2>, get_cache_storage<boost::mpl::_2> >
             >,
             boost::mpl::identity<boost::mpl::_1>
         >
+    >::type mpl_type;
+
+    template<typename FusionSeq, typename Pair>
+    struct insert_pair_into_fusion_vector
+    {
+        typedef typename boost::fusion::result_of::push_back<
+            FusionSeq,
+            boost::fusion::pair<
+                typename boost::mpl::first<Pair>::type,
+                typename boost::mpl::second<Pair>::type
+            >
+        >::type type;
+    };
+
+    // then we transform the mpl vector into a fusion vector
+    typedef typename boost::mpl::fold<
+        mpl_type,
+        boost::fusion::vector0<>,
+        insert_pair_into_fusion_vector<boost::mpl::_1, boost::mpl::_2>
     >::type type;
 };
-
 
 } // namespace gridtools

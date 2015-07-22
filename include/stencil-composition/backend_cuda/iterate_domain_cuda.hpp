@@ -141,6 +141,16 @@ public:
 //        assert(m_pshared_iterate_domain);
         return m_pshared_iterate_domain->strides();
     }
+
+    template<typename Accessor>
+    GT_FUNCTION
+    typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
+    get_cache_value_impl() const
+    {
+        //        assert(m_pshared_iterate_domain);
+        m_pshared_iterate_domain->template get_ij_cache<Accessor>();
+
+    }
 };
 
 template<
