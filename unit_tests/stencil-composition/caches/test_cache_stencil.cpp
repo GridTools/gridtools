@@ -50,11 +50,6 @@ typedef arg<2, tmp_storage_type> p_buff;
 
 TEST(cache_stencil, ij_cache)
 {
-    storage_type in, out;
-
-    typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&in, &out));
-
     const int halo_size=2;
     const int d1=32+halo_size*2;
     const int d2=32+halo_size*2;
@@ -65,6 +60,12 @@ TEST(cache_stencil, ij_cache)
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
+
+    storage_type in(d1, d2, d3, -8.5, "in");
+    storage_type out(d1, d2, d3, 0.0, "out");
+
+    typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&in, &out));
 
 #ifdef __CUDACC__
     gridtools::computation* pstencil =
