@@ -2,11 +2,15 @@
 #include "assembly.h"
 
 using namespace gridtools;
-struct integration : public assembly::integration{
 
-    template<typename Evaluation>
-    Do(Evaluation eval){
-        eval(p_mass)=eval(apply(p_phi*p_phi));
+struct integration : public assembly::integration<integration>{
+
+    static auto lhs(uint_t P,, uint_t Q,  uint_t q, uint_t d) -> decltype(p_phi(P,d,q)*p_phi(Q,d,q)) {
+        return p_phi(P,d,q)*p_phi(Q,d,q);
+    }
+
+    static auto rhs(uint_t P,, uint_t Q,  uint_t q, uint_t d) -> decltype(p_mass(0,0,0,P,Q)) {
+        return p_mass(0,0,0,P,Q);
     }
 };
 
@@ -14,10 +18,14 @@ int main(){
 
     assembly::matrix_storage_type mass(d1,d2,d3);
     typedef arg<assembly::size+1, matrix_storage_type> p_mass;
-    assembly.domain_append(p_mass(), mass)
-    assembly assembler(d1,d2,d3);
+    assembly.domain_append(p_mass(), mass);
+
+    intrepid fe_backend;
+    assembly<intrepid> assembler(fe_backend,d1,d2,d3);
+
+    //! assembles \f$ \int_{\hat\Omega} (J^{-1}\nabla\phi) \cdot (J^{-1}\nabla\psi) |J|\;d{\hat\Omega} \f$
     assembler.matrix->append_esf(
-        make_esf<integration>(p_phi(), p_phi(), p_mass())
+        make_esf<integration>(p_mass(), p_dphi(), p_dphi())
         );
 
     assembler.matrix->ready();
