@@ -199,12 +199,14 @@ bool solver(uint_t x, uint_t y, uint_t z) {
             rhs(i, j, 5)=2.;
         }
 // result is 1
+#ifdef __VERBOSE__
     printf("Print OUT field\n");
     out.print();
     printf("Print SUP field\n");
     sup.print();
     printf("Print RHS field\n");
     rhs.print();
+#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain

@@ -73,7 +73,7 @@ struct wrap_pointer{
 
   GT_FUNCTION
   virtual ~wrap_pointer(){
-#ifndef NDEBUG
+#ifdef __VERBOSE__
 #ifndef __CUDACC__
       std::cout<<"deleting wrap pointer "<<this<<std::endl;
 #endif
@@ -86,8 +86,8 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(uint_t size, bool externally_managed=false): m_externally_managed(externally_managed) {
         allocate_it(size);
-#ifndef NDEBUG
-            printf(" - %X %d\n", m_cpu_p, size);
+#ifdef __VERBOSE__
+            printf("CONSTRUCT pointer - %X %d\n", m_cpu_p, size);
 #endif
         }
 
@@ -104,7 +104,7 @@ struct wrap_pointer{
     void free_it() {
         if(m_cpu_p && !m_externally_managed)
         {
-#ifndef NDEBUG
+#ifdef __VERBOSE__
 #ifndef __CUDACC__
             std::cout<<"deleting data pointer "<<m_cpu_p<<std::endl;
 #endif
