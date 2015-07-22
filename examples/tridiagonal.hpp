@@ -289,13 +289,6 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     forward_step->finalize();
 
-    // printf("Print OUT field (forward)\n");
-    // out.print();
-    // printf("Print SUP field (forward)\n");
-    // sup.print();
-    // printf("Print RHS field (forward)\n");
-    // rhs.print();
-
     backward_step->ready();
     backward_step->steady();
 
@@ -303,15 +296,14 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     backward_step->finalize();
 
-
-    //    in.print();
+#ifdef __VERBOSE__
     printf("Print OUT field\n");
     out.print();
     printf("Print SUP field\n");
     sup.print();
     printf("Print RHS field\n");
     rhs.print();
-    //    lap.print();
+#endif
 
     return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-10) &&
       (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-10);
