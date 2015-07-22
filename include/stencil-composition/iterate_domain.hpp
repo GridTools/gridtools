@@ -80,18 +80,6 @@ namespace gridtools {
     template<typename IterateDomainImpl>
     struct iterate_domain_backend_id;
 
-//    template< typename Impl>
-//    struct iterate_domain_impl_ij_caches_map;
-//
-//    template< typename IterateDomainArguments,
-//        template<typename> class IterateDomainBase,
-//        template<template<typename> class, typename> class IterateDomainImpl >
-//    struct iterate_domain_impl_ij_caches_map < IterateDomainImpl<IterateDomainBase, IterateDomainArguments> >
-//    {
-//        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
-//        typedef typename IterateDomainImpl<IterateDomainBase, IterateDomainArguments>::ij_caches_map_t type;
-//    };
-
     /**@brief class handling the computation of the */
     template <typename IterateDomainImpl>
     struct iterate_domain {
@@ -106,7 +94,6 @@ namespace gridtools {
                 template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
-
         /**
          * metafunction that retrieves the arg type associated with an accessor
          */
@@ -416,7 +403,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-            return static_cast<const IterateDomainImpl*>(this)->template get_cache_value_impl<Accessor> ();
+            return static_cast<IterateDomainImpl const *>(this)->template get_cache_value_impl<Accessor> ();
         }
 
 

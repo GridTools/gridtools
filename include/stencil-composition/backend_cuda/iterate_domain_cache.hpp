@@ -8,18 +8,14 @@
 #pragma once
 
 #include <common/defs.hpp>
-//#include <boost/fusion/adapted/mpl.hpp>
-//#include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/container/map/convert.hpp>
 #include <boost/fusion/include/as_map.hpp>
-//#include <boost/fusion/container/map.hpp>
-//#include <boost/fusion/include/map.hpp>
-//#include <boost/fusion/container/map/map_fwd.hpp>
-//#include <boost/fusion/include/map_fwd.hpp>
-//#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/support/pair.hpp>
+#include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
 #include <stencil-composition/run_functor_arguments.hpp>
 #include <common/generic_metafunctions/vector_to_map.hpp>
+#include <common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
 
 namespace gridtools {
 
@@ -38,17 +34,27 @@ class iterate_domain_cache
     typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
     typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 private:
+    template<typename EsfSequence, typename Arg>
+    struct is_arg_used_in_esf_sequence
+    {
+        typedef typename boost::mpl::fold<
+            EsfSequence,
+            boost::mpl::false_,
+            boost::mpl::or_<
+                boost::mpl::_1,
+                is_there_in_sequence< esf_args<boost::mpl::_2>, Arg>
+            >
+        >::type type;
+    };
 
 public:
     iterate_domain_cache() {}
     ~iterate_domain_cache() {}
 
-    template<typename T> struct printp{BOOST_MPL_ASSERT_MSG((false), YYYYYYY, (T));};
-
     // remove caches which are not used by the stencil stages
     typedef typename boost::mpl::copy_if<
         cache_sequence_t,
-        is_there_in_sequence<esf_sequence_t, boost::mpl::_>
+        is_arg_used_in_esf_sequence<esf_sequence_t, cache_parameter<boost::mpl::_> >
     >::type caches_t;
 
     typedef typename extract_ranges_for_caches<IterateDomainArguments>::type cache_ranges_t;
@@ -60,10 +66,9 @@ public:
         typename IterateDomainArguments::physical_domain_block_size_t
     >::type ij_caches_vector_t;
 
-    typedef typename vector_to_map<ij_caches_vector_t>::type ij_caches_map_t;
-
     typedef typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type ij_caches_tuple_t;
 
+    typedef typename fusion_map_to_mpl_map<ij_caches_tuple_t>::type ij_caches_map_t;
 };
 
 } // namespace gridtools

@@ -20,5 +20,12 @@ struct esf_has_parameter_h{
     };
 };
 
+template<typename Esf>
+struct esf_args
+{
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+    typedef typename Esf::args_t type;
+};
+
 };
 
