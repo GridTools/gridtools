@@ -262,18 +262,18 @@ class SWTest (CopyTest):
 
 
     def test_automatic_dependency_detection (self, deps=None, backend='c++'):
-        expected_deps = [('self.L', 'out_H'),
-                         ('self.R', 'out_H'),
-                         ('self.T', 'out_H'),
-                         ('self.B', 'out_H'),
-                         ('self.L', 'out_U'),
-                         ('self.R', 'out_U'),
-                         ('self.T', 'out_U'),
-                         ('self.B', 'out_U'),
-                         ('self.L', 'out_V'),
-                         ('self.R', 'out_V'),
-                         ('self.T', 'out_V'),
-                         ('self.B', 'out_V'),
+        expected_deps = [('self.L',  'out_H'),
+                         ('self.R',  'out_H'),
+                         ('self.T',  'out_H'),
+                         ('self.B',  'out_H'),
+                         ('self.L',  'out_U'),
+                         ('self.R',  'out_U'),
+                         ('self.T',  'out_U'),
+                         ('self.B',  'out_U'),
+                         ('self.L',  'out_V'),
+                         ('self.R',  'out_V'),
+                         ('self.T',  'out_V'),
+                         ('self.B',  'out_V'),
                          ('self.Hx', 'self.R'),
                          ('self.Hx', 'self.L'),
                          ('self.Ux', 'self.R'),
@@ -304,7 +304,6 @@ class SWTest (CopyTest):
         super ( ).test_automatic_dependency_detection (deps=expected_deps)
 
 
-    @attr (lang='python')
     def test_automatic_range_detection (self):
         from gridtools import BACKENDS
 

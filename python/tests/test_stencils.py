@@ -5,7 +5,8 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil import MultiStageStencil, StencilInspector
+from gridtools.stencil  import MultiStageStencil
+from gridtools.compiler import StencilInspector
 
 
 
@@ -29,7 +30,7 @@ class RangeDetectionTest (unittest.TestCase):
         #
         # check the range detection within each functor of the stencil
         #
-        for f in stencil.inspector.functors:
+        for f in stencil.scope.functors:
             sc = f.scope
             for p in sc.get_all ( ):
                 if not sc.is_alias (p.name):
@@ -152,7 +153,7 @@ class CopyTest (RangeDetectionTest):
         for backend in BACKENDS:
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
-
+            
             #
             # data fields - Py and C++ sets
             #
@@ -196,14 +197,14 @@ class CopyTest (RangeDetectionTest):
 
 
     def test_user_stencil_extends_multistagestencil (self):
-        with self.assertRaises (TypeError):
+        from gridtools.stencil import Stencil
+
+        with self.assertRaises (LookupError):
             class DoesNotExtendAndShouldFail (object):
                 pass
-            insp = StencilInspector (DoesNotExtendAndShouldFail)
-
-        insp = self.stencil.inspector
-        insp.static_analysis ( )
-        self.assertNotEqual (insp, None)
+            stencil = DoesNotExtendAndShouldFail ( )
+            Stencil.compiler.static_analysis (DoesNotExtendAndShouldFail ( ))
+        Stencil.compiler.static_analysis (self.stencil)
 
 
     def test_kernel_function (self):
@@ -418,7 +419,6 @@ class LaplaceTest (CopyTest):
 
 
 
-
 class HorizontalDiffusion (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
@@ -452,7 +452,7 @@ class HorizontalDiffusion (MultiStageStencil):
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
         #
-        # the fluxes are independent, because they depend on 'self.lap.
+        # the fluxes are independent, because they depend on 'self.lap'
         #
         self.stage_flux_i (out_fli = self.fli,
                            in_lap  = self.lap)
@@ -538,6 +538,7 @@ class HorizontalDiffusionTest (CopyTest):
         self.out_data = np.random.rand (*self.domain)
         super ( ).test_python_results (out_param='out_data',
                                        result_file='horizontaldiffusion_result.npy')
+
 
 
 class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
@@ -689,12 +690,7 @@ class ChildStencilNoCallParentConstructor (MultiStageStencil):
     def __init__ (self):
         """ This is a Python feature called a docstring.  """
         """ Here is another docstring """
-        # Since this class tests the case where we don't call the parent constructor,
-        # a side effect is that there is no inspector field which would've been
-        # defined by the grandparent constructor (that of the Stencil class).  Since
-        # we do NOT wish to test the AttributeError here but rather the ReferenceError,
-        # the same declaration of inspector that exists in Stencil has been placed here.
-        self.inspector = StencilInspector (self)
+        pass
 
 
 
@@ -736,84 +732,55 @@ class ChildStencilTest (unittest.TestCase):
     """
     A test case for the copy stencil defined above.-
     """
-    def _run (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil.run (**kwargs)
-
-
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.stencil = None
+
+    def _test_child_constructor_call_success (self, stencil):
+        stencil.resolve ( )
 
 
     def test_child_constructor_calls_parent_constructor_and_nothing_else (self):
-        self.stencil = ChildStencilCallsParentConstructorAndNothingElse ( )
-        insp = self.stencil.inspector
-        insp.static_analysis ( )
-        self.assertNotEqual (insp, None)
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAndNothingElse ( ))
 
 
     def test_child_constructor_calls_parent_constructor_first (self):
-        self.stencil = ChildStencilCallsParentConstructorFirst ( )
-        insp = self.stencil.inspector
-        insp.static_analysis ( )
-        self.assertNotEqual (insp, None)
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorFirst ( ))
 
 
     def test_child_constructor_calls_parent_constructor_after_comment (self):
-        self.stencil = ChildStencilCallsParentConstructorAfterComment ( )
-        insp = self.stencil.inspector
-        insp.static_analysis ( )
-        self.assertNotEqual (insp, None)
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAfterComment ( ))
 
 
     def test_child_constructor_calls_parent_constructor_after_mult_comments (self):
-        self.stencil = ChildStencilCallsParentConstructorAfterMultComments ( )
-        insp = self.stencil.inspector
-        insp.static_analysis ( )
-        self.assertNotEqual (insp, None)
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAfterMultComments ( ))
 
 
     def test_child_constructor_calls_parent_constructor_after_doc_string (self):
-        self.stencil = ChildStencilCallsParentConstructorAfterDocString ( )
-        insp = self.stencil.inspector
-        insp.static_analysis ( )
-        self.assertNotEqual (insp, None)
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAfterDocString ( ))
+
+
+    def _test_child_constructor_call_fails (self, stencil):
+        with self.assertRaises (Exception):
+            self._test_child_constructor_call_success (stencil)
 
 
     def test_child_constructor_calls_parent_constructor_after_mult_doc_strings (self):
-        with self.assertRaises (ReferenceError):
-            self.stencil = ChildStencilCallsParentConstructorAfterMultDocStrings ( )
-            insp = self.stencil.inspector
-            insp.static_analysis ( )
+        self._test_child_constructor_call_fails (ChildStencilCallsParentConstructorAfterMultDocStrings ( ))
 
 
     def test_child_constructor_no_call_parent_constructor (self):
-        with self.assertRaises (ReferenceError):
-            self.stencil = ChildStencilNoCallParentConstructor ( )
-            insp = self.stencil.inspector
-            insp.static_analysis ( )
+        self._test_child_constructor_call_fails (ChildStencilNoCallParentConstructor ( ))
 
 
     def test_child_constructor_calls_parent_constructor_after_assignment (self):
-        with self.assertRaises (ReferenceError):
-            self.stencil = ChildStencilCallsParentConstructorAfterAssignment ( )
-            insp = self.stencil.inspector
-            insp.static_analysis ( )
+        self._test_child_constructor_call_fails (ChildStencilCallsParentConstructorAfterAssignment ( ))
 
 
     def test_child_constructor_calls_parent_constructor_after_string_assignment (self):
-        with self.assertRaises (ReferenceError):
-            self.stencil = ChildStencilCallsParentConstructorAfterStringAssignment ( )
-            insp = self.stencil.inspector
-            insp.static_analysis ( )
+        self._test_child_constructor_call_fails (ChildStencilCallsParentConstructorAfterStringAssignment ( ))
 
 
     def test_child_constructor_calls_parent_constructor_after_computation (self):
-        with self.assertRaises (ReferenceError):
-            self.stencil = ChildStencilParentConstructorAfterComputation ( )
-            insp = self.stencil.inspector
-            insp.static_analysis ( )
+        self._test_child_constructor_call_fails (ChildStencilParentConstructorAfterComputation ( ))
+

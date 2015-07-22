@@ -143,7 +143,6 @@ class SymbolInspector (ast.NodeVisitor):
 
 
 
-
 class Scope (object):
     """
     Defines the scope within which a symbol is defined.-
@@ -400,6 +399,7 @@ class Scope (object):
 
 
 
+
 class StencilScope (Scope):
     """
     Stencil symbols are organized into scopes that alter the visibility 
@@ -411,11 +411,48 @@ class StencilScope (Scope):
     def __init__ (self):
         super ( ).__init__ ( )
         #
+        # a list of stages within this stencil
+        #
+        self.functors       = list ( )
+        #
         # the scope of each stencil functor is kept as a dict, i.e.:
         #
         #       A = (k=functor name, v=scope)
         #
         self.functor_scopes = dict ( )
+        #
+        # the stencil's source code
+        #
+        self.src            = None
+
+
+    def _resolve_params (self, stencil, **kwargs):
+        """
+        Attempts to aquire more information about the discovered parameters 
+        using runtime information from the user's stencil
+        :param stencil: the user's stencil instance
+        :return:
+        """
+        for k,v in kwargs.items ( ):
+            if self.is_parameter (k):
+                if isinstance (v, np.ndarray):
+                    #
+                    # update the value of this parameter
+                    #
+                    self.add_parameter (k,
+                                        v,
+                                        read_only=self[k].read_only)
+                    #
+                    #
+                    # check the dimensions of different parameters match
+                    #
+                    if stencil.domain is None:
+                        stencil.domain = v.shape
+                    elif stencil.domain != v.shape:
+                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" % 
+                                        (k, v.shape, stencil.domain))
+                else:
+                    logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
     def add_functor (self, funct_name):
@@ -429,4 +466,47 @@ class StencilScope (Scope):
         else:
             logging.warning ("Functor '%s' already exists in symbol table.-" % funct_name)
         return self.functor_scopes[funct_name]
+
+
+    def runtime_analysis (self, stencil, **kwargs):
+        """
+        Attempts to aquire more information about the discovered symbols
+        with runtime information of user's stencil instance
+        :param stencil: the user's stencil instance
+        :param kwargs:  the parameters passed to the stencil for execution
+        :return:        
+        """
+        for s in self.get_all ( ):
+            #
+            # unresolved symbols have 'None' as their value
+            #
+            if s.value is None:
+                #
+                # is this a stencil's attribute?
+                #
+                if 'self' in s.name:
+                    attr    = s.name.split ('.')[1]
+                    s.value = getattr (stencil, attr, None)
+
+                    #
+                    # NumPy arrays are considered temporary data fields
+                    #
+                    if isinstance (s.value, np.ndarray):
+                        #
+                        # update the symbol table in this scope
+                        #
+                        self.add_temporary (s.name,
+                                            s.value)
+                    else:
+                        self.add_constant (s.name, 
+                                           s.value)
+        self._resolve_params (stencil, **kwargs)
+        #
+        # print out the discovered symbols if in DEBUG mode
+        #
+        if __debug__:
+            logging.debug ("Symbols found after applying run-time code analysis:")
+            self.dump ( )
+            for f in self.functors:
+                f.scope.dump ( )
 
