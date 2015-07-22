@@ -238,7 +238,7 @@ namespace gridtools {
         void init(ArgList const& arg_list, uint_t, uint_t, uint_t)
         {
             base_type::init(arg_list);
-#ifndef NDEBUG
+#ifdef __VERBOSE__
 #ifndef __CUDACC__
             std::cout << "LOCAL DOMAIN" << std::endl;
 #endif

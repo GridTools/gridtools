@@ -88,7 +88,7 @@ struct execute_kernel_functor_host
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
-#ifndef NDEBUG
+#ifdef __VERBOSE__
         #pragma omp critical
         {
         std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "

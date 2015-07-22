@@ -466,22 +466,20 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
-#ifndef NDEBUG
+#ifdef __VERBOSE__
                     printf("Setup computation\n");
 #endif
             }
             else
             {
-#ifndef NDEBUG
                     printf("Setup computation FAILED\n");
-#endif
                     exit( GT_ERROR_NO_TEMPS );
             }
 
             boost::fusion::for_each(mss_local_domain_list,
                    _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             m_domain.info();
 #endif
         }

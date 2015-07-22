@@ -10,6 +10,12 @@ if(SUPPRESS_MESSAGES)
     add_definitions(-DSUPPRESS_MESSAGES)
 endif(SUPPRESS_MESSAGES)
 
+SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
+if(VERBOSE)
+    add_definitions(-D__VERBOSE__)
+endif(VERBOSE)
+
+
 ## enable to use ctest:
 ## enable_testing()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
@@ -212,7 +218,7 @@ endif(DOXYGEN_FOUND)
 
 set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
-file(APPEND ${TEST_SCRIPT} "res = 0\n")
+file(APPEND ${TEST_SCRIPT} "res=0\n")
 
 function(gridtools_add_test test_name test_script test_exec)
   add_test(${test_name} ${test_exec} ${ARGN})

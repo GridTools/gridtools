@@ -37,7 +37,7 @@ namespace gridtools {
         explicit hybrid_pointer(uint_t size, bool externally_managed=false) : wrap_pointer<T>(size, externally_managed), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
             allocate_it(size);
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("allocating hybrid pointer %x \n", this);
             printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
