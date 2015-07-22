@@ -67,7 +67,7 @@ TEST(cache_stencil, ij_cache)
     coords.value_list[1] = d3-1;
 
 #ifdef __CUDACC__
-    gridtools::computation* pstencils =
+    gridtools::computation* pstencil =
 #else
         boost::shared_ptr<gridtools::computation> pstencil =
 #endif
@@ -83,10 +83,30 @@ TEST(cache_stencil, ij_cache)
             domain, coords
         );
 
-//    typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
+    pstencil->ready();
 
-//    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_used_t, boost::mpl::vector3<cache1_t, cache2_t, cache3_t> >::value), "WRONG");
-    ASSERT_TRUE(false);
+    pstencil->steady();
+    domain.clone_to_gpu();
+
+    pstencil->run();
+
+    pstencil->finalize();
+
+#ifdef __CUDACC__
+    out.data().update_cpu();
+#endif
+
+    for(int i = di[2]; i < di[3]; ++i )
+    {
+        for(int j = dj[2]; j < dj[3]; ++j )
+        {
+            for(int k = 0; k < d3; ++k )
+            {
+                if(out(i,j,k) != in(i,j,k)) std::cout << "PROBL " << std::endl;
+            }
+        }
+    }
+    ASSERT_TRUE(true);
 }
 
 
