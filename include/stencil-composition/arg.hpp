@@ -36,7 +36,9 @@ struct arg {
     }
 
     static void info() {
+#ifdef __VERBOSE__
         std::cout << "Arg on real storage with index " << I;
+#endif
     }
 };
 
