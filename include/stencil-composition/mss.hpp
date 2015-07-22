@@ -174,6 +174,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value),
                 "Internal Error: invalid type");
+        typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
     };
 
