@@ -3,6 +3,7 @@
 // [includes]
 #include <stencil-composition/make_computation.hpp>
 #include "basis_functions.h"
+#include "intrepid.h"
 // [includes]
 #ifdef CXX11_ENABLED
 
@@ -12,7 +13,11 @@ using namespace enumtype;
 using namespace expressions;
 // [namespaces]
 
+typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
+typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
+
 // [storage_types]
+template <typename TPL>
 struct assembly{
 
     //                      dims  x y z  qp
@@ -28,9 +33,29 @@ struct assembly{
     static const int_t edge_points=fe::hypercube_t::boundary_w_dim<1>::n_points::value;
 // [storage_types]
 
+
+    /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
+       non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
+    typedef arg<0, grid_type >       p_grid_points;
+    typedef arg<1, jacobian_type >   p_jac;
+    typedef arg<2, typename TPL::weights_storage_t >   p_weights;
+    typedef arg<3, storage_type >   p_jac_det;
+    typedef arg<4, jacobian_type >   p_jac_inv;
+    typedef arg<5, typename TPL::grad_storage_t > p_dphi;
+    typedef arg<6, storage_type >    p_f;
+    typedef arg<7, stiffness_type >    p_stiffness;
+    typedef arg<8, stiffness_type >    p_assembled_stiffness;
+    // typedef arg<8, stiffness_reindex_type >    p_stiffness_reindex;
+
+    typedef boost::mpl::vector<p_grid_points, p_jac, // const
+                               p_weights, p_jac_det, p_jac_inv, // const
+                               p_dphi, p_f, p_stiffness , p_assembled_stiffness> accessor_list;
+
 // [private members]
 private:
 
+    TPL // const
+    & m_fe_backend;
     uint_t m_d1, m_d2, m_d3;
     grid_type m_grid;
     jacobian_type m_jac;
@@ -39,25 +64,37 @@ private:
     storage_type m_f;
     stiffness_type m_stiffness;
     stiffness_type m_assembled_stiffness;
-    // stiffness_reindex_type m_stiffness_reindex;
-
+    gridtools::domain_type<accessor_list> m_domain;
+    gridtools::coordinates<axis> m_coords;
 public:
 
-    assembly(uint_t d1, uint_t d2, uint_t d3 ): m_d1(d1)
-                                              , m_d2(d2)
-                                              , m_d3(d3)
-                                              , m_grid(d1, d2, d3, geo_map::basisCardinality, 3)
-                                              , m_jac(d1, d2, d3, cubature::numCubPoints, 3, 3)
-                                              , m_jac_det(d1, d2, d3, cubature::numCubPoints)
-                                              , m_jac_inv(d1, d2, d3, cubature::numCubPoints, 3, 3)
-                                              , m_f(d1, d2, d3, cubature::numCubPoints)
-                                              , m_stiffness(d1, d2, d3, geo_map::basisCardinality, geo_map::basisCardinality)
-                                              , m_assembled_stiffness(d1, d2, d3, geo_map::basisCardinality, geo_map::basisCardinality)
-                                              // , m_stiffness_reindex()
-        {
-            // m_stiffness_reindex.setup( d1, d2, d3, edge_points, edge_points, edge_points, edge_points, edge_points, edge_points );
-            // m_stiffness_reindex.reinterpret(m_stiffness);
-        }
+
+
+    assembly(TPL // const
+             & fe_backend_, uint_t d1, uint_t d2, uint_t d3 ): m_d1(d1)
+                                                             , m_fe_backend(fe_backend_)
+                                                             , m_d2(d2)
+                                                             , m_d3(d3)
+                                                             , m_grid(d1, d2, d3, geo_map::basisCardinality, 3)
+                                                             , m_jac(d1, d2, d3, cubature::numCubPoints, 3, 3)
+                                                             , m_jac_det(d1, d2, d3, cubature::numCubPoints)
+                                                             , m_jac_inv(d1, d2, d3, cubature::numCubPoints, 3, 3)
+                                                             , m_f(d1, d2, d3, cubature::numCubPoints)
+    , m_stiffness(d1, d2, d3, geo_map::basisCardinality, geo_map::basisCardinality)
+                                                             , m_assembled_stiffness(d1, d2, d3, geo_map::basisCardinality, geo_map::basisCardinality)
+                                                             , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_f, &m_stiffness, &m_assembled_stiffness))
+                                                             , m_coords({1, 0, 1, m_d1-1, m_d1},
+                                                                        {1, 0, 1, m_d2-1, m_d2}){
+
+        /**
+           Definition of the physical dimensions of the problem.
+           The coordinates constructor takes the horizontal plane dimensions,
+           while the vertical ones are set according the the axis property soon after
+        */
+
+        m_coords.value_list[0] = 0;
+        m_coords.value_list[1] = m_d3-1;
+    }
 
     jacobian_type const& get_jac() const {return m_jac;}
     storage_type const& get_jac_det() const {return m_jac_det;}
@@ -110,8 +147,8 @@ public:
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
     struct det{
-        using jac = accessor<0, range<0,0,0,0> , 6> const jac;
-        using jac_det =  accessor<1, range<0,0,0,0> , 4> jac_det;
+        using jac = accessor<0, range<0,0,0,0> , 6> const;
+        using jac_det =  accessor<1, range<0,0,0,0> , 4>;
         using arg_list= boost::mpl::vector< jac, jac_det > ;
 
         template <typename Evaluation>
@@ -312,9 +349,25 @@ public:
     };
     // [assembly]
 
+
+    using fe_comp_t=decltype(make_computation<gridtools::BACKEND, layout_t>
+                             (
+                                 make_mss
+                                 (
+                                     execute<forward>(),
+                                     make_esf<update_jac>( p_grid_points(), p_jac(), p_dphi())
+                                     , make_esf<det>(p_jac(), p_jac_det())
+                                     , make_esf<update_jac_inv>(p_jac(), p_jac_det(), p_jac_inv())
+                                     , make_esf<integration>(p_dphi(), p_jac_det(), p_jac_inv(), p_weights(), p_f(), p_stiffness())
+                                     , make_esf<assembly_f>(p_stiffness(), p_assembled_stiffness())
+                                     ),
+                                 m_domain, m_coords));
+
+    fe_comp_t fe_comp;
+
     // [compute]
-    template <typename GridType, typename StorageGradType, typename StorageWeightsType>
-    bool compute( GridType& element_grid, StorageGradType& local_gradient, StorageWeightsType& cub_weights ){
+    template <typename GridType>
+    bool compute( GridType& element_grid ){
 
         uint_t d1=m_d1;
         uint_t d2=m_d2;
@@ -339,48 +392,18 @@ public:
         m_jac_det.initialize(0.);
         m_jac_inv.initialize(0.);
 
-        /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
-           non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
-        typedef arg<0, grid_type >       p_grid_points;
-        typedef arg<1, jacobian_type >   p_jac;
-        typedef arg<2, StorageWeightsType >   p_weights;
-        typedef arg<3, storage_type >   p_jac_det;
-        typedef arg<4, jacobian_type >   p_jac_inv;
-        typedef arg<5, StorageGradType > p_dphi;
-        typedef arg<6, storage_type >    p_f;
-        typedef arg<7, stiffness_type >    p_stiffness;
-        typedef arg<8, stiffness_type >    p_assembled_stiffness;
-        // typedef arg<8, stiffness_reindex_type >    p_stiffness_reindex;
-
-        typedef boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_dphi, p_f, p_stiffness , p_assembled_stiffness> accessor_list;
-
-
-        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_grid, &m_jac, &cub_weights, &m_jac_det, &m_jac_inv, &local_gradient, &m_f, &m_stiffness, &m_assembled_stiffness));
-
-        /**
-           Definition of the physical dimensions of the problem.
-           The coordinates constructor takes the horizontal plane dimensions,
-           while the vertical ones are set according the the axis property soon after
-        */
-        uint_t di[5] = {1, 0, 1, m_d1-1, m_d1};
-        uint_t dj[5] = {1, 0, 1, m_d2-1, m_d2};
-        gridtools::coordinates<axis> coords(di,dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = m_d3-1;
-
-        auto fe_comp =
-            make_computation<gridtools::BACKEND, layout_t>
+        fe_comp = make_computation<gridtools::BACKEND, layout_t>
             (
                 make_mss
                 (
                     execute<forward>(),
-                    make_esf<update_jac>( p_grid_points(), p_jac(), p_dphi())
+                    make_esf<update_jac>( p_grid_points(),p_jac(), p_dphi())
                     , make_esf<det>(p_jac(), p_jac_det())
                     , make_esf<update_jac_inv>(p_jac(), p_jac_det(), p_jac_inv())
                     , make_esf<integration>(p_dphi(), p_jac_det(), p_jac_inv(), p_weights(), p_f(), p_stiffness())
                     , make_esf<assembly_f>(p_stiffness(), p_assembled_stiffness())
                     ),
-                domain, coords);
+                m_domain, m_coords);
 
         fe_comp->ready();
         fe_comp->steady();
@@ -393,6 +416,7 @@ public:
 
 }; //struct assembly
 
-const int_t assembly::edge_points;
+template<>
+const int_t assembly<intrepid::intrepid>::edge_points;
 
 #endif //CXX11_ENABLED

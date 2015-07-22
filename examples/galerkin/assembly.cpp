@@ -1,5 +1,5 @@
 #define PEDANTIC_DISABLED
-#include "intrepid.h"
+#include "test_assembly.h"
 #include <iostream>
 
 int main(int argc, char** argv)
