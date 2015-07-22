@@ -468,10 +468,10 @@ namespace shallow_water{
 
         GCL_Finalize();
 
-        bool retval=true;
-
         shallow_water_stencil->finalize();
 //! [finalize]
+
+        bool retval=true;
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);

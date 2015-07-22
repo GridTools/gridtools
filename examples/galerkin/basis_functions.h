@@ -56,6 +56,8 @@ namespace gridtools{
 //! [fe namespace]
     namespace fe{
         using namespace Intrepid;
+        typedef layout_map<2,1,0> layout_t;
+
         static const shards::CellTopology cellType = shards::getCellTopologyData< shards::Hexahedron<> >(); // cell type: hexahedron
 
         static const Basis_HGRAD_HEX_C1_FEM<double, storage_t<layout_map<0,1,2> >// Intrepid::FieldContainer<double>

@@ -23,8 +23,6 @@ struct assembly{
     typedef gridtools::BACKEND::storage_type<float_type, layout_jacobian_t >::type jacobian_type;
     typedef gridtools::layout_map<0,1,2,3,4> layout_stiffness_t;
     typedef gridtools::BACKEND::storage_type<float_type, layout_stiffness_t >::type stiffness_type;
-    // typedef gridtools::layout_map<0,1,2,3,4,5,6,7,8> layout_stiffness_reindex_t;
-    // typedef gridtools::BACKEND::storage_type<float_type, layout_stiffness_reindex_t >::type stiffness_reindex_type;
     typedef gridtools::layout_map<0,1,2,3,4> layout_grid_t;
     typedef gridtools::BACKEND::storage_type<float_type, layout_grid_t >::type grid_type;
     static const int_t edge_points=fe::hypercube_t::boundary_w_dim<1>::n_points::value;
@@ -40,6 +38,7 @@ private:
     jacobian_type m_jac_inv;
     storage_type m_f;
     stiffness_type m_stiffness;
+    stiffness_type m_assembled_stiffness;
     // stiffness_reindex_type m_stiffness_reindex;
 
 public:
@@ -53,6 +52,7 @@ public:
                                               , m_jac_inv(d1, d2, d3, cubature::numCubPoints, 3, 3)
                                               , m_f(d1, d2, d3, cubature::numCubPoints)
                                               , m_stiffness(d1, d2, d3, geo_map::basisCardinality, geo_map::basisCardinality)
+                                              , m_assembled_stiffness(d1, d2, d3, geo_map::basisCardinality, geo_map::basisCardinality)
                                               // , m_stiffness_reindex()
         {
             // m_stiffness_reindex.setup( d1, d2, d3, edge_points, edge_points, edge_points, edge_points, edge_points, edge_points );
@@ -64,6 +64,7 @@ public:
     jacobian_type const& get_jac_inv() const {return m_jac_inv;}
     grid_type const& get_grid() const {return m_grid;}
     stiffness_type const& get_result() const {return m_stiffness;}
+    stiffness_type const& get_assembled_stiffness() const {return m_assembled_stiffness;}
 // [private members]
 
     // [update_jac]
@@ -109,11 +110,9 @@ public:
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
     struct det{
-        typedef accessor<0, range<0,0,0,0> , 6> const jac;
-        // typedef accessor<1, range<0,0,0,0> , 3> const weight;
-        typedef accessor<1, range<0,0,0,0> , 4> jac_det;
-        typedef boost::mpl::vector< jac, // weight,
-                                    jac_det > arg_list;
+        using jac = accessor<0, range<0,0,0,0> , 6> const jac;
+        using jac_det =  accessor<1, range<0,0,0,0> , 4> jac_det;
+        using arg_list= boost::mpl::vector< jac, jac_det > ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -142,10 +141,10 @@ public:
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
     struct update_jac_inv{
-        typedef accessor<0, range<0,0,0,0> , 6> const jac;
-        typedef accessor<1, range<0,0,0,0> , 4> const jac_det;
-        typedef accessor<2, range<0,0,0,0> , 6> jac_inv;
-        typedef boost::mpl::vector< jac, jac_det, jac_inv> arg_list;
+        using jac      = accessor<0, range<0,0,0,0> , 6> const ;
+        using jac_det  = accessor<1, range<0,0,0,0> , 4> const ;
+        using jac_inv  = accessor<2, range<0,0,0,0> , 6> ;
+        using arg_list = boost::mpl::vector< jac, jac_det, jac_inv>;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -182,12 +181,7 @@ public:
                 assert(eval(b()) == eval(jac(qp+q, X+1)));
                 assert(eval(c()) == eval(jac(qp+q, X+2)));
                 assert(eval(d()) == eval(jac(qp+q, Y+1)));
-                // std::cout<<eval(b_(qp+q))<<" = "<<eval(jac(qp+q, Y+1))<<std::endl;
-                // std::cout<<eval(c_(qp+q))<<" = "<<eval(jac(qp+q, Y+2))<<std::endl;
-                // std::cout<<eval(d_(qp+q))<<" = "<<eval(jac(qp+q, X+1))<<std::endl;
-                // std::cout<<eval(e_(qp+q))<<" = "<<eval(jac(qp+q, X+1, Y+1))<<std::endl;
-                // std::cout<<eval(f_(qp+q))<<" = "<<eval(jac(qp+q, X+1, Y+2))<<std::endl;
-                // std::cout<<eval(g_(qp+q))<<" = "<<eval(jac(qp+q, X+2))<<std::endl;
+
                 // std::cout << "JACOBIAN: "<<std::endl;
                 // std::cout<<eval(a())<<" "<<eval(b())<<" "<<eval(c())<<std::endl;
                 // std::cout<<eval(d())<<" "<<eval(e())<<" "<<eval(f())<<std::endl;
@@ -215,13 +209,13 @@ public:
 
     // [integration]
     struct integration {
-        typedef accessor<0, range<0,0,0,0> , 3> const dphi;
-        typedef accessor<1, range<0,0,0,0> , 4> const jac_det;
-        typedef accessor<2, range<0,0,0,0> , 6> const jac_inv;
-        typedef accessor<3, range<0,0,0,0> , 3> const weights;
-        typedef accessor<4, range<0,0,0,0> , 4> const f;
-        typedef accessor<5, range<0,0,0,0> , 5> stiffness;
-        typedef boost::mpl::vector<dphi, jac_det, jac_inv, weights, f, stiffness> arg_list;
+        using dphi    =accessor<0, range<0,0,0,0> , 3> const;
+        using jac_det =accessor<1, range<0,0,0,0> , 4> const;
+        using jac_inv =accessor<2, range<0,0,0,0> , 6> const;
+        using weights =accessor<3, range<0,0,0,0> , 3> const;
+        using f       =accessor<4, range<0,0,0,0> , 4> const;
+        using stiffness=accessor<5, range<0,0,0,0> , 5> ;
+        using arg_list= boost::mpl::vector<dphi, jac_det, jac_inv, weights, f, stiffness> ;
         using quad=Dimension<4>;
 
         template <typename Evaluation>
@@ -261,11 +255,11 @@ public:
     // [integration]
 
     // [assembly]
-    template <typename ReferenceFESpace1, typename ReferenceFESpace2>
     struct assembly_f {
-        typedef accessor<0, range<0,0,0,0> , 4> const in;
-        typedef accessor<1, range<0,0,0,0> , 4> const out;
-        typedef boost::mpl::vector<in, out> arg_list;
+
+        using in=accessor<0, range<-1,0,-1,0> , 5> const;
+        using out=accessor<1, range<0,0,0,0> , 5> ;
+        using arg_list=boost::mpl::vector<in, out> ;
         using quad=Dimension<4>;
 
         template <typename Evaluation>
@@ -274,21 +268,45 @@ public:
             x::Index i;
             y::Index j;
             z::Index k;
-            // Dimension<4>::Index point;
-            Dimension<4>::Index loc_x;
-            Dimension<5>::Index loc_y;
-            Dimension<6>::Index loc_z;
+            Dimension<4>::Index row;
+            Dimension<5>::Index col;
 
             // assembly : this part is specific for tensor product topologies
-            static int_t bd_dim=fe::hypercube_t::boundary_w_codim<2>::n_points::value;
+            // points on the edges
+            static int_t bd_dim=fe::hypercube_t::boundary_w_dim<1>::n_points::value;
 
-            //boundary dofs
+            //for all dofs in a boundary face
             for(short_t I=0; I<bd_dim; I++)
                 for(short_t J=0; J<bd_dim; J++)
+            //for all dofs in the matching face of a neighbor
+            for(short_t II=0; II<bd_dim; II++)
+                for(short_t JJ=0; JJ<bd_dim; JJ++)
+
                 {
-                    eval(out(loc_y+I, loc_z+J)) += eval(out(i-1, loc_x+bd_dim, loc_y+I, loc_z+J));
-                    eval(out(loc_x+I, loc_z+J)) += eval(out(j-1, loc_y+bd_dim, loc_x+I, loc_z+J));
-                    eval(out(loc_x+I, loc_y+J)) += eval(out(k-1, loc_z+bd_dim, loc_x+I, loc_y+J));
+
+                    //Hypothesis: the local dofs are ordered according to fe::layout
+                    array<int, 3> strides={bd_dim*bd_dim, bd_dim, 1};
+                    auto dof_x=(fe::layout_t::find<1>(&strides[0]))*I+fe::layout_t::find<2>(&strides[0])*J;
+                    auto dof_xx=(fe::layout_t::find<1>(&strides[0]))*II+fe::layout_t::find<2>(&strides[0])*JJ;
+                    //sum the contribution from elem i-1 on the opposite face
+                    eval(out(row+dof_x, col+dof_xx)) += eval(out(i-1
+                                                                 , row+(dof_x+fe::layout_t::find<0>(&strides[0])*(bd_dim-1))
+                                                                 , col+(dof_xx+fe::layout_t::find<0>(&strides[0])*(bd_dim-1))));
+
+                    auto dof_y=fe::layout_t::find<0>(&strides[0])*I+fe::layout_t::find<2>(&strides[0])*J;
+                    auto dof_yy=fe::layout_t::find<0>(&strides[0])*II+fe::layout_t::find<2>(&strides[0])*JJ;
+                    //sum the contribution from elem j-1 on the opposite face
+                    eval(out(row+dof_y, col+dof_yy)) += eval(out(j-1
+                                                     , row+(dof_y+fe::layout_t::find<1>(&strides[0])*bd_dim)
+                                                     , col+(dof_yy+fe::layout_t::find<1>(&strides[0])*bd_dim) ));
+
+                    // auto dof_z=fe::layout_t::find<0>(&strides[0])*I+fe::layout_t::find<1>(&strides[0])*J;
+                    // auto dof_zz=fe::layout_t::find<0>(&strides[0])*II+fe::layout_t::find<1>(&strides[0])*JJ;
+                    // //sum the contribution from elem k-1 on the opposite face
+                    // eval(out(row+dof_z, col+dof_zz)) += eval(out(k-1
+                    //                                  , row+(dof_z+fe::layout_t::find<2>(&strides[0])*bd_dim)
+                    //                                  , col+(dof_zz+fe::layout_t::find<2>(&strides[0])*bd_dim)));
+
                 }
         }
     };
@@ -315,6 +333,7 @@ public:
                     }
 
         m_stiffness.initialize(0.);
+        m_assembled_stiffness.initialize(0.);
         m_f.initialize(0.);
         m_jac.initialize(0.);
         m_jac_det.initialize(0.);
@@ -330,22 +349,21 @@ public:
         typedef arg<5, StorageGradType > p_dphi;
         typedef arg<6, storage_type >    p_f;
         typedef arg<7, stiffness_type >    p_stiffness;
+        typedef arg<8, stiffness_type >    p_assembled_stiffness;
         // typedef arg<8, stiffness_reindex_type >    p_stiffness_reindex;
 
-        typedef boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_dphi, p_f, p_stiffness// , p_stiffness_reindex
-                                   > accessor_list;
+        typedef boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_dphi, p_f, p_stiffness , p_assembled_stiffness> accessor_list;
 
 
-        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_grid, &m_jac, &cub_weights, &m_jac_det, &m_jac_inv, &local_gradient, &m_f, &m_stiffness// , &m_stiffness_reindex
-                                                         ));
+        gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_grid, &m_jac, &cub_weights, &m_jac_det, &m_jac_inv, &local_gradient, &m_f, &m_stiffness, &m_assembled_stiffness));
 
         /**
            Definition of the physical dimensions of the problem.
            The coordinates constructor takes the horizontal plane dimensions,
            while the vertical ones are set according the the axis property soon after
         */
-        uint_t di[5] = {0, 0, 0, m_d1-1, m_d1};
-        uint_t dj[5] = {0, 0, 0, m_d2-1, m_d2};
+        uint_t di[5] = {1, 0, 1, m_d1-1, m_d1};
+        uint_t dj[5] = {1, 0, 1, m_d2-1, m_d2};
         gridtools::coordinates<axis> coords(di,dj);
         coords.value_list[0] = 0;
         coords.value_list[1] = m_d3-1;
@@ -360,6 +378,7 @@ public:
                     , make_esf<det>(p_jac(), p_jac_det())
                     , make_esf<update_jac_inv>(p_jac(), p_jac_det(), p_jac_inv())
                     , make_esf<integration>(p_dphi(), p_jac_det(), p_jac_inv(), p_weights(), p_f(), p_stiffness())
+                    , make_esf<assembly_f>(p_stiffness(), p_assembled_stiffness())
                     ),
                 domain, coords);
 
@@ -368,19 +387,6 @@ public:
         fe_comp->run();
         fe_comp->finalize();
 
-        // for (int i =0; i< d1; ++i)
-        //     for (int j =0; j< d2; ++j)
-        //         for (int k =0; k< d3; ++k)
-        //             for (int q=0; q<cubature::numCubPoints; ++q)
-        //             {
-        //                 for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-        //                     for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
-        //                 {
-        //                     std::cout<<"m_jac: i="<<i<<" j="<<j<<" k="<<k<<" q="<<q<<" "<<dimx<<" "<<dimy<<": "
-        //                              <<m_jac(i, j, k, q, dimx, dimy)
-        //                              <<std::endl;
-        //                 }
-        //             }
         return true;
     }
     // [compute]

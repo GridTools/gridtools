@@ -102,7 +102,7 @@ namespace gridtools {
         typedef typename T::iterator_type iterator_type;
         typedef typename T::value_type value_type;
         typedef static_uint<I> index_type;
-        typedef static_uint<I> index;
+        // typedef static_uint<I> index;
 
         template<typename Storage>
         arg_storage_pair<arg<I,T>, Storage>

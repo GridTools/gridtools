@@ -11,7 +11,7 @@
 #include <boost/type_traits.hpp>
 // [includes]
 
-//#define REORDER
+#define REORDER
 
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
@@ -23,12 +23,12 @@ namespace intrepid{
 
         // [test]
         typedef storage_t<layout_map<0,1,2> >::storage_t::value_type value_type;
-        typedef storage_t<layout_map<0,1,2,3> >::storage_t::layout layout_local_grid;
-        GRIDTOOLS_STATIC_ASSERT(layout_local_grid::at_<0>::value < 3 && layout_local_grid::at_<1>::value < 3 && layout_local_grid::at_<2>::value < 3,
+        // typedef storage_t<layout_map<0,1,2,3> >::storage_t::layout layout_local_grid;
+        GRIDTOOLS_STATIC_ASSERT(fe::layout_t::at_<0>::value < 3 && fe::layout_t::at_<1>::value < 3 && fe::layout_t::at_<2>::value < 3,
                                 "the first three numbers in the layout_map must be a permutation of {0,1,2}. ");
 
-        uint_t d1=6;
-        uint_t d2=6;
+        uint_t d1=8;
+        uint_t d2=8;
         uint_t d3=1;
 
         //create the local grid
@@ -41,9 +41,9 @@ namespace intrepid{
         std::vector<uint_t> to_reorder( fe::basisCardinality );
         //sorting the a vector containing the point coordinates with priority i->j->k, and saving the permutation
 #ifdef REORDER
-
+        // fill in the reorder vector such that the larger numbers correspond to larger strides
         for(uint_t i=0; i<fe::basisCardinality; ++i){
-            to_reorder[i]=(local_grid_s(i,layout_local_grid::at_<0>::value)+2)*4+(local_grid_s(i,layout_local_grid::at_<1>::value)+2)*2+(local_grid_s(i,layout_local_grid::at_<2>::value)+2);
+            to_reorder[i]=(local_grid_s(i,fe::layout_t::at_<0>::value)+2)*4+(local_grid_s(i,fe::layout_t::at_<1>::value)+2)*2+(local_grid_s(i,fe::layout_t::at_<2>::value)+2);
             permutations[i]=i;
         }
 
@@ -53,7 +53,7 @@ namespace intrepid{
                   } );
 
         storage_t<layout_map<0,1,2> >::storage_t  local_grid_reordered_s(geo_map::basisCardinality, geo_map::spaceDim,1);
-        storage_t<layout_map<0,1,2> >  local_grid_reordered_i(local_grid_reordered_s, 2);        //storage2 local_grid_reordered(local_grid_reordered_s, 2);
+        storage_t<layout_map<0,1,2> >  local_grid_reordered_i(local_grid_reordered_s, 2);
         uint_t D=geo_map::basisCardinality;
 
         //applying the permutation to the grid
@@ -147,9 +147,9 @@ namespace intrepid{
 
         auto epsilon=1e-15;
 
-#ifndef REORDER
-        for (int i =0; i< d1; ++i)
-            for (int j =0; j< d2; ++j)
+// #ifndef REORDER
+        for (int i =1; i< d1; ++i)
+            for (int j =1; j< d2; ++j)
                 for (int k =0; k< d3; ++k)
                     for (int q=0; q<cubature::numCubPoints; ++q)
                     {
@@ -170,7 +170,7 @@ namespace intrepid{
                             }
                         }
                     }
-#endif
+// #endif
 
         storage_t<layout_map<0,1,2> >::storage_t jac_det_s ((d1*d2*d3), cubature::numCubPoints, 1);
         storage_t<layout_map<0,1,2> > jac_det_i (jac_det_s,2);
@@ -186,10 +186,9 @@ namespace intrepid{
                                                         jac_det,
                                                         cub_weights);
 
-#ifndef REORDER
-        for (int i =0; i< d1; ++i)
+        for (int i =1; i< d1; ++i)
         {
-            for (int j =0; j< d2; ++j)
+            for (int j =1; j< d2; ++j)
             {
                 for (int k =0; k< d3; ++k)
                 {
@@ -209,7 +208,6 @@ namespace intrepid{
                 }
             }
         }
-#endif
 
         storage_t<layout_map<0,1,2,3> >::storage_t jac_inv_s ((d1*d2*d3), cubature::numCubPoints, geo_map::spaceDim, geo_map::spaceDim);
         storage_t<layout_map<0,1,2,3> > jac_inv_i (jac_inv_s);
@@ -217,10 +215,9 @@ namespace intrepid{
         CellTools<double>::setJacobianInv(jac_inv_i, jac_i);
         CellTools<double>::setJacobianInv(jac_inv, jac);
 
-#ifndef REORDER
-        for (int i =0; i< d1; ++i)
+        for (int i =1; i< d1; ++i)
         {
-            for (int j =0; j< d2; ++j)
+            for (int j =1; j< d2; ++j)
             {
                 for (int k =0; k< d3; ++k)
                 {
@@ -244,7 +241,6 @@ namespace intrepid{
                 }
             }
         }
-#endif
 
 
         FieldContainer<double> transformed_grad_at_cub_points((d1*d2*d3), fe::basisCardinality, cubature::numCubPoints, fe::spaceDim);
@@ -269,10 +265,11 @@ namespace intrepid{
                                               weighted_transformed_grad_at_cub_points,
                                               Intrepid::COMP_CPP);
 
+#ifndef REORDER
         epsilon=1e-10;
-        for (int i =0; i< d1; ++i)
+        for (int i =1; i< d1; ++i)
         {
-            for (int j =0; j< d2; ++j)
+            for (int j =1; j< d2; ++j)
             {
                 for (int k =0; k< d3; ++k)
                 {
@@ -281,11 +278,11 @@ namespace intrepid{
                         {
                             if(assembly_.get_result()(i, j, k, P_i, Q_i) > epsilon+ stiffness_matrices(i*d2*d3+j*d3+k, permutations[P_i], permutations[Q_i])/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                ||
-                               assembly_.get_result()(i, j, k, P_i, Q_i) +epsilon < stiffness_matrices(i*d2*d3+j*d3+k, permutations[P_i], permutations[Q_i])// weighted_measure(i*d2*d3+j*d3+k, q)
+                               assembly_.get_result()(i, j, k, P_i, Q_i) +epsilon < stiffness_matrices(i*d2*d3+j*d3+k, P_i, Q_i)// weighted_measure(i*d2*d3+j*d3+k, q)
                                 ){
                                 std::cout<<"error in i="<<i<<" j="<<j<<" k="<<k<<" P_i="<<P_i<<" Q_i="<<Q_i<<": "
                                          <<assembly_.get_result()(i, j, k, P_i, Q_i)<<" != "
-                                         <<stiffness_matrices(i*d2*d3+j*d3+k, permutations[P_i], permutations[Q_i])
+                                         <<stiffness_matrices(i*d2*d3+j*d3+k, P_i, Q_i)
                                          <<std::endl;
                                 assert(false);
                             }
@@ -293,6 +290,7 @@ namespace intrepid{
                 }
             }
         }
+#endif
         // [reference & comparison]
 
         return true;

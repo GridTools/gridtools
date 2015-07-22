@@ -395,6 +395,10 @@ namespace gridtools {
 
     };
 
+    template<short_t ... Args>
+    template <ushort_t I>
+    const short_t layout_map<Args...>::at_<I>::value;
+
     template <short_t ... Args>
     constexpr const short_t layout_map<Args ... >::layout_vector[sizeof...(Args)];
 
