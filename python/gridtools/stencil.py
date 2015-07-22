@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import ast
 import logging
 
 import numpy as np
@@ -26,458 +25,44 @@ class InteriorPoint (tuple):
 
 
 
-class StencilInspector (ast.NodeVisitor):
-    """
-    Inspects the source code of a stencil definition using its AST.-
-    """
-    def __init__ (self, obj):
-        """
-        Creates an inspector object using the source code of a stencil:
-
-            obj     a Stencil object.-
-        """
-        if (issubclass (obj.__class__, MultiStageStencil) or
-            issubclass (obj.__class__, CombinedStencil)):
-            super ( ).__init__ ( )
-
-            #
-            # a reference to the MultiStageStencil we have to inspect
-            #
-            self.stencil = obj
-            #
-            # stencil's source code
-            #
-            self.src = self._extract_source ( )
-            #
-            # the domain dimensions over which this stencil operates
-            #
-            self.domain  = None
-            #
-            # symbols gathered after analyzing the user's stencil are kept here
-            #
-            self.scope = StencilScope ( )
-            #
-            # a list of functors (i.e. stages) of this stenctil;
-            # the kernel function is the entry functor of any stencil
-            #
-            self.functors     = list ( )
-            self.functor_defs = list ( )
-        else:
-            raise TypeError ("Class '%s' must extend 'MultiStageStencil'" % 
-                             obj.__class__)
-
-
-    def _extract_source (self):
-        """
-        Extracts the source code from the user-defined stencil.-
-        """
-        import inspect
-
-        src = 'class %s (%s):\n' % (str (self.stencil.__class__.__name__),
-                                    str (self.stencil.__class__.__base__.__name__))
-        #
-        # first the constructor and stages
-        #
-        for (name,fun) in inspect.getmembers (self.stencil,
-                                              predicate=inspect.ismethod):
-            try:
-                if name == '__init__' or name.startswith ('stage_'):
-                    src += inspect.getsource (fun)
-            except OSError:
-                try:
-                    #
-                    # is this maybe a notebook session?
-                    #
-                    from IPython.code import oinspect
-                    src += oinspect.getsource (fun)
-                except Exception:
-                    raise RuntimeError ("Could not extract source code from '%s'" 
-                                        % self.stencil.__class__)
-        #
-        # then the kernel
-        #
-        for (name,fun) in inspect.getmembers (self.stencil,
-                                              predicate=inspect.ismethod):
-            try:
-                if name == 'kernel':
-                    src += inspect.getsource (fun)
-            except OSError:
-                try:
-                    #
-                    # is this maybe a notebook session?
-                    #
-                    from IPython.code import oinspect
-                    src += oinspect.getsource (fun)
-                except Exception:
-                    raise RuntimeError ("Could not extract source code from '%s'" 
-                                        % self.stencil.__class__)
-        return src
-
-
-    def static_analysis (self):
-        """
-        Performs a static analysis of the source code of this stencil.-
-        """
-        if self.src:
-            #
-            # do not the static analysis twice over the same code
-            #
-            if len (self.functors) > 0:
-                self.__init__ (self.stencil)
-            #
-            # analysis starts by parsing the stencil source code
-            #
-            self.ast_root = ast.parse (self.src)
-            self.visit (self.ast_root)
-            if len (self.functors) == 0:
-                raise NameError ("Could not extract any stencil stage")
-        else:
-            #
-            # if the source code is not available, we may infer the user is
-            # running from an interactive session
-            #
-            raise RuntimeError ("Please save your stencil classes to a file before changing the backend")
-        #
-        # print out the discovered symbols if in DEBUG mode
-        #
-        if __debug__:
-            logging.debug ("Symbols found after static code analysis:")
-            self.scope.dump ( )
-
-
-    def analyze_params (self, nodes):
-        """
-        Extracts the stencil parameters from the AST-node list 'nodes'.-
-        """
-        for n in nodes:
-            #
-            # do not add the 'self' parameter
-            #
-            if n.arg != 'self':
-                #
-                # parameters starting with the 'in_' prefix are considered 'read only'
-                #
-                read_only = n.arg.startswith ('in_')
-                self.scope.add_parameter (n.arg,
-                                                  read_only=read_only)
-
-
-    def resolve (self):
-        """
-        Attempts to aquire more information about the discovered symbols
-        with runtime information of user's stencil instance.-
-        """
-        for s in self.scope.get_all ( ):
-            #
-            # unresolved symbols have 'None' as their value
-            #
-            if s.value is None:
-                #
-                # is this a stencil's attribute?
-                #
-                if 'self' in s.name:
-                    attr  = s.name.split ('.')[1]
-                    s.value = getattr (self.stencil, attr, None)
-
-                    #
-                    # NumPy arrays are considered temporary data fields
-                    #
-                    if isinstance (s.value, np.ndarray):
-                        #
-                        # update the symbol table in this scope
-                        #
-                        self.scope.add_temporary (s.name,
-                                                  s.value)
-                    else:
-                        self.scope.add_constant (s.name, 
-                                                 s.value)
-
-
-    def resolve_params (self, **kwargs):
-        """
-        Attempts to aquire more information about the discovered parameters 
-        using runtime information.
-        """
-        for k,v in kwargs.items ( ):
-            if self.scope.is_parameter (k):
-                if isinstance (v, np.ndarray):
-                    #
-                    # update the value of this parameter
-                    #
-                    self.scope.add_parameter (k,
-                                              v,
-                                              read_only=self.scope[k].read_only)
-                    #
-                    #
-                    # check the dimensions of different parameters match
-                    #
-                    if self.domain is None:
-                        self.domain = v.shape
-                    elif self.domain != v.shape:
-                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" % (k, 
-                                                                                              v.shape,
-                                                                                              self.domain))
-                else:
-                    logging.warning ("Parameter '%s' is not a NumPy array" % k)
-
-
-    def visit_Assign (self, node):
-        """
-        Extracts symbols appearing in assignments in the user's stencil code:
-
-            node        a node from the AST.-
-        """
-        # 
-        # expr = expr
-        #
-        if len (node.targets) > 1:
-            raise RuntimeError ("Only one assignment per line is accepted.")
-        else:
-            lvalue = None
-            lvalue_node = node.targets[0]
-            #
-            # attribute assignment
-            #
-            if isinstance (lvalue_node, ast.Attribute):
-                lvalue = "%s.%s" % (lvalue_node.value.id,
-                                    lvalue_node.attr)
-            # 
-            # parameter or local variable assignment
-            # 
-            elif isinstance (lvalue_node, ast.Name):
-                lvalue = lvalue_node.id
-            else:
-                logging.debug ("Ignoring assignment at %d" % node.lineno)
-                return
-
-            rvalue_node = node.value
-            #
-            # a constant if its rvalue is a Num
-            #
-            if isinstance (rvalue_node, ast.Num):
-                rvalue = float (rvalue_node.n)
-                self.scope.add_constant (lvalue, rvalue)
-                logging.debug ("Adding numeric constant '%s'" % lvalue)
-            #
-            # variable names are resolved using runtime information
-            #
-            elif isinstance (rvalue_node, ast.Name):
-                try:
-                    rvalue = eval (rvalue_node.id)
-                    self.scope.add_constant (lvalue, rvalue)
-                    logging.debug ("Adding constant '%s'" % lvalue)
-
-                except NameError:
-                    self.scope.add_constant (lvalue, None)
-                    logging.debug ("Delayed resolution of constant '%s'" % lvalue)
-            #
-            # function calls are resolved later by name
-            #
-            elif isinstance (rvalue_node, ast.Call):
-                rvalue = None
-                self.scope.add_constant (lvalue, rvalue)
-                logging.debug ("Constant '%s' holds a function value" % lvalue)
-            #
-            # attributes are resolved using runtime information
-            #
-            elif isinstance (rvalue_node, ast.Attribute):
-                rvalue = getattr (eval (rvalue_node.value.id),
-                                  rvalue_node.attr)
-                self.scope.add_constant (lvalue, rvalue)
-                logging.debug ("Constant '%s' holds an attribute value" % lvalue)
-            #
-            # try to discover the correct type using runtime information
-            #
-            else:
-                #
-                # we keep all other expressions and try to resolve them later
-                #
-                self.scope.add_constant (lvalue, None)
-                logging.debug ("Constant '%s' will be resolved later" % lvalue)
-
-    
-    def visit_Expr (self, node):
-        """
-        Looks for named stages within a stencil.-
-        """
-        if isinstance (node.value, ast.Call):
-            call = node.value
-            if (isinstance (call.func, ast.Attribute) and
-                isinstance (call.func.value, ast.Name)):
-                if (call.func.value.id == 'self' and
-                    call.func.attr.startswith ('stage_') ):
-                    #
-                    # found a new stage
-                    #
-                    funct_name  = '%s_%s_%03d' % (self.stencil.name.lower ( ),
-                                                  call.func.attr,
-                                                  len (self.scope.functor_scopes))
-                    funct_scope = self.scope.add_functor (funct_name)
-                    #
-                    # extract its parameters
-                    #
-                    if len (call.args) > 0:
-                        logging.warning ("Ignoring positional arguments when calling intermediate stages")
-                    else:
-                        for kw in call.keywords:
-                            if isinstance (kw.value, ast.Attribute):
-                                funct_scope.add_alias (kw.arg,
-                                                       '%s.%s' % (kw.value.value.id,
-                                                                  kw.value.attr))
-                            elif isinstance (kw.value, ast.Name):
-                                funct_scope.add_alias (kw.arg,
-                                                       kw.value.id)
-                            else:
-                                raise TypeError ("Unknown type '%s' of keyword argument '%s'" 
-                                                 % (kw.value.__class__, kw.arg))
-                    #
-                    # look for its definition
-                    #
-                    for fun_def in self.functor_defs:
-                        if fun_def.name == call.func.attr:
-                            for node in fun_def.body:
-                                if isinstance (node, ast.For):
-                                    self.visit_For (node,
-                                                    funct_name  = funct_name,
-                                                    funct_scope = funct_scope,
-                                                    independent = True)
-
-
-    def visit_For (self, node, funct_name=None, funct_scope=None, independent=False):
-        """
-        Looks for 'get_interior_points' comprehensions.-
-        """
-        #
-        # the iteration should call 'get_interior_points'
-        #
-        call = node.iter
-        if (call.func.value.id == 'self' and 
-            call.func.attr == 'get_interior_points'):
-            #
-            # a random name for this functor if none given
-            #
-            if funct_name is None and funct_scope is None:
-                funct_name  = '%s_functor_%03d' % (self.stencil.name.lower ( ),
-                                                   len (self.scope.functor_scopes))
-                funct_scope = self.scope.add_functor (funct_name)
-            #
-            # create a functor object
-            #
-            funct = Functor (funct_name,
-                             node,
-                             funct_scope,
-                             self.scope)
-            funct.independent = independent
-            self.functors.append (funct)
-            logging.info ("Stage '%s' created" % funct.name)
-
-
-    def visit_FunctionDef (self, node):
-        """
-        Looks for function definitions inside the user's stencil and classifies
-        them accordingly:
-
-            node    a node from the AST.-
-        """
-        #
-        # the stencil constructor is the recommended place to define 
-        # (pre-calculated) constants and temporary data fields
-        #
-        if node.name == '__init__':
-            logging.debug ("Stencil constructor at %d" % node.lineno)
-            docstring = ast.get_docstring(node)
-            #
-            # should be a call to the parent-class constructor
-            #
-            pcix = 0 # Index, amongst the children nodes, of the call to parent constructor
-            for n in node.body:
-                if isinstance(n.value, ast.Str):
-                    # Allow for the docstring to appear before the call to the parent constructor
-                    if n.value.s.lstrip() != docstring:
-                        pcix = pcix + 1
-                       
-                else:
-                    pcix = pcix + 1
-                try:
-                    parent_call = (isinstance (n.value, ast.Call) and 
-                                   isinstance (n.value.func.value, ast.Call) and
-                                   n.value.func.attr == '__init__')
-                    if parent_call:
-                        logging.debug ("Parent constructor call at %d" % n.value.lineno)
-                        break
-                except AttributeError:
-                    parent_call = False
-            #
-            # inform the user if the call was not found
-            #
-            if not parent_call:
-                raise ReferenceError ("Missing parent constructor call")
-            if pcix != 1:
-                raise ReferenceError ("Parent constructor is NOT the first operation of the child constructor")
-            #
-            # continue traversing the AST of this function
-            #
-            for n in node.body:
-                self.visit (n)
-        #
-        # the 'kernel' function is the starting point of the stencil
-        #
-        elif node.name == 'kernel':
-            logging.debug ("Entry function 'kernel' found at %d" % node.lineno)
-            #
-            # this function should return 'None'
-            #
-            if node.returns is not None:
-                raise ValueError ("The 'kernel' function should return 'None'")
-            #
-            # the parameters of the 'kernel' function are the stencil
-            # arguments in the generated code
-            #
-            self.analyze_params (node.args.args)
-
-            #
-            # continue traversing the AST
-            #
-            for n in node.body:
-                self.visit (n)
-        #
-        # other function definitions are save for potential use later
-        #
-        else:
-            self.functor_defs.append (node)
-
-
-
 class Stencil (object):
     """
     A base stencil class.-
     """
     #
-    # a compiler class shared by all stencils
+    # a JIT compiler class shared by all stencils
     #
-    compiler = StencilCompiler ( )
+    compiler  = StencilCompiler ( )
 
     def __init__ (self):
         #
-        # a unique name for the stencil object
+        # register this stencil with the compiler and inspector
         #
-        self.name = Stencil.compiler.register (self)
-        #
-        # the inspector object is used to JIT-compile this stencil
-        #
-        self.inspector = StencilInspector (self)
+        self.name     = Stencil.compiler.register (self)
         #
         # defines the way to execute the stencil
         #
         self._backend = "python"
         #
-        # a halo descriptor - see 'set_halo' below
+        # the domain dimensions over which this stencil operates
+        #
+        self.domain   = None
+        #
+        # symbols gathered after analyzing the stencil code are kept here
+        #
+        self.scope    = StencilScope ( )
+        #
+        # a halo descriptor
         #
         self.set_halo ( (0, 0, 0, 0) )
         #
-        # define the execution order in 'k' dimension - see 'set_k_direction' below
+        # define the execution order in 'k' dimension
         #
         self.set_k_direction ('forward')
+
+
+    def __copy__ (self):
+        raise NotImplementedError ("Cannot create shallow copies of a Stencil")
 
 
     def __hash__ (self):
@@ -609,22 +194,11 @@ class Stencil (object):
         #
         # try to resolve all symbols by applying static-code analysis
         #
-        self.inspector.static_analysis ( )
-
+        Stencil.compiler.static_analysis (self)
         #
         # ... and by including runtime information
         #
-        self.inspector.resolve ( )
-        self.inspector.resolve_params (**kwargs)
-        
-        #
-        # print out the discovered symbols if in DEBUG mode
-        #
-        if __debug__:
-            logging.debug ("Symbols found after using run-time resolution:")
-            self.scope.dump ( )
-            for f in self.inspector.functors:
-                f.scope.dump ( )
+        self.scope.runtime_analysis (self, **kwargs)
 
 
     def run (self, *args, halo=None, k_direction=None, **kwargs):
@@ -651,7 +225,7 @@ class Stencil (object):
         #
         # run the selected backend version
         #
-        logging.info ("Running in %s mode ..." % self.backend.capitalize ( ))
+        logging.info ("Running in %s mode ..." % self.backend.upper ( ))
         if self.backend == 'c++' or self.backend == 'cuda':
             Stencil.compiler.run_native (self, **kwargs)
         #
@@ -661,11 +235,6 @@ class Stencil (object):
             self.kernel (**kwargs)
         else:
             logging.error ("Unknown backend '%s'" % self.backend)
-
-
-    @property
-    def scope (self):
-        return self.inspector.scope
 
 
     def set_halo (self, halo=(0,0,0,0)):
@@ -845,7 +414,6 @@ class CombinedStencil (Stencil):
         forwarded into an input parameter of an adjacent stencil in the 
         execution graph.-
         """
-        stencil.inspector.static_analysis ( )
         try:
             out_param = stencil.scope[output]
             if stencil.scope.is_parameter (out_param.name):
