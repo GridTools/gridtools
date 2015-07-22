@@ -33,9 +33,6 @@ struct print_ {
 
     template <typename T>
     void operator()(T const& v) const {
-#ifndef NDEBUG
-        std::cout << T::value << std::endl;
-#endif
         if (T::value != count)
             result = false;
         ++count;
@@ -51,24 +48,10 @@ struct print_plchld {
 
     template <typename T>
     void operator()(T const& v) const {
-#ifndef NDEBUG
-        T::info();
-        std::cout << " (count = " << count << ")"
-                  << " (index = " << T::index_type::value << ")"
-                  << std::endl;
-#endif
         if (T::index_type::value != count) {
-            std::cout << "FUCK" << std::endl;
             result = false;
         }
         ++count;
-    }
-};
-
-struct print_pretty {
-    template <typename T>
-    void operator()(T const& v) const {
-        std::cout << BOOST_CURRENT_FUNCTION << std::endl;
     }
 };
 
@@ -114,25 +97,14 @@ bool test_domain_indices() {
     gridtools::domain_type<accessor_list> domain
        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
-#ifndef NDEBUG
-    boost::mpl::for_each<gridtools::domain_type<accessor_list>::raw_index_list>(print_());
-    std::cout << std::endl;
-    boost::mpl::for_each<gridtools::domain_type<accessor_list>::range_t>(print_());
-    std::cout << std::endl;
-    boost::mpl::for_each<gridtools::domain_type<accessor_list>::arg_list_mpl>(print_pretty());
-#endif
-    std::cout << std::endl;
-
     count = 0;
     result = true;
 
     print_plchld pfph;
     count = 0;
     result = true;
-    //std::cout << "3 " << std::boolalpha << result << std::endl;
     boost::mpl::for_each<gridtools::domain_type<accessor_list>::placeholders>(pfph);
 
-    //std::cout << "4 " << std::boolalpha << result << std::endl;
 
     return result;
 }

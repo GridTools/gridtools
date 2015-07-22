@@ -1,6 +1,6 @@
 #pragma once
 #include "accessor_impl.hpp"
-#include "arg.h"
+#include <stencil-composition/arg.hpp>
 
 /**
    @file
