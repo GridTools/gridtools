@@ -44,7 +44,7 @@ struct functor2 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(out()) = (eval(in(-1,0,0)) + eval(in(1,0,0)) + eval(in(0,-1,0)) + eval(in(0,-1,0))) / (float_type)4.0 ;
+        eval(out()) = (eval(in(-1,0,0)) + eval(in(1,0,0)) + eval(in(0,-1,0)) + eval(in(0,1,0))) / (float_type)4.0 ;
     }
 };
 
@@ -145,11 +145,24 @@ TEST_F(cache_stencil, ij_cache)
 #endif
 
     verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(m_out, m_in) );
+    ASSERT_TRUE(verif.verify(m_in, m_out) );
 }
 
 TEST_F(cache_stencil, ij_cache_offset)
 {
+    storage_type ref(m_d1, m_d2, m_d3, 0.0, "ref");
+
+    for(int i=m_halo_size; i < m_d1-m_halo_size; ++i)
+    {
+        for(int j=m_halo_size; j < m_d2-m_halo_size; ++j)
+        {
+            for(int k=0; k < m_d3; ++k)
+            {
+                ref(i,j,k) = (m_in(i-1,j,k) + m_in(i+1, j,k) + m_in(i,j-1,k) + m_in(i,j+1,k) ) / (float_type)4.0;
+            }
+        }
+    }
+
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
@@ -184,7 +197,7 @@ TEST_F(cache_stencil, ij_cache_offset)
 #endif
 
     verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(m_out, m_in) );
+    ASSERT_TRUE(verif.verify(ref, m_out) );
 }
 
 

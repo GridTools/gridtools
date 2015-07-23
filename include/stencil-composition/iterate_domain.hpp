@@ -94,6 +94,13 @@ namespace gridtools {
                 template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
+        typedef typename boost::remove_pointer<
+            typename boost::mpl::at_c<
+                typename local_domain_t::mpl_storages, 0>::type
+            >::type::value_type value_type;
+
         /**
          * metafunction that retrieves the arg type associated with an accessor
          */
@@ -124,7 +131,7 @@ namespace gridtools {
         struct mem_access_with_data_field_accessor
         {
             typedef typename boost::mpl::and_<
-                typename boost::mpl::not_< typename boost::mpl::has_key<CachesMap, Accessor>::type >::type,
+                typename boost::mpl::not_< typename accessor_is_cached<Accessor, CachesMap>::type >::type,
                 typename accessor_holds_data_field<Accessor>::type
             >::type type;
         };
@@ -133,7 +140,7 @@ namespace gridtools {
         struct mem_access_with_standard_accessor
         {
             typedef typename boost::mpl::and_<
-                typename boost::mpl::not_< typename boost::mpl::has_key<CachesMap, Accessor>::type >::type,
+                typename boost::mpl::not_< typename accessor_is_cached<Accessor, CachesMap>::type >::type,
                 typename boost::mpl::not_< typename accessor_holds_data_field<Accessor>::type >::type
             >::type type;
         };
@@ -141,7 +148,7 @@ namespace gridtools {
         template<typename Accessor, typename CachesMap>
         struct cache_access_accessor
         {
-            typedef typename boost::mpl::has_key<CachesMap, Accessor>::type type;
+            typedef typename accessor_is_cached<Accessor, CachesMap>::type type;
         };
 
         /**
@@ -156,13 +163,6 @@ namespace gridtools {
                 boost::mpl::identity<boost::mpl::void_>
             >::type type;
         };
-
-
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
-        typedef typename boost::remove_pointer<
-            typename boost::mpl::at_c<
-                typename local_domain_t::mpl_storages, 0>::type
-            >::type::value_type value_type;
 
         //typedef typename local_domain_t::local_args_type local_args_type;
         typedef typename local_domain_t::actual_args_type actual_args_type;

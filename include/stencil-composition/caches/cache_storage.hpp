@@ -32,13 +32,13 @@ struct cache_storage : public block_storage<Value, BlockSize, Range>
 
     template<typename Offset>
     GT_FUNCTION
-    Value& at(const array<int, 2> thread_pos, Offset const & offset)
+    Value& RESTRICT at(array<int, 2> const & thread_pos, Offset const & offset)
     {
         GRIDTOOLS_STATIC_ASSERT((is_offset_tuple<Offset>::value), "Error type is not offset tuple");
         // TODO assert not working, problem with PRETTY_FUNCTION
 //        assert(true);
-        return m_values[(thread_pos[0] + offset.template get<0>() - iminus::value) * i_stride_t::value +
-                (thread_pos[1] + offset.template get<1>() + jminus::value) * j_stride_t::value];
+        return m_values[(thread_pos[0] + offset.template get<Offset::n_args-1>() - iminus::value) * i_stride_t::value +
+                (thread_pos[1] + offset.template get<Offset::n_args-2>() -  jminus::value) * j_stride_t::value];
     }
 
 private:

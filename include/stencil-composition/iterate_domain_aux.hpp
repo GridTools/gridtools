@@ -569,4 +569,11 @@ namespace gridtools{
         }
     };
 
+    template<typename Accessor, typename CachesMap>
+    struct accessor_is_cached : boost::mpl::has_key<
+        CachesMap,
+        accessor<Accessor::index_type::value>
+    >::type{};
+
+
 }//namespace gridtools
