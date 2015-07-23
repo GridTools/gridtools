@@ -61,6 +61,18 @@ public:
         m_strides = strides;
     }
 
+    template <ushort_t Coordinate, typename Execution>
+    GT_FUNCTION
+    void increment_impl() {}
+
+    template <ushort_t Coordinate>
+    GT_FUNCTION
+    void increment_impl(int_t steps) {}
+
+    template <ushort_t Coordinate>
+    GT_FUNCTION
+    void initialize_impl() {}
+
 private:
     data_pointer_array_t* RESTRICT m_data_pointer;
     strides_cached_t* RESTRICT m_strides;

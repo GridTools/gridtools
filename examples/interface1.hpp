@@ -5,7 +5,7 @@
 #include "stencil-composition/make_computation.hpp"
 #include <stencil-composition/interval.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "verifier.hpp"
+#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
