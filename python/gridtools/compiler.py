@@ -14,31 +14,37 @@ class StencilCompiler ( ):
     A global class that takes care of compiling the defined stencils 
     using different backends.-
     """
+    BASE_LIB_NAME = "libgridtools4py"
+
     def __init__ (self):
         #
         # a dictionary containing the defined stencils (k=id(stencil), v=stencil)
         #
-        self.stencils     = dict ( )
-        self.lib_file     = "libgridtools4py"
-        self.make_file    = "Makefile"
+        self.stencils      = dict ( )
+        self.lib_file      = None
+        self.make_file     = "Makefile"
         #
         # these entities are automatically generated at compile time
         #
-        self.src_dir      = None
-        self.cpp_file     = None
-        self.fun_hdr_file = None
+        self.src_dir       = None
+        self.cpp_file      = None
+        self.fun_hdr_file  = None
         #
         # a reference to the compiled dynamic library
         #
-        self.lib_obj      = None
+        self.lib_handle    = None
+        #
+        # track of the number of compilations
+        #
+        self.compile_count = 0
         #
         # an object to inspect the source code of the stencils
         #
-        self.inspector    = StencilInspector ( )
+        self.inspector     = StencilInspector ( )
         #
         # a utilities class for this compiler
         #
-        self.utils        = Utilities (self)
+        self.utils         = Utilities (self)
         self._initialize ( )
 
     def __contains__ (self, stencil):
@@ -75,7 +81,7 @@ class StencilCompiler ( ):
             #
             # start the compilation of the dynamic library
             #
-            current_dir = getcwd ( )
+            current_dir         = getcwd ( )
             chdir (self.src_dir)
             check_call (["make", 
                          "--silent", 
@@ -84,12 +90,13 @@ class StencilCompiler ( ):
             #
             # attach the library object
             #
-            self.lib_obj = CDLL ('%s/%s%s' % (self.src_dir,
-                                              self.lib_file,
-                                              get_shared_lib_extension ( )))
+            self.lib_handle = CDLL ('%s/%s%s' % (self.src_dir,
+                                                 self.lib_file,
+                                                 get_shared_lib_extension ( )))
+
         except Exception as e:
             logging.error ("Error while compiling '%s'" % stencil.name)
-            self.lib_obj = None
+            self.lib_handle = None
             raise e
 
 
@@ -106,6 +113,9 @@ class StencilCompiler ( ):
             #
             # create directory and files for the generated code
             #
+            self.compile_count += 1
+            self.lib_file       = "%s.%04d" % (StencilCompiler.BASE_LIB_NAME,
+                                               self.compile_count)
             if not path.exists (self.src_dir):
                 makedirs (self.src_dir)
 
@@ -153,10 +163,10 @@ class StencilCompiler ( ):
         #
         # this only works in POSIX systems ...
         #
-        if self.lib_obj is not None:
-            _ctypes.dlclose (self.lib_obj._handle)
-            del self.lib_obj
-            self.lib_obj = None
+        if self.lib_handle is not None:
+            _ctypes.dlclose (self.lib_handle._handle)
+            del self.lib_handle
+            self.lib_handle = None
 
 
     def register (self, stencil):
@@ -201,7 +211,7 @@ class StencilCompiler ( ):
             #
             # compile only if the library is not available
             #
-            if self.lib_obj is None:
+            if self.lib_handle is None:
                 stencil.resolve    (**kwargs)
                 self.generate_code (stencil)
                 self.compile       (stencil)
@@ -229,7 +239,7 @@ class StencilCompiler ( ):
             #
             # call the compiled stencil
             #
-            run_func = getattr (self.lib_obj, 'run_%s' % stencil.name)
+            run_func = self.lib_handle['run_%s' % stencil.name]
             run_func (*lib_params)
         else:
             logging.error ("Unknown backend '%s'" % self.backend)
@@ -541,7 +551,7 @@ class StencilInspector (ast.NodeVisitor):
                     #
                     funct_name  = '%s_%s_%03d' % (st.name.lower ( ),
                                                   call.func.attr,
-                                                  len (st.scope.functor_scopes))
+                                                  len (st.scope.functors))
                     funct_scope = st.scope.add_functor (funct_name)
                     #
                     # extract its parameters

@@ -286,10 +286,12 @@ class Scope (object):
 
     def add_temporary (self, name, value=None):
         """
-        Adds a temporary data field to this scope:
-
-            name    name of the temporary data field;
-            value   its value (should be a NumPy array).-
+        Adds a temporary data field to this scope
+        :param name: the name of the temporary data field
+        :param value: the value of the temporary data field
+        :raise TypeError: if the given value is not a NumPy array
+        :raise ValueError: if the given value is None
+        :return:
         """
         if value is not None:
             if isinstance (value, np.ndarray):
@@ -297,8 +299,6 @@ class Scope (object):
                 # add the field as a temporary
                 #
                 self.add_symbol (Symbol (name, 'temp', value))
-                logging.debug ("Temporary field '%s' has dimension %s" % (name,
-                                                                         value.shape))
             else:
                 raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" % 
                                  (name, type (value)))
@@ -308,10 +308,10 @@ class Scope (object):
 
     def add_symbol (self, symbol):
         """
-        Adds the received 'symbol' to this scope.-
+        Adds or updated the received symbol in this scope
+        :param symbol: the Symbol object to add or update
+        :return:
         """
-        if symbol.name in self:
-            logging.debug ("Updated symbol '%s'" % symbol.name)
         self.symbol_table[symbol.name] = symbol
 
 

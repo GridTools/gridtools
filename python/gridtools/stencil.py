@@ -32,7 +32,7 @@ class Stencil (object):
     #
     # a JIT compiler class shared by all stencils
     #
-    compiler  = StencilCompiler ( )
+    compiler = StencilCompiler ( )
 
     def __init__ (self):
         #
@@ -225,7 +225,8 @@ class Stencil (object):
         #
         # run the selected backend version
         #
-        logging.info ("Running in %s mode ..." % self.backend.upper ( ))
+        logging.info ("Executing '%s' in %s mode ..." % (self.name,
+                                                         self.backend.upper ( )))
         if self.backend == 'c++' or self.backend == 'cuda':
             Stencil.compiler.run_native (self, **kwargs)
         #
