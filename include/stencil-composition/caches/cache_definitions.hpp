@@ -23,9 +23,11 @@ enum CacheIOPolicy
  */
 enum CacheType
 {
-    IJ,
-    IJK,
-    K
+    IJ,  // IJ caches require synchronization capabilities, as different (i,j) grid points are
+         // processed by parallel cores. GPU backend keeps them in shared memory
+    K,   // processing of all the K elements is done by same thread, so resources for K caches can be private
+         // and do not require synchronization. GPU backend uses registers.
+    IJK, // IJK caches is an extension to 3rd dimension of IJ caches. GPU backend uses shared memory
 };
 
 }
