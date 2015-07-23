@@ -145,12 +145,40 @@ public:
     template<typename Accessor>
     GT_FUNCTION
     typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    get_cache_value_impl() const
+    get_cache_value_impl(Accessor const & accessor) const
     {
         //        assert(m_pshared_iterate_domain);
-        m_pshared_iterate_domain->template get_ij_cache<Accessor>();
-
+        return m_pshared_iterate_domain->template get_ij_cache<Accessor>().at(m_thread_pos, accessor.offsets());
     }
+
+    template <ushort_t Coordinate, typename Execution>
+    GT_FUNCTION
+    void increment_impl()
+    {
+        if(Coordinate != 0 && Coordinate != 1) return;
+        m_thread_pos[Coordinate] += Execution::value;
+    }
+
+    template <ushort_t Coordinate>
+    GT_FUNCTION
+    void increment_impl(int_t steps)
+    {
+        if(Coordinate != 0 && Coordinate != 1) return;
+        m_thread_pos[Coordinate] += steps;
+    }
+
+    template <ushort_t Coordinate>
+    GT_FUNCTION
+    void initialize_impl()
+    {
+        if(Coordinate == 0)
+            m_thread_pos[Coordinate]=threadIdx.x;
+        else if(Coordinate == 1)
+            m_thread_pos[Coordinate]=threadIdx.y;
+    }
+
+private:
+    array<int, 2> m_thread_pos;
 };
 
 template<
