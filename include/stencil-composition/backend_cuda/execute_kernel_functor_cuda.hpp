@@ -100,7 +100,7 @@ struct execute_kernel_functor_cuda
 
     void operator()()
     {
-#ifndef NDEBUG
+#ifdef __VERBOSE__
         short_t count;
         cudaGetDeviceCount ( &count  );
 
