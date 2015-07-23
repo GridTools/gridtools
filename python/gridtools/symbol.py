@@ -411,23 +411,21 @@ class Scope (object):
 class StencilScope (Scope):
     """
     Stencil symbols are organized into scopes that alter the visibility 
-    of the variables defined in the stencil or any of its functors.
+    of the variables defined in the stencil or any of its stages.
     Basically, if a symbol is defined at stencil level, the stencil itself and
-    all its functors can access the it. If it is defined at functor level, it
-    is accesible within that functor only.-
+    all its stages can access it. If it is defined at stage level, it is 
+    accesible only within that stage.-
     """
     def __init__ (self):
         super ( ).__init__ ( )
         #
-        # a list of stages within this stencil
+        # stages within this stencil (k=stage name, v=object)
         #
-        self.functors       = list ( )
+        self.stages         = dict ( )
         #
-        # the scope of each stencil functor is kept as a dict, i.e.:
+        # this list keeps the correct order of the stages within the stencil
         #
-        #       A = (k=functor name, v=scope)
-        #
-        self.functor_scopes = dict ( )
+        self.ordered_stages = list ( )
         #
         # the stencil's source code
         #
@@ -463,17 +461,31 @@ class StencilScope (Scope):
                     logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
-    def add_functor (self, funct_name):
+    def add_stage (self, node, stencil_scope, prefix='', suffix=''):
         """
-        Returns a new scope for keeping the functor's symbols:
+        Adds a Stage object to this stencil's scope
+        :param node:          the For AST node of the comprehention from which
+                              the stage is constructed
+        :param stencil_scope: the scope of symbols at stencil level
+        :param prefix:        prefix to add to the stage's name
+        :param suffix:        suffix to add to the stage's name
+        :return:              the corresponding Stage object
+        """
+        from gridtools.functor import Functor
 
-            funct_name  a unique name for the functor.-
-        """
-        if funct_name not in self.functor_scopes.keys ( ):
-            self.functor_scopes[funct_name] = Scope ( )
+        stage_name = '%s_%03d_%s' % (prefix,
+                                     len (self.stages),
+                                     suffix)
+        if stage_name not in self.stages:
+            self.stages[stage_name] = Functor (stage_name,
+                                               node,
+                                               stencil_scope)
+            self.ordered_stages.append (self.stages[stage_name])
+            logging.debug ("Stage '%s' created" % stage_name)
         else:
-            logging.warning ("Functor '%s' already exists in symbol table.-" % funct_name)
-        return self.functor_scopes[funct_name]
+            logging.warning ("Stage '%s' already exists within the stencil scope" % stage_name)
+        assert (len (self.stages) == len (self.ordered_stages))
+        return self.stages[stage_name]
 
 
     def runtime_analysis (self, stencil, **kwargs):
@@ -515,6 +527,6 @@ class StencilScope (Scope):
         if __debug__:
             logging.debug ("Symbols found after applying run-time code analysis:")
             self.dump ( )
-            for f in self.functors:
-                f.scope.dump ( )
+            for stg in self.ordered_stages:
+                stg.scope.dump ( )
 

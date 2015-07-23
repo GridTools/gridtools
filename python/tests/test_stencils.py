@@ -30,8 +30,8 @@ class AccessPatternDetectionTest (unittest.TestCase):
         #
         # check the access-pattern detection within each stencil stage
         #
-        for f in stencil.scope.functors:
-            sc = f.scope
+        for stg in stencil.stages:
+            sc = stg.scope
             for p in sc.get_all ( ):
                 if not sc.is_alias (p.name):
                     try:
