@@ -11,41 +11,44 @@ from gridtools.compiler import StencilInspector
 
 
 
-class RangeDetectionTest (unittest.TestCase):
+class AccessPatternDetectionTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
-        self.field_ranges = dict ( )
+        self.field_access_patterns = dict ( )
 
 
-    def add_expected_range (self, field, expected_range):
-        if field not in self.field_ranges.keys ( ):
-            self.field_ranges[field] = list ( )
-        self.field_ranges[field].append (expected_range)
+    def add_expected_offset (self, field, expected_offset):
+        if field not in self.field_access_patterns.keys ( ):
+            self.field_access_patterns[field] = list ( )
+        self.field_access_patterns[field].append (expected_offset)
 
 
-    def automatic_range_detection (self, stencil):
+    def automatic_access_pattern_detection (self, stencil):
         import copy
 
-        fld_rgs = copy.deepcopy (self.field_ranges)
+        acc_ptn = copy.deepcopy (self.field_access_patterns)
         #
-        # check the range detection within each functor of the stencil
+        # check the access-pattern detection within each stencil stage
         #
         for f in stencil.scope.functors:
             sc = f.scope
             for p in sc.get_all ( ):
                 if not sc.is_alias (p.name):
                     try:
-                        expected = fld_rgs[p.name]
-                        self.assertIn (sc[p.name].range, expected,
-                                       "Range '%s' of '%s' does not match any of %s" %
-                                       (sc[p.name].range, p.name, expected))
+                        expected = acc_ptn[p.name]
+                        self.assertIn (sc[p.name].access_pattern, 
+                                       expected,
+                                       "Access offset '%s' of field '%s' does not match any of %s" %
+                                        (sc[p.name].access_pattern, 
+                                         p.name, 
+                                         expected))
                         #
-                        # remove the correct range to avoid finding it twice
+                        # remove the correct pattern to avoid finding it twice
                         #
-                        index = fld_rgs[p.name].index (sc[p.name].range)
-                        fld_rgs[p.name].pop (index)
+                        index = acc_ptn[p.name].index (sc[p.name].access_pattern)
+                        acc_ptn[p.name].pop (index)
                     except KeyError:
-                        logging.error ("No range given for field '%s'"
+                        logging.error ("No access offsets given for field '%s'"
                                        % p.name)
                         self.assertTrue (False)
 
@@ -68,7 +71,7 @@ class Copy (MultiStageStencil):
 
 
 
-class CopyTest (RangeDetectionTest):
+class CopyTest (AccessPatternDetectionTest):
     """
     A test case for the copy stencil defined above.-
     """
@@ -129,19 +132,19 @@ class CopyTest (RangeDetectionTest):
                                                   backend=backend)
 
 
-    def test_automatic_range_detection (self):
+    def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
 
         #
         # fields and their ranges
         #
-        self.add_expected_range ('in_cpy',  None)
-        self.add_expected_range ('out_cpy', None)
+        self.add_expected_offset ('in_cpy',  None)
+        self.add_expected_offset ('out_cpy', None)
 
         for backend in BACKENDS:
             self.stencil.backend = backend
             self._run ( )
-            self.automatic_range_detection (self.stencil)
+            self.automatic_access_pattern_detection (self.stencil)
 
 
     @attr(lang='cuda')
@@ -396,19 +399,19 @@ class LaplaceTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_range_detection (self):
+    def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
 
         #
         # fields and their ranges
         #
-        self.add_expected_range ('in_data',  [-1,1,-1,1])
-        self.add_expected_range ('out_data', None)
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('out_data', None)
 
         for backend in BACKENDS:
             self.stencil.backend = backend
             self._run ( )
-            self.automatic_range_detection (self.stencil)
+            self.automatic_access_pattern_detection (self.stencil)
 
 
     @attr(lang='python')
@@ -510,27 +513,27 @@ class HorizontalDiffusionTest (CopyTest):
                                                        backend='cuda')
 
 
-    def test_automatic_range_detection (self):
+    def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
 
         #
         # fields and their ranges
         #
-        self.add_expected_range ('in_data',  [-1,1,-1,1])
-        self.add_expected_range ('in_wgt',   None)
-        self.add_expected_range ('out_data', None)
-        self.add_expected_range ('self.fli', None)
-        self.add_expected_range ('self.fli', [-1,0,0,0])
-        self.add_expected_range ('self.flj', None)
-        self.add_expected_range ('self.flj', [0,0,-1,0])
-        self.add_expected_range ('self.lap', None)
-        self.add_expected_range ('self.lap', [0,1,0,0])
-        self.add_expected_range ('self.lap', [0,0,0,1])
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_wgt',   None)
+        self.add_expected_offset ('out_data', None)
+        self.add_expected_offset ('self.fli', None)
+        self.add_expected_offset ('self.fli', [-1,0,0,0])
+        self.add_expected_offset ('self.flj', None)
+        self.add_expected_offset ('self.flj', [0,0,-1,0])
+        self.add_expected_offset ('self.lap', None)
+        self.add_expected_offset ('self.lap', [0,1,0,0])
+        self.add_expected_offset ('self.lap', [0,0,0,1])
 
         for backend in BACKENDS:
             self.stencil.backend = backend
             self._run ( )
-            self.automatic_range_detection (self.stencil)
+            self.automatic_access_pattern_detection (self.stencil)
 
 
     @attr(lang='python')

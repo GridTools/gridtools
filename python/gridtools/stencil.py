@@ -117,7 +117,7 @@ class Stencil (object):
         else:
             #
             # calculate 'i','j','k' iteration boundaries
-            # based on 'halo' and access ranges
+            # based on 'halo' and field-access patterns
             #
             i_dim, j_dim, k_dim = data_field.shape
 

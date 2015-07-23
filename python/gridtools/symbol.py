@@ -49,18 +49,21 @@ class Symbol (object):
         self.value = value
 
         #
-        # a range defines the extent of data accessed during stencil execution;
-        # its structure is defined like this:
+        # an access pattern defines the extent of data accessed during the
+        # execution of a stencil stage; its structure is defined as follows:
         #
-        #   (minimum index accessed in _i_, maximum index accessed in _i_, 
-        #    minimum index accessed in _j_, maximum index accessed in _j_)
+        #   (minimum negative index accessed in _i_, 
+        #    maximum positive index accessed in _i_, 
+        #    minimum negative index accessed in _j_, 
+        #    maximum positive index accessed in _j_)
         #
-        self.range = None
+        self.access_pattern = None
 
         #
         # a flag indicating whether this symbol is read-only
         #
-        self.read_only = True
+        self.read_only      = True
+
         
     def __eq__ (self, other):
         return self.__hash__ ( ) == other.__hash__ ( )
@@ -75,28 +78,33 @@ class Symbol (object):
         return self.name
 
 
-    def set_range (self, rng):
+    def set_access_pattern (self, offset):
         """
-        Sets or updates the range of this symbol.-
+        Sets or updates the access pattern of this symbol
+        :param offset: the pattern is defined as (access offset in 'i',
+                                                  access offset in 'j',
+                                                  access offset in 'k')
+        :raise IndexError: if the access pattern 
+        :return:
         """
         try:
-            i, j, k = rng
+            i, j, k = offset 
 
-            if self.range is None:
-                self.range = [0, 0, 0, 0]
+            if self.access_pattern is None:
+                self.access_pattern = [0, 0, 0, 0]
 
-            if self.range[0] > i:
-                self.range[0] = i
-            elif self.range[1] < i:
-                self.range[1] = i
+            if self.access_pattern[0] > i:
+                self.access_pattern[0] = i
+            elif self.access_pattern[1] < i:
+                self.access_pattern[1] = i
 
-            if self.range[2] > j:
-                self.range[2] = j
-            elif self.range[3] < j:
-                self.range[3] = j
+            if self.access_pattern[2] > j:
+                self.access_pattern[2] = j
+            elif self.access_pattern[3] < j:
+                self.access_pattern[3] = j
 
         except IndexError:
-            logging.error ("Range descriptor %s should be 3-dimensional" % rng)
+            logging.error ("Access-offset descriptor %s is invalid" % offset)
 
 
 
