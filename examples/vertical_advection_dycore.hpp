@@ -6,7 +6,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "vertical_advection_repository.hpp"
-#include "verifier.hpp"
+#include <tools/verifier.hpp>
 #include "stencil-composition/make_computation.hpp"
 
 /*

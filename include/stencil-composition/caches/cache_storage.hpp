@@ -30,7 +30,6 @@ struct cache_storage : public block_storage<Value, BlockSize, Range>
     typedef static_uint<1> i_stride_t;
     explicit cache_storage() {}
 
-    template<typename T> struct printy{BOOST_MPL_ASSERT_MSG((false), IIIIIIIII, (T));};
     template<typename Offset>
     GT_FUNCTION
     Value& at(const array<int, 2> thread_pos, Offset const & offset)

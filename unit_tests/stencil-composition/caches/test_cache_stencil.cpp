@@ -13,6 +13,7 @@
 #include <stencil-composition/caches/define_caches.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include <tools/verifier.hpp>
 
 
 using namespace gridtools;
@@ -109,6 +110,8 @@ TEST(cache_stencil, ij_cache)
     out.data().update_cpu();
 #endif
 
+    verifier verif(1e-13, halo_size);
+    verif.verify(out, in);
     for(int i = di[2]; i < di[3]; ++i )
     {
         for(int j = dj[2]; j < dj[3]; ++j )
