@@ -56,14 +56,14 @@ struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
  * @param Cache cache being converted into an accessor
  */
 template<typename Cache, typename LocalDomain>
-struct cache_to_accessor
+struct cache_to_index
 {
     GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), "Internal Error: wrong type");
     GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
 
     typedef typename boost::mpl::find<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type >::type arg_pos_t;
 
-    typedef accessor< arg_pos_t::pos::value> type;
+    typedef static_uint< arg_pos_t::pos::value> type;
 };
 
 template<typename EsfSequence, typename CacheSequence>
@@ -169,7 +169,7 @@ struct get_cache_storage_tuple
         boost::mpl::eval_if<
             typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
             boost::mpl::push_back<
-                boost::mpl::_1, boost::mpl::pair<cache_to_accessor<boost::mpl::_2, LocalDomain>, get_cache_storage<boost::mpl::_2> >
+                boost::mpl::_1, boost::mpl::pair<cache_to_index<boost::mpl::_2, LocalDomain>, get_cache_storage<boost::mpl::_2> >
             >,
             boost::mpl::identity<boost::mpl::_1>
         >

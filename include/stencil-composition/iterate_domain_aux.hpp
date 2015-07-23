@@ -582,7 +582,7 @@ namespace gridtools{
             is_accessor<Accessor>,
             boost::mpl::has_key<
                 CachesMap,
-                accessor<accessor_index_t::value>
+                static_uint<accessor_index_t::value>
             >,
             boost::mpl::identity<boost::mpl::false_>
         >::type type;
