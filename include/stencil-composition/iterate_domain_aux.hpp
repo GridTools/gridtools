@@ -570,10 +570,24 @@ namespace gridtools{
     };
 
     template<typename Accessor, typename CachesMap>
-    struct accessor_is_cached : boost::mpl::has_key<
-        CachesMap,
-        accessor<Accessor::index_type::value>
-    >::type{};
+    struct accessor_is_cached
+    {
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            accessor_index<Accessor>,
+            boost::mpl::identity<static_int<-1> >
+        >::type accessor_index_t;
+
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            boost::mpl::has_key<
+                CachesMap,
+                accessor<accessor_index_t::value>
+            >,
+            boost::mpl::identity<boost::mpl::false_>
+        >::type type;
+        BOOST_STATIC_CONSTANT(bool, value=(type::value));
+    };
 
 
 }//namespace gridtools

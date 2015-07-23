@@ -39,6 +39,9 @@ template<typename T> struct is_cache : boost::mpl::false_{};
 template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
 struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
 
+/**
+ * @brief trait returning the parameter Arg type of a user provided cache
+ */
 template<typename T> struct cache_parameter;
 
 template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
@@ -47,6 +50,11 @@ struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
     typedef Arg type;
 };
 
+/**
+ * @brief metafunction that return an accessor with the right position of the parameter being cached within the local domain.
+ * This is used as key to retrieve later the cache elements from the map.
+ * @param Cache cache being converted into an accessor
+ */
 template<typename Cache, typename LocalDomain>
 struct cache_to_accessor
 {
