@@ -53,8 +53,9 @@ public:
     get_ij_cache()
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ij_caches_map_t,Accessor>::value), "Accessing a non registered cached");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ij_caches_map_t, Accessor>::value), "Accessing a non registered cached");
 
+        //COSUNA REVOCER
         return boost::fusion::at_key<Accessor>(m_ij_caches_tuple);
     }
 

@@ -145,10 +145,10 @@ public:
     template<typename Accessor>
     GT_FUNCTION
     typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    get_cache_value_impl(Accessor const & accessor) const
+    get_cache_value_impl(Accessor const & _accessor) const
     {
         //        assert(m_pshared_iterate_domain);
-        return m_pshared_iterate_domain->template get_ij_cache<Accessor>().at(m_thread_pos, accessor.offsets());
+        return m_pshared_iterate_domain->template get_ij_cache<accessor<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
     }
 
     template <ushort_t Coordinate, typename Execution>
