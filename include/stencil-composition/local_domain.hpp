@@ -1,8 +1,5 @@
 #pragma once
 
-#include "../common/host_device.hpp"
-#include "../common/gpu_clone.hpp"
-#include "../common/is_temporary_storage.hpp"
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/push_back.hpp>
@@ -10,6 +7,11 @@
 #include <boost/fusion/view/zip_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/utility.hpp>
+#include <common/host_device.hpp>
+#include <common/gpu_clone.hpp>
+#include <common/is_temporary_storage.hpp>
+#include <common/generic_metafunctions/is_sequence_of.hpp>
+#include <stencil-composition/arg.hpp>
 
 namespace gridtools {
 
@@ -221,6 +223,7 @@ namespace gridtools {
      */
     template <typename StoragePointers, typename EsfArgs, bool IsStateful>
     struct local_domain : public local_domain_base< local_domain<StoragePointers,EsfArgs,IsStateful>, StoragePointers, IsStateful, EsfArgs > {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfArgs, is_arg>::value),"Local domain contains wront type for parameter placeholders");
         typedef local_domain_base<local_domain<StoragePointers,EsfArgs,IsStateful>, StoragePointers, IsStateful, EsfArgs > base_type;
         typedef StoragePointers storage_pointers;
         typedef EsfArgs esf_args;
