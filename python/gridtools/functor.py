@@ -318,17 +318,17 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = '%s)' % indexing[:-1]
 
                     #
-                    # range detection for data fields
+                    # access-pattern detection for data fields ...
                     #
                     if (isinstance (node.value, ast.Name) or 
                         isinstance (node.value, ast.Attribute)):
                         name   = self.visit (node.value)
                         symbol = self.scope[name]
                         #
-                        # range only makes sense for data fields, i.e., NumPy arrays
+                        # ... only makes sense for NumPy arrays
                         #
                         if isinstance (symbol.value, np.ndarray):
-                            symbol.set_range (eval (indexing))
+                            symbol.set_access_pattern (eval (indexing))
                 else:
                     indexing = ''
                     logging.warning ("Subscript shifting only supported with '+'")

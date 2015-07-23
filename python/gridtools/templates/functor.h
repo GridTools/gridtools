@@ -13,8 +13,8 @@ struct {{ functor.name }}
     {% for p in params -%}
     typedef {% if p.read_only -%}
                 const
-            {%- endif %} accessor<{{ loop.index0 }} {%- if p.range -%}
-                                                        , range<{{ p.range|join(',') }}>
+            {%- endif %} accessor<{{ loop.index0 }} {%- if p.access_pattern -%}
+                                                        , range<{{ p.access_pattern|join(',') }}>
                                                     {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //
