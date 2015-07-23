@@ -368,16 +368,15 @@ class Functor ( ):
     """
     def __init__ (self, name, node, scope, encl_scope):
         """
-        Constructs a new StencilFunctor:
-
-            name        a name to uniquely identify this functor;
-            node        the For AST node (see
-                        https://docs.python.org/3.4/library/ast.html) of the
-                        Python comprehention from which this functor is
-                        constructed;
-            scope       the symbols scope of this functor;
-            encl_scope  the enclosing scope of symbols that are visible to this
-                        functor.-
+        Constructs a new StencilStage
+        :param name:       a name to uniquely identify this functor
+        :param node:       the For AST node of the comprehention from which this
+                           functor is constructed
+        :param scope:      this stage's symbols are kept inside this scope
+        :param encl_scope: the enclosing scope of symbols that are visible from
+                           this stage
+        :raise TypeError:  if the passed node is of the incorrect type
+        :return:
         """
         self.name       = name
         self.scope      = scope

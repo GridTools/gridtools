@@ -38,7 +38,7 @@ class Utilities ( ):
     def is_valid_float_type_size (self, npfloat):
         rv = True
 
-        backendSize = self.compiler.lib_obj.get_backend_float_size ( )
+        backendSize = self.compiler.lib_handle.get_backend_float_size ( )
         nptype      = npfloat.dtype
 
         logging.debug ("Backend Float Size: %d" % backendSize)
