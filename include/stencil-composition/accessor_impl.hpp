@@ -421,6 +421,13 @@ namespace gridtools {
         constexpr int_t get() const { return 0;}
     };
 
+    template<typename T> struct is_offset_tuple : boost::mpl::false_{};
+
+
+    template< int_t Index, int_t Dimension >
+    struct is_offset_tuple<offset_tuple<Index, Dimension> > : boost::mpl::true_ {};
+
+
 //################################################################################
 //                              Compile time checks
 //################################################################################

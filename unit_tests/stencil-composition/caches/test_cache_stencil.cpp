@@ -31,8 +31,25 @@ struct functor1 {
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
         eval(out()) = eval(in());
+        printf("TTT %d %d %f %f %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())));
+
     }
 };
+
+struct functor2 {
+    typedef const accessor<0> in;
+    typedef accessor<1> out;
+    typedef boost::mpl::vector<in,out> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, x_interval) {
+        eval(out()) = eval(in());
+        printf("HHH %d %d %f %f %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())));
+
+    }
+};
+
 
 #ifdef __CUDACC__
   #define BACKEND backend<Cuda, Block >
@@ -79,7 +96,7 @@ TEST(cache_stencil, ij_cache)
                 execute<forward>(),
                 define_caches(cache<IJ, p_buff, cLocal>()),
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
-                make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
+                make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
             ),
             domain, coords
         );
@@ -103,7 +120,7 @@ TEST(cache_stencil, ij_cache)
         {
             for(int k = 0; k < d3; ++k )
             {
-                if(out(i,j,k) != in(i,j,k)) std::cout << "PROBL " << std::endl;
+                if(out(i,j,k) != in(i,j,k)) std::cout << "PROBL " << i << " " << j << " " << k << " " << out(i,j,k) << std::endl;
             }
         }
     }

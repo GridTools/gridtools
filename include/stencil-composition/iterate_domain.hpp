@@ -295,6 +295,7 @@ namespace gridtools {
 #endif
                   , &m_index[0], strides())
                 );
+            static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
@@ -313,6 +314,7 @@ namespace gridtools {
                     typename local_domain_t::local_args_type
                 >(local_domain.local_args, steps_, &m_index[0], strides())
             );
+            static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
         }
 
         /**@brief method for initializing the index */
@@ -327,6 +329,7 @@ namespace gridtools {
                     typename local_domain_t::local_args_type
                 >(strides(), local_domain.local_args, initial_pos, block, &m_index[0])
             );
+            static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
         }
 
         template <typename T>
@@ -403,7 +406,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-            return static_cast<IterateDomainImpl const *>(this)->template get_cache_value_impl<Accessor> ();
+            return static_cast<IterateDomainImpl const *>(this)->template get_cache_value_impl<Accessor> (accessor);
         }
 
 
