@@ -35,6 +35,11 @@ struct cache_storage : public block_storage<Value, BlockSize, Range>
     GT_FUNCTION
     Value& at(const array<int, 2> thread_pos, Offset const & offset)
     {
+#ifdef __CUDACC__
+        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
+        printf("Accessing CACHE %p\n", &(m_values[(thread_pos[0] + offset.template get<0>() - iminus::value) * i_stride_t::value +
+                (thread_pos[0] + offset.template get<0>() + jminus::value) * i_stride_t::value]));
+#endif
         GRIDTOOLS_STATIC_ASSERT((is_offset_tuple<Offset>::value), "Error type is not offset tuple");
         // TODO assert not working, problem with PRETTY_FUNCTION
 //        assert(true);

@@ -30,8 +30,12 @@ struct functor1 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
+        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
+            printf("PRE\n");
+
         eval(out()) = eval(in());
-        printf("TTT %d %d %f %f %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())));
+        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
+        printf("TTT %d %d %f %f %p %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())),&(eval(in())));
 
     }
 };
@@ -44,8 +48,11 @@ struct functor2 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
+        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
+            printf("PRE2\n");
         eval(out()) = eval(in());
-        printf("HHH %d %d %f %f %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())));
+        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
+        printf("HHH %d %d %f %f %p %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())), &(eval(in())));
 
     }
 };
