@@ -63,7 +63,8 @@ public:
         IJ,
         caches_t,
         cache_ranges_t,
-        typename IterateDomainArguments::physical_domain_block_size_t
+        typename IterateDomainArguments::physical_domain_block_size_t,
+        typename IterateDomainArguments::local_domain_t
     >::type ij_caches_vector_t;
 
     typedef typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type ij_caches_tuple_t;

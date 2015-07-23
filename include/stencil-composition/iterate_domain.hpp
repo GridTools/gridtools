@@ -314,6 +314,8 @@ namespace gridtools {
                     typename local_domain_t::local_args_type
                 >(local_domain.local_args, steps_, &m_index[0], strides())
             );
+            printf("M>INC MY %d %d %d %d, %d \n", threadIdx.x, threadIdx.y, blockIdx.x, blockIdx.y, steps_);
+
             static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
         }
 

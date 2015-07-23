@@ -222,7 +222,7 @@ file(APPEND ${TEST_SCRIPT} "res=0\n")
 
 function(gridtools_add_test test_name test_script test_exec)
   add_test(${test_name} ${test_exec} ${ARGN})
-  file(APPEND ${test_script} ${test_exec} ${ARGN} "\n")
+  file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "res=$((res || $? ))\n")
 endfunction(gridtools_add_test)
 
