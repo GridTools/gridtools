@@ -16,25 +16,6 @@
 
 namespace gridtools {
 
-
-    /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
-    template<typename ArgType, typename Storage>
-    struct arg_storage_pair {
-        typedef ArgType arg_type;
-        typedef Storage storage_type;
-
-        Storage *ptr;
-
-        arg_storage_pair(Storage* p)
-            : ptr(p)
-            {}
-
-        Storage* operator*() {
-            return ptr;
-        }
-    };
-
-
     /**@brief method for initializing the offsets in the placeholder
        Version valid for one dimension
        \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)

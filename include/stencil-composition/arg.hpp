@@ -10,6 +10,23 @@
 
 namespace gridtools {
 
+/** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
+template<typename ArgType, typename Storage>
+struct arg_storage_pair {
+    typedef ArgType arg_type;
+    typedef Storage storage_type;
+
+    Storage *ptr;
+
+    arg_storage_pair(Storage* p)
+        : ptr(p)
+        {}
+
+    Storage* operator*() {
+        return ptr;
+    }
+};
+
 /**
  * Type to create placeholders for data fields.
  *
