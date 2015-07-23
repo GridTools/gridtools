@@ -14,6 +14,8 @@ class FunctorBody (ast.NodeVisitor):
     """
     Represents the Do( ) function of a stencil's functor in AST form.-
     """
+    symbol_inspector = SymbolInspector ( )
+
     def __init__ (self, nodes, scope, encl_scope):
         """
         Constructs a functor body object using the received node:
@@ -25,7 +27,6 @@ class FunctorBody (ast.NodeVisitor):
         """
         self.scope       = scope 
         self.encl_scope  = encl_scope
-        self.symbol_insp = SymbolInspector (scope)
         try:
             if len (nodes) > 0:
                 self.nodes = nodes
@@ -35,11 +36,15 @@ class FunctorBody (ast.NodeVisitor):
 
     def _analyze_assignment (self, lval_node, rval_node):
         """
-        Analyze any known symbols appearing as LValue or RValue in an expression.-
+        Analyze any known symbols appearing as LValue or RValue
+        :param lval_node: AST node of the expression appearing as LValue
+        :param rval_node: AST node of the expression appearing as RValue
+        :return:
         """
-        lvalues = self.symbol_insp.search (lval_node)
-        rvalues = self.symbol_insp.search (rval_node)
-
+        lvalues = FunctorBody.symbol_inspector.search (lval_node, 
+                                                       self.scope)
+        rvalues = FunctorBody.symbol_inspector.search (rval_node, 
+                                                       self.scope)
         for lsymbol in lvalues:
             #
             # lvalues (and their aliases) are read/write

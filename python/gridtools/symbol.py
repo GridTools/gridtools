@@ -112,16 +112,20 @@ class SymbolInspector (ast.NodeVisitor):
     """
     Inspects the AST looking for known symbols.-
     """
-    def __init__ (self, scope):
-        self.scope         = scope
+    def __init__ (self):
+        self.scope         = None
         self.symbols_found = None
 
 
-    def search (self, node):
+    def search (self, node, scope):
         """
-        Returns a list of the symbols belonging to the current scope that are
-        found in the AST, the root of which is 'node'.-
+        Returns a list of symbols belonging to the current scope that are
+        found in the AST, the root of which is 'node'
+        :param node:  the AST node from where to start the search
+        :param scope: the scope of symbols
+        :return:      a set containing all the symbols found
         """
+        self.scope         = scope
         self.symbols_found = set ( )
         self.visit (node)
         return self.symbols_found
