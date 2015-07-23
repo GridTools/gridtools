@@ -5,7 +5,7 @@ import logging
 
 import numpy as np
 
-from gridtools.symbol import SymbolInspector
+from gridtools.symbol import Scope, SymbolInspector
 
 
 
@@ -364,22 +364,20 @@ class FunctorBody (ast.NodeVisitor):
 
 class Functor ( ):
     """
-    Represents a functor inside a multi-stage stencil.-
+    Represents a stage inside a stencil.-
     """
-    def __init__ (self, name, node, scope, encl_scope):
+    def __init__ (self, name, node, encl_scope):
         """
         Constructs a new StencilStage
         :param name:       a name to uniquely identify this functor
         :param node:       the For AST node of the comprehention from which this
                            functor is constructed
-        :param scope:      this stage's symbols are kept inside this scope
-        :param encl_scope: the enclosing scope of symbols that are visible from
-                           this stage
+        :param encl_scope: the scope of symbols at stencil level
         :raise TypeError:  if the passed node is of the incorrect type
         :return:
         """
         self.name       = name
-        self.scope      = scope
+        self.scope      = Scope ( )
         self.encl_scope = encl_scope
 
         #

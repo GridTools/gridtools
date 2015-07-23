@@ -282,6 +282,11 @@ class Stencil (object):
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 
+    
+    @property
+    def stages (self):
+        return self.scope.ordered_stages
+
 
 
 class MultiStageStencil (Stencil):

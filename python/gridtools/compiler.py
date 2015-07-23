@@ -132,12 +132,12 @@ class StencilCompiler ( ):
             logging.info ("Generating %s code in '%s'" % (stencil.backend.upper ( ),
                                                           self.src_dir))
             #
-            # generate the code of *all* functors in this stencil,
-            # build a data-dependency graph among *all* data fields
+            # generate the code of *all* stages in this stencil,
+            # build a data-dependency graph among *all* their data fields
             #
-            for func in stencil.scope.functors:
-                func.generate_code (stencil.scope.src)
-                stencil.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
+            for stg in stencil.stages:
+                stg.generate_code (stencil.scope.src)
+                stencil.scope.add_dependencies (stg.get_dependency_graph ( ).edges ( ))
             fun_src, cpp_src, make_src = self.translate (stencil)
 
 
@@ -272,7 +272,7 @@ class StencilCompiler ( ):
         from gridtools import JinjaEnv
 
         functs               = dict ( )
-        functs[stencil.name] = stencil.scope.functors
+        functs[stencil.name] = list (stencil.stages)
 
         #
         # render the source code for each of the functors
@@ -429,7 +429,7 @@ class StencilInspector (ast.NodeVisitor):
                 #
                 # do not the static analysis twice over the same code
                 #
-                if len (st.scope.functors) == 0:
+                if len (st.stages) == 0:
                     self.ast_root = ast.parse (st.scope.src)
                     self.visit (self.ast_root)
                     #
@@ -438,7 +438,7 @@ class StencilInspector (ast.NodeVisitor):
                     if __debug__:
                         logging.debug ("Symbols found after static code analysis:")
                         st.scope.dump ( )
-                    if len (st.scope.functors) == 0:
+                    if len (st.stages) == 0:
                         raise NameError ("Could not extract any stage from stencil '%s'" % st.name)
                 else:
                     logging.debug ("Skipping static code analysis of stencil '%s', because it was already done" % st.name)
@@ -547,12 +547,20 @@ class StencilInspector (ast.NodeVisitor):
                 if (call.func.value.id == 'self' and
                     call.func.attr.startswith ('stage_') ):
                     #
-                    # found a new stage
+                    # found a new independent stage
                     #
-                    funct_name  = '%s_%s_%03d' % (st.name.lower ( ),
-                                                  call.func.attr,
-                                                  len (st.scope.functors))
-                    funct_scope = st.scope.add_functor (funct_name)
+                    stage       = None
+                    name_suffix = call.func.attr
+                    #
+                    # look for its definition
+                    #
+                    for fun_def in self.functor_defs:
+                        if fun_def.name == call.func.attr:
+                            for node in fun_def.body:
+                                if isinstance (node, ast.For):
+                                    stage = self.visit_For (node,
+                                                            name_suffix=name_suffix)
+                    assert (stage is not None)
                     #
                     # extract its parameters
                     #
@@ -561,64 +569,48 @@ class StencilInspector (ast.NodeVisitor):
                     else:
                         for kw in call.keywords:
                             if isinstance (kw.value, ast.Attribute):
-                                funct_scope.add_alias (kw.arg,
+                                stage.scope.add_alias (kw.arg,
                                                        '%s.%s' % (kw.value.value.id,
                                                                   kw.value.attr))
                             elif isinstance (kw.value, ast.Name):
-                                funct_scope.add_alias (kw.arg,
+                                stage.scope.add_alias (kw.arg,
                                                        kw.value.id)
                             else:
                                 raise TypeError ("Unknown type '%s' of keyword argument '%s'" 
                                                  % (kw.value.__class__, kw.arg))
-                    #
-                    # look for its definition
-                    #
-                    for fun_def in self.functor_defs:
-                        if fun_def.name == call.func.attr:
-                            for node in fun_def.body:
-                                if isinstance (node, ast.For):
-                                    self.visit_For (node,
-                                                    funct_name  = funct_name,
-                                                    funct_scope = funct_scope,
-                                                    independent = True)
 
 
-    def visit_For (self, node, funct_name=None, funct_scope=None, independent=False):
+    def visit_For (self, node, name_suffix=None):
         """
         Looks for 'get_interior_points' comprehensions
         :param node:        a node from the AST
-        :param funct_name:  if given, this value is used as functor name
-        :param funct_scope: if given, this value is used as functor scope
-        :param independent: indicates whether the created functor should be 
-                            independent or not
-        :return:
+        :param name_suffix: if given, this value is passed as a suffix of the
+                            stage name
+        :return:            the created Stage object
         """
-        from gridtools.functor import Functor
-
         #
         # the iteration should call 'get_interior_points'
         #
-        st   = self.inspected_stencil
-        call = node.iter
+        st    = self.inspected_stencil
+        call  = node.iter
+        stage = None
         if (call.func.value.id == 'self' and 
             call.func.attr == 'get_interior_points'):
-            #
-            # a random name for this functor if none was given
-            #
-            if funct_name is None and funct_scope is None:
-                funct_name  = '%s_functor_%03d' % (st.name.lower ( ),
-                                                   len (st.scope.functors))
-                funct_scope = st.scope.add_functor (funct_name)
-            #
-            # create a functor object
-            #
-            funct = Functor (funct_name,
-                             node,
-                             funct_scope,
-                             st.scope)
-            funct.independent = independent
-            st.scope.functors.append (funct)
-            logging.debug ("Stage '%s' created" % funct.name)
+            if name_suffix is None:
+                stage = st.scope.add_stage (node,
+                                            st.scope,
+                                            prefix=st.name.lower ( ),
+                                            suffix='stage')
+            else:
+                #
+                # the suffix is present only for independent stages
+                #
+                stage = st.scope.add_stage (node,
+                                            st.scope,
+                                            prefix=st.name.lower ( ),
+                                            suffix=name_suffix)
+                stage.independent = True
+        return stage
 
 
     def visit_FunctionDef (self, node):
