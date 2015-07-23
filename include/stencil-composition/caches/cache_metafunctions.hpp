@@ -30,6 +30,13 @@
 
 namespace gridtools {
 
+/**
+ * @brief metafunction determining if a type is a cache type
+ */
+template<typename T> struct is_cache : boost::mpl::false_{};
+
+template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
 
 template<typename T> struct cache_parameter;
 
@@ -39,22 +46,16 @@ struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
     typedef Arg type;
 };
 
-template<typename T> struct cache_to_accessor;
-
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
-struct cache_to_accessor<cache<cacheType, Arg, cacheIOPolicy> >
+template<typename Cache, typename LocalDomain>
+struct cache_to_accessor
 {
-    typedef accessor<Arg::index_type::value> type;
+    GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
+
+    typedef typename boost::mpl::find<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type >::type arg_pos_t;
+
+    typedef accessor< arg_pos_t::pos::value> type;
 };
-
-/**
- * @brief metafunction determining if a type is a cache type
- */
-template<typename T> struct is_cache : boost::mpl::false_{};
-
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
-struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
-
 
 template<typename EsfSequence, typename CacheSequence>
 struct caches_used_by_esfs
@@ -139,10 +140,12 @@ struct extract_ranges_for_caches
 
 };
 
-template<CacheType cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize>
+template<CacheType cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize, typename LocalDomain>
 struct get_cache_storage_tuple
 {
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Internal Error: Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Internal Error: Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: Wrong Type");
 
     template<typename Cache>
     struct get_cache_storage
@@ -157,7 +160,7 @@ struct get_cache_storage_tuple
         boost::mpl::eval_if<
             typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
             boost::mpl::push_back<
-                boost::mpl::_1, boost::mpl::pair<cache_to_accessor<boost::mpl::_2>, get_cache_storage<boost::mpl::_2> >
+                boost::mpl::_1, boost::mpl::pair<cache_to_accessor<boost::mpl::_2, LocalDomain>, get_cache_storage<boost::mpl::_2> >
             >,
             boost::mpl::identity<boost::mpl::_1>
         >

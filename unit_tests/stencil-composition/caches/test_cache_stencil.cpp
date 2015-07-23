@@ -30,33 +30,9 @@ struct functor1 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
-            printf("PRE\n");
-
         eval(out()) = eval(in());
-        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
-        printf("TTT %d %d %f %f %p %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())),&(eval(in())));
-
     }
 };
-
-struct functor2 {
-    typedef const accessor<0> in;
-    typedef accessor<1> out;
-    typedef boost::mpl::vector<in,out> arg_list;
-
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) {
-        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
-            printf("PRE2\n");
-        eval(out()) = eval(in());
-        if(threadIdx.x==0 && threadIdx.y==0 && blockIdx.x==0 && blockIdx.y==0)
-        printf("HHH %d %d %f %f %p %p\n", threadIdx.x, threadIdx.y, eval(out()), eval(in()), &(eval(out())), &(eval(in())));
-
-    }
-};
-
 
 #ifdef __CUDACC__
   #define BACKEND backend<Cuda, Block >
@@ -86,6 +62,18 @@ TEST(cache_stencil, ij_cache)
     coords.value_list[1] = d3-1;
 
     storage_type in(d1, d2, d3, -8.5, "in");
+
+    for(int i = di[2]; i < di[3]; ++i )
+    {
+        for(int j = dj[2]; j < dj[3]; ++j )
+        {
+            for(int k = 0; k < d3; ++k )
+            {
+                in(i,j,k) = i+j*100+k*10000;
+            }
+        }
+    }
+
     storage_type out(d1, d2, d3, 0.0, "out");
 
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
@@ -103,7 +91,7 @@ TEST(cache_stencil, ij_cache)
                 execute<forward>(),
                 define_caches(cache<IJ, p_buff, cLocal>()),
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
-                make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
+                make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
             ),
             domain, coords
         );
@@ -127,7 +115,7 @@ TEST(cache_stencil, ij_cache)
         {
             for(int k = 0; k < d3; ++k )
             {
-                if(out(i,j,k) != in(i,j,k)) std::cout << "PROBL " << i << " " << j << " " << k << " " << out(i,j,k) << std::endl;
+                if(out(i,j,k) != in(i,j,k)) std::cout << "PROBL " << i << " " << j << " " << k << " " << out(i,j,k) << " " << in(i,j,k) <<  std::endl;
             }
         }
     }
