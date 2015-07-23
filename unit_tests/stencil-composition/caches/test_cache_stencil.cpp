@@ -15,13 +15,14 @@
 #include <stencil-composition/make_computation.hpp>
 #include <tools/verifier.hpp>
 
+namespace test_cache_stencil {
 
 using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
-typedef gridtools::interval<level<0,-1>, level<1, 1> > axis;
+typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axis;
 
 struct functor1 {
     typedef const accessor<0> in;
@@ -32,6 +33,18 @@ struct functor1 {
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
         eval(out()) = eval(in());
+    }
+};
+
+struct functor2 {
+    typedef const accessor<0, range<-1,1,-1,1> > in;
+    typedef accessor<1> out;
+    typedef boost::mpl::vector<in,out> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, x_interval) {
+        eval(out()) = (eval(in(-1,0,0)) + eval(in(1,0,0)) + eval(in(0,-1,0)) + eval(in(0,-1,0))) / (float_type)4.0 ;
     }
 };
 
@@ -49,36 +62,57 @@ typedef arg<0, storage_type> p_in;
 typedef arg<1, storage_type> p_out;
 typedef arg<2, tmp_storage_type> p_buff;
 
-TEST(cache_stencil, ij_cache)
+}
+
+using namespace gridtools;
+using namespace enumtype;
+using namespace test_cache_stencil;
+
+class cache_stencil : public ::testing::Test
 {
-    const int halo_size=2;
-    const int d1=32+halo_size*2;
-    const int d2=32+halo_size*2;
-    const int d3 = 6;
-    uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
-    uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
+protected:
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    const uint_t m_halo_size;
+    const uint_t m_d1, m_d2, m_d3;
 
-    storage_type in(d1, d2, d3, -8.5, "in");
+    array<uint_t, 5> m_di, m_dj;
 
-    for(int i = di[2]; i < di[3]; ++i )
+    gridtools::coordinates<axis> m_coords;
+    storage_type m_in, m_out;
+
+    cache_stencil() :
+        m_halo_size(2), m_d1(32+m_halo_size), m_d2(32+m_halo_size), m_d3(6),
+        m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size, m_d1),
+        m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size, m_d2),
+        m_coords(m_di, m_dj),
+        m_in(m_d1, m_d2, m_d3, -8.5, "in"),
+        m_out(m_d1, m_d2, m_d3, 0.0, "out")
     {
-        for(int j = dj[2]; j < dj[3]; ++j )
+        m_coords.value_list[0] = 0;
+        m_coords.value_list[1] = m_d3-1;
+    }
+
+    virtual void SetUp()
+    {
+        for(int i = m_di[2]; i < m_di[3]; ++i )
         {
-            for(int k = 0; k < d3; ++k )
+            for(int j = m_dj[2]; j < m_dj[3]; ++j )
             {
-                in(i,j,k) = i+j*100+k*10000;
+                for(int k = 0; k < m_d3; ++k )
+                {
+                    m_in(i,j,k) = i+j*100+k*10000;
+                }
             }
         }
     }
+};
 
-    storage_type out(d1, d2, d3, 0.0, "out");
 
+
+TEST_F(cache_stencil, ij_cache)
+{
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&in, &out));
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef __CUDACC__
     gridtools::computation* pstencil =
@@ -94,7 +128,7 @@ TEST(cache_stencil, ij_cache)
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
             ),
-            domain, coords
+            domain, m_coords
         );
 
     pstencil->ready();
@@ -107,23 +141,50 @@ TEST(cache_stencil, ij_cache)
     pstencil->finalize();
 
 #ifdef __CUDACC__
-    out.data().update_cpu();
+    m_out.data().update_cpu();
 #endif
 
-    verifier verif(1e-13, halo_size);
-    verif.verify(out, in);
-    for(int i = di[2]; i < di[3]; ++i )
-    {
-        for(int j = dj[2]; j < dj[3]; ++j )
-        {
-            for(int k = 0; k < d3; ++k )
-            {
-                if(out(i,j,k) != in(i,j,k)) std::cout << "PROBL " << i << " " << j << " " << k << " " << out(i,j,k) << " " << in(i,j,k) <<  std::endl;
-            }
-        }
-    }
-    ASSERT_TRUE(true);
+    verifier verif(1e-13, m_halo_size);
+    ASSERT_TRUE(verif.verify(m_out, m_in) );
 }
 
+TEST_F(cache_stencil, ij_cache_offset)
+{
+    typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
+    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+
+#ifdef __CUDACC__
+    gridtools::computation* pstencil =
+#else
+        boost::shared_ptr<gridtools::computation> pstencil =
+#endif
+        make_computation<gridtools::BACKEND, layout_ijk_t>
+        (
+            make_mss // mss_descriptor
+            (
+                execute<forward>(),
+                define_caches(cache<IJ, p_buff, cLocal>()),
+                make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
+                make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
+            ),
+            domain, m_coords
+        );
+
+    pstencil->ready();
+
+    pstencil->steady();
+    domain.clone_to_gpu();
+
+    pstencil->run();
+
+    pstencil->finalize();
+
+#ifdef __CUDACC__
+    m_out.data().update_cpu();
+#endif
+
+    verifier verif(1e-13, m_halo_size);
+    ASSERT_TRUE(verif.verify(m_out, m_in) );
+}
 
 
