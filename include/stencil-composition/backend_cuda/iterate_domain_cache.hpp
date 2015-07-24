@@ -34,6 +34,7 @@ class iterate_domain_cache
     typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
     typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 private:
+    //checks if an arg is used by any of the esfs within a sequence
     template<typename EsfSequence, typename Arg>
     struct is_arg_used_in_esf_sequence
     {
@@ -57,18 +58,22 @@ public:
         is_arg_used_in_esf_sequence<esf_sequence_t, cache_parameter<boost::mpl::_> >
     >::type caches_t;
 
-    typedef typename extract_ranges_for_caches<IterateDomainArguments>::type cache_ranges_t;
+    //extract a sequence of ranges for each cache
+    typedef typename extract_ranges_for_caches<IterateDomainArguments>::type cache_ranges_map_t;
 
+    //compute the fusion vector of pair<index_type, cache_storage>
     typedef typename get_cache_storage_tuple<
         IJ,
         caches_t,
-        cache_ranges_t,
+        cache_ranges_map_t,
         typename IterateDomainArguments::physical_domain_block_size_t,
         typename IterateDomainArguments::local_domain_t
     >::type ij_caches_vector_t;
 
+    //extract a fusion map from the fusion vector of pairs
     typedef typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type ij_caches_tuple_t;
 
+    // compute an mpl from the previous fusion vector, to be used for compile time meta operations
     typedef typename fusion_map_to_mpl_map<ij_caches_tuple_t>::type ij_caches_map_t;
 };
 

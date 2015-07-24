@@ -142,12 +142,15 @@ public:
         return m_pshared_iterate_domain->strides();
     }
 
+    // return a value that was cached
     template<typename Accessor>
     GT_FUNCTION
     typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
     get_cache_value_impl(Accessor const & _accessor) const
     {
         //        assert(m_pshared_iterate_domain);
+        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
+        // the block and the offsets of the accessor
         return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
     }
 
@@ -178,6 +181,7 @@ public:
     }
 
 private:
+    // array storing the (i,j) position of the current thread within the block
     array<int, 2> m_thread_pos;
 };
 

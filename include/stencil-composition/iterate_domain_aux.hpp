@@ -137,8 +137,7 @@ namespace gridtools{
             typedef data_array_t type;
         };
 #endif
-        //TODOCOSUNA getter should be const method. But we can not here because we return a non const *
-        // We should have a getter and a setter
+
         template<short_t Idx>
         GT_FUNCTION
         data_array_t & RESTRICT

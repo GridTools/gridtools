@@ -16,6 +16,10 @@
 
 namespace gridtools {
 
+/**
+ * @struct vector_to_map
+ * convert a vector of pairs into a map
+ */
 template<typename Vec>
 struct vector_to_map
 {
@@ -23,16 +27,6 @@ struct vector_to_map
         Vec,
         boost::mpl::map0<>,
         boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 >
-    >::type type;
-};
-
-template<typename Vec>
-struct mpl_vector_to_fusion_map
-{
-    typedef typename boost::mpl::fold<
-        Vec,
-        boost::fusion::map<>,
-        boost::fusion::result_of::push_back< boost::mpl::_1, boost::mpl::_2 >
     >::type type;
 };
 

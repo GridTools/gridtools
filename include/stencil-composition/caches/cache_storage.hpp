@@ -12,6 +12,16 @@
 
 namespace gridtools {
 
+/**
+ * @struct cache_storage
+ * simple storage class for storing caches. Current version assumes only 2D (i,j), but it will be extended
+ * in future version to support K and IJK storages. Data is allocated on the stack.
+ * The size of the storage is determined by the block size and the extension to this block sizes required for
+ *  halo regions (determined by a range type)
+ * @tparam Value value type being stored
+ * @tparam BlockSize physical domain block size
+ * @tparam Range range
+ */
 template <typename Value, typename BlockSize, typename Range>
 struct cache_storage : public block_storage<Value, BlockSize, Range>
 {
