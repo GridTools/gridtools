@@ -137,7 +137,7 @@ class StencilCompiler ( ):
             #
             for stg in stencil.stages:
                 stg.generate_code (stencil.scope.src)
-                stencil.scope.add_dependencies (stg.get_dependency_graph ( ).edges ( ))
+                stencil.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
             fun_src, cpp_src, make_src = self.translate (stencil)
 
 

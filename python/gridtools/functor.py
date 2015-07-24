@@ -422,8 +422,8 @@ class Functor ( ):
         self.body.generate_code (src)
 
 
-    def get_dependency_graph (self):
-        return self.scope.dependency_graph
+    def get_data_dependency (self):
+        return self.scope.data_dependency
 
 
     def translate (self):

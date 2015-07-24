@@ -166,12 +166,11 @@ class Scope (object):
         #       A = (k=symbol name, v=symbol object)
         # 
         self.symbol_table = dict ( )
-
         #
         # a data-dependency graph
         #
         #
-        self.dependency_graph = nx.DiGraph ( )
+        self.data_dependency = nx.DiGraph ( )
 
 
     def __contains__ (self, name):
@@ -231,19 +230,28 @@ class Scope (object):
 
     def add_dependency (self, left_symbol, right_symbol):
         """
-        Creates a dependency between 'left_symbol' and 'right_symbol'.-
+        Registers a data dependency between two symbols
+        :param left_symbol:  symbol appearing as LValue
+        :param right_symbol: symbol appearing as RValue
+        :raise ValueError:   if trying to add a dependency between non-existent
+                             symbols
+        :return:
         """
         if (left_symbol.name in self) and (right_symbol.name in self):
-            self.dependency_graph.add_edge (left_symbol,
-                                            right_symbol)
+            self.data_dependency.add_edge (left_symbol,
+                                           right_symbol)
         else:
-            raise ValueError ("Trying to add a dependency between non-existent symbols")
+            raise ValueError ("Trying to add a data dependency between non-existent symbols")
 
 
     def add_dependencies (self, deps):
         """
         Adds a sequence of data dependencies, each of which must be given
-        as a 2-tuples of Symbols (u,v).-
+        as a 2-tuples of Symbols (u,v)
+        :param deps:       an iterable of Symbol pairs (s1, s2)
+        :raise ValueError: if trying to add a dependency between non-existent
+                           symbols
+        :return:
         """
         for d in deps:
             try:
