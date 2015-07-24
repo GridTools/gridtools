@@ -87,22 +87,6 @@ class SW (MultiStageStencil):
                                                                         self.B[p]))
 
 
-    def stage_dynamics (self, out_H, in_Hd, in_Hx, in_Hy,
-                              out_U, in_Ud, in_Ux, in_Uy,
-                              out_V, in_Vd, in_Vx, in_Vy):
-        for p in self.get_interior_points (out_H):
-            self.Dh[p] = -in_Ud[p] * in_Hx[p] -in_Vd[p] * in_Hy[p] - in_Hd[p] * (in_Ux[p] + in_Vy[p])
-            self.Du[p] = -in_Ud[p] * in_Ux[p] -in_Vd[p] * in_Uy[p] - self.growth * in_Hx[p]
-            self.Dv[p] = -in_Ud[p] * in_Vx[p] -in_Vd[p] * in_Vy[p] - self.growth * in_Hy[p]
-
-            #
-            # take first-order Euler step
-            #
-            out_H[p] = in_Hd[p] + self.dt * self.Dh[p];
-            out_U[p] = in_Ud[p] + self.dt * self.Du[p];
-            out_V[p] = in_Vd[p] + self.dt * self.Dv[p];
-
-
     def kernel (self, out_H, out_U, out_V):
         #
         # momentum calculation for each field
@@ -122,20 +106,18 @@ class SW (MultiStageStencil):
                              out_Mx = self.Hx,
                              out_My = self.Hy)
         #
-        # dynamics with momentum combined
+        # dynamics and momentum combined
         #
-        self.stage_dynamics (out_H = out_H,
-                             out_U = out_U,
-                             out_V = out_V,
-                             in_Hd = self.Hd,
-                             in_Ud = self.Ud,
-                             in_Vd = self.Vd,
-                             in_Hx = self.Hx,
-                             in_Ux = self.Ux,
-                             in_Vx = self.Vx,
-                             in_Hy = self.Hy,
-                             in_Uy = self.Uy,
-                             in_Vy = self.Vy)
+        for p in self.get_interior_points (out_H):
+            self.Dh[p] = -self.Ud[p] * self.Hx[p] -self.Vd[p] * self.Hy[p] - self.Hd[p] * (self.Ux[p] + self.Vy[p])
+            self.Du[p] = -self.Ud[p] * self.Ux[p] -self.Vd[p] * self.Uy[p] - self.growth * self.Hx[p]
+            self.Dv[p] = -self.Ud[p] * self.Vx[p] -self.Vd[p] * self.Vy[p] - self.growth * self.Hy[p]
+            #
+            # take first-order Euler step
+            #
+            out_H[p] = self.Hd[p] + self.dt * self.Dh[p]
+            out_U[p] = self.Ud[p] + self.dt * self.Du[p]
+            out_V[p] = self.Vd[p] + self.dt * self.Dv[p]
 
 
 

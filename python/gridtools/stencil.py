@@ -195,10 +195,14 @@ class Stencil (object):
 
     def resolve (self, **kwargs):
         """
-        Resolve the names and types of the symbols used in this stencil.-
+        Resolve the names and types of the symbols used in this stencil
+        :param kwargs:     the parameters passed to this stencil for execution
+        :raise ValueError: if the last stage is independent, which is an invalid
+                           stencil
+        :return:
         """
         #
-        # try to resolve all symbols by applying static-code analysis
+        # try to resolve all symbols by applying static-code analysis ...
         #
         Stencil.compiler.static_analysis (self)
         #

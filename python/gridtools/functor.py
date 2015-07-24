@@ -16,22 +16,23 @@ class FunctorBody (ast.NodeVisitor):
     """
     symbol_inspector = SymbolInspector ( )
 
-    def __init__ (self, nodes, scope, encl_scope):
+    def __init__ (self, nodes, scope, stencil_scope):
         """
-        Constructs a functor body object using the received node:
-
-            nodes       an AST-node list representing the body of this functor;
-            scope       the symbols scope of this functor;
-            encl_scope  the enclosing scope of symbols that are visible to this
-                        functor.-
+        Constructs a functor body object
+        :param nodes:         an AST-node list representing the body of this 
+                              functor
+        :param scope:         the symbols scope of this functor
+        :param stencil_scope: the enclosing scope of symbols that are visible 
+                              to this stage
+        :raise TypeError:     if nodes is not iterable
         """
-        self.scope       = scope 
-        self.encl_scope  = encl_scope
+        self.scope         = scope 
+        self.stencil_scope = stencil_scope
         try:
             if len (nodes) > 0:
                 self.nodes = nodes
         except TypeError:
-            logging.warning ("FunctorBody expects a list of AST nodes.")
+            raise TypeError ("FunctorBody expects a list of AST nodes.")
 
 
     def _analyze_assignment (self, lval_node, rval_node):
@@ -180,12 +181,12 @@ class FunctorBody (ast.NodeVisitor):
         #
         # then within the enclosing scope, so to enforce correct scope shadowing
         #
-        elif name in self.encl_scope:
-            symbol = self.encl_scope[name]
+        elif name in self.stencil_scope:
+            symbol = self.stencil_scope[name]
             #
             # try to inline the value of the symbol
             #
-            if self.encl_scope.is_constant (name):
+            if self.stencil_scope.is_constant (name):
                 return str (symbol.value)
             else:
                 #
@@ -252,8 +253,8 @@ class FunctorBody (ast.NodeVisitor):
         #
         if name in self.scope:
             symbol = self.scope[name]
-        elif name in self.encl_scope:
-            symbol = self.encl_scope[name]
+        elif name in self.stencil_scope:
+            symbol = self.stencil_scope[name]
             #
             # existing symbols in the enclosing scope
             # are parameters to this functor
@@ -269,8 +270,8 @@ class FunctorBody (ast.NodeVisitor):
         if self.scope.is_alias (name):
             if symbol.value in self.scope:
                 aliased = self.scope[symbol.value]
-            elif symbol.value in self.encl_scope:
-                aliased = self.encl_scope[symbol.value]
+            elif symbol.value in self.stencil_scope:
+                aliased = self.stencil_scope[symbol.value]
             else:
                 raise NameError ("Could not dereference alias '%s'" % name)
             self.scope.add_parameter (aliased.name,
@@ -371,24 +372,24 @@ class Functor ( ):
     """
     Represents a stage inside a stencil.-
     """
-    def __init__ (self, name, node, encl_scope):
+    def __init__ (self, name, node, stencil_scope):
         """
         Constructs a new StencilStage
-        :param name:       a name to uniquely identify this functor
-        :param node:       the For AST node of the comprehention from which this
-                           functor is constructed
-        :param encl_scope: the scope of symbols at stencil level
-        :raise TypeError:  if the passed node is of the incorrect type
+        :param name:          a name to uniquely identify this functor
+        :param node:          the For AST node of the comprehention from which
+                              this functor is constructed
+        :param stencil_scope: the scope of symbols at stencil level
+        :raise TypeError:     if the passed node is of the incorrect type
         :return:
         """
-        self.name       = name
-        self.scope      = Scope ( )
-        self.encl_scope = encl_scope
+        self.name          = name
+        self.scope         = Scope ( )
+        self.stencil_scope = stencil_scope
 
         #
-        # whether this functor is executed independently from the rest in the stencil
+        # whether this stage is executed independently from other stages
         #
-        self.independent = False
+        self._independent = False
         #
         # the root AST node of the for-loop representing this functor
         #
@@ -401,7 +402,7 @@ class Functor ( ):
         #
         self.body = FunctorBody (self.node.body,
                                  self.scope,
-                                 self.encl_scope)
+                                 self.stencil_scope)
 
 
     def __hash__ (self):
@@ -424,6 +425,20 @@ class Functor ( ):
 
     def get_data_dependency (self):
         return self.scope.data_dependency
+
+
+    @property
+    def independent (self):
+        return self._independent
+
+
+    @independent.setter
+    def independent (self, value):
+        self._independent = bool (value)
+        #
+        # have to rebuild the stage-execution graph
+        #
+        self.stencil_scope.build_execution_path ( )
 
 
     def translate (self):
