@@ -1,9 +1,3 @@
-/*
- * is_sequence_of.hpp
- *
- *  Created on: Jul 15, 2015
- *      Author: cosuna
- */
 #pragma once
 
 #include <boost/mpl/quote.hpp>

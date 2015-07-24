@@ -1,10 +1,3 @@
-/*
- * cache_storage.hpp
- *
- *  Created on: Jul 20, 2015
- *      Author: cosuna
- */
-
 #pragma once
 #include <common/gt_assert.hpp>
 #include <stencil-composition/block_size.hpp>

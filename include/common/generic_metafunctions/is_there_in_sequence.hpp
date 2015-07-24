@@ -1,10 +1,3 @@
-/*
- * is_there_in_sequence.hpp
- *
- *  Created on: Jul 17, 2015
- *      Author: cosuna
- */
-
 #pragma once
 
 #include <boost/mpl/is_sequence.hpp>
