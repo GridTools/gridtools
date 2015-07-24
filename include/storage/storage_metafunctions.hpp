@@ -9,6 +9,10 @@
 
 namespace gridtools{
 
+/**
+ * @brief The storage_holds_data_field struct
+ * determines if the storage class is holding a data field type of storage
+ */
 template<typename T>
 struct storage_holds_data_field : boost::mpl::false_{};
 

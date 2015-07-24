@@ -37,9 +37,6 @@ namespace _impl_cuda {
         const uint_t block_size_j = (blockIdx.y+1) * block_size_t::j_size_t::value < ny ?
                 block_size_t::j_size_t::value : ny - blockIdx.y * block_size_t::j_size_t::value ;
 
-//        __shared__ array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
-//        __shared__ strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides;
-
         __shared__ shared_iterate_domain_t shared_iterate_domain;
 
         //Doing construction of the ierate domain and assignment of pointers and strides

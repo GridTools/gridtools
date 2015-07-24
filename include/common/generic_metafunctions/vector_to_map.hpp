@@ -1,10 +1,3 @@
-/*
- * vector_to_map.hpp
- *
- *  Created on: Jul 21, 2015
- *      Author: cosuna
- */
-
 #pragma once
 #include <boost/mpl/map.hpp>
 #include <boost/fusion/mpl/insert.hpp>
@@ -18,7 +11,7 @@ namespace gridtools {
 
 /**
  * @struct vector_to_map
- * convert a vector of pairs into a map
+ * convert a vector of pairs into a make_pair
  */
 template<typename Vec>
 struct vector_to_map

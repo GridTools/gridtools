@@ -3,6 +3,10 @@
 
 namespace gridtools {
 
+ /*
+ * @struct is_not_same
+ * just a not of is_same
+ */
 template<typename T1, typename T2>
 struct is_not_same
 {

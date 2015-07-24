@@ -1,10 +1,3 @@
-/*
- * esf_metafunctions.hpp
- *
- *  Created on: Jul 20, 2015
- *      Author: cosuna
- */
-
 #pragma once
 
 #include <stencil-composition/esf.hpp>
