@@ -76,21 +76,10 @@ cmake \
 
 make -j8;
 
-if [ "x$TARGET" == "xgpu" ]
+sh ./run_tests.sh
+
+if [ "x$TARGET" == "xcpu" ]
 then
-make tests_gpu;
-
-./build/tests_gpu
-
-#  if [ "$RUN_MPI_TESTS" == "ON" ]
-#  then
-      #TODO not updated to greina
-      # ../examples/communication/run_communication_tests.sh
-#  fi
-
-else
-make tests;
-./build/tests
 
   if [ "$RUN_MPI_TESTS" == "ON" ]
   then
