@@ -1,7 +1,6 @@
 #pragma once
 #include <common/gt_assert.hpp>
 #include <stencil-composition/block_size.hpp>
-#include <storage/block_storage.hpp>
 
 namespace gridtools {
 
