@@ -1,4 +1,5 @@
 #pragma once
+#include <stencil-composition/timer.hpp>
 
 namespace gridtools {
 
