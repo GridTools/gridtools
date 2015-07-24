@@ -6,6 +6,12 @@
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
+#ifdef __ENABLE_METERS__
+  #include <stencil-composition/backend_cuda/timer_cuda.hpp>
+#else
+  #include <stencil-composition/timer_dummy.hpp>
+#endif
+
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -194,6 +200,12 @@ namespace gridtools{
         {
             typedef iterate_domain_cache<IterateDomainArguments> type;
         };
+
+#ifdef __ENABLE_METERS__
+        typedef timer_cuda performance_meter_t;
+#else
+        typedef timer_dummy performance_meter_t;
+#endif
     };
 
 }//namespace gridtools
