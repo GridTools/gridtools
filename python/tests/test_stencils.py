@@ -112,7 +112,7 @@ class CopyTest (AccessPatternDetectionTest):
         if deps is None:
             deps = [ self.params ]
 
-        stencil_deps = self.stencil.scope.dependency_graph.edges ( )
+        stencil_deps = self.stencil.scope.data_dependency.edges ( )
         #
         # check the dependency detection for the whole stencil
         #

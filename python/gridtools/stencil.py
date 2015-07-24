@@ -81,6 +81,7 @@ class Stencil (object):
 
         pos = nx.spring_layout (G)
         nx.draw_networkx_nodes (G,
+                                node_size=1500,
                                 pos=pos)
         nx.draw_networkx_edges (G,
                                 pos=pos,
@@ -176,11 +177,16 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_dependency_graph (self):
+    def plot_data_dependency (self, graph=None):
         """
-        Renders the data depencency graph using 'matplotlib'.-
+        Renders a data-depencency graph using 'matplotlib'
+        :param graph: the graph to render; it renders this stencil's data
+                      dependency graph if None given
+        :return:
         """
-        self._plot_graph (self.scope.dependency_graph)
+        if graph is None:
+            graph = self.scope.data_dependency
+        self._plot_graph (graph)
 
 
     def recompile (self):
@@ -520,7 +526,7 @@ class CombinedStencil (Stencil):
                                           source=self.get_root ( )):
             for func in st.inspector.functors:
                 func.generate_code (st.inspector.src)
-                st.scope.add_dependencies (func.get_dependency_graph ( ).edges ( ))
+                st.scope.add_dependencies (func.get_data_dependency ( ).edges ( ))
             fun_src, _, _  = Stencil.compiler.translate (st)
             functor_src   += fun_src
 
