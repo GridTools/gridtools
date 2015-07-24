@@ -15,7 +15,7 @@ namespace gridtools {
  * @tparam Range range
  */
 template <typename Value, typename BlockSize, typename Range>
-struct cache_storage : public block_storage<Value, BlockSize, Range>
+struct cache_storage
 {
 
     GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Internal Error: wrong type");
