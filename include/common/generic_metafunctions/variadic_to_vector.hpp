@@ -4,6 +4,11 @@
 
 namespace gridtools{
 
+#ifdef CXX11_ENABLED
+/**
+ * @struct variadic_to_vector
+ * metafunction that returns a mpl vector from a pack of variadic arguments
+ */
 template <typename ...Args> struct variadic_to_vector;
 
 template <class T, typename ...Args>
@@ -23,5 +28,6 @@ struct variadic_to_vector<>
 {
     typedef boost::mpl::vector<> type;
 };
+#endif
 
 }

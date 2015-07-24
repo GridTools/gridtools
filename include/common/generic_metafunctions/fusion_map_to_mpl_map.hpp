@@ -7,6 +7,10 @@
 
 namespace gridtools {
 
+/**
+ * @struct fusion_map_to_mpl_map
+ * extract an mpl map from a fusion map
+ */
 template<typename FusionMap>
 struct fusion_map_to_mpl_map
 {

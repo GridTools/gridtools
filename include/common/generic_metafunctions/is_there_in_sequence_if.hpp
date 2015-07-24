@@ -13,6 +13,10 @@
 
 namespace gridtools {
 
+/**
+ * @struct is_there_in_sequence_if
+ * return true if the predicate returns true when applied, for at least one of the elements in the Sequence
+ */
 template<typename Sequence, typename Pred>
 struct is_there_in_sequence_if
 {

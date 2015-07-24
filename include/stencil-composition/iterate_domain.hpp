@@ -127,6 +127,10 @@ namespace gridtools {
             >::type type;
         };
 
+        /**
+         * metafunction that determines if a given accessor is associated with an arg holding a data field
+         * and the parameter refers to a storage in main memory (i.e. is not cached)
+         */
         template<typename Accessor, typename CachesMap>
         struct mem_access_with_data_field_accessor
         {
@@ -136,6 +140,11 @@ namespace gridtools {
             >::type type;
         };
 
+        /**
+         * metafunction that determines if a given accessor is associated with an arg holding a
+         * standard field (i.e. not a data field)
+         * and the parameter refers to a storage in main memory (i.e. is not cached)
+         */
         template<typename Accessor, typename CachesMap>
         struct mem_access_with_standard_accessor
         {
@@ -145,6 +154,9 @@ namespace gridtools {
             >::type type;
         };
 
+        /**
+         * metafunction that determines if a given accessor is associated with an arg that is cached
+         */
         template<typename Accessor, typename CachesMap>
         struct cache_access_accessor
         {
@@ -348,7 +360,6 @@ namespace gridtools {
         typename accessor_return_type<Accessor>::type::value_type& RESTRICT
         get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const;
 
-
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
         template <bool condition, typename LocalD, typename Accessor>
         struct current_storage;
@@ -405,7 +416,6 @@ namespace gridtools {
         operator()(Accessor const& accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-
             return static_cast<IterateDomainImpl const *>(this)->template get_cache_value_impl<Accessor> (accessor);
         }
 
@@ -537,7 +547,6 @@ namespace gridtools {
             if (Coordinate==1) {
                 m_j+=steps_;
             }
-            //TODOCOSUNA what with the increment of k? Is it GONE?
             base_t::template increment<Coordinate>(steps_);
             if( Coordinate==2)
                 m_k += steps_;

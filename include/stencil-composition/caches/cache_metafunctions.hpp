@@ -32,7 +32,8 @@
 namespace gridtools {
 
 /**
- * @brief metafunction determining if a type is a cache type
+ * @struct is_cache
+ * metafunction determining if a type is a cache type
  */
 template<typename T> struct is_cache : boost::mpl::false_{};
 
@@ -40,7 +41,8 @@ template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
 struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
 
 /**
- * @brief trait returning the parameter Arg type of a user provided cache
+ * @struct cache_parameter
+ *  trait returning the parameter Arg type of a user provided cache
  */
 template<typename T> struct cache_parameter;
 
@@ -51,9 +53,12 @@ struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
 };
 
 /**
- * @brief metafunction that return an accessor with the right position of the parameter being cached within the local domain.
+ * @struct cache_to_index
+ * metafunction that return the index type with the right position of the parameter being cached within the local domain.
  * This is used as key to retrieve later the cache elements from the map.
- * @param Cache cache being converted into an accessor
+ * @tparam Cache cache being converted into an accessor
+ * @tparam LocalDomain local domain that contains a list of esf args which are used to determine the position of the
+ *        cache within the sequence
  */
 template<typename Cache, typename LocalDomain>
 struct cache_to_index
@@ -62,21 +67,33 @@ struct cache_to_index
     GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
 
     typedef typename boost::mpl::find<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type >::type arg_pos_t;
-
     typedef static_uint< arg_pos_t::pos::value> type;
 };
 
+/**
+ * @struct caches_used_by_esfs
+ * metafunction that filter from a sequence of caches those that are used in a least one esf of the esf sequence
+ * @tparam EsfSequence sequence of esf
+ * @tparam CacheSequence original sequence of caches
+ */
 template<typename EsfSequence, typename CacheSequence>
 struct caches_used_by_esfs
 {
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value),"Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value),"Internal Error: wrong type");
+
     // remove caches which are not used by the stencil stages
     typedef typename boost::mpl::copy_if<
         CacheSequence,
         is_there_in_sequence_if<EsfSequence, esf_has_parameter_h<cache_parameter<boost::mpl::_> > >
     >::type type;
-
 };
 
+/**
+ * @struct cache_is_type
+ * high order metafunction that determines if a cache is of the same type as provided as argument
+ * @tparam cacheType type of cache that cache should equal
+ */
 template<CacheType cacheType>
 struct cache_is_type
 {
@@ -89,6 +106,14 @@ struct cache_is_type
     };
 };
 
+/**
+ * @struct extract_ranges_for_caches
+ * metafunction that extracts the ranges associated to each cache of the sequence of caches provided by the user.
+ * The range is determined as the enclosing range of all the ranges of esfs that use the cache.
+ * It is used in order to allocate enough memory for each cache storage.
+ * @tparam IterateDomainArguments iterate domain arguments type containing sequences of caches, esfs and ranges
+ * @return map<cache,range>
+ */
 template<typename IterateDomainArguments>
 struct extract_ranges_for_caches
 {
@@ -96,10 +121,15 @@ struct extract_ranges_for_caches
     typedef typename IterateDomainArguments::range_sizes_t ranges_t;
     typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
 
+    //insert the range associated to a Cache into the map of <cache, range>
     template<typename RangesMap, typename Cache>
     struct insert_range_for_cache
     {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), "ERROR");
+
+        //update the entry associated to a cache within the map with a new range.
+        // if the key exist we compute and insert the enclosing range, otherwise we just
+        // insert the range into a new entry of the map of <cache, range>
         template<typename RangesMap_, typename Range>
         struct update_range_map
         {
@@ -118,6 +148,8 @@ struct extract_ranges_for_caches
 
         };
 
+        // given an Id within the sequence of esf and ranges, extract the range associated an inserted into
+        // the map if the cache is used by the esf with that Id.
         template<typename RangesMap_, typename EsfIdx>
         struct insert_range_for_cache_esf
         {
@@ -134,6 +166,7 @@ struct extract_ranges_for_caches
             >::type type;
         };
 
+        //loop over all esfs and insert the range associated to the cache into the map
         typedef typename boost::mpl::fold<
             boost::mpl::range_c<int, 0, boost::mpl::size<esf_sequence_t>::value >,
             RangesMap,
@@ -146,8 +179,20 @@ struct extract_ranges_for_caches
         boost::mpl::map0<>,
         insert_range_for_cache<boost::mpl::_1, boost::mpl::_2>
     >::type type;
-
 };
+
+/**
+ * @struct get_cache_storage_tuple
+ * metafunction that computes a fusion vector of pairs of <static_uint<index>, cache_storage> for all the caches,
+ * where the index is the position of the parameter associated to the cache within the local domain
+ * This fusion tuple will be used by the iterate domain to directly retrieve the corresponding cache storage
+ * of a given accessor
+ * @tparam cacheType type of cache
+ * @tparam CacheSequence sequence of caches specified by the user
+ * @tparam CacheRangesMap map of <cache, range> determining the range size of each cache
+ * @tparam BlockSize the physical domain block size
+ * @tparam LocalDomain the fused local domain
+ */
 
 template<CacheType cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize, typename LocalDomain>
 struct get_cache_storage_tuple
@@ -156,13 +201,19 @@ struct get_cache_storage_tuple
     GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Internal Error: Wrong Type");
     GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: Wrong Type");
 
+    // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
+    // into a fusion vector.
+    // Note: building a fusion map using result_of::as_map<mpl_vector_of_pair> did not work due to a clash between
+    // fusion pair and mpl pairs (the algorithm as_map expect fusion pairs). That is the reason of the workaround here
+    // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
+
     template<typename Cache>
     struct get_cache_storage
     {
         typedef cache_storage<float_type, BlockSize, typename boost::mpl::at<CacheRangesMap, Cache>::type > type;
     };
 
-    //first we build an mpl vector
+    //first we build an mpl vector of pairs
     typedef typename boost::mpl::fold<
         CacheSequence,
         boost::mpl::vector0<>,
@@ -175,6 +226,7 @@ struct get_cache_storage_tuple
         >
     >::type mpl_type;
 
+    // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
     template<typename FusionSeq, typename Pair>
     struct insert_pair_into_fusion_vector
     {

@@ -13,6 +13,10 @@
 
 namespace gridtools {
 
+/**
+ * @struct is_there_in_sequence
+ * returns true if the Key is found in the sequence
+ */
 template<typename Sequence, typename Key>
 struct is_there_in_sequence
 {

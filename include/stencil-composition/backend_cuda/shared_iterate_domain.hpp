@@ -18,20 +18,23 @@ namespace gridtools {
 /**
  * @class shared_iterate_domain
  * data structure that holds data members of the iterate domain that must be stored in shared memory.
- * @tparam
+ * @tparam DataPointerArray array of data pointers
+ * @tparam StridesType strides cached type
+ * @tparam IJCachesTuple fusion map of <index_type, cache_storage>
  */
 template<typename DataPointerArray, typename StridesType, typename IJCachesTuple>
 class shared_iterate_domain
 {
+    GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), "Internal Error: wrong type");
     DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
 private:
     DataPointerArray m_data_pointer;
     StridesType m_strides;
     IJCachesTuple m_ij_caches_tuple;
-    //for some reasons, the tuple is built with result_of::as_map, which is translated as a
-    // an fusion map containing mpl pair as elements (instead of fusion pairs): fusion::map< mpl::pair<> >
-    // This creates incompatibilities with fusion algorithms acting on associative containers. For this
-    // reason we construct here a mpl map
+
+    // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
+    // constructed with the result_of::as_map from a fusion vector.
+    // Therefore we construct here a mirror metadata mpl map type to be used for meta algorithms
     typedef typename fusion_map_to_mpl_map<IJCachesTuple>::type ij_caches_map_t;
 
 public:
@@ -47,16 +50,13 @@ public:
     StridesType & strides() { return m_strides;}
 
 
-    template<typename Accessor>
+    template<typename IndexType>
     GT_FUNCTION
-    typename boost::mpl::at<ij_caches_map_t, Accessor>::type& RESTRICT
+    typename boost::mpl::at<ij_caches_map_t, IndexType>::type& RESTRICT
     get_ij_cache()
     {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ij_caches_map_t, Accessor>::value), "Accessing a non registered cached");
-
-        //COSUNA REVOCER
-        return boost::fusion::at_key<Accessor>(m_ij_caches_tuple);
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ij_caches_map_t, IndexType>::value), "Accessing a non registered cached");
+        return boost::fusion::at_key<IndexType>(m_ij_caches_tuple);
     }
 
 };
