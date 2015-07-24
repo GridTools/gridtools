@@ -435,9 +435,10 @@ class StencilScope (Scope):
         #
         self.stages         = dict ( )
         #
-        # this list keeps the correct order of the stages within the stencil
+        # a graph describing the execution path of the stages within the stencil
         #
-        self.ordered_stages = list ( )
+        self.ordered_stages  = list ( )
+        self.stage_execution = nx.DiGraph ( )
         #
         # the stencil's source code
         #
@@ -473,39 +474,89 @@ class StencilScope (Scope):
                     logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
-    def add_stage (self, node, stencil_scope, prefix='', suffix=''):
+    def add_stage (self, node, prefix='', suffix=''):
         """
         Adds a Stage object to this stencil's scope
-        :param node:          the For AST node of the comprehention from which
-                              the stage is constructed
-        :param stencil_scope: the scope of symbols at stencil level
-        :param prefix:        prefix to add to the stage's name
-        :param suffix:        suffix to add to the stage's name
-        :return:              the corresponding Stage object
+        :param node:   the For AST node of the comprehention from which
+                       the stage is constructed
+        :param prefix: prefix to add to the stage's name
+        :param suffix: suffix to add to the stage's name
+        :return:       the corresponding Stage object
         """
         from gridtools.functor import Functor
 
-        stage_name = '%s_%03d_%s' % (prefix,
-                                     len (self.stages),
-                                     suffix)
+        stage_name = '%s_%s_%03d' % (prefix,
+                                     suffix,
+                                     len (self.stages))
         if stage_name not in self.stages:
             self.stages[stage_name] = Functor (stage_name,
                                                node,
-                                               stencil_scope)
+                                               self)
+            #
+            # update the stage execution path
+            #
             self.ordered_stages.append (self.stages[stage_name])
+            if len (self.stage_execution) == 0:
+                self.stage_execution.add_node (self.stages[stage_name])
+            else:
+                postorder = nx.topological_sort (self.stage_execution,
+                                                 reverse=True)
+                self.stage_execution.add_edge (postorder[0],
+                                               self.stages[stage_name])
             logging.debug ("Stage '%s' created" % stage_name)
         else:
-            logging.warning ("Stage '%s' already exists within the stencil scope" % stage_name)
+            logging.warning ("Stage '%s' already exists in the stencil scope" % stage_name)
         assert (len (self.stages) == len (self.ordered_stages))
         return self.stages[stage_name]
+
+
+    def build_execution_path (self):
+        """
+        Analyzes the stages within this stencil scope and builds a graph
+        representing their execution path
+        :return:
+        """
+        leaves              = []
+        new_stage_execution = nx.DiGraph ( ) 
+        for stg in nx.topological_sort (self.stage_execution):
+            new_stage_execution.add_node (stg)
+            if stg.independent:
+                #
+                # adding independent stage
+                #
+                if len (leaves) == 1:
+                    if not leaves[0].independent:
+                        new_stage_execution.add_edge (leaves[0], stg)
+                        leaves.clear ( )
+                    else:
+                        for pred in new_stage_execution.predecessors (leaves[0]):
+                            new_stage_execution.add_edge (pred, stg)
+                elif len (leaves) > 1:
+                    for l in leaves:
+                        assert (l.independent)
+            else:
+                #
+                # adding NON independent stage
+                #
+                if len (leaves) > 0:
+                    for l in leaves:
+                        new_stage_execution.add_edge (l, stg)
+                    leaves.clear ( )
+            leaves.append (stg)
+        #
+        # save the newly built execution path
+        #
+        self.stage_execution = new_stage_execution
 
 
     def runtime_analysis (self, stencil, **kwargs):
         """
         Attempts to aquire more information about the discovered symbols
-        with runtime information of user's stencil instance
-        :param stencil: the user's stencil instance
-        :param kwargs:  the parameters passed to the stencil for execution
+        using runtime information of the user's stencil instance
+        :param stencil:    the user's stencil instance
+        :param kwargs:     the parameters passed to the stencil for execution
+        :raise ValueError: if the last stage is independent, which is an invalid
+                           stencil
         :return:        
         """
         for s in self.get_all ( ):
@@ -532,12 +583,32 @@ class StencilScope (Scope):
                     else:
                         self.add_constant (s.name, 
                                            s.value)
-        self._resolve_params (stencil, **kwargs)
+        #
+        # resolve the stencil parameters as scope symbols
+        #
+        self._resolve_params (stencil,
+                              **kwargs)
+        #
+        # re-build the stage-execution path ...
+        #
+        self.build_execution_path ( )
+        #
+        # ... making sure the last stage is non-independent
+        #
+        correct = False
+        for stg in nx.topological_sort (self.stage_execution,
+                                        reverse=True):
+            if not stg.independent:
+                correct = correct or (len (self.stage_execution.successors (stg)) == 0)
+        if correct:
+            logging.info ("The stage-execution path looks valid")
+        else:
+            raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
         #
         # print out the discovered symbols if in DEBUG mode
         #
         if __debug__:
-            logging.debug ("Symbols found after applying run-time code analysis:")
+            logging.debug ("Symbols found after applying runtime code analysis:")
             self.dump ( )
             for stg in self.ordered_stages:
                 stg.scope.dump ( )

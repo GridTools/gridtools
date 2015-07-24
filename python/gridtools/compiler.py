@@ -540,7 +540,6 @@ class StencilInspector (ast.NodeVisitor):
         :return:
         """
         if isinstance (node.value, ast.Call):
-            st   = self.inspected_stencil
             call = node.value
             if (isinstance (call.func, ast.Attribute) and
                 isinstance (call.func.value, ast.Name)):
@@ -598,7 +597,6 @@ class StencilInspector (ast.NodeVisitor):
             call.func.attr == 'get_interior_points'):
             if name_suffix is None:
                 stage = st.scope.add_stage (node,
-                                            st.scope,
                                             prefix=st.name.lower ( ),
                                             suffix='stage')
             else:
@@ -606,7 +604,6 @@ class StencilInspector (ast.NodeVisitor):
                 # the suffix is present only for independent stages
                 #
                 stage = st.scope.add_stage (node,
-                                            st.scope,
                                             prefix=st.name.lower ( ),
                                             suffix=name_suffix)
                 stage.independent = True
