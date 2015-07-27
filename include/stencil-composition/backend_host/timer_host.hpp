@@ -2,11 +2,7 @@
 
 #include <stencil-composition/timer.hpp>
 
-#ifdef __ENABLE_OPENMP__
 #include <omp.h>
-#else
-#include <ctime>
-#endif
 
 namespace gridtools {
 
