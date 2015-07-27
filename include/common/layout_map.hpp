@@ -107,7 +107,7 @@ namespace gridtools {
 
             \tparam I The index to be queried
         */
-        template <short_t I>
+        template <ushort_t I>
         GT_FUNCTION
         static constexpr short_t at() {
             BOOST_STATIC_ASSERT( I<length );
@@ -781,16 +781,16 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <short_t I, typename T, T DefaultVal>
+        template <ushort_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const& a, T const& b, T const& c) {
-            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+            if ((uint_t) boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if ( (uint_t) boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
+                    if ( (uint_t) boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -814,7 +814,7 @@ namespace gridtools {
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <short_t I, typename T, T DefaultVal>
+        template <ushort_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const* a) {
             return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
@@ -839,14 +839,14 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <short_t I, typename T, T DefaultVal, typename Tuple>
-            GT_FUNCTION
-            static T find_val(Tuple const& indices) {
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        GT_FUNCTION
+        static T find_val(Tuple const& indices) {
             if ((pos_<I>::value >= length))
             {
                 return DefaultVal;
             } else {
-                assert( Tuple::n_dim-pos_<I>::value-1 >=0 );
+                assert( (int_t)Tuple::n_dim-(int_t)pos_<I>::value-1 >=0 );
                 // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a negative index");
                 // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets out of bounds");
                 return indices.template get<Tuple::n_dim-pos_<I>::value-1>();
