@@ -119,7 +119,7 @@ else()
 endif(OPENMP_FOUND)
 
 if(ENABLE_PERFORMANCE_METERS)
-    add_definitions(-D__ENABLE_METERS__)
+    add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
 # find GTest

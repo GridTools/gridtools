@@ -6,7 +6,7 @@
 #include "iterate_domain_host.hpp"
 #include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
-#ifdef __ENABLE_METERS__
+#ifdef ENABLE_METERS
   #include <stencil-composition/backend_host/timer_host.hpp>
 #else
   #include <stencil-composition/timer_dummy.hpp>
@@ -200,7 +200,7 @@ namespace gridtools{
             typedef empty_iterate_domain_cache type;
         };
 
-#ifdef __ENABLE_METERS__
+#ifdef ENABLE_METERS
         typedef timer_host performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;

@@ -16,7 +16,7 @@ if( GCL_MPI )
     list(APPEND SRCFILES copy_stencil_parallel)
 endif()
 
-add_definitions("-D__BENCHMARK__")
+add_definitions("-DBENCHMARK")
 
 foreach(srcfile IN LISTS SRCFILES )
     add_executable(${srcfile}_naive   ${srcfile}.cpp )

@@ -314,7 +314,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     if(!result) std::cout << "ERROR" << std::endl;
 
-#ifdef __BENCHMARK__
+#ifdef BENCHMARK
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 
