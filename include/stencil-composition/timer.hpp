@@ -69,7 +69,10 @@ public:
     std::string to_string() const
     {
         std::ostringstream out;
-        out << m_name << "\t[s]\t" << m_total_time;
+        if(m_total_time < 0)
+            out << "\t[s]\t" << m_name << "NO_TIMES_AVAILABLE";
+        else
+            out << m_name << "\t[s]\t" << m_total_time;
         return out.str();
     }
 
