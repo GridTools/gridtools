@@ -1,33 +1,31 @@
 /*!
 \page Galerkin  Galerking Discretization of a Laplace Operator
 
-This example shows an example on how a Laplace can be discretized using Galerkin Finite Elements methods, using tensor product brick elements.
+This example shows how GridTools implements the Galerkin Finite Elements discretization, using tensor product brick elements.
 
 The goal of this example is to show as a proof of concept the possibility of using a third party library
 (in this case the Intrepid packege in Trilinos) with the numerical tools and basic  definitions already in place, in order to build a custom
-finite element assembly of a differential operator using gridtools, thus taking advantage of all the advanced multi-platform
+finite elements assembly of a differential operator using gridtools, thus taking advantage of all the advanced multi-platform
 optimizations of the library.
 
 The Intrepid TPL provides the definition of several basis functions, quadrature rules, elemantal operations (e.g. scalar/vector products, curl, gradient, divergence, ...).
-This library has the advantage of allowing a user to provide its own storage class, implementing a specific interface. Tihs allows us to be completely general on the
-storage layuot requirements, and to taylor once again the computation to the specific backend at hand.
 
 \section sec_fe_pb_description Problem Description
 
-Let us describe in detail the problem that we want to solve. We aim at solving integrals of the following type
+Let us describe in detail the problem that we want to solve. We aim at solving integrals of the following type, which come from the variational formulation of a partial differential equation:
 
 \f[
     \int_{\Omega}{\phi(\mathbf x)\psi(\mathbf x)}d\Omega
 \f]
 
-where \f$\psi\f$, \f$\phi\f$, and \f$J\f$ are known polynomials and \f$\Omega\f$ is a the domain.
-In the classical Galerkin methods the domain is split into mesh "elements", and the integral above is computed elementwise, as sum of all the ocntributions
+where \f$\psi\f$ and \f$\phi\f$ are known functions on the domain \f$\Omega\f$.
+In the classical Galerkin methods the domain is split into mesh "elements", and the integral above is computed elementwise, as sum of all the contributions
 \f[
     \sum_e\int_{\Omega_e}{\phi(\mathbf x)\psi(\mathbf x)}d\Omega
 \f]
 
-The next step of the discretization is the finite elements map to the reference element (an hypercube with coordinates \f$\{(\pm1,0,0...), (0,\pm1,0,...), (0,0,\pm1,...) ...\}\f$): to solve the integral we change the metric and build a map \f[ x:\mathbb R^n \rightarrow \mathbb R^n \f]
-such that \f[ \Omega_e\mapsto\hat\Omega_e \f]
+The next step of the discretization is the finite elements map to the reference element (an hypercube with coordinates \f$\{(\pm1,0,0...), (0,\pm1,0,...), (0,0,\pm1,...) ...\}\f$): to solve the integral we build a map \f[ x:\mathbb R^n \rightarrow \mathbb R^n \f]
+such that \f[ \hat\Omega_e\mapsto\Omega_e, \f] and use this map to perform a change of varialbe in the integral.
 
 The integral above after the change of coordinates becomes
 
@@ -35,9 +33,9 @@ The integral above after the change of coordinates becomes
     \int_{\hat\Omega_e}{\phi(\hat{\mathbf x})\psi(\hat{\mathbf x})J(\hat{\mathbf x})}d\hat\Omega
 \f]
 
-where \f[J=\frac{\partial x}{\partial\hat x}\f] is the jacobian of the transformation (a constant in case of an affine map).
+where \f[J=\frac{\partial x}{\partial\hat x}\f] is the jacobian of the transformation (a constant in the case in which \f$x\f$ is an affine map).
 
-One main difference between the usual finite-difference stencil-like computations is that we iterate over points in the global domain, while now we want to iterate over elements.
+One main difference between the usual finite-difference stencil-like computations is that we do not iterate over points in the global domain, while now we want to iterate over elements.
 To this end we generalize the concept of iteration point to an element by extending the storage dimensionality:
 if for the finite difference case we had a 3D storage and we were iterating on i, j, and k, now each (i,j,k) point identifies an element, and the points inside the element will be
 accessed using 6 indices (i,j,k,pi,pj,pk) for the point (pi,pj,pk) whithin element (i,j,k).
@@ -53,7 +51,7 @@ The integration can be carried out in the following steps (stages)
 - assembly the contribution of the different elements (i.e. sum up the contributions in the nodes which are overlapping between several elements)
 
 Notice that the last point is not necessary if the discrete finite elements space is discontinuous between the elements, since in the latter case there is no overlap between elements.
-On the other hand when the finite elements space is piecewise linear, we have to sum up the contributions on the boundary of the element, and if the continuity degree increases
+On the other hand when the finite elements space is piecewise linear across the elements, we have to sum up the contributions on the boundary of the element, and if the continuity degree increases
 (\f$\mathcal C^k\f$ continuity across element boundary) the overlap spans several elements.
 
 In the simplistic case of 4 linear quadrilateral elements, as shown in the picture below, we have to merge the 4 quadrilaterals into the one on the right:
@@ -147,175 +145,135 @@ The operation performed is a reduction of k values, where k is the number of ele
   \end{tikzpicture} }
 \f]
 
+
+\section sec_structure Structure of the code
+
+The Galerkin discretization infrastructure is implemented in several files:
+- \ref element_traits.h defines the mapping between the GridTools and Intrepid interfaces.
+- \ref basis_functions.h basis_functions.h contains the definition of a reference element, which is univocally
+  determined by three template arguments:
+  - the order of the basis defined on this element
+  - the type of the basis (e.g. Lagrange, Raviart-Thomas, Nedelec, BDM, ...)
+  - the shape of the element (e.g. Hexahedron, Quadrilateral, Line, ...)
+
+  This structure is used to define the discretization of both the geometric map
+  (reference to current configuration) and of the solution. So we can in principle
+  use arbitrary elements types with arbitrary geometric maps, as long as the element shape is
+  the same.
+- \ref cubature.h contains the definition of the cubature rule, i.e. the points and weights
+  which are used for the numerical computation on an integral on the reference element. The
+  cubature rule is univocally defined by specifying its order and \ref gridtools::reference_element::shape "shape" as template arguments.
+- \ref intrepid.h is responsible for computing the elemental quantities used in the assembly.
+  It defines two structure:
+  - the \ref gridtools::intrepid::discretization "discretization", which contains the basis
+    function and local information concerning the finite elements discretization of the solution
+  - the \ref gridtools::intrepid::geometry "geometry", which derives from the discretization,
+    contains basis functions and local information used for the interpolation of the grid points in
+    the current configuration, and additionally it contains the coordinates of the
+    element nodes in the reference domain (the "local grid").
+
+- \ref assembly.h "assembly.h" contains the part of the assembly which is common to all the Galerkin
+  discretizations, and thus hidden from the user code. This part is responsible for computing all the
+  quanties needed for performing an integral on the current domain configuration, namely the
+  jacobian of the geometric map (i.e. the map of an element from the reference configuration to the
+  current one), its determinant, and its inverse. This structure thus depends exclusively on the
+  geometric map, and not on the finite elements used for the discretization of the fields.
+
+With all this machinery in place we can easily implement a finite element discretization
+of an arbitrary equation. The following files provide an example of how the user code would look like:
+- \ref mass.cpp "mass.cpp" assembly of a mass matrix
+- \ref stiffness.cpp "stiffness.cpp" assembly of a Laplacian
+
 \section sec_code Code Step by Step
 
-We begin the description of this example by analyzing the file "basis_functions.hpp", which wraps all what is needed from the third party library. In this file the discretization type and order are fixed, while in the other files (depending on this one) no assumption is made, except for the element topology (tensor-product hypercubes).
+We present in what follows the user interface implemented in the file
+\ref gridtools::stiffness.cpp "stiffness.cpp", explaining the syntax and the emphasyzing the
+flexibility of the programming model.
 
-Here is the list of the files included:
-\snippet galerkin/basis_functions.h includes
-i.e., besides the file backend.hpp included from the gridtools library (and used in order to select the appropriate storage class), there is a list of files from the Intrepid library,
-defining the possible discretizations and tools for the finite elements machinery. Then there are few files from the Shards library, which is used by Intrepid and describes a set of possible cell topologies.
+As usual in GridTools the user program is split in two part:
+- One defining the kernel functors, which can be arranged in a tree-like structure expressing
+  the dependencies, and are executed on the backend (device).
+- One implementing the main function, executing on the frontend (host), preparing and managing the
+  resourses and the kernel launches.
 
-We then include the files
-\snippet galerkin/basis_functions.h wrapper
-The first one is necessary to work with the Intrepid TPL: it is a wrapper for the gridtools storage
-which implements the interface used inside Intrepid to access a multidimensional array. The second included file is not strictly necessary, since all the information it provides is also available
-from the cell topology data included by the Shards TPL (a dependency of Intrepid containing elemental topology information). However in order to enhance the compiler optimization we implement a class
-providing all the topological information for tensor product elements as compile-time constants, so that the information gets embedded in the executable program and we do not need to allocate a storage
-for it.
-A detaiiled documentation of these files goes beyond the scope of this example, and we address the curious reader to the \subpage IntrepidStorage "Intrepid storage wrapper", and \subpage TensorProductElement "tensor product element" pages.
+\subsection ssec_device Device
 
-It follows the definition of the starage types which will be used in the example:
-\snippet galerkin/basis_functions.h storage definition
+We begin by describing the first part, in which we implement the main kernel functor. As mentioned in
+the above section, the standard machinery needed to compute the standard finite elements integrals
+(i.e. the Jacobian, its determinant and its inverse) is
+implemented already the library, precisely in the file \ref assembly.h "assembly.h",
+which is included here.
 
-Then we define two similar namespaces, one containing the finite elements basis functions description,
-and another one for the geometric map. In the special case of isoparametric finite elements
-(i.e. the case in which the polynomial order of the solution is the same as the one of the polynomials used for the mesh representation)
-these two are the same.
+The remaining part is the computation of the discretized stiffness matrix.
+This computation is performed by means of the following functor
 
-below we report the definitions corresponding to the discretization of the finite elements solution
-\snippet galerkin/basis_functions.h fe namespace
-It consists mainly of calls to the Intrepid library.
-Notice that the TPLs not defining theit getters as constexpr prevents us from defining all these global
-variables as compile-time constants (as they hsould be). For this reason we have to define the \ref gridtools::tensor_product_element "tensor product element" hardcoding its two template parameters (which must correspond to the space dimensionality and polynomial order respectively).
+\snippet galerkin/stiffness.cpp integration
+which computes the following local integral
+\f[ \int_{\hat\Omega} (J^{-1}\nabla\phi) \cdot (J^{-1}\nabla\psi) |J|\;d{\hat\Omega} .\f]
 
-\snippet galerkin/basis_functions.h tensor product
+The input arguments to this functor (i.e. the \ref gridtools::accessor "accessors"), are listed in the snippet below
+\snippet galerkin/stiffness.cpp accessors
+and represent in order the Jacobian determinant, the Jacobian inverse matrix, the quardature weights, the output stiffness matrix,
+the local gradient of the basis function computed in the cubature points, and the gradient of the test function computed
+in the cubature points. These arguments are gouped as usual in the MPL vector \ref stiffness::arg_list arg_list.
 
-Next we report the same definitions for the geometric map
-\snippet galerkin/basis_functions.h geomap namespace
+After the arguments definition the Do method is defined as usual, and the innermost loop of the matrix assembly
+is directly exposed in the user code.
+\snippet galerkin/stiffness.cpp Do_stiffness
 
-Eventually we instantiate the quadrature rule using the Intrepid TPL as a bunch of static global variables in
-a diferent namespace
-\snippet galerkin/basis_functions.h quadrature
+\subsection ssec_host Host
 
-This file contains all the interaction with the third party libraries. Now we move on, and show how to
-implement the integral computation.
+Let us describe now the part which is concerning the host, which starts with few useful type definitions
+\snippet galerkin/stiffness.cpp definitions
+Here we define the type of storage where the stiffness matrix will be allocated (matrix_type). It consists of a 5D storage, since the first 3
+dimensions identify an element, the 4th identifies a specific degree of freedom in the element, and the last dimension spans the
+space dimensionality.
 
-We implement now the actual stages reported in the bullet list shown in \ref sec_fe_pb_description "the previous section", which we rewrite below:
-- compute the jacobian in the quadrature points
-- compute the value of the integral locally to each element
-- assembly the contribution of the different elements (i.e. sum up the contributions in the nodes which are overlapping between several elements)
+The second and third type definitions (fe and geo_map) are used by the user to select the discretization used for the solution and for
+the interpolation of the domain. In this case we use Lagrange polynomial of order one for both, just to keep things simple. The three template
+arguments specified are:
+  - the order of the basis (determining the number of degrees of freedom and the accuracy)
+  - \ref gridtools::enumtype::Basis "the type of the basis"
+  - \ref gridtools::enumtype::Shape "the shape of the elemental cell"
 
-All these three different steps will correspond to a different stage in a Multi-Stage Stencil (MSS)
-definition, in the file "assembly.h".
+In the next line we define the \ref gridtools::cubature "cubature", giving as first template argument the minimum polynomial order that we want it to integrate exactly,
+while the second template argument is the shape type.
 
-In this file as usual we include the \ref gridtools::intermediate "make computation header", togather with the "basis_functions.h" header we just described
-\snippet galerkin/assembly.h includes
+Then the types geo_t and discr_t are the structures responsible of computing all the local contributions to the assembly, such as derivatives of the
+basis functions evaluated in the quadrature points.
 
-we use the following namespaces
+The last definition is an alias for the \ref assembly "assembly infrastructure", which is responsible for computing the Jacobian-related quantities and
+thus only depends on the geometric map.
 
-\snippet galerkin/assembly.h namespaces
+We proceed with the instantiation of the instances of type geo_t and discr_t, and specify which operation are to be computed on the basis functions
+(the possible values are OPERATOR_GRAD, OPERATOR_VALUE, OPERATOR_DIV, OPERATOR_CURL, or OPERATOR_DN where N is a number from 1 to 10).
+\snippet galerkin/stiffness.cpp instantiation
+The line
+\verbation
+geo.compute(Intrepid::OPERATOR_GRAD);
+\endverbatim
+is added by default and can therefore be omitted.
+We instantiate also the assembler
+\snippet galerkin/stiffness.cpp instantiation
 
-and we define the storage types and compile-time constants we will need inside the \ref assembly "assembly" structure
+In the following snippet we compute a equispaced cartesian grid, which would be substituted by user provided grids in the applications.
+\snippet galerkin/stiffness.cpp grid
 
-\snippet galerkin/assembly.h storage_types
+We then proceed with the instantiation and initialization of the stiffness matrix
+\snippet galerkin/stiffness.cpp instantiation_stiffness
 
-We then define the list of data members, their getter methods, and their initialization in the assembly constructor
+We remark here that one could easily define and instantiate with the same strategy all the needed tools to perform integrals on the elements boundary.
+This can be achieved in the following snippet
+\snippet galerkin/stiffness.cpp boundary
 
-\snippet galerkin/assembly.h private members
+The following part consists in the usual placeholders definitions
+\snippet galerkin/stiffness.cpp placeholders
+We remark that instead of creating an instance of \ref gridtools::domain_type "domain_type" as usually done in GridTools, we call the method
+\ref assembly::domain "assembly::domain" which appends the user defined placeholders to those already defined by the assembler.
 
-These members consist of:
-- the dimension of the problem in terms of number of elements in each direction
-- the grid: a multidimensional array with dimensions m_d1 x m_d2 x m_d3 x \ref geomap::basisCardinality "#DofGeo", 3, where "DofGeo" is related to the
-degree of the geometric map, while the last argument is the number of dimensions.
-- the jacobian matrix: a multidimensional array with dimensions m_d1 x m_d2 x m_d3 x \ref cubature::numCubPoints "#quad" x3 x3, where the "quad" argument
-refers to the quadrature points
-- m_jac_det is the determinant of the abovementioned determinant, i.e. a multidimenaional array with dimensions m_d1 x m_d2 x m_d3 x \ref cubature::numCubPoints "#quad".
-- m_f is an input function which micht want to be projected in our FEM space
-- m_result is the final result (i.e. the assembled vector)
-
-In the first stage, given the grid, we compute the Jacobian for each elements as, if \f$x\f$ are the images of the reference nodes under the geometric map, \f$ \phi is the vectorial basis function of
-the geometry interpolation\f$, \f$x_q\f$ are the quadrature points, e is te current element, and l is the local node inside the elements:
-\f$ J_{i,j}(e,l)=\sum_q x_i\frac{\partial \phi^{e,l}_j(x_q)}{\partial\hat x} \f$
-\snippet galerkin/assembly.h update_jac
-The values \f$\phi^{e,l}_j(x_q)\f$ are provided by the Intrepid library, as will be shown later.
-It is worth noticing that the Jacobian might be considered as a temporary field, if its result is only used in the assembly testcase.
-
-The second stage computes the determinant of the Jacobian matrix
-\snippet galerkin/assembly.h det
-where the Jacobian matrix at a given quadrature point would look like
-\f[
-J=\left(
-\begin{array}{ccc}
-\mathrm{jac}(\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimx}+1,\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimx}+2,\mathrm{qp+q})\\
-\mathrm{jac}(\mathrm{dimy}+1\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+1, \mathrm{dimx}+1,\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+1, \mathrm{dimx}+2,\mathrm{qp+q})\\
-\mathrm{jac}(\mathrm{dimy}+2\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+2, \mathrm{dimx}+1,\mathrm{qp+q}) & \mathrm{jac}(\mathrm{dimy}+2, \mathrm{dimx}+2,\mathrm{qp+q})\\
-\end{array}
-\right)
-\f]
-
-The integration follows,
-\snippet galerkin/assembly.h integration
-a nested loop is carried out on the elements, the degrees of freedom per element, and the quadrature points. The loop over the degrees of freedom is split into the three dimensions, so that the local
-coordinates of the points are (Pi, Pj, Pk).
-
-The only part remaining is the assembly, i.e. the sum of the contributions on the edge of the elements. This is done in the following snippet
-\snippet galerkin/assembly.h assembly
-Here we exploit the tensor product structure of the local element. In fact if you consider the following 2d indexes, the number in the circles representing the I, J indexes, with bd_dim=2,
-
-\f[
-  \fbox{
-  \begin{tikzpicture}[shorten >=1pt,auto,node distance=1.5cm,
-    thick,main node/.style={circle,fill=blue!40,draw,font=\sffamily\small\bfseries}]
-  \node[main node] (1)                {$2,2$};
-  \node[main node] (10) [left of=1]   {$2,1$};
-  \node[main node] (2) [left of=10]   {$2,0$};
-  \node[main node] (20) [below of=2]  {$1,0$};
-  \node[main node] (3) [below of=20]  {$0,0$};
-  \node[main node] (30) [right of=3]  {$0,1$};
-  \node[main node] (4) [right of=30]  {$0,2$};
-  \node[main node] (40) [above of=4]  {$1,2$};
-  \node[main node] (50) [left of=40] {$1,1$};
-  \path[every node/.style={font=\sffamily\small}]
-  (1) edge node [left] {} (10)
-  (10) edge node [left] {} (2)
-  (2) edge node [right] {} (20)
-  (20) edge node [right] {} (3)
-  (3) edge node [right] {} (30)
-  (30) edge node [right] {} (4)
-  (4) edge node [left] {} (40)
-  (40) edge node [left] {} (1);
-  \node[main node] (200)   [right of=1]   {$2,0$};
-  \node[main node] (1000)  [right of=200]   {$2,1$};
-  \node[main node] (100)   [right of=1000 ]   {$2,2$};
-  \node[main node] (2000) [below of=200]  {$1,0$};
-  \node[main node] (300)  [below of=2000]  {$0,0$};
-  \node[main node] (3000) [right of=300]  {$0,1$};
-  \node[main node] (400)  [right of=3000]  {$0,2$};
-  \node[main node] (4000) [above of=400]  {$1,2$};
-  \node[main node] (10000) [left of=4000] {$1,1$};
-  \path[every node/.style={font=\sffamily\small}]
-  (100) edge node [left] {}   (1000)
-  (1000) edge node [left] {}  (200)
-  (200) edge node [right] {}  (2000)
-  (2000) edge node [right] {} (300)
-  (300) edge node [right] {}  (3000)
-  (3000) edge node [right] {} (400)
-  (400) edge node [left] {}   (4000)
-  (4000) edge node [left] {}  (100);
-\end{tikzpicture}
-}\f]
-we would have, for the element on the right,
-\code
-out(0,0) += out(i-1, bd_dim,0)
-out(0,1) += out(i-1, bd_dim,1)
-out(0,2) += out(i-1, bd_dim,2)
-\endcode
-where i is the index of the current element in the horizontal dimension.
-
-The above functors represent the core of the computation, and are executed on the backend (e.g. an accelerator). The core part executed
-by the frontend (i.e. the preparation of the storages and the definition of the multi-stage stencil) is partially handled in the code snippet below
-\snippet galerkin/assembly.h compute
-
-
-The missing part to close the chain is a driver function, which is connecting the third party library definitions with the assembly. In particular it is calling the third party library
-in order to populate the storages which are passed as input to the assembly routine, it is running the tests, and checking the correctness of the result.
-We report this funciton in the following code snippet
-\snippet galerkin/intrepid.h test
-
-The criptic and annoying part of this function is the reordering of the local (on the reference element) grid, which is necessary since Intrepid does not guarantee any order of the points in the grids,
-and we want to exploit this knowledge in order to gain performance.
-\snippet galerkin/intrepid.h reorder
-
+The description of the computation defines a series of kernel functors depending one on each other
+\snippet galerkin/stiffness.cpp computation
+\ref assembly::update_jac "update_jac", \ref assembly::det "det", and  \ref assembly::inv "inv" are
+provided by the assembly infrastructure, while the stiffness functor is the one we described in the previous section.
 
 */

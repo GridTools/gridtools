@@ -643,7 +643,10 @@ namespace gridtools{
             return expr_if_then_else<ArgType1, ArgType2, ArgType3 >(arg1, arg2, arg3);}
 
         /** direct access expression*/
-        template<typename ArgType1>
+        template<typename ArgType1,
+                 typename boost::disable_if<
+                     no_expr_nor_accessor_types< ArgType1, int >
+                     , int >::type=0>
         GT_FUNCTION
         constexpr expr_direct_access<ArgType1>    operator ! (ArgType1 arg1){
             return expr_direct_access<ArgType1>(arg1);}

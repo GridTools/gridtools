@@ -1,4 +1,5 @@
 #define PEDANTIC_DISABLED
+
 #include "test_assembly.h"
 #include <iostream>
 

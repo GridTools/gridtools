@@ -21,8 +21,4 @@
     - elementwise integration of the differential operator: this operation generates a "augmented" temporary storage containing the value of the discretization in all the elements degrees of freedoms (i.e. the d.o.f. belonging to the boundary between 2 elements inrepeated on both). This temporary storage can be dealt with as usually, performing tiling in order to keep intermediate results in cache.
     - assembly: consists in summing up the contributions to the degrees of freedoms which are repeated on more than one element. The result of this operation is the output of this example.
 
-    The example is divided in the following files
-    \snippet assembly.h includes
-
-
 */

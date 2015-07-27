@@ -1,7 +1,11 @@
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 
 add_executable( assembly assembly.cpp )
+add_executable( stiffness stiffness.cpp )
+add_executable( mass mass.cpp )
 set_target_properties( assembly PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+set_target_properties( stiffness PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+set_target_properties( mass PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
 
 set( ENABLE_INTREPID "OFF" CACHE BOOL "Enable support of finite elements discretization from the Intrepid library" )
 if(ENABLE_INTREPID)
@@ -19,12 +23,18 @@ if(ENABLE_INTREPID)
     message("kokkos found in " ${KOKKOS_LIB})
     find_library( TEUCHOS_LIB teuchoscore ${INTREPID_LIB_DIR})
     message("teuchos found in " ${TEUCHOS_LIB})
+    find_library( TEUCHOS_NUMERICS_LIB teuchosnumerics ${INTREPID_LIB_DIR})
+    message("teuchos numerics found in " ${TEUCHOS_NUMERICS_LIB})
     find_library( SHARDS_LIB shards ${INTREPID_LIB_DIR})
     message("shards found in " ${SHARDS_LIB})
+
+    find_package(LAPACK REQUIRED)
   endif(NOT INTREPID_LIB_DIR)
 endif(ENABLE_INTREPID)
 
 target_link_libraries( assembly ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${SHARDS_LIB} )
+target_link_libraries( stiffness ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${TEUCHOS_NUMERICS_LIB} ${LAPACK_LIBRARIES} ${SHARDS_LIB} )
+target_link_libraries( mass ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${SHARDS_LIB} )
 
 add_subdirectory( IGA )
 add_subdirectory( doc )
