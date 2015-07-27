@@ -1,8 +1,7 @@
 #pragma once
 
 #include <stencil-composition/timer.hpp>
-
-#include <omp.h>
+#include <common/defs.hpp>
 
 namespace gridtools {
 
@@ -37,7 +36,11 @@ public:
     */
     double pause_impl()
     {
+#if defined(_OPENMP)
         return omp_get_wtime() - startTime_;
+#else
+        return -100;
+#endif
     }
 
 private:
