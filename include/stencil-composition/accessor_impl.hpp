@@ -18,13 +18,11 @@
 namespace gridtools {
 
     //forward declaration
-    template< int_t  Index, int_t Dimension >
+    template< int_t  Index, int_t NDim >
     struct offset_tuple;
 
-    namespace enumtype{
-        template <ushort_t>
-        struct Dimension;
-    }
+    template <ushort_t>
+    struct dimension;
 
     template <uint_t I, typename T>
     struct arg;
@@ -92,14 +90,14 @@ namespace gridtools {
         // by the compiler
         template<uint_t Idx>
         GT_FUNCTION
-        constexpr accessor_base (enumtype::Dimension<Idx> const& x ): m_offsets(x) {}
+        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {}
 
         GT_FUNCTION
         constexpr accessor_base (const int_t x ): m_offsets(x) {}
 
 
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+        /**@brief constructor taking the dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'dimension' is a
            language keyword used at the interface level.
         */
 #if defined( CXX11_ENABLED ) && ! defined(__CUDACC__) //cuda messing up

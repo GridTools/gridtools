@@ -51,7 +51,7 @@ namespace assembly{
         typedef accessor<3, range<-1, 1, -1, 1> > const f;
         typedef accessor<4, range<-1, 1, -1, 1> > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
-        using quad=Dimension<4>;
+        using quad=dimension<4>;
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
