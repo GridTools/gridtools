@@ -431,18 +431,13 @@ class StencilScope (Scope):
     def __init__ (self):
         super ( ).__init__ ( )
         #
-        # stages within this stencil (k=stage name, v=object)
-        #
-        self.stages         = dict ( )
-        #
         # a graph describing the execution path of the stages within the stencil
         #
-        self.ordered_stages  = list ( )
         self.stage_execution = nx.DiGraph ( )
         #
         # the stencil's source code
         #
-        self.src            = None
+        self.src             = None
 
 
     def _resolve_params (self, stencil, **kwargs):
@@ -487,27 +482,26 @@ class StencilScope (Scope):
 
         stage_name = '%s_%s_%03d' % (prefix,
                                      suffix,
-                                     len (self.stages))
-        if stage_name not in self.stages:
-            self.stages[stage_name] = Functor (stage_name,
-                                               node,
-                                               self)
+                                     len (self.stage_execution))
+        stage_obj  = Functor (stage_name,
+                              node,
+                              self)
+        if stage_obj not in self.stage_execution:
             #
             # update the stage execution path
             #
-            self.ordered_stages.append (self.stages[stage_name])
             if len (self.stage_execution) == 0:
-                self.stage_execution.add_node (self.stages[stage_name])
+                self.stage_execution.add_node (stage_obj)
             else:
                 postorder = nx.topological_sort (self.stage_execution,
                                                  reverse=True)
                 self.stage_execution.add_edge (postorder[0],
-                                               self.stages[stage_name])
+                                               stage_obj)
             logging.debug ("Stage '%s' created" % stage_name)
         else:
+            stage_obj = nx.nodes (self.stage_execution).index (stage_obj)
             logging.warning ("Stage '%s' already exists in the stencil scope" % stage_name)
-        assert (len (self.stages) == len (self.ordered_stages))
-        return self.stages[stage_name]
+        return stage_obj
 
 
     def build_execution_path (self):
@@ -547,6 +541,30 @@ class StencilScope (Scope):
         # save the newly built execution path
         #
         self.stage_execution = new_stage_execution
+        #
+        # ... and update the ghost-cell access pattern
+        #
+        self.update_ghost_cell ( )
+
+
+    def check_stage_execution_path (self):
+        """
+        Runs various checks over the topology of the stage-execution graph
+        :raise ValueError: if the last stage of the stencil is independent
+        :return:
+        """
+        #
+        # make sure the last stage is non-independent
+        #
+        correct = False
+        for stg in nx.topological_sort (self.stage_execution,
+                                        reverse=True):
+            if not stg.independent:
+                correct = correct or (len (self.stage_execution.successors (stg)) == 0)
+        if correct:
+            logging.info ("The stage-execution path looks valid")
+        else:
+            raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
 
 
     def runtime_analysis (self, stencil, **kwargs):
@@ -588,28 +606,39 @@ class StencilScope (Scope):
         #
         self._resolve_params (stencil,
                               **kwargs)
-        #
-        # re-build the stage-execution path ...
-        #
-        self.build_execution_path ( )
-        #
-        # ... making sure the last stage is non-independent
-        #
-        correct = False
-        for stg in nx.topological_sort (self.stage_execution,
-                                        reverse=True):
-            if not stg.independent:
-                correct = correct or (len (self.stage_execution.successors (stg)) == 0)
-        if correct:
-            logging.info ("The stage-execution path looks valid")
-        else:
-            raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
-        #
-        # print out the discovered symbols if in DEBUG mode
-        #
-        if __debug__:
-            logging.debug ("Symbols found after applying runtime code analysis:")
-            self.dump ( )
-            for stg in self.ordered_stages:
-                stg.scope.dump ( )
 
+ 
+    def update_ghost_cell (self):
+        """
+        Updates the ghost-cell access pattern of each stage of the stencil, the
+        shape of which is based on the access patterns of their data fields
+        :return:
+        """
+        all_stgs = nx.topological_sort (self.stage_execution, 
+                                        reverse=True)
+        #
+        # first, reset all ghost cells
+        #
+        for stg in all_stgs:
+            stg.ghost_cell = None
+        #
+        # now start calculating them from the leaves ...
+        #
+        for stg in all_stgs:
+            if len (self.stage_execution.successors (stg)) == 0:
+                stg.ghost_cell = [0,0,0,0]
+        #
+        # ... towards the root
+        #
+        for stg in all_stgs:
+            if stg.ghost_cell is None:
+                succs = self.stage_execution.successors (stg)
+                assert (len (succs) > 0)
+                stg.ghost_cell = list (succs[0].ghost_cell)
+                for suc in succs:
+                    add_ghost = suc.scope.get_ghost_cell ( )
+                    for idx in range (len (stg.ghost_cell)):
+                        stg.ghost_cell[idx] += add_ghost[idx]
+        for stg in all_stgs:
+            logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
+                                                             stg.ghost_cell))

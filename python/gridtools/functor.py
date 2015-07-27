@@ -118,12 +118,10 @@ class FunctorBody (ast.NodeVisitor):
                 return "(1/({0}{1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
 
 
-    def generate_code (self, src):
+    def generate_code (self):
         """
-        Generates C++ code from the AST backing this object:
-
-            src     the Python source used to display user-friendly 
-                    error messages.-
+        Generates C++ code from the AST backing this object
+        :return:
         """
         self.cpp_src = ''
         for n in self.nodes:
@@ -133,17 +131,15 @@ class FunctorBody (ast.NodeVisitor):
                     self.cpp_src = "%s;\n\t\t" % self.cpp_src
             except RuntimeError as e:
                 #
-                # preprocess the source code to correctly display the line,
-                # because comments are lost in the AST translation
+                # TODO: preprocess the Python source code to correctly display 
+                # the line where the error occurred, because comments are lost 
+                # in the AST translation
                 #
-                # FIXME: comment_offset is not correctly calculated
-                #
-                src_lines      = src.split ('\n')
-                comment_offset = 0
-                correct_lineno = n.lineno + comment_offset
-                source_line    = src_lines[correct_lineno].strip (' ')
-                raise type(e) ("at line %d:\n\t%s" % (correct_lineno,
-                                                      source_line))
+                #src_lines      = src.split ('\n')
+                #comment_offset = 0
+                #correct_lineno = n.lineno + comment_offset
+                #source_line    = src_lines[correct_lineno].strip (' ')
+                raise type(e)
 
 
     def visit_Assign (self, node):
@@ -368,6 +364,25 @@ class FunctorBody (ast.NodeVisitor):
 
 
 
+class FunctorScope (Scope):
+    """
+    Functor symbols are organized into scopes that represent code visibility
+    blocks.-
+    """
+    def get_ghost_cell (self):
+        """
+        Returns the ghost-cell pattern of this stage
+        :return: a 4-element list describing the ghost cell
+        """
+        ghost = [0,0,0,0]
+        for sym in self.get_all ( ):
+            if sym.access_pattern is not None:
+                for idx in range (len (sym.access_pattern)):
+                    ghost[idx] += sym.access_pattern[idx]
+        return ghost
+
+
+
 class Functor ( ):
     """
     Represents a stage inside a stencil.-
@@ -383,13 +398,16 @@ class Functor ( ):
         :return:
         """
         self.name          = name
-        self.scope         = Scope ( )
+        self.scope         = FunctorScope ( )
         self.stencil_scope = stencil_scope
-
+        #
+        # the ghost-cell access pattern of this stage
+        #
+        self.ghost_cell    = None
         #
         # whether this stage is executed independently from other stages
         #
-        self._independent = False
+        self._independent  = False
         #
         # the root AST node of the for-loop representing this functor
         #
@@ -413,14 +431,12 @@ class Functor ( ):
         return self.name
 
 
-    def generate_code (self, src):
+    def generate_code (self):
         """
-        Generates the C++ code of this functor:
-
-            src     the Python source from which the C++ is generated;
-                    this is used to display user-friendly error messages.-
+        Generates the C++ code of this functor
+        :return:
         """
-        self.body.generate_code (src)
+        self.body.generate_code ( )
 
 
     def get_data_dependency (self):

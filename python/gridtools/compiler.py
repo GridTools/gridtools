@@ -68,6 +68,49 @@ class StencilCompiler ( ):
         self.utils.initialize ( )
 
 
+    def analyze (self, stencil, **kwargs):
+        """
+        Performs a different analyses over the source code of the stencil
+        :param stencil:      the stencil on which the static analysis should be 
+                             performed
+        :param kwargs:       the parameters passed to this stencil for execution
+        :raise LookupError:  if the stencil has not been registered with this
+                             Compiler
+        :raise NameError:    if no stencil stages could be extracted from the 
+                             source
+        :raise RuntimeError: if the stencil's source code is not available,
+                             e.g., if running from an interactive session
+        :raise ValueError:   if the last stage is independent, which is an 
+                             invalid stencil
+        :return:
+        """
+        if stencil in self:
+            #
+            # try to resolve all symbols by applying static-code analysis, ...
+            #
+            self.inspector.static_analysis (stencil)
+            #
+            # ... and by including runtime information
+            #
+            stencil.scope.runtime_analysis (stencil, **kwargs)
+            stencil.generate_code          ( )
+            #
+            # build the stage-execution path
+            #
+            stencil.scope.build_execution_path       ( )
+            stencil.scope.check_stage_execution_path ( )
+            #
+            # print out the discovered symbols if in DEBUG mode
+            #
+            if __debug__:
+                logging.debug ("Symbols found after applying runtime code analysis:")
+                stencil.scope.dump ( )
+                for stg in stencil.scope.stage_execution.nodes ( ):
+                    stg.scope.dump ( )
+        else:
+            raise LookupError ("Stencil has not been registered with the compiler")
+
+
     def compile (self, stencil):
         """
         Compiles the translated code to a shared library, ready to be used.-
@@ -102,9 +145,9 @@ class StencilCompiler ( ):
 
     def generate_code (self, stencil):
         """
-        Generates native code for the received stencil:
-
-            stencil     stencil object for which the code whould be generated.-
+        Generates native code for the received stencil
+        :param stencil: stencil object for which the code whould be generated 
+        :return:
         """
         from os        import write, path, makedirs
         from gridtools import JinjaEnv
@@ -131,15 +174,7 @@ class StencilCompiler ( ):
             #
             logging.info ("Generating %s code in '%s'" % (stencil.backend.upper ( ),
                                                           self.src_dir))
-            #
-            # generate the code of *all* stages in this stencil,
-            # build a data-dependency graph among *all* their data fields
-            #
-            for stg in stencil.stages:
-                stg.generate_code (stencil.scope.src)
-                stencil.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
             fun_src, cpp_src, make_src = self.translate (stencil)
-
 
             with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
                 functors = JinjaEnv.get_template ("functors.h")
@@ -171,25 +206,32 @@ class StencilCompiler ( ):
 
     def register (self, stencil):
         """
-        Registers the received Stencil object `stencil` with this compiler.
-        It returns a unique name for `stencil`.-
+        Registers the received Stencil object with this compiler
+        :param stencil:   the stencil object to register
+        :raise TypeError: in case the stencil object does not extend MultiStageStencil
+        :return:          a unique name for `stencil`.-
         """
-        #
-        # mark this stencil for recompilation ...
-        #
-        self.recompile (stencil)
-        #
-        # ... and add it to the registry if it is not there yet
-        #
-        if id(stencil) not in self.stencils.keys ( ):
+        from gridtools.stencil import MultiStageStencil
+
+        if issubclass (stencil.__class__, MultiStageStencil):
             #
-            # a unique name for this stencil object
+            # mark this stencil for recompilation ...
             #
-            stencil.name = '%s_%03d' % (stencil.__class__.__name__.capitalize ( ),
-                                        len (self.stencils))
-            self.stencils[id(stencil)] = stencil
-            logging.debug ("Stencil '%s' has been registered with the Compiler" % stencil.name)
-        return stencil.name
+            self.recompile (stencil)
+            #
+            # ... and add it to the registry if it is not there yet
+            #
+            if id(stencil) not in self.stencils.keys ( ):
+                #
+                # a unique name for this stencil object
+                #
+                stencil.name = '%s_%03d' % (stencil.__class__.__name__.capitalize ( ),
+                                            len (self.stencils))
+                self.stencils[id(stencil)] = stencil
+                logging.debug ("Stencil '%s' registered with the Compiler" % stencil.name)
+            return stencil.name
+        else:
+            raise TypeError ("Stencil should inherit from MultiStageStencil")
 
 
     def run_native (self, stencil, **kwargs):
@@ -203,7 +245,6 @@ class StencilCompiler ( ):
         #
         if id(stencil) not in self.stencils.keys ( ):
             self.register (stencil)
-
         #
         # run the selected backend version
         #
@@ -212,7 +253,7 @@ class StencilCompiler ( ):
             # compile only if the library is not available
             #
             if self.lib_handle is None:
-                stencil.resolve    (**kwargs)
+                self.analyze       (stencil, **kwargs)
                 self.generate_code (stencil)
                 self.compile       (stencil)
                 #
@@ -245,25 +286,6 @@ class StencilCompiler ( ):
             logging.error ("Unknown backend '%s'" % self.backend)
 
 
-    def static_analysis (self, stencil):
-        """
-        Performs a static analysis over the source code of the received stencil
-        :param stencil:      the stencil on which the static analysis should be 
-                             performed
-        :raise NameError:    if no stencil stages could be extracted from the 
-                             source
-        :raise RuntimeError: if the stencil's source code is not available,
-                             e.g., if running from an interactive session
-        :raise LookupError:  if the stencil has not been registered with this
-                             Compiler
-        :return:
-        """
-        if stencil in self:
-            self.inspector.static_analysis (stencil)
-        else:
-            raise LookupError ("Stencil has not been registered with the compiler")
-
-
     def translate (self, stencil):
         """
         Translates the received stencil to C++, using the gridtools interface, 
@@ -288,11 +310,6 @@ class StencilCompiler ( ):
 
         params = list (stencil.scope.get_parameters ( ))
         temps  = list (stencil.scope.get_temporaries ( ))
-
-        #
-        # make sure the last stage is not independent
-        #
-        functs[stencil.name][-1].independent = False
 
         #
         # indices of the independent stencils needed to generate C++ code blocks

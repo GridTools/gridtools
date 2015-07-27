@@ -182,6 +182,21 @@ class CopyTest (AccessPatternDetectionTest):
                                                       err)))
 
 
+    def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
+        self.stencil.backend = backend
+        self._run ( )
+
+        if expected_patterns is None:
+            expected_patterns = [ [0,0,0,0] ]
+
+        self.assertEqual (len (self.stencil.stages), len (expected_patterns),
+                          "Found %d stages, but %d ghost-cell patterns were given" %
+                          (len (self.stencil.stages), len (expected_patterns)))
+        for idx in range (len (self.stencil.stages)):
+            self.assertEqual (self.stencil.stages[idx].ghost_cell, 
+                              expected_patterns[idx])
+
+
     def test_symbol_discovery (self, backend='c++'):
         self.stencil.backend = backend
         self._run ( )
@@ -202,12 +217,11 @@ class CopyTest (AccessPatternDetectionTest):
     def test_user_stencil_extends_multistagestencil (self):
         from gridtools.stencil import Stencil
 
-        with self.assertRaises (LookupError):
+        with self.assertRaises (TypeError):
             class DoesNotExtendAndShouldFail (object):
                 pass
             stencil = DoesNotExtendAndShouldFail ( )
-            Stencil.compiler.static_analysis (DoesNotExtendAndShouldFail ( ))
-        Stencil.compiler.static_analysis (self.stencil)
+            Stencil.compiler.register (DoesNotExtendAndShouldFail ( ))
 
 
     def test_kernel_function (self):
@@ -536,6 +550,17 @@ class HorizontalDiffusionTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
+    def test_ghost_cell_pattern (self):
+        expected_patterns = [ [-1,1,-1,1],
+                              [-1,0,-1,0],
+                              [-1,0,-1,0],
+                                [0,0,0,0] ]
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend='c++')
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend='cuda')
+
+
     @attr(lang='python')
     def test_python_results (self):
         self.out_data = np.random.rand (*self.domain)
@@ -740,7 +765,9 @@ class ChildStencilTest (unittest.TestCase):
 
 
     def _test_child_constructor_call_success (self, stencil):
-        stencil.resolve ( )
+        from gridtools.stencil import Stencil
+
+        Stencil.compiler.analyze (stencil)
 
 
     def test_child_constructor_calls_parent_constructor_and_nothing_else (self):
