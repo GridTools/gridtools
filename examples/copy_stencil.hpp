@@ -253,7 +253,7 @@ namespace copy_stencil{
 #endif
         copy->finalize();
 
-#ifdef __BENCHMARK__
+#ifdef BENCHMARK
         std::cout << copy->print_meter() << std::endl;
 #endif
         //#ifdef CUDA_EXAMPLE

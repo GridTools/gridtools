@@ -318,7 +318,7 @@ PAPI_stop(event_set, values);
         std::cout << "ERROR"  << std::endl;
     }
 
-#ifdef __BENCHMARK__
+#ifdef BENCHMARK
         std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
