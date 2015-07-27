@@ -367,6 +367,17 @@ class SWTest (CopyTest):
             print ('CUDA is known to fail')
 
 
+    def test_ghost_cell_pattern (self):
+        expected_patterns = [ [0,0,0,0],
+                              [0,0,0,0],
+                              [0,0,0,0],
+                              [0,0,0,0] ]
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend='c++')
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend='cuda')
+
+
     def test_interactive_plot (self):
         from gridtools  import plt
         from matplotlib import animation

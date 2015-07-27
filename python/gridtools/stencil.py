@@ -101,6 +101,21 @@ class Stencil (object):
         self.recompile ( )
 
 
+    def generate_code (self):
+        """
+        Generates C++ code for this stencil
+        :raise Exception: in case of an error during the code-generation process
+        :return:
+        """
+        #
+        # generate the code of *all* stages in this stencil,
+        # building a data-dependency graph among their data fields
+        #
+        for stg in self.stages:
+            stg.generate_code           ( )
+            self.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
+
+
     def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
         """
         Returns an iterator over the 'data_field' without including the halo:
@@ -193,24 +208,6 @@ class Stencil (object):
         Stencil.compiler.recompile (self)
 
 
-    def resolve (self, **kwargs):
-        """
-        Resolve the names and types of the symbols used in this stencil
-        :param kwargs:     the parameters passed to this stencil for execution
-        :raise ValueError: if the last stage is independent, which is an invalid
-                           stencil
-        :return:
-        """
-        #
-        # try to resolve all symbols by applying static-code analysis ...
-        #
-        Stencil.compiler.static_analysis (self)
-        #
-        # ... and by including runtime information
-        #
-        self.scope.runtime_analysis (self, **kwargs)
-
-
     def run (self, *args, halo=None, k_direction=None, **kwargs):
         """
         Starts the execution of the stencil:
@@ -295,7 +292,7 @@ class Stencil (object):
     
     @property
     def stages (self):
-        return self.scope.ordered_stages
+        return nx.topological_sort (self.scope.stage_execution)
 
 
 
