@@ -95,10 +95,10 @@ namespace gridtools {
 
            The halo descriptors are computed in the setup phase using the partitioner
         */
-        template<ushort_t Dimension>
+        template<ushort_t dimension>
         halo_descriptor const& get_halo_descriptor() const {
-            GRIDTOOLS_STATIC_ASSERT(Dimension<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
-            return m_coordinates[Dimension];}
+            GRIDTOOLS_STATIC_ASSERT(dimension<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
+            return m_coordinates[dimension];}
 
         /**
            @brief returns the halo descriptors to be used for the communication inside the GCL library

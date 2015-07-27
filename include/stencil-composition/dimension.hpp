@@ -1,23 +1,20 @@
 #pragma once
 
 namespace gridtools {
-
-namespace enumtype
-{
     /**
        @section enumtype
        @{
        @brief The following struct defines one specific component of a field
        It contains a direction (compile time constant, specifying the ID of the component),
        and a value (runtime value, which is storing the offset in the given direction).
-       As everything what is inside the enumtype namespace, the Dimension keyword is
+       As everything what is inside the enumtype namespace, the dimension keyword is
        supposed to be used at the application interface level.
     */
     template <ushort_t Coordinate>
-    struct Dimension{
+    struct dimension{
         template <typename IntType>
         GT_FUNCTION
-        constexpr Dimension(IntType val) : value
+        constexpr dimension(IntType val) : value
 #if( (!defined(CXX11_ENABLED)) )
                                          (val)
 #else
@@ -30,22 +27,22 @@ namespace enumtype
 
         /**@brief Constructor*/
         GT_FUNCTION
-        constexpr Dimension(Dimension const& other):value(other.value){}
+        constexpr dimension(dimension const& other):value(other.value){}
 
         static const ushort_t direction=Coordinate;
         int_t value;
 
         /**@brief syntactic sugar for user interface
 
-           overloaded operators return Index types which provide the proper Dimension object.
+           overloaded operators return Index types which provide the proper dimension object.
            Clarifying example:
            defining
            \code{.cpp}
-           typedef Dimension<5>::Index t;
+           typedef dimension<5>::Index t;
            \endcode
            we can use thefollowing alias
            \code{.cpp}
-           t+2 <--> Dimension<5>(2)
+           t+2 <--> dimension<5>(2)
            \endcode
 
          */
@@ -54,19 +51,18 @@ namespace enumtype
            constexpr Index(){}
             GT_FUNCTION
             constexpr Index(Index const&){}
-            typedef Dimension<Coordinate> super;
+            typedef dimension<Coordinate> super;
         };
 
     private:
-        Dimension();
+        dimension();
     };
 
     /**Aliases for the first three dimensions (x,y,z)*/
-    typedef Dimension<1> x;
-    typedef Dimension<2> y;
-    typedef Dimension<3> z;
+    typedef dimension<1> x;
+    typedef dimension<2> y;
+    typedef dimension<3> z;
 
     /**@}*/
-} // namespace enumtype
 
 } // namespace gridtools

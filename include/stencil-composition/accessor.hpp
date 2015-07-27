@@ -1,7 +1,7 @@
 #pragma once
 #include <stencil-composition/accessor_impl.hpp>
 #include <stencil-composition/arg.hpp>
-#include <stencil-composition/Dimension.hpp>
+#include <stencil-composition/dimension.hpp>
 /**
    @file
    @brief File containing the definition of the placeholders used to address the storage from whithin the functors.
@@ -111,7 +111,7 @@ namespace gridtools {
         static constexpr accessor_base<ArgType::index_type::value
                                              , typename ArgType::range_type
                                              , ArgType::n_dim> s_args_constexpr{
-            enumtype::Dimension<Pair::first>{Pair::second} ... };
+            dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
                       , typename ArgType::range_type
@@ -191,14 +191,14 @@ namespace gridtools {
 
         /** @brief operator calls the constructor of the offset_tuple
             \param unknowns are the parameters which were not known beforehand. They might be instances of
-            the enumtype::Dimension class. Together with the m_knowns offsets form the arguments to be
+            the dimension class. Together with the m_knowns offsets form the arguments to be
             passed to the Callable functor (which is normally an instance of offset_tuple)
         */
     template<typename ... Unknowns>
     GT_FUNCTION
     Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
     {
-        return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
+        return Callable(dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
 
     private:
         //store the list of offsets which are already known on an array

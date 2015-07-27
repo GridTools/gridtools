@@ -371,7 +371,7 @@ namespace gridtools{
 #endif
     namespace expressions{
         /**Expressions defining the interface for specifiyng a given offset for a specified dimension
-           \tparam Left: argument of type Dimension<>::Index, specifying the offset in the given direction*/
+           \tparam Left: argument of type dimension<>::Index, specifying the offset in the given direction*/
         template<typename Left>
         GT_FUNCTION
         constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
