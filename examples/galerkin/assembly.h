@@ -55,7 +55,6 @@ private:
     jacobian_type m_jac;
     storage_type m_jac_det;
     jacobian_type m_jac_inv;
-    gridtools::coordinates<axis> m_coords;
 
 public:
 
@@ -68,28 +67,13 @@ public:
                                                              , m_jac(d1, d2, d3, cub::numCubPoints, 3, 3)
                                                              , m_jac_det(d1, d2, d3, cub::numCubPoints)
                                                              , m_jac_inv(d1, d2, d3, cub::numCubPoints, 3, 3)
-                                                             // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
-                                                                                                   // , &m_stiffness, &m_assembled_stiffness
-                                                             , m_coords({1, 0, 1, m_d1-1, m_d1},
-                                                                        {1, 0, 1, m_d2-1, m_d2}){
-
-        /**
-           Definition of the physical dimensions of the problem.
-           The coordinates constructor takes the horizontal plane dimensions,
-           while the vertical ones are set according the the axis property soon after
-        */
-
-        m_coords.value_list[0] = 0;
-        m_coords.value_list[1] = m_d3-1;
-    }
+        {        }
 
     jacobian_type const& get_jac() const {return m_jac;}
     storage_type const& get_jac_det() const {return m_jac_det;}
     jacobian_type const& get_jac_inv() const {return m_jac_inv;}
     grid_type const& get_grid() const {return m_grid;}
     grid_type& grid() {return m_grid;}
-    // gridtools::domain_type<accessor_list> const& domain() const {return m_domain;}
-    gridtools::coordinates<axis> const& coords() const {return m_coords;}
 
     template <typename ... MPLList>
     gridtools::domain_type< boost::mpl::vector<p_grid_points, p_jac,
@@ -302,63 +286,6 @@ public:
     };
     // [assembly]
 
-
-    // using mss_t=decltype(make_mss
-    //                              (
-    //                                  execute<forward>(),
-    //                                  make_esf<update_jac>( p_grid_points(), p_jac(), p_dphi())
-    //                                  , make_esf<det>(p_jac(), p_jac_det())
-    //                                  , make_esf<inv>(p_jac(), p_jac_det(), p_jac_inv())
-    //                                  //, make_esf<integration>(p_dphi(), p_jac_det(), p_jac_inv(), p_weights(), p_stiffness())
-    //                                  //, make_esf<assembly_f>(p_stiffness(), p_assembled_stiffness())
-    //                                  ));
-
-
-    // template<typename MSS, typename Integration, typename ... Args>
-    // using append_esf=MSS::append_esf<decltype(make_esf<Integration>( Args() ... ))>;
-
-
-    // // [compute]
-    // template <typename GridType>
-    // bool compute( GridType& element_grid ){
-
-    //     uint_t d1=m_d1;
-    //     uint_t d2=m_d2;
-    //     uint_t d3=m_d3;
-
-    //     //constructing the grid
-    //     for (uint_t i=0; i<d1; i++)
-    //         for (uint_t j=0; j<d2; j++)
-    //             for (uint_t k=0; k<d3; k++)
-    //                 for (uint_t point=0; point<fe::basisCardinality; point++)
-    //                 {
-    //                     m_grid( i,  j,  k,  point,  0)= (i + element_grid(point, 0));
-    //                     m_grid( i,  j,  k,  point,  1)= (j + element_grid(point, 1));
-    //                     m_grid( i,  j,  k,  point,  2)= (k + element_grid(point, 2));
-    //                     // std::cout<<"grid point("<<m_grid( i,  j,  k,  point,  0) << ", "<< m_grid( i,  j,  k,  point,  1)<<", "<<m_grid( i,  j,  k,  point,  2)<<")"<<std::endl;
-    //                 }
-
-    //     m_jac.initialize(0.);
-    //     m_jac_det.initialize(0.);
-    //     m_jac_inv.initialize(0.);
-
-    //     auto fe_comp = make_computation<gridtools::BACKEND, layout_t>
-    //         (   mss_t(),
-    //             m_domain, m_coords);
-
-    //     fe_comp->ready();
-    //     fe_comp->steady();
-    //     fe_comp->run();
-    //     fe_comp->finalize();
-
-    //     return true;
-    // }
-    // [compute]
-
-    // template <typename DomainType, typename Placeholder, typename Storage>
-    // domain_type<boost::mpl::push_back<accessor_list, Placeholder>::type > add_arg(DomainType domain_, Placeholder const& /*p*/, Storage& storage_){
-    //     return (boost::fusion::push_back(domain_.storage_pointers, &storage_));
-    // }
 }; //struct assembly
 
 template<typename GEO>

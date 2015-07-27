@@ -20,10 +20,10 @@ struct stiffness {
     using jac_det =accessor<0, range<0,0,0,0> , 4> const;
     using jac_inv =accessor<1, range<0,0,0,0> , 6> const;
     using weights =accessor<2, range<0,0,0,0> , 3> const;
-    using stiffness=accessor<3, range<0,0,0,0> , 5> ;
+    using stiff   =accessor<3, range<0,0,0,0> , 5> ;
     using dphi    =accessor<4, range<0,0,0,0> , 3> const;
     using dpsi    =accessor<5, range<0,0,0,0> , 3> const;
-    using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, stiffness, dphi,dpsi> ;
+    using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, stiff, dphi,dpsi> ;
     //![accessors]
 
     //![Do_stiffness]
@@ -60,7 +60,7 @@ struct stiffness {
                                   jac_inv(qp+q, dimx+2, dimy+icoor)*!dphi(Q_i,q,2)));
                     }
                     //summing up contributions (times the measure and quad weight)
-                    eval(stiffness(0,0,0,P_i,Q_i)) += gradients_inner_product * eval(jac_det(qp+q)*!weights(q,0,0));
+                    eval(stiff(0,0,0,P_i,Q_i)) += gradients_inner_product * eval(jac_det(qp+q)*!weights(q,0,0));
                 }
             }
         }
@@ -216,6 +216,14 @@ int main(){
     auto domain=assembler.template domain<p_stiffness, p_dphi, p_bd_dphi>(stiffness_, fe_backend.local_gradient(), bd_fe_backend.local_gradient());
     //![placeholders]
 
+
+                                                             // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
+                                                                                                   // , &m_stiffness, &m_assembled_stiffness
+    auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
+                            {1, 0, 1, d2-1, d2});
+    coords.value_list[0] = 0;
+    coords.value_list[1] = d3-1;
+
     //![computation]
     auto computation=make_computation<gridtools::BACKEND, gridtools::layout_map<0,1,2,3> >(
         make_mss
@@ -226,7 +234,7 @@ int main(){
             , make_esf<as::inv>(as::p_jac(), as::p_jac_det(), as::p_jac_inv())
             , make_esf<stiffness<fe, cub> >(as::p_jac_det(), as::p_jac_inv(), as::p_weights(), p_stiffness(), p_dphi(), p_dphi())
             // , make_esf<flux<fe, cub > >( p_bd_stiffness(), p_bd_dphi(), p_bd_dphi() )
-            ), domain, assembler.coords());
+            ), domain, coords);
 
     computation->ready();
     computation->steady();
