@@ -175,10 +175,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     storage_type& out = repository.out();
     storage_type& coeff = repository.coeff();
 
-#ifndef SILENT_RUN
-    out.print();
-#endif
-
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
     typedef arg<0, tmp_storage_type > p_lap;
@@ -289,9 +285,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_stop_collector(collector_init);
 #endif
 
-#ifndef __CUDACC__
-    boost::timer::cpu_timer time;
-#endif
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -312,9 +305,6 @@ PAPI_stop(event_set, values);
     pw_stop_collector(collector_execute);
 #endif
 
-#ifndef __CUDACC__
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
@@ -324,15 +314,12 @@ PAPI_stop(event_set, values);
     verifier verif(1e-9, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
 
-#ifndef SILENT_RUN
-    //    in.print();
-    //    out.print();
-    //    lap.print();
-    std::cout << "SUCCESS? " << std::boolalpha << result << std::endl;
+    if(!result){
+        std::cout << "ERROR"  << std::endl;
+    }
 
-#ifndef __CUDACC__
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
+#ifdef BENCHMARK
+        std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
 #ifdef USE_PAPI_WRAP
@@ -340,9 +327,6 @@ PAPI_stop(event_set, values);
 #endif
 
   return result; /// lapse_time.wall<5000000 &&
-// #ifdef USE_PAPI
-//                     values[0]>1000 && //random value
-// #endif
 }
 
 }//namespace horizontal_diffusion
