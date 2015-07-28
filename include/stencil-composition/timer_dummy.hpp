@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 #include <stencil-composition/timer.hpp>
 
 namespace gridtools{
@@ -12,7 +12,7 @@ class timer_dummy : public timer<timer_dummy> // CRTP
 {
 public:
     __host__
-    timer_dummy(std::string name) : timer(name) {}
+    timer_dummy(std::string name) : timer<timer_dummy>(name) {}
     __host__
     ~timer_dummy() {}
 
