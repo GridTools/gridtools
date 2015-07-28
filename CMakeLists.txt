@@ -108,10 +108,19 @@ else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
 endif()
+
+set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
+
 include(FindOpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else()
+    set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 endif(OPENMP_FOUND)
+
+if(ENABLE_PERFORMANCE_METERS)
+    add_definitions(-DENABLE_METERS)
+endif(ENABLE_PERFORMANCE_METERS)
 
 # find GTest
 find_package(GTest)

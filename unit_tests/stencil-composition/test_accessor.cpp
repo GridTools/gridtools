@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 
-#define SILENT_RUN
 #include <boost/mpl/map/map10.hpp>
 #include "stencil-composition/accessor_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_evaluator.hpp"
