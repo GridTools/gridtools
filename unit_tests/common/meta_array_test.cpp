@@ -14,7 +14,7 @@ TEST(meta_array, test_meta_array_element) {
 
     typedef gridtools::meta_array<boost::mpl::vector4<int, int, int, int> , boost::mpl::quote1<is_integer> > meta_array_t;
 
-    ASSERT_TRUE(( boost::mpl::equal<typename meta_array_t::elements, boost::mpl::vector4<int, int, int, int> >::value ));
+    ASSERT_TRUE(( boost::mpl::equal<meta_array_t::elements, boost::mpl::vector4<int, int, int, int> >::value ));
 
     ASSERT_TRUE(( gridtools::is_meta_array_of< meta_array_t, is_integer>::value ));
 }

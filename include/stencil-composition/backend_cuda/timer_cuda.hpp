@@ -11,7 +11,7 @@ class timer_cuda : public timer<timer_cuda> // CRTP
 {
 public:
     __host__
-    timer_cuda(std::string name) : timer(name)
+    timer_cuda(std::string name) : timer<timer_cuda>(name)
     {
         // create the CUDA events
         cudaEventCreate(&start_);
