@@ -22,7 +22,7 @@ struct cache_storage
     GRIDTOOLS_STATIC_ASSERT((is_range<Range>::value), "Internal Error: wrong type");
 
     typedef typename BlockSize::i_size_t tile_i;
-    typedef typename BlockSize::i_size_t tile_j;
+    typedef typename BlockSize::j_size_t tile_j;
     typedef typename Range::iminus iminus;
     typedef typename Range::jminus jminus;
     typedef typename Range::iplus iplus;
