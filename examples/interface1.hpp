@@ -5,6 +5,7 @@
 #include "stencil-composition/make_computation.hpp"
 #include <stencil-composition/interval.hpp>
 #include "horizontal_diffusion_repository.hpp"
+#include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -265,6 +266,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
+                define_caches(cache<IJ, p_lap, cLocal>(), cache<IJ, p_flx, cLocal>() ,cache<IJ, p_fly, cLocal>()),
                 gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
