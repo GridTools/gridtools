@@ -17,9 +17,9 @@ namespace gridtools {
         using edges = location_type<1,3, edges_str >;
     }
 
-    template<typename T>
+    template<typename T, typename ValueType=int_t>
     struct return_type{
-        typedef array<int_t, 0> type;
+        typedef array<ValueType, 0> type;
     };
 
     //static triple dispatch
@@ -29,10 +29,18 @@ namespace gridtools {
         struct to{
             template <typename Color>
                 struct with_color{
-                using return_t=typename return_type<from<Location1>::to<Location2> >::type;
+
+                template<typename ValueType>
+                using return_t=typename return_type<from<Location1>::to<Location2>, ValueType >::type;
 
                 template<typename Grid>
-                static return_t get(Grid const& grid_, array<int_t, 2> const& i){
+                static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+                    //not supported
+                    assert(false);
+                }
+
+                template<typename Grid>
+                static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
                     //not supported
                     assert(false);
                 }
@@ -40,61 +48,95 @@ namespace gridtools {
         };
     };
 
-    template<>
-    struct return_type<from<cells>::template to<edges>>{
-        typedef array<int_t, 3> type;
+    template <typename ValueType>
+    struct return_type<from<cells>::template to<edges>, ValueType>{
+        typedef array<ValueType, 3> type;
     };
 
-    template<>
-    struct return_type<from<edges>::template to<cells>>{
-        typedef array<int_t, 2> type;
+    template <typename ValueType>
+    struct return_type<from<edges>::template to<cells>, ValueType>{
+        typedef array<ValueType, 2> type;
     };
 
-    template<>
-    struct return_type<from<cells>::template to<cells>>{
-        typedef array<int_t, 3> type;
+    template <typename ValueType>
+    struct return_type<from<cells>::template to<cells>, ValueType>{
+        typedef array<ValueType, 3> type;
     };
 
-    template<>
-    struct return_type<from<edges>::template to<edges>>{
-        typedef array<int_t, 4> type;
+    template <typename ValueType>
+    struct return_type<from<edges>::template to<edges>, ValueType>{
+        typedef array<ValueType, 4> type;
     };
 
 
     template<> template<> template<>
     struct from<cells>::to<cells>::with_color<static_int<1> >{
-        using return_t=return_type<from<cells>::to<cells> >::type;
+
+        template <typename ValueType>
+        using return_t=typename return_type<from<cells>::to<cells>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{std::get</*typename Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{std::get</*typename Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
                     std::get</*Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
                     std::get</*Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]+1)};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0], 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 0, i[1]}};//NOTE: different from above!!
         }
     };
 
     template<> template<> template<>
     struct from<cells>::to<cells>::with_color<static_int<0> >{
-        using return_t=return_type<from<cells>::to<cells> >::type;
+
+        template <typename ValueType>
+        using return_t=typename return_type<from<cells>::to<cells>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1]-1),
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
                     std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1]+1)};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0], 1, i[1]-1},
+                { i[0], 1, i[1]},
+                { i[0]-1, 1, i[1]}};//NOTE: different from above!!
         }
     };
 
 
     template<> template<> template<>
     struct from<edges>::to<edges>::with_color<static_int<0> >{
-        using return_t=return_type<from<edges>::to<edges> >::type;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<edges>, ValueType>::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<1>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]+1, 1, i[1]-1),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1]-1)};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0], 1, i[1]},
+                { i[0]+1, 1, i[1]-1},
+                { i[0], 2, i[1]},
+                { i[0], 2, i[1]-1}};
         }
     };
 
@@ -111,14 +153,26 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<edges>::to<edges>::with_color<static_int<1> >{
-        using return_t=return_type<from<edges>::to<edges> >::type;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<edges>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]+1),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 2, i[1])};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0], 0, i[1]},
+                { i[0]-1, 0, i[1]+1},
+                { i[0], 2, i[1]},
+                { i[0]-1, 2, i[1]}};
         }
     };
 
@@ -135,16 +189,28 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<edges>::to<edges>::with_color<static_int<2> >{
-        using return_t=return_type<from<edges>::to<edges> >::type;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<edges>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]+1),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]+1, 1, i[1])};
         }
-    };
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> > {
+                { i[0], 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0], 1, i[1]},
+                { i[0]+1, 1, i[1]}};//Different from above!!
+        }
+};
 
         // array<int_t, 4>
         // edge2edges_ll_p2(array<int_t, 2> const& i) const
@@ -159,14 +225,26 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<cells>::to<edges>::with_color<static_int<1> >{
-        using return_t=return_type<from<cells>::to<edges> >::type;
+
+        template<typename ValueType=int_t>
+        using return_t= typename return_type<from<cells>::to<edges>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]+1, 1, i[1])};
         }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 2, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 1, i[1]}};
+        }
+
     };
 
         // array<int_t, 3>
@@ -181,14 +259,26 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<cells>::to<edges>::with_color<static_int<0> >{
-        using return_t=return_type<from<cells>::to<edges> >::type;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<cells>::to<edges>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1])};
         }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 0, i[1]},
+                { i[0], 1, i[1]},
+                { i[0], 2, i[1]}};
+        }
+
     };
 
         // array<int_t, 3>
@@ -203,12 +293,22 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<edges>::to<cells>::with_color<static_int<0> >{
-        using return_t=array<int_t, 2>;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<cells>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1]-1),
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1])};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 1, i[1]-1},
+                { i[0], 0, i[1]}};
         }
     };
 
@@ -224,12 +324,22 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<edges>::to<cells>::with_color<static_int<1> >{
-        using return_t=array<int_t, 2>;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<cells>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1]),
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1])};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0]-1, 1, i[1]},
+                { i[0], 0, i[1]}};
         }
     };
 
@@ -244,12 +354,22 @@ namespace gridtools {
 
     template<> template<> template<>
     struct from<edges>::to<cells>::with_color<static_int<2> >{
-        using return_t=array<int_t, 2>;
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<cells>, ValueType >::type;
+
         template<typename Grid>
-        static return_t get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t{
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
                 std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1])};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 0, i[1]},
+                { i[0], 1, i[1]}};
         }
     };
 
@@ -396,6 +516,74 @@ namespace gridtools {
             }
         }
 
+
+        // methods returning the neighbors. Specializations according to the location type
+        // needed a way to implement static double dispatch
+        template<typename Location1, typename Location2, typename Color>
+        typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type const
+        ll_map_index( Location1, Location2, Color, array<int_t, 2> const& i) const{
+            return from<Location1>::template to<Location2>::template with_color<Color>::get_index(*this, i);
+        }
+
+        template<typename Location1, typename Location2>
+        typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type
+        neighbors_indices(array<int_t, 2> const& i, Location1, Location2) const
+        {
+            // std::cout << "grid.neighbors cells->cells "
+            //           << i[0] << ", "
+            //           << i[1]
+            //           << std::endl;
+            switch (i[1]%Location1::n_colors) {
+            case 0:
+                return ll_map_index(Location1(), Location2(), static_int<0>(), {i[0], i[1]/Location1::n_colors});
+            case 1:
+                return ll_map_index(Location1(), Location2(), static_int<1>(), {i[0], i[1]/Location1::n_colors});
+            case 2:
+                return ll_map_index(Location1(), Location2(), static_int<2>(), {i[0], i[1]/Location1::n_colors});
+            }
+        }
+
+        template<typename Location1, typename Location2>
+        typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type
+        neighbors_indices_3(array<uint_t, 3> const& i, Location1, Location2) const
+        {
+#ifdef _GRID_H_DEBUG
+            std::cout << "neighbors_indices_3 edges edges "
+                      << i[0] << ", " << i[1] << ", " << i[2]
+                      << std::endl;
+#endif
+            switch (i[1]%Location1::n_colors) {
+            case 0:
+                return ll_map_index(Location1(), Location2(), static_int<0>(), {i[0], i[2]});
+                // return edge2edges_ll_p0_indices({i[0], i[2]});
+            case 1:
+                return ll_map_index(Location1(), Location2(), static_int<1>(), {i[0], i[2]});
+                // return edge2edges_ll_p1_indices({i[0], i[2]});
+            case 2:
+                return ll_map_index(Location1(), Location2(), static_int<2>(), {i[0], i[2]});
+                // return edge2edges_ll_p2_indices({i[0], i[2]});
+            }
+        }
+
+        // template<typename Location1, typename Location2>
+        // typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type
+        // neighbors_indices_3(array<int_t, 2> const& i, Location1, Location2) const
+        // {
+        //     // std::cout << "grid.neighbors cells->cells "
+        //     //           << i[0] << ", "
+        //     //           << i[1]
+        //     //           << std::endl;
+        //     switch (i[1]%Location1::n_colors) {
+        //     case 0:
+        //         return ll_map_index(Location1(), Location2(), static_int<0>(), {i[0], i[2]});
+        //     case 1:
+        //         return ll_map_index(Location1(), Location2(), static_int<1>(), {i[0], i[2]});
+        //     case 2:
+        //         return ll_map_index(Location1(), Location2(), static_int<2>(), {i[0], i[2]});
+
+        //     }
+        // }
+
         // array<int_t, 3>
         // neighbors(array<int_t, 2> const& i, cells, cells) const
         // {
@@ -534,230 +722,239 @@ namespace gridtools {
 
         ///////////////////////////////////
 
+//         array<array<uint_t, 3>, 3>
+//         cell2cells_ll_p1_indices(array<uint_t, 2> const& i) const
+//         {
+//             return array<array<uint_t, 3>, 3>{
+//                 { i[0], 0, i[1]},
+//                 { i[0], 0, i[1]+1},
+//                 { i[0]+1, 0, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 3>
-        cell2cells_ll_p1_indices(array<uint_t, 2> const& i) const
-        {
-            return array<array<uint_t, 3>, 3>{
-                { i[0], 0, i[1]},
-                { i[0], 0, i[1]+1},
-                { i[0]+1, 0, i[1]}};
-        }
+//         array<array<uint_t, 3>, 3>
+//         cell2cells_ll_p0_indices(array<uint_t, 2> const& i) const
+//         {
+//             assert(i[1] > 0);
+//             return array<array<uint_t, 3>, 3>{
+//                 { i[0], 1, i[1]-1},
+//                 { i[0], 1, i[1]},
+//                 { i[0]-1, 1, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 3>
-        cell2cells_ll_p0_indices(array<uint_t, 2> const& i) const
-        {
-            assert(i[1] > 0);
-            return array<array<uint_t, 3>, 3>{
-                { i[0], 1, i[1]-1},
-                { i[0], 1, i[1]},
-                { i[0]-1, 1, i[1]}};
-        }
+//         array<array<uint_t, 3>, 4>
+//         edge2edges_ll_p0_indices(array<uint_t, 2> const& i) const
+//         {
+//             assert(i[1] > 0);
+//             return array<array<uint_t, 3>, 4>{
+//                 { i[0], 1, i[1]},
+//                 { i[0]+1, 1, i[1]-1},
+//                 { i[0], 2, i[1]},
+//                 { i[0], 2, i[1]-1}};
+//         }
 
-        array<array<uint_t, 3>, 4>
-        edge2edges_ll_p0_indices(array<uint_t, 2> const& i) const
-        {
-            assert(i[1] > 0);
-            return array<array<uint_t, 3>, 4>{
-                { i[0], 1, i[1]},
-                { i[0]+1, 1, i[1]-1},
-                { i[0], 2, i[1]},
-                { i[0], 2, i[1]-1}};
-        }
+//         array<array<uint_t, 3>, 4>
+//         edge2edges_ll_p1_indices(array<uint_t, 2> const& i) const
+//         {
+//             assert(i[0] > 0);
+//             return array<array<uint_t, 3>, 4>{
+//                 { i[0], 0, i[1]},
+//                 { i[0]-1, 0, i[1]+1},
+//                 { i[0], 2, i[1]},
+//                 { i[0]-1, 2, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 4>
-        edge2edges_ll_p1_indices(array<uint_t, 2> const& i) const
-        {
-            assert(i[0] > 0);
-            return array<array<uint_t, 3>, 4>{
-                { i[0], 0, i[1]},
-                { i[0]-1, 0, i[1]+1},
-                { i[0], 2, i[1]},
-                { i[0]-1, 2, i[1]}};
-        }
+//         array<array<uint_t, 3>, 4>
+//         edge2edges_ll_p2_indices(array<uint_t, 2> const& i) const
+//         {
+//             return array<array<uint_t, 3>, 4>{
+//                 { i[0], 0, i[1]},
+//                 { i[0], 0, i[1]+1},
+//                 { i[0], 1, i[1]},
+//                 { i[0]+1, 1, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 4>
-        edge2edges_ll_p2_indices(array<uint_t, 2> const& i) const
-        {
-            return array<array<uint_t, 3>, 4>{
-                { i[0], 0, i[1]},
-                { i[0], 0, i[1]+1},
-                { i[0], 1, i[1]},
-                { i[0]+1, 1, i[1]}};
-        }
+//         array<array<uint_t, 3>, 3>
+//         cell2edges_ll_p1_indices(array<uint_t, 2> const& i) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "cell2edges_ll_p1_indices " << i[0] << ", " << i[1] << std::endl;
+// #endif
+//             return array<array<uint_t, 3>, 3>{
+//                 { i[0], 2, i[1]},
+//                 { i[0], 0, i[1]+1},
+//                 { i[0]+1, 1, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 3>
-        cell2edges_ll_p1_indices(array<uint_t, 2> const& i) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "cell2edges_ll_p1_indices " << i[0] << ", " << i[1] << std::endl;
-#endif
-            return array<array<uint_t, 3>, 3>{
-                { i[0], 2, i[1]},
-                { i[0], 0, i[1]+1},
-                { i[0]+1, 1, i[1]}};
-        }
+//         array<array<uint_t, 3>, 3>
+//         cell2edges_ll_p0_indices(array<uint_t, 2> const& i) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "cell2edges_ll_p0_indices " << i[0] << ", " << i[1] << std::endl;
+// #endif
+//             return array<array<uint_t, 3>, 3>{
+//                 { i[0], 0, i[1]},
+//                 { i[0], 1, i[1]},
+//                 { i[0], 2, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 3>
-        cell2edges_ll_p0_indices(array<uint_t, 2> const& i) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "cell2edges_ll_p0_indices " << i[0] << ", " << i[1] << std::endl;
-#endif
-            return array<array<uint_t, 3>, 3>{
-                { i[0], 0, i[1]},
-                { i[0], 1, i[1]},
-                { i[0], 2, i[1]}};
-        }
+//         array<array<uint_t, 3>, 2>
+//         edge2cells_ll_p0_indices(array<uint_t, 2> const& i) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "edge2cells_ll_p0_indices " << i[0] << " " << i[1] << std::endl;
+// #endif
+//             assert(i[1] > 0);
+//             return array<array<uint_t, 3>, 2>{
+//                 { i[0], 1, i[1]-1},
+//                 { i[0], 0, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 2>
-        edge2cells_ll_p0_indices(array<uint_t, 2> const& i) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "edge2cells_ll_p0_indices " << i[0] << " " << i[1] << std::endl;
-#endif
-            assert(i[1] > 0);
-            return array<array<uint_t, 3>, 2>{
-                { i[0], 1, i[1]-1},
-                { i[0], 0, i[1]}};
-        }
+//         array<array<uint_t, 3>, 2>
+//         edge2cells_ll_p1_indices(array<uint_t, 2> const& i) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "edge2cells_ll_p1_indices " << i[0] << " " << i[1] << std::endl;
+// #endif
+//             assert(i[0] > 0);
+//             return array<array<uint_t, 3>, 2>{
+//                 { i[0]-1, 1, i[1]},
+//                 { i[0], 0, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 2>
-        edge2cells_ll_p1_indices(array<uint_t, 2> const& i) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "edge2cells_ll_p1_indices " << i[0] << " " << i[1] << std::endl;
-#endif
-            assert(i[0] > 0);
-            return array<array<uint_t, 3>, 2>{
-                { i[0]-1, 1, i[1]},
-                { i[0], 0, i[1]}};
-        }
+//         array<array<uint_t, 3>, 2>
+//         edge2cells_ll_p2_indices(array<uint_t, 2> const& i) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "edge2cells_ll_p2_indices " << i[0] << " " << i[1] << std::endl;
+// #endif
+//             return array<array<uint_t, 3>, 2>{
+//                 { i[0], 0, i[1]},
+//                 { i[0], 1, i[1]}};
+//         }
 
-        array<array<uint_t, 3>, 2>
-        edge2cells_ll_p2_indices(array<uint_t, 2> const& i) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "edge2cells_ll_p2_indices " << i[0] << " " << i[1] << std::endl;
-#endif
-            return array<array<uint_t, 3>, 2>{
-                { i[0], 0, i[1]},
-                { i[0], 1, i[1]}};
-        }
+        // array<array<uint_t, 3>, 3>
+        // neighbors_indices(array<uint_t, 2> const& i, cells, cells) const
+        // {
+        //     if (i[1]&1) {
+        //         return cell2cells_ll_p1_indices({i[0], i[1]/2});
+        //     } else {
+        //         return cell2cells_ll_p0_indices({i[0], i[1]/2});
+        //     }
+        // }
 
-        array<array<uint_t, 3>, 3>
-        neighbors_indices(array<uint_t, 2> const& i, cells, cells) const
-        {
-            if (i[1]&1) {
-                return cell2cells_ll_p1_indices({i[0], i[1]/2});
-            } else {
-                return cell2cells_ll_p0_indices({i[0], i[1]/2});
-            }
-        }
+        // array<array<uint_t, 3>, 4>
+        // neighbors_indices(array<uint_t, 2> const& i, edges, edges) const
+        // {
+        //     switch (i[1]%3) {
+        //     case 0:
+        //         return edge2edges_ll_p0_indices({i[0], i[1]/3});
+        //     case 1:
+        //         return edge2edges_ll_p1_indices({i[0], i[1]/3});
+        //     case 2:
+        //         return edge2edges_ll_p2_indices({i[0], i[1]/3});
+        //     }
+        // }
 
-        array<array<uint_t, 3>, 4>
-        neighbors_indices(array<uint_t, 2> const& i, edges, edges) const
-        {
-            switch (i[1]%3) {
-            case 0:
-                return edge2edges_ll_p0_indices({i[0], i[1]/3});
-            case 1:
-                return edge2edges_ll_p1_indices({i[0], i[1]/3});
-            case 2:
-                return edge2edges_ll_p2_indices({i[0], i[1]/3});
-            }
-        }
+        // array<array<uint_t, 3>, 3>
+        // neighbors_indices(array<uint_t, 2> const& i, cells, edges) const
+        // {
+        //     if (i[1]&1) {
+        //         return cell2edges_ll_p1_indices({i[0], i[1]/2});
+        //     } else {
+        //         return cell2edges_ll_p0_indices({i[0], i[1]/2});
+        //     }
+        // }
 
-        array<array<uint_t, 3>, 3>
-        neighbors_indices(array<uint_t, 2> const& i, cells, edges) const
-        {
-            if (i[1]&1) {
-                return cell2edges_ll_p1_indices({i[0], i[1]/2});
-            } else {
-                return cell2edges_ll_p0_indices({i[0], i[1]/2});
-            }
-        }
-
-        array<array<uint_t, 3>, 2>
-        neighbors_indices(array<uint_t, 2> const& i, edges, cells) const
-        {
-            switch (i[1]%3) {
-            case 0:
-                return edge2cells_ll_p0_indices({i[0], i[1]/3});
-            case 1:
-                return edge2cells_ll_p1_indices({i[0], i[1]/3});
-            case 2:
-                return edge2cells_ll_p2_indices({i[0], i[1]/3});
-            }
-        }
+        // array<array<uint_t, 3>, 2>
+        // neighbors_indices(array<uint_t, 2> const& i, edges, cells) const
+        // {
+        //     switch (i[1]%3) {
+        //     case 0:
+        //         return edge2cells_ll_p0_indices({i[0], i[1]/3});
+        //     case 1:
+        //         return edge2cells_ll_p1_indices({i[0], i[1]/3});
+        //     case 2:
+        //         return edge2cells_ll_p2_indices({i[0], i[1]/3});
+        //     }
+        // }
 
 
         /**************************************************************************/
-        array<array<uint_t, 3>, 3>
-        neighbors_indices_3(array<uint_t, 3> const& i, cells, cells) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 cells cells "
-                      << i[0] << ", " << i[1] << ", " << i[2]
-                      << std::endl;
-#endif
-            if (i[1]&1) {
-                return cell2cells_ll_p1_indices({i[0], i[2]});
-            } else {
-                return cell2cells_ll_p0_indices({i[0], i[2]});
-            }
-        }
+//         array<array<uint_t, 3>, 3>
+//         neighbors_indices_3(array<uint_t, 3> const& i, cells, cells) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "neighbors_indices_3 cells cells "
+//                       << i[0] << ", " << i[1] << ", " << i[2]
+//                       << std::endl;
+// #endif
+//             if (i[1]%cells::n_colors) {
+//                 return ll_map_index(cells(), cells(), static_int<0>(), {i[0], i[2]});
+//                 // return cell2cells_ll_p0_indices({i[0], i[2]});
+//             } else {
+//                 return ll_map_index(cells(), cells(), static_int<1>(), {i[0], i[2]});
+//                 // return cell2cells_ll_p1_indices({i[0], i[2]});
+//             }
+//         }
 
-        array<array<uint_t, 3>, 4>
-        neighbors_indices_3(array<uint_t, 3> const& i, edges, edges) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 edges edges "
-                      << i[0] << ", " << i[1] << ", " << i[2]
-                      << std::endl;
-#endif
-            switch (i[1]%3) {
-            case 0:
-                return edge2edges_ll_p0_indices({i[0], i[2]});
-            case 1:
-                return edge2edges_ll_p1_indices({i[0], i[2]});
-            case 2:
-                return edge2edges_ll_p2_indices({i[0], i[2]});
-            }
-        }
+//         array<array<uint_t, 3>, 4>
+//         neighbors_indices_3(array<uint_t, 3> const& i, edges, edges) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "neighbors_indices_3 edges edges "
+//                       << i[0] << ", " << i[1] << ", " << i[2]
+//                       << std::endl;
+// #endif
+//             switch (i[1]%3) {
+//             case 0:
+//                 return ll_map_index(edges(), edges(), static_int<0>(), {i[0], i[2]});
+//                 // return edge2edges_ll_p0_indices({i[0], i[2]});
+//             case 1:
+//                 return ll_map_index(edges(), edges(), static_int<1>(), {i[0], i[2]});
+//                 // return edge2edges_ll_p1_indices({i[0], i[2]});
+//             case 2:
+//                 return ll_map_index(edges(), edges(), static_int<2>(), {i[0], i[2]});
+//                 // return edge2edges_ll_p2_indices({i[0], i[2]});
+//             }
+//         }
 
-        array<array<uint_t, 3>, 3>
-        neighbors_indices_3(array<uint_t, 3> const& i, cells, edges) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 cells edges "
-                      << i[0] << ", " << i[1] << ", " << i[2]
-                      << std::endl;
-#endif
-            if (i[1]&1) {
-                return cell2edges_ll_p1_indices({i[0], i[2]});
-            } else {
-                return cell2edges_ll_p0_indices({i[0], i[2]});
-            }
-        }
+//         array<array<uint_t, 3>, 3>
+//         neighbors_indices_3(array<uint_t, 3> const& i, cells, edges) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "neighbors_indices_3 cells edges "
+//                       << i[0] << ", " << i[1] << ", " << i[2]
+//                       << std::endl;
+// #endif
+//             if (i[1]&1) {
+//                 return ll_map_index(cells(), edges(), static_int<1>(), {i[0], i[2]});
+//                 // return cell2edges_ll_p1_indices({i[0], i[2]});
+//             } else {
+//                 return ll_map_index(cells(), edges(), static_int<0>(), {i[0], i[2]});
+//                 // return cell2edges_ll_p0_indices({i[0], i[2]});
+//             }
+//         }
 
-        array<array<uint_t, 3>, 2>
-        neighbors_indices_3(array<uint_t, 3> const& i, edges, cells) const
-        {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 edges cells "
-                      << i[0] << ", " << i[1] << ", " << i[2]
-                      << std::endl;
-#endif
-            switch (i[1]%3) {
-            case 0:
-                return edge2cells_ll_p0_indices({i[0], i[2]});
-            case 1:
-                return edge2cells_ll_p1_indices({i[0], i[2]});
-            case 2:
-                return edge2cells_ll_p2_indices({i[0], i[2]});
-            }
-        }
+//         array<array<uint_t, 3>, 2>
+//         neighbors_indices_3(array<uint_t, 3> const& i, edges, cells) const
+//         {
+// #ifdef _GRID_H_DEBUG
+//             std::cout << "neighbors_indices_3 edges cells "
+//                       << i[0] << ", " << i[1] << ", " << i[2]
+//                       << std::endl;
+// #endif
+//             switch (i[1]%3) {
+//             case 0:
+//                 return ll_map_index(edges(), cells(), static_int<0>(), {i[0], i[2]});
+//                 // return edge2cells_ll_p0_indices({i[0], i[2]});
+//             case 1:
+//                 return ll_map_index(edges(), cells(), static_int<1>(), {i[0], i[2]});
+//                 // return edge2cells_ll_p1_indices({i[0], i[2]});
+//             case 2:
+//                 return ll_map_index(edges(), cells(), static_int<2>(), {i[0], i[2]});
+//                 // return edge2cells_ll_p2_indices({i[0], i[2]});
+//             }
+//         }
 
 
     };
