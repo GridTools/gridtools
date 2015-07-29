@@ -424,9 +424,12 @@ class SWTest (CopyTest):
                                         interval=10,
                                         init_func=init_frame,
                                         blit=False)
-        anim.save ('/tmp/%s.mp4' % self.__class__,
-                   fps=48,
-                   extra_args=['-vcodec', 'libx264'])
+        try:
+            anim.save ('/tmp/%s.mp4' % self.__class__,
+                       fps=48,
+                       extra_args=['-vcodec', 'libx264'])
+        except ValueError:
+            print ("skipping")
         #plt.show ( )
 
 

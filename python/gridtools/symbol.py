@@ -570,7 +570,6 @@ class StencilScope (Scope):
         else:
             raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
 
-
     def runtime_analysis (self, stencil, **kwargs):
         """
         Attempts to aquire more information about the discovered symbols
