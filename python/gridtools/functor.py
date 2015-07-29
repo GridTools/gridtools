@@ -371,7 +371,7 @@ class FunctorScope (Scope):
     """
     def get_ghost_cell (self):
         """
-        Returns the ghost-cell pattern of this stage
+        Returns the ghost-cell pattern of this stage alone
         :return: a 4-element list describing the ghost cell
         """
         ghost = [0,0,0,0]

@@ -86,27 +86,34 @@ class StencilCompiler ( ):
         """
         if stencil in self:
             #
-            # try to resolve all symbols by applying static-code analysis, ...
+            # do not source-code analysis twice over the same code
             #
-            self.inspector.static_analysis (stencil)
-            #
-            # ... and by including runtime information
-            #
-            stencil.scope.runtime_analysis (stencil, **kwargs)
-            stencil.generate_code          ( )
-            #
-            # build the stage-execution path
-            #
-            stencil.scope.build_execution_path       ( )
-            stencil.scope.check_stage_execution_path ( )
-            #
-            # print out the discovered symbols if in DEBUG mode
-            #
-            if __debug__:
-                logging.debug ("Symbols found after applying runtime code analysis:")
-                stencil.scope.dump ( )
-                for stg in stencil.scope.stage_execution.nodes ( ):
-                    stg.scope.dump ( )
+            if len (stencil.stages) == 0:
+                #
+                # try to resolve symbols by applying static-code analysis, ...
+                #
+                self.inspector.static_analysis (stencil)
+                #
+                # ... and by including runtime information
+                #
+                stencil.scope.runtime_analysis (stencil, **kwargs)
+                stencil.generate_code          ( )
+                #
+                # build the stage-execution path
+                #
+                stencil.scope.build_execution_path       ( )
+                stencil.scope.check_stage_execution_path ( )
+                #
+                # print out the discovered symbols if in DEBUG mode
+                #
+                if __debug__:
+                    logging.debug ("Symbols found after applying runtime code analysis:")
+                    stencil.scope.dump ( )
+                    for stg in stencil.scope.stage_execution.nodes ( ):
+                        stg.scope.dump ( )
+            else:
+                logging.info ("Not repeating source-code analysis of stencil '%s'" %
+                              stencil.name)
         else:
             raise LookupError ("Stencil has not been registered with the compiler")
 
@@ -161,14 +168,12 @@ class StencilCompiler ( ):
                                                self.compile_count)
             if not path.exists (self.src_dir):
                 makedirs (self.src_dir)
-
             if stencil.backend == 'cuda':
                 extension = 'cu'
             else:
                 extension = 'cpp'
             self.cpp_file     = '%s.%s'    % (stencil.name, extension)
             self.fun_hdr_file = '%s_Functors.h' % stencil.name
-
             #
             # ... and populate them
             #
@@ -183,10 +188,18 @@ class StencilCompiler ( ):
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
                 make_hdl.write (make_src)
-
         except Exception as e:
             logging.error ("Error while generating code:\n\t%s" % str (e))
             raise e
+
+    
+    def is_registered (self, stencil):
+        """
+        Checks whether a stencil is registered with this compiler
+        :param stencil: the stencil to check for
+        :return:        True if the stencil has been registered, False otherwise
+        """
+        return id (stencil) in self.stencils.keys ( )
 
 
     def recompile (self, stencil):
@@ -208,8 +221,9 @@ class StencilCompiler ( ):
         """
         Registers the received Stencil object with this compiler
         :param stencil:   the stencil object to register
-        :raise TypeError: in case the stencil object does not extend MultiStageStencil
-        :return:          a unique name for `stencil`.-
+        :raise TypeError: in case the stencil object does not extend 
+                          MultiStageStencil
+        :return:          a unique name for the given stencil
         """
         from gridtools.stencil import MultiStageStencil
 
@@ -236,54 +250,43 @@ class StencilCompiler ( ):
 
     def run_native (self, stencil, **kwargs):
         """
-        Executes of the received `stencil`.-
+        Compiles and executes of the stencil in native mode
+        :param stencil: the stencil to be executed
+        :return:
         """
         import ctypes
 
         #
-        # make sure the stencil is registered
+        # compile only if the library is not available
         #
-        if id(stencil) not in self.stencils.keys ( ):
-            self.register (stencil)
+        if self.lib_handle is None:
+            self.generate_code (stencil)
+            self.compile       (stencil)
+            #
+            # floating point precision validation
+            #
+            for key in kwargs:
+                if isinstance(kwargs[key], np.ndarray):
+                    if not self.utils.is_valid_float_type_size (kwargs[key]):
+                        raise TypeError ("Element size of '%s' does not match that of the C++ backend."
+                                          % key)
         #
-        # run the selected backend version
+        # prepare the list of parameters to call the library function
         #
-        if stencil.backend == 'c++' or stencil.backend == 'cuda':
-            #
-            # compile only if the library is not available
-            #
-            if self.lib_handle is None:
-                self.analyze       (stencil, **kwargs)
-                self.generate_code (stencil)
-                self.compile       (stencil)
-                #
-                # floating point precision validation
-                #
-                for key in kwargs:
-                    if isinstance(kwargs[key], np.ndarray):
-                        if not self.utils.is_valid_float_type_size (kwargs[key]):
-                            raise TypeError ("Element size of '%s' does not match that of the C++ backend."
-                                              % key)
-            #
-            # prepare the list of parameters to call the library function
-            #
-            lib_params = list (stencil.domain)
-
-            #
-            # extract the buffer pointers from the NumPy arrays
-            #
-            for p in stencil.scope.get_parameters ( ):
-                if p.name in kwargs.keys ( ):
-                    lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
-                else:
-                    logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
-            #
-            # call the compiled stencil
-            #
-            run_func = self.lib_handle['run_%s' % stencil.name]
-            run_func (*lib_params)
-        else:
-            logging.error ("Unknown backend '%s'" % self.backend)
+        lib_params = list (stencil.domain)
+        #
+        # extract the buffer pointers from the NumPy arrays
+        #
+        for p in stencil.scope.get_parameters ( ):
+            if p.name in kwargs.keys ( ):
+                lib_params.append (kwargs[p.name].ctypes.data_as (ctypes.c_void_p))
+            else:
+                logging.warning ("Parameter '%s' does not exist in the symbols table" % p.name)
+        #
+        # call the compiled stencil
+        #
+        run_func = self.lib_handle['run_%s' % stencil.name]
+        run_func (*lib_params)
 
 
     def translate (self, stencil):
@@ -431,7 +434,7 @@ class StencilInspector (ast.NodeVisitor):
         :return:
         """
         try:
-            assert (self.inspected_stencil is None), "Trying to start static code analysis with `inspected_stencil` stencil already set"
+            assert (self.inspected_stencil is None), "Trying to start static code analysis with `inspected_stencil` already set"
             #
             # initialize the state variables
             #
@@ -439,26 +442,20 @@ class StencilInspector (ast.NodeVisitor):
             self.functor_defs      = list ( )
             st                     = self.inspected_stencil
             
-            if st.scope.src is None:
-                st.scope.src = self._extract_source ( )
+            if st.scope.py_src is None:
+                st.scope.py_src = self._extract_source ( )
 
-            if st.scope.src is not None:
+            if st.scope.py_src is not None:
+                self.ast_root = ast.parse (st.scope.py_src)
+                self.visit (self.ast_root)
                 #
-                # do not the static analysis twice over the same code
+                # print out the discovered symbols if in DEBUG mode
                 #
+                if __debug__:
+                    logging.debug ("Symbols found after static code analysis:")
+                    st.scope.dump ( )
                 if len (st.stages) == 0:
-                    self.ast_root = ast.parse (st.scope.src)
-                    self.visit (self.ast_root)
-                    #
-                    # print out the discovered symbols if in DEBUG mode
-                    #
-                    if __debug__:
-                        logging.debug ("Symbols found after static code analysis:")
-                        st.scope.dump ( )
-                    if len (st.stages) == 0:
-                        raise NameError ("Could not extract any stage from stencil '%s'" % st.name)
-                else:
-                    logging.debug ("Skipping static code analysis of stencil '%s', because it was already done" % st.name)
+                    raise NameError ("Could not extract any stage from stencil '%s'" % st.name)
             else:
                 #
                 # if the source code is still not available, we may infer
