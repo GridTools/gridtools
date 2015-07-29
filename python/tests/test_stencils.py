@@ -199,6 +199,16 @@ class CopyTest (AccessPatternDetectionTest):
                               expected_patterns[idx])
 
 
+    def test_minimum_halo (self, min_halo=[0,0,0,0]):
+        from gridtools import BACKENDS
+
+        for back in BACKENDS:
+            self.stencil.backend = back
+            self._run ( )
+            self.assertEqual (self.stencil.scope.minimum_halo,
+                              min_halo)
+
+
     def test_symbol_discovery (self, backend='c++'):
         self.stencil.backend = backend
         self._run ( )
@@ -430,6 +440,10 @@ class LaplaceTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
+    def test_minimum_halo (self):
+        super ( ).test_minimum_halo ([1, 1, 1, 1])
+
+
     @attr(lang='python')
     def test_python_results (self):
         self.out_data = np.random.rand (*self.domain)
@@ -561,6 +575,10 @@ class HorizontalDiffusionTest (CopyTest):
                                            backend='c++')
         super ( ).test_ghost_cell_pattern (expected_patterns,
                                            backend='cuda')
+
+
+    def test_minimum_halo (self):
+        super ( ).test_minimum_halo ([2, 2, 2, 2])
 
 
     @attr(lang='python')

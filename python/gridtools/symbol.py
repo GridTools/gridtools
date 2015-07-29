@@ -435,9 +435,13 @@ class StencilScope (Scope):
         #
         self.stage_execution = nx.DiGraph ( )
         #
+        # the minimal required halo to correctly execute the stencil
+        #
+        self.minimum_halo    = None
+        #
         # the stencil's source code
         #
-        self.src             = None
+        self.py_src          = None
 
 
     def _resolve_params (self, stencil, **kwargs):
@@ -639,6 +643,20 @@ class StencilScope (Scope):
                     add_ghost = suc.scope.get_ghost_cell ( )
                     for idx in range (len (stg.ghost_cell)):
                         stg.ghost_cell[idx] += add_ghost[idx]
-        for stg in all_stgs:
-            logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
-                                                             stg.ghost_cell))
+        if __debug__:
+            for stg in all_stgs:
+                logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
+                                                                 stg.ghost_cell))
+        #
+        # calculate the minimum required halo
+        #
+        first_stg         = all_stgs[-1]
+        self.minimum_halo = list (first_stg.ghost_cell)
+        add_ghost         = first_stg.scope.get_ghost_cell ( )
+        for idx in range (len (self.minimum_halo)):
+            self.minimum_halo[idx] += add_ghost[idx]
+        for idx in range (len (self.minimum_halo)):
+            if self.minimum_halo[idx] < 0:
+                self.minimum_halo[idx] *= -1
+        logging.debug ("Minimum required halo is %s" % self.minimum_halo)
+

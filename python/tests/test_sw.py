@@ -429,6 +429,10 @@ class SWTest (CopyTest):
                    extra_args=['-vcodec', 'libx264'])
         #plt.show ( )
 
+
+    def test_minimum_halo (self):
+        super ( ).test_minimum_halo ([1, 1, 1, 1])
+
  
     @attr(lang='python')
     def test_python_results (self):

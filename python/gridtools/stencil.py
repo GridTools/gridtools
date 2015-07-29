@@ -38,31 +38,47 @@ class Stencil (object):
         #
         # register this stencil with the compiler and inspector
         #
-        self.name     = Stencil.compiler.register (self)
+        self.name        = Stencil.compiler.register (self)
         #
         # defines the way to execute the stencil
         #
-        self._backend = "python"
+        self._backend    = "python"
         #
         # the domain dimensions over which this stencil operates
         #
-        self.domain   = None
+        self.domain      = None
         #
         # symbols gathered after analyzing the stencil code are kept here
         #
-        self.scope    = StencilScope ( )
+        self.scope       = StencilScope ( )
         #
         # a halo descriptor
         #
-        self.set_halo ( (0, 0, 0, 0) )
+        self.halo        = (0, 0, 0, 0)
         #
         # define the execution order in 'k' dimension
         #
-        self.set_k_direction ('forward')
+        self.k_direction = 'forward'
 
 
-    def __copy__ (self):
+    def __copy__ (self, memo):
         raise NotImplementedError ("Cannot create shallow copies of a Stencil")
+
+
+    def __deepcopy__ (self, memo):
+        from copy import deepcopy
+
+        cls            = self.__class__
+        rv             = cls.__new__ (cls)
+        memo[id(self)] = rv
+        for k, v in self.__dict__.items ( ):
+            #
+            # deep copy all the attributes, but the stencil scope
+            #
+            if k != 'scope':
+                setattr (rv, k, deepcopy (v, memo))
+        setattr (rv, 'scope', StencilScope ( ))
+        return rv
 
 
     def __hash__ (self):
@@ -98,7 +114,7 @@ class Stencil (object):
     @backend.setter
     def backend (self, value):
         self._backend = value
-        self.recompile ( )
+        Stencil.compiler.recompile (self)
 
 
     def generate_code (self):
@@ -204,45 +220,35 @@ class Stencil (object):
         self._plot_graph (graph)
 
 
-    def recompile (self):
-        Stencil.compiler.recompile (self)
-
-
-    def run (self, *args, halo=None, k_direction=None, **kwargs):
+    def run (self, *args, **kwargs):
         """
-        Starts the execution of the stencil:
-
-            halo            a tuple defining a 2D halo over the given parameters.
-                            See 'set_halo';
-            k_direction     defines the execution direction in 'k' dimension,
-                            which might be any of 'forward' or 'backward'.-
+        Starts the execution of the stencil
+        :raise KeyError:   if any non-keyword arguments were passed
+        :raise ValueError: if the backend is not recognized
+        :return:
         """
-        import ctypes
-
         #
         # we only accept keyword arguments to avoid confusion
         #
         if len (args) > 0:
             raise KeyError ("Only keyword arguments are accepted")
         #
-        # set halo and execution order in 'k' direction
+        # make sure the stencil is registered with the compiler
         #
-        self.set_halo        (halo)
-        self.set_k_direction (k_direction)
+        if not Stencil.compiler.is_registered (self):
+            Stencil.compiler.register (self)
         #
         # run the selected backend version
         #
+        Stencil.compiler.analyze (self, **kwargs)
         logging.info ("Executing '%s' in %s mode ..." % (self.name,
                                                          self.backend.upper ( )))
         if self.backend == 'c++' or self.backend == 'cuda':
             Stencil.compiler.run_native (self, **kwargs)
-        #
-        # run in Python mode
-        #
         elif self.backend == 'python':
             self.kernel (**kwargs)
         else:
-            logging.error ("Unknown backend '%s'" % self.backend)
+            raise ValueError ("Unknown backend '%s'" % self.backend)
 
 
     def set_halo (self, halo=(0,0,0,0)):
@@ -260,7 +266,7 @@ class Stencil (object):
             if halo[0] >= 0 and halo[2] >= 0:
                 if halo[1] >= 0 and halo[3] >= 0:
                     self.halo = halo
-                    self.recompile ( )
+                    Stencil.compiler.recompile (self)
                     logging.debug ("Setting halo to %s" % str (self.halo))
                 else:
                     raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
@@ -284,7 +290,7 @@ class Stencil (object):
 
         if direction in accepted_directions:
             self.k_direction = direction
-            self.recompile ( )
+            Stencil.compiler.recompile (self)
             logging.debug ("Setting k_direction to '%s'" % self.k_direction)
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
