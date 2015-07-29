@@ -105,7 +105,7 @@ class CopyTest (AccessPatternDetectionTest):
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_dependency_detection (self, deps=None, backend='c++'):
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
         self.stencil.backend = backend
         self._run ( )
 
@@ -114,21 +114,23 @@ class CopyTest (AccessPatternDetectionTest):
 
         stencil_deps = self.stencil.scope.data_dependency.edges ( )
         #
-        # check the dependency detection for the whole stencil
+        # check the data-dependency detection for the whole stencil
         #
-        for d in deps:
-            found = False
+        while len (deps) > 0:
+            first, second = deps.pop ( )
+            found         = False
             for sd in stencil_deps:
-                if d[0] == sd[0].name and d[1] == sd[1].name:
+                if first == sd[0].name and second == sd[1].name:
                     found = True
                     break
             if not found:
-                logging.error ("Dependency %s not found in %s" % (sd, stencil_deps))
-            self.assertTrue (found)
+                self.assertTrue (False,
+                                 "Dependency <%s,%s> not found in %s" % 
+                                 (first, second, stencil_deps))
 
 
-    def test_automatic_dependency_detection_cuda (self, deps=None, backend='cuda'):
-        self.test_automatic_dependency_detection (deps=deps,
+    def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
+        self.test_data_dependency_detection (deps=deps,
                                                   backend=backend)
 
 
@@ -515,15 +517,15 @@ class HorizontalDiffusionTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_dependency_detection (self, deps=None, backend='c++'):
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
         expected_deps = [('out_data', 'in_wgt'),
                          ('out_data', 'self.flj'),
                          ('out_data', 'self.fli'),
                          ('self.fli', 'self.lap'),
                          ('self.flj', 'self.lap'),
                          ('self.lap', 'in_data')]
-        super ( ).test_automatic_dependency_detection (deps=expected_deps)
-        super ( ).test_automatic_dependency_detection (deps=expected_deps,
+        super ( ).test_data_dependency_detection (deps=expected_deps)
+        super ( ).test_data_dependency_detection (deps=expected_deps,
                                                        backend='cuda')
 
 

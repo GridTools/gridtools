@@ -243,7 +243,7 @@ class SWTest (CopyTest):
         self.qt_app.exec_ ( )
 
 
-    def test_automatic_dependency_detection (self, deps=None, backend='c++'):
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
         expected_deps = [('self.L',  'out_H'),
                          ('self.R',  'out_H'),
                          ('self.T',  'out_H'),
@@ -283,7 +283,7 @@ class SWTest (CopyTest):
                          ('self.Vd', 'self.R'),
                          ('self.Vd', 'self.T'),
                          ('self.Vd', 'self.B')]
-        super ( ).test_automatic_dependency_detection (deps=expected_deps)
+        super ( ).test_data_dependency_detection (deps=expected_deps)
 
 
     def test_automatic_access_pattern_detection (self):
