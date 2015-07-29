@@ -224,7 +224,8 @@ class Stencil (object):
         """
         Starts the execution of the stencil
         :raise KeyError:   if any non-keyword arguments were passed
-        :raise ValueError: if the backend is not recognized
+        :raise ValueError: if the backend is not recognized or if the halo is 
+                           invalid
         :return:
         """
         #
@@ -238,9 +239,19 @@ class Stencil (object):
         if not Stencil.compiler.is_registered (self):
             Stencil.compiler.register (self)
         #
-        # run the selected backend version
+        # analyze the stencil code
         #
         Stencil.compiler.analyze (self, **kwargs)
+        #
+        # check the minimum halo has been given
+        #
+        for idx in range (len (self.scope.minimum_halo)):
+            if self.scope.minimum_halo[idx] - self.halo[idx] > 0:
+                raise ValueError ("The halo should be at least %s" %
+                                  self.scope.minimum_halo)
+        #
+        # run the selected backend version
+        #
         logging.info ("Executing '%s' in %s mode ..." % (self.name,
                                                          self.backend.upper ( )))
         if self.backend == 'c++' or self.backend == 'cuda':
