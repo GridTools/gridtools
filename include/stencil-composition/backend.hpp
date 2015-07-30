@@ -218,7 +218,7 @@ namespace gridtools {
                         boost::mpl::_1,
                         boost::mpl::pair<
                             boost::mpl::first<boost::mpl::_2>,
-                            union_ranges<
+                            enclosing_range<
                                 boost::mpl::second<boost::mpl::_2>,
                                 boost::mpl::at<range_map2, boost::mpl::first<boost::mpl::_2> >
                             >
