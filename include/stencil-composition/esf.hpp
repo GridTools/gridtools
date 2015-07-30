@@ -14,7 +14,7 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0> >
+    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0,0,0> >
     struct esf_descriptor {
         typedef ESF esf_function;
         typedef ArgArray args;
