@@ -199,14 +199,36 @@ class CopyTest (AccessPatternDetectionTest):
                               expected_patterns[idx])
 
 
-    def test_minimum_halo (self, min_halo=[0,0,0,0]):
+    def test_minimum_halo_detection (self, min_halo=[0,0,0,0]):
+        from random    import randint
         from gridtools import BACKENDS
 
+        #
+        # minimum halo correctly calculated
+        #
         for back in BACKENDS:
             self.stencil.backend = back
             self._run ( )
             self.assertEqual (self.stencil.scope.minimum_halo,
                               min_halo)
+            #
+            # exception raised in case the provided halo is negative or smaller 
+            # than the minimum required
+            #
+            bad_halo = list (min_halo)
+            for idx in range (len (min_halo)):
+                bad_halo[idx] -= randint (1, 2)
+            with self.assertRaises (ValueError):
+                self.stencil.set_halo (bad_halo)
+                self._run ( )
+            #
+            # execute normally in case the provided halo is bigger 
+            #
+            big_halo = list (min_halo)
+            for idx in range (len (min_halo)):
+                big_halo[idx] += randint (0, 5)
+            self.stencil.set_halo (big_halo)
+            self._run ( )
 
 
     def test_symbol_discovery (self, backend='c++'):
@@ -440,8 +462,8 @@ class LaplaceTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    def test_minimum_halo (self):
-        super ( ).test_minimum_halo ([1, 1, 1, 1])
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
 
     @attr(lang='python')
@@ -577,8 +599,8 @@ class HorizontalDiffusionTest (CopyTest):
                                            backend='cuda')
 
 
-    def test_minimum_halo (self):
-        super ( ).test_minimum_halo ([2, 2, 2, 2])
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([2, 2, 2, 2])
 
 
     @attr(lang='python')

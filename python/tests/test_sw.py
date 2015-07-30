@@ -433,8 +433,8 @@ class SWTest (CopyTest):
         #plt.show ( )
 
 
-    def test_minimum_halo (self):
-        super ( ).test_minimum_halo ([1, 1, 1, 1])
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
  
     @attr(lang='python')
