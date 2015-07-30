@@ -3,7 +3,7 @@
 #
 # remove any files left from the previous run
 #
-rm -rf /tmp/__gridtools_* 
+rm -rf /tmp/__gridtools_* > /dev/null 2>&1
 
 CMAKE_SOURCE_DIR=$1
 PYTHON_INSTALL_PREFIX=$2
@@ -12,7 +12,7 @@ PYTHON_INSTALL_PREFIX=$2
 # run interactively without arguments
 #
 if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
-    # Checking gcc version (it has to be >=4.9.x)
+    # Checking gcc version (it has to be >=4.8.x)
     gcc_vers=`gcc -dumpversion|cut -f1 -d.`
     if [ $gcc_vers -lt 4 ]
     then
@@ -20,12 +20,12 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
       exit 1
     else
       gcc_vers=`gcc -dumpversion|cut -f2 -d.`
-      if [ $gcc_vers -lt 9 ]
+      if [ $gcc_vers -lt 8 ]
       then
-        echo "gcc version 4.9.x is required. EXIT NOW"
+        echo "gcc version 4.8.x is required. EXIT NOW"
         exit 1
       else
-        # gcc version is 4.9.x
+        # gcc version is 4.8.x
         # Looking for PYTHON_INSTALL_PREFIX
         if [ "$PYTHON_INSTALL_PREFIX" != " " ]
         then
@@ -44,14 +44,19 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
     fi
 fi
 
-echo "Running python tests ..."
-#nosetests -v -s --with-coverage --cover-package=gridtools --cover-erase --cover-html tests.test_sw tests.test_stencils
-nosetests -v -s -x tests.test_sw tests.test_stencils
-if [ $? -ne 0 ]; then
-    echo "Error running python tests. EXIT NOW"
-    exit 1
-else
+echo "Running Python tests ..."
+nosetests -v -s tests.test_sw       & TEST_ONE_PID=$!
+nosetests -v -s tests.test_stencils & TEST_TWO_PID=$!
+wait "${TEST_ONE_PID}"
+TEST_ONE_STATUS=$?
+wait "${TEST_TWO_PID}"
+TEST_TWO_STATUS=$?
+if [ ${TEST_ONE_STATUS} == 0 -a ${TEST_TWO_STATUS} == 0 ]; then
+    echo "All Python tests OK"
     if [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
         ${PYTHON_INSTALL_PREFIX}/bin/deactivate
     fi
+else
+    echo "Error running Python tests. EXIT NOW"
+    exit 1
 fi
