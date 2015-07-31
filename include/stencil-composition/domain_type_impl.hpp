@@ -1,5 +1,7 @@
 #pragma once
 
+#include "accessor.hpp"
+
 #include <gridtools.hpp>
 #include <stdio.h>
 #include <boost/type_traits/remove_pointer.hpp>
@@ -8,9 +10,8 @@
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/insert.hpp>
 #include <gt_for_each/for_each.hpp>
-
-    template <typename RegularStorageType>
-    struct no_storage_type_yet;
+template <typename RegularStorageType>
+struct no_storage_type_yet;
 
 namespace gridtools {
     namespace _debug {
@@ -108,7 +109,7 @@ namespace gridtools {
 #else
                 typedef static_uint< U::index_type::value >
 #endif
-type;
+                type;
             };
         };
 
@@ -176,8 +177,8 @@ type;
                     TempsPerFunctor,
                     typename is_temp_there<Temp>::template apply<boost::mpl::_> >::type iter;
 
-                BOOST_MPL_ASSERT_MSG( ( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,
-                        GRIDTOOLS_ERROR_TEMPORARY_NOT_FOUND_IN_LIST_OF_TEMPORARIES_OF_STENCIL_FUNCTION, (Temp, TempsPerFunctor) );
+                GRIDTOOLS_STATIC_ASSERT(( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,
+                                      "Temporary not found in the list of temporaries" );
 
                 typedef typename boost::mpl::at<RangeSizes, typename iter::pos>::type type;
             };
@@ -206,7 +207,7 @@ type;
             typedef typename boost::mpl::find_if<
                 TempsPerFunctor,
                 typename is_temp_there<Temp>::template apply<boost::mpl::_>
-            >::type iter;
+                >::type iter;
 
             typedef typename boost::mpl::if_<
                 boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >,
@@ -214,16 +215,16 @@ type;
                 typename boost::mpl::insert<
                     TMap,
                     boost::mpl::pair<Temp, typename boost::mpl::at<RangeSizes, typename iter::pos>::type>
-                >::type
-            >::type type;
+                    >::type
+                >::type type;
 
-//            BOOST_MPL_ASSERT_MSG( ( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,
-//                    GRIDTOOLS_ERROR_TEMPORARY_NOT_FOUND_IN_LIST_OF_TEMPORARIES_OF_STENCIL_FUNCTION, (Temp, TempsPerFunctor) );
-//
-//            typedef typename boost::mpl::insert<
-//                TMap,
-//                boost::mpl::pair<Temp, typename boost::mpl::at<RangeSizes, typename iter::pos>::type>
-//            >::type type;
+            //            BOOST_MPL_ASSERT_MSG( ( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,
+            //                    GRIDTOOLS_ERROR_TEMPORARY_NOT_FOUND_IN_LIST_OF_TEMPORARIES_OF_STENCIL_FUNCTION, (Temp, TempsPerFunctor) );
+            //
+            //            typedef typename boost::mpl::insert<
+            //                TMap,
+            //                boost::mpl::pair<Temp, typename boost::mpl::at<RangeSizes, typename iter::pos>::type>
+            //            >::type type;
         };
 
 
@@ -235,8 +236,8 @@ type;
              * note that the static const indexes are transformed into types using mpl::integral_c
              */
             typedef typename boost::mpl::transform<OriginalPlaceholders,
-                l_get_index
-            >::type raw_index_list;
+                                                   l_get_index
+                                                   >::type raw_index_list;
 
             /**@brief length of the index list eventually with duplicated indices */
             static const uint_t len=boost::mpl::size<raw_index_list>::value;
@@ -244,11 +245,29 @@ type;
             /**
                @brief filter out duplicates
                check if the indexes are repeated (a common error is to define 2 types with the same index)
-             */
+            */
             typedef typename boost::mpl::fold<raw_index_list,
                                               boost::mpl::set<>,
                                               boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
-            >::type index_set;
+                                              >::type index_set;
+        };
+
+        // template <typename>
+        // struct is_plchldr_to_temp;
+
+
+        /** Metafunction.
+         * Provide a list of placeholders to temporaries from a list os placeholders.
+         */
+        template <typename ListOfPlaceHolders>
+        struct extract_temporaries {
+            typedef typename boost::mpl::fold<ListOfPlaceHolders,
+                                              boost::mpl::vector<>,
+                                              boost::mpl::if_<
+                                                  is_plchldr_to_temp<boost::mpl::_2>,
+                                                  boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
+                                                  boost::mpl::_1>
+                                              >::type type;
         };
     } // namespace _impl
 

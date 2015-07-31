@@ -85,6 +85,7 @@ namespace gridtools {
 
     /**@brief method for initializing the offsets in the placeholder
        Version valid for two dimension
+
        \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
        \param y is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (y.value) and the dimension index (Y::direction)
     */
@@ -386,7 +387,7 @@ namespace gridtools {
     struct offset_tuple<0, Dimension>
     {
         static const int_t n_dim=Dimension;
-        #ifdef CXX11_ENABLED
+#ifdef CXX11_ENABLED
         template <typename... Whatever>
         GT_FUNCTION
         constexpr offset_tuple ( Whatever... x) {}
@@ -453,8 +454,10 @@ namespace gridtools {
     {};
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the \ref gridtools::storage
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the \ref gridtools::storage
     */
     template <uint_t I, typename BaseType, template <typename T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
@@ -463,8 +466,10 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the dimension extension, \ref gridtools::data_field
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the dimension extension, \ref gridtools::data_field
     */
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
