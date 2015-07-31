@@ -12,7 +12,7 @@ namespace gridtools {
 class timer_host : public timer<timer_host> // CRTP
 {
 public:
-    timer_host(std::string name) : timer(name) { startTime_ = 0.0; }
+    timer_host(std::string name) : timer<timer_host> (name) { startTime_ = 0.0; }
     ~timer_host() {}
 
     /**
