@@ -146,12 +146,12 @@ namespace test_iterate_domain{
     *in.get<1,1>()=11.;
     *in.get<2,0>()=20.;
 
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<5> >::set<0>())==0.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<5> >::set<1>())==1.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<5> >::set<2>())==2.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6> >::set<1>())==10.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6>, enumtype::Dimension<5> >::set<1, 1>())==11.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6> >::set<2>())==20.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<5> >::set<0>())==0.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<5> >::set<1>())==1.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<5> >::set<2>())==2.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<6> >::set<1>())==10.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<6>, enumtype::Dimension<5> >::set<1, 1>())==11.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<6> >::set<2>())==20.);
 
     //using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
     *buff.get<0,0>()=0.;//is accessor<1>
@@ -166,16 +166,16 @@ namespace test_iterate_domain{
     *buff.get<1,5>()=15.;
     *buff.get<1,6>()=16.;
 
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<4> >::set<0>())==0.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<4> >::set<1>())==1.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<4> >::set<2>())==2.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5> >::set<1>())==10.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>())==11.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 2>())==12.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 3>())==13.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 4>())==14.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 5>())==15.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 6>())==16.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<4> >::set<0>())==0.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<4> >::set<1>())==1.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<4> >::set<2>())==2.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5> >::set<1>())==10.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>())==11.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 2>())==12.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 3>())==13.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 4>())==14.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 5>())==15.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 6>())==16.);
 
     //using runtime accessors when the field is rectangular (as in the case of out, which is 2x3)
 
@@ -186,12 +186,12 @@ namespace test_iterate_domain{
     *out.get<2,0>()=20.;
     *out.get<2,1>()=21.;
 
-    assert(it_domain(accessor<2, range<0,0,0>, 4>())==0.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<3>(1)))==1.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(1)))==10.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(1), enumtype::Dimension<3>(1)))==11.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(2)))==20.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(2), enumtype::Dimension<3>(1)))==21.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>())==0.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(enumtype::Dimension<3>(1)))==1.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(enumtype::Dimension<4>(1)))==10.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(enumtype::Dimension<4>(1), enumtype::Dimension<3>(1)))==11.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(enumtype::Dimension<4>(2)))==20.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(enumtype::Dimension<4>(2), enumtype::Dimension<3>(1)))==21.);
 
     //check index initialization and increment
 
@@ -219,7 +219,7 @@ namespace test_iterate_domain{
     assert(index[2]+out.strides<0>(out.strides())+out.strides<1>(out.strides()) == new_index[2] );
 
     //check offsets for the space dimensions
-    using in_1_1=alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6>, enumtype::Dimension<5> >::set<1, 1>;
+    using in_1_1=alias<accessor<0, range<0,0,0,0>, 6>, enumtype::Dimension<6>, enumtype::Dimension<5> >::set<1, 1>;
 
     assert(((float_type*)(in.get<1,1>().get()+new_index[0]+in.strides<0>(in.strides()))==
             &it_domain(in_1_1(enumtype::Dimension<1>(1)))));
@@ -234,7 +234,7 @@ namespace test_iterate_domain{
             &it_domain(in_1_1(enumtype::Dimension<4>(1)))));
 
     //check offsets for the space dimensions
-    using buff_1_1=alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>;
+    using buff_1_1=alias<accessor<1, range<0,0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>;
 
     assert(((float_type*)(buff.get<1,1>().get()+new_index[1]+buff.strides<0>(buff.strides()))==
             &it_domain(buff_1_1(enumtype::Dimension<1>(1)))));
@@ -246,7 +246,7 @@ namespace test_iterate_domain{
             &it_domain(buff_1_1(enumtype::Dimension<3>(1)))));
 
 
-    using out_1=alias<accessor<2, range<0,0,0>, 4>, enumtype::Dimension<4>, enumtype::Dimension<3> >::set<1, 1>;
+    using out_1=alias<accessor<2, range<0,0,0,0>, 4>, enumtype::Dimension<4>, enumtype::Dimension<3> >::set<1, 1>;
     assert(((float_type*)(out.get<1,1>()+new_index[2]+out.strides<0>(out.strides()))==
             &it_domain(out_1(enumtype::Dimension<1>(1)))));
 
