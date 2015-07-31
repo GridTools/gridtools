@@ -97,11 +97,6 @@ then
         make tests_gpu;
         ./build/tests_gpu
 
-        if [ "x$USE_PYTHON" == "xON" -a "x$CXX_11" == "xOFF" ]
-        then
-                make python_tests
-        fi
-
         #  if [ "$RUN_MPI_TESTS" == "ON" ]
         #  then
               #TODO not updated to greina

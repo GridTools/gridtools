@@ -12,36 +12,19 @@ PYTHON_INSTALL_PREFIX=$2
 # run interactively without arguments
 #
 if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
-    # Checking gcc version (it has to be >=4.8.x)
-    gcc_vers=`gcc -dumpversion|cut -f1 -d.`
-    if [ $gcc_vers -lt 4 ]
+    # Looking for PYTHON_INSTALL_PREFIX
+    if [ "$PYTHON_INSTALL_PREFIX" != " " ]
     then
-      echo "gcc version 4.x is required. EXIT NOW"
-      exit 1
-    else
-      gcc_vers=`gcc -dumpversion|cut -f2 -d.`
-      if [ $gcc_vers -lt 8 ]
+      # Looking for virtualenv
+      virtualenv_cmd=`which virtualenv`
+      if [ $? -eq 0 ]
       then
-        echo "gcc version 4.8.x is required. EXIT NOW"
-        exit 1
+        source ${PYTHON_INSTALL_PREFIX}/bin/activate
       else
-        # gcc version is 4.8.x
-        # Looking for PYTHON_INSTALL_PREFIX
-        if [ "$PYTHON_INSTALL_PREFIX" != " " ]
-        then
-          # Looking for virtualenv
-          virtualenv_cmd=`which virtualenv`
-          if [ $? -eq 0 ]
-          then
-            source ${PYTHON_INSTALL_PREFIX}/bin/activate
-            export GRIDTOOLS_ROOT=$CMAKE_SOURCE_DIR
-          else
-            echo "Error while running virtualenv. EXIT NOW"
-            exit  1
-          fi
-        fi 
+        echo "Error while activating virtualenv. EXIT NOW"
+        exit  1
       fi
-    fi
+    fi 
 fi
 
 echo "Running Python tests ..."
