@@ -379,58 +379,61 @@ class SWTest (CopyTest):
 
 
     def test_interactive_plot (self):
+        from shutil     import which
         from gridtools  import plt
         from matplotlib import animation
 
-        self.stencil.backend = 'c++'
+        #
+        # need this program to create the animation
+        #
+        if which ('ffmpeg'):
+            self.stencil.backend = 'c++'
 
-        plt.switch_backend ('agg')
+            plt.switch_backend ('agg')
 
-        fig = plt.figure ( )
-        ax  = fig.add_subplot (111,
-                               projection='3d',
-                               autoscale_on=False)
-        X, Y = np.meshgrid (np.arange (self.out_H.shape[0]),
-                            np.arange (self.out_H.shape[1]))
+            fig = plt.figure ( )
+            ax  = fig.add_subplot (111,
+                                   projection='3d',
+                                   autoscale_on=False)
+            X, Y = np.meshgrid (np.arange (self.out_H.shape[0]),
+                                np.arange (self.out_H.shape[1]))
 
-        def init_frame ( ):
-            ax.grid      (False)
-            ax.set_xlim  ( (0, self.domain[0] - 1) )
-            ax.set_ylim  ( (0, self.domain[1] - 1) )
-            ax.set_zlim  ( (0, 3.50) )
-            im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
-                                    linewidth=1)
-            return [im]
+            def init_frame ( ):
+                ax.grid      (False)
+                ax.set_xlim  ( (0, self.domain[0] - 1) )
+                ax.set_ylim  ( (0, self.domain[1] - 1) )
+                ax.set_zlim  ( (0, 3.50) )
+                im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
+                                        linewidth=1)
+                return [im]
 
-        def draw_frame (frame):
-            if (self.stencil.dt * frame) % 5 == 0:
-                self.droplet (self.out_H, val=3.95)
+            def draw_frame (frame):
+                if (self.stencil.dt * frame) % 5 == 0:
+                    self.droplet (self.out_H, val=3.95)
 
-            self.stencil.run (out_H=self.out_H,
-                              out_U=self.out_U,
-                              out_V=self.out_V)
-            ax.cla       ( )
-            ax.grid      (False)
-            ax.set_xlim  ( (0, self.domain[0] - 1) )
-            ax.set_ylim  ( (0, self.domain[1] - 1) )
-            ax.set_zlim  ( (0, 3.50) )
-            im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
-                                    linewidth=1)
-            return [im]
+                self.stencil.run (out_H=self.out_H,
+                                  out_U=self.out_U,
+                                  out_V=self.out_V)
+                ax.cla       ( )
+                ax.grid      (False)
+                ax.set_xlim  ( (0, self.domain[0] - 1) )
+                ax.set_ylim  ( (0, self.domain[1] - 1) )
+                ax.set_zlim  ( (0, 3.50) )
+                im = ax.plot_wireframe (X, Y, self.out_H[:,:,0],
+                                        linewidth=1)
+                return [im]
 
-        anim = animation.FuncAnimation (fig,
-                                        draw_frame,
-                                        frames=range (50),
-                                        interval=10,
-                                        init_func=init_frame,
-                                        blit=False)
-        try:
+            anim = animation.FuncAnimation (fig,
+                                            draw_frame,
+                                            frames=range (50),
+                                            interval=10,
+                                            init_func=init_frame,
+                                            blit=False)
             anim.save ('/tmp/%s.mp4' % self.__class__,
                        fps=48,
                        extra_args=['-vcodec', 'libx264'])
-        except ValueError:
+        else:
             print ("skipping")
-        #plt.show ( )
 
 
     def test_minimum_halo_detection (self):
