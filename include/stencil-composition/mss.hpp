@@ -51,7 +51,7 @@ namespace gridtools {
             /**@brief here the ranges for the functors are calculated: iterates over the fields and calls the metafunction above*/
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename Functor::arg_list>::type::value >,
-                range<0,0,0,0>,
+                range<0,0,0,0,0,0>,
                 update_range<boost::mpl::_1, boost::mpl::_2>
                 >::type type;
         };
@@ -123,7 +123,7 @@ namespace gridtools {
 
                 typedef typename boost::mpl::fold<
                     IndVector,
-                    range<0,0,0,0>,
+                    range<0,0,0,0,0,0>,
                     enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
                 >::type final_range;
 
@@ -134,7 +134,7 @@ namespace gridtools {
 
             typedef typename boost::mpl::reverse_fold<
                 ListOfRanges,
-                state<boost::mpl::vector0<>, range<0,0,0,0> >,
+                state<boost::mpl::vector0<>, range<0,0,0,0,0,0> >,
                 update_state<boost::mpl::_1, boost::mpl::_2>
             >::type final_state;
 
