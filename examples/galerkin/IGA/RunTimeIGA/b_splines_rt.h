@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 
 namespace b_splines_rt
