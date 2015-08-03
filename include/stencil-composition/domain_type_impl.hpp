@@ -218,13 +218,6 @@ namespace gridtools {
                     >::type
                 >::type type;
 
-            //            BOOST_MPL_ASSERT_MSG( ( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,
-            //                    GRIDTOOLS_ERROR_TEMPORARY_NOT_FOUND_IN_LIST_OF_TEMPORARIES_OF_STENCIL_FUNCTION, (Temp, TempsPerFunctor) );
-            //
-            //            typedef typename boost::mpl::insert<
-            //                TMap,
-            //                boost::mpl::pair<Temp, typename boost::mpl::at<RangeSizes, typename iter::pos>::type>
-            //            >::type type;
         };
 
 
