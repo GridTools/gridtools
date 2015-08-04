@@ -1,12 +1,12 @@
 #!/bin/bash
 
+CMAKE_SOURCE_DIR=$1
+PYTHON_INSTALL_PREFIX=$2
+
 #
 # remove any files left from the previous run
 #
 rm -rf /tmp/__gridtools_* > /dev/null 2>&1
-
-CMAKE_SOURCE_DIR=$1
-PYTHON_INSTALL_PREFIX=$2
 
 #
 # run interactively without arguments
@@ -20,6 +20,7 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
       if [ $? -eq 0 ]
       then
         source ${PYTHON_INSTALL_PREFIX}/bin/activate
+        echo "Activated virtual environment ($VIRTUAL_ENV)"
       else
         echo "Error while activating virtualenv. EXIT NOW"
         exit  1
