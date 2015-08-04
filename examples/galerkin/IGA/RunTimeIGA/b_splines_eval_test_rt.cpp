@@ -76,9 +76,6 @@ int main()
 		csiValues[csiIndex] = currentCsiValue;
 	}
 
-	// Non-GT style b-spline values storage allocation
-	std::vector<double> bsplineValues(numPoints);
-
 
 	////////////////// GT-STYLE CODE PART /////////////////////
 
