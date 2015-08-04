@@ -178,9 +178,9 @@ namespace gridtools {
                 : prefix(s)
             {}
 
-            template <uint_t I, uint_t J, uint_t K, uint_t L>
-            void operator()(range<I,J,K,L> const&) const {
-                std::cout << prefix << range<I,J,K,L>() << std::endl;
+            template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
+            void operator()(range<I,J,K,L,M,N> const&) const {
+                std::cout << prefix << range<I,J,K,L,M,N>() << std::endl;
             }
 
             template <typename MplVector>

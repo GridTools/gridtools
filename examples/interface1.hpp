@@ -2,7 +2,7 @@
 
 #include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
-#include "stencil-composition/make_computation.hpp"
+#include <stencil-composition/make_computation.hpp>
 #include <stencil-composition/interval.hpp>
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
