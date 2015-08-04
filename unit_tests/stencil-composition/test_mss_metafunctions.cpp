@@ -61,14 +61,14 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs)
             mss_t::esf_sequence_t, boost::mpl::vector2<esf1_t, esf2_t>
         >::value), "ERROR");
 
-#ifdef __DISABLE_CACHING__
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<
-            mss_t::cache_sequence_t, boost::mpl::vector<>
-        >::value), "ERROR");
-#else
+#ifndef __DISABLE_CACHING__
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<
             mss_t::cache_sequence_t, boost::mpl::vector2<cache1_t, cache2_t>
-        >::value), "ERROR");
+        >::value), "ERROR\nLists do not match");
+#else
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty<mss_t::cache_sequence_t>::value), "ERROR\nList not empty");
 #endif
+
+
     ASSERT_TRUE(true);
 }
