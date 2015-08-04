@@ -7,9 +7,9 @@
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
 #ifdef ENABLE_METERS
-  #include <stencil-composition/backend_cuda/timer_cuda.hpp>
+  #include "stencil-composition/backend_cuda/timer_cuda.hpp"
 #else
-  #include <stencil-composition/timer_dummy.hpp>
+  #include "stencil-composition/timer_dummy.hpp"
 #endif
 
 

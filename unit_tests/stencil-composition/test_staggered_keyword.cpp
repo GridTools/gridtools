@@ -1,7 +1,7 @@
-#include <common/defs.hpp>
-#include <stencil-composition/make_stencils.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include "common/defs.hpp"
+#include "stencil-composition/make_stencils.hpp"
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/make_computation.hpp"
 
 #include "gtest/gtest.h"
 

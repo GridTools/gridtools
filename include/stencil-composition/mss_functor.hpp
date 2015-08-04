@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <common/meta_array.hpp>
+#include "common/meta_array.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss_local_domain.hpp"
 #include "mss.hpp"

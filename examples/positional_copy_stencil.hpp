@@ -2,9 +2,9 @@
 
 #include <gridtools.hpp>
 #include <boost/timer/timer.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include "stencil-composition/make_computation.hpp"
 
-#include <stencil-composition/backend.hpp>
+#include "stencil-composition/backend.hpp"
 
 #include <boost/fusion/include/make_vector.hpp>
 

@@ -1,7 +1,7 @@
 #pragma once
-#include <stencil-composition/accessor_impl.hpp>
-#include <stencil-composition/arg.hpp>
-#include <stencil-composition/dimension.hpp>
+#include "stencil-composition/accessor_impl.hpp"
+#include "stencil-composition/arg.hpp"
+#include "stencil-composition/dimension.hpp"
 /**
    @file
    @brief File containing the definition of the placeholders used to address the storage from whithin the functors.

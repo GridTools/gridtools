@@ -4,7 +4,7 @@
 
 #include "accessor.hpp"
 #include "domain_type.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "common/generic_metafunctions/is_sequence_of.hpp"
 
 /**
    @file

@@ -1,5 +1,5 @@
 #include <gridtools.hpp>
-#include <common/halo_descriptor.hpp>
+#include "common/halo_descriptor.hpp"
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>
@@ -13,7 +13,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.hpp>
+#include "stencil-composition/backend.hpp"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
