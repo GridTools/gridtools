@@ -245,9 +245,6 @@ namespace gridtools {
                                               >::type index_set;
         };
 
-        // template <typename>
-        // struct is_plchldr_to_temp;
-
 
         /** Metafunction.
          * Provide a list of placeholders to temporaries from a list os placeholders.
