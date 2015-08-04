@@ -124,7 +124,7 @@ TEST_F(cache_stencil, ij_cache)
             make_mss // mss_descriptor
             (
                 execute<forward>(),
-                define_caches(cache<IJ, p_buff, cLocal>()),
+                define_caches(cache<IJ, p_buff, local>()),
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
             ),
@@ -176,7 +176,7 @@ TEST_F(cache_stencil, ij_cache_offset)
             make_mss // mss_descriptor
             (
                 execute<forward>(),
-                define_caches(cache<IJ, p_buff, cLocal>()),
+                define_caches(cache<IJ, p_buff, local>()),
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
             ),

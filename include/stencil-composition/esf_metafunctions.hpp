@@ -1,7 +1,7 @@
 #pragma once
 
+#include <boost/mpl/contains.hpp>
 #include <stencil-composition/esf.hpp>
-#include <common/generic_metafunctions/is_there_in_sequence.hpp>
 
 namespace gridtools {
 
@@ -9,7 +9,7 @@ template<typename Arg>
 struct esf_has_parameter_h{
     template<typename Esf>
     struct apply{
-        typedef typename is_there_in_sequence<typename Esf::args_t, Arg>::type type;
+        typedef typename boost::mpl::contains<typename Esf::args_t, Arg>::type type;
     };
 };
 

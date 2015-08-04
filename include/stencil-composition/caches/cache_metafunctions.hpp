@@ -37,7 +37,7 @@ namespace gridtools {
  */
 template<typename T> struct is_cache : boost::mpl::false_{};
 
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+template<CacheType cacheType, typename Arg, cache_io_policy cacheIOPolicy>
 struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
 
 /**
@@ -46,7 +46,7 @@ struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
  */
 template<typename T> struct cache_parameter;
 
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+template<CacheType cacheType, typename Arg, cache_io_policy cacheIOPolicy>
 struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
 {
     typedef Arg type;
@@ -160,7 +160,7 @@ struct extract_ranges_for_caches
             typedef typename boost::mpl::at<esf_sequence_t, EsfIdx>::type esf_t;
 
             typedef typename boost::mpl::if_<
-                is_there_in_sequence<typename esf_t::args_t, typename cache_parameter<Cache>::type >,
+                boost::mpl::contains<typename esf_t::args_t, typename cache_parameter<Cache>::type >,
                 typename update_range_map<RangesMap_, range_t>::type,
                 RangesMap_
             >::type type;

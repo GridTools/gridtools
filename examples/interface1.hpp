@@ -266,7 +266,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                define_caches(cache<IJ, p_lap, cLocal>(), cache<IJ, p_flx, cLocal>() ,cache<IJ, p_fly, cLocal>()),
+                define_caches(cache<IJ, p_lap, local>(), cache<IJ, p_flx, local>() ,cache<IJ, p_fly, local>()),
                 gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (

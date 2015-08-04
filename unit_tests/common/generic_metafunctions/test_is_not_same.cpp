@@ -1,9 +1,3 @@
-/*
- * test_is_there_in_sequence.cpp
- *
- *  Created on: Jul 17, 2015
- *      Author: cosuna
- */
 
 #include "gtest/gtest.h"
 #include "defs.hpp"

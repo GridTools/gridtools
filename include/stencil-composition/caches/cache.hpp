@@ -27,7 +27,7 @@ namespace gridtools{
  * @tparam Arg argument with parameter being cached
  * @tparam CacheIOPolicy IO policy for cache
  */
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+template<CacheType cacheType, typename Arg, cache_io_policy cacheIOPolicy>
 struct cache
 {
     typedef Arg arg_t;
