@@ -2,12 +2,12 @@
 
 #include <gridtools.hpp>
 
-#include "stencil-composition/backend.hpp"
+#include <stencil-composition/backend.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
-#include "stencil-composition/make_computation.hpp"
+#include <stencil-composition/make_computation.hpp>
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
