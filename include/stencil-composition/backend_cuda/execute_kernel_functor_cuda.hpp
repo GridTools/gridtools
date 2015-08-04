@@ -146,7 +146,7 @@ struct execute_kernel_functor_cuda
         // Based on the previous we compute the size of the CUDA block required.
         typedef typename boost::mpl::fold<
             typename RunFunctorArguments::range_sizes_t,
-            range<0,0,0,0>,
+            range<0,0,0,0,0,0>,
             enclosing_range<boost::mpl::_1, boost::mpl::_2>
         >::type maximum_range_t;
 

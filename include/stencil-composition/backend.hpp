@@ -180,14 +180,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
             typedef typename MssComponents::range_sizes_t RangeSizes;
-            //full list of temporaries in list of place holders of domain
-            typedef typename boost::mpl::fold<typename Domain::placeholders,
-                boost::mpl::vector<>,
-                boost::mpl::if_<
-                    is_plchldr_to_temp<boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
-                    boost::mpl::_1>
-            >::type list_of_temporaries;
+
+            typedef typename _impl::extract_temporaries<typename Domain::placeholders>::type list_of_temporaries;
 
             //vector of written temporaries per functor (vector of vectors)
             typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
@@ -218,7 +212,7 @@ namespace gridtools {
                         boost::mpl::_1,
                         boost::mpl::pair<
                             boost::mpl::first<boost::mpl::_2>,
-                            union_ranges<
+                            enclosing_range<
                                 boost::mpl::second<boost::mpl::_2>,
                                 boost::mpl::at<range_map2, boost::mpl::first<boost::mpl::_2> >
                             >
