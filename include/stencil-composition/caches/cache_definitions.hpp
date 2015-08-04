@@ -6,7 +6,7 @@
 
 namespace gridtools {
 /**
-* @enum CacheIOPolicy
+* @enum cache_io_policy
 * Enum listing the cache IO policies
 */
 enum cache_io_policy
@@ -18,10 +18,10 @@ enum cache_io_policy
 };
 
 /**
- * @enum CacheType
+ * @enum cache_type
  * enum with the different types of cache available
  */
-enum CacheType
+enum cache_type
 {
     IJ,  // IJ caches require synchronization capabilities, as different (i,j) grid points are
          // processed by parallel cores. GPU backend keeps them in shared memory
