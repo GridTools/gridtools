@@ -202,7 +202,7 @@ namespace gridtools {
         {
             struct type{
                 template<typename ... Indeces>
-                static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::tie(indices...));}
+                static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::make_tuple(indices...));}
             };
         };
 

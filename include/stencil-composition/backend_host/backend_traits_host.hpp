@@ -37,9 +37,9 @@ namespace gridtools{
         /**
            @brief storage type associated to the host backend
          */
-        template <typename ValueType, typename Layout, bool Temp=false, short_t FieldDim=1>
+        template <typename ValueType, typename MetaData, bool Temp=false, short_t FieldDim=1>
         struct storage_traits{
-            typedef storage<base_storage<typename pointer<ValueType>::type, Layout, Temp, FieldDim > >   storage_t;
+            typedef storage<base_storage<typename pointer<ValueType>::type, MetaData, Temp, FieldDim > >   storage_t;
         };
 
         template <typename Arguments>

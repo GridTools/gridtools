@@ -19,7 +19,8 @@ namespace gridtools{
         typedef Storage super;
         typedef typename super::pointer_type pointer_type;
 
-        typedef typename super::original_storage original_storage;
+        typedef typename super::basic_type basic_type;
+        // typedef typename super::original_storage original_storage;
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
@@ -60,7 +61,7 @@ namespace gridtools{
                 super::m_fields[i].update_gpu();
         }
 
-        using super::setup;
+        // using super::setup;
 
         /**
             @brief returns a const reference to the specified data snapshot
@@ -111,7 +112,7 @@ namespace gridtools{
             for (ushort_t t=0; t<super::field_dimensions; ++t)
             {
                 stream<<" Component: "<< t+1<<std::endl;
-                original_storage::print(stream, t);
+                basic_type::print(stream, t);
             }
         }
 
@@ -125,7 +126,7 @@ namespace gridtools{
     {
         typedef typename Storage::basic_type basic_type;
         typedef Storage super;
-        typedef typename Storage::original_storage original_storage;
+        // typedef typename Storage::basic_storage original_storage;
 
         //default constructor
         storage_list(): super(){}
@@ -145,7 +146,7 @@ namespace gridtools{
         virtual ~storage_list(){
         }
 
-        using super::setup;
+        // using super::setup;
 
    /**dimension number of snaphsots for the current field dimension*/
         static const ushort_t n_width = Storage::n_width;

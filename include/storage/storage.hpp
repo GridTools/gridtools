@@ -23,6 +23,7 @@ namespace gridtools{
         typedef typename BaseStorage::iterator_type iterator_type;
         typedef typename BaseStorage::value_type value_type;
         static const ushort_t n_args = basic_type::n_width;
+        static const ushort_t space_dimensions = basic_type::space_dimensions;
 
       __device__
       storage(storage const& other)
@@ -59,14 +60,14 @@ namespace gridtools{
 
     template< class Storage, uint_t ... Number >
     struct field_reversed{
-        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Storage::is_temporary, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
     // template< class TmpStorage, uint_t ... Number >
     // struct tmp_field;
 
     template < typename PointerType
-               , typename Layout
+               , typename MetaData
                , short_t FieldDimension
                , uint_t TileI
                , uint_t TileJ
@@ -75,25 +76,25 @@ namespace gridtools{
                , uint_t PlusI
                , uint_t PlusJ
                , uint_t ... Number >
-    struct field_reversed<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
-        typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
+    struct field_reversed<host_tmp_storage<base_storage< PointerType, MetaData , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
+        typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, MetaData, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
     template<  typename PointerType
-               ,typename Layout
+               ,typename MetaData
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field_reversed<base_storage<PointerType, Layout, true, FieldDimension>, Number... >{
-        typedef storage< data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+    struct field_reversed<base_storage<PointerType, MetaData, true, FieldDimension>, Number... >{
+        typedef storage< data_field< storage_list<base_storage<PointerType, MetaData, true, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
 
     template<  typename PointerType
-               ,typename Layout
+               ,typename MetaData
                ,short_t FieldDimension
                ,uint_t ... Number >
-    struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
-        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
+    struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, MetaData, true, FieldDimension> > >, Number... >{
+        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, MetaData, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
     };
 
     template< class Storage, uint_t First, uint_t ... Number >
@@ -106,13 +107,13 @@ namespace gridtools{
 
     template< class Storage, uint_t Number1, uint_t Number2, uint_t Number3 >
     struct field{
-        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number3-1> > > type;
+        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Storage::is_temporary, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Storage::is_temporary, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Storage::is_temporary, Number1+Number2+Number3>, Number3-1> > > type;
     };
 
 
     template< class Storage, uint_t Number1>
     struct field1{
-        typedef storage< data_field1< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1>, Number1-1> > > type;
+        typedef storage< data_field1< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Storage::is_temporary, Number1>, Number1-1> > > type;
     };
 
 
@@ -121,7 +122,7 @@ namespace gridtools{
     // struct tmp_field;
 
     template <  typename PointerType
-               , typename Layout
+               , typename MetaData
                , short_t FieldDimension
                , uint_t TileI
                , uint_t TileJ
@@ -130,25 +131,25 @@ namespace gridtools{
                , uint_t PlusI
                , uint_t PlusJ
                , uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<host_tmp_storage<base_storage<PointerType, Layout, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number1, Number2, Number3 >{
-        typedef storage< host_tmp_storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
+    struct field<host_tmp_storage<base_storage<PointerType, MetaData, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number1, Number2, Number3 >{
+        typedef storage< host_tmp_storage<data_field< storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
     };
 
     template<  typename PointerType
-               ,typename Layout
+               ,typename MetaData
                ,short_t FieldDimension
                , uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<base_storage<PointerType, Layout, true, FieldDimension>, Number1, Number2, Number3 >{
-        typedef storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number3-1> > > type;
+    struct field<base_storage<PointerType, MetaData, true, FieldDimension>, Number1, Number2, Number3 >{
+        typedef storage<data_field< storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number3-1> > > type;
     };
 
 
     template<  typename PointerType
-               ,typename Layout
+               ,typename MetaData
                ,short_t FieldDimension
                ,uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number1, Number2, Number3 >{
-        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number3-1> > > > type;
+    struct field<no_storage_type_yet<storage<base_storage<PointerType, MetaData, true, FieldDimension> > >, Number1, Number2, Number3 >{
+        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3 >, Number1-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3 >, Number2-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3 >, Number3-1> > > > type;
     };
 #endif
 

@@ -177,9 +177,10 @@ namespace gridtools {
         };
 
         //typedef typename local_domain_t::local_args_type local_args_type;
+        typedef typename local_domain_t::mpl_storage_multiplicity multiplicity;
         typedef typename local_domain_t::actual_args_type actual_args_type;
         //the number of storages  used in the current functor
-        static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
+        static const uint_t N_STORAGES=boost::mpl::size<multiplicity>::value;
         //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages<
             actual_args_type,
@@ -213,10 +214,6 @@ namespace gridtools {
         }
 
     private:
-        // iterate_domain remembers the state. This is necessary when
-        // we do finite differences and don't want to recompute all
-        // the iterators (but simply use the ones available for the
-        // current iteration storage for all the other storages)
 
         local_domain_t const& local_domain;
         array<int_t,N_STORAGES> m_index;
@@ -255,7 +252,7 @@ namespace gridtools {
                     BackendType,
                     data_pointer_array_t,
                     typename local_domain_t::local_args_type
-                >(data_pointer(), local_domain.local_args,  EU_id_i, EU_id_j));
+                >(data_pointer(), local_domain.m_local_args,  EU_id_i, EU_id_j));
         }
 
         template<typename BackendType, typename Strides>
@@ -266,8 +263,8 @@ namespace gridtools {
                 assign_strides_functor<
                     BackendType,
                     Strides,
-                    typename local_domain_t::local_args_type
-                >(strides(), local_domain.local_args));
+                    typename local_domain_t::local_metadata_type
+                >(strides(), local_domain.m_local_metadata));
         }
 
 
@@ -298,8 +295,8 @@ namespace gridtools {
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
-                    typename local_domain_t::local_args_type
-                >(local_domain.local_args,
+                    typename local_domain_t::local_metadata_type
+                >(local_domain.m_local_metadata,
 #ifdef __CUDACC__ //stupid nvcc
                   boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
 #else
@@ -323,8 +320,8 @@ namespace gridtools {
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
-                    typename local_domain_t::local_args_type
-                >(local_domain.local_args, steps_, &m_index[0], strides())
+                    typename local_domain_t::local_metadata_type
+                >(local_domain.m_local_metadata, steps_, &m_index[0], strides())
             );
             static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
         }
@@ -338,8 +335,8 @@ namespace gridtools {
                 initialize_index_functor<
                     Coordinate,
                     strides_cached_t,
-                    typename local_domain_t::local_args_type
-                >(strides(), local_domain.local_args, initial_pos, block, &m_index[0])
+                    typename local_domain_t::local_metadata_type
+                >(strides(), local_domain.m_local_metadata, initial_pos, block, &m_index[0])
             );
             static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
         }
@@ -592,12 +589,24 @@ namespace gridtools {
     typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type& RESTRICT
     iterate_domain<IterateDomainImpl>::get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const {
 
+        typedef typename local_domain_t::sort_t sort_t;
+        typedef typename Accessor::index_type index_t;
+        typedef typename local_domain_t::mpl_expanded_scan scan_t;
+        typedef typename boost::mpl::at
+            <scan_t, typename boost::mpl::at<sort_t, index_t>::type >::type metadata_index_t;
+
+        auto const metadata_ = boost::fusion::at
+            < metadata_index_t >(local_domain.m_local_metadata);
+
+        auto const storage_ = boost::fusion::at
+            < typename Accessor::index_type>(local_domain.m_local_args);
+
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
 #else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)) )>::type storage_type;
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*storage_) )>::type storage_type;
 #endif
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
@@ -605,8 +614,8 @@ namespace gridtools {
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
-        assert(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)->size() >  m_index[Accessor::index_type::value]
-               +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+        assert(metadata_->size() >  m_index[Accessor::index_type::value]
+               + storage_
                ->_index(strides().template get<Accessor::index_type::value>(), accessor)
             );
 
@@ -620,14 +629,13 @@ namespace gridtools {
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
         assert( (int_t)(m_index[Accessor::index_type::value])
-                +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+                + metadata_
                 ->_index(strides().template get<Accessor::index_type::value>(), accessor)
                 >= 0);
 
         return *(real_storage_pointer
                  +(m_index[Accessor::index_type::value])
-                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
-                 //here we suppose for the moment that Accessor::index_types are ordered like the LocalDomain::esf_args mpl vector
+                 +metadata_
                  ->_index(strides().template get<Accessor::index_type::value>(), accessor)
             );
     }
@@ -650,9 +658,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.m_local_args))>::type;
 #else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args)) )>::type storage_type;
+        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::type::index_type>(local_domain.m_local_args)) )>::type storage_type;
 #endif
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
@@ -701,7 +709,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
         typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.m_local_args))>::type;
 
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
@@ -747,10 +755,10 @@ namespace gridtools {
     iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& expr, StoragePointer & RESTRICT storage_pointer) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-        assert(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)->size() >  (boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+        assert(boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args)->size() >  (boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))
                ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
 
-        assert((boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+        assert((boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))
                ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand) >= 0);
         GRIDTOOLS_STATIC_ASSERT((
                                     Accessor::n_dim <= boost::mpl::at<
@@ -759,12 +767,12 @@ namespace gridtools {
                                     >::type::storage_type::space_dimensions),
                                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))>::type;
+        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))>::type;
 
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
         return *(real_storage_pointer
-                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))
                  ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
     }
 #endif //ifndef CXX11_ENABLED

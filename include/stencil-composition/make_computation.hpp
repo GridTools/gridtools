@@ -69,7 +69,6 @@ namespace _impl {
 #define _MAKE_COMPUTATION(z, n, nil)                                            \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
         typename Coords                                                         \
@@ -80,7 +79,6 @@ namespace _impl {
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
@@ -93,7 +91,6 @@ namespace _impl {
 #define _MAKE_COMPUTATION(z, n, nil)                                            \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
         typename Coords                                                         \
@@ -101,7 +98,6 @@ namespace _impl {
     boost::shared_ptr<                                                          \
         intermediate<                                                           \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
@@ -114,7 +110,6 @@ namespace _impl {
         return boost::make_shared<                                              \
             intermediate<                                                       \
                 Backend,                                                        \
-                LayoutType,                                                     \
                 typename _impl::get_mss_array<                                  \
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
                 >::type,                                                        \
@@ -138,7 +133,6 @@ namespace _impl {
 #define _MAKE_POSITIONAL_COMPUTATION(z, n, nil)                                 \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
         typename Coords                                                         \
@@ -149,7 +143,6 @@ namespace _impl {
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
@@ -162,7 +155,6 @@ namespace _impl {
 #define _MAKE_POSITIONAL_COMPUTATION(z, n, nil)                                 \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
         typename Coords                                                         \
@@ -170,7 +162,6 @@ namespace _impl {
     boost::shared_ptr<                                                          \
         intermediate<                                                           \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
@@ -183,7 +174,6 @@ namespace _impl {
         return boost::make_shared<                                              \
             intermediate<                                                       \
                 Backend,                                                        \
-                LayoutType,                                                     \
                 typename _impl::get_mss_array<                                  \
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
                 >::type,                                                        \

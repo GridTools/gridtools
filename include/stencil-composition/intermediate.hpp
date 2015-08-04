@@ -39,12 +39,13 @@ namespace gridtools {
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
-        template <typename ArgList, bool IsStateful>
+        template <typename ArgList, typename MetaStorages, bool IsStateful>
         struct instantiate_local_domain {
             GT_FUNCTION
-            instantiate_local_domain(ArgList const& arg_list)
+            instantiate_local_domain(ArgList const& arg_list, MetaStorages const& meta_storages_)
                 : m_arg_list(arg_list)
-            {}
+                , m_meta_storages(meta_storages_)
+                {}
 
             /**Elem is a local_domain*/
             template <typename Elem>
@@ -52,31 +53,33 @@ namespace gridtools {
             void operator()(Elem & elem) const {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type");
 
-                elem.init(m_arg_list, 0,0,0);
+                elem.init(m_arg_list, m_meta_storages, 0,0,0);
                 elem.clone_to_gpu();
             }
 
-        template <typename StoragePointers,
-                  template <class A, class C, bool B> class LocalDomain>
-        struct get_local_domain {
-            template <typename T>
-            struct apply {
-                typedef LocalDomain<StoragePointers,T,IsStateful> type;
-            };
-        };
+        // template <typename StoragePointers,
+        //           template <class A, class C, bool B> class LocalDomain>
+        // struct get_local_domain {
+        //     template <typename T>
+        //     struct apply {
+        //         typedef LocalDomain<StoragePointers,T,IsStateful> type;
+        //     };
+        // };
 
         private:
             ArgList const& m_arg_list;
+            MetaStorages const& m_meta_storages;
         };
 
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
-        template <typename ArgList, bool IsStateful>
+        template <typename ArgList, typename MetaStorages, bool IsStateful>
         struct instantiate_mss_local_domain {
             GT_FUNCTION
-            instantiate_mss_local_domain(ArgList const& arg_list)
+            instantiate_mss_local_domain(ArgList const& arg_list, MetaStorages const& meta_storages_)
                 : m_arg_list(arg_list)
+                , m_meta_storages(meta_storages_)
             {}
 
             /**Elem is a local_domain*/
@@ -86,12 +89,13 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain<Elem>::value), "Internal Error: wrong type");
 
                 boost::fusion::for_each(mss_local_domain_list.local_domain_list,
-                                        _impl::instantiate_local_domain<ArgList, IsStateful>(m_arg_list)
+                                        _impl::instantiate_local_domain<ArgList, MetaStorages, IsStateful>(m_arg_list, m_meta_storages)
                                         );
             }
 
         private:
             ArgList const& m_arg_list;
+            MetaStorages const& m_meta_storages;
         };
 
         template <typename Index>
@@ -235,23 +239,29 @@ namespace gridtools {
     template<>
     struct setup_computation<enumtype::Cuda>{
 
-        template<typename ArgListType, typename DomainType>
-        static uint_t apply(ArgListType& storage_pointers, DomainType &  domain){
+        template<typename ArgListType, typename MetaData, typename DomainType>
+        static uint_t apply(ArgListType& storage_pointers, MetaData& meta_data_,  DomainType &  domain){
 
             //copy pointers into the domain original pointers, except for the temporaries.
             gridtools::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
-            > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.original_pointers));
+            > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.m_original_pointers));
+
+            gridtools::for_each<
+                boost::mpl::range_c<int, 0, boost::mpl::size<MetaData>::value >
+                > (copy_pointers_functor<MetaData, typename DomainType::metadata_list> (meta_data_, domain.m_original_metadata));
 
             boost::fusion::for_each(storage_pointers, update_pointer());
+            boost::fusion::for_each(meta_data_, update_pointer());
+
             return GT_NO_ERRORS;
         }
     };
 
     template<>
     struct setup_computation<enumtype::Host>{
-        template<typename ArgListType, typename DomainType>
-        static int_t apply(ArgListType const& storage_pointers, DomainType &  domain){
+        template<typename ArgListType, typename MetaData, typename DomainType>
+        static int_t apply(ArgListType const& storage_pointers, MetaData const& meta_data_, DomainType &  domain){
             return GT_NO_ERRORS;
         }
     };
@@ -264,6 +274,7 @@ namespace gridtools {
         typename MssComponentsArray,
         typename DomainType,
         typename ActualArgListType,
+        typename ActualMetadataListType,
         bool IsStateful
     > struct create_mss_local_domains
     {
@@ -273,7 +284,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template <typename T>
             struct apply {
-                typedef mss_local_domain<BackendId, T, DomainType, ActualArgListType, IsStateful> type;
+                typedef mss_local_domain<BackendId, T, DomainType, ActualArgListType, ActualMetadataListType, IsStateful> type;
             };
         };
 
@@ -291,8 +302,8 @@ namespace gridtools {
         typename Backend,
         typename DomainType,
         typename MssComponentsArray,
-        typename StencilValueType,
-        typename LayoutType
+        typename StencilValueType
+        // typename MetaData
     >
     struct create_actual_arg_list
     {
@@ -308,9 +319,9 @@ namespace gridtools {
         typedef typename Backend::template obtain_temporary_storage_types<
             DomainType,
             MssComponentsArray,
-            StencilValueType,
-            LayoutType
-        >::type mpl_actual_tmp_pairs;
+            StencilValueType// ,
+            // MetaData
+            >::type mpl_actual_tmp_pairs;
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
@@ -330,12 +341,52 @@ namespace gridtools {
 
     };
 
+
+
+
+
+
+
+
+
+    /**
+     * @brief computes the list of actual arg types by replacing the temporaries with their
+     * actual storage type
+     */
+    template<
+        typename Backend,
+        typename DomainType,
+        typename MssComponentsArray,
+        typename StencilValueType,
+        typename LayoutType
+    >
+    struct create_actual_metadata_list
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
+
+        // /**
+        //  * Takes the domain list of storage pointer types and transform
+        //  * the no_storage_type_yet with the types provided by the
+        //  * backend with the interface that takes the range sizes. This
+        //  * must be done before getting the local_domain
+        //  */
+
+        typedef typename DomainType::metadata_list type;
+
+    };
+
+
+
+
+
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
      */
     template <typename Backend,
-              typename LayoutType,
+              // typename MetaData,
               typename MssDescriptorArray,
               typename DomainType,
               typename Coords,
@@ -345,7 +396,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_layout_map<MetaData>::value), "Internal Error: wrong type");
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
@@ -367,15 +418,18 @@ namespace gridtools {
                 Backend,
                 DomainType,
                 mss_components_array_t,
-                float_type,
-                LayoutType
+                float_type//,
+                // MetaData
         >::type actual_arg_list_type;
+
+        typedef typename DomainType::metadata_list actual_metadata_list_type;
 
         typedef typename create_mss_local_domains<
             backend_id<Backend>::value,
             mss_components_array_t,
             DomainType,
             actual_arg_list_type,
+            actual_metadata_list_type,
             IsStateful
         >::type mss_local_domains_t;
 
@@ -387,6 +441,7 @@ namespace gridtools {
         const Coords& m_coords;
 
         actual_arg_list_type actual_arg_list;
+        actual_metadata_list_type actual_metadata_list;
 
         struct printtypes {
             template <typename T>
@@ -441,7 +496,7 @@ namespace gridtools {
             typedef boost::fusion::filter_view<actual_arg_list_type,
                                                is_storage<boost::mpl::_1> > t_args_view;
 
-            t_domain_view domain_view(domain.storage_pointers);
+            t_domain_view domain_view(domain.m_storage_pointers);
             t_args_view args_view(actual_arg_list);
 
             boost::fusion::copy(domain_view, args_view);
@@ -465,7 +520,7 @@ namespace gridtools {
         virtual void steady () {
             if(is_storage_ready)
             {
-                setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
+                setup_computation<Backend::s_backend_id>::apply( actual_arg_list, actual_metadata_list, m_domain );
 #ifdef __VERBOSE__
                     printf("Setup computation\n");
 #endif
@@ -477,7 +532,7 @@ namespace gridtools {
             }
 
             boost::fusion::for_each(mss_local_domain_list,
-                   _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
+                                    _impl::instantiate_mss_local_domain<actual_arg_list_type, actual_metadata_list_type, IsStateful>(actual_arg_list, actual_metadata_list));
 
 #ifdef __VERBOSE__
             m_domain.info();

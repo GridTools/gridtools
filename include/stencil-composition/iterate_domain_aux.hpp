@@ -44,6 +44,14 @@ namespace gridtools{
     struct is_any_iterate_domain_storage<host_tmp_storage< BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > :
         boost::mpl::true_{};
 
+    template <typename T> struct meta_storage_wrapper;
+
+    template<typename T>
+    struct is_any_iterate_domain_meta_storage : boost::mpl::false_{};
+
+    template < typename BaseStorage >
+    struct is_any_iterate_domain_meta_storage<meta_storage_wrapper<BaseStorage> > : boost::mpl::true_{};
+
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
      */
@@ -51,6 +59,13 @@ namespace gridtools{
     struct is_any_iterate_domain_storage_pointer :
             boost::mpl::and_<
                 is_any_iterate_domain_storage< typename boost::remove_pointer<T>::type >,
+                boost::is_pointer<T>
+            > {};
+
+    template<typename T>
+    struct is_any_iterate_domain_meta_storage_pointer :
+            boost::mpl::and_<
+                is_any_iterate_domain_meta_storage< typename boost::remove_pointer<T>::type >,
                 boost::is_pointer<T>
             > {};
 
@@ -285,23 +300,23 @@ namespace gridtools{
     template<
         uint_t Coordinate,
         typename StridesCached,
-        typename StorageSequence
+        typename MetaStorageSequence
         >
     struct increment_index_functor {
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-                                "internal error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
+        //                         "internal error: wrong type");
 
         GT_FUNCTION
-        increment_index_functor(StorageSequence const& storages, int_t const& increment,
+        increment_index_functor(MetaStorageSequence const& storages, int_t const& increment,
                 int_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
         template <typename ID>
         GT_FUNCTION
         void operator()(ID const&) const {
-            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
             assert(m_index_array);
@@ -314,7 +329,7 @@ namespace gridtools{
     private:
         increment_index_functor();
 
-        StorageSequence const& m_storages;
+        MetaStorageSequence const& m_storages;
         int_t const& m_increment;
         int_t* RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
@@ -389,16 +404,16 @@ namespace gridtools{
      * @tparam StridesCached strides cached type
      * @tparam StorageSequence sequence of storages
      */
-    template<uint_t Coordinate, typename Strides, typename StorageSequence>
+    template<uint_t Coordinate, typename Strides, typename MetaStorageSequence>
     struct initialize_index_functor {
     private:
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-                                "internal error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
+        //                         "internal error: wrong type");
 
 
         Strides& RESTRICT m_strides;
-        StorageSequence const & RESTRICT m_storages;
+        MetaStorageSequence const & RESTRICT m_storages;
         const int_t m_initial_pos;
         const uint_t m_block;
         int_t* RESTRICT m_index_array;
@@ -408,7 +423,7 @@ namespace gridtools{
         initialize_index_functor(initialize_index_functor const& other) : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos), m_block(other.m_block), m_index_array(other.m_index_array){}
 
         GT_FUNCTION
-        initialize_index_functor(Strides& RESTRICT strides, StorageSequence const & RESTRICT storages, const int_t initial_pos,
+        initialize_index_functor(Strides& RESTRICT strides, MetaStorageSequence const & RESTRICT storages, const int_t initial_pos,
             const uint_t block, int_t* RESTRICT index_array) :
             m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
             m_index_array(index_array) {}
@@ -416,7 +431,7 @@ namespace gridtools{
         template <typename ID>
         GT_FUNCTION
         void operator()(ID const&) const {
-            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
             assert(m_index_array);
@@ -523,18 +538,18 @@ namespace gridtools{
        for(j=0; j<n_d(i); ++j)
      * @tparam BackendType the type of backend
      * @tparam StridesCached strides cached type
-     * @tparam StorageSequence sequence of storages
+     * @tparam MetaStorageSequence sequence of storages
     */
-    template<typename BackendType, typename StridesCached, typename StorageSequence>
+    template<typename BackendType, typename StridesCached, typename MetaStorageSequence>
     struct assign_strides_functor{
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-                                "internal error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MetaStorageSequence, is_any_iterate_domain_meta_storage_pointer>::value),
+        //                         "internal error: wrong type");
 
     private:
         StridesCached& RESTRICT m_strides;
-        const StorageSequence& RESTRICT m_storages;
+        const MetaStorageSequence& RESTRICT m_storages;
         assign_strides_functor();
 
     public:
@@ -542,29 +557,29 @@ namespace gridtools{
         assign_strides_functor(assign_strides_functor const& other): m_strides(other.m_strides), m_storages(other.m_storages) {}
 
         GT_FUNCTION
-        assign_strides_functor(StridesCached& RESTRICT strides, StorageSequence const& RESTRICT storages) :
+        assign_strides_functor(StridesCached& RESTRICT strides, MetaStorageSequence const& RESTRICT storages) :
             m_strides(strides), m_storages(storages) {}
 
         template <typename ID>
         GT_FUNCTION
         void operator()(ID const&) const {
-            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
             typedef typename boost::remove_pointer<
                 typename boost::remove_reference<
-                    typename boost::fusion::result_of::at<StorageSequence, ID>::type
+                    typename boost::fusion::result_of::at<MetaStorageSequence, ID>::type
                  >::type
             >::type storage_type;
 
             //if the following fails, the ID is larger than the number of storage types
-            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value, "the ID is larger than the number of storage types");
+            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<MetaStorageSequence>::value, "the ID is larger than the number of storage types");
 
-                for_each<typename reversed_range< short_t, 0,  storage_type::space_dimensions-1 >::type> (
-                assign_strides_inner_functor<
-                    BackendType
-                >(&(m_strides.template get<ID::value>()[0]), &boost::fusion::at<ID>(m_storages)->strides(1))
-            );
+            for_each<typename reversed_range< short_t, 0,  storage_type::space_dimensions-1 >::type> (
+            assign_strides_inner_functor<BackendType>
+
+            (&(m_strides.template get<ID::value>()[0]), &(boost::fusion::template at<ID>(m_storages)->strides(1)))
+                );
         }
     };
 

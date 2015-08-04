@@ -76,8 +76,40 @@ namespace gridtools {
     std::false_type test(...);                                  \
                                                                 \
     template<class T>                                           \
-    struct has_constexpr_name : decltype(detail::check<T>(0)){};
+    struct has_constexpr_name : decltype(test<T>(0)){};
 
+
+    /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
+#define HAS_CONSTEXPR_CONSTRUCTOR( name )                        \
+    template<int> struct sfinae_true : std::true_type{};        \
+    template<class T>                                           \
+    sfinae_true<(T().name(), 0)> test(int);                      \
+    template<class>                                             \
+    std::false_type test(...);                                  \
+                                                                \
+    template<class T>                                           \
+    struct has_constexpr_name : decltype(test<T>(0)){};
+
+
+    template<int> struct sfinae_true : std::true_type{};
+
+    /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
+#define HAS_CONSTEXPR_METHOD( instance_, name )                  \
+    sfinae_true<(instance_.name(), 0)> test(int);                      \
+    template<class>                                             \
+    std::false_type test(...);                                  \
+                                                                \
+    template<class T>                                           \
+    struct has_constexpr_name : decltype(test<T>(0)){};
+
+    /** @brief Implementation of introspection
+
+        To use this define a constexpr "check" method in a class C returning and int.
+        Then
+        has_constexpr_check<C>
+        will be either true or false wether the class has or not a default constexpr constructor.
+     */
+    // HAS_CONSTEXPR_CONSTRUCTOR(check)
 
     /**@brief Implementation of introspection
 

@@ -34,6 +34,8 @@
 
 namespace gridtools {
 
+    template<typename T>struct is_meta_storage;
+
     namespace _impl {
 
         /**
@@ -45,7 +47,7 @@ namespace gridtools {
         */
         template <typename TemporariesRangeMap,
                   typename ValueType,
-                  typename LayoutType,
+                  // typename MetaData,
                   uint_t BI, uint_t BJ,
                   typename StrategyTraits,
                   enumtype::backend BackendID>
@@ -135,9 +137,9 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template <typename ValueType, typename Layout>
+        template <typename ValueType, typename MetaDataType>
         struct storage_type {
-            typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
+            typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType>::storage_t type;
         };
 
         /**
@@ -149,13 +151,13 @@ namespace gridtools {
          * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
          * storage type will be enough.
          */
-        template <typename ValueType, typename Layout>
+        template <typename ValueType, typename MetaDataType>
         struct temporary_storage_type
         {
             /** temporary storage must have the same iterator type than the regular storage
              */
         private:
-            typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
+            typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType, true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
                 typename backend_traits_t::template requires_temporary_redundant_halos<s_strategy_id>::type,
@@ -265,12 +267,13 @@ namespace gridtools {
         template <typename Domain
                   , typename MssComponentsArray
                   , typename ValueType
-                  , typename LayoutType >
+                  // , typename MetaDataType
+                  >
         struct obtain_temporary_storage_types {
 
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type");
+            // GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaDataType>::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
 
@@ -294,7 +297,7 @@ namespace gridtools {
                     typename _impl::get_storage_type<
                         map_of_ranges,
                         ValueType,
-                        LayoutType,
+                        // MetaDataType,
                         tileI,
                         tileJ,
                         strategy_traits_t,

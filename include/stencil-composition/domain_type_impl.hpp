@@ -118,7 +118,7 @@ type;
         struct l_get_it_type {
             template <typename U>
             struct apply {
-                typedef typename U::storage_type::iterator_type type;
+                typedef typename U::iterator_type type;
             };
         };
 

@@ -119,7 +119,7 @@ namespace gridtools{
         typedef dimension_extension_traits<First, StorageExtended ...  > traits;
         typedef typename super::pointer_type pointer_type;
         typedef typename  super::basic_type basic_type;
-        typedef typename super::original_storage original_storage;
+        // typedef typename super::original_storage original_storage;
         static const short_t n_width=sizeof...(StorageExtended)+1;
 
         /**@brief constructor given the space boundaries*/
@@ -163,7 +163,7 @@ namespace gridtools{
         virtual ~data_field(){
         }
 
-        using super::setup;
+        // using super::setup;
 
         /**@brief pushes a given data field at the front of the buffer for a specific dimension
            \param field the pointer to the input data field
@@ -195,7 +195,7 @@ namespace gridtools{
 >
         GT_FUNCTION
         void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
-       for (uint_t i=0; i<super::size(); ++i)
+            for (uint_t i=0; i<super::meta_data_t::value.size(); ++i)
            field[i]=value;
        push_front<dimension>(field);
    }
@@ -293,7 +293,7 @@ namespace gridtools{
 #endif
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-                    return get<field_dim, snapshot>()[super::_index(super::strides(),i,j,k)];
+          return get<field_dim, snapshot>()[super::meta_data_t::value._index(super::meta_data_t::value.strides(),i,j,k)];
       }
 
         /**@biref ODE advancing for a single dimension

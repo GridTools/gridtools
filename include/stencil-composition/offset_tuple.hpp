@@ -31,24 +31,24 @@ return X::direction==N? x.value : initialize<N>(rest...);
 template<ushort_t ID>
 struct initialize_all{
 
-template <typename ... X>
-GT_FUNCTION
-static void apply(int_t* offset, X ... x)
-{
-    offset[ID]=initialize<ID>(x...);
-    initialize_all<ID-1>::apply(offset, x...);
-}
+    template <typename Array, typename ... X>
+    GT_FUNCTION
+    static void apply(Array& offset, X ... x)
+        {
+            offset[ID]=initialize<ID>(x...);
+            initialize_all<ID-1>::apply(offset, x...);
+        }
 };
 
 template<>
 struct initialize_all<0>{
 
-template <typename ... X>
-GT_FUNCTION
-static void apply(int_t* offset, X ... x)
-{
-    offset[0]=initialize<0>(x...);
-}
+    template <typename Array, typename ... X>
+    GT_FUNCTION
+    static void apply(Array& offset, X ... x)
+        {
+            offset[0]=initialize<0>(x...);
+        }
 };
 #else
 
@@ -114,7 +114,7 @@ return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.
 
    Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
 */
-template< int_t Index, int_t Dimension >
+template< int_t Index, int_t Dimension=Index >
 struct offset_tuple : public offset_tuple<Index-1, Dimension>
 {
 static const int_t n_dim=Dimension;
@@ -199,6 +199,10 @@ static const ushort_t n_args=super::n_args+1;
         super( ), m_offset(0)
     {}
 
+    constexpr offset_tuple(offset_tuple const& other) : super(other), m_offset(other.get<n_args-1>())
+    {
+    }
+
     template<short_t Idx>
     constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
 
@@ -219,7 +223,7 @@ protected:
     int_t m_offset;
 };
 
-//specialization
+//specialization (do nothing)
 template< int_t Dimension >
 struct offset_tuple<0, Dimension>
 {

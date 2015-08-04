@@ -77,6 +77,23 @@ namespace gridtools {
 
 #endif
 
+        //TODO provide a BOOST PP implementation for this (so ugly :-()
+        GT_FUNCTION
+        array( array<T,1> const& other): _array({other[0]}) {
+        }
+        GT_FUNCTION
+        array( array<T,2> const& other): _array({other[0], other[1]}) {
+        }
+        GT_FUNCTION
+        array( array<T,3> const& other): _array({other[0], other[1], other[2]}) {
+        }
+        GT_FUNCTION
+        array( array<T,4> const& other): _array({other[0], other[1], other[2], other[3]}) {
+        }
+        GT_FUNCTION
+        array( array<T,5> const& other): _array({other[0], other[1], other[2], other[3], other[4]}) {
+        }
+
         GT_FUNCTION
         T * data() const {
             return _array;

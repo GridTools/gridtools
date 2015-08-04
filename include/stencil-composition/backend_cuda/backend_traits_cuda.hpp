@@ -32,10 +32,10 @@ namespace gridtools{
             typedef hybrid_pointer<T> type;
         };
 
-        template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
+        template <typename ValueType, typename MetaData, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            typedef storage< base_storage<typename pointer<ValueType>::type, Layout, Temp, SpaceDim> > storage_t;
+            typedef storage< base_storage<typename pointer<ValueType>::type, MetaData, Temp, SpaceDim> > storage_t;
         };
 
         template <typename Arguments>

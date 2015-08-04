@@ -6,6 +6,7 @@
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
 #include "accumulate.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{
     namespace _impl
@@ -34,6 +35,30 @@ namespace gridtools{
                 return Layout::template find_val<MaxIndex,short_t,1>(first, args...);
             }
         };
+
+        template<int_t MaxIndex,  typename Layout>
+        struct assign_all_strides{
+
+            template <int_t T>
+            using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
+
+            template<typename ... UIntType>
+            static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
+                using seq = typename gt_make_integer_sequence<sizeof ... (args)>::type;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>(args...);
+            }
+        };
+
+        // template<int_t ID, int_t MaxIndex,  typename Layout>
+        // struct assign_strides{
+        //     template<typename ... UIntType>
+        //     GT_FUNCTION
+        //     static constexpr int_t apply(UIntType ... args){
+        //         BOOST_STATIC_ASSERT(MaxIndex>=ID);
+        //         BOOST_STATIC_ASSERT(ID>=0);
+        //         return next_stride<MaxIndex-ID, MaxIndex, Layout>::apply(args...);
+        //     }
+        // };
 
 /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
         template<int_t ID, int_t MaxIndex,  typename Layout>

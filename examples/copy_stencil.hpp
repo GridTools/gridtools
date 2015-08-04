@@ -6,6 +6,7 @@
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <stencil-composition/interval.hpp>
+#include <storage/base_storage_metadata.hpp>
 
 
 #ifdef USE_PAPI_WRAP
@@ -28,6 +29,12 @@ using namespace enumtype;
 
 
 namespace copy_stencil{
+#ifdef __CUDACC__
+        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
+#else
+        typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
+#endif
+
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -67,6 +74,11 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
+    typedef meta_storage_runtime<0,layout_t> meta_data_t;
+    typedef meta_storage_constexpr<1,layout_t, 5, 5, 5> constexpr_meta_data_t;
+
+    // static const constexpr base_storage_metadata<layout_t, false> constexpr_test{5,5,5};
+
     bool test(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
@@ -87,14 +99,15 @@ namespace copy_stencil{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
+
+        // typedef boost::mpl::eval_if<decltype(is_constexpr_meta_storage(constexpr_meta_data)), boost::identity<meta_data_t>, boost::identity<meta_storage_wrapper<meta_data_t> > > meta_wrapper_t;
+
+        // constexpr meta_wrapper_t::type wrapper(constexpr_meta_data);
+
         //                   strides  1 x xy
         //                      dims  x y z
-#ifdef __CUDACC__
-        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
-#else
-        typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
-#endif
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type<float_type, constexpr_meta_data_t >::type constexpr_storage_type;
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)
         //vector field of dimension 2
@@ -103,7 +116,7 @@ namespace copy_stencil{
 #if defined(__CUDACC__) && defined(CXX11_ENABLED)
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
         //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-        typedef base_storage<hybrid_pointer<float_type> , layout_t, false ,2> base_type1;
+        typedef base_storage<hybrid_pointer<float_type>, meta_data_t, 2> base_type1;
         typedef storage_list<base_type1, 0>  extended_type;
         typedef storage<data_field2<extended_type, extended_type> > vec_field_type;
 #endif
@@ -112,48 +125,34 @@ namespace copy_stencil{
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-#ifdef CXX11_ENABLED
         typedef arg<0, vec_field_type > p_in;
         typedef boost::mpl::vector<p_in> accessor_list;
-#else
-        typedef arg<0, storage_type> p_in;
-        typedef arg<1, storage_type> p_out;
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector<p_in, p_out> accessor_list;
-#endif
-        /* typedef arg<1, vec_field_type > p_out; */
+
+        meta_data_t::value=meta_data_t::create(d1,d2,d3);
 
         // Definition of the actual data fields that are used for input/output
-#ifdef CXX11_ENABLED
-        vec_field_type in(d1,d2,d3);
+        vec_field_type in;
         vec_field_type::original_storage::pointer_type  init1(d1*d2*d3);
         vec_field_type::original_storage::pointer_type  init2(d1*d2*d3);
         in.push_front<0>(init1, 1.5);
         in.push_front<1>(init2, -1.5);
-#else
-        storage_type in(d1,d2,d3,-3.5,"in");
-        storage_type out(d1,d2,d3,1.5,"out");
-#endif
+
+        // base_storage_metadata<layout_t, false> test(5,5,5);
 
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
-#ifdef CXX11_ENABLED
                     in(i, j, k)=i+j+k;
-#else
-                    in(i, j, k)=i+j+k;
-#endif
                 }
 
-
+        typedef boost::mpl::vector<const meta_data_t> metadata_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
-        gridtools::domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&in));
+        gridtools::domain_type<accessor_list, metadata_list> domain
+            (boost::fusion::make_vector(&in), boost::fusion::make_vector(&meta_data_t::value));
 #else
         gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
@@ -208,7 +207,7 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_computation<gridtools::BACKEND>
             (
                 gridtools::make_mss // mss_descriptor
                 (
