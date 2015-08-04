@@ -43,7 +43,7 @@ private:
             boost::mpl::false_,
             boost::mpl::or_<
                 boost::mpl::_1,
-                is_there_in_sequence< esf_args<boost::mpl::_2>, Arg>
+                boost::mpl::contains< esf_args<boost::mpl::_2>, Arg>
             >
         >::type type;
     };
