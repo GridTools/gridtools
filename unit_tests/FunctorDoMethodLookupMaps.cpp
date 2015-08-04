@@ -6,11 +6,11 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/at.hpp>
 #include <iostream>
-#include <common/host_device.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/loopintervals.hpp>
-#include <stencil-composition/functor_do_methods.hpp>
-#include <stencil-composition/functor_do_method_lookup_maps.hpp>
+#include "common/host_device.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/loopintervals.hpp"
+#include "stencil-composition/functor_do_methods.hpp"
+#include "stencil-composition/functor_do_method_lookup_maps.hpp"
 
 using namespace gridtools;
 

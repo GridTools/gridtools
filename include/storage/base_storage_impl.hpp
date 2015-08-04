@@ -1,6 +1,6 @@
 #pragma once
 #include <gridtools.hpp>
-#include <common/defs.hpp>
+#include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"

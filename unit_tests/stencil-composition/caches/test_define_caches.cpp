@@ -5,10 +5,10 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/caches/define_caches.hpp>
-#include <stencil-composition/accessor.hpp>
-#include <stencil-composition/backend.hpp>
-#include <common/defs.hpp>
+#include "stencil-composition/caches/define_caches.hpp"
+#include "stencil-composition/accessor.hpp"
+#include "stencil-composition/backend.hpp"
+#include "common/defs.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -37,15 +37,15 @@ TEST(define_caches, test_sequence_caches)
     typedef gridtools::arg<2,storage_type> arg2_t;
 
     typedef decltype(gridtools::define_caches(
-        cache<IJ, arg0_t, cFill>(),
-        cache<IJK, arg1_t, cFlush>(),
-        cache<K, arg2_t, cLocal>()
+        cache<IJ, arg0_t, fill>(),
+        cache<IJK, arg1_t, flush>(),
+        cache<K, arg2_t, local>()
     ) ) cache_sequence_t;
 
     GRIDTOOLS_STATIC_ASSERT((
         boost::mpl::equal<
             cache_sequence_t,
-            boost::mpl::vector3<cache<IJ, arg0_t, cFill>, cache<IJK, arg1_t, cFlush>, cache<K, arg2_t, cLocal> >
+            boost::mpl::vector3<cache<IJ, arg0_t, fill>, cache<IJK, arg1_t, flush>, cache<K, arg2_t, local> >
         >::value),
         "Failed TEST"
     );

@@ -1,8 +1,8 @@
 #pragma once
-#include<common/defs.hpp>
-#include <common/halo_descriptor.hpp>
+#include"common/defs.hpp"
+#include "common/halo_descriptor.hpp"
 #ifdef HAS_GCL
-#include<communication/halo_exchange.hpp>
+#include"communication/halo_exchange.hpp"
 #endif
 #include "cell_topology.hpp"
 #include "../common/gt_math.hpp"

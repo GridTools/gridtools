@@ -7,9 +7,9 @@
 #include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
 #ifdef ENABLE_METERS
-  #include <stencil-composition/backend_host/timer_host.hpp>
+  #include "stencil-composition/backend_host/timer_host.hpp"
 #else
-  #include <stencil-composition/timer_dummy.hpp>
+  #include "stencil-composition/timer_dummy.hpp"
 #endif
 
 

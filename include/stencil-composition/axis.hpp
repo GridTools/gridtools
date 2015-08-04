@@ -5,7 +5,7 @@
 #include "loopintervals.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/gpu_clone.hpp"
-#include <storage/partitioner.hpp>
+#include "storage/partitioner.hpp"
 /**@file
 @brief file containing the size of the horizontal domain
 

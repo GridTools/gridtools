@@ -11,9 +11,9 @@
 #include "run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
-#include <stencil-composition/backend_cuda/backend_cuda.hpp>
+#include "stencil-composition/backend_cuda/backend_cuda.hpp"
 #else
-#include <stencil-composition/backend_host/backend_host.hpp>
+#include "stencil-composition/backend_host/backend_host.hpp"
 #endif
 
 #include "../common/pair.hpp"

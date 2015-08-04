@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <stencil-composition/timer.hpp>
+#include "stencil-composition/timer.hpp"
 
 namespace gridtools{
 

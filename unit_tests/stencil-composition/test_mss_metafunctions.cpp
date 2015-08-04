@@ -1,11 +1,11 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/caches/cache_metafunctions.hpp>
-#include <stencil-composition/caches/define_caches.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "stencil-composition/caches/define_caches.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/make_computation.hpp"
 
 
 using namespace gridtools;
@@ -46,8 +46,8 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs)
     typedef decltype(make_esf<functor1>(p_in(), p_buff())) esf1_t;
     typedef decltype(make_esf<functor1>(p_buff(), p_out())) esf2_t;
 
-    typedef cache<IJ, p_buff, cLocal> cache1_t;
-    typedef cache<IJ, p_out, cLocal> cache2_t;
+    typedef cache<IJ, p_buff, local> cache1_t;
+    typedef cache<IJ, p_out, local> cache2_t;
 
     typedef decltype( make_mss // mss_descriptor
         (

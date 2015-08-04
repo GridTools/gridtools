@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <common/defs.hpp>
-#include <stencil-composition/caches/cache_definitions.hpp>
-#include <stencil-composition/accessor.hpp>
+#include "common/defs.hpp"
+#include "stencil-composition/caches/cache_definitions.hpp"
+#include "stencil-composition/accessor.hpp"
 
 namespace gridtools{
 

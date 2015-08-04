@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include <common/defs.hpp>
+#include "common/defs.hpp"
 #include <boost/fusion/container/map/convert.hpp>
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/support/pair.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
-#include <stencil-composition/run_functor_arguments.hpp>
-#include <common/generic_metafunctions/vector_to_map.hpp>
-#include <common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
+#include "stencil-composition/run_functor_arguments.hpp"
+#include "common/generic_metafunctions/vector_to_map.hpp"
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 
 namespace gridtools {
 
