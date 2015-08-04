@@ -416,7 +416,7 @@ namespace gridtools {
         operator()(Accessor const& accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            return static_cast<IterateDomainImpl const *>(this)->template get_cache_value_impl<Accessor> (accessor);
+            return static_cast<IterateDomainImpl const *>(this)->get_cache_value_impl (accessor);
         }
 
 
