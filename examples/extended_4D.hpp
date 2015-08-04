@@ -1,9 +1,9 @@
 #pragma once
 
 #include <gridtools.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/make_computation.hpp>
 
 /**
   @file
