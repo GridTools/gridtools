@@ -179,8 +179,10 @@ namespace gridtools {
     {};
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the \ref gridtools::storage
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the \ref gridtools::storage
     */
     template <uint_t I, typename BaseType, template <typename T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
@@ -189,8 +191,10 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the dimension extension, \ref gridtools::data_field
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the dimension extension, \ref gridtools::data_field
     */
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >

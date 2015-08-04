@@ -15,7 +15,7 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0> >
+    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0,0,0> >
     struct esf_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value), "wrong types for the list of parameter placeholders\n"
                 "check the make_esf syntax");
