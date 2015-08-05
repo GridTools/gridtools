@@ -7,13 +7,20 @@
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
-
 /*
-  @file This file shows an implementation of the Conjugate gradient, done using stencil operations.
+  @file This file shows an implementation of the various stencil operations.
+
+ 1nd order in time:
+  3-point constant-coefficient stencil in one dimension, with symmetry.
+  7-point constant-coefficient isotropic stencil in three dimensions, with symmetry.
+  7-point variable-coefficient stencil in three dimension, with no coefficient symmetry.
+  25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
+
+ 2nd order in time:
+  25-point constant-coefficient, isotropic stencil in 3D, with symmetry across each axis.
+
+  A diagonal dominant matrix is used with "N" as a center-point value for a N-point stencil   
+  and "-1/N" as a off-diagonal value.
  */
 
 using gridtools::level;
@@ -31,22 +38,27 @@ using namespace expressions;
 #endif
 
 // This is the definition of the special regions in the "vertical" direction
-// What does this do? [???]
+// The K dimension can be split into logical splitters. They lie in between array elements.
+// A level represent an element on the third coordinate, such that level<2,1> represent
+// the array index ofllowing splitter<2>, while lavel<2,-1> represents the array value
+// before splitter<2>.
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-struct vector_product{
+// 1st order in time, 3-point constant-coefficient stencil in one dimension, with symmetry.
+struct d1point3{
     typedef accessor<0> out;
-    typedef accessor<1> a;
-    typedef accessor<2> b;
-    typedef boost::mpl::vector<out, a, b> arg_list;
+    typedef accessor<1, range<-1,1,0,0> > in; // this says to access x-1 anx x+1
+    typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) += dom(a()) * dom(b());
+        dom(out()) = 3.0*dom(in()) -0.33*(dom(in(x(-1)))+dom(in(x(+1))));
     }
 };
+
+
 
 bool solver(uint_t x, uint_t y, uint_t z) {
 
@@ -71,50 +83,40 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
      // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));
-    storage_type out(d1,d2,d3,0., "out");
-    storage_type a(d1,d2,d3,3., "a");
-    storage_type b(d1,d2,d3,5., "b");
-    for(int_t i=0; i<d1; ++i)
-        for(int_t j=0; j<d2; ++j)
-        {
-            a(i, j, 0)=i*d1 + j;
-            b(i, j, 0)=i*d1 + j;
-            out(i,j,0)=0.;
-        }
+    storage_type out(d1,d2,d3,0., "domain_out");
+    storage_type in(d1,d2,d3,1., "domain_in");
 
-    printf("Print OUT field\n");
+    printf("Print Domain before computation\n");
     out.print();
-    printf("Print A field\n");
-    a.print();
-    printf("Print B field\n");
-    b.print();
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, storage_type > p_a; //a
-    typedef arg<1, storage_type > p_b; //b
-    typedef arg<2, storage_type > p_out;
+    typedef arg<0, storage_type > p_out; //domain
+    typedef arg<1, storage_type > p_in;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_a, p_b, p_out> accessor_list;
+    typedef boost::mpl::vector<p_out, p_in> accessor_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<accessor_list> domain
-        (boost::fusion::make_vector(&a, &b, &out));
+        (boost::fusion::make_vector(&out, &in));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    uint_t di[5] = {0, 0, 0, d1-1, d1};
-    uint_t dj[5] = {0, 0, 0, d2-1, d2};
+
+    //Informs the library that the iteration space in the first two dimensions
+    //is from 0 to d1-1 (included) in I (or x) direction
+    uint_t di[5] = {0, 0, 1, d1-2, d1};
+    //and and 0 to 0 on J (or y) direction
+    uint_t dj[5] = {0, 0, 0, 0, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    coords.value_list[0] = 0; //saying that splitter<0,-1> is the array index 0
+    coords.value_list[1] = d3-1; //means that splitter<3,-1> is at index d3-1
 
     /*
       Here we do lot of stuff
@@ -129,48 +131,32 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* forward_step =
+    gridtools::computation* stencil_step =
 #else
-        boost::shared_ptr<gridtools::computation> forward_step =
+        boost::shared_ptr<gridtools::computation> stencil_step =
 #endif
       gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<vector_product>(p_out(), p_a(), p_b()) // esf_descriptor
+                gridtools::make_esf<d1point3>(p_out(), p_in()) // esf_descriptor
                 ),
             domain, coords
             );
 
 
-    forward_step->ready();
-    forward_step->steady();
-    forward_step->run();
-    forward_step->run();
-    forward_step->finalize();
+    stencil_step->ready();
+    stencil_step->steady();
+    //TODO: time iteration
+    stencil_step->run();
+    stencil_step->finalize();
 
 
-    printf("Print OUT field\n");
+    printf("Print domain after computation\n");
     out.print();
-    printf("Print A field\n");
-    a.print();
-    printf("Print B field\n");
-    b.print();
 
-    float sum = 0;
-    #pragma omp parallel for reduction(+:sum)
-    for(int_t i=0; i<d1; ++i) {
-        for(int_t j=0; j<d2; ++j)
-        {
-            sum += out(i,j,0);
-        }
-    }
-    printf("Sum is: %f\n", sum);
 
-    
-
-    return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-10) &&
-      (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-10);
-}
+    return 1;
+    }//solver
 }//namespace tridiagonal
