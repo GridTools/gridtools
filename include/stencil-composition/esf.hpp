@@ -76,20 +76,4 @@ namespace gridtools {
     struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
 
 
-    // Metafunctions
-    template <typename Esf>
-    struct is_written_temp {
-        template <typename Index>
-        struct apply {
-            typedef typename boost::mpl::if_<
-                is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
-                typename boost::mpl::if_<
-                    boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
-                    boost::false_type,
-                    boost::true_type
-                >::type,
-                boost::false_type
-            >::type type;
-        };
-    };
 } // namespace gridtools
