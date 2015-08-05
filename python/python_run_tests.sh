@@ -29,12 +29,16 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
 fi
 
 echo "Running Python tests ..."
-nosetests -v -s tests.test_sw tests.test_stencils
-TEST_STATUS=$?
-if [ ${TEST_STATUS} == 0 ]; then
+nosetests -v -s tests.test_sw       & TEST_ONE_PID=$!
+nosetests -v -s tests.test_stencils & TEST_TWO_PID=$!
+wait "${TEST_ONE_PID}"
+TEST_ONE_STATUS=$?
+wait "${TEST_TWO_PID}"
+TEST_TWO_STATUS=$?
+if [ ${TEST_ONE_STATUS} == 0 -a ${TEST_TWO_STATUS} == 0 ]; then
     echo "All Python tests OK"
     if [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
-        ${PYTHON_INSTALL_PREFIX}/bin/deactivate
+        deactivate
     fi
 else
     echo "Error running Python tests. EXIT NOW"
