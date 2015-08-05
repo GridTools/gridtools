@@ -44,7 +44,7 @@ struct vector_product{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) = dom(a()) * dom(b());
+        dom(out()) += dom(a()) * dom(b());
     }
 };
 
@@ -72,8 +72,8 @@ bool solver(uint_t x, uint_t y, uint_t z) {
      // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));
     storage_type out(d1,d2,d3,0., "out");
-    storage_type a(d1,d2,d3,3., "diag");//TODO
-    storage_type b(d1,d2,d3,5., "rhs");//TODO
+    storage_type a(d1,d2,d3,3., "a");
+    storage_type b(d1,d2,d3,5., "b");
     for(int_t i=0; i<d1; ++i)
         for(int_t j=0; j<d2; ++j)
         {
@@ -146,6 +146,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     forward_step->ready();
     forward_step->steady();
+    forward_step->run();
     forward_step->run();
     forward_step->finalize();
 
