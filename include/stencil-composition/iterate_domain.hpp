@@ -476,7 +476,7 @@ namespace gridtools {
                   , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Accessor, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
             return evaluation::value_scalar((*this), arg);
         }
 
@@ -488,7 +488,7 @@ namespace gridtools {
                   , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Accessor, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
 
             return evaluation::value_int((*this), arg);
         }
@@ -497,7 +497,7 @@ namespace gridtools {
                   , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
         GT_FUNCTION
         auto operator() (Expression<Accessor, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
 
             return evaluation::value_int((*this), arg);
         }
