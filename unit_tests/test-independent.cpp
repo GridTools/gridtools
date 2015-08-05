@@ -1,5 +1,5 @@
 #include <iostream>
-#include <common/host_device.hpp>
+#include "common/host_device.hpp"
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -7,11 +7,11 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
-#include <common/gt_assert.hpp>
-#include <stencil-composition/make_stencils.hpp>
-#include <stencil-composition/accessor.hpp>
-#include <stencil-composition/range.hpp>
-#include <stencil-composition/intermediate.hpp>
+#include "common/gt_assert.hpp"
+#include "stencil-composition/make_stencils.hpp"
+#include "stencil-composition/accessor.hpp"
+#include "stencil-composition/range.hpp"
+#include "stencil-composition/intermediate.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

@@ -1,14 +1,14 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 #include <iostream>
-#include <common/defs.hpp>
-#include <stencil-composition/intermediate_metafunctions.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/local_domain.hpp>
-#include <stencil-composition/backend_host/iterate_domain_host.hpp>
-#include <stencil-composition/accessor.hpp>
+#include "common/defs.hpp"
+#include "stencil-composition/intermediate_metafunctions.hpp"
+#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/local_domain.hpp"
+#include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/accessor.hpp"
 
 namespace test_iterate_domain{
     using namespace gridtools;
@@ -80,6 +80,8 @@ namespace test_iterate_domain{
             domain, coords
         );
 
+    typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+
     computation->ready();
     computation->steady();
 
@@ -88,7 +90,16 @@ namespace test_iterate_domain{
 
     typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
 
-    typedef iterate_domain_host<iterate_domain, boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type > it_domain_t;
+    typedef iterate_domain_host<
+        iterate_domain,
+        iterate_domain_arguments<
+            boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
+            boost::mpl::vector1<esf_t>,
+            boost::mpl::vector1<range<0,0,0,0> >,
+            boost::mpl::vector0<>,
+            block_size<32,4>
+        >
+    > it_domain_t;
 
     mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list);
     auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
@@ -99,12 +110,18 @@ namespace test_iterate_domain{
     GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_DATA_POINTERS==23, "bug in iterate domain, incorrect number of data pointers");
 
 
-    array<void* RESTRICT,it_domain_t::N_DATA_POINTERS> data_pointer;
-    strides_cached<it_domain_t::N_STORAGES-1, typename decltype(local_domain1)::esf_args> strides;
+    typedef array<void* RESTRICT,it_domain_t::N_DATA_POINTERS> data_pointer_t;
+    typedef strides_cached<it_domain_t::N_STORAGES-1, typename decltype(local_domain1)::esf_args> strides_t;
+    data_pointer_t data_pointer;
+    strides_t strides;
 
     typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
-    it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
-    it_domain.template assign_stride_pointers <backend_traits_t >(&strides);
+
+    it_domain.set_data_pointer_impl(&data_pointer);
+    it_domain.set_strides_pointer_impl(&strides);
+
+    it_domain.template assign_storage_pointers<backend_traits_t >();
+    it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
 
     //check data pointers initialization
 
@@ -146,12 +163,12 @@ namespace test_iterate_domain{
     *in.get<1,1>()=11.;
     *in.get<2,0>()=20.;
 
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<5> >::set<0>())==0.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<5> >::set<1>())==1.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<5> >::set<2>())==2.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6> >::set<1>())==10.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6>, enumtype::Dimension<5> >::set<1, 1>())==11.);
-    assert(it_domain(alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6> >::set<2>())==20.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<5> >::set<0>())==0.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<5> >::set<1>())==1.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<5> >::set<2>())==2.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<6> >::set<1>())==10.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>())==11.);
+    assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<6> >::set<2>())==20.);
 
     //using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
     *buff.get<0,0>()=0.;//is accessor<1>
@@ -166,18 +183,16 @@ namespace test_iterate_domain{
     *buff.get<1,5>()=15.;
     *buff.get<1,6>()=16.;
 
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<4> >::set<0>())==0.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<4> >::set<1>())==1.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<4> >::set<2>())==2.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5> >::set<1>())==10.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>())==11.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 2>())==12.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 3>())==13.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 4>())==14.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 5>())==15.);
-    assert(it_domain(alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 6>())==16.);
-
-    //using runtime accessors when the field is rectangular (as in the case of out, which is 2x3)
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<4> >::set<0>())==0.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<4> >::set<1>())==1.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<4> >::set<2>())==2.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5> >::set<1>())==10.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 1>())==11.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 2>())==12.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 3>())==13.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 4>())==14.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 5>())==15.);
+    assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 6>())==16.);
 
     *out.get<0,0>()=0.;//is accessor<2>
     *out.get<0,1>()=1.;
@@ -186,12 +201,12 @@ namespace test_iterate_domain{
     *out.get<2,0>()=20.;
     *out.get<2,1>()=21.;
 
-    assert(it_domain(accessor<2, range<0,0,0>, 4>())==0.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<3>(1)))==1.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(1)))==10.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(1), enumtype::Dimension<3>(1)))==11.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(2)))==20.);
-    assert(it_domain(accessor<2, range<0,0,0>, 4>(enumtype::Dimension<4>(2), enumtype::Dimension<3>(1)))==21.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>())==0.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<3>(1)))==1.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(1)))==10.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(1), dimension<3>(1)))==11.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(2)))==20.);
+    assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(2), dimension<3>(1)))==21.);
 
     //check index initialization and increment
 
@@ -219,39 +234,41 @@ namespace test_iterate_domain{
     assert(index[2]+out.strides<0>(out.strides())+out.strides<1>(out.strides()) == new_index[2] );
 
     //check offsets for the space dimensions
-    using in_1_1=alias<accessor<0, range<0,0,0>, 6>, enumtype::Dimension<6>, enumtype::Dimension<5> >::set<1, 1>;
+    using in_1_1=alias<accessor<0, range<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>;
 
     assert(((float_type*)(in.get<1,1>().get()+new_index[0]+in.strides<0>(in.strides()))==
-            &it_domain(in_1_1(enumtype::Dimension<1>(1)))));
+            &it_domain(in_1_1(dimension<1>(1)))));
 
     assert(((float_type*)(in.get<1,1>()+new_index[0]+in.strides<1>(in.strides()))==
-            &it_domain(in_1_1(enumtype::Dimension<2>(1)))));
+            &it_domain(in_1_1(dimension<2>(1)))));
 
     assert(((float_type*)(in.get<1,1>()+new_index[0]+in.strides<2>(in.strides()))==
-            &it_domain(in_1_1(enumtype::Dimension<3>(1)))));
+            &it_domain(in_1_1(dimension<3>(1)))));
 
     assert(((float_type*)(in.get<1,1>()+new_index[0]+in.strides<3>(in.strides()))==
-            &it_domain(in_1_1(enumtype::Dimension<4>(1)))));
+            &it_domain(in_1_1(dimension<4>(1)))));
 
     //check offsets for the space dimensions
-    using buff_1_1=alias<accessor<1, range<0,0,0>, 5>, enumtype::Dimension<5>, enumtype::Dimension<4> >::set<1, 1>;
+
+    using buff_1_1=alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 1>;
 
     assert(((float_type*)(buff.get<1,1>().get()+new_index[1]+buff.strides<0>(buff.strides()))==
-            &it_domain(buff_1_1(enumtype::Dimension<1>(1)))));
+            &it_domain(buff_1_1(dimension<1>(1)))));
 
     assert(((float_type*)(buff.get<1,1>()+new_index[1]+buff.strides<1>(buff.strides()))==
-            &it_domain(buff_1_1(enumtype::Dimension<2>(1)))));
+            &it_domain(buff_1_1(dimension<2>(1)))));
 
     assert(((float_type*)(buff.get<1,1>()+new_index[1]+buff.strides<2>(buff.strides()))==
-            &it_domain(buff_1_1(enumtype::Dimension<3>(1)))));
+            &it_domain(buff_1_1(dimension<3>(1)))));
 
 
-    using out_1=alias<accessor<2, range<0,0,0>, 4>, enumtype::Dimension<4>, enumtype::Dimension<3> >::set<1, 1>;
+    using out_1=alias<accessor<2, range<0,0,0,0>, 4>, dimension<4>, dimension<3> >::set<1, 1>;
+
     assert(((float_type*)(out.get<1,1>()+new_index[2]+out.strides<0>(out.strides()))==
-            &it_domain(out_1(enumtype::Dimension<1>(1)))));
+            &it_domain(out_1(dimension<1>(1)))));
 
     assert(((float_type*)(out.get<1,1>()+new_index[2]+out.strides<1>(out.strides()))==
-            &it_domain(out_1(enumtype::Dimension<2>(1)))));
+            &it_domain(out_1(dimension<2>(1)))));
 
     //check strides initialization
 

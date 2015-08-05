@@ -45,8 +45,8 @@ namespace shallow_water{
 /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
 //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
-        //using step=Dimension<3> ;
-        using comp=Dimension<5>;
+        //using step=dimension<3> ;
+        using comp=dimension<5>;
 //#endif
 
         /**@brief space discretization step in direction i */
@@ -113,8 +113,8 @@ namespace shallow_water{
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
         //shielding the base class aliases
-        //typedef Dimension<3> step;
-        typedef Dimension<5> comp;
+        //typedef dimension<3> step;
+        typedef dimension<5> comp;
 #endif
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -189,7 +189,7 @@ namespace shallow_water{
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
 
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
 #endif
         static uint_t current_time;
 
