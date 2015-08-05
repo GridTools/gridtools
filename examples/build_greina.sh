@@ -92,29 +92,35 @@ cmake \
 
 make -j8;
 
-if [ "x$TARGET" == "xgpu" ]
+if ["x$?" != "x0"]
 then
+    exit -1
+else
+
+    if [ "x$TARGET" == "xgpu" ]
+    then
         make tests_gpu;
         ./build/tests_gpu
 
         #  if [ "$RUN_MPI_TESTS" == "ON" ]
         #  then
-              #TODO not updated to greina
-              # ../examples/communication/run_communication_tests.sh
+        #TODO not updated to greina
+        # ../examples/communication/run_communication_tests.sh
         #  fi
-else
+    else
         make tests;
         ./build/tests
 
         if [ "$RUN_MPI_TESTS" == "ON" ]
         then
             if [ "x$CXX_11_ON" == "xcxx11" ]
-               then
-               mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+            then
+                mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
             fi
 
             #TODO not updated to greina
             #    ../examples/communication/run_communication_tests.sh
         fi
+    fi
 fi
 rm -rf *
