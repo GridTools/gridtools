@@ -2,6 +2,11 @@
 
 
 #
+# full path to the virtual environment where the Python tests run
+#
+VENV_PATH=${HOME}/venv_gridtools4py
+
+#
 # environment setup
 #
 module load gcc/4.8.4
@@ -12,7 +17,7 @@ module load mpich/ge/gcc/64/3.1
 module load /users/crosetto/local/cuda7/7.0.0
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
 export GRIDTOOLS_ROOT_BUILD=$PWD
 export GRIDTOOLS_ROOT=$PWD/../
 export CUDATOOLKIT_HOME=${CUDA_ROOT}
@@ -87,7 +92,7 @@ cmake \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
 -DENABLE_PYTHON:BOOL=$USE_PYTHON \
--DPYTHON_INSTALL_PREFIX:STRING="${HOME}/venv_gridtools4py" \
+-DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
  ../
 
 make -j8;
