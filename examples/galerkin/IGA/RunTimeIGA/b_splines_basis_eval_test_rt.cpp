@@ -16,6 +16,7 @@ using gridtools::range;
 using gridtools::level;
 using gridtools::interval;
 using gridtools::accessor;
+using gridtools::enumtype::Dimension;
 
 
 typedef interval<level<0,-1>, level<1,-1> > x_lap;
@@ -29,15 +30,13 @@ typedef interval<level<0,-1>, level<1,1> > third_axis;
 constexpr int P(2); // b-spline order
 constexpr int N(5); // Number of function
 constexpr int NK(P+N+1);// TODO: check this
-constexpr double knots[NK] = {0,1,2,3,4,5,6};
+constexpr double knots[NK] = {0,1,2,3,4,5,6,7};
 
 // Non-GT type b-spline instance allocation
 b_splines_rt::BSplineBasis<P,N> bspline_basis(knots);
 
 
 ////////////////// GT-STYLE CODE PART /////////////////////
-
-using gridtools::enumtype::Dimension;
 
 struct bspline_basis_struct
 {
@@ -55,7 +54,7 @@ struct bspline_basis_struct
 
     	const std::vector<double> basis_function_values(bspline_basis.evaluate(dom(csi())));
 
-    	for(unsigned int basis_index=0;basis_index<N;++basis_index)
+    	for(int basis_index=0;basis_index<N;++basis_index)
     	{
     		dom(bsline_basis_values(Dimension<4>(basis_index))) = basis_function_values[basis_index];
     	}
@@ -154,14 +153,14 @@ int main()
 
     // Results check with standard non GT calculation
     std::vector<double> basis_function_values(N);
-    for(unsigned int csiIndex=0;csiIndex<numPoints;++csiIndex)
+    for(int csiIndex=0;csiIndex<numPoints;++csiIndex)
 	{
     	basis_function_values = bspline_basis.evaluate(csiValues[csiIndex]);
-    	for(unsigned int basis_index=0;basis_index<N;++basis_index)
+    	for(int basis_index=0;basis_index<N;++basis_index)
     	{
     		if(basis_function_values[basis_index]!=bspline_basis_values(csiIndex,0,0,basis_index))
     		{
-    			std::cout<<basis_function_values[csiIndex]<<" "<<bspline_basis_values(csiIndex,0,0,basis_index)<<std::endl;
+    			std::cout<<basis_function_values[basis_index]<<" "<<bspline_basis_values(csiIndex,0,0,basis_index)<<std::endl;
     		}
     	}
 	}
