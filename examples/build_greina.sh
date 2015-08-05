@@ -92,7 +92,7 @@ cmake \
 
 make -j8;
 
-if ["x$?" != "x0"]
+if [ "x$?" != "x0" ]
 then
     exit -1
 else
