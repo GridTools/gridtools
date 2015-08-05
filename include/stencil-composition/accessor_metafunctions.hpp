@@ -15,15 +15,13 @@ template <typename ArgType, typename ... Pair>
 struct is_accessor<accessor_mixed<ArgType, Pair ... > > : boost::mpl::true_{};
 #endif
 
-template<typename T>
-struct accessor_index;
-
-template < ushort_t ID, typename Range, ushort_t Number>
-struct accessor_index<accessor<ID, Range, Number> >
+template <typename Accessor>
+struct accessor_index
 {
-    typedef boost::mpl::integral_c<ushort_t, ID> type;
-    BOOST_STATIC_CONSTANT(ushort_t, value=(type::value));
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal Error: wrong type");
+    typedef typename Accessor::index_type type;
 };
+
 
 /**
  * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according

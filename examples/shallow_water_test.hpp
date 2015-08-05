@@ -45,8 +45,8 @@ namespace shallow_water{
         using tmp=arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type ;
         using sol=arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type ;
         using arg_list=boost::mpl::vector<tmp, sol> ;
-        using step=Dimension<3> ;
-        using comp=Dimension<4>;
+        using step=dimension<3> ;
+        using comp=dimension<4>;
 //#endif
 
         static float_type dx(){return 1e-2;}
@@ -88,8 +88,8 @@ namespace shallow_water{
         typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
         typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
-        typedef Dimension<3> step;
-        typedef Dimension<4> comp;
+        typedef dimension<3> step;
+        typedef dimension<4> comp;
 #endif
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -144,8 +144,8 @@ namespace shallow_water{
         typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
         typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
-        typedef Dimension<3> step;
-        typedef Dimension<4> comp;
+        typedef dimension<3> step;
+        typedef dimension<4> comp;
 #endif
         template <typename Evaluation>
         GT_FUNCTION

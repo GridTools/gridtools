@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../storage/storage.hpp"
-#include "../common/layout_map.hpp"
+#include "storage/storage.hpp"
+#include "common/layout_map.hpp"
 #include "range.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
@@ -9,127 +9,20 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <vector>
-#include "../common/is_temporary_storage.hpp"
+#include "common/is_temporary_storage.hpp"
+#include "stencil-composition/offset_tuple.hpp"
 #ifdef CXX11_ENABLED
 #include "expressions.hpp"
 #endif
 
 namespace gridtools {
 
-
-    /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
-    template<typename ArgType, typename Storage>
-    struct arg_storage_pair {
-        typedef ArgType arg_type;
-        typedef Storage storage_type;
-
-        Storage *ptr;
-
-        arg_storage_pair(Storage* p)
-            : ptr(p)
-            {}
-
-        Storage* operator*() {
-            return ptr;
-        }
-    };
-
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for one dimension
-       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
-    */
-    template <ushort_t N, typename X>
-    GT_FUNCTION
-    constexpr int_t initialize( X x )
-    {
-        return (X::direction==N? x.value : 0);
-    }
-
-#ifdef CXX11_ENABLED
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for arbitrary dimension
-       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
-       \param rest are the remaining arguments, which get considered one at a time in by means of recursive calls
-    */
-    template <ushort_t N, typename X, typename ... Rest>
-    GT_FUNCTION
-    constexpr int_t initialize(X x, Rest ... rest )
-    {
-        return X::direction==N? x.value : initialize<N>(rest...);
-    }
-
-    template<ushort_t ID>
-    struct initialize_all{
-
-        template <typename ... X>
-        GT_FUNCTION
-        static void apply(int_t* offset, X ... x)
-        {
-            offset[ID]=initialize<ID>(x...);
-            initialize_all<ID-1>::apply(offset, x...);
-        }
-    };
-
-    template<>
-    struct initialize_all<0>{
-
-        template <typename ... X>
-        GT_FUNCTION
-        static void apply(int_t* offset, X ... x)
-        {
-            offset[0]=initialize<0>(x...);
-        }
-    };
-#else
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for two dimension
-       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
-       \param y is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (y.value) and the dimension index (Y::direction)
-    */
-    template <ushort_t N, typename X, typename Y>
-    GT_FUNCTION
-    constexpr int_t initialize(X x, Y y)
-    {
-        return X::direction==N? x.value : Y::direction==N? y.value : 0;
-    }
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for three dimension
-       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
-       \param y is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (y.value) and the dimension index (Y::direction)
-       \param z is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (z.value) and the dimension index (Z::direction)
-    */
-    template <ushort_t N, typename X, typename Y, typename Z>
-    GT_FUNCTION
-    constexpr int_t initialize(X x, Y y, Z z)
-    {
-        return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
-    }
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for three dimension
-       \param x is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (x.value) and the dimension index (X::direction)
-       \param y is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (y.value) and the dimension index (Y::direction)
-       \param z is an instance of the \ref gridtools::enumtype::Dimension class, which contains the offset (z.value) and the dimension index (Z::direction)
-    */
-    template <ushort_t N, typename X, typename Y, typename Z, typename T>
-    GT_FUNCTION
-    constexpr int_t initialize(X x, Y y, Z z, T t)
-    {
-        return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : T::direction==N? t.value : 0;
-    }
-#endif
-
     //forward declaration
-    template< int_t  Index, int_t Dimension >
+    template< int_t  Index, int_t NDim >
     struct offset_tuple;
 
-    namespace enumtype{
-        template <ushort_t>
-        struct Dimension;
-    }
+    template <ushort_t>
+    struct dimension;
 
     template <uint_t I, typename T>
     struct arg;
@@ -197,14 +90,14 @@ namespace gridtools {
         // by the compiler
         template<uint_t Idx>
         GT_FUNCTION
-        constexpr accessor_base (enumtype::Dimension<Idx> const& x ): m_offsets(x) {}
+        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {}
 
         GT_FUNCTION
         constexpr accessor_base (const int_t x ): m_offsets(x) {}
 
 
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+        /**@brief constructor taking the dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'dimension' is a
            language keyword used at the interface level.
         */
 #if defined( CXX11_ENABLED ) && ! defined(__CUDACC__) //cuda messing up
@@ -255,173 +148,6 @@ namespace gridtools {
     };
 
 //################################################################################
-//                              Multidimensional Fields
-//################################################################################
-
-    /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
-       \param n_args is the current ID of the extra dimension
-       \param index_type is the index of the storage type
-
-       EXAMPLE:
-
-       Possible interfaces to access one extra dimension T (say, temperature) at offset -1 of a 'velocity' field V are the following:
-       - specify it with the first integer argument (the arguments after the first define the offsets of the 3D fields and can be in any of the form described in gridtools::arg_type)
-       \verbatim
-       V(-1, x(1), z(-3));
-       \endverbatim
-       - specify explicitly the dimension: in this case the order of the arguments is arbitrary:
-       \verbatim
-       typedef Dimension<4> T;
-       V(x(1), z(-3), T(-1))
-       \endverbatim
-
-       Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
-    */
-    template< int_t Index, int_t Dimension >
-    struct offset_tuple : public offset_tuple<Index-1, Dimension>
-    {
-        static const int_t n_dim=Dimension;
-
-        typedef offset_tuple<Index-1, Dimension> super;
-        static const ushort_t n_args=super::n_args+1;
-
-#ifdef CXX11_ENABLED
-
-        /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
-           When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-        template <typename... Whatever>
-        GT_FUNCTION
-            constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
-        }
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
-        template <ushort_t Idx, typename... Whatever>
-        GT_FUNCTION
-        constexpr offset_tuple ( enumtype::Dimension<Idx> const& t, Whatever const& ... x):
-            super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
-        {}
-#else
-        /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
-           When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-        GT_FUNCTION
-        offset_tuple ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
-        }
-        GT_FUNCTION
-        offset_tuple ( int const& i, int const& j): super( j ), m_offset(i) {
-        }
-        GT_FUNCTION
-        offset_tuple ( int const& i): m_offset(i) {
-        }
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
-        template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
-        GT_FUNCTION
-        offset_tuple ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v,  enumtype::Dimension<Idx4> const& h ): super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h))
-        {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
-        template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
-        GT_FUNCTION
-        offset_tuple ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u, enumtype::Dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v))
-        {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
-        template <ushort_t Idx1, ushort_t Idx2 >
-        GT_FUNCTION
-        offset_tuple ( enumtype::Dimension<Idx1> const& t, enumtype::Dimension<Idx2> const& u ): super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u))
-        {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
-           language keyword used at the interface level.
-        */
-        template <ushort_t Idx >
-        GT_FUNCTION
-        offset_tuple ( enumtype::Dimension<Idx> const& t ) : super(t), m_offset(initialize<super::n_dim-n_args+1>(t))
-        {}
-#endif
-
-        //initializes recursively all the offsets to 0
-        GT_FUNCTION
-        constexpr offset_tuple ( ):
-            super( ), m_offset(0)
-        {}
-
-        template<short_t Idx>
-        constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
-
-        /**@brief returns the offset at a specific index Idx*/
-        template<short_t Idx>
-        /**@brief returns the offset array*/
-        GT_FUNCTION
-        constexpr
-        int_t get() const {
-            //NOTE: this should be a constexpr whenever m_offset is a static const
-            //this might not be compile-time efficient for large indexes,
-            //because both taken and not taken branches are compiled. boost::mpl::eval_if would be better.
-            return Idx==n_args-1? m_offset : super::template get<Idx>();
-
-        }
-
-    protected:
-        int_t m_offset;
-    };
-
-    //specialization
-    template< int_t Dimension >
-    struct offset_tuple<0, Dimension>
-    {
-        static const int_t n_dim=Dimension;
-        #ifdef CXX11_ENABLED
-        template <typename... Whatever>
-        GT_FUNCTION
-        constexpr offset_tuple ( Whatever... x) {}
-
-        //copy ctor
-        GT_FUNCTION
-        constexpr offset_tuple (const offset_tuple<0, Dimension>& other) {}
-#else
-        template <typename X, typename Y, typename Z,  typename T>
-        GT_FUNCTION
-        constexpr offset_tuple ( X x, Y y, Z z, T t ){}
-
-        template <typename X, typename Y, typename Z>
-        GT_FUNCTION
-        constexpr offset_tuple ( X x, Y y, Z z ){}
-
-        template <typename X>
-        GT_FUNCTION
-        constexpr offset_tuple ( X x ){}
-
-        template <typename X, typename Y>
-        GT_FUNCTION
-        constexpr offset_tuple ( X x, Y y ){}
-#endif
-
-        GT_FUNCTION
-        constexpr offset_tuple(){}
-        static const ushort_t n_args=0;
-
-        template<short_t Idx>
-        GT_FUNCTION
-        constexpr int_t get() const { return 0;}
-    };
-
-//################################################################################
 //                              Compile time checks
 //################################################################################
 
@@ -453,8 +179,10 @@ namespace gridtools {
     {};
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the \ref gridtools::storage
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the \ref gridtools::storage
     */
     template <uint_t I, typename BaseType, template <typename T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
@@ -463,8 +191,10 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the dimension extension, \ref gridtools::data_field
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the dimension extension, \ref gridtools::data_field
     */
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >

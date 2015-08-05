@@ -1,9 +1,9 @@
 #include <iostream>
 #include <gt_for_each/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
-#include <stencil-composition/level.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/functor_do_methods.hpp>
+#include "stencil-composition/level.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/functor_do_methods.hpp"
 
 using namespace gridtools;
 

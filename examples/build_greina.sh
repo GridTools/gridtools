@@ -57,7 +57,8 @@ WHERE_=`pwd`
 export JENKINS_COMMUNICATION_TESTS=1
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING="-arch=sm_35 -O3 -DNDEBUG " \
+-DCUDA_ARCH:STRING="sm_35" \
+-DCMAKE_BUILD_TYPE:STRING="DEBUG" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGTEST_LIBRARY:STRING="/users/crosetto/gtest-1.7.0/libgtest.a" \
@@ -76,21 +77,10 @@ cmake \
 
 make -j8;
 
-if [ "x$TARGET" == "xgpu" ]
+sh ./run_tests.sh
+
+if [ "x$TARGET" == "xcpu" ]
 then
-make tests_gpu;
-
-./build/tests_gpu
-
-#  if [ "$RUN_MPI_TESTS" == "ON" ]
-#  then
-      #TODO not updated to greina
-      # ../examples/communication/run_communication_tests.sh
-#  fi
-
-else
-make tests;
-./build/tests
 
   if [ "$RUN_MPI_TESTS" == "ON" ]
   then
