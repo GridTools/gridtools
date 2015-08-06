@@ -6,6 +6,7 @@ namespace gridtools {
         virtual void steady() = 0;
         virtual void finalize() = 0;
         virtual void run() = 0;
+        virtual std::string print_meter()=0;
     };
 
 } //namespace gridtools

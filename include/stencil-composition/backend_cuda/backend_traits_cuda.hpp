@@ -6,6 +6,12 @@
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
+#ifdef ENABLE_METERS
+  #include "stencil-composition/backend_cuda/timer_cuda.hpp"
+#else
+  #include "stencil-composition/timer_dummy.hpp"
+#endif
+
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -163,31 +169,43 @@ namespace gridtools{
         /**
          * @brief metafunction that returns the right iterate domain for this backend
          * (depending on whether the local domain is positional or not)
-         * @tparam LocalDomain the local domain
+         * @tparam IterateDomainArguments the iterate domain arguments
          * @return the iterate domain type for this backend
          */
-        template <typename LocalDomain>
+        template <typename IterateDomainArguments>
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
-            template<typename _LocalDomain>
+            template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
-                typedef iterate_domain_cuda<positional_iterate_domain, _LocalDomain> type;
+                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
             };
 
-            template<typename _LocalDomain>
+            template<typename _IterateDomainArguments>
             struct select_basic_iterate_domain
             {
-                typedef iterate_domain_cuda<iterate_domain, _LocalDomain> type;
+                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
             };
 
             typedef typename boost::mpl::eval_if<
-                local_domain_is_stateful<LocalDomain>,
-                select_positional_iterate_domain<LocalDomain>,
-                select_basic_iterate_domain<LocalDomain>
+                local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
+                select_positional_iterate_domain<IterateDomainArguments>,
+                select_basic_iterate_domain<IterateDomainArguments>
             >::type type;
         };
+
+        template<typename IterateDomainArguments>
+        struct select_iterate_domain_cache
+        {
+            typedef iterate_domain_cache<IterateDomainArguments> type;
+        };
+
+#ifdef ENABLE_METERS
+        typedef timer_cuda performance_meter_t;
+#else
+        typedef timer_dummy performance_meter_t;
+#endif
     };
 
 }//namespace gridtools

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <common/meta_array.hpp>
+#include "common/meta_array.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss_local_domain.hpp"
 #include "mss.hpp"
@@ -66,6 +66,8 @@ namespace gridtools {
             >::type oriented_loop_intervals_t;
             // List of functors to execute (in order)
             typedef typename mss_components_t::functors_list_t functors_list_t;
+            // sequence of esf descriptors contained in this mss
+            typedef typename mss_components_t::linear_esf_t esf_sequence_t;
             // computed range sizes to know where to compute functot at<i>
             typedef typename mss_components_t::range_sizes_t range_sizes;
             // Map between interval and actual arguments to pass to Do methods
@@ -80,11 +82,13 @@ namespace gridtools {
                 block_size_t,
                 block_size_t,
                 functors_list_t,
+                esf_sequence_t,
                 local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
                 FunctorsMap,
                 range_sizes,
                 local_domain_t,
+                typename mss_components_t::cache_sequence_t,
                 Coords,
                 ExecutionEngine,
                 StrategyId

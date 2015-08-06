@@ -4,6 +4,7 @@
 
 #include "accessor.hpp"
 #include "domain_type.hpp"
+#include "common/generic_metafunctions/is_sequence_of.hpp"
 
 /**
    @file
@@ -14,10 +15,12 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0> >
+    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0,0,0> >
     struct esf_descriptor {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value), "wrong types for the list of parameter placeholders\n"
+                "check the make_esf syntax");
         typedef ESF esf_function;
-        typedef ArgArray args;
+        typedef ArgArray args_t;
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
@@ -79,7 +82,7 @@ namespace gridtools {
         template <typename Index>
         struct apply {
             typedef typename boost::mpl::if_<
-                is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
+                is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
                 typename boost::mpl::if_<
                     boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
                     boost::false_type,
@@ -89,30 +92,4 @@ namespace gridtools {
             >::type type;
         };
     };
-
-    template <typename Esf>
-    struct get_arg_index {
-        template <typename Index>
-        struct apply {
-            typedef typename boost::mpl::at<typename Esf::args, Index>::type type;
-        };
-    };
-
-    template <typename EsfF>
-    struct get_temps_per_functor {
-        typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args>::type::value> range;
-        typedef typename boost::mpl::fold<
-            range,
-            boost::mpl::vector<>,
-            boost::mpl::if_<
-                typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<
-                    boost::mpl::_1,
-                    typename get_arg_index<EsfF>::template apply<boost::mpl::_2>
-                >,
-                boost::mpl::_1
-            >
-        >::type type;
-    };
-
 } // namespace gridtools

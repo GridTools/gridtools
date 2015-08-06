@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 
-#define SILENT_RUN
 #include <boost/mpl/map/map10.hpp>
 #include "stencil-composition/accessor_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_evaluator.hpp"
@@ -32,13 +31,4 @@ TEST(accessor, copy_const) {
 //    ASSERT_TRUE(remap_accessor_t(in).get<0>() == 3);
 //    ASSERT_TRUE(remap_accessor_t(in).get<1>() == 2);
 //    ASSERT_TRUE(remap_accessor_t(in).get<2>() == 1);
-}
-
-
-int main(int argc, char** argv)
-{
-
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

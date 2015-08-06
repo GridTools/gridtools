@@ -11,8 +11,8 @@
 #include "accessor_metafunctions.hpp"
 #include "../common/meta_array.hpp"
 #include "../common/array.hpp"
-#include <common/generic_metafunctions/static_if.hpp>
-#include <common/generic_metafunctions/reversed_range.hpp>
+#include "common/generic_metafunctions/static_if.hpp"
+#include "common/generic_metafunctions/reversed_range.hpp"
 
 /**
    @file
@@ -71,31 +71,47 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
         template <short_t Idx>
-            using return_t = typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx> >::type;
+        using return_t = typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx> >::type;
 #else
         template <short_t Idx>
-            struct return_t{
+        struct return_t{
             typedef typename boost::mpl::if_<boost::mpl::bool_<Idx==ID>, data_array_t, typename super::template return_t<Idx>::type >::type type;
         };
 #endif
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
-            strides_cached():super(){
+        strides_cached():super(){
             GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<StorageList>::value > ID, "Library internal error: strides index exceeds the number of storages");
         }
 
         template<short_t Idx>
-            GT_FUNCTION
+        GT_FUNCTION
 #ifdef CXX11_ENABLED
-            return_t<Idx>
+        return_t<Idx>
 #else
-            typename return_t<Idx>::type
+        typename return_t<Idx>::type
 #endif
-            & RESTRICT
-            get() {
+        const & RESTRICT
+        get() const {
+            return static_if<(Idx==ID)>::apply(
+                    m_data ,
+                    super::template get<Idx>()
+            );
+        }
+
+        template<short_t Idx>
+        GT_FUNCTION
+#ifdef CXX11_ENABLED
+        return_t<Idx>
+#else
+        typename return_t<Idx>::type
+#endif
+        & RESTRICT
+        get() {
             return static_if<(Idx==ID)>::apply( m_data , super::template get<Idx>());
         }
+
 
     private:
         data_array_t m_data;
@@ -121,12 +137,18 @@ namespace gridtools{
             typedef data_array_t type;
         };
 #endif
-        //TODOCOSUNA getter should be const method. But we can not here because we return a non const *
-        // We should have a getter and a setter
+
         template<short_t Idx>
         GT_FUNCTION
         data_array_t & RESTRICT
         get()  {//stop recursion
+            return m_data;
+        }
+
+        template<short_t Idx>
+        GT_FUNCTION
+        data_array_t const & RESTRICT
+        get() const {//stop recursion
             return m_data;
         }
 
@@ -545,5 +567,26 @@ namespace gridtools{
             );
         }
     };
+
+    template<typename Accessor, typename CachesMap>
+    struct accessor_is_cached
+    {
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            accessor_index<Accessor>,
+            boost::mpl::identity<static_int<-1> >
+        >::type accessor_index_t;
+
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            boost::mpl::has_key<
+                CachesMap,
+                static_uint<accessor_index_t::value>
+            >,
+            boost::mpl::identity<boost::mpl::false_>
+        >::type type;
+        BOOST_STATIC_CONSTANT(bool, value=(type::value));
+    };
+
 
 }//namespace gridtools
