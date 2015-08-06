@@ -20,7 +20,7 @@
 #include <boost/fusion/include/for_each.hpp>
 #include "gt_for_each/for_each.hpp"
 #include "../common/gpu_clone.hpp"
-#include <storage/storage.hpp>
+#include "storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 
 #include "domain_type_impl.hpp"
@@ -175,20 +175,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         domain_type(Args... args)
             : storage_pointers()
         {
-// #ifndef NDEBUG
-//             uint_t i = sizeof...(args);
-//             std::cout << "n placeholders " << i << std::endl;
-//             std::cout << "These are the pointers before assignment" << std::endl;
-//             boost::fusion::for_each(storage_pointers, _debug::print_deref());
-//             boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
-// #endif
-
             assign_pointers(args...);
-
-// #ifndef NDEBUG
-//             std::cout << "These are the pointers after assignment" << std::endl;
-//             boost::fusion::for_each(storage_pointers, _debug::print_domain_info());
-// #endif
         }
 #endif
 
@@ -230,7 +217,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 // #endif
             boost::fusion::copy(real_storage, fview);
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(storage_pointers, _debug::print_pointer());
 #endif

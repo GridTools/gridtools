@@ -193,7 +193,7 @@ class SWTest (CopyTest):
             #
             self.qt_app = QtGui.QApplication.instance ( )
             if self.qt_app is None:
-                self.qt_app = QtGui.QApplication ([], False)
+                self.qt_app = QtGui.QApplication ([])
 
             ## Create a GL View widget to display data
             w = gl.GLViewWidget()

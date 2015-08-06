@@ -1,5 +1,5 @@
 #include <gridtools.hpp>
-#include <common/halo_descriptor.hpp>
+#include "common/halo_descriptor.hpp"
 
 #ifdef __CUDACC__
 #include <boundary-conditions/apply_gpu.hpp>
@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.hpp>
+#include "stencil-composition/backend.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -916,18 +916,6 @@ bool usingvalue_2() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
@@ -945,18 +933,6 @@ bool usingvalue_2() {
     out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -1088,39 +1064,6 @@ bool usingcopy_3() {
         }
     }
 
-#ifndef NDEBUG
-    std::cout << "src" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", src(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "one" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", one(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "two" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", two(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
@@ -1140,30 +1083,6 @@ bool usingcopy_3() {
     two.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(one, two, src);
-#endif
-
-#ifndef NDEBUG
-    std::cout << "OUTPUT" << std::endl;
-    std::cout << "one" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", one(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "two" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", two(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;

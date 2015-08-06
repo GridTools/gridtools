@@ -2,7 +2,6 @@
 
 #define SILENT_RUN
 #include "test_domain_indices.hpp"
-#include "test_smallstorage_indices.hpp"
 #include "boundary_conditions_test.hpp"
 #include "../examples/interface1.hpp"
 #include "../examples/positional_copy_stencil.hpp"
@@ -20,10 +19,6 @@
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
-}
-
-TEST(testsmallstorage, testindices) {
-    EXPECT_EQ(test_smallstorage_indices(), true);
 }
 
 TEST(interface, accessor0) {

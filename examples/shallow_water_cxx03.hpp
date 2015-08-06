@@ -53,7 +53,7 @@ namespace shallow_water{
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic {
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -256,7 +256,7 @@ namespace shallow_water{
         typedef accessor<1, range<0, +1, 0, +1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, sol> arg_list;
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /* *@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -299,7 +299,7 @@ namespace shallow_water{
 
     struct second_step_y {
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -353,7 +353,7 @@ namespace shallow_water{
         /* typedef range<0,-3,0,-3> xrange; */
         /* typedef range<1,1,1,1> xrange_subdomain; */
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
