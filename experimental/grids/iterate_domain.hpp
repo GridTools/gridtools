@@ -136,7 +136,7 @@ reduce_on_edges(Reduction function
                 , ValueType initial
                 , Map mapf)
 {
-    static_assert(std::is_same<typename Map::location_type, gridtools::location_type<1>>::value,
+    static_assert(Map::location_type::value==1,
                   "The map function (for a nested call) provided to 'on_edges' is not on edges");
     return reduce_on_something(function, initial, mapf);
 }
@@ -154,7 +154,7 @@ reduce_on_cells(Reduction function
                 , ValueType initial
                 , Map mapf)
 {
-    static_assert(std::is_same<typename Map::location_type, gridtools::location_type<0>>::value,
+    static_assert(Map::location_type::value==0,
                   "The map function (for a nested call) provided to 'on_cellss' is not on cells");
     return reduce_on_something(function, initial, mapf);
 }

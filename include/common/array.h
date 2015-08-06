@@ -28,8 +28,8 @@ namespace gridtools {
     public:
         typedef T value_type;
 
-        // GT_FUNCTION
-        // array() {}
+        GT_FUNCTION
+        array() {}
 
 #ifdef CXX11_ENABLED
         template<typename ... ElTypes>
@@ -120,7 +120,7 @@ namespace gridtools {
 
         GT_FUNCTION
         size_t size() const {return _size;}
-        
+
     };
 
     template <typename T, size_t D>
@@ -151,7 +151,7 @@ namespace gridtools {
         typedef T value_type;
 
         GT_FUNCTION
-        array() 
+        array()
             : _array{}
         {}
 
