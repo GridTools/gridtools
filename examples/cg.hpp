@@ -7,6 +7,7 @@
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
+#include <boost/timer/timer.hpp>
 /*
   @file This file shows an implementation of the various stencil operations.
 
@@ -128,8 +129,6 @@ bool solver(uint_t x, uint_t y, uint_t z) {
       3) The actual domain dimensions
      */
 
-
-// \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
     gridtools::computation* stencil_step =
 #else
@@ -146,16 +145,24 @@ bool solver(uint_t x, uint_t y, uint_t z) {
             );
 
 
+    //prepare computation
     stencil_step->ready();
     stencil_step->steady();
-    //TODO: time iteration
-    stencil_step->run();
-    stencil_step->finalize();
+    
+    //start timer
+    boost::timer::cpu_timer time;
 
+    //TODO: swap domains between time iteration
+    for(int i=0; i<2; i++)
+        stencil_step->run();
+
+    boost::timer::cpu_times lapse_time = time.elapsed();
+    stencil_step->finalize();
 
     printf("Print domain after computation\n");
     out.print();
 
+    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 1;
     }//solver
