@@ -11,10 +11,12 @@ namespace gridtools {
 
     extern char const cells_str[]="cells";
     extern char const edges_str[]="edges";
+    extern char const vertexes_str[]="vertexes";
 
     namespace{
         using cells = location_type<0,2, cells_str >;
         using edges = location_type<1,3, edges_str >;
+        using vertexes = location_type<2,1, vertexes_str >;
     }
 
     template<typename T, typename ValueType=int_t>
@@ -68,6 +70,10 @@ namespace gridtools {
         typedef array<ValueType, 4> type;
     };
 
+    template <typename ValueType>
+    struct return_type<from<vertexes>::template to<vertexes>, ValueType>{
+        typedef array<ValueType, 6> type;
+    };
 
     template<> template<> template<>
     struct from<cells>::to<cells>::with_color<static_int<1> >{
@@ -114,6 +120,36 @@ namespace gridtools {
         }
     };
 
+    template<> template<> template<>
+    struct from<vertexes>::to<vertexes>::with_color<static_int<0> >{
+
+        template <typename ValueType>
+        using return_t=typename return_type<from<vertexes>::to<vertexes>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]-1),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]-1),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]+1),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1])
+            };
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0], 0, i[1]-1},
+                { i[0]+1, 0, i[1]-1},
+                { i[0]+1, 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]-1, 0, i[1]+1},
+                { i[0]-1, 0, i[1]},
+            };
+        }
+    };
 
     template<> template<> template<>
     struct from<edges>::to<edges>::with_color<static_int<0> >{
@@ -389,6 +425,7 @@ namespace gridtools {
 
         using cells = location_type<0,2, cells_str >;
         using edges = location_type<1,3, edges_str >;
+        using vertexes = location_type<2,1, vertexes_str >;
 
         template <typename T>
         struct pointer_to;
@@ -409,10 +446,11 @@ namespace gridtools {
 
         static constexpr int Dims = 2;
 
-        std::tuple<v_storage_t<cells>, v_storage_t<edges> > m_v_storage_tuple;
+        std::tuple<v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes> > m_v_storage_tuple;
 
-        using virtual_storage_types = typename boost::fusion::vector<v_storage_t<cells>*, v_storage_t<edges>*>;
-        using storage_types = typename boost::mpl::vector<storage_t<cells>*, storage_t<edges>*>;
+        using virtual_storage_types =
+            typename boost::fusion::vector<v_storage_t<cells>*, v_storage_t<edges>*, v_storage_t<vertexes>*>;
+        using storage_types = boost::mpl::vector<storage_t<cells>*, storage_t<edges>*, storage_t<vertexes>* >;
         virtual_storage_types m_virtual_storages;
     public:
 
@@ -440,7 +478,10 @@ namespace gridtools {
         static constexpr uint_t u_size_i(cells, int _N) {return _N+2;}
         static constexpr uint_t u_size_j(edges, int _M) {return 3*(_M/2)+6;}
         static constexpr uint_t u_size_i(edges, int _N) {return _N+2;}
-        std::tuple<v_storage_t<cells>, v_storage_t<edges> > const& v_storage_tuple() const {return m_v_storage_tuple;}
+        static constexpr uint_t u_size_j(vertexes, int _M) {return _M/2+3;}
+        static constexpr uint_t u_size_i(vertexes, int _N) {return _N+3;}
+
+        std::tuple<v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes> > const& v_storage_tuple() const {return m_v_storage_tuple;}
 
         trapezoid_2D_colored() = delete;
     public :
@@ -455,11 +496,14 @@ namespace gridtools {
                 , // v_storage_t<edges>(
                 array<uint_t, v_storage_t<edges>::space_dimensions>
                 {u_size_i(edges(), first_), edges::n_colors, u_size_j(edges() , second_)/edges::n_colors, dims...}//))
-                )
+                , // v_storage_t<vertexes>(
+                array<uint_t, v_storage_t<vertexes>::space_dimensions>
+                {u_size_i(vertexes(), first_), vertexes::n_colors, u_size_j(vertexes() , second_)/vertexes::n_colors, dims...}//))
+             )
         {
-            boost::fusion::at_c<cells::value>(m_virtual_storages) = &std::get</*v_storage_t<cells> cxx14*/ 0 >(m_v_storage_tuple);
-            boost::fusion::at_c<edges::value>(m_virtual_storages) = &std::get</*v_storage_t<edges> cxx14*/ 1 >(m_v_storage_tuple);
-            //assert(accumulate(logical_and(), (dims&1 == 0)...));
+            boost::fusion::at_c<cells::value>(m_virtual_storages) = &std::get<0>(m_v_storage_tuple);
+            boost::fusion::at_c<edges::value>(m_virtual_storages) = &std::get<1>(m_v_storage_tuple);
+            boost::fusion::at_c<vertexes::value>(m_virtual_storages) = &std::get<2>(m_v_storage_tuple);
         }
 
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
