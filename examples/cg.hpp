@@ -59,7 +59,21 @@ struct d1point3{
     }
 };
 
+// 1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
+struct d3point7{
+    typedef accessor<0> out;
+    typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
+    typedef boost::mpl::vector<out, in> arg_list;
 
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(out()) = 7.0*dom(in())
+                    - 1.0/7.0 * (dom(in(x(-1)))+dom(in(x(+1))))
+                    - 1.0/7.0 * (dom(in(y(-1)))+dom(in(y(+1))))
+                    - 1.0/7.0 * (dom(in(z(-1)))+dom(in(z(+1))));
+    }
+};
 
 bool solver(uint_t x, uint_t y, uint_t z) {
 
@@ -84,11 +98,11 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
      // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));
-    storage_type out(d1,d2,d3,0., "domain_out");
-    storage_type in(d1,d2,d3,1., "domain_in");
+    storage_type out3d(d1,d2,d3,0., "domain_out");
+    storage_type in3d(d1,d2,d3,1., "domain_in");
 
-    printf("Print Domain before computation\n");
-    out.print();
+    storage_type out1d(d1,1,1,0., "domain_out");
+    storage_type in1d(d1,1,1,1., "domain_in");
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -102,8 +116,11 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<accessor_list> domain
-        (boost::fusion::make_vector(&out, &in));
+    gridtools::domain_type<accessor_list> domain3d
+        (boost::fusion::make_vector(&out3d, &in3d));
+
+    gridtools::domain_type<accessor_list> domain1d
+        (boost::fusion::make_vector(&out1d, &in1d));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -113,11 +130,17 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     //is from 0 to d1-1 (included) in I (or x) direction
     uint_t di[5] = {0, 0, 1, d1-2, d1};
     //and and 0 to 0 on J (or y) direction
-    uint_t dj[5] = {0, 0, 0, 0, d2};
+    uint_t dj[5] = {0, 0, 1, d2-2, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0; //saying that splitter<0,-1> is the array index 0
-    coords.value_list[1] = d3-1; //means that splitter<3,-1> is at index d3-1
+    gridtools::coordinates<axis> coords3d(di, dj);
+    coords3d.value_list[0] = 1; //specifying index of the splitter<0,-1>
+    coords3d.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
+
+    uint_t dii[5] = {0, 0, 1, d1-2, d1};
+    uint_t djj[5] = {0, 0, 0, 0, 1};
+    gridtools::coordinates<axis> coords1d(dii, djj);
+    coords1d.value_list[0] = 0; //specifying index of the splitter<0,-1>
+    coords1d.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
     /*
       Here we do lot of stuff
@@ -129,10 +152,11 @@ bool solver(uint_t x, uint_t y, uint_t z) {
       3) The actual domain dimensions
      */
 
+//------------------------------------------------------------------------------
 #ifdef __CUDACC__
-    gridtools::computation* stencil_step =
+    gridtools::computation* stencil_step_1 =
 #else
-        boost::shared_ptr<gridtools::computation> stencil_step =
+        boost::shared_ptr<gridtools::computation> stencil_step_1 =
 #endif
       gridtools::make_computation<gridtools::BACKEND, layout_t>
         (
@@ -141,28 +165,64 @@ bool solver(uint_t x, uint_t y, uint_t z) {
                 execute<forward>(),
                 gridtools::make_esf<d1point3>(p_out(), p_in()) // esf_descriptor
                 ),
-            domain, coords
+            domain1d, coords1d
             );
 
 
     //prepare computation
-    stencil_step->ready();
-    stencil_step->steady();
+    stencil_step_1->ready();
+    stencil_step_1->steady();
     
     //start timer
-    boost::timer::cpu_timer time;
+    boost::timer::cpu_timer time1;
 
     //TODO: swap domains between time iteration
     for(int i=0; i<2; i++)
-        stencil_step->run();
+        stencil_step_1->run();
 
-    boost::timer::cpu_times lapse_time = time.elapsed();
-    stencil_step->finalize();
+    boost::timer::cpu_times lapse_time1 = time1.elapsed();
+    stencil_step_1->finalize();
 
     printf("Print domain after computation\n");
-    out.print();
+    out1d.print();
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    std::cout << "TIME d1point3: " << boost::timer::format(lapse_time1) << std::endl;
+//------------------------------------------------------------------------------
+#ifdef __CUDACC__
+    gridtools::computation* stencil_step_2 =
+#else
+        boost::shared_ptr<gridtools::computation> stencil_step_2 =
+#endif
+      gridtools::make_computation<gridtools::BACKEND, layout_t>
+        (
+            gridtools::make_mss // mss_descriptor
+            (
+                execute<forward>(),
+                gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
+                ),
+            domain3d, coords3d
+            );
+
+
+    //prepare computation
+    stencil_step_2->ready();
+    stencil_step_2->steady();
+    
+    //start timer
+    boost::timer::cpu_timer time2;
+
+    //TODO: swap domains between time iteration
+    for(int i=0; i<2; i++)
+        stencil_step_2->run();
+
+    boost::timer::cpu_times lapse_time2 = time2.elapsed();
+    stencil_step_2->finalize();
+
+    printf("Print domain after computation\n");
+    out3d.print();
+
+    std::cout << "TIME d3point7: " << boost::timer::format(lapse_time2) << std::endl;
+//------------------------------------------------------------------------------
 
     return 1;
     }//solver
