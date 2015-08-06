@@ -19,7 +19,6 @@ if (GTEST_FOUND)
     set(COMMON_TESTS
         tests.cpp
         test_domain_indices.cpp
-        test_smallstorage_indices.cpp
         boundary_conditions_test.cpp
     )
     set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp stencil-composition/test_iterate_domain.cpp)
@@ -62,7 +61,7 @@ if (GTEST_FOUND)
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
-    gridtools_add_test( tests.cloning_derived ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cloning_derived 42")
+    gridtools_add_test( tests.cloning_derived ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cloning_derived" 42)
 
     set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
     set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})
@@ -86,4 +85,5 @@ endif()
 add_subdirectory( communication )
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
+add_subdirectory( storage )
 

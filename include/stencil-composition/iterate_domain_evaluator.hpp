@@ -76,10 +76,10 @@ public:
     >::type::value_type& RESTRICT
     operator() (Expression const&  arg) const
 #endif
-        {
-            typedef typename remap_accessor_type<Expression, esf_args_map_t>::type remap_accessor_t;
-            return m_iterate_domain(remap_accessor_t(arg));
-        }
+    {
+        typedef typename remap_accessor_type<Expression, esf_args_map_t>::type remap_accessor_t;
+        return m_iterate_domain(remap_accessor_t(arg));
+    }
 
 protected:
 };

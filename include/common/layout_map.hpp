@@ -784,13 +784,13 @@ namespace gridtools {
         template <ushort_t I, typename T, T DefaultVal>
             GT_FUNCTION
             static T find_val(T const& a, T const& b, T const& c) {
-            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+            if ((uint_t) boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if ( (uint_t) boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
+                    if ( (uint_t) boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -840,13 +840,13 @@ namespace gridtools {
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
-            GT_FUNCTION
-            static T find_val(Tuple const& indices) {
+        GT_FUNCTION
+        static T find_val(Tuple const& indices) {
             if ((pos_<I>::value >= length))
             {
                 return DefaultVal;
             } else {
-                assert( Tuple::n_dim-pos_<I>::value-1 >=0 );
+                assert( (int_t)Tuple::n_dim-(int_t)pos_<I>::value-1 >=0 );
                 // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a negative index");
                 // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets out of bounds");
                 return indices.template get<Tuple::n_dim-pos_<I>::value-1>();
