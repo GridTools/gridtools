@@ -57,7 +57,7 @@ namespace gridtools {
 
             static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
                 std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
 
@@ -127,7 +127,7 @@ namespace gridtools {
             static void prepare_temporaries(ArgList & arg_list, Coords const& coords) {
                 //static const enumtype::strategy StrategyType = Block;
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
                 std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
 

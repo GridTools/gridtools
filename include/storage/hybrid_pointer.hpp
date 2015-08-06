@@ -22,7 +22,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("creating empty hybrid pointer %x \n", this);
 #endif
         }
@@ -37,7 +37,7 @@ namespace gridtools {
         explicit hybrid_pointer(uint_t size, bool externally_managed=false) : wrap_pointer<T>(size, externally_managed), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
             allocate_it(size);
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("allocating hybrid pointer %x \n", this);
             printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
@@ -55,7 +55,7 @@ namespace gridtools {
 #endif
             , m_size(other.m_size)
         {
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("cpy const hybrid pointer: ");
             printf("%X ", this->m_cpu_p);
             printf("%X ", m_gpu_p);
@@ -67,7 +67,7 @@ namespace gridtools {
 
         GT_FUNCTION
         virtual ~hybrid_pointer(){
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("deleting hybrid pointer %x \n", this);
 #endif
 };
@@ -82,7 +82,7 @@ namespace gridtools {
                           << size*sizeof(T)
                           << " bytes   " <<  cudaGetErrorString(err)
                           << std::endl;
-#ifndef NDEBUG
+#ifdef __VERBOSE__
                 printf("allocating hybrid pointer %x \n", this);
 #endif
             }
@@ -95,14 +95,14 @@ namespace gridtools {
             m_gpu_p=NULL;
 #endif
             wrap_pointer<T>::free_it();
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("freeing hybrid pointer %x \n", this);
 #endif
       }
 
         void update_gpu() const {
 #ifdef __CUDACC__
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("update gpu "); out();
 #endif
             cudaMemcpy(m_gpu_p, this->m_cpu_p, m_size*sizeof(T), cudaMemcpyHostToDevice);
@@ -111,7 +111,7 @@ namespace gridtools {
 
         void update_cpu() const {
 #ifdef __CUDACC__
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("update cpu "); out();
 #endif
             cudaMemcpy(this->m_cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);

@@ -3,6 +3,17 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project( GRIDTOOLS )
 enable_language( CXX )
+enable_testing()
+
+SET(SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
+if(SUPPRESS_MESSAGES)
+    add_definitions(-DSUPPRESS_MESSAGES)
+endif(SUPPRESS_MESSAGES)
+
+SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
+if(VERBOSE)
+    add_definitions(-D__VERBOSE__)
+endif(VERBOSE)
 
 
 ## enable to use ctest:
@@ -19,6 +30,11 @@ if(GNU_PROFILE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
 message ("-- building profiled executables")
 endif()
+
+
+set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
+add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
+add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
 
 
 # Not sure why it's desirable to specify the build directory, but it seems
@@ -77,6 +93,8 @@ if( USE_GPU )
       set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       set( ENABLE_CXX11 "OFF" )
   endif()
+  set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
+
   SET(CUDA_SEPARABLE_COMPILATION ON)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
@@ -86,16 +104,26 @@ if( USE_GPU )
 ## #   message("exelibs ${exe_LIBS}")
 ## # message("${CUDA_INCLUDE_DIRS}")
 ## # message("${CUDA_CUDART_LIBRARY}")
-SET(CUDA_SEPARABLE_COMPILATION ON)
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${ADDITIONAL_NVCC_FLAGS} -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions")
+  SET(CUDA_SEPARABLE_COMPILATION ON)
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${ADDITIONAL_NVCC_FLAGS}"
+"-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
 endif()
+
+set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
+
 include(FindOpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else()
+    set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 endif(OPENMP_FOUND)
+
+if(ENABLE_PERFORMANCE_METERS)
+    add_definitions(-DENABLE_METERS)
+endif(ENABLE_PERFORMANCE_METERS)
 
 # find GTest
 find_package(GTest)
@@ -202,12 +230,19 @@ endif(DOXYGEN_FOUND)
 
 set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
+file(APPEND ${TEST_SCRIPT} "res=0\n")
 
-function(gridtools_add_test test_script test_name test_exec)
+function(gridtools_add_test test_name test_script test_exec)
   add_test(${test_name} ${test_exec} ${ARGN})
-  file(APPEND ${TEST_SCRIPT} ${test_exec} ${ARGN} "\n")
+  file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
+  file(APPEND ${test_script} "res=$((res || $? ))\n")
 endfunction(gridtools_add_test)
 
+
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+if( NOT ENABLE_CACHING )
+    add_definitions( -D__DISABLE_CACHING__ )
+endif( NOT ENABLE_CACHING )
 
 if (ENABLE_PYTHON)
     message ("PYTHON enabled ")
@@ -252,3 +287,10 @@ endif(ENABLE_PYTHON)
 
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
+
+file(APPEND ${TEST_SCRIPT} "exit $res\n")
+file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
+   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+)
+
+

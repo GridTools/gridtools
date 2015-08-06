@@ -112,8 +112,6 @@ namespace positional_copy_stencil{
         typedef gridtools::layout_map<2,1,0> layout_t;
         typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 
-        //out.print();
-
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
 
