@@ -68,7 +68,7 @@ struct d1point3{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) = 3.0*dom(in()) -0.33*(dom(in(x(-1)))+dom(in(x(+1))));
+        dom(out()) = 3.0*dom(in()) - 1.0/3.0 * (dom(in(x(-1)))+dom(in(x(+1))));
     }
 };
 
