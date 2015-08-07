@@ -160,11 +160,9 @@ struct stencil_on_edges {
 #define _EVAL_I(l1,l2,x,y)                                              \
     std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors_indices({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << std::endl;
 
-template<typename T> struct printy{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYYYYY, (T));};
 template<typename Storage>
 void fill_storage_with_indices(Storage& storage)
 {
-    std::cout << " IIIII " << storage.m_size << std::endl;
     for(uint_t i =0; i < storage.m_size; ++i)
         storage.m_ptr[i] = i;
 }
