@@ -366,7 +366,7 @@ int main() {
 
 
         iterate_domain<boost::mpl::vector<out_vertexes, in_vertexes>,
-                      trapezoid_2D, trapezoid_2D::vertexes> acc
+                      trapezoid_2D, trapezoid_2D::vertexes> it_
             (ptrs, grid);
 
         struct _coords {
@@ -379,9 +379,9 @@ int main() {
                 , lb1(lb1)
                 , ub1(ub1)
             {}
-        } coords(1, NC-1-1, 2, MC-2-1); // closed intervals
+        } coords(1, NV-1-1, 2, MV-2-1); // closed intervals
 
-        gridtools::colored_backend::run(acc, x, coords);
+        gridtools::colored_backend::run(it_, x, coords);
 
     }
 
