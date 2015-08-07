@@ -35,23 +35,24 @@ namespace gridtools {
                 uint_t m_tile_k;// tile along k
 
                 GT_FUNCTION
-                instantiate_tmps(uint_t tile_i, uint_t tile_j, uint_t tile_k)
-                    : m_tile_i(tile_i)
-                    , m_tile_j(tile_j)
-                    , m_tile_k(tile_k)
+                instantiate_tmps(// uint_t tile_i, uint_t tile_j, uint_t tile_k
+                    )
+                    // : m_tile_i(tile_i)
+                    // , m_tile_j(tile_j)
+                    // , m_tile_k(tile_k)
                 {}
 
                 // ElemType: an element in the data field place-holders list
                 template <typename ElemType>
                 void operator()(ElemType*&  e) const {
                     //ElemType::info_string.c_str();
-
                     //calls the constructor of the storage
                     //TODO noone deletes this new
-                    e = new ElemType(m_tile_i,
-                                     m_tile_j,
-                                     m_tile_k);
-                    e->set_name("default tmp storage");
+                    e = new ElemType(// m_tile_i,
+                                     // m_tile_j,
+                                     // m_tile_k
+                        "default tmp storage"
+                        );
                 }
             };
 
@@ -67,9 +68,10 @@ namespace gridtools {
                 view_type fview(arg_list);
 
                 boost::fusion::for_each(fview,
-                                        instantiate_tmps(coords.direction_i().total_length(),
-                                                         coords.direction_j().total_length(),
-                                                         coords.value_at_top()-coords.value_at_bottom()+1));
+                                        instantiate_tmps(// coords.direction_i().total_length(),
+                                                         // coords.direction_j().total_length(),
+                                                         // coords.value_at_top()-coords.value_at_bottom()+1
+                                            ));
 
             }
 

@@ -180,14 +180,15 @@ namespace gridtools {
         typedef typename local_domain_t::mpl_storage_multiplicity multiplicity;
         typedef typename local_domain_t::actual_args_type actual_args_type;
         //the number of storages  used in the current functor
-        static const uint_t N_STORAGES=boost::mpl::size<multiplicity>::value;
+        static const uint_t N_META_STORAGES=boost::mpl::size<multiplicity>::value;
+        static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
         //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages<
             actual_args_type,
             boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
 
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
-        typedef strides_cached<N_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
+        typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
 
         GT_FUNCTION
         data_pointer_array_t& RESTRICT data_pointer()
@@ -216,7 +217,7 @@ namespace gridtools {
     private:
 
         local_domain_t const& local_domain;
-        array<int_t,N_STORAGES> m_index;
+        array<int_t,N_META_STORAGES> m_index;
 
     public:
 
@@ -259,7 +260,7 @@ namespace gridtools {
         GT_FUNCTION
         void assign_stride_pointers(){
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
-            for_each< typename reversed_range<int_t, 0, N_STORAGES >::type > (
+            for_each< typename reversed_range<int_t, 0, N_META_STORAGES >::type > (
                 assign_strides_functor<
                     BackendType,
                     Strides,
@@ -270,9 +271,9 @@ namespace gridtools {
 
         /**@brief getter for the index array */
         GT_FUNCTION
-        void get_index(array<int_t, N_STORAGES>& index) const
+        void get_index(array<int_t, N_META_STORAGES>& index) const
         {
-            set_index_recur< N_STORAGES-1>::set(m_index, index);
+            set_index_recur< N_META_STORAGES-1>::set(m_index, index);
         }
 
         /**@brief method for setting the index array */
@@ -280,7 +281,7 @@ namespace gridtools {
         GT_FUNCTION
         void set_index(Input const& index)
         {
-            set_index_recur< N_STORAGES-1>::set( index, m_index);
+            set_index_recur< N_META_STORAGES-1>::set( index, m_index);
         }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
@@ -291,7 +292,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment()
         {
-            for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+            for_each<typename reversed_range< int_t, 0, N_META_STORAGES >::type > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -316,7 +317,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment(int_t steps_)
         {
-            for_each<typename reversed_range<int_t, 0, N_STORAGES >::type > (
+            for_each<typename reversed_range<int_t, 0, N_META_STORAGES >::type > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -331,7 +332,7 @@ namespace gridtools {
         GT_FUNCTION
         void initialize(uint_t const initial_pos=0, uint_t const block=0)
         {
-            for_each<typename reversed_range<int_t, 0, N_STORAGES >::type > (
+            for_each<typename reversed_range<int_t, 0, N_META_STORAGES >::type > (
                 initialize_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -614,8 +615,9 @@ namespace gridtools {
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
-        assert(metadata_->size() >  m_index[Accessor::index_type::value]
-               + storage_
+        assert(metadata_->size() >  m_index[// Accessor::index_type::value
+                   metadata_index_t::value ]
+               + metadata_
                ->_index(strides().template get<Accessor::index_type::value>(), accessor)
             );
 
@@ -628,13 +630,15 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        assert( (int_t)(m_index[Accessor::index_type::value])
+        assert( (int_t)(m_index[metadata_index_t::value // Accessor::index_type::value
+                            ])
                 + metadata_
                 ->_index(strides().template get<Accessor::index_type::value>(), accessor)
                 >= 0);
 
         return *(real_storage_pointer
-                 +(m_index[Accessor::index_type::value])
+                 +(m_index[metadata_index_t::value // Accessor::index_type::value
+                       ])
                  +metadata_
                  ->_index(strides().template get<Accessor::index_type::value>(), accessor)
             );

@@ -2,7 +2,7 @@
 
 namespace gridtools{
 
-template < typename Storage, typename Partitioner >
+    template < typename Partitioner, typename Storage >
 class parallel_storage;
 }
 
@@ -15,13 +15,14 @@ public:
     template<typename storage_type>
     bool verify(storage_type& field1, storage_type& field2)
     {
-        assert(field1.template dims<0>() == field2.template dims<0>());
-        assert(field1.template dims<1>() == field2.template dims<1>());
-        assert(field1.template dims<2>() == field2.template dims<2>());
+        // assert(field1.template dims<0>() == field2.template dims<0>());
+        // assert(field1.template dims<1>() == field2.template dims<1>());
+        // assert(field1.template dims<2>() == field2.template dims<2>());
+        typename storage_type::meta_data_t::value_t* meta=&storage_type::meta_data_t::value;
 
-        const gridtools::uint_t idim = field1.template dims<0>();
-        const gridtools::uint_t jdim = field1.template dims<1>();
-        const gridtools::uint_t kdim = field1.template dims<2>();
+        const gridtools::uint_t idim = meta->template dims<0>();
+        const gridtools::uint_t jdim = meta->template dims<1>();
+        const gridtools::uint_t kdim = meta->template  dims<2>();
 
         bool verified = true;
 
@@ -32,8 +33,8 @@ public:
                 {
                     for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
-                        typename storage_type::value_type expected = field1.fields()[f][field1._index(i,j,k)];
-                        typename storage_type::value_type actual = field2.fields()[f][field2._index(i,j,k)];
+                        typename storage_type::value_type expected = field1.fields()[f][meta->_index(i,j,k)];
+                        typename storage_type::value_type actual = field2.fields()[f][meta->_index(i,j,k)];
 
                         if(!compare_below_threashold(expected, actual))
                         {

@@ -3,7 +3,6 @@
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
-#include <boost/mpl/zip_view.hpp>
 
 #include <gridtools.hpp>
 

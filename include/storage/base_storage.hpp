@@ -137,10 +137,12 @@ namespace gridtools {
            @brief 3D storage constructor
            \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
         */
-        base_storage(meta_data_t const& metadata, value_type const& init=float_type()) :
-            is_set( true )
+        base_storage(value_type const& init// =float_type()
+                     , char const* s="default storage") :
+            is_set( true ),
+            m_name( s )
             {
-                allocate( metadata );
+                allocate( );
                 initialize(init, 1);
             }
 
@@ -154,7 +156,8 @@ namespace gridtools {
 
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
-        base_storage( meta_data_t const& metadata, char const* s="default storage" ) :
+        base_storage( char const* s// ="default storage"
+            ) :
             is_set( true )
             , m_name(s)
             {
@@ -221,7 +224,7 @@ namespace gridtools {
             is_set( true ),
             m_name(s)
             {
-                m_fields[0]=pointer_type(ptr, meta_data_t::size(), true);
+                m_fields[0]=pointer_type(ptr, meta_data_t::value.size(), true);
               if(FieldDimension>1)
                   allocate(FieldDimension, 1);
             }
@@ -248,7 +251,7 @@ namespace gridtools {
             assert(dims>offset);
             is_set=true;
             for(ushort_t i=0; i<dims; ++i)
-                m_fields[i+offset]=pointer_type(meta_data_t::size());
+                m_fields[i+offset]=pointer_type(meta_data_t::value.size());
         }
 
         /** @brief initializes with a constant value */
@@ -260,7 +263,7 @@ namespace gridtools {
 #endif
                 for(ushort_t f=0; f<dims; ++f)
                 {
-                    for (uint_t i = 0; i < meta_data_t::size(); ++i)
+                    for (uint_t i = 0; i < meta_data_t::value.size(); ++i)
                     {
 #ifdef _GT_RANDOM_INPUT
                         (m_fields[f])[i] = init * rand();
@@ -281,7 +284,7 @@ namespace gridtools {
                     for (uint_t i=0; i<this->m_dims[0]; ++i)
                         for (uint_t j=0; j<this->m_dims[1]; ++j)
                             for (uint_t k=0; k<this->m_dims[2]; ++k)
-                                (m_fields[f])[meta_data_t::_index(i,j,k)]=lambda(i, j, k);
+                                (m_fields[f])[meta_data_t::value._index(i,j,k)]=lambda(i, j, k);
                 }
             }
 
@@ -317,14 +320,14 @@ namespace gridtools {
         /** @brief returns the first memory addres of the data field */
         GT_FUNCTION
         const_iterator_type min_addr() const {
-            return &((m_fields[0])[meta_data_t::begin()]);
+            return &((m_fields[0])[meta_data_t::value.begin()]);
         }
 
 
         /** @brief returns the last memry address of the data field */
         GT_FUNCTION
         const_iterator_type max_addr() const {
-            return &((m_fields[0])[meta_data_t::size()]);
+            return &((m_fields[0])[meta_data_t::value.size()]);
         }
 
 #ifdef CXX11_ENABLED
@@ -333,7 +336,8 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
-            assert(meta_data_t::_index(dims...) < meta_data_t::size());
+            auto test=&meta_data_t::value;
+            assert(meta_data_t::value._index(dims...) < meta_data_t::value.size());
 #endif
             return (m_fields[0])[meta_data_t::value._index(dims...)];
         }
@@ -344,9 +348,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
 #ifndef __CUDACC__
-            assert(meta_data_t::_index(dims...) < size());
+            assert(meta_data_t::value._index(dims...) < meta_data_t::value.size());
 #endif
-            return (m_fields[0])[meta_data_t::_index(dims...)];
+            return (m_fields[0])[meta_data_t::value._index(dims...)];
         }
 #else //CXX11_ENABLED
 
@@ -354,9 +358,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
 #ifndef __CUDACC__
-            assert(meta_data_t::_index(i,j,k) < meta_data_t::size());
+            assert(meta_data_t::value._index(i,j,k) < meta_data_t::value.size());
 #endif
-            return (m_fields[0])[meta_data_t::_index(i,j,k)];
+            return (m_fields[0])[meta_data_t::value._index(i,j,k)];
         }
 
 
@@ -364,9 +368,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
 #ifndef __CUDACC__
-            assert(meta_data_t::_index(i,j,k) < meta_data_t::size());
+            assert(meta_data_t::value._index(i,j,k) < meta_data_t::value.size());
 #endif
-            return (m_fields[0])[meta_data_t::_index(i,j,k)];
+            return (m_fields[0])[meta_data_t::value._index(i,j,k)];
         }
 #endif
 
@@ -376,7 +380,7 @@ namespace gridtools {
         }
 
         /**@brief prints a single value of the data field given the coordinates*/
-        void print_value( uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, (m_fields[0])[meta_data_t::_index(i, j, k)], meta_data_t::_index(i, j, k));}
+        void print_value( uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, (m_fields[0])[meta_data_t::value._index(i, j, k)], meta_data_t::value._index(i, j, k));}
 
         static const std::string info_string;
 
@@ -395,15 +399,15 @@ namespace gridtools {
             ushort_t MI=12;
             ushort_t MJ=12;
             ushort_t MK=12;
-            for (uint_t i = 0; i < meta_data_t::template dims<0>(); i += std::max(( uint_t)1,meta_data_t::template dims<0>()/MI)) {
-                for (uint_t j = 0; j < meta_data_t::template dims<1>(); j += std::max(( uint_t)1,meta_data_t::template dims<1>()/MJ)) {
-                    for (uint_t k = 0; k < meta_data_t::template dims<2>(); k += std::max(( uint_t)1,meta_data_t::template dims<1>()/MK))
+            for (uint_t i = 0; i < meta_data_t::value.template dims<0>(); i += std::max(( uint_t)1,meta_data_t::value.template dims<0>()/MI)) {
+                for (uint_t j = 0; j < meta_data_t::value.template dims<1>(); j += std::max(( uint_t)1,meta_data_t::value.template dims<1>()/MJ)) {
+                    for (uint_t k = 0; k < meta_data_t::value.template dims<2>(); k += std::max(( uint_t)1,meta_data_t::value.template dims<1>()/MK))
                     {
                         stream << "["
                             // << i << ","
                             // << j << ","
                             // << k << ")"
-                               <<  (m_fields[t])[meta_data_t::_index(i,j,k)] << "] ";
+                               <<  (m_fields[t])[meta_data_t::value._index(i,j,k)] << "] ";
                     }
                     stream << std::endl;
                 }

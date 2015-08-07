@@ -258,7 +258,8 @@ The numeration of the meta_storages is not contiguous. You have to define each m
         explicit domain_type(RealStorage const & real_storage_, MetaStorage const& meta_storage_)
             : m_storage_pointers()
             , m_metadata()
-        {
+            , m_original_metadata()
+            {
 
 // #ifndef NDEBUG
             // the following creates an empty storage (problems with its destruction)
@@ -269,16 +270,16 @@ The numeration of the meta_storages is not contiguous. You have to define each m
             typedef boost::fusion::filter_view<arg_list,
                 is_storage<boost::mpl::_1> > view_type;
 
-            // typedef boost::fusion::filter_view<metadata_list,
-            //     is_meta_storage<boost::mpl::_1> > meta_view_type;
-            typedef metadata_list meta_view_type;
+            // // typedef boost::fusion::filter_view<metadata_list,
+            // //     is_meta_storage<boost::mpl::_1> > meta_view_type;
+            // typedef metadata_list meta_view_type;
 
             view_type fview(m_storage_pointers);
-            meta_view_type fview_meta(m_metadata);
+            // meta_view_type fview_meta(m_metadata);
 
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages.");
 
-            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<meta_view_type>::type::value == boost::mpl::size<MetaStorage>::type::value, "The number of meta storages specified when constructing the domain_type is not the same as the number of meta storage types in the template arugment of the domain_type.");
+            // GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<meta_view_type>::type::value == boost::mpl::size<MetaStorage>::type::value, "The number of meta storages specified when constructing the domain_type is not the same as the number of meta storage types in the template arugment of the domain_type.");
 
 // #ifndef NDEBUG
             //the following creates an empty storage (problems with its destruction)
@@ -294,7 +295,9 @@ The numeration of the meta_storages is not contiguous. You have to define each m
 //             boost::fusion::for_each(fview, _debug::print_deref());
 // #endif
             boost::fusion::copy(real_storage_, fview);
-            boost::fusion::copy(meta_storage_, fview_meta);
+            boost::fusion::copy(meta_storage_, m_metadata);
+            boost::fusion::copy(meta_storage_, m_original_metadata);
+            // boost::fusion::copy(meta_storage_, fview_meta);
 
 #ifdef __VERBOSE__
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
@@ -303,8 +306,9 @@ The numeration of the meta_storages is not contiguous. You have to define each m
 
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
-            meta_view_type original_meta_fview(m_original_metadata);
-            boost::fusion::copy(meta_storage_, original_meta_fview);
+            //meta_view_type original_meta_fview(m_original_metadata);
+            //original_meta_fview=meta_storage_;
+            //=meta_storage_;
         }
 
 

@@ -75,7 +75,7 @@ namespace copy_stencil{
     {std::cout<<"error"<<std::endl;}
 
     typedef meta_storage_runtime<0,layout_t> meta_data_t;
-    typedef meta_storage_constexpr<1,layout_t, 5, 5, 5> constexpr_meta_data_t;
+    typedef meta_storage_constexpr<0,layout_t, 5, 5, 5> constexpr_meta_data_t;
 
     // static const constexpr base_storage_metadata<layout_t, false> constexpr_test{5,5,5};
 
@@ -128,7 +128,7 @@ namespace copy_stencil{
         typedef arg<0, vec_field_type > p_in;
         typedef boost::mpl::vector<p_in> accessor_list;
 
-        meta_data_t::value=meta_data_t::create(d1,d2,d3);
+        meta_data_t::value=meta_data_t::create(d1, d2, d3);
 
         // Definition of the actual data fields that are used for input/output
         vec_field_type in;

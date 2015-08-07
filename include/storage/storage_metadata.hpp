@@ -6,7 +6,7 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
     {
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
-        typedef typename BaseStorage::iterator_type iterator_type;
+        typedef typename BaseStorage::index_type index_type;
         typedef meta_storage_wrapper<BaseStorage> original_storage;
         typedef clonable_to_gpu<meta_storage_wrapper<BaseStorage> > gpu_clone;
 

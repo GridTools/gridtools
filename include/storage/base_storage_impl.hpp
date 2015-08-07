@@ -13,10 +13,10 @@ namespace gridtools{
     {
 
 #ifdef CXX11_ENABLED
-/**@brief metafunction to recursively compute the next stride
-   ID goes from space_dimensions-2 to 0
-   MaxIndex is space_dimensions-1
-*/
+        /**@brief metafunction to recursively compute the next stride
+           ID goes from space_dimensions-2 to 0
+           MaxIndex is space_dimensions-1
+        */
         template<short_t ID, short_t MaxIndex,  typename Layout>
         struct next_stride{
             template<typename First, typename ... IntTypes>
@@ -26,7 +26,7 @@ namespace gridtools{
             }
         };
 
-/**@brief template specialization to stop the recursion*/
+        /**@brief template specialization to stop the recursion*/
         template< short_t MaxIndex, typename Layout>
         struct next_stride<0, MaxIndex, Layout>{
             template<typename First, typename ... IntTypes>
@@ -49,18 +49,8 @@ namespace gridtools{
             }
         };
 
-        // template<int_t ID, int_t MaxIndex,  typename Layout>
-        // struct assign_strides{
-        //     template<typename ... UIntType>
-        //     GT_FUNCTION
-        //     static constexpr int_t apply(UIntType ... args){
-        //         BOOST_STATIC_ASSERT(MaxIndex>=ID);
-        //         BOOST_STATIC_ASSERT(ID>=0);
-        //         return next_stride<MaxIndex-ID, MaxIndex, Layout>::apply(args...);
-        //     }
-        // };
 
-/**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
+        /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
         template<int_t ID, int_t MaxIndex,  typename Layout>
         struct assign_strides{
             template<typename ... UIntType>

@@ -500,6 +500,7 @@ namespace gridtools {
             t_args_view args_view(actual_arg_list);
 
             boost::fusion::copy(domain_view, args_view);
+            boost::fusion::copy(domain.m_metadata, actual_metadata_list);
         }
         /**
            @brief This method allocates on the heap the temporary variables.

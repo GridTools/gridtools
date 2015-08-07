@@ -2,16 +2,6 @@
 
 namespace gridtools{
 
-    // // return element at position I in the parameter pack
-    // template <uint_t Max,  uint_t First, uint_t ... Args>
-    // static constexpr int_t gt_find_pos(uint_t I){
-    //     return (I==Max-sizeof...(Args)+1) ? First : gt_find_pos<Args...>(I);
-    // };
-
-    template<typename ... T>
-    struct fuck{};
-
-
     template<uint_t ... Indices> struct gt_integer_sequence{
         using type = gt_integer_sequence;
 

@@ -105,7 +105,7 @@ struct execute_kernel_functor_host
 #endif
 
         array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
-        typedef strides_cached<iterate_domain_t::N_STORAGES-1, typename local_domain_t::esf_args> strides_t;
+        typedef strides_cached<iterate_domain_t::N_META_STORAGES-1, typename local_domain_t::esf_args> strides_t;
         strides_t strides;
 
         iterate_domain_t it_domain(m_local_domain);
@@ -120,7 +120,7 @@ struct execute_kernel_functor_host
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        typedef array<int_t, iterate_domain_t::N_STORAGES> array_t;
+        typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_t;
         loop_hierarchy<
             array_t, loop_item<0, int_t, 1>,
             loop_item<1, int_t, 1>

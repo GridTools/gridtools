@@ -14,7 +14,7 @@ namespace gridtools {
         typedef meta_storage<Index, Layout// , IsTemporary
                              > type;
         typedef Layout layout;
-        typedef static_ushort<Index> iterator_type;
+        typedef static_ushort<Index> index_type;
 
         typedef meta_storage<Index, Layout// , IsTemporary
                              > basic_type;
@@ -249,6 +249,11 @@ namespace gridtools {
 
         static constexpr meta_storage<Index, Layout> value = meta_storage<Index, Layout// , IsTemporary
                                                    >{Dimensions...};
+
+        template<typename ... UInt>
+        static meta_storage_wrapper<meta_storage<Index, Layout> > create(){
+            return value;
+        }
 
         typedef meta_storage<Index, Layout> value_t;
         // typedef decltype(value) value_t;
