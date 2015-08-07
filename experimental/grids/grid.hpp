@@ -41,8 +41,7 @@ namespace gridtools {
                     assert(false);
                 }
 
-                template<typename Grid>
-                static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+                static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
                     //not supported
                     assert(false);
                 }
@@ -109,8 +108,7 @@ namespace gridtools {
                     std::get<0 >(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0], 0, i[1]},
                 { i[0], 0, i[1]+1},
@@ -132,8 +130,7 @@ namespace gridtools {
                     std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0], 1, i[1]-1},
                 { i[0], 1, i[1]},
@@ -159,8 +156,7 @@ namespace gridtools {
             };
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0], 0, i[1]-1},
                 { i[0]+1, 0, i[1]-1},
@@ -187,8 +183,7 @@ namespace gridtools {
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1]-1)};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0], 1, i[1]},
                 { i[0]+1, 1, i[1]-1},
@@ -223,8 +218,7 @@ namespace gridtools {
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 2, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0], 0, i[1]},
                 { i[0]-1, 0, i[1]+1},
@@ -259,8 +253,7 @@ namespace gridtools {
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]+1, 1, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> > {
                 { i[0], 0, i[1]},
                 { i[0], 0, i[1]+1},
@@ -294,8 +287,7 @@ namespace gridtools {
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]+1, 1, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 2, i[1]},
                 { i[0], 0, i[1]+1},
@@ -327,8 +319,7 @@ namespace gridtools {
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 0, i[1]},
                 { i[0], 1, i[1]},
@@ -351,8 +342,7 @@ namespace gridtools {
                     std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 0, i[1]},
                 { i[0], 0, i[1]+1},
@@ -374,8 +364,7 @@ namespace gridtools {
                 std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]+1)};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0]+1, 0, i[1]},
                 { i[0], 0, i[1]+1},
@@ -406,8 +395,7 @@ namespace gridtools {
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 1, i[1]-1},
                 { i[0], 0, i[1]}};
@@ -437,8 +425,7 @@ namespace gridtools {
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0]-1, 1, i[1]},
                 { i[0], 0, i[1]}};
@@ -467,8 +454,7 @@ namespace gridtools {
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1])};
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 0, i[1]},
                 { i[0], 1, i[1]}};
@@ -491,8 +477,7 @@ namespace gridtools {
             };
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 0, i[1]},
                 { i[0], 1, i[1]+1},
@@ -518,8 +503,7 @@ namespace gridtools {
             };
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 0, i[1]},
                 { i[0]-1, 0, i[1]+1},
@@ -545,8 +529,7 @@ namespace gridtools {
             };
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3>> get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3>>{
                 { i[0], 0, i[1]},
                 { i[0], 0, i[1]+1},
@@ -574,8 +557,7 @@ namespace gridtools {
             };
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0]-1, 1, i[1]-1},
                 { i[0]-1, 0, i[1]},
@@ -605,8 +587,7 @@ namespace gridtools {
             };
         }
 
-        template<typename Grid>
-        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+        static return_t<array<uint_t, 3> > get_index(array<int_t, 2> const& i){
             return return_t<array<uint_t, 3> >{
                 { i[0], 1, i[1]-1},
                 { i[0]-1, 0, i[1]},
@@ -767,7 +748,7 @@ namespace gridtools {
         template<typename Location1, typename Location2, typename Color>
         typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type const
         ll_map_index( Location1, Location2, Color, array<int_t, 2> const& i) const{
-            return from<Location1>::template to<Location2>::template with_color<Color>::get_index(*this, i);
+            return from<Location1>::template to<Location2>::template with_color<Color>::get_index(i);
         }
 
         template<typename Location1, typename Location2>
