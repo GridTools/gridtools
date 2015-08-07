@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <array>
 #include "b_splines_rt.h"
 
 namespace b_splines_rt
@@ -180,20 +181,26 @@ namespace b_splines_rt
 		 * @param i_knots1 b-spline basis knot set (first direction)
 		 * @param i_knots2 b-spline basis knot set (second direction)
 		 */
-		BivariateBSplineBasis(const double* i_knots1, const double* i_knots2)
-							 :m_bsplineBasis1(i_knots1)
-							 ,m_bsplineBasis2(i_knots2)
-		{}
+		BivariateBSplineBasis(const double* i_knots1, const double* i_knots2);
 
 		virtual ~BivariateBSplineBasis(void)
 		{}
 
 		/**
 		 * @brief b-spline base functions evaluation method for a given point in parametric space
-		 * @param i_csi Parametric space point value
+		 * @param i_csi Parametric space point value (first direction)
+		 * @param i_eta Parametric space point value (second direction)
 		 * @return (N) values corresponding to base function values at the provided point
 		 */
 		std::vector<double> evaluate(double i_csi, double i_eta) const;
+
+		/**
+		 * @brief Knot span finding method, returning the knot index array {i} such as csi_{i}<=i_csi<csi_{i+1},  eta_{i}<=i_eta<eta_{i+1}
+		 * @param i_csi Parametric space point value (first direction)
+		 * @param i_eta Parametric space point value (second direction)
+		 * @return knot index array respecting the condition described above
+		 */
+		std::array<unsigned int,2> find_span(double i_csi, double i_eta) const;
 
 	private:
 
@@ -210,21 +217,52 @@ namespace b_splines_rt
 		/**
 		 * B-spline basis in first direction
 		 */
-		BSplineBasis<P1,N1> m_bsplineBasis1;
+		BSplineBasis<P1,N1> m_bsplines1;
 
 		/**
 		 * B-spline basis in second direction
 		 */
-		BSplineBasis<P2,N2> m_bsplineBasis2;
+		BSplineBasis<P2,N2> m_bsplines2;
+
+		/**
+		 * b-spline basis knot set in first direction
+		 */
+		const double* m_knots1;
+
+		/**
+		 * b-spline basis knot set in second direction
+		 */
+		const double* m_knots2;
+
+		/**
+		 * b-spline basis knot set number in first direction
+		 */
+		constexpr static unsigned int m_number_of_knots1{N1+P1+1};
+
+		/**
+		 * b-spline basis knot set number in second direction
+		 */
+		constexpr static unsigned int m_number_of_knots2{N2+P2+1};
+
 	};
+
+	template<int P1, int N1, int P2, int N2>
+	BivariateBSplineBasis<P1,N1,P2,N2>::BivariateBSplineBasis(const double* i_knots1, const double* i_knots2)
+															 :m_bsplines1(i_knots1)
+															 ,m_bsplines2(i_knots2)
+															 ,m_knots1(i_knots1)
+															 ,m_knots2(i_knots2)
+	{
+	}
+
 
 	template<int P1, int N1, int P2, int N2>
 	std::vector<double> BivariateBSplineBasis<P1,N1,P2,N2>::evaluate(const double i_csi, const double i_eta) const
 	{
 		std::vector<double> o_bivariateBSplineValues(N1*N2);
 
-		const std::vector<double> bsplineValues1(m_bsplineBasis1.evaluate(i_csi));
-		const std::vector<double> bsplineValues2(m_bsplineBasis1.evaluate(i_eta));
+		const std::vector<double> bsplineValues1(m_bsplines1.evaluate(i_csi));
+		const std::vector<double> bsplineValues2(m_bsplines2.evaluate(i_eta));
 
 		int global(0);
 		for(int i=0;i<N1;++i)
@@ -235,6 +273,16 @@ namespace b_splines_rt
 			}
 		}
 		return o_bivariateBSplineValues;
+	}
+
+	template<int P1, int N1, int P2, int N2>
+	std::array<unsigned int,2> BivariateBSplineBasis<P1,N1,P2,N2>::find_span(const double i_csi, const double i_eta) const
+	{
+
+		// TODO: switch to std algos
+		// TODO: add check for knot ordering
+		// TODO: add check for knot range: what if i_csi>m_knot(last) or i_csi<m_knot(first)
+		return std::array<unsigned int,2>{m_bsplines1.find_span(i_csi),m_bsplines2.find_span(i_eta)};
 	}
 
 }
