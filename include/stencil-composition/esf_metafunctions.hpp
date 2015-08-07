@@ -99,7 +99,7 @@ struct esf_get_w_temps_per_functor {
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
-        boost::mpl::vector<>,
+        boost::mpl::vector0<>,
         boost::mpl::if_<
             typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
             boost::mpl::push_back<
@@ -123,7 +123,7 @@ struct esf_get_r_temps_per_functor {
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
-        boost::mpl::vector<>,
+        boost::mpl::vector0<>,
         boost::mpl::if_<
             typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
             boost::mpl::_1,
@@ -148,7 +148,7 @@ struct esf_get_w_per_functor {
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
-        boost::mpl::vector<>,
+        boost::mpl::vector0<>,
         boost::mpl::if_<
             typename is_written<EsfF>::template apply<boost::mpl::_2>,
             boost::mpl::push_back<
@@ -186,7 +186,7 @@ struct esf_get_r_per_functor {
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
-        boost::mpl::vector<>,
+        boost::mpl::vector0<>,
         boost::mpl::if_<
             typename is_written<EsfF>::template apply<boost::mpl::_2>,
             boost::mpl::_1,
