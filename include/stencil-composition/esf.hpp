@@ -48,7 +48,7 @@ namespace gridtools {
             /** Here the iteration begins by filling an empty map */
             typedef typename boost::mpl::fold<
                 iter_range,
-                boost::mpl::map<>,
+                boost::mpl::map0<>,
                 typename from<Placeholders, LocalArgs>::template insert<boost::mpl::_1, boost::mpl::_2>
                 >::type type;
         };
