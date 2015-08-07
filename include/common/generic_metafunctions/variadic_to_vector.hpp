@@ -28,6 +28,16 @@ struct variadic_to_vector<>
 {
     typedef boost::mpl::vector<> type;
 };
+
+
+template <typename Vector>
+struct rest_of;
+
+template <typename First, typename ... Rest>
+struct rest_of<boost::mpl::vector<First, Rest...> > {
+    typedef typename variadic_to_vector<Rest...>::type type;
+};
+
 #endif
 
 }
