@@ -94,7 +94,7 @@ struct check_pair {
         typedef typename boost::mpl::at_c<typename ESF::args_t, Index::value>::type current_arg;
         typedef typename boost::mpl::at<MapArgsRanges, current_arg>::type range_from_esf;
         typedef typename boost::mpl::at_c<typename ESF::esf_function::arg_list, Index::value>::type::range_type range_from_functor;
-        std::cout << range_from_esf() << " == " << range_from_functor() << std::endl;
+        // std::cout << range_from_esf() << " == " << range_from_functor() << std::endl;
         GRIDTOOLS_STATIC_ASSERT((std::is_same<range_from_esf, range_from_functor>::value), "ERROR\nRanges do not match");
     }
 };
@@ -118,14 +118,14 @@ TEST(esf_metafunctions, computing_rages)
         )
     ) mss_t;
 
-    std::cout << esf1_t() << ": \n";
-    boost::mpl::for_each<typename esf1_t::args_with_ranges>(print_pair());
-    std::cout << esf2_t() << ": \n";
-    boost::mpl::for_each<typename esf2_t::args_with_ranges>(print_pair());
-    std::cout << esf3_t() << ": \n";
-    boost::mpl::for_each<typename esf3_t::args_with_ranges>(print_pair());
-    std::cout << esf4_t() << ": \n";
-    boost::mpl::for_each<typename esf4_t::args_with_ranges>(print_pair());
+    // std::cout << esf1_t() << ": \n";
+    // boost::mpl::for_each<typename esf1_t::args_with_ranges>(print_pair());
+    // std::cout << esf2_t() << ": \n";
+    // boost::mpl::for_each<typename esf2_t::args_with_ranges>(print_pair());
+    // std::cout << esf3_t() << ": \n";
+    // boost::mpl::for_each<typename esf3_t::args_with_ranges>(print_pair());
+    // std::cout << esf4_t() << ": \n";
+    // boost::mpl::for_each<typename esf4_t::args_with_ranges>(print_pair());
 
     boost::mpl::for_each<typename boost::mpl::range_c
                          <uint_t,
