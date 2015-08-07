@@ -46,8 +46,10 @@ namespace b_splines_rt
 	{
 	public:
 
-		// TODO: use variadic template to generalize to different dimensions
+		// TODO: use variadic template to generalize to different dimensions (or update other classes with constexpr, etc..)
 		// TODO: add static assert to check values of template parameters
+		// TODO: implement b_spline basis function evaluation selection with
+		//		 node span method
 
 		/**
 		 * @brief Constructor
@@ -64,6 +66,13 @@ namespace b_splines_rt
 		 */
 		std::vector<double> evaluate(double i_csi) const;
 
+		/**
+		 * @brief Knot span finding method, returning the knot index i such as csi_{i}<=i_csi<csi_{i+1}
+		 * @param i_csi Parametric space point value
+		 * @return knot index respecting the condition described above
+		 */
+		unsigned int find_span(double i_csi) const;
+
 	private:
 
 		/**
@@ -79,13 +88,28 @@ namespace b_splines_rt
 		/**
 		 * b-spline base function set
 		 */
-		std::vector<BaseBSpline*> m_bsplines;
+		std::vector<BaseBSpline*> m_bsplines; // TODO: this should be const
+
+		/**
+		 * b-spline basis knot set
+		 */
+		const double* m_knots;
+
+		/**
+		 * b-spline basis knot set number
+		 */
+		constexpr static unsigned int m_number_of_knots{N+P+1};
+
 	};
 
 	template<int P, int N>
 	BSplineBasis<P,N>::BSplineBasis(const double* i_knots)
 								   :m_bsplines(N,0)
+								   ,m_knots(i_knots)
 	{
+		// TODO: add check on number of nodes
+		// TODO: update interfaces also for other dimensions
+		// TODO: do we have some ad-hoc container in grid tools for array+size?
 		BSplineBasisGenerator<P,N>::generateBSplineBasis(i_knots, m_bsplines);
 	}
 
@@ -111,6 +135,30 @@ namespace b_splines_rt
 		}
 
 		return o_bsplineValues;
+	}
+
+	template<int P, int N>
+	unsigned int BSplineBasis<P,N>::find_span(const double i_csi) const
+	{
+
+		// TODO: switch to std algos
+		// TODO: add check for knot ordering
+		// TODO: add check for knot range: what if i_csi>m_knot(last) or i_csi<m_knot(first)
+
+		if(i_csi == m_knots[0])
+		{
+			return 0;
+		}
+
+		for(unsigned int knot_index=1;knot_index<m_number_of_knots;++knot_index)
+		{
+			if(i_csi<m_knots[knot_index])
+			{
+				return knot_index-1;
+			}
+		}
+
+		return N-1;
 	}
 
 
