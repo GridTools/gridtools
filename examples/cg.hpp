@@ -8,6 +8,7 @@
 #include <stencil-composition/make_computation.hpp>
 
 #include <boost/timer/timer.hpp>
+
 /*
   @file This file shows an implementation of the various stencil operations.
 
@@ -137,8 +138,9 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    storage_type out1d(d1,1,1,0., "domain_out");
+    storage_type out1d(d1,1,1,1., "domain_out");
     storage_type in1d(d1,1,1,1., "domain_in");
+    storage_type *ptr_in = &in1d, *ptr_out = &out1d;
 
     storage_type out3d(d1,d2,d3,0., "domain_out");
     storage_type in3d(d1,d2,d3,1., "domain_in");
@@ -179,7 +181,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::domain_type<accessor_list> domain1d
-        (boost::fusion::make_vector(&out1d, &in1d));
+        (boost::fusion::make_vector(ptr_out, ptr_in));
 
     gridtools::domain_type<accessor_list> domain3d
         (boost::fusion::make_vector(&out3d, &in3d));
@@ -232,23 +234,30 @@ bool solver(uint_t x, uint_t y, uint_t z) {
             domain1d, coords1d
             );
 
-
-    //prepare computation
-    stencil_step_1->ready();
-    stencil_step_1->steady();
-    
     //start timer
     boost::timer::cpu_timer time1;
 
     //TODO: swap domains between time iteration
-    for(int i=0; i<2; i++)
+    //TODO: exclude ready, steady,finalize from time measurement
+    int TIME_STEPS = 2;
+    for(int i=0; i<TIME_STEPS; i++){
+        //prepare computation
+        stencil_step_1->ready();
+        stencil_step_1->steady();
         stencil_step_1->run();
+        stencil_step_1->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out;
+        ptr_out = ptr_in;
+        ptr_in = tmp;
+    }
 
     boost::timer::cpu_times lapse_time1 = time1.elapsed();
-    stencil_step_1->finalize();
+    
 
     printf("Print domain after computation\n");
-    out1d.print();
+    TIME_STEPS % 2 == 0 ? in1d.print() : out1d.print();
 
     std::cout << "TIME d1point3: " << boost::timer::format(lapse_time1) << std::endl;
 //------------------------------------------------------------------------------
