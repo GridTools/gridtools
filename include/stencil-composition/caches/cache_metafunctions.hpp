@@ -22,12 +22,12 @@
 #include <boost/fusion/container/vector/vector_fwd.hpp>
 #include <boost/fusion/include/vector_fwd.hpp>
 
-#include <stencil-composition/caches/cache.hpp>
-#include <stencil-composition/caches/cache_storage.hpp>
-#include <stencil-composition/esf_metafunctions.hpp>
-#include <stencil-composition/local_domain.hpp>
+#include "stencil-composition/caches/cache.hpp"
+#include "stencil-composition/caches/cache_storage.hpp"
+#include "stencil-composition/esf_metafunctions.hpp"
+#include "stencil-composition/local_domain.hpp"
 
-#include <common/generic_metafunctions/is_there_in_sequence_if.hpp>
+#include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 namespace gridtools {
 
@@ -37,7 +37,7 @@ namespace gridtools {
  */
 template<typename T> struct is_cache : boost::mpl::false_{};
 
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+template<cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy>
 struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
 
 /**
@@ -46,7 +46,7 @@ struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};
  */
 template<typename T> struct cache_parameter;
 
-template<CacheType cacheType, typename Arg, CacheIOPolicy cacheIOPolicy>
+template<cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy>
 struct cache_parameter<cache<cacheType, Arg, cacheIOPolicy> >
 {
     typedef Arg type;
@@ -94,14 +94,14 @@ struct caches_used_by_esfs
  * high order metafunction that determines if a cache is of the same type as provided as argument
  * @tparam cacheType type of cache that cache should equal
  */
-template<CacheType cacheType>
+template<cache_type cacheType>
 struct cache_is_type
 {
     template<typename Cache>
     struct apply
     {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), "Internal Error: wrong type");
-        typedef typename boost::is_same< enumtype::enum_type<CacheType, cacheType>, typename Cache::cache_type_t >::type type;
+        typedef typename boost::is_same< enumtype::enum_type<cache_type, cacheType>, typename Cache::cache_type_t >::type type;
         BOOST_STATIC_CONSTANT(bool, value=(type::value));
     };
 };
@@ -160,7 +160,7 @@ struct extract_ranges_for_caches
             typedef typename boost::mpl::at<esf_sequence_t, EsfIdx>::type esf_t;
 
             typedef typename boost::mpl::if_<
-                is_there_in_sequence<typename esf_t::args_t, typename cache_parameter<Cache>::type >,
+                boost::mpl::contains<typename esf_t::args_t, typename cache_parameter<Cache>::type >,
                 typename update_range_map<RangesMap_, range_t>::type,
                 RangesMap_
             >::type type;
@@ -194,7 +194,7 @@ struct extract_ranges_for_caches
  * @tparam LocalDomain the fused local domain
  */
 
-template<CacheType cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize, typename LocalDomain>
+template<cache_type cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize, typename LocalDomain>
 struct get_cache_storage_tuple
 {
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Internal Error: Wrong Type");

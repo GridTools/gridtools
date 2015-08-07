@@ -93,6 +93,8 @@ if( USE_GPU )
       set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       set( ENABLE_CXX11 "OFF" )
   endif()
+  set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
+
   SET(CUDA_SEPARABLE_COMPILATION ON)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
@@ -102,16 +104,26 @@ if( USE_GPU )
 ## #   message("exelibs ${exe_LIBS}")
 ## # message("${CUDA_INCLUDE_DIRS}")
 ## # message("${CUDA_CUDART_LIBRARY}")
-SET(CUDA_SEPARABLE_COMPILATION ON)
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${ADDITIONAL_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=dupl_calling_convention" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
+  SET(CUDA_SEPARABLE_COMPILATION ON)
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${ADDITIONAL_NVCC_FLAGS}"
+"-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
 endif()
+
+set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
+
 include(FindOpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else()
+    set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 endif(OPENMP_FOUND)
+
+if(ENABLE_PERFORMANCE_METERS)
+    add_definitions(-DENABLE_METERS)
+endif(ENABLE_PERFORMANCE_METERS)
 
 # find GTest
 find_package(GTest)

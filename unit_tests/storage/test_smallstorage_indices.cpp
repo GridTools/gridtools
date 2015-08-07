@@ -6,8 +6,8 @@
  */
 
 #include "gtest/gtest.h"
-#include <common/layout_map.hpp>
-#include <storage/small_storage.hpp>
+#include "common/layout_map.hpp"
+#include "storage/small_storage.hpp"
 
 TEST(smallstorage, indices) {
 

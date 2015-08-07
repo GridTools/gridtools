@@ -20,7 +20,7 @@
 #include <boost/fusion/include/for_each.hpp>
 #include "gt_for_each/for_each.hpp"
 #include "../common/gpu_clone.hpp"
-#include <storage/storage.hpp>
+#include "storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 
 #include "domain_type_impl.hpp"

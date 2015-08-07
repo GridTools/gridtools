@@ -1,7 +1,7 @@
 #pragma once
 
-#include <storage/storage.hpp>
-#include <common/layout_map.hpp>
+#include "storage/storage.hpp"
+#include "common/layout_map.hpp"
 #include "range.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
@@ -9,8 +9,8 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <vector>
-#include <common/is_temporary_storage.hpp>
-#include <stencil-composition/offset_tuple.hpp>
+#include "common/is_temporary_storage.hpp"
+#include "stencil-composition/offset_tuple.hpp"
 #ifdef CXX11_ENABLED
 #include "expressions.hpp"
 #endif
@@ -18,13 +18,11 @@
 namespace gridtools {
 
     //forward declaration
-    template< int_t  Index, int_t Dimension >
+    template< int_t  Index, int_t NDim >
     struct offset_tuple;
 
-    namespace enumtype{
-        template <ushort_t>
-        struct Dimension;
-    }
+    template <ushort_t>
+    struct dimension;
 
     template <uint_t I, typename T>
     struct arg;
@@ -92,14 +90,14 @@ namespace gridtools {
         // by the compiler
         template<uint_t Idx>
         GT_FUNCTION
-        constexpr accessor_base (enumtype::Dimension<Idx> const& x ): m_offsets(x) {}
+        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {}
 
         GT_FUNCTION
         constexpr accessor_base (const int_t x ): m_offsets(x) {}
 
 
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::Dimension' is a
+        /**@brief constructor taking the dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'dimension' is a
            language keyword used at the interface level.
         */
 #if defined( CXX11_ENABLED ) && ! defined(__CUDACC__) //cuda messing up
@@ -181,8 +179,10 @@ namespace gridtools {
     {};
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the \ref gridtools::storage
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the \ref gridtools::storage
     */
     template <uint_t I, typename BaseType, template <typename T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
@@ -191,8 +191,10 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization for a decorator of the storage class, falls back on the original class type
-     here the decorator is the dimension extension, \ref gridtools::data_field
+     * Struct to test if an argument is a temporary
+     no_storage_type_yet - Specialization for a decorator of the
+     storage class, falls back on the original class type here the
+     decorator is the dimension extension, \ref gridtools::data_field
     */
     template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
     struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >

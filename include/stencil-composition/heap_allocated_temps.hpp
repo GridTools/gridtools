@@ -98,9 +98,9 @@ namespace gridtools {
                 uint_t m_n_j_threads;
 
                 GT_FUNCTION
-                instantiate_tmps(uint_t offset_i,
-                                 uint_t offset_j,
-                                 uint_t offset_k,
+                instantiate_tmps(// uint_t offset_i,
+                                 // uint_t offset_j,
+                                 // uint_t offset_k,
                                  uint_t m_n_i_threads,
                                  uint_t m_n_j_threads)
                     : m_offset_i(offset_i)
@@ -116,13 +116,14 @@ namespace gridtools {
                     //char const* s = "default tmp storage";//avoids a warning
                     //ElemType::info_string.c_str();
 
+                    ElemType::meta_data_t::value=ElemType::meta_data_t::create(
+                        (ElemType::tile_i::value+ElemType::minus_i::value+ElemType::plus_i::value)*m_n_i_threads
+                        (ElemType::tile_j::value+ElemType::minus_j::value+ElemType::plus_j::value)*m_n_j_threads
+                        , m_offset_k);
+
                     //calls the constructor of the storage
-                    //TODO noone deletes this new
-                    e = new ElemType(m_offset_i,
-                                     m_offset_j,
-                                     m_offset_k,
-                                     m_n_i_threads,
-                                     m_n_j_threads);
+                    e = new ElemType( m_offset_i,
+                                      m_offset_j);
                 }
             };
 
@@ -139,9 +140,9 @@ namespace gridtools {
                 view_type fview(arg_list);
                 boost::fusion::for_each(fview,
                                         instantiate_tmps
-                                        ( coords.i_low_bound(),
-                                          coords.j_low_bound(),
-                                          coords.value_at_top()-coords.value_at_bottom()+1,
+                                        ( // coords.i_low_bound(),
+                                          // coords.j_low_bound(),
+                                          // coords.value_at_top()-coords.value_at_bottom()+1,
                                           backend_type::n_i_pes()(coords.i_high_bound() - coords.i_low_bound()),
                                           backend_type::n_j_pes()(coords.j_high_bound() - coords.j_low_bound())
                                          )
@@ -150,8 +151,6 @@ namespace gridtools {
 
         };
 
-        // noone calls this!!!
-        // I know! we should try to put this back, I had issues with double frees at some point
         struct delete_tmps {
             template <typename Elem>
             GT_FUNCTION

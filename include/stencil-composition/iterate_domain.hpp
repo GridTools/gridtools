@@ -414,7 +414,7 @@ namespace gridtools {
         operator()(Accessor const& accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            return static_cast<IterateDomainImpl const *>(this)->template get_cache_value_impl<Accessor> (accessor);
+            return static_cast<IterateDomainImpl const *>(this)->get_cache_value_impl (accessor);
         }
 
 
@@ -474,7 +474,7 @@ namespace gridtools {
                   , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Accessor, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
             return evaluation::value_scalar((*this), arg);
         }
 
@@ -486,7 +486,7 @@ namespace gridtools {
                   , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Accessor, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
 
             return evaluation::value_int((*this), arg);
         }
@@ -495,7 +495,7 @@ namespace gridtools {
                   , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
         GT_FUNCTION
         auto operator() (Expression<Accessor, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
 
             return evaluation::value_int((*this), arg);
         }
@@ -676,7 +676,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
         GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
-        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(Dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, Dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
+        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
             //dimension/snapshot offsets must be non negative
         assert(accessor.template get<0>()>=0);

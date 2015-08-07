@@ -89,8 +89,8 @@ namespace gridtools {
 
         static const std::string info_string;
 
-        uint_t n_i_threads;
-        uint_t n_j_threads;
+        // uint_t n_i_threads;
+        // uint_t n_j_threads;
         //uint_t m_halo[3];
         uint_t m_initial_offsets[3];
 
@@ -105,16 +105,16 @@ namespace gridtools {
            \param \optional init (Default value_type())
            \param \optional s (Default "default_name")
          */
-        explicit host_tmp_storage(uint_t initial_offset_i,
-                                  uint_t initial_offset_j,
-                                  uint_t dim3,
-                                  uint_t n_i_threads=1,
-                                  uint_t n_j_threads=1//,
+        explicit host_tmp_storage( uint_t initial_offset_i,
+                                   uint_t initial_offset_j
+                                  // ,uint_t dim3,
+            //                       uint_t n_i_threads=1,
+            //                       uint_t n_j_threads=1//,
         /*value_type init = value_type(),
           char const* s = "default name"*/ )
     : base_type((TileI+MinusI+PlusI)*n_i_threads,(TileJ+MinusJ+PlusJ)*n_j_threads, dim3/*, init, s*/)
-            , n_i_threads(n_i_threads)
-            , n_j_threads(n_j_threads)
+            // , n_i_threads(n_i_threads)
+            // , n_j_threads(n_j_threads)
         {
             m_initial_offsets[0] = initial_offset_i - MinusI;
             m_initial_offsets[1] = initial_offset_j - MinusJ;

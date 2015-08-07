@@ -1,5 +1,6 @@
 #pragma once
 #include "mss.hpp"
+#include "esf_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -27,7 +28,7 @@ struct mss_components
     /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
     typedef typename boost::mpl::fold<linear_esf_t,
             boost::mpl::vector<>,
-            boost::mpl::push_back<boost::mpl::_1, get_temps_per_functor<boost::mpl::_2> >
+            boost::mpl::push_back<boost::mpl::_1, esf_get_temps_per_functor<boost::mpl::_2> >
     >::type written_temps_per_functor_t;
 
     /**

@@ -61,7 +61,7 @@ if (GTEST_FOUND)
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
-    gridtools_add_test( tests.cloning_derived ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cloning_derived 42")
+    gridtools_add_test( tests.cloning_derived ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cloning_derived" 42)
 
     set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
     set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})

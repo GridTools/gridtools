@@ -2,9 +2,10 @@
 
 #include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
-#include "stencil-composition/make_computation.hpp"
+#include <stencil-composition/make_computation.hpp>
 #include <stencil-composition/interval.hpp>
 #include "horizontal_diffusion_repository.hpp"
+#include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -104,17 +105,17 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-// #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-//         dom(out()) = dom(in()) - dom(coeff());//  *
-           // (dom(flx() - flx( -1,0,0) +
-           //  fly() - fly( 0,-1,0))
-           //  );
-// #else
+#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
+        dom(out()) = dom(in()) - dom(coeff())  *
+           (dom(flx() - flx( -1,0,0) +
+            fly() - fly( 0,-1,0))
+            );
+#else
         dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
-// #endif
+#endif
     }
 };
 
@@ -174,10 +175,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     storage_type& in = repository.in();
     storage_type& out = repository.out();
     storage_type& coeff = repository.coeff();
-
-#ifndef SILENT_RUN
-    out.print();
-#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -271,6 +268,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
+                define_caches(cache<IJ, p_lap, local>(), cache<IJ, p_flx, local>() ,cache<IJ, p_fly, local>()),
                 gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
@@ -285,15 +283,11 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     horizontal_diffusion->ready();
 
     horizontal_diffusion->steady();
-    domain.clone_to_gpu();
 
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_init);
 #endif
 
-#ifndef __CUDACC__
-    boost::timer::cpu_timer time;
-#endif
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -314,9 +308,6 @@ PAPI_stop(event_set, values);
     pw_stop_collector(collector_execute);
 #endif
 
-#ifndef __CUDACC__
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
@@ -326,15 +317,12 @@ PAPI_stop(event_set, values);
     verifier verif(1e-9, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
 
-#ifndef SILENT_RUN
-    //    in.print();
-    //    out.print();
-    //    lap.print();
-    std::cout << "SUCCESS? " << std::boolalpha << result << std::endl;
+    if(!result){
+        std::cout << "ERROR"  << std::endl;
+    }
 
-#ifndef __CUDACC__
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
+#ifdef BENCHMARK
+        std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
 #ifdef USE_PAPI_WRAP
@@ -342,9 +330,6 @@ PAPI_stop(event_set, values);
 #endif
 
   return result; /// lapse_time.wall<5000000 &&
-// #ifdef USE_PAPI
-//                     values[0]>1000 && //random value
-// #endif
 }
 
 }//namespace horizontal_diffusion

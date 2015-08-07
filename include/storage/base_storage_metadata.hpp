@@ -7,19 +7,19 @@ namespace gridtools {
 
     template < ushort_t Index
                , typename Layout
-               // , bool IsTemporary
+               , bool IsTemporary=false
                >
     struct meta_storage
     {
-        typedef meta_storage<Index, Layout// , IsTemporary
+        typedef meta_storage<Index, Layout , IsTemporary
                              > type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
-        typedef meta_storage<Index, Layout// , IsTemporary
+        typedef meta_storage<Index, Layout , IsTemporary
                              > basic_type;
 
-        // static const bool is_temporary = IsTemporary;
+        static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
         static const ushort_t index=Index;
@@ -240,15 +240,14 @@ namespace gridtools {
 
     template < ushort_t Index
                , typename Layout
-               // , bool IsTemporary
+               , bool IsTemporary
                , uint_t ... Dimensions
                >
     struct meta_storage_constexpr{
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
-        static constexpr meta_storage<Index, Layout> value = meta_storage<Index, Layout// , IsTemporary
-                                                   >{Dimensions...};
+        static constexpr meta_storage<Index, Layout> value = meta_storage<Index, Layout, IsTemporary>{Dimensions...};
 
         template<typename ... UInt>
         static meta_storage_wrapper<meta_storage<Index, Layout> > create(){
@@ -258,8 +257,7 @@ namespace gridtools {
         typedef meta_storage<Index, Layout> value_t;
         // typedef decltype(value) value_t;
 
-        static constexpr meta_storage<Index, Layout// , IsTemporary
-                                      > const&  get_value() {
+        static constexpr meta_storage<Index, Layout , IsTemporary> const&  get_value() {
             return value;
         }
 
@@ -267,56 +265,48 @@ namespace gridtools {
 
     template < ushort_t Index
                , typename Layout
-               // , bool IsTemporary
+               , bool IsTemporary
                , uint_t ... Dimensions
                >
-    constexpr typename meta_storage_constexpr<Index, Layout// , IsTemporary
-                                              , Dimensions...>::value_t
-    meta_storage_constexpr<Index, Layout// , IsTemporary
-                           , Dimensions...>::value;
+    constexpr typename meta_storage_constexpr<Index, Layout , IsTemporary, Dimensions...>::value_t
+    meta_storage_constexpr<Index, Layout , IsTemporary, Dimensions...>::value;
 
 
     template < ushort_t Index
                , typename Layout
+               , bool IsTemporary
                >
     struct meta_storage_runtime {
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
         template<typename ... UInt>
-        static meta_storage_wrapper<meta_storage<Index, Layout> > create(UInt ... dims){
-            return meta_storage_wrapper<meta_storage<Index, Layout> >(dims...);
+        static meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> > create(UInt ... dims){
+            return meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> >(dims...);
         }
 
-        static meta_storage_wrapper<meta_storage<Index, Layout// , IsTemporary
-                                                 > > value;
-        typedef meta_storage_wrapper<meta_storage<Index, Layout// , IsTemporary
-                                                  > > value_t;
+        static meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> > value;
+        typedef meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> > value_t;
 
         static const ushort_t space_dimensions = value_t::space_dimensions;;
-        static constexpr meta_storage_wrapper<meta_storage<Index, Layout> >
+        static constexpr meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> >
         & get_value() {
             return value;
         }
     };
 
-    template < ushort_t Index
-               , typename Layout
-               // , bool IsTemporary
-               >
-    typename meta_storage_runtime<Index, Layout// , IsTemporary
-                                   >::value_t
-    meta_storage_runtime<Index, Layout// , IsTemporary
-                                                                   >::value;
+    template < ushort_t Index, typename Layout, bool IsTemporary>
+    typename meta_storage_runtime<Index, Layout, IsTemporary>::value_t
+    meta_storage_runtime<Index, Layout, IsTemporary>::value;
 
     template<typename T>
     struct is_meta_storage : boost::mpl::false_{};
 
-    template<ushort_t Index, typename Layout>
-    struct is_meta_storage<meta_storage_runtime<Index, Layout> > : boost::mpl::true_{};
+    template<ushort_t Index, typename Layout, bool IsTemporary>
+    struct is_meta_storage<meta_storage_runtime<Index, Layout, IsTemporary> > : boost::mpl::true_{};
 
-    template<ushort_t Index, typename Layout, uint_t ... Numbers>
-    struct is_meta_storage<meta_storage_constexpr<Index, Layout, Numbers...> > : boost::mpl::true_{};
+    template<ushort_t Index, typename Layout, bool IsTemporary, uint_t ... Numbers>
+    struct is_meta_storage<meta_storage_constexpr<Index, Layout, IsTemporary, Numbers...> > : boost::mpl::true_{};
 
     template<typename T>
     struct is_meta_storage_wrapper : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};

@@ -7,7 +7,7 @@
 
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
-#include "stencil-composition/make_computation.hpp"
+#include <stencil-composition/make_computation.hpp>
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -206,10 +206,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     repository.generate_reference();
 
-//#ifndef SILENT_RUN
-//    out.print();
-//#endif
-
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
     typedef arg<0, storage_type> p_utens_stage;
@@ -305,14 +301,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     vertical_advection->steady();
     domain.clone_to_gpu();
 
-#ifndef __CUDACC__
-    boost::timer::cpu_timer time;
-#endif
     vertical_advection->run();
 
-#ifndef __CUDACC__
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
     vertical_advection->finalize();
 
 #ifdef CUDA_EXAMPLE
@@ -322,14 +312,10 @@ bool test(uint_t x, uint_t y, uint_t z) {
     verifier verif(1e-10, halo_size);
     bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
 
-#ifndef SILENT_RUN
-    //    in.print();
-//    out.print();
-    //    lap.print();
-    std::cout << "RESULT = " << std::boolalpha << result << std::endl;
-#ifndef __CUDACC__
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
+    if(!result) std::cout << "ERROR" << std::endl;
+
+#ifdef BENCHMARK
+    std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 
     return result;

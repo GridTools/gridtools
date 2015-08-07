@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/timer/timer.hpp>
 
 #include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
@@ -45,7 +44,7 @@ namespace copy_stencil{
 #ifdef CXX11_ENABLED
         typedef accessor<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
-        typedef Dimension<4> time;
+        typedef dimension<4> time;
 #else
         typedef const accessor<0, range<0,0,0,0>, 3> in;
         typedef accessor<1, range<0,0,0,0>, 3> out;
@@ -238,7 +237,6 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_start_collector(collector_execute);
 #endif
-        boost::timer::cpu_timer time;
         copy->run();
 
 #ifdef USE_PAPI
@@ -252,10 +250,11 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_execute);
 #endif
-        boost::timer::cpu_times lapse_time = time.elapsed();
         copy->finalize();
 
-        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+#ifdef BENCHMARK
+        std::cout << copy->print_meter() << std::endl;
+#endif
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif
@@ -263,7 +262,6 @@ namespace copy_stencil{
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
-        printf("dimensions are: %d, %d, %d\n", d1, d2, d3);
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
@@ -290,7 +288,7 @@ namespace copy_stencil{
                             success = false;
                         }
                 }
-        std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+        if(!success) std::cout << "ERROR" << std::endl;
         return success;
     }
 }//namespace copy_stencil

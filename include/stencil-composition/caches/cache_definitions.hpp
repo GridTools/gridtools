@@ -6,22 +6,22 @@
 
 namespace gridtools {
 /**
-* @enum CacheIOPolicy
+* @enum cache_io_policy
 * Enum listing the cache IO policies
 */
-enum CacheIOPolicy
+enum cache_io_policy
 {
-    cFillAndFlush,  /**< Read values from the cached field and write the result back */
-    cFill,          /**< Read values form the cached field but do not write back */
-    cFlush,         /**< Write values back the the cached field but do not read in */
-    cLocal          /**< Local only cache, neither read nor write the the cached field */
+    fill_and_flush,  /**< Read values from the cached field and write the result back */
+    fill,          /**< Read values form the cached field but do not write back */
+    flush,         /**< Write values back the the cached field but do not read in */
+    local          /**< Local only cache, neither read nor write the the cached field */
 };
 
 /**
- * @enum CacheType
+ * @enum cache_type
  * enum with the different types of cache available
  */
-enum CacheType
+enum cache_type
 {
     IJ,  // IJ caches require synchronization capabilities, as different (i,j) grid points are
          // processed by parallel cores. GPU backend keeps them in shared memory

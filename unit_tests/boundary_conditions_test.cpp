@@ -1,5 +1,5 @@
 #include <gridtools.hpp>
-#include <common/halo_descriptor.hpp>
+#include "common/halo_descriptor.hpp"
 
 #ifdef __CUDACC__
 #include <boundary-conditions/apply_gpu.hpp>
@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.hpp>
+#include "stencil-composition/backend.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,16 +1,26 @@
 #pragma once
-#include <stencil-composition/accessor_impl.hpp>
-#include <stencil-composition/arg.hpp>
-#include <stencil-composition/Dimension.hpp>
+#include "stencil-composition/accessor_impl.hpp"
+#include "stencil-composition/arg.hpp"
+#include "stencil-composition/dimension.hpp"
 /**
    @file
-   @brief File containing the definition of the placeholders used to address the storage from whithin the functors.
-   A placeholder is an implementation of the proxy design pattern for the storage class, i.e. it is a light object used in place of the storage when defining the high level computations,
-   and it will be bound later on with a specific instantiation of a storage class.
+
+   @brief File containing the definition of the placeholders used to
+   address the storage from whithin the functors.  A placeholder is an
+   implementation of the proxy design pattern for the storage class,
+   i.e. it is a light object used in place of the storage when
+   defining the high level computations, and it will be bound later on
+   with a specific instantiation of a storage class.
 
    Two different types of placeholders are considered:
-   - arg represents the storage in the body of the main function, and it gets lazily assigned to a real storage.
-   - accessor represents the storage inside the functor struct containing a Do method. It can be instantiated directly in the Do method, or it might be a constant expression instantiated outside the functor scope and with static duration.
+
+   - arg represents the storage in the body of the main function, and
+     it gets lazily assigned to a real storage.
+
+   - accessor represents the storage inside the functor struct
+     containing a Do method. It can be instantiated directly in the Do
+     method, or it might be a constant expression instantiated outside
+     the functor scope and with static duration.
 */
 
 namespace gridtools {
@@ -19,13 +29,21 @@ namespace gridtools {
        @brief the definition of accessor visible to the user
 
        \tparam ID the integer unic ID of the field placeholder
-       \tparam Range the range of i/j indices spanned by the placeholder, in the form of <i_minus, i_plus, j_minus, j_plus>.
-               The values are relative to the current position. See e.g. horizontal_diffusion::out_function as a usage example.
-       \tparam Number the number of dimensions accessed by the field. Notice that we don't distinguish at this level what we call
-       "space dimensions" from the "field dimensions". Both of them are accessed using the same interface. whether they are
-       field dimensions or space dimension will be decided at the moment of the storage instantiation (in the main function)
+
+       \tparam Range the range of i/j indices spanned by the
+               placeholder, in the form of <i_minus, i_plus, j_minus,
+               j_plus>.  The values are relative to the current
+               position. See e.g. horizontal_diffusion::out_function
+               as a usage example.
+
+       \tparam Number the number of dimensions accessed by the
+               field. Notice that we don't distinguish at this level what we
+               call "space dimensions" from the "field dimensions". Both of
+               them are accessed using the same interface. whether they are
+               field dimensions or space dimension will be decided at the
+               moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID, typename Range=range<0,0,0,0>, ushort_t Number=3>
+    template < uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
     struct accessor : public accessor_base<ID, Range, Number> {
         typedef accessor_base<ID, Range, Number> super;
         typedef typename super::index_type index_type;
@@ -111,7 +129,7 @@ namespace gridtools {
         static constexpr accessor_base<ArgType::index_type::value
                                              , typename ArgType::range_type
                                              , ArgType::n_dim> s_args_constexpr{
-            enumtype::Dimension<Pair::first>{Pair::second} ... };
+            dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
                       , typename ArgType::range_type
@@ -191,14 +209,14 @@ namespace gridtools {
 
         /** @brief operator calls the constructor of the offset_tuple
             \param unknowns are the parameters which were not known beforehand. They might be instances of
-            the enumtype::Dimension class. Together with the m_knowns offsets form the arguments to be
+            the dimension class. Together with the m_knowns offsets form the arguments to be
             passed to the Callable functor (which is normally an instance of offset_tuple)
         */
     template<typename ... Unknowns>
     GT_FUNCTION
     Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
     {
-        return Callable(enumtype::Dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
+        return Callable(dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
 
     private:
         //store the list of offsets which are already known on an array
