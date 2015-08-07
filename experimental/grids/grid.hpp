@@ -14,9 +14,9 @@ namespace gridtools {
     extern char const vertexes_str[]="vertexes";
 
     namespace{
-        using cells = location_type<0,2, cells_str >;
-        using edges = location_type<1,3, edges_str >;
-        using vertexes = location_type<2,1, vertexes_str >;
+        using cells = location_type<0,2>;
+        using edges = location_type<1,3>;
+        using vertexes = location_type<2,1>;
     }
 
     template<typename T, typename ValueType=int_t>
@@ -423,15 +423,15 @@ namespace gridtools {
     class trapezoid_2D_colored {
     public :
 
-        using cells = location_type<0,2, cells_str >;
-        using edges = location_type<1,3, edges_str >;
-        using vertexes = location_type<2,1, vertexes_str >;
+        using cells = location_type<0,2>;
+        using edges = location_type<1,3>;
+        using vertexes = location_type<2,1>;
 
         template <typename T>
         struct pointer_to;
 
-        template <int I, uint_t D, char const* Name>
-        struct pointer_to<location_type<I, D, Name>> {
+        template <int I, uint_t D>
+        struct pointer_to<location_type<I, D>> {
             using type = double*;
         };
 
@@ -460,16 +460,16 @@ namespace gridtools {
         template <typename T>
         struct virtual_storage_type;
 
-        template <int I, int D, char const* Name>
-        struct virtual_storage_type<location_type<I, D, Name> > {
+        template <int I, int D>
+        struct virtual_storage_type<location_type<I, D> > {
             using type = typename boost::fusion::result_of::at_c<virtual_storage_types, I>::type;
         };
 
         template <typename T>
         struct storage_type;
 
-        template <int I, ushort_t D, char const*  Name>
-        struct storage_type<location_type<I, D, Name> > {
+        template <int I, ushort_t D>
+        struct storage_type<location_type<I, D> > {
             using type = typename boost::mpl::at_c<storage_types, I>::type;
         };
 
