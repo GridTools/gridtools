@@ -20,7 +20,7 @@ struct esf_has_parameter_h{
    from false_type), or map between placeholders in this ESF and the ranges
    associated with it (if Pred derives from true_type)
  */
-template<typename Esf, typename Pred>
+    template<typename Esf, typename Pred=boost::false_type>
 struct esf_args
 {
     GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
