@@ -51,17 +51,17 @@ namespace gridtools {
     };
 
     template <typename ValueType>
+    struct return_type<from<cells>::template to<cells>, ValueType>{
+        typedef array<ValueType, 3> type;
+    };
+
+    template <typename ValueType>
     struct return_type<from<cells>::template to<edges>, ValueType>{
         typedef array<ValueType, 3> type;
     };
 
     template <typename ValueType>
-    struct return_type<from<edges>::template to<cells>, ValueType>{
-        typedef array<ValueType, 2> type;
-    };
-
-    template <typename ValueType>
-    struct return_type<from<cells>::template to<cells>, ValueType>{
+    struct return_type<from<cells>::template to<vertexes>, ValueType>{
         typedef array<ValueType, 3> type;
     };
 
@@ -71,7 +71,27 @@ namespace gridtools {
     };
 
     template <typename ValueType>
+    struct return_type<from<edges>::template to<cells>, ValueType>{
+        typedef array<ValueType, 2> type;
+    };
+
+    template <typename ValueType>
+    struct return_type<from<edges>::template to<vertexes>, ValueType>{
+        typedef array<ValueType, 4> type;
+    };
+
+    template <typename ValueType>
     struct return_type<from<vertexes>::template to<vertexes>, ValueType>{
+        typedef array<ValueType, 6> type;
+    };
+
+    template <typename ValueType>
+    struct return_type<from<vertexes>::template to<cells>, ValueType>{
+        typedef array<ValueType, 6> type;
+    };
+
+    template <typename ValueType>
+    struct return_type<from<vertexes>::template to<edges>, ValueType>{
         typedef array<ValueType, 6> type;
     };
 
@@ -83,9 +103,10 @@ namespace gridtools {
 
         template<typename Grid>
         static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
-            return return_t<int_t>{std::get</*typename Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
-                    std::get</*Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
-                    std::get</*Grid::template storage_t<cells> cxx14*/ 0 >(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]+1)};
+            return return_t<int_t>{
+                    std::get<0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                    std::get<0 >(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                    std::get<0 >(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1])};
         }
 
         template<typename Grid>
@@ -108,7 +129,7 @@ namespace gridtools {
             return return_t<int_t>{
                 std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1]-1),
                     std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
-                    std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1]+1)};
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1])};
         }
 
         template<typename Grid>
@@ -233,7 +254,7 @@ namespace gridtools {
         static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
             return return_t<int_t>{
                 std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
-                    std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]+1),
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
                     std::get<1>(grid_.v_storage_tuple())._index(i[0]+1, 1, i[1])};
         }
@@ -246,7 +267,7 @@ namespace gridtools {
                 { i[0], 1, i[1]},
                 { i[0]+1, 1, i[1]}};//Different from above!!
         }
-};
+    };
 
         // array<int_t, 4>
         // edge2edges_ll_p2(array<int_t, 2> const& i) const
@@ -280,7 +301,6 @@ namespace gridtools {
                 { i[0], 0, i[1]+1},
                 { i[0]+1, 1, i[1]}};
         }
-
     };
 
         // array<int_t, 3>
@@ -315,6 +335,52 @@ namespace gridtools {
                 { i[0], 2, i[1]}};
         }
 
+    };
+
+    template<> template<> template<>
+    struct from<cells>::to<vertexes>::with_color<static_int<0> >{
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<cells>::to<vertexes>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                    std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1])};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 0, i[1]}};
+        }
+    };
+
+    template<> template<> template<>
+    struct from<cells>::to<vertexes>::with_color<static_int<1> >{
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<cells>::to<vertexes>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]+1)};
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0]+1, 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 0, i[1]+1}};
+        }
     };
 
         // array<int_t, 3>
@@ -409,13 +475,148 @@ namespace gridtools {
         }
     };
 
-        // array<int_t, 2>
-        // edge2cells_ll_p2(array<int_t, 2> const& i) const
-        // {
-        //     return array<int_t, 2>{
-        //         std::get</*storage_t<cells> cxx14*/ 0 >(m_v_storage_tuple)._index(i[0], 0, i[1]),
-        //             std::get</*storage_t<cells> cxx14*/ 0 >(m_v_storage_tuple)._index(i[0], 1, i[1])};
-        // }
+    template<> template<> template<>
+    struct from<edges>::to<vertexes>::with_color<static_int<0> >{
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<vertexes>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]-1)
+            };
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 0, i[1]},
+                { i[0], 1, i[1]+1},
+                { i[0]+1, 1, i[1]},
+                { i[0]+1, 1, i[1]-1},
+            };
+        }
+    };
+
+    template<> template<> template<>
+    struct from<edges>::to<vertexes>::with_color<static_int<1> >{
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<vertexes>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]+1),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1])
+            };
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 0, i[1]},
+                { i[0]-1, 0, i[1]+1},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 0, i[1]},
+            };
+        }
+    };
+
+    template<> template<> template<>
+    struct from<edges>::to<vertexes>::with_color<static_int<2> >{
+
+        template <typename ValueType>
+        using return_t= typename return_type<from<edges>::to<vertexes>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0], 0, i[1]+1),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]),
+                std::get<2>(grid_.v_storage_tuple())._index(i[0]+1, 0, i[1]+1)
+            };
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3>> get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3>>{
+                { i[0], 0, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0]+1, 0, i[1]},
+                { i[0]+1, 0, i[1]-1},
+            };
+        }
+    };
+
+    template<> template<> template<>
+    struct from<vertexes>::to<cells>::with_color<static_int<0> >{
+
+        template <typename ValueType>
+        using return_t=typename return_type<from<vertexes>::to<cells>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1]-1),
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]),
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0]-1, 1, i[1]),
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0], 1, i[1]-1),
+                    std::get<0>(grid_.v_storage_tuple())._index(i[0], 0, i[1]-1)
+            };
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0]-1, 1, i[1]-1},
+                { i[0]-1, 0, i[1]},
+                { i[0]-1, 1, i[1]},
+                { i[0], 0, i[1]+1},
+                { i[0], 1, i[1]-1},
+                { i[0], 0, i[1]-1},
+            };
+        }
+    };
+
+    template<> template<> template<>
+    struct from<vertexes>::to<edges>::with_color<static_int<0> >{
+
+        template <typename ValueType>
+        using return_t=typename return_type<from<vertexes>::to<edges>, ValueType >::type;
+
+        template<typename Grid>
+        static return_t<int_t> get(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<int_t>{
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0], 1, i[1]-1),
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 0, i[1]),
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0]-1, 2, i[1]),
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0], 1, i[1]),
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0], 0, i[1]),
+                    std::get<1>(grid_.v_storage_tuple())._index(i[0], 2, i[1]-1)
+            };
+        }
+
+        template<typename Grid>
+        static return_t<array<uint_t, 3> > get_index(Grid const& grid_, array<int_t, 2> const& i){
+            return return_t<array<uint_t, 3> >{
+                { i[0], 1, i[1]-1},
+                { i[0]-1, 0, i[1]},
+                { i[0]-1, 2, i[1]},
+                { i[0], 1, i[1]},
+                { i[0], 0, i[1]},
+                { i[0], 2, i[1]-1},
+            };
+        }
+    };
 
     /**
     */

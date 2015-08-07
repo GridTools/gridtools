@@ -45,9 +45,14 @@ struct stencil_on_cells {
 #ifdef _MAIN_CPP_DEBUG_
                 std::cout << "#";
 #endif
-                return _in+_res;
-             };
+                std::cout
+                          << " IJ " << _in << " "
+                          << std::endl;
 
+               return _in+_res;
+                };
+
+           std::cout << "POR " << eval(in()) << std::endl;
 
         /**
            This interface checks that the location types are compatible with the accessors
@@ -65,9 +70,14 @@ struct stencil_on_vertexes {
     operator()(GridAccessors /*const*/& eval/*, region*/) const {
         auto ff = [](const double _in, const double _res) -> double
             {
-                return _in+_res;
+             std::cout
+                       << " IJ " << _in << " "
+                       << std::endl;
+
+            return _in+_res;
              };
 
+        std::cout << "FOR " << eval(in()) << std::endl;
 
         /**
            This interface checks that the location types are compatible with the accessors
@@ -162,14 +172,15 @@ struct stencil_on_edges {
 #define _EVAL_I(l1,l2,x,y)                                              \
     std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors_indices({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << std::endl;
 
-template <typename Array>
-uint_t product(Array && x) {
-    uint_t r = 1;
-    for (int i = 0; i < x.size(); ++i) {
-        r *= x[i];
-    }
-    return r;
-};
+template<typename T> struct printy{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYYYYY, (T));};
+template<typename Storage>
+void fill_storage_with_indices(Storage& storage)
+{
+    std::cout << " IIIII " << storage.m_size << std::endl;
+    for(uint_t i =0; i < storage.m_size; ++i)
+        storage.m_ptr[i] = i;
+}
+
 
 int main() {
     uint_t NC = trapezoid_2D::u_size_i(trapezoid_2D::cells(), 6);
@@ -205,6 +216,9 @@ int main() {
     edge_storage_type edges(grid.size(trapezoid_2D::edges()));
     vertex_storage_type vertexes(grid.size(trapezoid_2D::vertexes()));
 
+    fill_storage_with_indices(cells);
+    fill_storage_with_indices(edges);
+    fill_storage_with_indices(vertexes);
 
     EVAL_C(trapezoid_2D::cells(), trapezoid_2D::cells(), gridtools::static_int<0>(), 1, 1, (gridtools::array<uint_t,3>{9*d3, 24*d3, 25*d3}));
     EVAL_C(trapezoid_2D::cells(), trapezoid_2D::cells(), gridtools::static_int<0>()/*color0*/, 1, 2,/*coords*/ (gridtools::array<uint_t,3>{/*offsets*/10*d3, 25*d3, 26*d3}));
@@ -264,6 +278,11 @@ int main() {
     cell_storage_type cells_out(grid.size(trapezoid_2D::cells()));
     edge_storage_type edges_out(grid.size(trapezoid_2D::edges()));
     vertex_storage_type vertexes_out(grid.size(trapezoid_2D::vertexes()));
+
+    fill_storage_with_indices(cells_out);
+    fill_storage_with_indices(edges_out);
+    fill_storage_with_indices(vertexes_out);
+
 
     typedef arg<0, trapezoid_2D::cells> out_cells;
     typedef arg<1, trapezoid_2D::cells> in_cells;

@@ -111,7 +111,7 @@ namespace gridtools {
             const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1}, location_type<2, NColors>());
             std::cout << "Low bounds  " << low_bounds << std::endl;
             std::cout << "High bounds " << high_bounds << std::endl;
-            std::cout << "Iteration space on Edges "
+            std::cout << "Iteration space on vertexes "
                       << "from " << low_bounds[0] << " to " <<  high_bounds[0] << " "
                       << "from " << low_bounds[1] << " to " <<  high_bounds[1] << " "
                       << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
