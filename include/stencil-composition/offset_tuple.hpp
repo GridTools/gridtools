@@ -12,7 +12,7 @@ template <ushort_t N, typename X>
 GT_FUNCTION
 constexpr int_t initialize( X x )
 {
-return (X::direction==N? x.value : 0);
+    return (X::direction==N? x.value : 0);
 }
 
 #ifdef CXX11_ENABLED
@@ -25,30 +25,30 @@ template <ushort_t N, typename X, typename ... Rest>
 GT_FUNCTION
 constexpr int_t initialize(X x, Rest ... rest )
 {
-return X::direction==N? x.value : initialize<N>(rest...);
+    return X::direction==N? x.value : initialize<N>(rest...);
 }
 
 template<ushort_t ID>
 struct initialize_all{
 
-template <typename ... X>
-GT_FUNCTION
-static void apply(int_t* offset, X ... x)
-{
-    offset[ID]=initialize<ID>(x...);
-    initialize_all<ID-1>::apply(offset, x...);
-}
+    template <typename ... X>
+    GT_FUNCTION
+    static void apply(int_t* offset, X ... x)
+    {
+        offset[ID]=initialize<ID>(x...);
+        initialize_all<ID-1>::apply(offset, x...);
+    }
 };
 
 template<>
 struct initialize_all<0>{
 
-template <typename ... X>
-GT_FUNCTION
-static void apply(int_t* offset, X ... x)
-{
-    offset[0]=initialize<0>(x...);
-}
+    template <typename ... X>
+    GT_FUNCTION
+    static void apply(int_t* offset, X ... x)
+    {
+        offset[0]=initialize<0>(x...);
+    }
 };
 #else
 
@@ -61,7 +61,7 @@ template <ushort_t N, typename X, typename Y>
 GT_FUNCTION
 constexpr int_t initialize(X x, Y y)
 {
-return X::direction==N? x.value : Y::direction==N? y.value : 0;
+    return X::direction==N? x.value : Y::direction==N? y.value : 0;
 }
 
 /**@brief method for initializing the offsets in the placeholder
@@ -74,7 +74,7 @@ template <ushort_t N, typename X, typename Y, typename Z>
 GT_FUNCTION
 constexpr int_t initialize(X x, Y y, Z z)
 {
-return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
+    return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : 0;
 }
 
 /**@brief method for initializing the offsets in the placeholder
@@ -87,7 +87,7 @@ template <ushort_t N, typename X, typename Y, typename Z, typename T>
 GT_FUNCTION
 constexpr int_t initialize(X x, Y y, Z z, T t)
 {
-return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : T::direction==N? t.value : 0;
+    return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.value : T::direction==N? t.value : 0;
 }
 #endif
 
@@ -117,10 +117,10 @@ return X::direction==N? x.value : Y::direction==N? y.value : Z::direction==N? z.
 template< int_t Index, int_t NDim >
 struct offset_tuple : public offset_tuple<Index-1, NDim>
 {
-static const int_t n_dim=NDim;
+    static const int_t n_dim=NDim;
 
-typedef offset_tuple<Index-1, NDim> super;
-static const ushort_t n_args=super::n_args+1;
+    typedef offset_tuple<Index-1, NDim> super;
+    static const ushort_t n_args=super::n_args+1;
 
 #ifdef CXX11_ENABLED
 
@@ -129,8 +129,7 @@ static const ushort_t n_args=super::n_args+1;
        When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
     template <typename... Whatever>
     GT_FUNCTION
-        constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {
-    }
+    constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {}
 
     /**@brief constructor taking the dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -139,21 +138,17 @@ static const ushort_t n_args=super::n_args+1;
     template <ushort_t Idx, typename... Whatever>
     GT_FUNCTION
     constexpr offset_tuple ( dimension<Idx> const& t, Whatever const& ... x):
-        super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...))
-    {}
+        super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {}
 #else
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
        The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
        When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
     GT_FUNCTION
-    offset_tuple ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {
-    }
+    offset_tuple ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {}
     GT_FUNCTION
-    offset_tuple ( int const& i, int const& j): super( j ), m_offset(i) {
-    }
+    offset_tuple ( int const& i, int const& j): super( j ), m_offset(i) {}
     GT_FUNCTION
-    offset_tuple ( int const& i): m_offset(i) {
-    }
+    offset_tuple ( int const& i): m_offset(i) {}
 
     /**@brief constructor taking the Dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
@@ -162,8 +157,7 @@ static const ushort_t n_args=super::n_args+1;
     template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
     GT_FUNCTION
     offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u, dimension<Idx3> const& v,  dimension<Idx4> const& h ):
-        super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h))
-    {}
+        super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h)) {}
 
     /**@brief constructor taking the Dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
@@ -171,8 +165,8 @@ static const ushort_t n_args=super::n_args+1;
     */
     template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u, dimension<Idx3> const& v ): super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v))
-    {}
+    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u, dimension<Idx3> const& v ):
+        super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v)) {}
 
     /**@brief constructor taking the Dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -180,8 +174,8 @@ static const ushort_t n_args=super::n_args+1;
     */
     template <ushort_t Idx1, ushort_t Idx2 >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u ): super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u))
-    {}
+    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u ):
+        super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u)) {}
 
     /**@brief constructor taking the Dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -189,15 +183,14 @@ static const ushort_t n_args=super::n_args+1;
     */
     template <ushort_t Idx >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx> const& t ) : super(t), m_offset(initialize<super::n_dim-n_args+1>(t))
-    {}
+    offset_tuple ( dimension<Idx> const& t ) :
+        super(t), m_offset(initialize<super::n_dim-n_args+1>(t)) {}
 #endif
 
     //initializes recursively all the offsets to 0
     GT_FUNCTION
     constexpr offset_tuple ( ):
-        super( ), m_offset(0)
-    {}
+        super( ), m_offset(0) {}
 
     template<short_t Idx>
     constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
@@ -264,4 +257,4 @@ template<typename T> struct is_offset_tuple : boost::mpl::false_{};
 
 template< int_t Index, int_t NDim >
 struct is_offset_tuple<offset_tuple<Index, NDim> > : boost::mpl::true_ {};
-}
+} //namespace gridtools

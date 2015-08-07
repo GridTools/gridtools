@@ -14,7 +14,7 @@
 
 #include <communication/halo_exchange.hpp>
 
-#include "verifier.hpp"
+#include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
 // [includes]
 

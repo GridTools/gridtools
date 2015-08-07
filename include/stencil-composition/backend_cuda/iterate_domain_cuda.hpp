@@ -132,13 +132,13 @@ public:
     GT_FUNCTION
     strides_cached_t const & RESTRICT strides_impl() const
     {
-//        assert(m_pshared_iterate_domain);
+//        assert((m_pshared_iterate_domain);
         return m_pshared_iterate_domain->strides();
     }
     GT_FUNCTION
     strides_cached_t & RESTRICT strides_impl()
     {
-//        assert(m_pshared_iterate_domain);
+//        assert((m_pshared_iterate_domain));
         return m_pshared_iterate_domain->strides();
     }
 
