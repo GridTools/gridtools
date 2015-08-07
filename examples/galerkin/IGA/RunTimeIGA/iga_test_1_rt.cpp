@@ -21,8 +21,9 @@ int main()
 	const unsigned int knot_index_test_2 = 4-1;
 	const unsigned int knot_index_test_3 = 4-1;
 
-	b_splines_rt::BSplineBasis<P,N> bsplineTest(knots);
+	// UNIVARIATE CASE
 
+	b_splines_rt::BSplineBasis<P,N> bsplineTest(knots);
 
 	// Run span finding test 1
 	if(bsplineTest.find_span(csi_test_1) == knot_index_test_1)
@@ -72,11 +73,68 @@ int main()
 	}
 	if(test_passed == true)
 	{
-		std::cout<<"Unity test passed"<<std::endl;
+		std::cout<<"Unity 1D test passed"<<std::endl;
 	}
 	else
 	{
-		std::cout<<"Unity test failed"<<std::endl;
+		std::cout<<"Unity 1D test failed"<<std::endl;
+	}
+
+	// BIVARIATE CASE
+
+	b_splines_rt::BivariateBSplineBasis<P,N,P,N> bivariateBsplineTest(knots,knots);
+
+	// Run span finding test 1
+	if((bivariateBsplineTest.find_span(csi_test_1,csi_test_1)[0] == knot_index_test_1) &&
+	   (bivariateBsplineTest.find_span(csi_test_1,csi_test_1)[1] == knot_index_test_1))
+	{
+		std::cout<<"Test 4 passed"<<std::endl;
+	}
+	else
+	{
+		std::cout<<"Test 4 failed"<<std::endl;
+	}
+
+	// Run span finding test 2
+	if((bivariateBsplineTest.find_span(csi_test_2,csi_test_2)[0] == knot_index_test_2) &&
+	   (bivariateBsplineTest.find_span(csi_test_2,csi_test_2)[1] == knot_index_test_2))
+	{
+		std::cout<<"Test 5 passed"<<std::endl;
+	}
+	else
+	{
+		std::cout<<"Test 5 failed"<<std::endl;
+	}
+
+	// Run span finding test 1
+	if((bivariateBsplineTest.find_span(csi_test_3,csi_test_3)[0] == knot_index_test_3) &&
+	   (bivariateBsplineTest.find_span(csi_test_3,csi_test_3)[1] == knot_index_test_3))
+	{
+		std::cout<<"Test 6 passed"<<std::endl;
+	}
+	else
+	{
+		std::cout<<"Test 6 failed"<<std::endl;
+	}
+
+	// Unity test loop
+	test_passed = true;
+	for(double csi=minCsi;csi<=maxCsi;csi+=deltaCsi)
+	{
+		std::vector<double> b_spline_values(bsplineTest.evaluate(csi));
+		if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
+		{
+			test_passed = false;
+			break;
+		}
+	}
+	if(test_passed == true)
+	{
+		std::cout<<"Unity 2D test passed"<<std::endl;
+	}
+	else
+	{
+		std::cout<<"Unity 2D test failed"<<std::endl;
 	}
 
 	return 0;
