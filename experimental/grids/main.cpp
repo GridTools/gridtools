@@ -45,14 +45,8 @@ struct stencil_on_cells {
 #ifdef _MAIN_CPP_DEBUG_
                 std::cout << "#";
 #endif
-                std::cout
-                          << " IJ " << _in << " "
-                          << std::endl;
-
                return _in+_res;
                 };
-
-           std::cout << "POR " << eval(in()) << std::endl;
 
         /**
            This interface checks that the location types are compatible with the accessors
@@ -70,14 +64,8 @@ struct stencil_on_vertexes {
     operator()(GridAccessors /*const*/& eval/*, region*/) const {
         auto ff = [](const double _in, const double _res) -> double
             {
-             std::cout
-                       << " IJ " << _in << " "
-                       << std::endl;
-
             return _in+_res;
              };
-
-        std::cout << "FOR " << eval(in()) << std::endl;
 
         /**
            This interface checks that the location types are compatible with the accessors
