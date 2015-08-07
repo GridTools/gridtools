@@ -1,11 +1,12 @@
 #include <vector>
+#include <numerics>
 #include "point.h"
 #include "b_splines_basis_rt.h"
 
 #pragma once
 namespace b_splines_rt
 {
-
+	// TODO: I am using this class for NURBS calculation, with Point<1> used as weight. Find better soultion
 	/**
 	 * @class b-spline curve calculation class
 	 * @brief Class for the calculation of a b-spline curve value at a given point in parametric space given a set of knots and control points
@@ -18,7 +19,7 @@ namespace b_splines_rt
 	{
 	public:
 
-		// TODO: Use single container for points, knots, controlo points, etc..
+		// TODO: Use single container for points, knots, control points, etc..
 		// TODO: add static assert to check values of template parameters
 		// TODO: switch to GridTools data types (u_int, etc)
 
@@ -39,6 +40,15 @@ namespace b_splines_rt
 		 */
 		Point<DIM> evaluate(double i_csi) const;
 
+
+		/**
+		 * @brief Weighted single basis function values at a given point in parametric space
+		 * @param i_csi Parametric space point value
+		 * @return Weighted single basis function values in R^DIM
+		 */
+		std::vector<Point<DIM> > evaluate_weighted_basis(double i_csi) const;
+
+
 	private:
 
 		const std::vector<Point<DIM> >& m_controlPoints;// TODO: this can be avoided with the above modification (see contructor comment)
@@ -50,16 +60,27 @@ namespace b_splines_rt
 	template<int P, int N, int DIM>
 	Point<DIM> BSplineCurve<P,N,DIM>::evaluate(const double i_csi) const
 	{
-		Point<DIM> o_point;
-		// TODO: avoid vector copy
-		std::vector<double> basisValues(m_bsplineBasis.evaluate(i_csi));
-		for(int i=0;i<N;++i)
-		{
-			o_point += basisValues[i]*m_controlPoints[i];
-		}
-		return o_point;
+		const std::vector<Point<DIM>> weighted_basis_values(evaluate_weighted_basis(i_csi));
+		return std::accumulate(weighted_basis_values.begin(),weighted_basis_values.end(),Point<DIM>{});
 	};
 
+
+	template<int P, int N, int DIM>
+	std::vector<Point<DIM>> BSplineCurve<P,N,DIM>::evaluate_weighted_basis(const double i_csi) const
+	{
+		std::vector<Point<DIM> > o_weighted_basis_values(m_bsplineBasis.evaluate(i_csi));
+
+		// TODO: switch to std algos
+		for(int i=0;i<N;++i)
+		{
+			o_weighted_basis_values[i] *= m_controlPoints[i];
+		}
+
+		return o_weighted_basis_values;
+	};
+
+
+	// TODO: I am using this class for NURBS calculation, with Point<1> used as weight. Find better soultion
 	/**
 	 * @class b-spline surface calculation class
 	 * @brief Class for the calculation of a b-spline surface value at a given point in parametric space given a set of knots and control points
@@ -98,6 +119,16 @@ namespace b_splines_rt
 		 */
 		Point<DIM> evaluate(double i_csi, double i_eta) const;
 
+
+		/**
+		 * @brief Weighted single basis function values at a given point in parametric space
+		 * @param i_csi Parametric space point value
+		 * @param i_eta Parametric space point value (second direction)
+		 * @return Weighted single basis function values in R^DIM
+		 */
+		std::vector<Point<DIM> > evaluate_weighted_basis(double i_csi, double i_eta) const;
+
+
 	private:
 
 		const std::vector<Point<DIM> >& m_controlPoints;
@@ -108,17 +139,22 @@ namespace b_splines_rt
 	template<int P1, int N1, int P2, int N2, int DIM>
 	Point<DIM> BSplineSurface<P1,N1,P2,N2,DIM>::evaluate(const double i_csi, const double i_eta) const
 	{
-		Point<DIM> o_point;
-		// TODO: avoid vector copy
-		std::vector<double> basisValues(m_bivariateBSplineBasis.evaluate(i_csi,i_eta));
-		int global(0);
-		for(int i=0;i<N1;++i)
-		{
-			for(int j=0;j<N1;++j,++global)
-			{
-				o_point += basisValues[global]*m_controlPoints[global];
-			}
-		}
-		return o_point;
+		const std::vector<Point<DIM>> weighted_basis_values(evaluate_weighted_basis(i_csi,i_eta));
+		return std::accumulate(weighted_basis_values.begin(),weighted_basis_values.end(),Point<DIM>{});
 	};
+
+	template<int P1, int N1, int P2, int N2, int DIM>
+	std::vector<Point<DIM>> BSplineSurface<P1,N1,P2,N2,DIM>::evaluate_weighted_basis(const double i_csi, const double i_eta) const
+	{
+		std::vector<Point<DIM> > o_weighted_basis_values(m_bivariateBSplineBasis.evaluate(i_csi,i_eta));
+
+		// TODO: switch to std algos
+		for(int i=0;i<N;++i)
+		{
+			o_weighted_basis_values[i] *= m_controlPoints[i];
+		}
+
+		return o_weighted_basis_values;
+	};
+
 }
