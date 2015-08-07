@@ -46,6 +46,19 @@ using namespace expressions;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
+// Create data structure to hold coefficients of single cell of 7-point
+// variable-coefficient stencil in three dimension, with no coefficient symmetry.
+/*//TODO encapsulate coeffs
+typedef struct {
+    float_type a;
+    float_type b;
+    float_type c;
+    float_type d;
+    float_type e;
+    float_type f;
+    float_type g;
+} coeff_type;*/
+
 // 1st order in time, 3-point constant-coefficient stencil in one dimension, with symmetry.
 struct d1point3{
     typedef accessor<0> out;
@@ -75,6 +88,32 @@ struct d3point7{
     }
 };
 
+// 1st order in time, 7-point variable-coefficient stencil in 3D, with no coefficient symmetry.
+struct d3point7_var{
+    typedef accessor<0> out;
+    typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
+    typedef accessor<2> a;
+    typedef accessor<3> b;
+    typedef accessor<4> c;
+    typedef accessor<5> d;
+    typedef accessor<6> e;
+    typedef accessor<7> f;
+    typedef accessor<8> g;
+    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(out()) = dom(a()) * dom(in())
+                    + dom(b()) * dom(in(x(-1)))
+                    + dom(c()) * dom(in(x(+1)))
+                    + dom(d()) * dom(in(y(-1)))
+                    + dom(e()) * dom(in(y(+1)))
+                    + dom(f()) * dom(in(z(-1)))
+                    + dom(g()) * dom(in(z(+1)));
+    }
+};
+
 bool solver(uint_t x, uint_t y, uint_t z) {
 
     uint_t d1 = x;
@@ -91,56 +130,82 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 #endif
 #endif
 
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    /* //TODO encapsulate coeffs
+    typedef gridtools::BACKEND::storage_type<coeff_type, layout_t >::type coeff_storage_type;*/
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
      // Definition of the actual data fields that are used for input/output
-    //storage_type in(d1,d2,d3,-1, "in"));
+    storage_type out1d(d1,1,1,0., "domain_out");
+    storage_type in1d(d1,1,1,1., "domain_in");
+
     storage_type out3d(d1,d2,d3,0., "domain_out");
     storage_type in3d(d1,d2,d3,1., "domain_in");
 
-    storage_type out1d(d1,1,1,0., "domain_out");
-    storage_type in1d(d1,1,1,1., "domain_in");
+    storage_type out3d_var(d1,d2,d3,0., "domain_out");
+    storage_type in3d_var(d1,d2,d3,1., "domain_in");
+    storage_type a_var(d1,d2,d3,7., "coeff_a");
+    storage_type b_var(d1,d2,d3,-1/7., "coeff_b");
+    storage_type c_var(d1,d2,d3,-1/7., "coeff_c");
+    storage_type d_var(d1,d2,d3,-1/7., "coeff_d");
+    storage_type e_var(d1,d2,d3,-1/7., "coeff_e");
+    storage_type f_var(d1,d2,d3,-1/7., "coeff_f");
+    storage_type g_var(d1,d2,d3,-1/7., "coeff_g");
+
+    /* //TODO encapsulate coeffs
+    coeff_type init = {.a = 7.0, .b = - 1.0/7.0, .c = - 1.0/7.0, .d = - 1.0/7.0,
+                        .e = - 1.0/7.0, .f = - 1.0/7.0, .g = - 1.0/7.0};
+    coeff_storage_type coeff7pt(d1,d2,d3,init,"coeffs");*/
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
     typedef arg<0, storage_type > p_out; //domain
     typedef arg<1, storage_type > p_in;
+    typedef arg<2, storage_type > p_a;
+    typedef arg<3, storage_type > p_b;
+    typedef arg<4, storage_type > p_c;
+    typedef arg<5, storage_type > p_d;
+    typedef arg<6, storage_type > p_e;
+    typedef arg<7, storage_type > p_f;
+    typedef arg<8, storage_type > p_g;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
+    typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g > accessor_list_var;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+    gridtools::domain_type<accessor_list> domain1d
+        (boost::fusion::make_vector(&out1d, &in1d));
+
     gridtools::domain_type<accessor_list> domain3d
         (boost::fusion::make_vector(&out3d, &in3d));
 
-    gridtools::domain_type<accessor_list> domain1d
-        (boost::fusion::make_vector(&out1d, &in1d));
+    gridtools::domain_type<accessor_list_var> domain3d_var
+        (boost::fusion::make_vector(&out3d_var, &in3d_var, &a_var, &b_var,
+                                     &c_var, &d_var, &e_var, &f_var, &g_var));
+
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
+    uint_t dii[5] = {0, 0, 1, d1-2, d1};
+    uint_t djj[5] = {0, 0, 0, 0, 1};
+    gridtools::coordinates<axis> coords1d(dii, djj);
+    coords1d.value_list[0] = 0; //specifying index of the splitter<0,-1>
+    coords1d.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
     //Informs the library that the iteration space in the first two dimensions
     //is from 0 to d1-1 (included) in I (or x) direction
     uint_t di[5] = {0, 0, 1, d1-2, d1};
     //and and 0 to 0 on J (or y) direction
     uint_t dj[5] = {0, 0, 1, d2-2, d2};
-
     gridtools::coordinates<axis> coords3d(di, dj);
     coords3d.value_list[0] = 1; //specifying index of the splitter<0,-1>
     coords3d.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
-
-    uint_t dii[5] = {0, 0, 1, d1-2, d1};
-    uint_t djj[5] = {0, 0, 0, 0, 1};
-    gridtools::coordinates<axis> coords1d(dii, djj);
-    coords1d.value_list[0] = 0; //specifying index of the splitter<0,-1>
-    coords1d.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
     /*
       Here we do lot of stuff
@@ -152,7 +217,6 @@ bool solver(uint_t x, uint_t y, uint_t z) {
       3) The actual domain dimensions
      */
 
-//------------------------------------------------------------------------------
 #ifdef __CUDACC__
     gridtools::computation* stencil_step_1 =
 #else
@@ -222,6 +286,43 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     out3d.print();
 
     std::cout << "TIME d3point7: " << boost::timer::format(lapse_time2) << std::endl;
+//------------------------------------------------------------------------------
+#ifdef __CUDACC__
+    gridtools::computation* stencil_step_3 =
+#else
+        boost::shared_ptr<gridtools::computation> stencil_step_3 =
+#endif
+      gridtools::make_computation<gridtools::BACKEND, layout_t>
+        (
+            gridtools::make_mss // mss_descriptor
+            (
+                execute<forward>(),
+                gridtools::make_esf<d3point7_var>(p_out(), p_in(), p_a(),
+                                                  p_b(), p_c(), p_d(),
+                                                  p_e(), p_f(), p_g()) // esf_descriptor
+                ),
+            domain3d_var, coords3d
+            );
+
+
+    //prepare computation
+    stencil_step_3->ready();
+    stencil_step_3->steady();
+    
+    //start timer
+    boost::timer::cpu_timer time3;
+
+    //TODO: swap domains between time iteration
+    for(int i=0; i<2; i++)
+        stencil_step_3->run();
+
+    boost::timer::cpu_times lapse_time3 = time3.elapsed();
+    stencil_step_3->finalize();
+
+    printf("Print domain after computation\n");
+    out3d_var.print();
+
+    std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
 //------------------------------------------------------------------------------
 
     return 1;
