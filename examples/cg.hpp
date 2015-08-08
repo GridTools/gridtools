@@ -153,11 +153,12 @@ struct d3point25_var{
     }
 };
 
-bool solver(uint_t x, uint_t y, uint_t z) {
+bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     uint_t d1 = x;
     uint_t d2 = y;
     uint_t d3 = z;
+    uint_t TIME_STEPS = nt;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -257,28 +258,28 @@ bool solver(uint_t x, uint_t y, uint_t z) {
       3) The actual domain dimensions
      */
 
-#ifdef __CUDACC__
-    gridtools::computation* stencil_step_1 =
-#else
-        boost::shared_ptr<gridtools::computation> stencil_step_1 =
-#endif
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
-        (
-            gridtools::make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                gridtools::make_esf<d1point3>(p_out(), p_in()) // esf_descriptor
-                ),
-            domain1d, coords1d
-            );
-
     //start timer
     boost::timer::cpu_timer time1;
 
     //TODO: swap domains between time iteration
     //TODO: exclude ready, steady,finalize from time measurement
-    int TIME_STEPS = 2;
     for(int i=0; i<TIME_STEPS; i++){
+
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_1 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_1 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d1point3>(p_out(), p_in()) // esf_descriptor
+                        ),
+                    domain1d, coords1d
+                    );
+
         //prepare computation
         stencil_step_1->ready();
         stencil_step_1->steady();

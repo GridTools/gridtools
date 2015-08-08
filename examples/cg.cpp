@@ -2,10 +2,10 @@
 
 int main(int argc, char** argv)
 {
-    if (argc != 4) {
-        std::cout << "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+    if (argc != 5) {
+        std::cout << "Usage: interface1_<whatever> dimx dimy dimz nt\n where args are integer sizes of the data fields and number of time iterations" << std::endl;
         return 1;
     }
 
-    return cg::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    return cg::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
 }
