@@ -219,8 +219,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<accessor_list> domain1d
-        (boost::fusion::make_vector(ptr_out, ptr_in));
 
     gridtools::domain_type<accessor_list> domain3d
         (boost::fusion::make_vector(&out3d, &in3d));
@@ -265,6 +263,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     //TODO: exclude ready, steady,finalize from time measurement
     for(int i=0; i<TIME_STEPS; i++){
 
+        //create domain
+        gridtools::domain_type<accessor_list> domain1d
+            (boost::fusion::make_vector(ptr_out, ptr_in));
+
+        //instantiate stencil
         #ifdef __CUDACC__
             gridtools::computation* stencil_step_1 =
         #else
