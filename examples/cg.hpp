@@ -179,13 +179,15 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
      // Definition of the actual data fields that are used for input/output
     storage_type out1d(d1,1,1,1., "domain_out");
     storage_type in1d(d1,1,1,1., "domain_in");
-    storage_type *ptr_in = &in1d, *ptr_out = &out1d;
+    storage_type *ptr_in1d = &in1d, *ptr_out1d = &out1d;
 
-    storage_type out3d(d1,d2,d3,0., "domain_out");
+    storage_type out3d(d1,d2,d3,1., "domain_out");
     storage_type in3d(d1,d2,d3,1., "domain_in");
+    storage_type *ptr_in3d = &in3d, *ptr_out3d = &out3d;
 
-    storage_type out3d_var(d1,d2,d3,0., "domain_out");
+    storage_type out3d_var(d1,d2,d3,1., "domain_out");
     storage_type in3d_var(d1,d2,d3,1., "domain_in");
+    storage_type *ptr_in3d_var = &in3d_var, *ptr_out3d_var = &out3d_var;
     storage_type a_var(d1,d2,d3,7., "coeff_a");
     storage_type b_var(d1,d2,d3,-1/7., "coeff_b");
     storage_type c_var(d1,d2,d3,-1/7., "coeff_c");
@@ -215,18 +217,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
     typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g > accessor_list_var;
-
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-
-    gridtools::domain_type<accessor_list> domain3d
-        (boost::fusion::make_vector(&out3d, &in3d));
-
-    gridtools::domain_type<accessor_list_var> domain3d_var
-        (boost::fusion::make_vector(&out3d_var, &in3d_var, &a_var, &b_var,
-                                     &c_var, &d_var, &e_var, &f_var, &g_var));
-
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -259,13 +249,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     //start timer
     boost::timer::cpu_timer time1;
 
-    //TODO: swap domains between time iteration
-    //TODO: exclude ready, steady,finalize from time measurement
+    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i<TIME_STEPS; i++){
 
-        //create domain
+        // construction of the domain
         gridtools::domain_type<accessor_list> domain1d
-            (boost::fusion::make_vector(ptr_out, ptr_in));
+            (boost::fusion::make_vector(ptr_out1d, ptr_in1d));
 
         //instantiate stencil
         #ifdef __CUDACC__
@@ -283,98 +272,125 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     domain1d, coords1d
                     );
 
-        //prepare computation
+        //prepare and run single step of stencil computation
         stencil_step_1->ready();
         stencil_step_1->steady();
         stencil_step_1->run();
         stencil_step_1->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out;
-        ptr_out = ptr_in;
-        ptr_in = tmp;
+        storage_type* tmp = ptr_out1d;
+        ptr_out1d = ptr_in1d;
+        ptr_in1d = tmp;
     }
 
     boost::timer::cpu_times lapse_time1 = time1.elapsed();
     
 
-    printf("Print domain after computation\n");
+    printf("Print domain A after computation\n");
     TIME_STEPS % 2 == 0 ? in1d.print() : out1d.print();
 
     std::cout << "TIME d1point3: " << boost::timer::format(lapse_time1) << std::endl;
 //------------------------------------------------------------------------------
-#ifdef __CUDACC__
-    gridtools::computation* stencil_step_2 =
-#else
-        boost::shared_ptr<gridtools::computation> stencil_step_2 =
-#endif
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
-        (
-            gridtools::make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
-                ),
-            domain3d, coords3d
-            );
-
-
-    //prepare computation
-    stencil_step_2->ready();
-    stencil_step_2->steady();
-    
+   
     //start timer
     boost::timer::cpu_timer time2;
 
-    //TODO: swap domains between time iteration
-    for(int i=0; i<2; i++)
+    //TODO: exclude ready, steady,finalize from time measurement (only run)
+    for(int i=0; i < TIME_STEPS; i++) {
+
+        // construction of the domain.
+        gridtools::domain_type<accessor_list> domain3d
+            (boost::fusion::make_vector(ptr_out3d, ptr_in3d));
+
+        //instantiate stencil
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_2 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_2 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
+                        ),
+                    domain3d, coords3d
+                    );
+
+        //prepare and run single step of stencil computation
+        stencil_step_2->ready();
+        stencil_step_2->steady();
         stencil_step_2->run();
+        stencil_step_2->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out3d;
+        ptr_out3d = ptr_in3d;
+        ptr_in3d = tmp;
+    }
 
     boost::timer::cpu_times lapse_time2 = time2.elapsed();
-    stencil_step_2->finalize();
 
-    printf("Print domain after computation\n");
-    out3d.print();
+
+    printf("Print domain B after computation\n");
+    TIME_STEPS % 2 == 0 ? in3d.print() : out3d.print();
 
     std::cout << "TIME d3point7: " << boost::timer::format(lapse_time2) << std::endl;
 //------------------------------------------------------------------------------
-#ifdef __CUDACC__
-    gridtools::computation* stencil_step_3 =
-#else
-        boost::shared_ptr<gridtools::computation> stencil_step_3 =
-#endif
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
-        (
-            gridtools::make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                gridtools::make_esf<d3point7_var>(p_out(), p_in(), p_a(),
-                                                  p_b(), p_c(), p_d(),
-                                                  p_e(), p_f(), p_g()) // esf_descriptor
-                ),
-            domain3d_var, coords3d
-            );
-
-
-    //prepare computation
-    stencil_step_3->ready();
-    stencil_step_3->steady();
     
     //start timer
     boost::timer::cpu_timer time3;
 
-    //TODO: swap domains between time iteration
-    for(int i=0; i<2; i++)
+    //TODO: exclude ready, steady,finalize from time measurement (only run)
+    for(int i=0; i < TIME_STEPS; i++) {
+
+        // construction of the domain.
+        gridtools::domain_type<accessor_list_var> domain3d_var
+            (boost::fusion::make_vector(ptr_out3d_var, ptr_in3d_var, &a_var, &b_var,
+                                         &c_var, &d_var, &e_var, &f_var, &g_var));
+
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_3 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_3 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d3point7_var>(p_out(), p_in(), p_a(),
+                                                          p_b(), p_c(), p_d(),
+                                                          p_e(), p_f(), p_g()) // esf_descriptor
+                        ),
+                    domain3d_var, coords3d
+                    );
+
+        //prepare and run single step of stencil computation
+        stencil_step_3->ready();
+        stencil_step_3->steady();
         stencil_step_3->run();
+        stencil_step_3->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out3d_var;
+        ptr_out3d_var = ptr_in3d_var;
+        ptr_in3d_var = tmp;
+    }
 
     boost::timer::cpu_times lapse_time3 = time3.elapsed();
-    stencil_step_3->finalize();
 
-    printf("Print domain after computation\n");
-    out3d_var.print();
+    printf("Print domain C after computation\n");
+    TIME_STEPS % 2 == 0 ? in3d_var.print() : out3d_var.print();
 
     std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
 //------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+
+
 
     return 1;
     }//solver
