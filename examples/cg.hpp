@@ -82,7 +82,7 @@ struct d3point7{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) = 7.0*dom(in())
+        dom(out()) = 7.0 * dom(in())
                     - 1.0/7.0 * (dom(in(x(-1)))+dom(in(x(+1))))
                     - 1.0/7.0 * (dom(in(y(-1)))+dom(in(y(+1))))
                     - 1.0/7.0 * (dom(in(z(-1)))+dom(in(z(+1))));
@@ -118,7 +118,7 @@ struct d3point7_var{
 // 25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_var{
     typedef accessor<0> out;
-    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 6 neighbors
+    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
     typedef accessor<2> a;
     typedef accessor<3> b;
     typedef accessor<4> c;
@@ -127,12 +127,12 @@ struct d3point25_var{
     typedef accessor<7> f;
     typedef accessor<8> g;
     typedef accessor<9> h;
-    typedef accessor<10> i;
+/*    typedef accessor<10> i;
     typedef accessor<11> j;
     typedef accessor<12> k;
     typedef accessor<13> l;
-    typedef accessor<14> m;
-    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g, h, i, j, k, l, m> arg_list;
+    typedef accessor<14> m; */
+    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g, h/*, i, j, k, l, m*/> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -145,18 +145,18 @@ struct d3point25_var{
                     + dom(f()) * (dom(in(y(-2)))+dom(in(y(+2))))
                     + dom(g()) * (dom(in(z(-2)))+dom(in(z(+2))))
                     + dom(h()) * (dom(in(x(-3)))+dom(in(x(+3))))
-                    + dom(i()) * (dom(in(y(-3)))+dom(in(y(+3))))
-                    + dom(j()) * (dom(in(z(-3)))+dom(in(z(+3))))
-                    + dom(k()) * (dom(in(x(-4)))+dom(in(x(+4))))
-                    + dom(l()) * (dom(in(y(-4)))+dom(in(y(+4))))
-                    + dom(m()) * (dom(in(z(-4)))+dom(in(z(+4))));
+                    + dom(h()) * (dom(in(y(-3)))+dom(in(y(+3))))
+                    + dom(h()) * (dom(in(z(-3)))+dom(in(z(+3))))
+                    + dom(h()) * (dom(in(x(-4)))+dom(in(x(+4))))
+                    + dom(h()) * (dom(in(y(-4)))+dom(in(y(+4))))
+                    + dom(h()) * (dom(in(z(-4)))+dom(in(z(+4))));
     }
 };
 
 // 2-nd order in time, 25-point constant-coefficient, isotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_time2{
     typedef accessor<0> out;
-    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 6 neighbors
+    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
     typedef accessor<2> in_old; // this says to access 6 neighbors
     typedef accessor<3> alpha;
     typedef boost::mpl::vector<out, in, in_old, alpha> arg_list;
@@ -238,7 +238,23 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     coeff_storage_type coeff7pt(d1,d2,d3,init,"coeffs");*/
 
     //25-pt stencil with variable coeffs
-    //TODO
+    storage_type out25pt_var(d1,d2,d3,1., "domain_out");
+    storage_type in25pt_var(d1,d2,d3,1., "domain_in");
+    storage_type *ptr_in25pt_var = &in25pt_var, *ptr_out25pt_var = &out25pt_var;
+    storage_type a_var25(d1,d2,d3,25., "coeff_a");
+    storage_type b_var25(d1,d2,d3,-1/25., "coeff_b");
+    storage_type c_var25(d1,d2,d3,-1/25., "coeff_c");
+    storage_type d_var25(d1,d2,d3,-1/25., "coeff_d");
+    storage_type e_var25(d1,d2,d3,-1/25., "coeff_e");
+    storage_type f_var25(d1,d2,d3,-1/25., "coeff_f");
+    storage_type g_var25(d1,d2,d3,-1/25., "coeff_g");
+    storage_type h_var25(d1,d2,d3,-1/25., "coeff_h");
+    //TODO encapsulate coeffs - boost::make_vector takes max 10 parameters
+    /*storage_type i_var25(d1,d2,d3,-1/25., "coeff_i");
+    storage_type j_var25(d1,d2,d3,-1/25., "coeff_j");
+    storage_type k_var25(d1,d2,d3,-1/25., "coeff_k");
+    storage_type l_var25(d1,d2,d3,-1/25., "coeff_l");
+    storage_type m_var25(d1,d2,d3,-1/25., "coeff_m");*/
 
     //25-pt stencil, 2-nd order in time with coeff symmetry
     storage_type out25pt(d1,d2,d3,1., "domain_out");
@@ -264,11 +280,20 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef arg<6, storage_type > p_e;
     typedef arg<7, storage_type > p_f;
     typedef arg<8, storage_type > p_g;
+    typedef arg<9, storage_type > p_h;
+/*    typedef arg<10, storage_type > p_i;
+    typedef arg<11, storage_type > p_j;
+    typedef arg<12, storage_type > p_k;
+    typedef arg<13, storage_type > p_l;
+    typedef arg<14, storage_type > p_m;*/
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
-    typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g > accessor_list_var;
+    typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d,
+                               p_e, p_f, p_g > accessor_list_var7pt;
+    typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g,
+                               p_h/*, p_i, p_j, p_k, p_l, p_m*/> accessor_list_var25pt;
     typedef boost::mpl::vector<p_out, p_in, p_in_old, p_alpha> accessor_list_time2;
 
     //--------------------------------------------------------------------------
@@ -409,7 +434,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
-        gridtools::domain_type<accessor_list_var> domain3d_var
+        gridtools::domain_type<accessor_list_var7pt> domain3d_var
             (boost::fusion::make_vector(ptr_out7pt_var, ptr_in7pt_var, &a_var, &b_var,
                                          &c_var, &d_var, &e_var, &f_var, &g_var));
 
@@ -449,8 +474,56 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
 //------------------------------------------------------------------------------
-//TODO d3point25_var
+
+    //start timer
+    boost::timer::cpu_timer time4;
+
+    //TODO: exclude ready, steady,finalize from time measurement (only run)
+    for(int i=0; i < TIME_STEPS; i++) {
+
+        // construction of the domain.
+        gridtools::domain_type<accessor_list_var25pt> domain3d_var25
+            (boost::fusion::make_vector(ptr_out25pt_var, ptr_in25pt_var, &a_var25, &b_var25, &c_var25, &d_var25, &e_var25, &f_var25, &g_var25, &h_var25/*, &i_var25, &j_var25, &k_var25, &l_var25, &m_var25*/));
+
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_4 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_4 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d3point25_var>(p_out(), p_in(), p_a(),
+                                                          p_b(), p_c(), p_d(),
+                                                          p_e(), p_f(), p_g(),
+                                                          p_h()/*, p_i(), p_j(),
+                                                          p_k(), p_l(), p_m()*/) // esf_descriptor
+                        ),
+                    domain3d_var25, coords3d25pt
+                    );
+
+        //prepare and run single step of stencil computation
+        stencil_step_4->ready();
+        stencil_step_4->steady();
+        stencil_step_4->run();
+        stencil_step_4->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out25pt_var;
+        ptr_out25pt_var = ptr_in25pt_var;
+        ptr_in25pt_var = tmp;
+    }
+
+    boost::timer::cpu_times lapse_time4 = time4.elapsed();
+
+    printf("Print domain D after computation\n");
+    TIME_STEPS % 2 == 0 ? in25pt_var.print() : out25pt_var.print();
+
+    std::cout << "TIME d3point25_var: " << boost::timer::format(lapse_time4) << std::endl;
 //------------------------------------------------------------------------------
+
     //start timer
     boost::timer::cpu_timer time5;
 
