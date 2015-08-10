@@ -211,19 +211,19 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
     //3pt stencil
-    storage_type out1d(d1,1,1,1., "domain_out");
-    storage_type in1d(d1,1,1,1., "domain_in");
-    storage_type *ptr_in1d = &in1d, *ptr_out1d = &out1d;
+    storage_type out3pt(d1,1,1,1., "domain3pt_out");
+    storage_type in3pt(d1,1,1,1., "domain3pt_in");
+    storage_type *ptr_in3pt = &in3pt, *ptr_out3pt = &out3pt;
 
     //7pt stencil with symmetry
-    storage_type out3d(d1,d2,d3,1., "domain_out");
-    storage_type in3d(d1,d2,d3,1., "domain_in");
-    storage_type *ptr_in3d = &in3d, *ptr_out3d = &out3d;
+    storage_type out7pt(d1,d2,d3,1., "domain7pt_out");
+    storage_type in7pt(d1,d2,d3,1., "domain7pt_in");
+    storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
     //7pt stencil with variable coeffs
-    storage_type out3d_var(d1,d2,d3,1., "domain_out");
-    storage_type in3d_var(d1,d2,d3,1., "domain_in");
-    storage_type *ptr_in3d_var = &in3d_var, *ptr_out3d_var = &out3d_var;
+    storage_type out7pt_var(d1,d2,d3,1., "domain_out");
+    storage_type in7pt_var(d1,d2,d3,1., "domain_in");
+    storage_type *ptr_in7pt_var = &in7pt_var, *ptr_out7pt_var = &out7pt_var;
     storage_type a_var(d1,d2,d3,7., "coeff_a");
     storage_type b_var(d1,d2,d3,-1/7., "coeff_b");
     storage_type c_var(d1,d2,d3,-1/7., "coeff_c");
@@ -241,12 +241,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     //TODO
 
     //25-pt stencil, 2-nd order in time with coeff symmetry
-    storage_type out25pt_time2(d1,d2,d3,1., "domain_out");
-    storage_type in25pt_time2(d1,d2,d3,1., "domain_in");
-    storage_type in25pt_old_time2(d1,d2,d3,1., "domain_in_old");
-    storage_type *ptr_in25pt_time2 = &in25pt_time2;
-    storage_type *ptr_in25pt_old_time2 = &in25pt_old_time2;
-    storage_type *ptr_out25pt_time2 = &out25pt_time2;
+    storage_type out25pt(d1,d2,d3,1., "domain_out");
+    storage_type in25pt(d1,d2,d3,1., "domain_in");
+    storage_type in25pt_old(d1,d2,d3,1., "domain_in_old");
+    storage_type *ptr_in25pt = &in25pt;
+    storage_type *ptr_in25pt_old = &in25pt_old;
+    storage_type *ptr_out25pt = &out25pt;
     storage_type alpha(d1,d2,d3,1., "coeff_alpha");
 
     //--------------------------------------------------------------------------
@@ -277,26 +277,26 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // while the vertical ones are set according the the axis property soon after
     uint_t dii[5] = {0, 0, 1, d1-2, d1};
     uint_t djj[5] = {0, 0, 0, 0, 1};
-    gridtools::coordinates<axis> coords1d(dii, djj);
-    coords1d.value_list[0] = 0; //specifying index of the splitter<0,-1>
-    coords1d.value_list[1] = 0; //specifying index of the splitter<1,-1>
+    gridtools::coordinates<axis> coords1d3pt(dii, djj);
+    coords1d3pt.value_list[0] = 0; //specifying index of the splitter<0,-1>
+    coords1d3pt.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
     //Informs the library that the iteration space in the first two dimensions
     //is from 0 to d1-1 (included) in I (or x) direction
     uint_t di[5] = {0, 0, 1, d1-2, d1};
     //and and 0 to 0 on J (or y) direction
     uint_t dj[5] = {0, 0, 1, d2-2, d2};
-    gridtools::coordinates<axis> coords3d(di, dj);
-    coords3d.value_list[0] = 1; //specifying index of the splitter<0,-1>
-    coords3d.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
+    gridtools::coordinates<axis> coords3d7pt(di, dj);
+    coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
+    coords3d7pt.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
 
     //domain for 25pt stencil
     uint_t di25[5] = {0, 0, 4, d1-5, d1};
     //and and 0 to 0 on J (or y) direction
     uint_t dj25[5] = {0, 0, 4, d2-5, d2};
-    gridtools::coordinates<axis> coords3d25(di25, dj25);
-    coords3d25.value_list[0] = 4; //specifying index of the splitter<0,-1>
-    coords3d25.value_list[1] = d3-5; //specifying index of the splitter<1,-1>
+    gridtools::coordinates<axis> coords3d25pt(di25, dj25);
+    coords3d25pt.value_list[0] = 4; //specifying index of the splitter<0,-1>
+    coords3d25pt.value_list[1] = d3-5; //specifying index of the splitter<1,-1>
 
     /*
       Here we do lot of stuff
@@ -316,7 +316,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain
         gridtools::domain_type<accessor_list> domain1d
-            (boost::fusion::make_vector(ptr_out1d, ptr_in1d));
+            (boost::fusion::make_vector(ptr_out3pt, ptr_in3pt));
 
         //instantiate stencil
         #ifdef __CUDACC__
@@ -331,7 +331,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                         execute<forward>(),
                         gridtools::make_esf<d1point3>(p_out(), p_in()) // esf_descriptor
                         ),
-                    domain1d, coords1d
+                    domain1d, coords1d3pt
                     );
 
         //prepare and run single step of stencil computation
@@ -341,16 +341,16 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_1->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out1d;
-        ptr_out1d = ptr_in1d;
-        ptr_in1d = tmp;
+        storage_type* tmp = ptr_out3pt;
+        ptr_out3pt = ptr_in3pt;
+        ptr_in3pt = tmp;
     }
 
     boost::timer::cpu_times lapse_time1 = time1.elapsed();
     
 
     printf("Print domain A after computation\n");
-    TIME_STEPS % 2 == 0 ? in1d.print() : out1d.print();
+    TIME_STEPS % 2 == 0 ? in3pt.print() : out3pt.print();
 
     std::cout << "TIME d1point3: " << boost::timer::format(lapse_time1) << std::endl;
 //------------------------------------------------------------------------------
@@ -363,7 +363,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain.
         gridtools::domain_type<accessor_list> domain3d
-            (boost::fusion::make_vector(ptr_out3d, ptr_in3d));
+            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt));
 
         //instantiate stencil
         #ifdef __CUDACC__
@@ -378,7 +378,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                         execute<forward>(),
                         gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
                         ),
-                    domain3d, coords3d
+                    domain3d, coords3d7pt
                     );
 
         //prepare and run single step of stencil computation
@@ -388,16 +388,16 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_2->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out3d;
-        ptr_out3d = ptr_in3d;
-        ptr_in3d = tmp;
+        storage_type* tmp = ptr_out7pt;
+        ptr_out7pt = ptr_in7pt;
+        ptr_in7pt = tmp;
     }
 
     boost::timer::cpu_times lapse_time2 = time2.elapsed();
 
 
     printf("Print domain B after computation\n");
-    TIME_STEPS % 2 == 0 ? in3d.print() : out3d.print();
+    TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
 
     std::cout << "TIME d3point7: " << boost::timer::format(lapse_time2) << std::endl;
 //------------------------------------------------------------------------------
@@ -410,7 +410,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain.
         gridtools::domain_type<accessor_list_var> domain3d_var
-            (boost::fusion::make_vector(ptr_out3d_var, ptr_in3d_var, &a_var, &b_var,
+            (boost::fusion::make_vector(ptr_out7pt_var, ptr_in7pt_var, &a_var, &b_var,
                                          &c_var, &d_var, &e_var, &f_var, &g_var));
 
         #ifdef __CUDACC__
@@ -427,7 +427,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                                                           p_b(), p_c(), p_d(),
                                                           p_e(), p_f(), p_g()) // esf_descriptor
                         ),
-                    domain3d_var, coords3d
+                    domain3d_var, coords3d7pt
                     );
 
         //prepare and run single step of stencil computation
@@ -437,15 +437,15 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_3->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out3d_var;
-        ptr_out3d_var = ptr_in3d_var;
-        ptr_in3d_var = tmp;
+        storage_type* tmp = ptr_out7pt_var;
+        ptr_out7pt_var = ptr_in7pt_var;
+        ptr_in7pt_var = tmp;
     }
 
     boost::timer::cpu_times lapse_time3 = time3.elapsed();
 
     printf("Print domain C after computation\n");
-    TIME_STEPS % 2 == 0 ? in3d_var.print() : out3d_var.print();
+    TIME_STEPS % 2 == 0 ? in7pt_var.print() : out7pt_var.print();
 
     std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
 //------------------------------------------------------------------------------
@@ -459,8 +459,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain.
         gridtools::domain_type<accessor_list_time2> domain3d_time2
-            (boost::fusion::make_vector(ptr_out25pt_time2,ptr_in25pt_time2,
-                                        ptr_in25pt_old_time2,&alpha));
+            (boost::fusion::make_vector(ptr_out25pt,ptr_in25pt,
+                                        ptr_in25pt_old,&alpha));
 
         //instantiate stencil
         #ifdef __CUDACC__
@@ -476,7 +476,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                         gridtools::make_esf<d3point25_time2>(p_out(), p_in(),
                                                              p_in_old(), p_alpha())
                         ),
-                    domain3d_time2, coords3d25
+                    domain3d_time2, coords3d25pt
                     );
 
         //prepare and run single step of stencil computation
@@ -486,10 +486,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_5->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out25pt_time2;
-        ptr_out25pt_time2 = ptr_in25pt_old_time2;
-        ptr_in25pt_old_time2 = ptr_in25pt_time2;
-        ptr_in25pt_time2 = tmp;
+        storage_type* tmp = ptr_out25pt;
+        ptr_out25pt = ptr_in25pt_old;
+        ptr_in25pt_old = ptr_in25pt;
+        ptr_in25pt = tmp;
 
     }
 
@@ -498,11 +498,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     printf("Print domain E after computation\n");
     if(TIME_STEPS % 3 == 0)
-        in25pt_time2.print();
+        in25pt.print();
     else if(TIME_STEPS % 3 == 1)
-        out25pt_time2.print();
+        out25pt.print();
     else
-        in25pt_old_time2.print();
+        in25pt_old.print();
 
     std::cout << "TIME d3point25_time2: " << boost::timer::format(lapse_time5) << std::endl;
 
