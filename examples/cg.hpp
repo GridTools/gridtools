@@ -132,7 +132,7 @@ struct d3point25_var{
     typedef accessor<12> k;
     typedef accessor<13> l;
     typedef accessor<14> m;
-    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g> arg_list;
+    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g, h, i, j, k, l, m> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
@@ -157,8 +157,8 @@ struct d3point25_var{
 struct d3point25_time2{
     typedef accessor<0> out;
     typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 6 neighbors
-    typedef accessor<1> in_old; // this says to access 6 neighbors
-    typedef accessor<2> alpha;
+    typedef accessor<2> in_old; // this says to access 6 neighbors
+    typedef accessor<3> alpha;
     typedef boost::mpl::vector<out, in, in_old, alpha> arg_list;
 
     template <typename Domain>
@@ -182,6 +182,8 @@ struct d3point25_time2{
     }
 };
 
+/*******************************************************************************/
+/*******************************************************************************/
 
 bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
@@ -206,15 +208,19 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef gridtools::BACKEND::storage_type<coeff_type, layout_t >::type coeff_storage_type;*/
     typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
-     // Definition of the actual data fields that are used for input/output
+    //--------------------------------------------------------------------------
+    // Definition of the actual data fields that are used for input/output
+    //3pt stencil
     storage_type out1d(d1,1,1,1., "domain_out");
     storage_type in1d(d1,1,1,1., "domain_in");
     storage_type *ptr_in1d = &in1d, *ptr_out1d = &out1d;
 
+    //7pt stencil with symmetry
     storage_type out3d(d1,d2,d3,1., "domain_out");
     storage_type in3d(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in3d = &in3d, *ptr_out3d = &out3d;
 
+    //7pt stencil with variable coeffs
     storage_type out3d_var(d1,d2,d3,1., "domain_out");
     storage_type in3d_var(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in3d_var = &in3d_var, *ptr_out3d_var = &out3d_var;
@@ -231,11 +237,27 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                         .e = - 1.0/7.0, .f = - 1.0/7.0, .g = - 1.0/7.0};
     coeff_storage_type coeff7pt(d1,d2,d3,init,"coeffs");*/
 
-    // Definition of placeholders. The order of them reflect the order the user will deal with them
-    // especially the non-temporary ones, in the construction of the domain
+    //25-pt stencil with variable coeffs
+    //TODO
+
+    //25-pt stencil, 2-nd order in time with coeff symmetry
+    storage_type out25pt_time2(d1,d2,d3,1., "domain_out");
+    storage_type in25pt_time2(d1,d2,d3,1., "domain_in");
+    storage_type in25pt_old_time2(d1,d2,d3,1., "domain_in_old");
+    storage_type *ptr_in25pt_time2 = &in25pt_time2;
+    storage_type *ptr_in25pt_old_time2 = &in25pt_old_time2;
+    storage_type *ptr_out25pt_time2 = &out25pt_time2;
+    storage_type alpha(d1,d2,d3,1., "coeff_alpha");
+
+    //--------------------------------------------------------------------------
+    // Definition of placeholders. The order of them reflect the order the user
+    // will deal with them especially the non-temporary ones, in the construction
+    // of the domain
     typedef arg<0, storage_type > p_out; //domain
     typedef arg<1, storage_type > p_in;
+    typedef arg<2, storage_type > p_in_old;
     typedef arg<2, storage_type > p_a;
+    typedef arg<3, storage_type > p_alpha;
     typedef arg<3, storage_type > p_b;
     typedef arg<4, storage_type > p_c;
     typedef arg<5, storage_type > p_d;
@@ -247,7 +269,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
     typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g > accessor_list_var;
+    typedef boost::mpl::vector<p_out, p_in, p_in_old, p_alpha> accessor_list_time2;
 
+    //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
@@ -265,6 +289,14 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     gridtools::coordinates<axis> coords3d(di, dj);
     coords3d.value_list[0] = 1; //specifying index of the splitter<0,-1>
     coords3d.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
+
+    //domain for 25pt stencil
+    uint_t di25[5] = {0, 0, 4, d1-5, d1};
+    //and and 0 to 0 on J (or y) direction
+    uint_t dj25[5] = {0, 0, 4, d2-5, d2};
+    gridtools::coordinates<axis> coords3d25(di25, dj25);
+    coords3d25.value_list[0] = 4; //specifying index of the splitter<0,-1>
+    coords3d25.value_list[1] = d3-5; //specifying index of the splitter<1,-1>
 
     /*
       Here we do lot of stuff
@@ -417,9 +449,62 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
 //------------------------------------------------------------------------------
-
+//TODO d3point25_var
 //------------------------------------------------------------------------------
+    //start timer
+    boost::timer::cpu_timer time5;
 
+    //TODO: exclude ready, steady,finalize from time measurement (only run)
+    for(int i=0; i < TIME_STEPS; i++) {
+
+        // construction of the domain.
+        gridtools::domain_type<accessor_list_time2> domain3d_time2
+            (boost::fusion::make_vector(ptr_out25pt_time2,ptr_in25pt_time2,
+                                        ptr_in25pt_old_time2,&alpha));
+
+        //instantiate stencil
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_5 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_5 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d3point25_time2>(p_out(), p_in(),
+                                                             p_in_old(), p_alpha())
+                        ),
+                    domain3d_time2, coords3d25
+                    );
+
+        //prepare and run single step of stencil computation
+        stencil_step_5->ready();
+        stencil_step_5->steady();
+        stencil_step_5->run();
+        stencil_step_5->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out25pt_time2;
+        ptr_out25pt_time2 = ptr_in25pt_old_time2;
+        ptr_in25pt_old_time2 = ptr_in25pt_time2;
+        ptr_in25pt_time2 = tmp;
+
+    }
+
+    boost::timer::cpu_times lapse_time5 = time5.elapsed();
+
+
+    printf("Print domain E after computation\n");
+    if(TIME_STEPS % 3 == 0)
+        in25pt_time2.print();
+    else if(TIME_STEPS % 3 == 1)
+        out25pt_time2.print();
+    else
+        in25pt_old_time2.print();
+
+    std::cout << "TIME d3point25_time2: " << boost::timer::format(lapse_time5) << std::endl;
 
 
     return 1;
