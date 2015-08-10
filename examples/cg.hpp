@@ -118,7 +118,7 @@ struct d3point7_var{
 // 25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_var{
     typedef accessor<0> out;
-    typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
+    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 6 neighbors
     typedef accessor<2> a;
     typedef accessor<3> b;
     typedef accessor<4> c;
@@ -152,6 +152,36 @@ struct d3point25_var{
                     + dom(m()) * (dom(in(z(-4)))+dom(in(z(+4))));
     }
 };
+
+// 2-nd order in time, 25-point constant-coefficient, isotropic stencil in 3D, with symmetry across each axis.
+struct d3point25_time2{
+    typedef accessor<0> out;
+    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 6 neighbors
+    typedef accessor<1> in_old; // this says to access 6 neighbors
+    typedef accessor<2> alpha;
+    typedef boost::mpl::vector<out, in, in_old, alpha> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(out()) = 2 * dom(in()) - dom(in_old())
+                    + dom(alpha()) * (25.0 * dom(in())
+                        - 1/25.0 * (dom(in(x(-1)))+dom(in(x(+1)))
+                                    + dom(in(y(-1)))+dom(in(y(+1)))
+                                    + dom(in(z(-1)))+dom(in(z(+1))))
+                        - 1/25.0 * (dom(in(x(-2)))+dom(in(x(+2)))
+                                    + dom(in(y(-2)))+dom(in(y(+2)))
+                                    + dom(in(z(-2)))+dom(in(z(+2))))
+                        - 1/25.0 * (dom(in(x(-3)))+dom(in(x(+3)))
+                                    + dom(in(y(-3)))+dom(in(y(+3)))
+                                    + dom(in(z(-3)))+dom(in(z(+3))))
+                        - 1/25.0 * (dom(in(x(-4)))+dom(in(x(+4)))
+                                    + dom(in(y(-4)))+dom(in(y(+4)))
+                                    + dom(in(z(-4)))+dom(in(z(+4))))
+                    );
+    }
+};
+
 
 bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
