@@ -75,6 +75,10 @@ class FunctorBody (ast.NodeVisitor):
             sign = '/'
         elif isinstance (op, ast.Pow):
             sign = '**'
+        elif isinstance (op, ast.Not):
+            sign = '!'
+#        elif isinstance (op, ast.Invert):
+#            sign = '~'
         else:
             sign = None
             logging.warning ("Cannot translate '%s'" % str (op))
@@ -141,6 +145,86 @@ class FunctorBody (ast.NodeVisitor):
                 #source_line    = src_lines[correct_lineno].strip (' ')
                 raise type(e)
 
+    def visit_CompOp(self, node):
+        op = "None"
+        if (isinstance (node, ast.Eq)):
+            op = "=="
+        if (isinstance (node, ast.NotEq)):
+            op = "!="
+        if (isinstance (node, ast.Lt)):
+            op = "<"
+        if (isinstance (node, ast.LtE)):
+            op = "<="
+        if (isinstance (node, ast.Gt)):
+            op = ">"
+        if (isinstance (node, ast.GtE)):
+            op = ">="
+        if (isinstance (node, ast.Is)):
+            op = "None"
+            raise TypeError ("Translation of Python 'Is' is not currently supported.")
+        if (isinstance (node, ast.IsNot)):
+            op = "None"
+            raise TypeError ("Translation of Python 'IsNot' is not currently supported.")
+        if (isinstance (node, ast.In)):
+            op = "None"
+            raise TypeError ("Translation of Python 'In' is not currently supported.")
+        if (isinstance (node, ast.NotIn)):
+            op = "None"
+            raise TypeError ("Translation of Python 'NotIn' is not currently supported.")
+        return op
+
+    def visit_Compare(self, node):
+        ret_value = ""
+
+        ret_value = "%s" % self.visit(node.left)
+        for cmpop in node.ops:
+            ret_value = "%s %s" % (ret_value, self.visit_CompOp(cmpop))
+
+        for cmp in node.comparators:
+            ret_value = "%s %s" % (ret_value, self.visit(cmp))
+
+        return ret_value
+
+    def _boolean_operator (self, op):
+        """
+        Returns the sign representation of an arithmetic operation.-
+        """
+        if isinstance (op, ast.And):
+            sign = '&&'
+        elif isinstance (op, ast.Or):
+            sign = '||'
+        else:
+            sign = None
+            logging.warning ("Cannot translate '%s'" % str (op))
+        return sign
+
+    def visit_BoolOp(self, node):
+        ret_value = ""
+        op = "None"
+        op = self._boolean_operator(node.op)
+        nels = len(node.values)
+        if(nels > 0):
+            ret_value = "(%s" % self.visit(node.values[0])
+            for expr in node.values[1:]:
+                ret_value = "%s %s %s" % (ret_value, op, self.visit(expr))
+            ret_value = "%s)" % ret_value
+
+        return ret_value
+
+
+    def visit_If (self, node):
+        ret_value = "We have an if-statement here!"
+
+        ret_value = "if (%s) {" % self.visit(node.test)
+        for stmt in node.body:
+            ret_value = "%s %s;" % (ret_value,self.visit(stmt))
+        if (node.orelse is not None and len(node.orelse) >= 1):
+            ret_value = "%s } else { " % ret_value
+            for stmt in node.orelse:
+                ret_value = "%s %s;" % (ret_value,self.visit(stmt))
+
+        ret_value = "%s }" % ret_value
+        return ret_value
 
     def visit_Assign (self, node):
         """
