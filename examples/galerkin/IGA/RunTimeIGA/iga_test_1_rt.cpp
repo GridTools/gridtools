@@ -10,9 +10,9 @@ int main()
 {
 
 
-	constexpr int P(2);
-	constexpr int N(4);
-	double knots[] = {0.,0.,0.,0.5,1.,1.,1.};
+	const int P(2);
+	const int N(4);
+	const double knots[] = {0.,0.,0.,0.5,1.,1.,1.};
 
 	const double csi_test_1 = 0.25;
 	const double csi_test_2 = 0.75;
@@ -23,7 +23,7 @@ int main()
 
 	// UNIVARIATE CASE
 
-	b_splines_rt::BSplineBasis<P,N> bsplineTest(knots);
+	iga_rt::BSplineBasis<P,N> bsplineTest(knots);
 
 	// Run span finding test 1
 	if(bsplineTest.find_span(csi_test_1) == knot_index_test_1)
@@ -82,7 +82,7 @@ int main()
 
 	// BIVARIATE CASE
 
-	b_splines_rt::BivariateBSplineBasis<P,N,P,N> bivariateBsplineTest(knots,knots);
+	iga_rt::BivariateBSplineBasis<P,N,P,N> bivariateBsplineTest(knots,knots);
 
 	// Run span finding test 1
 	if((bivariateBsplineTest.find_span(csi_test_1,csi_test_1)[0] == knot_index_test_1) &&
