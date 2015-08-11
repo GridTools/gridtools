@@ -2,8 +2,9 @@
 #include <vector>
 #include <array>
 #include "b_splines_rt.h"
+#include "generic_basis_rt.h"
 
-namespace b_splines_rt
+namespace iga_rt
 {
 
 	/**
@@ -43,7 +44,7 @@ namespace b_splines_rt
 	 * @tparam N number of basis functions of order P
 	 */
 	template<int P, int N>
-	class BSplineBasis
+	class BSplineBasis : public PolinomialParametricBasis
 	{
 	public:
 
@@ -172,7 +173,7 @@ namespace b_splines_rt
 	 * @tparam N2 number of basis functions of order P2
 	 */
 	template<int P1, int N1, int P2, int N2>
-	class BivariateBSplineBasis
+	class BivariateBSplineBasis : public BivariatePolinomialParametricBasis
 	{
 	public:
 
