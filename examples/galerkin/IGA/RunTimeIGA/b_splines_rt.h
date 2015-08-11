@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-namespace b_splines_rt
+namespace iga_rt
 {
 
 	// TODO: implements control points struct in N dim

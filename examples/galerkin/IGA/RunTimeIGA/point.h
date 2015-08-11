@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 
-namespace b_splines_rt
+namespace iga_rt
 {
 
 	/**

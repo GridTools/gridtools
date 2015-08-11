@@ -32,11 +32,11 @@ constexpr int NK(P+N+1);// TODO: check this
 constexpr double knots[NK] = {0,0,0,1,2,3,4,5,5,5};
 
 
-std::vector<b_splines_rt::Point<D> > control_points(N);
+std::vector<iga_rt::Point<D> > control_points(N);
 
 
 // Non-GT type b-spline instance allocation
-b_splines_rt::BSplineCurve<P,N,D> curve(knots, control_points);
+iga_rt::BSplineCurve<P,N,D> curve(knots, control_points);
 
 
 ////////////////// GT-STYLE CODE PART /////////////////////
@@ -55,7 +55,7 @@ struct curve_struct
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
 
-    	const b_splines_rt::Point<D> curveValue(curve.evaluate(dom(csi())));
+    	const iga_rt::Point<D> curveValue(curve.evaluate(dom(csi())));
 
     	// Loop over point coordinates
     	for(int coords=0;coords<D;++coords)
@@ -174,7 +174,7 @@ int main()
     ////////////////// NON GT-STYLE CODE PART /////////////////////
 
     // Results check with standard non GT calculation
-	b_splines_rt::Point<D> curveValue;
+    iga_rt::Point<D> curveValue;
     for(int csiIndex=0;csiIndex<numPoints;++csiIndex)
 	{
     	curveValue = curve.evaluate(csiValues[csiIndex]);
