@@ -90,13 +90,13 @@ struct d3point7_var{
         y::Index j;
         z::Index k;
         quad::Index q;
-        dom(out()) =  dom(!coeff(i,j,k,q) * in()
-                            + !coeff(i,j,k,q+1) * in(x(-1))
-                            + !coeff(i,j,k,q+2) * in(x(+1))
-                            + !coeff(i,j,k,q+3) * in(y(-1))
-                            + !coeff(i,j,k,q+4) * in(y(+1))
-                            + !coeff(i,j,k,q+5) * in(z(-1))
-                            + !coeff(i,j,k,q+6) * in(z(+1)));
+        dom(out()) =  dom(!coeff() * in()
+                            + !coeff(q+1) * in(x(-1))
+                            + !coeff(q+2) * in(x(+1))
+                            + !coeff(q+3) * in(y(-1))
+                            + !coeff(q+4) * in(y(+1))
+                            + !coeff(q+5) * in(z(-1))
+                            + !coeff(q+6) * in(z(+1)));
     }
 };
 
@@ -212,7 +212,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type *ptr_in7pt_var = &in7pt_var, *ptr_out7pt_var = &out7pt_var;
     coeff_type coeff7pt_var(d1,d2,d3,7);
     coeff7pt_var.allocate();
-    /*for(uint_t i=0; i<d1; ++i)
+    for(uint_t i=0; i<d1; ++i)
         for(uint_t j=0; j<d2; ++j)
             for(uint_t k=0; k<d3; ++k)
                 for(uint_t q=0; q<7; ++q)
@@ -221,7 +221,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                         coeff7pt_var(i,j,k,q) = 7.0;
                     else //off-diagonal point
                         coeff7pt_var(i,j,k,q) = -1/7.0;
-                }*/
+                }
    
 
     //25-pt stencil with variable coeffs
