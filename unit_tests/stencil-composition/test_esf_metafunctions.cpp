@@ -8,15 +8,23 @@
 #include "stencil-composition/make_computation.hpp"
 
 
-using namespace gridtools;
-using namespace enumtype;
+
+using namespace gridtools::enumtype;
+using gridtools::accessor;
+using gridtools::range;
+using gridtools::layout_map;
+using gridtools::float_type;
+using gridtools::arg;
+using gridtools::uint_t;
+using gridtools::int_t;
+
 
 
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 
 struct functor1 {
-    typedef const accessor<0, range<0,0,0,0,-3,4> > in;
+    typedef const accessor<0, range<-3,4,0,0,0,0> > in;
     typedef accessor<1> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
@@ -99,16 +107,31 @@ struct check_pair {
     }
 };
 
+
+struct print_r {
+    template <typename T>
+    void operator()(T const& ) const {
+        std::cout << typename T::first() << " " << typename T::second() << std::endl;
+    }
+};
+
+struct print_s {
+    template <typename T>
+    void operator()(T const& ) const {
+        std::cout << T() << std::endl;
+    }
+};
+
 TEST(esf_metafunctions, computing_rages)
 {
     //storage_type in(10, 10, 10, 1.0, "in"), out(10, 10, 10, 1.0, "out");
 
-    typedef decltype(make_esf<functor1>(p_z(), p_i())) esf1_t;
-    typedef decltype(make_esf<functor2>(p_y(), p_z())) esf2_t;
-    typedef decltype(make_esf<functor3>(p_z(), p_y(), p_x())) esf3_t;
-    typedef decltype(make_esf<functor4>(p_x(), p_y(), p_o())) esf4_t;
+    typedef decltype(gridtools::make_esf<functor1>(p_i(), p_z())) esf1_t;
+    typedef decltype(gridtools::make_esf<functor2>(p_z(), p_y())) esf2_t;
+    typedef decltype(gridtools::make_esf<functor3>(p_z(), p_y(), p_x())) esf3_t;
+    typedef decltype(gridtools::make_esf<functor4>(p_x(), p_y(), p_o())) esf4_t;
 
-    typedef decltype( make_mss // mss_descriptor
+    typedef decltype( gridtools::make_mss // mss_descriptor
         (
             execute<forward>(),
             esf1_t(), // esf_descriptor
@@ -117,6 +140,8 @@ TEST(esf_metafunctions, computing_rages)
             esf4_t() // esf_descriptor
         )
     ) mss_t;
+
+    typedef boost::mpl::vector<p_i, p_o, p_x, p_y, p_z> placeholders;
 
     // std::cout << esf1_t() << ": \n";
     // boost::mpl::for_each<typename esf1_t::args_with_ranges>(print_pair());
@@ -151,6 +176,21 @@ TEST(esf_metafunctions, computing_rages)
                           boost::mpl::size<typename esf4_t::args_with_ranges>::type::value> >
         (check_pair<typename esf4_t::args_with_ranges, esf4_t>());
 
+    typedef gridtools::pass_temps<placeholders>::mss_compute_range_sizes_new<mss_t>::type final_map;
+
+    std::cout << "FINAL" << std::endl;
+    boost::mpl::for_each<final_map>(print_r());
+
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, p_x>::type, range<-1,1,0,0,0,0>>::type::value),
+                            "p_x range is wrong");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, p_y>::type, range<-2,2,0,0,0,0>>::type::value),
+                            "p_y range is wrong");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, p_z>::type, range<-3,6,0,0,0,0>>::type::value),
+                            "p_z range is wrong");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, p_i>::type, range<-6,10,0,0,0,0>>::type::value),
+                            "p_i range is wrong");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, p_o>::type, range<0,0,0,0,0,0>>::type::value),
+                            "p_o range is wrong");
 
     ASSERT_TRUE(true);
 }
