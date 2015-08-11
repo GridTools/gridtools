@@ -1,12 +1,11 @@
-#include <vector>
-#include <numerics>
+#pragma once
+
 #include "point.h"
 #include "b_splines_basis_rt.h"
+#include "generic_basis_parametric_surface_rt.h"
 
-#pragma once
-namespace b_splines_rt
+namespace iga_rt
 {
-	// TODO: I am using this class for NURBS calculation, with Point<1> used as weight. Find better soultion
 	/**
 	 * @class b-spline curve calculation class
 	 * @brief Class for the calculation of a b-spline curve value at a given point in parametric space given a set of knots and control points
@@ -15,7 +14,7 @@ namespace b_splines_rt
 	 * @tparam DIM co-domain number of dimensions
 	 */
 	template<int P, int N, int DIM>
-	class BSplineCurve
+	class BSplineCurve : public PolinomialParametricCurve<DIM>
 	{
 	public:
 
@@ -29,58 +28,38 @@ namespace b_splines_rt
 		 * @param i_controlPoints control point set in R^DIM
 		 */
 		BSplineCurve(const double* i_knots, const std::vector<Point<DIM> >& i_controlPoints)// TODO: change constructor signature and add setControlPoint methods (same for surface and volumes)
-					:m_controlPoints(i_controlPoints)
-					,m_bsplineBasis(i_knots)
+					:PolinomialParametricCurve<DIM>(i_knots,i_controlPoints)
 					{}
-
-		/**
-		 * @brief Curve evaluation method at a given point in parametric space
-		 * @param i_csi Parametric space point value
-		 * @return Point in R^DIM
-		 */
-		Point<DIM> evaluate(double i_csi) const;
-
-
-		/**
-		 * @brief Weighted single basis function values at a given point in parametric space
-		 * @param i_csi Parametric space point value
-		 * @return Weighted single basis function values in R^DIM
-		 */
-		std::vector<Point<DIM> > evaluate_weighted_basis(double i_csi) const;
-
 
 	private:
 
-		const std::vector<Point<DIM> >& m_controlPoints;// TODO: this can be avoided with the above modification (see contructor comment)
+		/**
+		 * Non copyable class
+		 */
+		BSplineCurve(BSplineCurve<P,N,DIM>&);
 
-		const BSplineBasis<P,N> m_bsplineBasis;
+		/**
+		 * Non assignable class
+		 */
+		BSplineCurve<P,N,DIM>& operator=(BSplineCurve<P,N,DIM>&);
+
+		/**
+		 * @brief basis generation method (to be implemented by derived specific classes)
+		 * @return (new) pointer to basis
+		 */
+		PolinomialParametricBasis* generateBasis(void) const;
 
 	};
 
 	template<int P, int N, int DIM>
-	Point<DIM> BSplineCurve<P,N,DIM>::evaluate(const double i_csi) const
+	PolinomialParametricBasis* BSplineCurve<P,N,DIM>::generateBasis(void) const
 	{
-		const std::vector<Point<DIM>> weighted_basis_values(evaluate_weighted_basis(i_csi));
-		return std::accumulate(weighted_basis_values.begin(),weighted_basis_values.end(),Point<DIM>{});
-	};
+		new BSplineBasis<P,N>(PolinomialParametricCurve<DIM>::m_knots);
+	}
 
 
-	template<int P, int N, int DIM>
-	std::vector<Point<DIM>> BSplineCurve<P,N,DIM>::evaluate_weighted_basis(const double i_csi) const
-	{
-		std::vector<Point<DIM> > o_weighted_basis_values(m_bsplineBasis.evaluate(i_csi));
 
-		// TODO: switch to std algos
-		for(int i=0;i<N;++i)
-		{
-			o_weighted_basis_values[i] *= m_controlPoints[i];
-		}
-
-		return o_weighted_basis_values;
-	};
-
-
-	// TODO: I am using this class for NURBS calculation, with Point<1> used as weight. Find better soultion
+	// TODO:NURBS basis definition is similar to surface calculation with Point<1> used as weight. Find solution not using code duplication!
 	/**
 	 * @class b-spline surface calculation class
 	 * @brief Class for the calculation of a b-spline surface value at a given point in parametric space given a set of knots and control points
@@ -92,7 +71,7 @@ namespace b_splines_rt
 	 */
 	// Use variadic templates
 	template<int P1, int N1, int P2, int N2, int DIM>
-	class BSplineSurface
+	class BSplineSurface : public PolinomialParametricSurface<DIM>
 	{
 	public:
 
@@ -107,54 +86,32 @@ namespace b_splines_rt
 		 * @param i_controlPoints control point set in R^DIM
 		 */
 		BSplineSurface(const double* i_knots1, const double* i_knots2, const std::vector<Point<DIM> >& i_controlPoints)
-				      :m_controlPoints(i_controlPoints)
-					  ,m_bivariateBSplineBasis(i_knots1,i_knots2)
+				      :PolinomialParametricSurface<DIM>(i_knots1,i_knots2,i_controlPoints)
 					  {}
-
-		/**
-		 * @brief Surface evaluation method at a given point in parametric space
-		 * @param i_csi Parametric space point value (first direction)
-		 * @param i_eta Parametric space point value (second direction)
-		 * @return Point in R^DIM
-		 */
-		Point<DIM> evaluate(double i_csi, double i_eta) const;
-
-
-		/**
-		 * @brief Weighted single basis function values at a given point in parametric space
-		 * @param i_csi Parametric space point value
-		 * @param i_eta Parametric space point value (second direction)
-		 * @return Weighted single basis function values in R^DIM
-		 */
-		std::vector<Point<DIM> > evaluate_weighted_basis(double i_csi, double i_eta) const;
-
 
 	private:
 
-		const std::vector<Point<DIM> >& m_controlPoints;
+		/**
+		 * Non copiable class
+		 */
+		BSplineSurface(const BSplineSurface<P1,N1,P2,N2,DIM>&);
 
-		const BivariateBSplineBasis<P1,N1,P2,N2> m_bivariateBSplineBasis;
+		/**
+		 * Non assignable class
+		 */
+		BSplineSurface<P1,N1,P2,N2,DIM>& operator=(const BSplineSurface<P1,N1,P2,N2,DIM>&);
+
+		/**
+		 * @brief basis generation method (to be implemented by derived specific classes)
+		 * @return (new) pointer to basis
+		 */
+		BivariatePolinomialParametricBasis* generateBasis(void) const;
+
 	};
 
 	template<int P1, int N1, int P2, int N2, int DIM>
-	Point<DIM> BSplineSurface<P1,N1,P2,N2,DIM>::evaluate(const double i_csi, const double i_eta) const
+	BivariatePolinomialParametricBasis* BSplineSurface<P1,N1,P2,N2,DIM>::generateBasis(void) const
 	{
-		const std::vector<Point<DIM>> weighted_basis_values(evaluate_weighted_basis(i_csi,i_eta));
-		return std::accumulate(weighted_basis_values.begin(),weighted_basis_values.end(),Point<DIM>{});
-	};
-
-	template<int P1, int N1, int P2, int N2, int DIM>
-	std::vector<Point<DIM>> BSplineSurface<P1,N1,P2,N2,DIM>::evaluate_weighted_basis(const double i_csi, const double i_eta) const
-	{
-		std::vector<Point<DIM> > o_weighted_basis_values(m_bivariateBSplineBasis.evaluate(i_csi,i_eta));
-
-		// TODO: switch to std algos
-		for(int i=0;i<N;++i)
-		{
-			o_weighted_basis_values[i] *= m_controlPoints[i];
-		}
-
-		return o_weighted_basis_values;
-	};
-
+		new BivariateBSplineBasis<P1,N1,P2,N2>(PolinomialParametricSurface<DIM>::m_knots1,PolinomialParametricSurface<DIM>::m_knots2);
+	}
 }
