@@ -86,9 +86,6 @@ struct d3point7_var{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        x::Index i;
-        y::Index j;
-        z::Index k;
         quad::Index q;
         dom(out()) =  dom(!coeff() * in()
                             + !coeff(q+1) * in(x(-1))
@@ -104,37 +101,27 @@ struct d3point7_var{
 struct d3point25_var{
     typedef accessor<0> out;
     typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
-    typedef accessor<2> a;
-    typedef accessor<3> b;
-    typedef accessor<4> c;
-    typedef accessor<5> d;
-    typedef accessor<6> e;
-    typedef accessor<7> f;
-    typedef accessor<8> g;
-    typedef accessor<9> h;
-/*    typedef accessor<10> i;
-    typedef accessor<11> j;
-    typedef accessor<12> k;
-    typedef accessor<13> l;
-    typedef accessor<14> m; */
-    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g, h/*, i, j, k, l, m*/> arg_list;
+    typedef accessor<2, range<0,0,0,0> , 4> const coeff;
+    typedef boost::mpl::vector<out, in, coeff> arg_list;
+    using quad=Dimension<4>;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) = dom(a()) * dom(in())
-                    + dom(b()) * (dom(in(x(-1)))+dom(in(x(+1))))
-                    + dom(c()) * (dom(in(y(-1)))+dom(in(y(+1))))
-                    + dom(d()) * (dom(in(z(-1)))+dom(in(z(+1))))
-                    + dom(e()) * (dom(in(x(-2)))+dom(in(x(+2))))
-                    + dom(f()) * (dom(in(y(-2)))+dom(in(y(+2))))
-                    + dom(g()) * (dom(in(z(-2)))+dom(in(z(+2))))
-                    + dom(h()) * (dom(in(x(-3)))+dom(in(x(+3))))
-                    + dom(h()) * (dom(in(y(-3)))+dom(in(y(+3))))
-                    + dom(h()) * (dom(in(z(-3)))+dom(in(z(+3))))
-                    + dom(h()) * (dom(in(x(-4)))+dom(in(x(+4))))
-                    + dom(h()) * (dom(in(y(-4)))+dom(in(y(+4))))
-                    + dom(h()) * (dom(in(z(-4)))+dom(in(z(+4))));
+        quad::Index q;
+        dom(out()) = dom(!coeff() * in()
+                        + !coeff(q+1) * (in(x(-1))+in(x(+1)))
+                        + !coeff(q+2) * (in(y(-1))+in(y(+1)))
+                        + !coeff(q+3) * (in(z(-1))+in(z(+1)))
+                        + !coeff(q+4) * (in(x(-2))+in(x(+2)))
+                        + !coeff(q+5) * (in(y(-2))+in(y(+2)))
+                        + !coeff(q+6) * (in(z(-2))+in(z(+2)))
+                        + !coeff(q+7) * (in(x(-3))+in(x(+3)))
+                        + !coeff(q+8) * (in(y(-3))+in(y(+3)))
+                        + !coeff(q+9) * (in(z(-3))+in(z(+3)))
+                        + !coeff(q+10) * (in(x(-4))+in(x(+4)))
+                        + !coeff(q+11) * (in(y(-4))+in(y(+4)))
+                        + !coeff(q+12) * (in(z(-4))+in(z(+4))));
     }
 };
 
@@ -228,20 +215,18 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type out25pt_var(d1,d2,d3,1., "domain_out");
     storage_type in25pt_var(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in25pt_var = &in25pt_var, *ptr_out25pt_var = &out25pt_var;
-    storage_type a_var25(d1,d2,d3,25., "coeff_a");
-    storage_type b_var25(d1,d2,d3,-1/25., "coeff_b");
-    storage_type c_var25(d1,d2,d3,-1/25., "coeff_c");
-    storage_type d_var25(d1,d2,d3,-1/25., "coeff_d");
-    storage_type e_var25(d1,d2,d3,-1/25., "coeff_e");
-    storage_type f_var25(d1,d2,d3,-1/25., "coeff_f");
-    storage_type g_var25(d1,d2,d3,-1/25., "coeff_g");
-    storage_type h_var25(d1,d2,d3,-1/25., "coeff_h");
-    //TODO encapsulate coeffs - boost::make_vector takes max 10 parameters
-    /*storage_type i_var25(d1,d2,d3,-1/25., "coeff_i");
-    storage_type j_var25(d1,d2,d3,-1/25., "coeff_j");
-    storage_type k_var25(d1,d2,d3,-1/25., "coeff_k");
-    storage_type l_var25(d1,d2,d3,-1/25., "coeff_l");
-    storage_type m_var25(d1,d2,d3,-1/25., "coeff_m");*/
+    coeff_type coeff25pt_var(d1,d2,d3,13);
+    coeff25pt_var.allocate();
+    for(uint_t i=0; i<d1; ++i)
+        for(uint_t j=0; j<d2; ++j)
+            for(uint_t k=0; k<d3; ++k)
+                for(uint_t q=0; q<13; ++q)
+                {
+                    if(q==0) //diagonal point
+                        coeff25pt_var(i,j,k,q) = 25.0;
+                    else //off-diagonal point
+                        coeff25pt_var(i,j,k,q) = -1/25.0;
+                }
 
     //25-pt stencil, 2-nd order in time with coeff symmetry
     storage_type out25pt(d1,d2,d3,1., "domain_out");
@@ -278,9 +263,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
-    typedef boost::mpl::vector<p_out, p_in, p_coeff> accessor_list_var7pt;
-    typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g,
-                               p_h/*, p_i, p_j, p_k, p_l, p_m*/> accessor_list_var25pt;
+    typedef boost::mpl::vector<p_out, p_in, p_coeff> accessor_list_var;
     typedef boost::mpl::vector<p_out, p_in, p_in_old, p_alpha> accessor_list_time2;
 
     //--------------------------------------------------------------------------
@@ -421,7 +404,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
-        gridtools::domain_type<accessor_list_var7pt> domain3d_var
+        gridtools::domain_type<accessor_list_var> domain3d_var
             (boost::fusion::make_vector(ptr_out7pt_var, ptr_in7pt_var, &coeff7pt_var));
 
         #ifdef __CUDACC__
@@ -466,8 +449,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
-        gridtools::domain_type<accessor_list_var25pt> domain3d_var25
-            (boost::fusion::make_vector(ptr_out25pt_var, ptr_in25pt_var, &a_var25, &b_var25, &c_var25, &d_var25, &e_var25, &f_var25, &g_var25, &h_var25/*, &i_var25, &j_var25, &k_var25, &l_var25, &m_var25*/));
+        gridtools::domain_type<accessor_list_var> domain3d_var25
+            (boost::fusion::make_vector(ptr_out25pt_var, ptr_in25pt_var, &coeff25pt_var));
 
         #ifdef __CUDACC__
             gridtools::computation* stencil_step_4 =
@@ -479,11 +462,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
-                        gridtools::make_esf<d3point25_var>(p_out(), p_in(), p_a(),
-                                                          p_b(), p_c(), p_d(),
-                                                          p_e(), p_f(), p_g(),
-                                                          p_h()/*, p_i(), p_j(),
-                                                          p_k(), p_l(), p_m()*/) // esf_descriptor
+                        gridtools::make_esf<d3point25_var>(p_out(), p_in(), p_coeff())
                         ),
                     domain3d_var25, coords3d25pt
                     );
