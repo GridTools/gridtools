@@ -93,25 +93,22 @@ struct d3point7{
 struct d3point7_var{
     typedef accessor<0> out;
     typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
-    typedef accessor<2> a;
-    typedef accessor<3> b;
-    typedef accessor<4> c;
-    typedef accessor<5> d;
-    typedef accessor<6> e;
-    typedef accessor<7> f;
-    typedef accessor<8> g;
-    typedef boost::mpl::vector<out, in, a, b, c, d, e, f, g> arg_list;
+    typedef accessor<2, range<-1, 1, -1, 1> , 4> const coeff;
+    typedef boost::mpl::vector<out, in, coeff> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) = dom(a()) * dom(in())
-                    + dom(b()) * dom(in(x(-1)))
-                    + dom(c()) * dom(in(x(+1)))
-                    + dom(d()) * dom(in(y(-1)))
-                    + dom(e()) * dom(in(y(+1)))
-                    + dom(f()) * dom(in(z(-1)))
-                    + dom(g()) * dom(in(z(+1)));
+        x::Index i;
+        y::Index j;
+        z::Index k;
+        dom(out()) =  dom(coeff(i,j,k,0)) * dom(in())
+                    + dom(coeff(i,j,k,1)) * dom(in(x(-1)))
+                    + dom(coeff(i,j,k,2)) * dom(in(x(+1)))
+                    + dom(coeff(i,j,k,3)) * dom(in(y(-1)))
+                    + dom(coeff(i,j,k,4)) * dom(in(y(+1)))
+                    + dom(coeff(i,j,k,5)) * dom(in(z(-1)))
+                    + dom(coeff(i,j,k,6)) * dom(in(z(+1)));
     }
 };
 
@@ -203,10 +200,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 #endif
 
     typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::layout_map<0,1,2,3> layout4_t;
+
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-    /* //TODO encapsulate coeffs
-    typedef gridtools::BACKEND::storage_type<coeff_type, layout_t >::type coeff_storage_type;*/
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, layout4_t >::type coeff_type;
+
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
@@ -224,18 +222,19 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type out7pt_var(d1,d2,d3,1., "domain_out");
     storage_type in7pt_var(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in7pt_var = &in7pt_var, *ptr_out7pt_var = &out7pt_var;
-    storage_type a_var(d1,d2,d3,7., "coeff_a");
-    storage_type b_var(d1,d2,d3,-1/7., "coeff_b");
-    storage_type c_var(d1,d2,d3,-1/7., "coeff_c");
-    storage_type d_var(d1,d2,d3,-1/7., "coeff_d");
-    storage_type e_var(d1,d2,d3,-1/7., "coeff_e");
-    storage_type f_var(d1,d2,d3,-1/7., "coeff_f");
-    storage_type g_var(d1,d2,d3,-1/7., "coeff_g");
-
-    /* //TODO encapsulate coeffs
-    coeff_type init = {.a = 7.0, .b = - 1.0/7.0, .c = - 1.0/7.0, .d = - 1.0/7.0,
-                        .e = - 1.0/7.0, .f = - 1.0/7.0, .g = - 1.0/7.0};
-    coeff_storage_type coeff7pt(d1,d2,d3,init,"coeffs");*/
+    coeff_type coeff7pt_var(d1,d2,d3,7);
+    coeff7pt_var.allocate();
+    /*for(uint_t i=0; i<d1; ++i)
+        for(uint_t j=0; j<d2; ++j)
+            for(uint_t k=0; k<d3; ++k)
+                for(uint_t q=0; q<7; ++q)
+                {
+                    if(q==0) //diagonal point
+                        coeff7pt_var(i,j,k,q) = 7.0;
+                    else //off-diagonal point
+                        coeff7pt_var(i,j,k,q) = -1/7.0;
+                }*/
+   
 
     //25-pt stencil with variable coeffs
     storage_type out25pt_var(d1,d2,d3,1., "domain_out");
@@ -272,6 +271,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef arg<0, storage_type > p_out; //domain
     typedef arg<1, storage_type > p_in;
     typedef arg<2, storage_type > p_in_old;
+    typedef arg<2, coeff_type > p_coeff;
     typedef arg<2, storage_type > p_a;
     typedef arg<3, storage_type > p_alpha;
     typedef arg<3, storage_type > p_b;
@@ -290,8 +290,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
-    typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d,
-                               p_e, p_f, p_g > accessor_list_var7pt;
+    typedef boost::mpl::vector<p_out, p_in, p_coeff> accessor_list_var7pt;
     typedef boost::mpl::vector<p_out, p_in, p_a, p_b, p_c, p_d, p_e, p_f, p_g,
                                p_h/*, p_i, p_j, p_k, p_l, p_m*/> accessor_list_var25pt;
     typedef boost::mpl::vector<p_out, p_in, p_in_old, p_alpha> accessor_list_time2;
@@ -435,8 +434,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain.
         gridtools::domain_type<accessor_list_var7pt> domain3d_var
-            (boost::fusion::make_vector(ptr_out7pt_var, ptr_in7pt_var, &a_var, &b_var,
-                                         &c_var, &d_var, &e_var, &f_var, &g_var));
+            (boost::fusion::make_vector(ptr_out7pt_var, ptr_in7pt_var, &coeff7pt_var));
 
         #ifdef __CUDACC__
             gridtools::computation* stencil_step_3 =
@@ -448,9 +446,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
-                        gridtools::make_esf<d3point7_var>(p_out(), p_in(), p_a(),
-                                                          p_b(), p_c(), p_d(),
-                                                          p_e(), p_f(), p_g()) // esf_descriptor
+                        gridtools::make_esf<d3point7_var>(p_out(), p_in(), p_coeff())
                         ),
                     domain3d_var, coords3d7pt
                     );
