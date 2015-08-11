@@ -40,9 +40,12 @@ template <typename Esf, typename Pred>
 struct esf_get_arg_at {
     template <typename Index>
     struct apply {
+        typedef typename boost::mpl::at<typename Esf::args_t, Index>::type placeholder_type;
         typedef typename boost::mpl::if_<
             Pred,
-            typename boost::mpl::at<typename Esf::args_with_ranges, typename boost::mpl::at<typename Esf::args_t, Index>::type>::type,
+            typename boost::mpl::pair<
+                placeholder_type,
+                typename boost::mpl::at<typename Esf::args_with_ranges, placeholder_type>::type>::type,
             typename boost::mpl::at<typename Esf::args_t, Index>::type
             >::type type;
     };
@@ -96,9 +99,9 @@ struct is_written {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_w_temps_per_functor {
-    typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
+    typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
     typedef typename boost::mpl::fold<
-        range,
+        iter_range,
         boost::mpl::vector0<>,
         boost::mpl::if_<
             typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
@@ -168,7 +171,7 @@ struct esf_get_w_per_functor {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_the_only_w_per_functor {
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename esf_get_w_per_functor<EsfF, Pred>::type>::type::value == 0),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename esf_get_w_per_functor<EsfF, Pred>::type>::type::value == 1),
                             "Each ESF should have a single output argument");
     typedef typename boost::mpl::at_c<typename esf_get_w_per_functor<EsfF>::type, 0>::type type;
 };
