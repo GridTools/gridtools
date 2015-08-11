@@ -3,7 +3,6 @@
 #include <gridtools.hpp>
 
 #include <stencil-composition/backend.hpp>
-
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
@@ -47,19 +46,6 @@ using namespace expressions;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-// Create data structure to hold coefficients of single cell of 7-point
-// variable-coefficient stencil in three dimension, with no coefficient symmetry.
-/*//TODO encapsulate coeffs
-typedef struct {
-    float_type a;
-    float_type b;
-    float_type c;
-    float_type d;
-    float_type e;
-    float_type f;
-    float_type g;
-} coeff_type;*/
-
 // 1st order in time, 3-point constant-coefficient stencil in one dimension, with symmetry.
 struct d1point3{
     typedef accessor<0> out;
@@ -93,8 +79,9 @@ struct d3point7{
 struct d3point7_var{
     typedef accessor<0> out;
     typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
-    typedef accessor<2, range<-1, 1, -1, 1> , 4> const coeff;
+    typedef accessor<2, range<0,0,0,0> , 4> const coeff;
     typedef boost::mpl::vector<out, in, coeff> arg_list;
+    using quad=Dimension<4>;
 
     template <typename Domain>
     GT_FUNCTION
@@ -102,13 +89,14 @@ struct d3point7_var{
         x::Index i;
         y::Index j;
         z::Index k;
-        dom(out()) =  dom(coeff(i,j,k,0)) * dom(in())
-                    + dom(coeff(i,j,k,1)) * dom(in(x(-1)))
-                    + dom(coeff(i,j,k,2)) * dom(in(x(+1)))
-                    + dom(coeff(i,j,k,3)) * dom(in(y(-1)))
-                    + dom(coeff(i,j,k,4)) * dom(in(y(+1)))
-                    + dom(coeff(i,j,k,5)) * dom(in(z(-1)))
-                    + dom(coeff(i,j,k,6)) * dom(in(z(+1)));
+        quad::Index q;
+        dom(out()) =  dom(!coeff(i,j,k,q) * in()
+                            + !coeff(i,j,k,q+1) * in(x(-1))
+                            + !coeff(i,j,k,q+2) * in(x(+1))
+                            + !coeff(i,j,k,q+3) * in(y(-1))
+                            + !coeff(i,j,k,q+4) * in(y(+1))
+                            + !coeff(i,j,k,q+5) * in(z(-1))
+                            + !coeff(i,j,k,q+6) * in(z(+1)));
     }
 };
 
@@ -306,9 +294,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     coords1d3pt.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
     //Informs the library that the iteration space in the first two dimensions
-    //is from 0 to d1-1 (included) in I (or x) direction
+    //is from 1 to d1-2 (included) in I (or x) direction
     uint_t di[5] = {0, 0, 1, d1-2, d1};
-    //and and 0 to 0 on J (or y) direction
+    //and 1 to d2-2 on J (or y) direction
     uint_t dj[5] = {0, 0, 1, d2-2, d2};
     gridtools::coordinates<axis> coords3d7pt(di, dj);
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
