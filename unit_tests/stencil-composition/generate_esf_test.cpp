@@ -332,15 +332,18 @@ int main() {
     int max_count = 0;
     int min_count = 0;
     for ( int i = 0; i < names.size(); ++i) {
-        if (names[i].size()-1 > min_count) min_count = names[i].size()-1;
+        int local_count = 0;
         for ( int j = 0; j < names[i].size(); ++j) {
             if (names[i][j] == "na") {
                 ++max_count;
+                ++local_count;
             }
         }
+        if (local_count > min_count) min_count = local_count;
     }
 
-    std::uniform_int_distribution<> input_generators(1, max_count);
+    assert (min_count <= max_count);
+    std::uniform_int_distribution<> input_generators(min_count, max_count);
     std::vector<std::string> input_names(input_generators(gen));
 
     for ( int i = 0; i < input_names.size(); ++i) {
