@@ -154,7 +154,7 @@ namespace gridtools {
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                //delete elem;
+                delete elem;
             }
         };
 
