@@ -1,7 +1,8 @@
 #pragma once
 
 #include <boost/mpl/contains.hpp>
-#include "stencil-composition/esf.hpp"
+#include "esf.hpp"
+#include "../common/generic_metafunctions/is_predicate.hpp"
 
 namespace gridtools {
 
@@ -20,10 +21,11 @@ struct esf_has_parameter_h{
    from false_type), or map between placeholders in this ESF and the ranges
    associated with it (if Pred derives from true_type)
  */
-    template<typename Esf, typename Pred=boost::false_type>
+template<typename Esf, typename Pred=boost::false_type>
 struct esf_args
 {
     GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
 
     typedef typename boost::mpl::if_<
         Pred,
@@ -40,6 +42,8 @@ template <typename Esf, typename Pred>
 struct esf_get_arg_at {
     template <typename Index>
     struct apply {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
         typedef typename boost::mpl::at<typename Esf::args_t, Index>::type placeholder_type;
         typedef typename boost::mpl::if_<
             Pred,
@@ -57,6 +61,7 @@ struct esf_get_arg_at {
  */
 template <typename Esf>
 struct is_written_temp {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
     template <typename Index>
     struct apply {
         typedef typename boost::mpl::if_<
@@ -76,6 +81,7 @@ struct is_written_temp {
  */
 template <typename Esf>
 struct is_written {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
     template <typename Index>
     struct apply {
         typedef typename boost::mpl::if_<
@@ -99,6 +105,8 @@ struct is_written {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_w_temps_per_functor {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
     typedef typename boost::mpl::fold<
         iter_range,
@@ -123,6 +131,8 @@ struct esf_get_w_temps_per_functor {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_r_temps_per_functor {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
@@ -148,6 +158,8 @@ struct esf_get_r_temps_per_functor {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_w_per_functor {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
@@ -171,6 +183,8 @@ struct esf_get_w_per_functor {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_the_only_w_per_functor {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename esf_get_w_per_functor<EsfF, Pred>::type>::type::value == 1),
                             "Each ESF should have a single output argument");
     typedef typename boost::mpl::at_c<typename esf_get_w_per_functor<EsfF>::type, 0>::type type;
@@ -186,6 +200,8 @@ struct esf_get_the_only_w_per_functor {
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_r_per_functor {
+    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
     typedef typename boost::mpl::fold<
         range,
