@@ -9,9 +9,9 @@ struct prelude {
     std::string out() const {
 
         std::string code;
+        code += "#include \"common/defs.hpp\"\n";
         code += "#include \"gtest/gtest.h\"\n";
         code += "#include <boost/mpl/equal.hpp>\n";
-        code += "#include \"common/defs.hpp\"\n";
         code += "#include \"stencil-composition/backend.hpp\"\n";
         code += "#include \"stencil-composition/caches/cache_metafunctions.hpp\"\n";
         code += "#include \"stencil-composition/caches/define_caches.hpp\"\n";
@@ -473,6 +473,20 @@ int main() {
         program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
     }
 
+    int total_placeholders = functors.size() + input_names.size();
+    if ((total_placeholders/10)*10 != total_placeholders) {
+        total_placeholders = (total_placeholders/10+1) * 10;
+    }
+
+    program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
+    
+    if (total_placeholders>20) { // Adding macros in reverse!
+        program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
+    }
 
 
     program += "    return 0;\n";
