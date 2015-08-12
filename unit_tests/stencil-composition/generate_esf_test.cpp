@@ -3,6 +3,7 @@
 #include <vector>
 #include <random>
 #include <cassert>
+#include <unordered_map>
 
 struct prelude {
     std::string out() const {
@@ -38,68 +39,79 @@ struct prelude {
     }
 };
 
+struct range {
+    int im, ip, jm, jp, km, kp;
+
+    range()
+        : im(-666)
+        , ip(666)
+        , jm(-666)
+        , jp(666)
+        , km(-666)
+        , kp(666)
+    {}
+
+    range(int im,
+          int ip,
+          int jm,
+          int jp,
+          int km,
+          int kp)
+        : im(im)
+        , ip(ip)
+        , jm(jm)
+        , jp(jp)
+        , km(km)
+        , kp(kp)
+    {}
+
+    range(range const& o)
+        : im(o.im)
+        , ip(o.ip)
+        , jm(o.jm)
+        , jp(o.jp)
+        , km(o.km)
+        , kp(o.kp)
+    {}
+
+    range& operator=(range const& o) {
+        im = o.im;
+        ip = o.ip;
+        jm = o.jm;
+        jp = o.jp;
+        km = o.km;
+        kp = o.kp;
+    }
+
+    std::string out() const {
+        std::string r = "range<"
+            + std::to_string(im) + ", "
+            + std::to_string(ip) + ", "
+            + std::to_string(jm) + ", "
+            + std::to_string(jp) + ", "
+            + std::to_string(km) + ", "
+            + std::to_string(kp) + ">";
+        return r;
+    }
+};
+
+range operator+(range const& a, range const& b) {
+    return range(a.im+b.im, a.ip+b.ip,
+                 a.jm+b.jm, a.jp+b.jp,
+                 a.km+b.km, a.kp+b.kp);
+}
+
+range operator||(range const& a, range const& b) {
+    return range(std::min(a.im,b.im), std::max(a.ip,b.ip),
+                 std::min(a.jm,b.jm), std::max(a.jp,b.jp),
+                 std::min(a.km,b.km), std::max(a.kp,b.kp));
+}
 
 struct generate_functor {
 
     std::string m_name;
     int m_n_args;
     int m_index_of_output;
-    struct range {
-        int im, ip, jm, jp, km, kp;
-
-        range()
-            : im(-666)
-            , ip(666)
-            , jm(-666)
-            , jp(666)
-            , km(-666)
-            , kp(666)
-        {}
-
-        range(int im,
-              int ip,
-              int jm,
-              int jp,
-              int km,
-              int kp)
-            : im(im)
-            , ip(ip)
-            , jm(jm)
-            , jp(jp)
-            , km(km)
-            , kp(kp)
-        {}
-
-        range(range const& o)
-            : im(o.im)
-            , ip(o.ip)
-            , jm(o.jm)
-            , jp(o.jp)
-            , km(o.km)
-            , kp(o.kp)
-        {}
-
-        range& operator=(range const& o) {
-            im = o.im;
-            ip = o.ip;
-            jm = o.jm;
-            jp = o.jp;
-            km = o.km;
-            kp = o.kp;
-        }
-
-        std::string out() const {
-            std::string r = "range<"
-                + std::to_string(im) + ", "
-                + std::to_string(ip) + ", "
-                + std::to_string(jm) + ", "
-                + std::to_string(jp) + ", "
-                + std::to_string(km) + ", "
-                + std::to_string(kp) + ">";
-            return r;
-        }
-    };
-
     std::vector<range> m_ranges;
 
     generate_functor()
@@ -149,6 +161,10 @@ struct generate_functor {
     int n_args() const {return m_n_args;}
     int index_of_output() const {return m_index_of_output;}
 
+    range get_range(int i) const {
+        return m_ranges[i];
+    }
+    
     std::string out() const {
         std::string code ="";
         code += "struct " + m_name + "{\n";
@@ -188,6 +204,9 @@ std::ostream& operator<<(std::ostream& s, generate_functor const& f) {
     return s << f.out();
 }
 std::ostream& operator<<(std::ostream& s, prelude const& f) {
+    return s << f.out();
+}
+std::ostream& operator<<(std::ostream& s, range const& f) {
     return s << f.out();
 }
 
@@ -414,7 +433,48 @@ int main() {
     program += "\n    typedef gridtools::pass_temps<placeholders>::mss_compute_range_sizes_new<mss_t>::type final_map;\n";
 
     program += "    std::cout << \"FINAL\" << std::endl;\n";
-    program += "    boost::mpl::for_each<final_map>(print_r());\n";
+    program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
+
+
+
+
+    std::unordered_map<std::string, range> map;
+
+    for ( int i = 0; i < functors.size(); ++i) {
+        map.insert({"o" + std::to_string(i), range(0,0,0,0,0,0)});
+    }
+    for ( int i = 0; i < input_names.size(); ++i) {
+        map.insert({input_names[i], range(0,0,0,0,0,0)});
+    }
+
+    for (int i = functors.size()-1; i>=0; --i) {
+        std::string out_name = names[i][functors[i].index_of_output()];
+        // std::cout << "/* " << functors[i].index_of_output() << " ********* " << out_name << " */" << std::endl;
+        range out_range = map[out_name];
+        for (int j = 0; j < functors[i].n_args(); ++j) {
+            if (j != functors[i].index_of_output()) {
+                // std::cout << names[i][j] << std::endl;
+                // std::cout << out_range.out() << std::endl;
+                range updated_range = functors[i].get_range(j) + out_range;
+                // std::cout << updated_range.out() << std::endl;
+                updated_range = updated_range || map[names[i][j]];
+                // std::cout << updated_range.out() << std::endl;
+                map[names[i][j]] = updated_range;
+            }
+        }
+    }
+
+    for ( int i = 0; i < functors.size(); ++i) {
+        program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o" + std::to_string(i) + ">::type, " + map["o" + std::to_string(i)].out() + ">::type::value),\n";
+        program += "                          \"o" + std::to_string(i) + " " + map["o" + std::to_string(i)].out() + "\");\n";
+    }
+    for ( int i = 0; i < input_names.size(); ++i) {
+        program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, " + input_names[i] + ">::type, " + map[input_names[i]].out() + ">::type::value),\n";
+        program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
+    }
+
+
+
     program += "    return 0;\n";
     program += "}\n";
 
