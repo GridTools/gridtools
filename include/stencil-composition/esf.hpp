@@ -20,7 +20,8 @@ namespace gridtools {
     struct esf_descriptor {
     private:
 
-        /** Private metafunction that associates (in a mpl::map) placeholders to ranges
+        /** Private metafunction that associates (in a mpl::map) placeholders to ranges.
+            It returns a mpl::map between placeholders and ranges of the local arguments.
          */
         template <typename Placeholders, typename LocalArgs>
         struct _make_map {
