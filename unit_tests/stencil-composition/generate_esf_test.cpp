@@ -164,7 +164,7 @@ struct generate_functor {
     range get_range(int i) const {
         return m_ranges[i];
     }
-    
+
     std::string out() const {
         std::string code ="";
         code += "struct " + m_name + "{\n";
@@ -433,7 +433,7 @@ int main() {
 
     program += "    " + list_of_plcs;
 
-    program += "\n    typedef gridtools::pass_temps<placeholders>::mss_compute_range_sizes_new<mss_t>::type final_map;\n";
+    program += "\n    typedef gridtools::compute_ranges_of<placeholders>::for_mss<mss_t>::type final_map;\n";
 
     program += "    std::cout << \"FINAL\" << std::endl;\n";
     program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
@@ -482,7 +482,7 @@ int main() {
     }
 
     program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
-    
+
     if (total_placeholders>20) { // Adding macros in reverse!
         program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
         program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;

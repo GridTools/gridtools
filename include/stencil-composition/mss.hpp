@@ -272,9 +272,9 @@ namespace gridtools {
 
 
     template <typename Placeholders>
-    struct pass_temps {
+    struct compute_ranges_of {
         template<typename MssDescriptor>
-        struct mss_compute_range_sizes_new
+        struct for_mss
         {
             GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
 
