@@ -230,25 +230,25 @@ class IfStatementTest (unittest.TestCase):
         self.assertTrue (np.array_equal (self.out_X,out_cpp))
 
 
-    def test_op_is_raises_error (self):
-        with self.assertRaises (TypeError):
-            self.stencil3.backend = 'c++'
-            self._run3 ( )
-
-
-    def test_op_is_not_raises_error (self):
-        with self.assertRaises (TypeError):
-            self.stencil4.backend = 'c++'
-            self._run4 ( )
-
-
-    def test_op_not_in_raises_error (self):
-        with self.assertRaises (TypeError):
-            self.stencil5.backend = 'c++'
-            self._run5 ( )
-
-
-    def test_op_in_raises_error (self):
-        with self.assertRaises (TypeError):
-            self.stencil6.backend = 'c++'
-            self._run6 ( )
+#    def test_op_is_raises_error (self):
+#        with self.assertRaises (TypeError):
+#            self.stencil3.backend = 'c++'
+#            self._run3 ( )
+#
+#
+#    def test_op_is_not_raises_error (self):
+#        with self.assertRaises (TypeError):
+#            self.stencil4.backend = 'c++'
+#            self._run4 ( )
+#
+#
+#    def test_op_not_in_raises_error (self):
+#        with self.assertRaises (TypeError):
+#            self.stencil5.backend = 'c++'
+#            self._run5 ( )
+#
+#
+#    def test_op_in_raises_error (self):
+#        with self.assertRaises (TypeError):
+#            self.stencil6.backend = 'c++'
+#            self._run6 ( )
