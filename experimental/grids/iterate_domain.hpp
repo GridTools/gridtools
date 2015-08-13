@@ -238,7 +238,7 @@ private:
     pointers_t pointers;
     grid_type const& m_grid;
 
-    gridtools::array<u_int, 3> m_ll_indices;
+    gridtools::array<u_int, 4> m_ll_indices;
 
     template <typename PointersT, typename StoragesT>
     struct _set_pointers
@@ -261,12 +261,12 @@ private:
         PointersT &m_pt;
         StoragesT const &m_st;
         GridT const& m_g;
-        gridtools::array<uint_t, 3> const& _m_ll_indices;
+        gridtools::array<uint_t, 4> const& _m_ll_indices;
 
         _set_pointers_to(PointersT& pt,
                          StoragesT const &st,
                          GridT const& g,
-                         gridtools::array<uint_t, 3> const & ll_ind)
+                         gridtools::array<uint_t, 4> const & ll_ind)
             : m_pt(pt)
             , m_st(st)
             , m_g(g)
@@ -299,10 +299,11 @@ private:
         }
     };
 
-    void _increment_pointers_k()
+    template <int Coord>
+    void _increment_pointers()
     {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_move_pointers<2, pointers_t, grid_type>(pointers, m_grid));
+        boost::mpl::for_each<indices>(_move_pointers<Coord, pointers_t, grid_type>(pointers, m_grid));
     }
 
     void _reset_pointers()
@@ -329,11 +330,12 @@ public:
 
     GridType const& grid() const {return m_grid;}
 
-    void inc_ll_k() {++m_ll_indices[2]; _increment_pointers_k();}
+    template <int Coord>
+    void inc_ll() {++m_ll_indices[Coord]; _increment_pointers<Coord>();}
 
     template <typename LocationT>
-    void set_ll_ijk(u_int i, u_int j, u_int k) {
-        m_ll_indices = {i, j, k};
+    void set_ll_ijk(u_int i, u_int j, u_int k, u_int l) {
+        m_ll_indices = {i, j, k, l};
         _set_pointers_to_ll<LocationT>();
     }
 

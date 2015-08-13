@@ -45,12 +45,15 @@ namespace gridtools {
                                  Computation const x,
                                  Coords const & coords)
         {
-            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<0, NColors>());
-            const auto high_bounds = acc.grid().ll_indices({coords.ub0, coords.ub1}, location_type<0, NColors>());
+            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1, coords.lb2},
+                                                          location_type<0, NColors>());
+            const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1, coords.ub2-1},
+                                                           location_type<0, NColors>());
 
             std::cout << "User Level Iteration (closed) \n"
-                      << "    from " << coords.lb0 << " to " << coords.ub0 << " \n"
-                      << "    from " << coords.lb1 << " to " << coords.ub1 << " "
+                      << "    from " << coords.lb0 << " to " << coords.ub0-1 << " (closed)\n"
+                      << "    from " << coords.lb1 << " to " << coords.ub1-1 << " (closed)\n"
+                      << "    from " << coords.lb2 << " to " << coords.ub2-1 << " (closed)"
                       << std::endl;
 
             std::cout << "Low bounds  " << low_bounds << std::endl;
@@ -59,13 +62,16 @@ namespace gridtools {
                       << "from " << low_bounds[0] << " to " <<  high_bounds[0] << " "
                       << "from " << low_bounds[1] << " to " <<  high_bounds[1] << " "
                       << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
+                      << "from " << low_bounds[3] << " to " <<  high_bounds[3] << " "
                       << std::endl;
             for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
                 for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
-                    acc.template set_ll_ijk<location_type<0, NColors> >(i, j, low_bounds[2]);
                     for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
-                        typename decltype(x)::functor()(acc);
-                        acc.inc_ll_k();
+                        acc.template set_ll_ijk<location_type<0, NColors> >(i, j, k, low_bounds[3]);
+                        for (int l = low_bounds[3]; l <= high_bounds[3]; ++l) {
+                            typename decltype(x)::functor()(acc);
+                            acc.template inc_ll<3>();
+                        }
                     }
                 }
             }
@@ -79,24 +85,24 @@ namespace gridtools {
                                  Computation const x,
                                  Coords const & coords)
         {
-            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<1, NColors>());
-            const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1}, location_type<1, NColors>());
-            std::cout << "Low bounds  " << low_bounds << std::endl;
-            std::cout << "High bounds " << high_bounds << std::endl;
-            std::cout << "Iteration space on Edges "
-                      << "from " << low_bounds[0] << " to " <<  high_bounds[0] << " "
-                      << "from " << low_bounds[1] << " to " <<  high_bounds[1] << " "
-                      << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
-                      << std::endl;
-            for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
-                for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
-                    acc.template set_ll_ijk<location_type<1, NColors> >(i, j, low_bounds[2]);
-                    for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
-                        typename decltype(x)::functor()(acc);
-                        acc.inc_ll_k();
-                    }
-                }
-            }
+            static_assert(true, "WRONG");
+            // std::cout << "Low bounds  " << low_bounds << std::endl;
+            // std::cout << "High bounds " << high_bounds << std::endl;
+            // std::cout << "Iteration space on Edges "
+            //           << "from " << low_bounds[0] << " to " <<  high_bounds[0] << " "
+            //           << "from " << low_bounds[1] << " to " <<  high_bounds[1] << " "
+            //           << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
+            //           << std::endl;
+            // for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
+            //     for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
+            //         acc.template set_ll_ijk<location_type<1, NColors> >(i, j, low_bounds[2]);
+            //         for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
+            //             for (int l = low_bounds[3]; l <= high_bounds[3]; ++l) {
+            //             typename decltype(x)::functor()(acc);
+            //             acc.inc_ll_k();
+            //         }
+            //     }
+            // }
         }
 
         template <ushort_t NColors, typename Accessor, typename Computation, typename Coords>
@@ -107,24 +113,25 @@ namespace gridtools {
                                  Computation const x,
                                  Coords const & coords)
         {
-            const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<2, NColors>());
-            const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1}, location_type<2, NColors>());
-            std::cout << "Low bounds  " << low_bounds << std::endl;
-            std::cout << "High bounds " << high_bounds << std::endl;
-            std::cout << "Iteration space on vertexes "
-                      << "from " << low_bounds[0] << " to " <<  high_bounds[0] << " "
-                      << "from " << low_bounds[1] << " to " <<  high_bounds[1] << " "
-                      << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
-                      << std::endl;
-            for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
-                for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
-                    acc.template set_ll_ijk<location_type<2, NColors> >(i, j, low_bounds[2]);
-                    for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
-                        typename decltype(x)::functor()(acc);
-                        acc.inc_ll_k();
-                    }
-                }
-            }
+            static_assert(true, "WRONG");
+            // const auto low_bounds = acc.grid().ll_indices({coords.lb0, coords.lb1}, location_type<2, NColors>());
+            // const auto high_bounds = acc.grid().ll_indices({coords.ub0-1, coords.ub1-1}, location_type<2, NColors>());
+            // std::cout << "Low bounds  " << low_bounds << std::endl;
+            // std::cout << "High bounds " << high_bounds << std::endl;
+            // std::cout << "Iteration space on vertexes "
+            //           << "from " << low_bounds[0] << " to " <<  high_bounds[0] << " "
+            //           << "from " << low_bounds[1] << " to " <<  high_bounds[1] << " "
+            //           << "from " << low_bounds[2] << " to " <<  high_bounds[2] << " "
+            //           << std::endl;
+            // for (int i = low_bounds[0]; i <= high_bounds[0]; ++i) {
+            //     for (int j = low_bounds[1]; j <= high_bounds[1]; ++j) { // they should always be 0 and 1 for cells
+            //         acc.template set_ll_ijk<location_type<2, NColors> >(i, j, low_bounds[2]);
+            //         for (int k = low_bounds[2]; k <= high_bounds[2]; ++k) {
+            //             typename decltype(x)::functor()(acc);
+            //             acc.inc_ll_k();
+            //         }
+            //     }
+            //
         }
 
 
