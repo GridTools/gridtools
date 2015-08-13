@@ -366,10 +366,7 @@ class SWTest (CopyTest):
 
     @attr (lang='cuda')
     def test_compare_python_cpp_and_cuda_results (self):
-        try:
-            super ( ).test_compare_python_cpp_and_cuda_results ( )
-        except AssertionError:
-            print ('CUDA is known to fail')
+        super ( ).test_compare_python_cpp_and_cuda_results ( )
 
 
     def test_ghost_cell_pattern (self):
@@ -444,7 +441,7 @@ class SWTest (CopyTest):
     def test_minimum_halo_detection (self):
         super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
- 
+
     @attr(lang='python')
     def test_python_results (self):
         super ( ).test_python_results (out_param   = 'out_H',
