@@ -709,13 +709,14 @@ namespace gridtools {
             std::cout << " **";
             LocationType::print_name::apply();
             std::cout<<"offsets** "
-                     << std::get</*storage_t<LocationType> cxx14*/ LocationType::value>(m_v_storage_tuple)._index(i[0], i[1], i[2]) << " from ("
+                     << std::get</*storage_t<LocationType> cxx14*/ LocationType::value>(m_v_storage_tuple)._index(&i[0]) << " from ("
                       << i[0] << ", "
                       << i[1] << ", "
-                      << i[2] << ")"
+                      << i[2] << ", "
+                      << i[3] << ")"
                       << std::endl;
 #endif
-            return std::get<LocationType::value>(m_v_storage_tuple)._index(i[0], i[1], i[2], i[3]);
+            return std::get<LocationType::value>(m_v_storage_tuple)._index(&i[0]);
         }
 
         // methods returning the neighbors. Specializations according to the location type
@@ -726,24 +727,24 @@ namespace gridtools {
             return from<Location1>::template to<Location2>::template with_color<Color>::get(*this, i);
         }
 
-        template<typename Location1, typename Location2>
-        typename return_type<typename from<Location1>::template to<Location2> >::type
-        neighbors(array<int_t, 2> const& i, Location1, Location2) const
-        {
-            // std::cout << "grid.neighbors cells->cells "
-            //           << i[0] << ", "
-            //           << i[1]
-            //           << std::endl;
-            switch (i[1]%Location1::n_colors) {
-            case 0:
-                return ll_map(Location1(), Location2(), static_int<0>(), {i[0], i[1]/Location1::n_colors});
-            case 1:
-                return ll_map(Location1(), Location2(), static_int<1>(), {i[0], i[1]/Location1::n_colors});
-            case 2:
-                return ll_map(Location1(), Location2(), static_int<2>(), {i[0], i[1]/Location1::n_colors});
+        // template<typename Location1, typename Location2>
+        // typename return_type<typename from<Location1>::template to<Location2> >::type
+        // neighbors(array<int_t, 2> const& i, Location1, Location2) const
+        // {
+        //     // std::cout << "grid.neighbors cells->cells "
+        //     //           << i[0] << ", "
+        //     //           << i[1]
+        //     //           << std::endl;
+        //     switch (i[1]%Location1::n_colors) {
+        //     case 0:
+        //         return ll_map(Location1(), Location2(), static_int<0>(), {i[0], i[1]/Location1::n_colors});
+        //     case 1:
+        //         return ll_map(Location1(), Location2(), static_int<1>(), {i[0], i[1]/Location1::n_colors});
+        //     case 2:
+        //         return ll_map(Location1(), Location2(), static_int<2>(), {i[0], i[1]/Location1::n_colors});
 
-            }
-        }
+        //     }
+        // }
 
 
         // methods returning the neighbors. Specializations according to the location type
@@ -754,23 +755,23 @@ namespace gridtools {
             return from<Location1>::template to<Location2>::template with_color<Color>::get_index(i);
         }
 
-        template<typename Location1, typename Location2>
-        typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type
-        neighbors_indices(array<int_t, 2> const& i, Location1, Location2) const
-        {
-            // std::cout << "grid.neighbors cells->cells "
-            //           << i[0] << ", "
-            //           << i[1]
-            //           << std::endl;
-            switch (i[1]%Location1::n_colors) {
-            case 0:
-                return ll_map_index(Location1(), Location2(), static_int<0>(), {i[0], i[1]/Location1::n_colors});
-            case 1:
-                return ll_map_index(Location1(), Location2(), static_int<1>(), {i[0], i[1]/Location1::n_colors});
-            case 2:
-                return ll_map_index(Location1(), Location2(), static_int<2>(), {i[0], i[1]/Location1::n_colors});
-            }
-        }
+        // template<typename Location1, typename Location2>
+        // typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 3> >::type
+        // neighbors_indices(array<int_t, 2> const& i, Location1, Location2) const
+        // {
+        //     // std::cout << "grid.neighbors cells->cells "
+        //     //           << i[0] << ", "
+        //     //           << i[1]
+        //     //           << std::endl;
+        //     switch (i[1]%Location1::n_colors) {
+        //     case 0:
+        //         return ll_map_index(Location1(), Location2(), static_int<0>(), {i[0], i[1]/Location1::n_colors});
+        //     case 1:
+        //         return ll_map_index(Location1(), Location2(), static_int<1>(), {i[0], i[1]/Location1::n_colors});
+        //     case 2:
+        //         return ll_map_index(Location1(), Location2(), static_int<2>(), {i[0], i[1]/Location1::n_colors});
+        //     }
+        // }
 
         template<typename Location2> // Works for cells or edges with same code
         typename return_type<typename from<cells>::template to<Location2>, array<uint_t, 4> >::type

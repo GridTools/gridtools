@@ -123,7 +123,7 @@ namespace gridtools {
 #endif
 
     //forward declaration
-    template< int_t Index, int_t Dimension >
+    template< uint_t Index, int_t Dimension >
     struct offset_tuple;
 
     namespace enumtype{

@@ -399,30 +399,33 @@ int main() {
     // std::cout << "#############################################################################################################################################################" << std::endl;
     // std::cout << "#############################################################################################################################################################" << std::endl;
 
-    // {
-    //     auto x = make_esf<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
-    //         (out_cells(), in_cells(), out_edges(), in_edges());
+    {
+        auto x = make_esf<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
+            (out_cells(), in_cells(), out_edges(), in_edges());
 
-    //     iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-    //                   trapezoid_2D, trapezoid_2D::cells> acc
-    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-    //          (&cells_out, &cells, &edges_out, &edges), grid);
+        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::cells> acc
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid);
 
 
-    //     struct _coords {
-    //         int_t lb0, ub0;
-    //         int_t lb1, ub1;
+        struct _coords {
+            int_t lb0, ub0;
+            int_t lb1, ub1;
+            int_t lb2, ub2;
 
-    //         _coords(int lb0, int ub0, int lb1, int ub1)
-    //             : lb0(lb0)
-    //             , ub0(ub0)
-    //             , lb1(lb1)
-    //             , ub1(ub1)
-    //         {}
-    //     } coords(1, NC-1-1, 2, MC-2-1);
+            _coords(int lb0, int ub0, int lb1, int ub1, int lb2, int ub2)
+                : lb0(lb0)
+                , ub0(ub0)
+                , lb1(lb1)
+                , ub1(ub1)
+                , lb2(lb2)
+                , ub2(ub2)
+            {}
+        } coords(1, NC-1, 2, MC-2, 0, d3); // closed intervals
 
-    //     gridtools::colored_backend::run(acc, x, coords);
-    // }
+        gridtools::colored_backend::run(acc, x, coords);
+    }
 
     std::cout << std::endl;
     return 0;
