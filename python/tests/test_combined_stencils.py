@@ -3,7 +3,7 @@ import logging
 
 import numpy as np
 
-from gridtools.stencil import MultiStageStencil, StencilInspector
+from gridtools.stencil import MultiStageStencil
 
 
 
