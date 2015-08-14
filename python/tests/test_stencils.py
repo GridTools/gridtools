@@ -53,7 +53,7 @@ class AccessPatternDetectionTest (unittest.TestCase):
                         self.assertTrue (False)
 
 
-    
+
 
 class Copy (MultiStageStencil):
     """

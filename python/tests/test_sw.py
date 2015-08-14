@@ -23,13 +23,11 @@
 ##    http://www.amath.washington.edu/~dgeorge/tsunamimodeling.html
 ##    http://www.amath.washington.edu/~claw/applications/shallow/www
 ##
-import unittest
-import logging
 import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil import MultiStageStencil
+from gridtools.stencil   import MultiStageStencil
 from tests.test_stencils import CopyTest
 
 
