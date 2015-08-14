@@ -1,7 +1,7 @@
 #pragma once
 #include "data_field.hpp"
 #include "common/gpu_clone.hpp"
-#include "host_tmp_storage.hpp"
+//#include "host_tmp_storage.hpp"
 #include "accumulate.hpp"
 #include "common/generic_metafunctions/reverse_pack.hpp"
 
@@ -40,7 +40,7 @@ namespace gridtools{
 #if defined(CXX11_ENABLED)
 //arbitrary dimensional field
         template <class ... UIntTypes>
-        explicit storage(  UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(args ...)
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(meta_data_, args ...)
             {
             }
 #else
@@ -49,7 +49,7 @@ namespace gridtools{
 #endif
 
 //    private :
-        explicit storage():super(){}
+        explicit storage(typename basic_type::meta_data_t const& meta_data_):super(meta_data_){}
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
@@ -66,19 +66,19 @@ namespace gridtools{
     // template< class TmpStorage, uint_t ... Number >
     // struct tmp_field;
 
-    template < typename PointerType
-               , typename MetaData
-               , short_t FieldDimension
-               , uint_t TileI
-               , uint_t TileJ
-               , uint_t MinusI
-               , uint_t MinusJ
-               , uint_t PlusI
-               , uint_t PlusJ
-               , uint_t ... Number >
-    struct field_reversed<host_tmp_storage<base_storage< PointerType, MetaData , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
-        typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, MetaData, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
-    };
+    // template < typename PointerType
+    //            , typename MetaData
+    //            , short_t FieldDimension
+    //            , uint_t TileI
+    //            , uint_t TileJ
+    //            , uint_t MinusI
+    //            , uint_t MinusJ
+    //            , uint_t PlusI
+    //            , uint_t PlusJ
+    //            , uint_t ... Number >
+    // struct field_reversed<host_tmp_storage<base_storage< PointerType, MetaData , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
+    //     typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, MetaData, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
+    // };
 
     template<  typename PointerType
                ,typename MetaData
@@ -121,19 +121,19 @@ namespace gridtools{
     // template< class TmpStorage, uint_t ... Number >
     // struct tmp_field;
 
-    template <  typename PointerType
-               , typename MetaData
-               , short_t FieldDimension
-               , uint_t TileI
-               , uint_t TileJ
-               , uint_t MinusI
-               , uint_t MinusJ
-               , uint_t PlusI
-               , uint_t PlusJ
-               , uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<host_tmp_storage<base_storage<PointerType, MetaData, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number1, Number2, Number3 >{
-        typedef storage< host_tmp_storage<data_field< storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
-    };
+    // template <  typename PointerType
+    //            , typename MetaData
+    //            , short_t FieldDimension
+    //            , uint_t TileI
+    //            , uint_t TileJ
+    //            , uint_t MinusI
+    //            , uint_t MinusJ
+    //            , uint_t PlusI
+    //            , uint_t PlusJ
+    //            , uint_t Number1, uint_t Number2, uint_t Number3 >
+    // struct field<host_tmp_storage<base_storage<PointerType, MetaData, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number1, Number2, Number3 >{
+    //     typedef storage< host_tmp_storage<data_field< storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
+    // };
 
     template<  typename PointerType
                ,typename MetaData

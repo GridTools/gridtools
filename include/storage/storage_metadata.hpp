@@ -4,6 +4,7 @@ namespace gridtools{
 template < typename BaseStorage >
 struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_wrapper<BaseStorage> >
     {
+        static const bool is_temporary=BaseStorage::is_temporary;
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
         typedef typename BaseStorage::index_type index_type;

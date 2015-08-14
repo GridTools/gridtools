@@ -73,12 +73,13 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef meta_storage_runtime<0,layout_t> meta_data_t;
-    typedef meta_storage_constexpr<0,layout_t, 5, 5, 5> constexpr_meta_data_t;
-
+    typedef meta_storage<0,layout_t, false> meta_data_t;
+    static const constexpr meta_data_t meta_data_constexpr{10,10,10};
     // static const constexpr base_storage_metadata<layout_t, false> constexpr_test{5,5,5};
 
     bool test(uint_t x, uint_t y, uint_t z) {
+
+        meta_storage_wrapper<meta_data_t> meta_data_runtime(10,10,10);
 
 #ifdef USE_PAPI_WRAP
         int collector_init = pw_new_collector("Init");
@@ -106,7 +107,7 @@ namespace copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_type;
-        typedef gridtools::BACKEND::storage_type<float_type, constexpr_meta_data_t >::type constexpr_storage_type;
+        // typedef gridtools::BACKEND::storage_type<float_type, constexpr_meta_data_t >::type constexpr_storage_type;
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)
         //vector field of dimension 2
@@ -127,10 +128,8 @@ namespace copy_stencil{
         typedef arg<0, vec_field_type > p_in;
         typedef boost::mpl::vector<p_in> accessor_list;
 
-        meta_data_t::value=meta_data_t::create(d1, d2, d3);
-
         // Definition of the actual data fields that are used for input/output
-        vec_field_type in;
+        vec_field_type in(meta_data_runtime);
         vec_field_type::original_storage::pointer_type  init1(d1*d2*d3);
         vec_field_type::original_storage::pointer_type  init2(d1*d2*d3);
         in.push_front<0>(init1, 1.5);
@@ -145,13 +144,13 @@ namespace copy_stencil{
                     in(i, j, k)=i+j+k;
                 }
 
-        typedef boost::mpl::vector<const meta_data_t> metadata_list;
+        typedef boost::mpl::vector<meta_data_t> metadata_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
         gridtools::domain_type<accessor_list, metadata_list> domain
-            (boost::fusion::make_vector(&in), boost::fusion::make_vector(&meta_data_t::value));
+            (boost::fusion::make_vector(&in), boost::fusion::make_vector(&meta_data_runtime));
 #else
         gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
@@ -289,6 +288,8 @@ namespace copy_stencil{
                         }
                 }
         if(!success) std::cout << "ERROR" << std::endl;
+        else std::cout << "OK" << std::endl;
+
         return success;
     }
 }//namespace copy_stencil

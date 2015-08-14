@@ -1,6 +1,6 @@
 #pragma once
 #include "base_storage.hpp"
-#include "host_tmp_storage.hpp"
+// #include "host_tmp_storage.hpp"
 
 namespace gridtools {
 
@@ -60,13 +60,13 @@ private:
             template<typename StorageType>
             GT_FUNCTION_WARNING
             void copy_data_impl(StorageType *& s,
-                    typename boost::enable_if_c<is_host_tmp_storage<StorageType>::value>::type* = 0) const
+                    typename boost::enable_if_c<is_tmp_storage<StorageType>::value>::type* = 0) const
             {}
 
             template<typename StorageType>
             GT_FUNCTION_WARNING
             void copy_data_impl(StorageType *& s,
-                    typename boost::disable_if_c<is_host_tmp_storage<StorageType>::value>::type* = 0) const
+                    typename boost::disable_if_c<is_tmp_storage<StorageType>::value>::type* = 0) const
             {
                 s->copy_data_to_gpu();
             }

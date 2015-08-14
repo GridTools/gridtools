@@ -1,4 +1,5 @@
 #pragma once
+#include "pointer.hpp"
 #include "make_stencils.hpp"
 #include <boost/mpl/transform.hpp>
 #include "gt_for_each/for_each.hpp"
@@ -35,7 +36,9 @@
  * */
 
 namespace gridtools {
-    namespace _impl{
+
+
+        namespace _impl{
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
@@ -53,7 +56,7 @@ namespace gridtools {
             void operator()(Elem & elem) const {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type");
 
-                elem.init(m_arg_list, m_meta_storages, 0,0,0);
+                elem.init(m_arg_list, m_meta_storages.m_set, 0,0,0);
                 elem.clone_to_gpu();
             }
 
@@ -278,6 +281,7 @@ namespace gridtools {
         bool IsStateful
     > struct create_mss_local_domains
     {
+
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
 
@@ -294,6 +298,12 @@ namespace gridtools {
         >::type type;
     };
 
+
+        template<typename T>
+        struct storage2metadata {
+            typedef typename T::meta_data_t type;
+        };
+
     /**
      * @brief computes the list of actual arg types by replacing the temporaries with their
      * actual storage type
@@ -303,7 +313,7 @@ namespace gridtools {
         typename DomainType,
         typename MssComponentsArray,
         typename StencilValueType
-        // typename MetaData
+        //typename MetaData
     >
     struct create_actual_arg_list
     {
@@ -322,6 +332,7 @@ namespace gridtools {
             StencilValueType// ,
             // MetaData
             >::type mpl_actual_tmp_pairs;
+
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
@@ -349,32 +360,54 @@ namespace gridtools {
 
 
 
-    /**
-     * @brief computes the list of actual arg types by replacing the temporaries with their
-     * actual storage type
-     */
-    template<
-        typename Backend,
-        typename DomainType,
-        typename MssComponentsArray,
-        typename StencilValueType,
-        typename LayoutType
-    >
-    struct create_actual_metadata_list
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
+    // /**
+    //  * @brief computes the list of actual arg types by replacing the temporaries with their
+    //  * actual storage type
+    //  */
+    // template<
+    //     typename Backend,
+    //     typename DomainType,
+    //     typename MssComponentsArray,
+    //     typename StencilValueType// ,
+    //     // typename LayoutType
+    // >
+    // struct create_actual_metadata_list
+    // {
+    //     GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+    //     GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
 
-        // /**
-        //  * Takes the domain list of storage pointer types and transform
-        //  * the no_storage_type_yet with the types provided by the
-        //  * backend with the interface that takes the range sizes. This
-        //  * must be done before getting the local_domain
-        //  */
+    //     /**
+    //      * Takes the domain list of storage pointer types and transform
+    //      * the no_storage_type_yet with the types provided by the
+    //      * backend with the interface that takes the range sizes. This
+    //      * must be done before getting the local_domain
+    //      */
+    //     typedef typename Backend::template obtain_temporary_meta_storage_types<
+    //         DomainType,
+    //         MssComponentsArray,
+    //         StencilValueType
+    //         >::type mpl_actual_tmp_pairs;
 
-        typedef typename DomainType::metadata_list type;
+    //     typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
-    };
+    //     typedef typename boost::mpl::fold<
+    //         iter_range,
+    //         boost::mpl::vector0<>,
+    //         typename boost::mpl::push_back<
+    //             boost::mpl::_1,
+    //             typename _impl::select_storage<
+    //                 typename DomainType::placeholders,
+    //                 mpl_actual_tmp_pairs
+    //             >::template apply<boost::mpl::_2>
+    //         >
+    //     >::type mpl_actual_arg_list;
+
+    //     typedef typename boost::fusion::result_of::as_vector<mpl_actual_arg_list>::type type;
+
+
+    //     // typedef typename DomainType::metadata_list type;
+
+    // };
 
 
 
@@ -420,11 +453,36 @@ namespace gridtools {
                 Backend,
                 DomainType,
                 mss_components_array_t,
-                float_type//,
-                // MetaData
+                float_type
         >::type actual_arg_list_type;
 
-        typedef typename DomainType::metadata_list actual_metadata_list_type;
+
+        typedef typename boost::mpl::fold<
+            actual_arg_list_type
+            , boost::mpl::set<>
+            , boost::mpl::insert<boost::mpl::_1, pointer
+                                 <boost::add_const
+                                  <storage2metadata
+                                   <boost::remove_pointer<boost::mpl::_2>
+                                    >
+                                   >
+                                  >
+                                 >
+            >::type actual_metadata_set_t;
+
+        typedef typename boost::mpl::fold<
+            actual_metadata_set_t
+            , boost::mpl::vector0<>
+            , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 > >::type actual_metadata_vector_t;
+
+        typedef metadata_set<actual_metadata_set_t> actual_metadata_list_type;
+        // typedef typename create_actual_metadata_list<
+        //     Backend,
+        //     DomainType,
+        //     typename boost::fusion::result_of::as_vector<typename DomainType::metadata_set_t::set_t>::type,
+        //     float_type >::type actual_metadata_list_type;
+
+        // typedef typename DomainType::metadata_set_t actual_metadata_list_type;
 
         typedef typename create_mss_local_domains<
             backend_id<Backend>::value,
@@ -436,6 +494,7 @@ namespace gridtools {
         >::type mss_local_domains_t;
 
         typedef typename boost::fusion::result_of::as_vector<mss_local_domains_t>::type MssLocalDomainsList;
+
 
         MssLocalDomainsList mss_local_domain_list;
 
@@ -451,6 +510,13 @@ namespace gridtools {
                 std::cout << T() << "            ----------" << std::endl;
             }
         };
+
+        template<typename T>
+        struct is_ptr_to_tmp : boost::mpl::false_{};
+
+        template<typename T>
+        struct is_ptr_to_tmp<pointer<const T> > : boost::mpl::bool_<T::is_temporary> {};
+
 
         intermediate(DomainType & domain, Coords const & coords)
             : m_domain(domain), m_coords(coords), m_meter("NoName")
@@ -501,7 +567,21 @@ namespace gridtools {
             t_args_view args_view(actual_arg_list);
 
             boost::fusion::copy(domain_view, args_view);
-            boost::fusion::copy(domain.m_metadata, actual_metadata_list);
+
+            //filter the non temporary meta storages among the storage pointers in the domain
+            typedef boost::fusion::filter_view<typename DomainType::shared_metadata_list,
+                                               boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_domain_meta_view;
+
+            //filter the non temporary meta storages among the placeholders passed to the intermediate
+            typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
+                                               boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
+
+            t_domain_meta_view  domain_meta_view(domain.m_metadata_set.sequence_view());
+            //t_domain_meta_view  meta_view(domain.m_metadata_set.sequence_view());
+            t_meta_view  meta_view(actual_metadata_list.sequence_view());
+
+            boost::fusion::copy(domain_meta_view, meta_view);
+
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -509,7 +589,7 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
         */
         virtual void ready () {
-            Backend::template prepare_temporaries( actual_arg_list, m_coords);
+            Backend::template prepare_temporaries( actual_arg_list, actual_metadata_list, m_coords);
             is_storage_ready=true;
         }
         /**

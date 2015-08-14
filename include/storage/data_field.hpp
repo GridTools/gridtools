@@ -124,8 +124,8 @@ namespace gridtools{
 
         /**@brief constructor given the space boundaries*/
         template<typename ... UIntTypes>
-        data_field(  UIntTypes const& ... args )
-            : super(args...)
+        data_field(  typename basic_type::meta_data_t & meta_data_, UIntTypes const& ... args )
+            : super(meta_data_, args...)
             {
        }
 #else
@@ -142,15 +142,15 @@ namespace gridtools{
             static const short_t n_width=3;
 
             /**@brief constructor given the space boundaries*/
-            data_field(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
-                : super(d1, d2, d3)
+            data_field(  typename basic_type::meta_data_t & meta_data_, uint_t const& d1, uint_t const& d2, uint_t const& d3 )
+                : super(meta_data_, d1, d2, d3)
             {
        }
 
 #endif
 
    /**@brief default constructor*/
-        data_field(): super(){}
+        data_field(typename basic_type::meta_data_t & meta_data_): super(meta_data_){}
 
    /**@brief device copy constructor*/
         template <typename T>
@@ -195,7 +195,7 @@ namespace gridtools{
 >
         GT_FUNCTION
         void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
-            for (uint_t i=0; i<super::meta_data_t::value.size(); ++i)
+            for (uint_t i=0; i<this->m_meta_data.size(); ++i)
            field[i]=value;
        push_front<dimension>(field);
    }
@@ -293,7 +293,7 @@ namespace gridtools{
 #endif
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-          return get<field_dim, snapshot>()[super::meta_data_t::value._index(super::meta_data_t::value.strides(),i,j,k)];
+          return get<field_dim, snapshot>()[this->m_meta_data._index(this->m_meta_data.strides(),i,j,k)];
       }
 
         /**@biref ODE advancing for a single dimension

@@ -6,7 +6,7 @@
 #include "../level.hpp"
 
 #include "backend_traits_cuda.hpp"
-#include "../../storage/host_tmp_storage.hpp"
+// #include "../../storage/host_tmp_storage.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 
@@ -70,7 +70,8 @@ namespace gridtools{
         {
 //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
 //            typedef storage< StorageType > type;
-            typedef host_tmp_storage <typename StorageType::super, BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1> type;
+            typedef storage <typename StorageType::super// , BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1
+                             > type;
 
         };
     };

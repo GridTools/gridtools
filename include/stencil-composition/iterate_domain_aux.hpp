@@ -33,16 +33,16 @@ namespace gridtools{
     template < typename BaseStorage >
     struct is_any_iterate_domain_storage<storage<BaseStorage> > : boost::mpl::true_{};
 
-    template <typename BaseStorage,
-        uint_t TileI,
-        uint_t TileJ,
-        uint_t MinusI,
-        uint_t MinusJ,
-        uint_t PlusI,
-        uint_t PlusJ
-    >
-    struct is_any_iterate_domain_storage<host_tmp_storage< BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > :
-        boost::mpl::true_{};
+    // template <typename BaseStorage,
+    //     uint_t TileI,
+    //     uint_t TileJ,
+    //     uint_t MinusI,
+    //     uint_t MinusJ,
+    //     uint_t PlusI,
+    //     uint_t PlusJ
+    // >
+    // struct is_any_iterate_domain_storage<host_tmp_storage< BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > :
+    //     boost::mpl::true_{};
 
     template <typename T> struct meta_storage_wrapper;
 
@@ -135,9 +135,9 @@ namespace gridtools{
 
 
     /**specialization to stop the recursion*/
-    template<typename storage_list>
-        struct strides_cached<(ushort_t)0, storage_list>  {
-        typedef typename boost::mpl::at_c<storage_list, 0>::type::storage_type storage_type;
+    template<typename MetaStorageList>
+        struct strides_cached<(ushort_t)0, MetaStorageList>  {
+        typedef typename boost::mpl::at_c<MetaStorageList, 0>::type::storage_type storage_type;
 
         GT_FUNCTION
         strides_cached(){}
@@ -225,19 +225,20 @@ namespace gridtools{
 
         assign_raw_data_functor();
 
-        // implementation of the assignment of the data pointer in case the storage is a temporary storage
-        template<typename ID, typename PE_ID, typename _Storage>
-        GT_FUNCTION
-        void impl(typename boost::enable_if_c<is_host_tmp_storage<_Storage>::value>::type* = 0) const
-        {
-            BackendType::template once_per_block<PE_ID::value>::assign(
-                    m_data_pointer_array[Offset+ID::value],m_storage->fields_offset(ID::value,m_EU_id_i, m_EU_id_j));
-        }
+        // // implementation of the assignment of the data pointer in case the storage is a temporary storage
+        // template<typename ID, typename PE_ID, typename _Storage>
+        // GT_FUNCTION
+        // void impl(typename boost::disable_if_c<is_storage<_Storage>::value>::type* = 0) const
+        // {
+        //     BackendType::template once_per_block<PE_ID::value>::assign(
+        //             m_data_pointer_array[Offset+ID::value], m_storage->fields_offset(ID::value,m_EU_id_i, m_EU_id_j));
+        // }
 
         // implementation of the assignment of the data pointer in case the storage is a a regular storage
         template<typename ID, typename PE_ID, typename _Storage>
         GT_FUNCTION
-        void impl(typename boost::disable_if_c<is_host_tmp_storage<_Storage>::value>::type* = 0) const
+        void impl( // typename boost::enable_if_c<is_storage<_Storage>::value>::type* = 0
+            ) const
         {
             BackendType::template once_per_block<PE_ID::value>::assign(
                     m_data_pointer_array[Offset+ID::value], m_storage->fields()[ID::value].get());
@@ -313,15 +314,19 @@ namespace gridtools{
                 int_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
-        template <typename ID>
+        template <typename Pair>
         GT_FUNCTION
-        void operator()(ID const&) const {
-            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
+        void operator()(Pair const&) const {
+
+            static const uint_t ID = boost::mpl::second<Pair>::type::value;
+            typedef typename boost::mpl::first<Pair>::type metadata_t;
+
+            GRIDTOOLS_STATIC_ASSERT((ID < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
             assert(m_index_array);
-            boost::fusion::at<ID>(m_storages)->template increment<Coordinate>(
-                    m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
+            boost::fusion::at_c<ID>(m_storages)->template increment<Coordinate>(
+                    m_increment,&m_index_array[ID], m_strides_cached.template get<ID>());
         }
 
         GT_FUNCTION
@@ -428,16 +433,18 @@ namespace gridtools{
             m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
             m_index_array(index_array) {}
 
-        template <typename ID>
+        template <typename Pair>
         GT_FUNCTION
-        void operator()(ID const&) const {
-            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
+        void operator()(Pair const&) const {
+
+            typedef typename boost::mpl::second<Pair>::type id_t;
+            GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
             assert(m_index_array);
 
-            boost::fusion::at<ID>(m_storages)->template initialize<Coordinate>(
-                m_initial_pos, m_block, &m_index_array[ID::value], m_strides.template get<ID::value>());
+            boost::fusion::at<id_t>(m_storages)->template initialize<Coordinate>(
+                m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get<id_t::value>());
         }
     };
 
@@ -560,25 +567,31 @@ namespace gridtools{
         assign_strides_functor(StridesCached& RESTRICT strides, MetaStorageSequence const& RESTRICT storages) :
             m_strides(strides), m_storages(storages) {}
 
-        template <typename ID>
+        template <typename Pair>
         GT_FUNCTION
-        void operator()(ID const&) const {
-            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
+        void operator()(Pair const&) const {
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::second<Pair>::type::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            typedef typename boost::remove_pointer<
-                typename boost::remove_reference<
-                    typename boost::fusion::result_of::at<MetaStorageSequence, ID>::type
-                 >::type
-            >::type storage_type;
+            static const uint_t ID=boost::mpl::second<Pair>::type::value;
+
+            typedef typename boost::mpl::first<Pair>::type meta_storage_type;
+
+                // typedef typename boost::remove_const
+                //  <typename boost::remove_reference
+                //   <typename boost::fusion::result_of::at<MetaStorageSequence, ID>::type
+                //    >::type
+                //    ::value_type
+                //  >::type
+                // meta_storage_type;
 
             //if the following fails, the ID is larger than the number of storage types
-            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<MetaStorageSequence>::value, "the ID is larger than the number of storage types");
+            GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<MetaStorageSequence>::value, "the ID is larger than the number of storage types");
 
-            for_each<typename reversed_range< short_t, 0,  storage_type::space_dimensions-1 >::type> (
+            GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
+            for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
             assign_strides_inner_functor<BackendType>
-
-            (&(m_strides.template get<ID::value>()[0]), &(boost::fusion::template at<ID>(m_storages)->strides(1)))
+            (&(m_strides.template get<ID>()[0]), &(boost::fusion::template at_c<ID>(m_storages)->strides(1)))
                 );
         }
     };

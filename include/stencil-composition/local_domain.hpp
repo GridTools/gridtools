@@ -20,6 +20,8 @@
 #include "../common/generic_metafunctions/expand_vector.hpp"
 #include "../gt_for_each/for_each.hpp"
 
+#include <boost/fusion/include/as_set.hpp>
+
 namespace gridtools {
 
     namespace local_domain_aux {
@@ -64,27 +66,25 @@ namespace gridtools {
 
 
         template <typename LocalMetaData, typename ActualMetaData>
-        struct assign_fusion_vectors {
+        struct assign_fusion_maps {
 
             ActualMetaData const& m_actual;
-            LocalMetaData & m_local;
 
             GT_FUNCTION_WARNING
-            assign_fusion_vectors(LocalMetaData& local_, ActualMetaData const& actual_)
+            assign_fusion_maps(ActualMetaData const& actual_)
                 :
-                m_local(local_)
-                , m_actual(actual_)
+                m_actual(actual_)
             {}
 
-            template <typename Index>
+            template <typename Local>
             GT_FUNCTION_WARNING
-            void operator()(Index /**/) const {
+            void operator()(Local& local_) const {
                 // typedef typename boost::fusion::result_of::at_c<ZipElem, 0>::type index;
-                boost::fusion::at<Index>(m_local) =
+                local_ =
 #ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
-                    boost::fusion::at<Index>(m_actual)->gpu_object_ptr;
+                    boost::fusion::at_key<Local>(m_actual)->gpu_object_ptr;
 #else
-                    boost::fusion::at<Index>(m_actual);
+                    boost::fusion::at_key<Local>(m_actual);
 #endif
             }
         };
@@ -140,7 +140,8 @@ namespace gridtools {
 
         template<typename Storage>
         struct extract_meta_data{
-            typedef typename Storage::meta_data_t::value_t type;
+            typedef typename Storage::meta_data_t// ::value_t
+            type;
         };
 
     } // namespace gt_aux
@@ -164,7 +165,6 @@ namespace gridtools {
     struct local_domain_base<local_domain<StoragePointers, MetaStoragePointers, EsfArgs, IsStateful> >
         : public clonable_to_gpu<local_domain<StoragePointers, MetaStoragePointers, EsfArgs, IsStateful> >
     {
-
         template <typename I>
         struct extract_index{
             typedef typename I::index_type type;
@@ -184,6 +184,8 @@ namespace gridtools {
         typedef local_domain_base<derived_t> this_type;
 
         typedef EsfArgs esf_args;
+
+        typedef StoragePointers storage_pointers_t;
 
         typedef MetaStoragePointers meta_storage_pointers_t;
 
@@ -232,49 +234,94 @@ namespace gridtools {
                                           boost::mpl::push_back<
                                               boost::mpl::_1,
                                               typename local_domain_aux::extract_meta_data<
-                                                  boost::remove_pointer<boost::mpl::_2> >
+                                                  boost::remove_pointer<
+                                                  boost::mpl::_2 >
+                                                  >
                                               >
                                           >::type::type mpl_meta_data_t;
 
-        //! ordering map in the storage according to the metadata indices
-        typedef typename boost::mpl::sort
-        < typename lazy_range<static_int<0>, typename boost::mpl::minus<typename boost::mpl::size<mpl_meta_data_t >::type, static_int<1> >::type >::type
-          , boost::mpl::less<extract_index<boost::mpl::at<mpl_meta_data_t, boost::mpl::_1 > >
-                             , extract_index<boost::mpl::at<mpl_meta_data_t,boost::mpl::_2> >
-                            >
-         >
-        ::type sort_t;
 
-        //! get the sorted metadata indices in a vector
-        typedef typename boost::mpl::fold<sort_t,
-                                          boost::mpl::vector0<>,
-                                          boost::mpl::push_back<
-                                              boost::mpl::_1,
-                                              extract_index< boost::mpl::at<mpl_meta_data_t, boost::mpl::_2> >
-                                              >
-                                          >::type sorted_metadata_indices_t;
+        typedef typename boost::mpl::fold<boost::mpl::range_c<uint_t, 0, boost::mpl::size<mpl_meta_data_t>::value>
+                                          , boost::mpl::map0<>
+                                          , boost::mpl::insert
+                                          <boost::mpl::_1, boost::mpl::pair
+                                           <boost::mpl::at
+                                            <mpl_meta_data_t, boost::mpl::_2>,
+                                            boost::mpl::_2
+                                            >
+                                           >
+                                          >::type storage_metadata_map;
 
-        //! compute the histogram of the vector
-        typedef typename histogram<sorted_metadata_indices_t>::type mpl_storage_multiplicity;
 
-        //! compute the scan of the histogram
-        typedef typename exclusive_scan< mpl_storage_multiplicity >::type mpl_multiplicity_scan;
+        // //! ordering map in the storage according to the metadata indices
+        // typedef typename boost::mpl::sort
+        // < typename lazy_range<static_int<0>, typename boost::mpl::minus<typename boost::mpl::size<mpl_meta_data_t >::type, static_int<1> >::type >::type
+        //   , boost::mpl::less<extract_index<boost::mpl::at<mpl_meta_data_t, boost::mpl::_1 > >
+        //                      , extract_index<boost::mpl::at<mpl_meta_data_t,boost::mpl::_2> >
+        //                     >
+        //  >
+        // ::type sort_t;
 
-        //! create a linear range as an mpl::vector (not a range_c)
-        typedef typename lazy_range
-        <static_int<0>, typename boost::mpl::minus
-         <typename boost::mpl::size
-          <mpl_storage_multiplicity>::type, static_int<1> >::type >::type metadata_indices_range_t;
 
-        //! map the index vector to the original dimension of the storage list
-        typedef typename expand< metadata_indices_range_t
-                                 // mpl_multiplicity_scan
-                                 , mpl_storage_multiplicity >::type mpl_expanded_scan;
+
+
+
+
+
+        // //! get the sorted metadata indices in a vector
+        // typedef typename boost::mpl::fold<sort_t,
+        //                                   boost::mpl::vector0<>,
+        //                                   boost::mpl::push_back<
+        //                                       boost::mpl::_1,
+        //                                       extract_index< boost::mpl::at<mpl_meta_data_t, boost::mpl::_2> >
+        //                                       >
+        //                                   >::type sorted_metadata_indices_t;
+
+        // //! compute the histogram of the vector
+        // typedef typename histogram<sorted_metadata_indices_t>::type mpl_storage_multiplicity;
+
+        // //! compute the scan of the histogram (useless)
+        // typedef typename exclusive_scan< mpl_storage_multiplicity >::type mpl_multiplicity_scan;
+
+        // //! create a linear range as an mpl::vector (not a range_c)
+        // typedef typename lazy_range
+        // <static_int<0>, typename boost::mpl::minus
+        //  <typename boost::mpl::size
+        //   <mpl_storage_multiplicity>::type, static_int<1> >::type >::type metadata_indices_range_t;
+
+        // //! map the index vector to the original dimension of the storage list
+        // typedef typename expand< metadata_indices_range_t
+        //                          // mpl_multiplicity_scan
+        //                          , mpl_storage_multiplicity >::type mpl_multiplicity_map;
+
+
+
+        // typedef// typename boost::fusion::result_of::as_vector<
+        //     typename boost::mpl::transform<sort_t, // typename boost::add_pointer<
+        //                                                         boost::mpl::_1// >
+        //                                    >::type
+        //     // >::type
+        // local_metadata_mpl_t;
+        typedef mpl_meta_data_t local_metadata_mpl_t;
+
+
+
+
+
+
 
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
+
+
+        // typedef typename boost::fusion::result_of::as_set<
+        //     typename boost::mpl::transform<local_metadata_mpl_t, pointer<
+        //                                                         boost::add_const< boost::mpl::_1> > >::type
+        //     >::type local_metadata_type;
+
         typedef typename boost::fusion::result_of::as_vector<
-            typename boost::mpl::transform<mpl_meta_data_t, typename boost::add_pointer<boost::mpl::_1> >::type
+            typename boost::mpl::transform<local_metadata_mpl_t, pointer<
+                                                                boost::add_const< boost::mpl::_1> > >::type
             >::type local_metadata_type;
 
         local_args_type m_local_args;
@@ -316,7 +363,8 @@ namespace gridtools {
 
             // for_each<domain_indices_range_t>(local_domain_aux::assign_fusion_vectors<local_args_type, ActualArgs>(m_local_args, actual_args_));
 
-            for_each<metadata_indices_range_t>(local_domain_aux::assign_fusion_vectors<local_metadata_type, ActualMetaData>(m_local_metadata, actual_metadata_));
+            //metadata_indices_range_t
+            boost::fusion::for_each(m_local_metadata, local_domain_aux::assign_fusion_maps<local_metadata_type, ActualMetaData>(actual_metadata_));
         }
 
         __device__

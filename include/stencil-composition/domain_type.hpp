@@ -3,6 +3,7 @@
 #include "../common/defs.hpp"
 #include "../common/gt_assert.hpp"
 
+#include <memory>
 #include <stdio.h>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/push_back.hpp>
@@ -24,6 +25,7 @@
 #include "../storage/storage_functors.hpp"
 
 #include "domain_type_impl.hpp"
+#include "../storage/metadata_set.hpp"
 
 /**@file
  @brief This file contains the list of placeholders to the storages
@@ -31,9 +33,10 @@
 
 namespace gridtools {
 
+
         template<typename T>
-        struct get_value_t {
-            typedef typename T::value_t type;
+        struct arg2metadata {
+            typedef typename T::storage_type::meta_data_t type;
         };
 
     /**
@@ -42,10 +45,22 @@ namespace gridtools {
     template <typename Placeholders, typename MetaStorages>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders, MetaStorages> > {
         typedef Placeholders original_placeholders;
-        typedef MetaStorages original_metadata;
+        //typedef MetaStorages original_metadata;
+
     private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
-        BOOST_STATIC_CONSTANT(uint_t, len_meta = boost::mpl::size<original_metadata>::type::value);
+
+        typedef typename boost::mpl::fold<
+            original_placeholders
+            , boost::mpl::set<>
+            , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> > >::type original_metadata_set_t;
+
+        typedef typename boost::mpl::fold<
+            original_metadata_set_t
+            , boost::mpl::vector0<>
+            , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 > >::type original_metadata_t;
+
+        BOOST_STATIC_CONSTANT(uint_t, len_meta = boost::mpl::size<original_metadata_t>::type::value);
 
         /**
          * \brief Get a sequence of the same type of original_placeholders, but containing the storage types for each placeholder
@@ -55,9 +70,12 @@ namespace gridtools {
                                                _impl::l_get_type
                                                >::type raw_storage_list;
 
-        typedef typename boost::mpl::transform<original_metadata,
-                                               boost::add_pointer<get_value_t<boost::mpl::_1> >
+        typedef typename boost::mpl::transform<original_metadata_t,
+                                               pointer<boost::add_const<// get_value_t<
+                                                                       boost::mpl::_1// >
+                                                                       > >
                                                >::type::type raw_metadata_list;
+
 
         /**
          * \brief Get a sequence of the same type of original_placeholders, but containing the iterator types corresponding to the placeholder's storage type
@@ -67,21 +85,27 @@ namespace gridtools {
                                                >::type raw_iterators_list;
 
 
+        typedef typename boost::mpl::transform<original_metadata_t,
+                                               pointer<boost::add_const<// get_value_t<
+                                                                    boost::mpl::_1// >
+                                                                    > >
+                                               >::type::type shared_mpl_metadata_list;
+
     public:
 
         typedef _impl::compute_index_set<original_placeholders> check_holes;
         typedef typename check_holes::raw_index_list raw_index_list;
         typedef typename check_holes::index_set index_set;
 
-        typedef _impl::compute_index_set<original_metadata> check_holes_metadata;
+        typedef _impl::compute_index_set<original_metadata_t> check_holes_metadata;
         typedef typename check_holes_metadata::raw_index_list raw_index_list_metadata;
         typedef typename check_holes_metadata::index_set index_set_metadata;
 
         //actual check if the user specified placeholder arguments with the same index
         GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
 
-        //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len_meta == boost::mpl::size<index_set_metadata>::type::value ), "you specified two different meta_storage with the same index, which is not allowed. check the meta_storage defiintions.");
+        // //actual check if the user specified placeholder arguments with the same index
+        // GRIDTOOLS_STATIC_ASSERT((len_meta == boost::mpl::size<index_set_metadata>::type::value ), "you specified two different meta_storage with the same index, which is not allowed. check the meta_storage defiintions.");
 
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
@@ -113,13 +137,14 @@ The numeration of the meta_storages is not contiguous. You have to define each m
             >
         >::type iter_list;
 
-        typedef typename boost::mpl::fold<meta_range_t,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::find<raw_index_list_metadata, boost::mpl::_2>
-            >
-        >::type iter_list_metadata;
+        typedef // typename boost::mpl::fold<meta_range_t,
+            // boost::mpl::vector<>,
+            // boost::mpl::push_back<
+            //     boost::mpl::_1,
+            //     boost::mpl::find<
+                    raw_index_list_metadata// , boost::mpl::_2>
+            // >
+        /*>::type*/ iter_list_metadata;
 
     public:
 
@@ -127,7 +152,7 @@ The numeration of the meta_storages is not contiguous. You have to define each m
          * Defines a mpl::vector of index::pos for the indexes in iter_list
          */
         typedef typename boost::mpl::transform<iter_list, _impl::l_get_it_pos>::type index_list;
-        typedef typename boost::mpl::transform<iter_list_metadata, _impl::l_get_it_pos>::type index_list_metadata;
+        // typedef typename boost::mpl::transform<iter_list_metadata, _impl::l_get_it_pos>::type index_list_metadata;
 
         /**
          * \brief reordering of raw_storage_list
@@ -141,13 +166,15 @@ The numeration of the meta_storages is not contiguous. You have to define each m
             >
         >::type arg_list_mpl;
 
-        typedef typename boost::mpl::fold<index_list_metadata,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::at<raw_metadata_list, boost::mpl::_2>
-                >
-                                          >::type::type meta_arg_list_mpl;
+        // typedef typename boost::mpl::fold<index_list_metadata,
+        //     boost::mpl::vector<>,
+        //     boost::mpl::push_back<
+        //         boost::mpl::_1,
+        //         boost::mpl::at<raw_metadata_list, boost::mpl::_2>
+        //         >
+        //                                   >::type::type meta_arg_list_mpl;
+
+
 
         /**
          * \brief defines a reordered mpl::vector of placeholders
@@ -160,13 +187,13 @@ The numeration of the meta_storages is not contiguous. You have to define each m
             >
         >::type placeholders;
 
-        typedef typename boost::mpl::fold<index_list_metadata,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::at<original_metadata, boost::mpl::_2>
-            >
-        >::type metadata;
+        // typedef typename boost::mpl::fold<index_list_metadata,
+        //     boost::mpl::vector<>,
+        //     boost::mpl::push_back<
+        //         boost::mpl::_1,
+        //         boost::mpl::at<original_metadata_t, boost::mpl::_2>
+        //     >
+        // >::type metadata;
 
     private:
         typedef typename boost::mpl::fold<index_list,
@@ -182,11 +209,14 @@ The numeration of the meta_storages is not contiguous. You have to define each m
          * Type of fusion::vector of pointers to storages as indicated in Placeholders
          */
         typedef typename boost::fusion::result_of::as_vector<arg_list_mpl>::type arg_list;
-        typedef typename boost::fusion::result_of::as_vector<meta_arg_list_mpl>::type metadata_list;
+        typedef typename boost::fusion::result_of::as_vector<shared_mpl_metadata_list>::type metadata_list;
+        typedef typename boost::fusion::result_of::as_set<shared_mpl_metadata_list>::type shared_metadata_list;
         /**
          * Type of fusion::vector of pointers to iterators as indicated in Placeholders
          */
         typedef typename boost::fusion::result_of::as_vector<iterator_list_mpl>::type iterator_list;
+
+        typedef metadata_set<shared_metadata_list> metadata_set_t;
 
         /**
          * fusion::vector of pointers to storages
@@ -203,10 +233,14 @@ The numeration of the meta_storages is not contiguous. You have to define each m
          */
         metadata_list m_metadata;
 
+        shared_metadata_list m_metadata_shared;
+
         /**
            tuple of pointers to the storages metadata, used to be able to delete the pointers
          */
         metadata_list m_original_metadata;
+
+        metadata_set_t m_metadata_set;
 
 #ifdef CXX11_ENABLED
         void assign_pointers() {}
@@ -221,10 +255,10 @@ The numeration of the meta_storages is not contiguous. You have to define each m
         }
 
         template <typename Arg0, typename... OtherArgs>
-        void assign_metadatas(Arg0 const& arg0, OtherArgs const& ... other_args)
+        void assign_metadata(Arg0 const& arg0, OtherArgs const& ... other_args)
         {
             boost::fusion::at<typename Arg0::arg_type::index_type>(m_metadata) = arg0;
-            assign_metadatas(other_args...);
+            assign_metadata(other_args...);
         }
 #endif
     public:
@@ -249,6 +283,50 @@ The numeration of the meta_storages is not contiguous. You have to define each m
             }
 #endif
 
+
+        template <typename Sequence>
+        struct assign_metadata_set{
+        private:
+            Sequence& m_sequence;
+
+        public:
+            assign_metadata_set(Sequence& sequence_) : m_sequence(sequence_){
+            }
+
+            template <typename Arg>
+            void operator()( Arg const* arg_) const{
+                m_sequence.insert(pointer<const Arg>(arg_));
+            }
+        };
+
+        template <ushort_t Index, typename Layout, bool Tmp>
+        struct meta_storage;
+
+        template <typename T>
+        struct meta_storage_wrapper;
+
+        template <typename T>
+        struct is_not_tmp_metadata; // : boost::mpl::false_{};
+
+        template <ushort_t Index, typename Layout, bool Tmp>
+        struct is_not_tmp_metadata<meta_storage_wrapper<meta_storage<Index, Layout, Tmp> > > : boost::mpl::bool_<!Tmp>::type
+        {};
+
+
+        // template <typename T>
+        // struct gt_make_shared{
+
+        //     std::shared_ptr const& m_t;
+
+        //     gt_make_shared( std::shared_ptr<T> const& t_): m_t(t_){
+
+        //     }
+
+        //     void operator(T* u)(){
+        //         m_t=make_shared<T>(u);
+        //     }
+        // };
+
         /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
          * @param real_storage The actual fusion::vector with the values
@@ -270,14 +348,20 @@ The numeration of the meta_storages is not contiguous. You have to define each m
             typedef boost::fusion::filter_view<arg_list,
                 is_storage<boost::mpl::_1> > view_type;
 
+            // typedef typename boost::mpl::filter_view<shared_metadata_list,
+            //                                             is_not_tmp_metadata<boost::mpl::_1>
+            //                                             > metadata_view_type;
+
             // // typedef boost::fusion::filter_view<metadata_list,
             // //     is_meta_storage<boost::mpl::_1> > meta_view_type;
             // typedef metadata_list meta_view_type;
 
             view_type fview(m_storage_pointers);
-            // meta_view_type fview_meta(m_metadata);
+            // metadata_view_type metadata_view_(m_metadata_shared);
 
-            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages.");
+// #ifdef PEDANTIC
+//             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages.");
+// #endif
 
             // GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<meta_view_type>::type::value == boost::mpl::size<MetaStorage>::type::value, "The number of meta storages specified when constructing the domain_type is not the same as the number of meta storage types in the template arugment of the domain_type.");
 
@@ -294,16 +378,18 @@ The numeration of the meta_storages is not contiguous. You have to define each m
 //             std::cout << "\nThese are the view " << boost::fusion::size(fview) << std::endl;
 //             boost::fusion::for_each(fview, _debug::print_deref());
 // #endif
+
             boost::fusion::copy(real_storage_, fview);
-            boost::fusion::copy(meta_storage_, m_metadata);
-            boost::fusion::copy(meta_storage_, m_original_metadata);
+            // boost::fusion::copy(meta_storage_, m_metadata);
+            // boost::fusion::copy(meta_storage_, m_original_metadata);
+
+            boost::fusion::for_each(meta_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
             // boost::fusion::copy(meta_storage_, fview_meta);
 
 #ifdef __VERBOSE__
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
 #endif
-
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
             //meta_view_type original_meta_fview(m_original_metadata);
@@ -364,6 +450,8 @@ The numeration of the meta_storages is not contiguous. You have to define each m
                 boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
             > (copy_pointers_functor<arg_list, arg_list> (m_original_pointers, m_storage_pointers));
         }
+
+        metadata_set_t & metadata_set_view(){return m_metadata_set;}
 
     };
 

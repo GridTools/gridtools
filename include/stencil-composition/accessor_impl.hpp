@@ -289,6 +289,11 @@ namespace gridtools {
     struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
     {};
 
+    //Decorator is the storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_storage<Decorator<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    {};
+
 #ifdef CXX11_ENABLED
     //Decorator is the integrator
     template <typename First, typename ... BaseType , template <typename ... T> class Decorator >

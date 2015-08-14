@@ -25,16 +25,16 @@ namespace gridtools{
         typedef typename super::value_type value_type;
 
         //default constructor
-        storage_list(): super(){}
+        storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
         template<typename ... UIntTypes>
-        explicit storage_list(UIntTypes const& ... args ): super( args ... ) {
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args ): super( meta_data_,  args ... ) {
         }
 #else
         /**@brief default constructor*/
-        explicit storage_list(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): super( d1, d2, d3 ) {
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, uint_t const& d1, uint_t const& d2, uint_t const& d3 ): super( meta_data_, d1, d2, d3 ) {
         }
 #endif
 
@@ -129,16 +129,16 @@ namespace gridtools{
         // typedef typename Storage::basic_storage original_storage;
 
         //default constructor
-        storage_list(): super(){}
+        storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
         template<typename ... UIntTypes>
-        explicit storage_list(UIntTypes const& ... args ): Storage( args ... ) {
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args ): Storage( meta_data_, args ... ) {
         }
 #else
         /**@brief default constructor*/
-        explicit storage_list(uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( d1, d2, d3 ) {
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( meta_data_, d1, d2, d3 ) {
         }
 #endif
 

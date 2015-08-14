@@ -164,12 +164,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef horizontal_diffusion::repository::storage_type storage_type;
     typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
-    horizontal_diffusion::repository::create_metadata(d1,d2,d3);
+    // horizontal_diffusion::repository::create_metadata(d1,d2,d3);
     horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
     repository.init_fields();
 
     repository.generate_reference();
-
 
      // Definition of the actual data fields that are used for input/output
     storage_type& in = repository.in();
@@ -189,7 +188,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
-    typedef boost::mpl::vector<typename horizontal_diffusion::metadata_ijk const> metadata_list;
+    typedef boost::mpl::vector<typename horizontal_diffusion::metadata_ijk_t const> metadata_list;
 
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -197,7 +196,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
 // #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
 //     gridtools::domain_type<accessor_list, metadata_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 // #else
-    gridtools::domain_type<accessor_list, metadata_list> domain(boost::fusion::make_vector(&coeff, &in, &out), boost::fusion::make_vector(&horizontal_diffusion::metadata_ijk::value));
+    gridtools::domain_type<accessor_list , metadata_list
+                           > domain(boost::fusion::make_vector(&coeff, &in, &out), boost::fusion::make_vector(&repository.m_metadata_ijk));
 // #endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -320,6 +320,8 @@ PAPI_stop(event_set, values);
     if(!result){
         std::cout << "ERROR"  << std::endl;
     }
+    else
+        std::cout<<"OK"<<std::endl;
 
 #ifdef BENCHMARK
         std::cout << horizontal_diffusion->print_meter() << std::endl;

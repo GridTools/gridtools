@@ -28,7 +28,6 @@ namespace gridtools
         struct get_local_domain {
             template <typename Esf>
             struct apply {
-//                typedef typename Esf::args_t::fuck fuck;
                 GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Internal Error: invalid type");
                 typedef local_domain<StoragePointers,MetaStoragePointers,typename Esf::args_t, IsStateful> type;
             };

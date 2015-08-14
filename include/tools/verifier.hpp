@@ -18,7 +18,7 @@ public:
         // assert(field1.template dims<0>() == field2.template dims<0>());
         // assert(field1.template dims<1>() == field2.template dims<1>());
         // assert(field1.template dims<2>() == field2.template dims<2>());
-        typename storage_type::meta_data_t::value_t* meta=&storage_type::meta_data_t::value;
+        typename storage_type::meta_data_t const* meta=&field1.meta_data();
 
         const gridtools::uint_t idim = meta->template dims<0>();
         const gridtools::uint_t jdim = meta->template dims<1>();
