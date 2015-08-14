@@ -77,8 +77,6 @@ class FunctorBody (ast.NodeVisitor):
             sign = '**'
         elif isinstance (op, ast.Not):
             sign = '!'
-#        elif isinstance (op, ast.Invert):
-#            sign = '~'
         else:
             sign = None
             logging.warning ("Cannot translate '%s'" % str (op))
@@ -161,21 +159,19 @@ class FunctorBody (ast.NodeVisitor):
             op = ">="
         if (isinstance (node, ast.Is)):
             op = "None"
-            raise TypeError ("Translation of Python 'Is' is not currently supported.")
+            raise NotImplementedError ("Translation of Python 'Is' is not currently supported.")
         if (isinstance (node, ast.IsNot)):
             op = "None"
-            raise TypeError ("Translation of Python 'IsNot' is not currently supported.")
+            raise NotImplementedError ("Translation of Python 'IsNot' is not currently supported.")
         if (isinstance (node, ast.In)):
             op = "None"
-            raise TypeError ("Translation of Python 'In' is not currently supported.")
+            raise NotImplementedError ("Translation of Python 'In' is not currently supported.")
         if (isinstance (node, ast.NotIn)):
             op = "None"
-            raise TypeError ("Translation of Python 'NotIn' is not currently supported.")
+            raise NotImplementedError ("Translation of Python 'NotIn' is not currently supported.")
         return op
 
     def visit_Compare(self, node):
-        ret_value = ""
-
         ret_value = "%s" % self.visit(node.left)
         for cmpop in node.ops:
             ret_value = "%s %s" % (ret_value, self.visit_CompOp(cmpop))
@@ -195,12 +191,11 @@ class FunctorBody (ast.NodeVisitor):
             sign = '||'
         else:
             sign = None
-            logging.warning ("Cannot translate '%s'" % str (op))
+            raise RuntimeError("Cannot translate '%s'" % str (op))
         return sign
 
     def visit_BoolOp(self, node):
         ret_value = ""
-        op = "None"
         op = self._boolean_operator(node.op)
         nels = len(node.values)
         if(nels > 0):
@@ -213,8 +208,6 @@ class FunctorBody (ast.NodeVisitor):
 
 
     def visit_If (self, node):
-        ret_value = "We have an if-statement here!"
-
         ret_value = "if (%s) {" % self.visit(node.test)
         for stmt in node.body:
             ret_value = "%s %s;" % (ret_value,self.visit(stmt))

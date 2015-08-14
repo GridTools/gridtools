@@ -3,10 +3,7 @@ import logging
 
 import numpy as np
 
-from nose.plugins.attrib import attr
-
 from gridtools.stencil  import MultiStageStencil
-from gridtools.compiler import StencilInspector
 
 
 class GameOfLife (MultiStageStencil):
@@ -60,6 +57,7 @@ class AdditionalIfStatement (MultiStageStencil):
 
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
+            self.counter[p] = out_X[p + (1,0,0)]
 
             if (out_X[p] != 1.0 and self.counter[p] == 2 and out_X[p + (1,0,0)] > 0.0) or self.counter[p] < 10:
                 out_X[p] = 0.0
@@ -96,6 +94,7 @@ class IfStatementOpIsFailure (MultiStageStencil):
                 out_X[p] = 0.0
 
 
+
 class IfStatementOpIsNotFailure (MultiStageStencil):
     """
     Tests that use of 'is not' operator currently raises an error.
@@ -109,6 +108,7 @@ class IfStatementOpIsNotFailure (MultiStageStencil):
         for p in self.get_interior_points (out_X):
             if out_X[p] is not out_X[p]:
                 out_X[p] = 0.0
+
 
 
 class IfStatementOpNotInFailure (MultiStageStencil):
@@ -126,6 +126,7 @@ class IfStatementOpNotInFailure (MultiStageStencil):
                 out_X[p] = 0.0
 
 
+
 class IfStatementOpInFailure (MultiStageStencil):
     """
     Tests that use of 'in' operator currently raises an error.
@@ -141,53 +142,16 @@ class IfStatementOpInFailure (MultiStageStencil):
                 out_X[p] = 0.0
 
 
+
 class IfStatementTest (unittest.TestCase):
     """
     A test case for the If-statement related stencils defined above.-
     """
-
-    def _run (self):
+    def _run (self, stencil):
         kwargs = dict ( )
         for p in self.params:
             kwargs[p] = getattr (self, p)
-        self.stencil.run (**kwargs)
-
-
-    def _run2 (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil2.run (**kwargs)
-        #self.stencil.run (**kwargs)
-
-
-    def _run3 (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil3.run (**kwargs)
-
-
-    def _run4 (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil4.run (**kwargs)
-
-
-    def _run5 (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil5.run (**kwargs)
-
-
-    def _run6 (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil6.run (**kwargs)
-
+        stencil.run (**kwargs)
 
     def setUp (self):
         super ( ).setUp ( )
@@ -211,44 +175,45 @@ class IfStatementTest (unittest.TestCase):
 
 
     def test_game_of_life (self):
-        self.stencil.backend = 'c++'
-        self._run ( )
-        out_cpp = np.copy (self.out_X)                        # Save copy of C++ run's output
-        self.stencil.backend = 'python'
-        self.out_X = np.copy (np.asfortranarray(self.in_X))   # Copy original input back but with Fortran layout
-        self._run ( )                                         # Now run using the Python backend
-        self.assertTrue (np.array_equal (self.out_X,out_cpp))
+        from tests.test_stencils import CopyTest
+        ct         = CopyTest ( )
+        ct.stencil = self.stencil
+        ct.domain  = self.domain
+        ct.params  = self.params
+        ct.out_X   = self.out_X
+        ct.in_X    = self.in_X
+        ct.test_compare_python_cpp_and_cuda_results ( )
 
 
     def test_additional_if_statement_tests (self):
-        self.stencil2.backend = 'c++'
-        self._run2 ( )
-        out_cpp = np.copy (self.out_X)                        # Save copy of C++ run's output
-        self.stencil2.backend = 'python'
-        self.out_X = np.copy (np.asfortranarray(self.in_X))   # Copy original input back but with Fortran layout
-        self._run2 ( )                                        # Now run using the Python backend
-        self.assertTrue (np.array_equal (self.out_X,out_cpp))
-
+        from tests.test_stencils import CopyTest
+        ct         = CopyTest ( )
+        ct.stencil = self.stencil2
+        ct.domain  = self.domain
+        ct.params  = self.params
+        ct.out_X   = self.out_X
+        ct.in_X    = self.in_X
+        ct.test_compare_python_cpp_and_cuda_results ( )
 
 #    def test_op_is_raises_error (self):
-#        with self.assertRaises (TypeError):
+#        with self.assertRaises (NotImplementedError):
 #            self.stencil3.backend = 'c++'
-#            self._run3 ( )
+#            self._run (self.stencil3)
 #
 #
 #    def test_op_is_not_raises_error (self):
-#        with self.assertRaises (TypeError):
+#        with self.assertRaises (NotImplementedError):
 #            self.stencil4.backend = 'c++'
-#            self._run4 ( )
+#            self._run (self.stencil4)
 #
 #
 #    def test_op_not_in_raises_error (self):
-#        with self.assertRaises (TypeError):
+#        with self.assertRaises (NotImplementedError):
 #            self.stencil5.backend = 'c++'
-#            self._run5 ( )
+#            self._run (self.stencil5)
 #
 #
 #    def test_op_in_raises_error (self):
-#        with self.assertRaises (TypeError):
+#        with self.assertRaises (NotImplementedError):
 #            self.stencil6.backend = 'c++'
-#            self._run6 ( )
+#            self._run (self.stencil6)
