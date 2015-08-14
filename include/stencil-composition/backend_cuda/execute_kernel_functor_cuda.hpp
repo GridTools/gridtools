@@ -3,6 +3,8 @@
 #include "../backend_traits_fwd.hpp"
 #include "backend_traits_cuda.hpp"
 #include "../iterate_domain_aux.hpp"
+#include "shared_iterate_domain.hpp"
+#include "common/gt_assert.hpp"
 
 namespace gridtools {
 
@@ -21,19 +23,30 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
+        typedef strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides_t;
+        typedef array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer_t;
+        typedef shared_iterate_domain<
+            data_pointer_t,
+            strides_t,
+            typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
+        > shared_iterate_domain_t;
 
         const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
                 block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;
         const uint_t block_size_j = (blockIdx.y+1) * block_size_t::j_size_t::value < ny ?
                 block_size_t::j_size_t::value : ny - blockIdx.y * block_size_t::j_size_t::value ;
 
-        __shared__  array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
-        __shared__ strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides;
+        __shared__ shared_iterate_domain_t shared_iterate_domain;
 
         //Doing construction of the ierate domain and assignment of pointers and strides
         iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
-        it_domain.template assign_storage_pointers<backend_traits_from_id<enumtype::Cuda> >(&data_pointer);
-        it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Cuda> >(&strides);
+
+        it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+
+        it_domain.template assign_storage_pointers<backend_traits_t >();
+        it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
+
         __syncthreads();
 
         //computing the global position in the physical domain
@@ -84,7 +97,7 @@ struct execute_kernel_functor_cuda
 
     void operator()()
     {
-#ifndef NDEBUG
+#ifdef __VERBOSE__
         short_t count;
         cudaGetDeviceCount ( &count  );
 
@@ -133,7 +146,7 @@ struct execute_kernel_functor_cuda
         // Based on the previous we compute the size of the CUDA block required.
         typedef typename boost::mpl::fold<
             typename RunFunctorArguments::range_sizes_t,
-            range<0,0,0,0>,
+            range<0,0,0,0,0,0>,
             enclosing_range<boost::mpl::_1, boost::mpl::_2>
         >::type maximum_range_t;
 
@@ -164,17 +177,19 @@ struct execute_kernel_functor_cuda
             cuda_block_size_t,
             typename RunFunctorArguments::physical_domain_block_size_t,
             typename RunFunctorArguments::functor_list_t,
+            typename RunFunctorArguments::esf_sequence_t,
             typename RunFunctorArguments::esf_args_map_sequence_t,
             typename RunFunctorArguments::loop_intervals_t,
             typename RunFunctorArguments::functors_map_t,
             typename RunFunctorArguments::range_sizes_t,
             typename RunFunctorArguments::local_domain_t,
+            typename RunFunctorArguments::cache_sequence_t,
             typename RunFunctorArguments::coords_t,
             typename RunFunctorArguments::execution_type_t,
             RunFunctorArguments::s_strategy_id
         > run_functor_arguments_cuda_t;
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
             printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
             printf("nx = %d, ny = %d, nz = 1\n",nx, ny);

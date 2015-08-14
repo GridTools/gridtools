@@ -178,9 +178,9 @@ namespace gridtools {
                 : prefix(s)
             {}
 
-            template <uint_t I, uint_t J, uint_t K, uint_t L>
-            void operator()(range<I,J,K,L> const&) const {
-                std::cout << prefix << range<I,J,K,L>() << std::endl;
+            template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
+            void operator()(range<I,J,K,L,M,N> const&) const {
+                std::cout << prefix << range<I,J,K,L,M,N>() << std::endl;
             }
 
             template <typename MplVector>
@@ -347,6 +347,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type");
 
+        typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
+
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
@@ -396,8 +398,7 @@ namespace gridtools {
         };
 
         intermediate(DomainType & domain, Coords const & coords)
-            : m_domain(domain)
-            , m_coords(coords)
+            : m_domain(domain), m_coords(coords), m_meter("NoName")
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -466,22 +467,20 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 setup_computation<Backend::s_backend_id>::apply( actual_arg_list, m_domain );
-#ifndef NDEBUG
+#ifdef __VERBOSE__
                     printf("Setup computation\n");
 #endif
             }
             else
             {
-#ifndef NDEBUG
                     printf("Setup computation FAILED\n");
-#endif
                     exit( GT_ERROR_NO_TEMPS );
             }
 
             boost::fusion::for_each(mss_local_domain_list,
                    _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
 
-#ifndef NDEBUG
+#ifdef __VERBOSE__
             m_domain.info();
 #endif
         }
@@ -509,11 +508,16 @@ namespace gridtools {
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
                     "Internal Error");
 
+            m_meter.start();
             Backend::template run<mss_components_array_t>( m_coords, mss_local_domain_list );
+            m_meter.pause();
         }
+
+        virtual std::string print_meter() { return m_meter.to_string();}
 
     private:
         bool is_storage_ready;
+        performance_meter_t m_meter;
     };
 
 } // namespace gridtools

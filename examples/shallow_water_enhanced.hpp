@@ -14,7 +14,7 @@
 
 #include <communication/halo_exchange.hpp>
 
-#include "verifier.hpp"
+#include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
 // [includes]
 
@@ -47,7 +47,7 @@ namespace shallow_water{
     /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
         //! [dimension]
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         //! [dimension]
 
         /**@brief space discretization step in direction i */

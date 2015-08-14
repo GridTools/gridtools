@@ -1,6 +1,6 @@
 #pragma once
 #include <gridtools.hpp>
-#include <common/defs.hpp>
+#include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
@@ -146,13 +146,13 @@ namespace gridtools{
         };
 
         /**@brief recursively advance the ODE finite difference for all the field dimensions*/
-        template<short_t Dimension>
+        template<short_t Dim>
         struct advance_recursive{
             template<typename This>
             GT_FUNCTION
             void apply(This* t){
-                t->template advance<Dimension>();
-                advance_recursive<Dimension-1>::apply(t);
+                t->template advance<Dim>();
+                advance_recursive<Dim-1>::apply(t);
             }
         };
 

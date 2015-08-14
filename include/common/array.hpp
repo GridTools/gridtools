@@ -43,6 +43,7 @@ namespace gridtools {
             std::copy(c.begin(), c.end(), _array);
         }
 #else
+        //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
         array(T const& i): _array() {
             const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
@@ -58,6 +59,22 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
             const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
         }
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k, T const& l): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k, T const& l, T const& p): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[4]=p;
+        }
+
 #endif
 
         GT_FUNCTION

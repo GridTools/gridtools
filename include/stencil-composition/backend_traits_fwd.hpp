@@ -31,5 +31,4 @@ namespace gridtools {
     */
     template< typename Backend >
     struct execute_kernel_functor;
-
 }
