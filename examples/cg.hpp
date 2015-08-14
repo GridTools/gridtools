@@ -33,10 +33,7 @@ namespace cg{
 
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef CXX11_ENABLED
 using namespace expressions;
-#endif
 
 // This is the definition of the special regions in the "vertical" direction
 // The K dimension can be split into logical splitters. They lie in between array elements.
@@ -245,20 +242,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef arg<1, storage_type > p_in;
     typedef arg<2, storage_type > p_in_old;
     typedef arg<2, coeff_type > p_coeff;
-    typedef arg<2, storage_type > p_a;
     typedef arg<3, storage_type > p_alpha;
-    typedef arg<3, storage_type > p_b;
-    typedef arg<4, storage_type > p_c;
-    typedef arg<5, storage_type > p_d;
-    typedef arg<6, storage_type > p_e;
-    typedef arg<7, storage_type > p_f;
-    typedef arg<8, storage_type > p_g;
-    typedef arg<9, storage_type > p_h;
-/*    typedef arg<10, storage_type > p_i;
-    typedef arg<11, storage_type > p_j;
-    typedef arg<12, storage_type > p_k;
-    typedef arg<13, storage_type > p_l;
-    typedef arg<14, storage_type > p_m;*/
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
