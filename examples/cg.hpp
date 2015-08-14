@@ -78,7 +78,7 @@ struct d3point7_var{
     typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
     typedef accessor<2, range<0,0,0,0> , 4> const coeff;
     typedef boost::mpl::vector<out, in, coeff> arg_list;
-    using quad=Dimension<4>;
+    using quad=dimension<4>;
 
     template <typename Domain>
     GT_FUNCTION
@@ -100,7 +100,7 @@ struct d3point25_var{
     typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
     typedef accessor<2, range<0,0,0,0> , 4> const coeff;
     typedef boost::mpl::vector<out, in, coeff> arg_list;
-    using quad=Dimension<4>;
+    using quad=dimension<4>;
 
     template <typename Domain>
     GT_FUNCTION
