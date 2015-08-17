@@ -46,14 +46,15 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Range Bounds over which the function access the argument
      */
-    template <uint_t I, typename Range, enumtype::intend Intend, ushort_t Dim >
+    template <uint_t I, enumtype::intend Intend, typename Range, ushort_t Dim >
     struct accessor_base  {
 
         //typedef useful when unnecessary indirections are used
-        typedef accessor_base<I, Range, Dim> type;
-        template <uint_t II, typename R, ushort_t D>
-        friend std::ostream& operator<<(std::ostream& s, accessor_base<II,R,D> const& x);
-        typedef accessor_base<I,Range,Dim> base_t;
+        typedef accessor_base<I, Intend, Range, Dim> type;
+        template <uint_t II, enumtype::intend It, typename R, ushort_t D>
+        friend std::ostream& operator<<(std::ostream& s, accessor_base<II,It,R,D> const& x);
+
+        typedef accessor_base<I, Intend, Range, Dim> base_t;
         static const ushort_t n_dim=Dim;
 
         typedef static_uint<I> index_type;
@@ -83,7 +84,7 @@ namespace gridtools {
         //copy ctor from another accessor_base with different index
         template<uint_t OtherIndex>
         GT_FUNCTION
-        constexpr accessor_base(const accessor_base<OtherIndex, Range, Dim> & other) :
+        constexpr accessor_base(const accessor_base<OtherIndex, Intend, Range, Dim> & other) :
             m_offsets(other.offsets()){}
 
         //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
@@ -228,10 +229,11 @@ namespace gridtools {
      * @param n/a Type selector for offset_tuple
      * @return ostream
      */
-    template <uint_t I, typename R, ushort_t D>
-    std::ostream& operator<<(std::ostream& s, accessor_base<I,R,D> const& x) {
+    template <uint_t I, enumtype::intend It, typename R, ushort_t D>
+    std::ostream& operator<<(std::ostream& s, accessor_base<I,It,R,D> const& x) {
         s << "[ offset_tuple< " << I
                  << ", " << R()
+                 << ", " << It
                  << ", " << D
                  // << " (" << x.i()
                  // << ", " << x.j()

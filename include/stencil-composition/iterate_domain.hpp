@@ -405,8 +405,6 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
-            printw2<Accessor> oi;
-
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
                                                     , local_domain_t, typename Accessor::type >::value]);
@@ -419,7 +417,6 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
-
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             return static_cast<IterateDomainImpl const *>(this)->get_cache_value_impl (accessor);
         }
