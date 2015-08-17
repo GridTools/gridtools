@@ -69,39 +69,6 @@ namespace gridtools {
             };
         };
 
-
-        // /**
-        //    \brief defines a method which associates an
-        //    host_tmp_storage, whose range depends on an index, to the
-        //    element in the Temporaries vector at that index position.
-
-        //    \tparam Temporaries is the vector of temporary placeholder types.
-        // */
-        // template <typename TemporariesRangeMap,
-        //           typename ValueType,
-        //           uint_t BI, uint_t BJ,
-        //           typename StrategyTraits,
-        //           enumtype::backend BackendID>
-        // struct get_meta_storage_type {
-        //     template <typename MapElem>
-        //     struct apply {
-        //         typedef typename boost::mpl::second<MapElem>::type range_type;
-        //         typedef typename boost::mpl::first<MapElem>::type temporary;
-
-        //         //get_tmp_meta_storage?
-        //         typedef pair<
-        //         typename StrategyTraits::template get_tmp_meta_storage<
-        //             typename temporary::storage_type
-        //             , typename temporary::index_type
-        //             , tile<BI, -range_type::iminus::value, range_type::iplus::value>
-        //             , tile<BJ, -range_type::jminus::value, range_type::jplus::value>
-        //             >::type
-        //             , typename temporary::index_type
-        //             >
-        //             type;
-        //     };
-        // };
-
     } // namespace _impl
 
 

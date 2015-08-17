@@ -1,7 +1,7 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
-#include "storage_metadata.hpp"
+#include "meta_storage_wrapper.hpp"
 
 namespace gridtools {
 
@@ -10,19 +10,19 @@ namespace gridtools {
                , bool IsTemporary
                , typename ... Tiles
                >
-    struct meta_storage;
+    struct meta_storage_base;
 
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
                >
-    struct meta_storage<Index, Layout, IsTemporary>
+    struct meta_storage_base<Index, Layout, IsTemporary>
     {
-        typedef meta_storage<Index, Layout , IsTemporary> type;
+        typedef meta_storage_base<Index, Layout , IsTemporary> type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
-        typedef meta_storage<Index, Layout , IsTemporary> basic_type;
+        typedef meta_storage_base<Index, Layout , IsTemporary> basic_type;
 
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
@@ -37,28 +37,17 @@ namespace gridtools {
     public:
 
         template <typename T, typename U, bool B, ushort_t D>
-        friend std::ostream& operator<<(std::ostream &, base_storage<T,U, B, D> const & );
-
-        // /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        // __device__
-        // constexpr meta_storage(meta_storage const& other) :
-        //     m_dims(other.m_dims)
-        //     , m_strides(other.m_strides)
-        //     {
-        //     }
-
-        // constexpr meta_storage_wrapper()
-        //     {}
+        friend std::ostream& operator<<(std::ostream &, base_storage<T,U, D> const & );
 
         //alias to ease the notation
         template <typename ... IntTypes>
         using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
 
-        constexpr meta_storage(){}
+        constexpr meta_storage_base(){}
 
         // variadic constexpr constructor
         template <class ... IntTypes, typename Dummy = all_integers<IntTypes...> >
-        constexpr meta_storage(  IntTypes const& ... dims_  ) :
+        constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
@@ -243,58 +232,21 @@ namespace gridtools {
     };
 
 
-    // template < ushort_t Index
-    //            , typename Layout
-    //            , bool IsTemporary
-    //            , uint_t ... Dimensions
-    //            >
-    // struct meta_storage_constexpr{
-    //     typedef Layout layout;
-    //     typedef static_ushort<Index> index_type;
-
-    //     constexpr meta_storage<Index, Layout, IsTemporary> value = meta_storage<Index, Layout, IsTemporary>{Dimensions...};
-
-    //     typedef meta_storage<Index, Layout, IsTemporary> value_t;
-    //     // typedef decltype(value) value_t;
-
-    //     constexpr meta_storage<Index, Layout , IsTemporary> const&  get_value() {
-    //         return value;
-    //     }
-
-    // };
-
-    // template < ushort_t Index
-    //            , typename Layout
-    //            , bool IsTemporary
-    //            , uint_t ... Dimensions
-    //            >
-    // constexpr typename meta_storage_constexpr<Index, Layout , IsTemporary, Dimensions...>::value_t
-    // meta_storage_constexpr<Index, Layout , IsTemporary, Dimensions...>::value;
-
-
-    // template < ushort_t Index
-    //            , typename Layout
-    //            , bool IsTemporary=false
-    //            >
-    // struct meta_storage_runtime {
-    //     typedef Layout layout;
-    //     typedef static_ushort<Index> index_type;
-
-    //     template<typename ... UInt>
-    //     static meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> > create(UInt ... dims){
-    //         return meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> >(dims...);
-    //     }
-
-    //     meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> > value;
-    //     typedef meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> > value_t;
-
-    //     static const ushort_t space_dimensions = value_t::space_dimensions;
-    //     meta_storage_wrapper<meta_storage<Index, Layout, IsTemporary> >
-    //     & get_value() {
-    //         return value;
-    //     }
-    // };
-
+#ifdef CXX11_ENABLED
+    template < ushort_t Index
+               , typename Layout
+               , bool IsTemporary
+               , typename ... Tiles
+               >
+    using meta_storage = meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
+#else
+    template < ushort_t Index
+               , typename Layout
+               , bool IsTemporary
+               , typename ... Tiles
+               >
+    struct meta_storage<> : meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >{};
+#endif
 
     template<typename T>
     struct is_meta_storage : boost::mpl::false_{};
@@ -302,10 +254,24 @@ namespace gridtools {
     template< typename Storage>
     struct is_meta_storage<meta_storage_wrapper<Storage> > : boost::mpl::true_{};
 
+    template < ushort_t Index
+               , typename Layout
+               , bool IsTemporary
+               , typename ... Tiles
+               >
+    struct is_meta_storage<meta_storage<Index, Layout, IsTemporary, Tiles...> > : boost::mpl::true_{};
+
     template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
-    struct is_meta_storage<meta_storage<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
+    struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
 
     template<typename T>
     struct is_meta_storage_wrapper : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};
+
+
+    template<typename T>
+    struct is_ptr_to_meta_storage_wrapper : boost::mpl::false_ {};
+
+    template<typename T>
+    struct is_ptr_to_meta_storage_wrapper<pointer<const T> > : is_meta_storage_wrapper<T> {};
 
 }//namespace gridtools

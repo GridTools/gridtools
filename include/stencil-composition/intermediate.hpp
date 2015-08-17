@@ -56,7 +56,7 @@ namespace gridtools {
             void operator()(Elem & elem) const {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type");
 
-                elem.init(m_arg_list, m_meta_storages.m_set, 0,0,0);
+                elem.init(m_arg_list, m_meta_storages.sequence_view(), 0,0,0);
                 elem.clone_to_gpu();
             }
 
@@ -625,10 +625,18 @@ namespace gridtools {
             finalize_computation<Backend::s_backend_id>::apply(m_domain);
 
             //DELETE the TEMPORARIES (a shared_ptr would be way better)
+            //NOTE: the descrutor of the copy_to_gpu stuff will automatically free the storage
+            //on the GPU
             typedef boost::fusion::filter_view<actual_arg_list_type,
                 is_temporary_storage<boost::mpl::_1> > view_type;
             view_type fview(actual_arg_list);
             boost::fusion::for_each(fview, _impl::delete_tmps());
+
+            //deleting the metadata objects
+            typedef boost::fusion::filter_view<typename actual_metadata_list_type::set_t,
+                is_ptr_to_tmp<boost::mpl::_1> > view_type2;
+            view_type2 fview2(actual_metadata_list.sequence_view());
+            boost::fusion::for_each(fview2, delete_pointer());
         }
 
         /**

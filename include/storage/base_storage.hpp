@@ -110,25 +110,22 @@ namespace gridtools {
 
     template <typename T> struct is_meta_storage;
 
-    template < typename PointerType, typename MetaData, bool IsTemporary, ushort_t FieldDimension >
+    template < typename PointerType, typename MetaData, ushort_t FieldDimension >
     struct base_storage
     {
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::type::value, "wrong meta_storage type");
-        typedef base_storage<PointerType, MetaData, IsTemporary, FieldDimension> type;
+        typedef base_storage<PointerType, MetaData, FieldDimension> type;
         typedef PointerType pointer_type;
         typedef typename pointer_type::pointee_t value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
         typedef MetaData meta_data_t;
         typedef typename MetaData::layout layout;
-        static const bool is_temporary = IsTemporary;
+        static const bool is_temporary = meta_data_t::is_temporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = MetaData::space_dimensions;
-;
-        // TODO: Keep only one of these
-        typedef base_storage<PointerType, MetaData, IsTemporary, FieldDimension> basic_type;
+        typedef base_storage<PointerType, MetaData, FieldDimension> basic_type;
         static const ushort_t field_dimensions=FieldDimension;
-        // typedef base_storage<PointerType, Layout, IsTemporary, FieldDimension> original_storage;
 
 
     protected:
@@ -144,7 +141,7 @@ namespace gridtools {
     public:
 
         template <typename T, typename M, bool I, ushort_t F>
-        friend std::ostream& operator<<(std::ostream &, base_storage<T, M, I, F> const & );
+        friend std::ostream& operator<<(std::ostream &, base_storage<T, M, F> const & );
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage(MetaData const & meta_data_) :
@@ -259,7 +256,6 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage(){
             for(ushort_t i=0; i<field_dimensions; ++i)
-                // if(!m_fields[i].externally_managed())
                 m_fields[i].free_it();
         }
 
@@ -465,43 +461,26 @@ namespace gridtools {
 */
     template <typename PointerType
               , typename MetaData
-              , bool IsTemporary
               , ushort_t Dim>
     const std::string base_storage<PointerType
                                    , MetaData
-                                   , IsTemporary
                                    , Dim>::info_string=boost::lexical_cast<std::string>("-1");
 
     template <typename PointerType
               , typename MetaData
               , ushort_t Dim>
-    struct is_temporary_storage<base_storage<PointerType,MetaData,false, Dim>*& >
-        : boost::false_type
+    struct is_temporary_storage<base_storage<PointerType,MetaData,Dim>*& >
+        : boost::mpl::bool_<MetaData::is_temporary>
     {};
 
-    template <typename PointerType, typename Y, ushort_t Dim>
-    struct is_temporary_storage<base_storage<PointerType,Y,true, Dim>*& >
-        : boost::true_type
+    template <typename PointerType, typename MetaData, ushort_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,MetaData,Dim>* >
+        : boost::mpl::bool_<MetaData::is_temporary>
     {};
 
-    template <typename PointerType, typename Y, ushort_t Dim>
-    struct is_temporary_storage<base_storage<PointerType,Y,false, Dim>* >
-        : boost::false_type
-    {};
-
-    template <typename PointerType, typename Y, ushort_t Dim>
-    struct is_temporary_storage<base_storage<PointerType,Y,true, Dim>* >
-        : boost::true_type
-    {};
-
-    template <typename PointerType, typename Y, ushort_t Dim>
-    struct is_temporary_storage<base_storage<PointerType,Y,false, Dim> >
-        : boost::false_type
-    {};
-
-    template <typename PointerType, typename Y, ushort_t Dim>
-    struct is_temporary_storage<base_storage<PointerType,Y,true, Dim> >
-        : boost::true_type
+    template <typename PointerType, typename MetaData, ushort_t Dim>
+    struct is_temporary_storage<base_storage<PointerType,MetaData,Dim> >
+        : boost::mpl::bool_<MetaData::is_temporary>
     {};
 
     template <  template <typename T> class  Decorator, typename BaseType>
@@ -518,42 +497,42 @@ namespace gridtools {
     {};
 
 #ifdef CXX11_ENABLED
-    //Decorator is the field
+    //Decorator is the storage class
     template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...> > : is_temporary_storage< typename First::basic_type >
     {};
 
-    //Decorator is the field
+    //Decorator is the storage class
     template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...>* > : is_temporary_storage< typename First::basic_type* >
     {};
 
-    //Decorator is the field
+    //Decorator is the storage class
     template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...>& > : is_temporary_storage< typename First::basic_type& >
     {};
 
-    //Decorator is the field
+    //Decorator is the storage class
     template <template <typename ... T> class Decorator, typename First, typename ... BaseType>
     struct is_temporary_storage<Decorator<First, BaseType...>*& > : is_temporary_storage< typename First::basic_type*& >
     {};
 #else
-        //Decorator is the field
+        //Decorator is the storage class
         template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
         struct is_temporary_storage<Decorator<First, B2, B3> > : is_temporary_storage< typename First::basic_type >
         {};
 
-        //Decorator is the field
+        //Decorator is the storage class
         template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
         struct is_temporary_storage<Decorator<First, B2, B3>* > : is_temporary_storage< typename First::basic_type* >
         {};
 
-        //Decorator is the field
+        //Decorator is the storage class
         template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
         struct is_temporary_storage<Decorator<First, B2, B3>& > : is_temporary_storage< typename First::basic_type& >
         {};
 
-        //Decorator is the field
+        //Decorator is the storage class
         template <template <typename T1, typename T2, typename T3> class Decorator, typename First, typename B2, typename B3>
         struct is_temporary_storage<Decorator<First, B2, B3>*& > : is_temporary_storage< typename First::basic_type*& >
         {};
@@ -561,8 +540,8 @@ namespace gridtools {
 #endif //CXX11_ENABLED
 /**@}*/
     template <typename T, typename U, bool B, ushort_t D>
-    std::ostream& operator<<(std::ostream &s, base_storage<T,U,B,D> const & x ) {
-        s << "base_storage <T,U," << " " << std::boolalpha << B << "> ";
+    std::ostream& operator<<(std::ostream &s, base_storage<T,U,D> const & x ) {
+        s << "base_storage <T,U," << " " << D << "> ";
         s << x.m_dims[0] << ", "
           << x.m_dims[1] << ", "
           << x.m_dims[2] << ". ";

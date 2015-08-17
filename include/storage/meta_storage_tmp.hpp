@@ -4,11 +4,11 @@
 namespace gridtools{
 
     template<ushort_t Index, typename Layout, typename First, typename ... Tiles>
-    struct meta_storage<Index, Layout, true, First, Tiles...> : public meta_storage<Index, Layout, false> {
+    struct meta_storage_base<Index, Layout, true, First, Tiles...> : public meta_storage_base<Index, Layout, false> {
         static const bool is_temporary=true;
-        typedef  meta_storage<Index, Layout, false> super;
+        typedef  meta_storage_base<Index, Layout, false> super;
 
-        typedef meta_storage<Index, Layout, true, First, Tiles ...> this_type;
+        typedef meta_storage_base<Index, Layout, true, First, Tiles ...> this_type;
         typedef typename super::basic_type basic_type;
         typedef typename super::layout layout;
 
@@ -34,7 +34,7 @@ namespace gridtools{
 
     public:
 
-        constexpr meta_storage( uint_t initial_offset_i,
+        constexpr meta_storage_base( uint_t initial_offset_i,
                                     uint_t initial_offset_j,
                                     uint_t dim3,
                                     uint_t n_i_threads=1,
@@ -47,15 +47,15 @@ namespace gridtools{
 
         //copy ctor
         GT_FUNCTION
-        constexpr meta_storage(meta_storage const& other)
+        constexpr meta_storage_base(meta_storage_base const& other)
             :  super(other), m_initial_offsets(other.m_initial_offsets)
         {
         }
 
-        constexpr meta_storage() :super() {}
+        constexpr meta_storage_base() :super() {}
 
     public:
-        virtual ~meta_storage() {}
+        virtual ~meta_storage_base() {}
 
 
         /**
@@ -122,35 +122,6 @@ namespace gridtools{
         }
 
     };
-
-    // template <typename T>
-    // struct is_meta_storage;
-
-    // template<typename MetaStorageBase, typename ... Tiles>
-    // struct is_meta_storage<meta_storage<MetaStorageBase, Tiles...> > : is_meta_storage<MetaStorageBase> {};
-
-    // template < typename Layout
-    //            , typename ... Tiles
-    //            >
-    // struct meta_storage_runtime_tmp {
-    //     typedef Layout layout;
-    //     typedef static_ushort<Index> index_type;
-
-    //     template<typename ... UInt>
-    //     static meta_storage_wrapper<meta_storage_tmp<Index, Layout, Tiles...> > create(UInt ... dims){
-    //         return meta_storage_wrapper<meta_storage_tmp<Index, Layout, Tiles...> >(dims...);
-    //     }
-
-    //         static meta_storage_wrapper<meta_storage_tmp<Index, Layout, Tiles...> > value;
-    //         typedef meta_storage_wrapper<meta_storage_tmp<Index, Layout, Tiles...> > value_t;
-
-    //     static const ushort_t space_dimensions = value_t::space_dimensions;
-
-    //     static constexpr meta_storage_wrapper<meta_storage_tmp<Index, Layout, Tiles...> >
-    //     & get_value() {
-    //         return value;
-    //     }
-    // };
 
 
 }//namespace gridtools

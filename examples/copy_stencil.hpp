@@ -5,7 +5,6 @@
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <stencil-composition/interval.hpp>
-#include <storage/base_storage_metadata.hpp>
 
 
 #ifdef USE_PAPI_WRAP
@@ -73,13 +72,12 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef meta_storage<0,layout_t, false> meta_data_t;
-    static const constexpr meta_data_t meta_data_constexpr{10,10,10};
-    // static const constexpr base_storage_metadata<layout_t, false> constexpr_test{5,5,5};
+    typedef meta_storage_base< 0,layout_t, false > meta_data_t;
 
+    // typedef meta_storage_wrapper<meta_storage<0,layout_t, false> > meta_data_t;
     bool test(uint_t x, uint_t y, uint_t z) {
 
-        meta_storage_wrapper<meta_data_t> meta_data_runtime(10,10,10);
+        meta_data_t meta_data_(10,10,10);
 
 #ifdef USE_PAPI_WRAP
         int collector_init = pw_new_collector("Init");
@@ -100,14 +98,9 @@ namespace copy_stencil{
 #endif
 #endif
 
-        // typedef boost::mpl::eval_if<decltype(is_constexpr_meta_storage(constexpr_meta_data)), boost::identity<meta_data_t>, boost::identity<meta_storage_wrapper<meta_data_t> > > meta_wrapper_t;
-
-        // constexpr meta_wrapper_t::type wrapper(constexpr_meta_data);
-
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_type;
-        // typedef gridtools::BACKEND::storage_type<float_type, constexpr_meta_data_t >::type constexpr_storage_type;
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)
         //vector field of dimension 2
@@ -121,7 +114,6 @@ namespace copy_stencil{
         typedef storage<data_field2<extended_type, extended_type> > vec_field_type;
 #endif
 #endif
-        //out.print();
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -129,13 +121,11 @@ namespace copy_stencil{
         typedef boost::mpl::vector<p_in> accessor_list;
 
         // Definition of the actual data fields that are used for input/output
-        vec_field_type in(meta_data_runtime);
+        vec_field_type in(meta_data_);
         vec_field_type::original_storage::pointer_type  init1(d1*d2*d3);
         vec_field_type::original_storage::pointer_type  init2(d1*d2*d3);
         in.push_front<0>(init1, 1.5);
         in.push_front<1>(init2, -1.5);
-
-        // base_storage_metadata<layout_t, false> test(5,5,5);
 
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
@@ -150,7 +140,7 @@ namespace copy_stencil{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #ifdef CXX11_ENABLED
         gridtools::domain_type<accessor_list, metadata_list> domain
-            (boost::fusion::make_vector(&in), boost::fusion::make_vector(&meta_data_runtime));
+            (boost::fusion::make_vector(&in), boost::fusion::make_vector(&meta_data_));
 #else
         gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
@@ -254,9 +244,6 @@ namespace copy_stencil{
 #ifdef BENCHMARK
         std::cout << copy->print_meter() << std::endl;
 #endif
-        //#ifdef CUDA_EXAMPLE
-        //out.data().update_cpu();
-        //#endif
 
 #ifdef USE_PAPI_WRAP
         pw_print();

@@ -74,14 +74,14 @@ namespace gridtools{
          struct get_tmp_meta_storage
          {
              //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef meta_storage_wrapper<meta_storage<Index::value, Layout, true> > type;
+             typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true> > type;
          };
 
         template <typename Storage, typename ... Tiles>
          struct get_tmp_storage
          {
              //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type, true, Storage::meta_data_t::field_dimensiosn > > type;
+             typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type, Storage::field_dimensions > > type;
          };
 
     };
@@ -196,7 +196,7 @@ namespace gridtools{
         template <typename Index, typename Layout, typename ... Tiles>
         struct get_tmp_meta_storage
         {
-            typedef meta_storage_wrapper<meta_storage<Index::value, Layout, true, Tiles ...> > type;
+            typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true, Tiles ...> > type;
         };
 
         /**
@@ -205,7 +205,7 @@ namespace gridtools{
         template <typename Storage, typename ... Tiles>
         struct get_tmp_storage
         {
-            typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...>::type, true, Storage::field_dimensions > > type;
+            typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...>::type, Storage::field_dimensions > > type;
         };
 };
 

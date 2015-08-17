@@ -1,27 +1,51 @@
 #pragma once
 #include <boost/fusion/include/as_set.hpp>
-//#include <boost/fusion/include/at_key.hpp>
+
+/**
+@file
+@brief implementing a set
+*/
 
 namespace gridtools{
 
+
+    template<typename T>
+    struct is_pointer : boost::mpl::false_{};
+
+    template<typename T>
+    struct is_pointer<pointer<T> > : boost::mpl::true_{};
+
+    /**
+       @brief class that given a generig MPL sequence creates a fusion set.
+
+       The interface of this class allows to insert and get elements of the sequence give its type.
+       It also allows to query if the element corresponding to a given type has been or not initialized
+
+     */
     template<typename Sequence>
     struct metadata_set{
+        GRIDTOOLS_STATIC_ASSERT( boost::mpl::is_sequence<Sequence>::value,
+                                 "internal error: not a sequence" );
+        GRIDTOOLS_STATIC_ASSERT( (is_sequence_of<Sequence, is_pointer>::value),
+                                 "internal error: not a sequence of pointers");
         typedef typename boost::fusion::result_of::as_set<Sequence>::type set_t;
 
         DISALLOW_COPY_AND_ASSIGN(metadata_set);
+
+    private:
         set_t m_set;
 
     public:
         metadata_set() : m_set(){};
 
-        ~metadata_set(){
-            boost::fusion::for_each(m_set, delete_it<set_t>(m_set));
-        }
-
+        /**
+           @brief inserts a new instance on the vector
+        */
         template <typename T>
         void insert(T new_instance)
             {
-                GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key<set_t, T>::type::value), "error");
+                GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key<set_t, T>::type::value),
+                                        "the type used for the lookup in the metadata set is not present in the set. Did you use the correct type as meta storage?");
                 assert(!present<T>());//must be uninitialized
                 boost::fusion::at_key<T>(m_set)=new_instance;
             }
@@ -37,8 +61,13 @@ namespace gridtools{
                 return boost::fusion::at_key<T>(m_set);
             }
 
+        /**@brief returns the sequence by non-const reference*/
         set_t& sequence_view() {return m_set;}
 
+        /**@brief returns the sequence by const reference*/
+        set_t const& sequence_view() const {return m_set;}
+
+        /**@bief queries if the given key corresponds to a pointer which is being initialized*/
         template <typename T>
         bool present() {
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key<set_t, T>::type::value), "internal error: calling metadata_set::present with a metadata type which has not been defined");
@@ -46,22 +75,14 @@ namespace gridtools{
         }
 
 
-        template<typename Set>
-        struct delete_it{
-        private:
-
-            Set const& m_set;
-        public:
-
-            delete_it(Set const& set_) : m_set(set_){}
-
-            template<typename T>
-            void operator()(T t) const{
-                //if(present<T>())
-                    //delete boost::fusion::at_key<T>(m_set);
-            }
-        };
-
-
     };
+
+
+
+    template <typename T>
+    struct is_metadata_set : boost::mpl::false_{};
+
+    template <typename T>
+    struct is_metadata_set<metadata_set<T> > : boost::mpl::true_{};
+
 }

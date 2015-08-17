@@ -168,14 +168,7 @@ namespace gridtools {
      * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding true
      */
     template <uint_t I, typename T, typename U, ushort_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage< T, U,  true, Dim> > > : boost::true_type
-    {};
-
-    /**
-     * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding false
-     */
-    template <uint_t I, typename T, typename U, ushort_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage<  T, U,false, Dim> > > : boost::false_type
+    struct is_plchldr_to_temp<arg<I, base_storage< T, U, Dim> > > : boost::mpl::bool_<U::is_temporary>
     {};
 
     /**
@@ -265,11 +258,7 @@ namespace gridtools {
     {};
 
     template <typename T, typename U, ushort_t Dim>
-    struct is_storage<base_storage<T,U,true, Dim>  *  > : public boost::false_type
-    {};
-
-    template <typename T, typename U, ushort_t Dim>
-    struct is_storage<base_storage<T,U,false, Dim>  *  > : public boost::true_type
+    struct is_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
     {};
 
     template <typename U>

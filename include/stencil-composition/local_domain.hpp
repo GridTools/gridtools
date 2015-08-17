@@ -33,13 +33,6 @@ namespace gridtools {
                 >::type type;
         };
 
-        struct get_storage {
-            template <typename U>
-            struct apply {
-                typedef typename U::storage_type* type;
-            };
-        };
-
         template <typename ArgList>
         struct assign_storage_pointers {
 
@@ -79,9 +72,8 @@ namespace gridtools {
             template <typename Local>
             GT_FUNCTION_WARNING
             void operator()(Local& local_) const {
-                // typedef typename boost::fusion::result_of::at_c<ZipElem, 0>::type index;
                 local_ =
-#ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
+#ifdef __CUDACC__
                     boost::fusion::at_key<Local>(m_actual)->gpu_object_ptr;
 #else
                     boost::fusion::at_key<Local>(m_actual);
@@ -153,8 +145,6 @@ namespace gridtools {
      * to adapt it for a particular functor. There is one version which provide coordinates to the functor
      * and one that does not
      *
-     * @tparam EsfDescriptor The descriptor of the elementary stencil function
-     * @tparam Domain The full domain type
      */
     template<typename T>
     struct local_domain_base;
@@ -238,90 +228,29 @@ namespace gridtools {
                                                   boost::mpl::_2 >
                                                   >
                                               >
-                                          >::type::type mpl_meta_data_t;
+                                          >::type::type local_metadata_mpl_t;
 
 
-        typedef typename boost::mpl::fold<boost::mpl::range_c<uint_t, 0, boost::mpl::size<mpl_meta_data_t>::value>
+        typedef typename boost::mpl::fold<boost::mpl::range_c<uint_t, 0, boost::mpl::size<local_metadata_mpl_t>::value>
                                           , boost::mpl::map0<>
                                           , boost::mpl::insert
                                           <boost::mpl::_1, boost::mpl::pair
                                            <boost::mpl::at
-                                            <mpl_meta_data_t, boost::mpl::_2>,
+                                            <local_metadata_mpl_t, boost::mpl::_2>,
                                             boost::mpl::_2
                                             >
                                            >
                                           >::type storage_metadata_map;
 
 
-        // //! ordering map in the storage according to the metadata indices
-        // typedef typename boost::mpl::sort
-        // < typename lazy_range<static_int<0>, typename boost::mpl::minus<typename boost::mpl::size<mpl_meta_data_t >::type, static_int<1> >::type >::type
-        //   , boost::mpl::less<extract_index<boost::mpl::at<mpl_meta_data_t, boost::mpl::_1 > >
-        //                      , extract_index<boost::mpl::at<mpl_meta_data_t,boost::mpl::_2> >
-        //                     >
-        //  >
-        // ::type sort_t;
-
-
-
-
-
-
-
-        // //! get the sorted metadata indices in a vector
-        // typedef typename boost::mpl::fold<sort_t,
-        //                                   boost::mpl::vector0<>,
-        //                                   boost::mpl::push_back<
-        //                                       boost::mpl::_1,
-        //                                       extract_index< boost::mpl::at<mpl_meta_data_t, boost::mpl::_2> >
-        //                                       >
-        //                                   >::type sorted_metadata_indices_t;
-
-        // //! compute the histogram of the vector
-        // typedef typename histogram<sorted_metadata_indices_t>::type mpl_storage_multiplicity;
-
-        // //! compute the scan of the histogram (useless)
-        // typedef typename exclusive_scan< mpl_storage_multiplicity >::type mpl_multiplicity_scan;
-
-        // //! create a linear range as an mpl::vector (not a range_c)
-        // typedef typename lazy_range
-        // <static_int<0>, typename boost::mpl::minus
-        //  <typename boost::mpl::size
-        //   <mpl_storage_multiplicity>::type, static_int<1> >::type >::type metadata_indices_range_t;
-
-        // //! map the index vector to the original dimension of the storage list
-        // typedef typename expand< metadata_indices_range_t
-        //                          // mpl_multiplicity_scan
-        //                          , mpl_storage_multiplicity >::type mpl_multiplicity_map;
-
-
-
-        // typedef// typename boost::fusion::result_of::as_vector<
-        //     typename boost::mpl::transform<sort_t, // typename boost::add_pointer<
-        //                                                         boost::mpl::_1// >
-        //                                    >::type
-        //     // >::type
-        // local_metadata_mpl_t;
-        typedef mpl_meta_data_t local_metadata_mpl_t;
-
-
-
-
-
-
-
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
 
 
-        // typedef typename boost::fusion::result_of::as_set<
-        //     typename boost::mpl::transform<local_metadata_mpl_t, pointer<
-        //                                                         boost::add_const< boost::mpl::_1> > >::type
-        //     >::type local_metadata_type;
-
+        /*construct the boost fusion vector of metadata pointers*/
         typedef typename boost::fusion::result_of::as_vector<
             typename boost::mpl::transform<local_metadata_mpl_t, pointer<
-                                                                boost::add_const< boost::mpl::_1> > >::type
+                                                                     boost::add_const< boost::mpl::_1> > >::type
             >::type local_metadata_type;
 
         local_args_type m_local_args;
@@ -344,6 +273,12 @@ namespace gridtools {
         GT_FUNCTION_WARNING
         local_domain_base() {}
 
+        /**
+           @brief implements the global to local assignment
+
+           it assigns the local (i.e. of the current esf) storages/metadatas, from the corresponent
+           global (i.e. of the whole computation) values.
+        */
         template <typename ActualArgs, typename ActualMetaData>
         GT_FUNCTION
         void init(ActualArgs const& actual_args_, ActualMetaData const& actual_metadata_)
@@ -355,15 +290,7 @@ namespace gridtools {
 
             boost::fusion::for_each(zipping_t(z), local_domain_aux::assign_storage_pointers<ActualArgs>(actual_args_));
 
-            // typedef boost::fusion::vector<metadata_indices_range_t const&, local_metadata_type&> to_zip2_t;
-            // typedef boost::fusion::zip_view<to_zip2_t> zipping2_t;
-
-            // to_zip2_t z2(metadata_indices_range_t(), m_local_metadata);
-            // boost::fusion::for_each(zipping2_t(z2), local_domain_aux::assign_meta_storages<ActualMetaData>(actual_metadata));
-
-            // for_each<domain_indices_range_t>(local_domain_aux::assign_fusion_vectors<local_args_type, ActualArgs>(m_local_args, actual_args_));
-
-            //metadata_indices_range_t
+            //assigns the metadata for all the components of m_local_metadata (global to local)
             boost::fusion::for_each(m_local_metadata, local_domain_aux::assign_fusion_maps<local_metadata_type, ActualMetaData>(actual_metadata_));
         }
 
@@ -395,19 +322,23 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_meta_storage_wrapper;
+    struct is_metadata_set;
+
     /**
      * This class extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. This version does not provide coordinates
      * to the function operator
      *
-     * @tparam EsfDescriptor The descriptor of the elementary stencil function
-     * @tparam Domain The full domain type
+     * @tparam StoragePointers The mpl vector of the storage pointer types
+     * @tparam MetaData The mpl vector of the meta data pointer types sequence
+     * @tparam EsfArgs The mpl vector of the args (i.e. placeholders for the storages)
+                       for the current ESF
+     * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
      */
     template <typename StoragePointers, typename MetaData, typename EsfArgs, bool IsStateful>
     struct local_domain : public local_domain_base< local_domain<StoragePointers, MetaData, EsfArgs, IsStateful> > {
 
-        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MetaData, is_meta_storage_wrapper>::value),"Local domain contains wront type for parameter meta storages");
+        GRIDTOOLS_STATIC_ASSERT((is_metadata_set<MetaData>::value),"Local domain contains wrong type for parameter meta storages");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfArgs, is_arg>::value),"Local domain contains wront type for parameter placeholders");
         typedef local_domain_base<local_domain<StoragePointers,MetaData,EsfArgs,IsStateful> > base_type;
         typedef StoragePointers storage_pointers;
@@ -421,19 +352,17 @@ namespace gridtools {
             : base_type(other)
         {}
 
+        /**
+           @brief forwarding to the init of the base class
+         */
         template <typename ArgList, typename MetaDataList>
         GT_FUNCTION
         void init(ArgList const& arg_list, MetaDataList const& meta_data_, uint_t, uint_t, uint_t)
         {
             base_type::init(arg_list, meta_data_);
-#ifdef __VERBOSE__
-#ifndef __CUDACC__
-            std::cout << "LOCAL DOMAIN" << std::endl;
-#endif
-#endif
         }
 
-/**stub methods*/
+        /**stub methods*/
         GT_FUNCTION
         uint_t i() const {return 1e9; }
         GT_FUNCTION
