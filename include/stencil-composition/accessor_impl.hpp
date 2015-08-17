@@ -46,7 +46,7 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Range Bounds over which the function access the argument
      */
-    template <uint_t I, typename Range, ushort_t Dim >
+    template <uint_t I, typename Range, enumtype::intend Intend, ushort_t Dim >
     struct accessor_base  {
 
         //typedef useful when unnecessary indirections are used

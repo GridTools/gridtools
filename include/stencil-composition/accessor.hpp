@@ -43,9 +43,9 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
-    struct accessor : public accessor_base<ID, Range, Number> {
-        typedef accessor_base<ID, Range, Number> super;
+    template < uint_t ID, typename Range=range<0,0,0,0,0,0>, enumtype::intend Intend=enumtype::in, ushort_t Number=3>
+    struct accessor : public accessor_base<ID, Range, Intend, Number> {
+        typedef accessor_base<ID, Range, Intend, Number> super;
         typedef typename super::index_type index_type;
 #ifdef CXX11_ENABLED
 
