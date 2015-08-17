@@ -3,7 +3,7 @@ using int_t = int;
 #include <iostream>
 #include "grid.hpp"
 #include "base_storage.hpp"
-#include <common/layout_map.h>
+#include <common/layout_map.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/range_c.hpp>

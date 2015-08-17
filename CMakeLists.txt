@@ -3,6 +3,17 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project( GRIDTOOLS )
 enable_language( CXX )
+enable_testing()
+
+SET(SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
+if(SUPPRESS_MESSAGES)
+    add_definitions(-DSUPPRESS_MESSAGES)
+endif(SUPPRESS_MESSAGES)
+
+SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
+if(VERBOSE)
+    add_definitions(-D__VERBOSE__)
+endif(VERBOSE)
 
 
 ## enable to use ctest:
@@ -21,6 +32,11 @@ message ("-- building profiled executables")
 endif()
 
 
+set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
+add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
+add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
+
+
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -35,7 +51,7 @@ if(WIN32)
   find_package( Boost REQUIRED )
 else()
   # On other platforms, me must be specific about which libs are required
-  find_package( Boost COMPONENTS  timer system chrono REQUIRED )
+  find_package( Boost COMPONENTS timer system chrono REQUIRED )
 endif()
 
 # If the version is less than 1.56, we need a special version of Fusion
@@ -51,16 +67,24 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
+if ( ENABLE_CXX11 )
+   message ("-- CXX11 enabled?: " "${ENABLE_CXX11}")
+   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
+else()
+   message ("-- CXX11 disabled")
+   set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
+endif()
+
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 # compile to PTX assembly format
 set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
 if( USE_GPU )
-  MESSAGE("using GPU")
+  MESSAGE("-- using GPU")
   find_package(CUDA REQUIRED)
   if( ${CUDA_VERSION} VERSION_GREATER "6.0")
       if ( ENABLE_CXX11 )
-          set(ADDITIONAL_NVCC_FLAGS "-std=c++11")
+         set (ADDITIONAL_NVCC_FLAGS "-std=c++11")
       else()
           set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       endif()
@@ -69,6 +93,9 @@ if( USE_GPU )
       set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       set( ENABLE_CXX11 "OFF" )
   endif()
+  set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
+
+  SET(CUDA_SEPARABLE_COMPILATION ON)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   ## message("cuda lib dirs : " "${CUDA_LIBRARIES}" " 64 bit code? " "${CUDA_64_BIT_DEVICE_CODE}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
@@ -77,24 +104,26 @@ if( USE_GPU )
 ## #   message("exelibs ${exe_LIBS}")
 ## # message("${CUDA_INCLUDE_DIRS}")
 ## # message("${CUDA_CUDART_LIBRARY}")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${ADDITIONAL_NVCC_FLAGS} ${CUDA_CPP11} -Xcudafe \"--diag_suppress=dupl_calling_convention\" -Xcudafe \"--diag_suppress=code_is_unreachable\" -Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\" -Xcudafe \"--diag_suppress=calling_convention_not_allowed\" -Xcudafe \"--diag_suppress=conflicting_calling_conventions\"")
+  SET(CUDA_SEPARABLE_COMPILATION ON)
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${ADDITIONAL_NVCC_FLAGS}"
+"-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
 endif()
 
-if ( ENABLE_CXX11 )
-   message ("CXX11 enabled: " "${ENABLE_CXX11}")
-
-   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
-else()
-   set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
-endif()
+set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 
 include(FindOpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else()
+    set(ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 endif(OPENMP_FOUND)
+
+if(ENABLE_PERFORMANCE_METERS)
+    add_definitions(-DENABLE_METERS)
+endif(ENABLE_PERFORMANCE_METERS)
 
 # find GTest
 find_package(GTest)
@@ -149,7 +178,7 @@ endif()
 ##################################################################
 
 ######################### set the type of floats #################
-set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.h for configuration)" )
+set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 if(SINGLE_PRECISION)
   add_definitions(-DFLOAT_PRECISION=4)
   message("-- computations in single precision")
@@ -184,7 +213,7 @@ if( USE_MPI )
 endif()
 
 
-ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.h include/communication/high-level/stats_collector.h )
+ADD_LIBRARY( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
 
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXX_FLAGS}" )
 
@@ -199,35 +228,71 @@ COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
 
+set(TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh)
+file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
+file(APPEND ${TEST_SCRIPT} "res=0\n")
+
+function(gridtools_add_test test_name test_script test_exec)
+  add_test(${test_name} ${test_exec} ${ARGN})
+  file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
+  file(APPEND ${test_script} "res=$((res || $? ))\n")
+endfunction(gridtools_add_test)
+
+
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+if( NOT ENABLE_CACHING )
+    add_definitions( -D__DISABLE_CACHING__ )
+endif( NOT ENABLE_CACHING )
+
 if (ENABLE_PYTHON)
+    message ("PYTHON enabled ")
+    # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
+    set (cmd "cat" )
+    set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
+    execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
+    #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
+    # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+
     find_package(PythonLibs)
     find_package(PythonInterp)
 
     #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
 
     if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-      string( REGEX MATCH [0-9]* PYTHON_VERSION_MAJOR "${PYTHONLIBS_VERSION_STRING}")
-      if(${PYTHON_VERSION_MAJOR} GREATER 2)
+     if(${PYTHON_VERSION_MAJOR} GREATER 2)
+        # Set here a check on the GRIDTOOLS_ROOT env var
+        if(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
+          set ( ENV{GRIDTOOLS_ROOT} ${CMAKE_SOURCE_DIR} )
+        endif(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
 
-      execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-      message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
-      message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
-      string( REGEX MATCH [0-9].[0-9]* PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
-
-      set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
-      set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
-      message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
-
-      add_custom_target(python)
-      add_custom_command(TARGET python
-    		     POST_BUILD
-    		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
-    		    )
-    endif(${PYTHON_VERSION_MAJOR} GREATER 2)
-
+        # Defining PYTHONLIBS_VERSION_STRING
+        # Reading from ${CMAKE_SOURCE_DIR}/.python_version (composing the cmd otherwise it doesn't work)
+        set (cmd "cat" )
+        set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
+        execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
+        # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
+        
+        #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
+        set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
+        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
+        message ("Log file is " ${OUTPUT} )
+        add_subdirectory( python )
+     endif(${PYTHON_VERSION_MAJOR} GREATER 2)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
 
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
+
 add_subdirectory( experimental/grids )
+
+
+file(APPEND ${TEST_SCRIPT} "exit $res\n")
+file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
+   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+)
+

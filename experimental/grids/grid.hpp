@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/array.h>
+#include <common/array.hpp>
 #include <cassert>
 #include <boost/mpl/vector.hpp>
 #include "virtual_storage.hpp"

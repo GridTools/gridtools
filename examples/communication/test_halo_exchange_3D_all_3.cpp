@@ -2,11 +2,11 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.h>
+#include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <common/layout_map.h>
-#include <common/boollist.h>
+#include <common/layout_map.hpp>
+#include <common/boollist.hpp>
 #include <sys/time.h>
 
 int pid;
@@ -31,7 +31,7 @@ typedef gridtools::gcl_cpu arch_type;
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
 
-#include "triplet.h"
+#include "triplet.hpp"
 
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>

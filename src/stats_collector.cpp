@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cassert>
 
-#include <GCL.h>
+#include <GCL.hpp>
 
 /*
 namespace gridtools {
@@ -20,4 +20,3 @@ stats_collector<3> &stats_collector_3D = *stats_collector<3>::instance();
 stats_collector<2> &stats_collector_2D = *stats_collector<2>::instance();
 } // namespace gridtools
 */
-

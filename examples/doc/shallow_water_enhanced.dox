@@ -1,0 +1,221 @@
+/*!
+\page ShallowWater  Finite Differences Shallow Water
+
+This example shows an implementation of the "Shallow Water" stencil using a finite differences technique.
+You can find a reference to a similar implementation in the Matlab manual: <a href=http://www.mathworks.ch/moler/exm/chapters/water.pdf> Shallow water description </a>.
+
+\section sec_code Code Step by Step
+
+\subsection ssec_header Preamble
+
+This part contains a preamble, i.e. definitions which will be used in the core
+of the test.
+
+Headers to be included
+\snippet shallow_water_enhanced.h includes
+
+We explicitly state that we will use the blocked version of the backends, by defining a constant
+\snippet shallow_water_enhanced.h backend
+
+We declare the names we will be using, so that we can omit the scope (e.g. gridtools::)
+in the following
+\snippet shallow_water_enhanced.h namespaces
+
+In particular the gridtools namespace contains all the public symbols defined in the library which are not contained inside a nested namespace,
+enumtype contains all the enum types which are exposed to the users, and expressions contains an expression templates framework to ease the user interface in the UserFunction definition.
+
+First as usual we define the levels and splitters. Since this example is 2D this part is redundant, and will not be used in the computation.
+\snippet shallow_water_enhanced.h intervals
+
+Then we declare a trait class, which will be the base class for all the functors
+that we will run in this example. It defines the space and time steps, the gravity ocnstant,
+and it defines the alias which will be used to access the first and second dimension (x and y
+respectively). See here its documentation \ref shallow_water::functor_traits (see in particular the inheritance diagram)
+\snippet shallow_water_enhanced.h functor_traits
+
+There's few lines in the snippet above which are not straightforward: the first is the following line:
+\snippet  shallow_water_enhanced.h dimension
+Here we rename the fifth dimension as "comp", and we will explain in \ref ssec_kernels "the next section" in detail how this is used
+together with an accessor.
+The next lines we look at are:
+\snippet shallow_water_enhanced.h index
+Here we use the \ref gridtools::enumtype::x "x" and \ref gridtools::enumtype::y "y" keywords, which are aliases for the first and the second dimensions
+(Dimension<1> and Dimension<2> respectively, notice that the numeration starts from 1).
+The \ref gridtools::Dimension "dimension types" contain an \ref gridtools::Index "index". This index is an empty struct which serves the purpose of
+lighten the notation in writing the expressions defining the kernels. This turns out to be very handy and allows us to write conplicated expressions in
+a very compact and human readable form, as will be demonstrated in \ref ssec_kernels "the next section".
+
+The next part contains the definition of the boundary conditions
+\snippet shallow_water_enhanced.h boundary_conditions
+
+\anchor anch_droplet
+In particular we notice above a snippet for the initialization implementing a droplet centered in (3,3). It reads
+\f$
+1+h\;e^{-5(x-3)^2dx+5(y-3)^2dy}
+\f$
+\snippet shallow_water_enhanced.h droplet
+
+\subsection ssec_kernels Device Kernels
+
+Now we start the definition of the three main stages defining the shallow water MSS.
+
+The first kernel is defined by the following functor, which implements the flux in the x
+dimension.
+\snippet shallow_water_enhanced.h flux_x
+It is worth spending some time here in analyzing some syntactic elements present in the previous code snippet. First of all, the \ref gridtools::accessor "accessor":
+\snippet shallow_water_enhanced.h accessor
+
+The first template argument is an index defining its the order in the list of arguments which are passed to the functor from the host side.
+The accessor with index 0 will be associated to the first argument passed. Static assertions check that the accessors do not have the same index,
+and that there are not "holes" in the indexes used.
+
+The second template argument of the accessor (the "Range") should be set according to which are the offsets accessed by the accessor at hand. For instance in this case the
+accessor above is defined with a range of <0,-1,0,0>, which means that it can access the y component with an offset of -1 (i.e. j-1). This means that if this accessor
+was computed by another functor, the latter must have a larger domain, precisely extended by 1 layer in the y dimension. Otherwise we would encounter an out of bound memory access.
+Te library takes care automatically of this dependency analysis.
+
+The third template argument of the accessor is the number of dimensions. In particular the accessor is providing an interface to access storages of an arbitrary dimension. We remark
+that accessing a dimension in the storage can either mean accessing a contiguous chunk of memory with a specific stride, or accessing another unaligned pointer to memory. This
+distinction depends on how the storage is instantiated, on the \ref ssec_main "Main" subsection. At this level the number of dimensions is determining the number of possible indexes
+used by the accessor, regardless of the type of the storage being accessed. In this specific case the accessor "sol" has 5 dimensions, i.e. can be accessed using 5 indices.
+
+Another interesting syntactic element encountered in the functor above is the following
+\snippet  shallow_water_enhanced.h alias
+The line above allows to fix an arbitrary number of dimensions of an accessor to compile-time constants, and create a new accessor which has this dimention fixed. In this case we are calling
+"hx" the accessor "tmpx" with dimension "comp" (which is the fifth dimension, as shown in \ref shallow_water::functor_traits::comp "functor_traits") set to 0, and we do the same with the accessor "sol",
+calling it "h" when its fifth dimension is set to 0.
+
+The next part is defining the operations which are performed on the device for each iteration point.
+\snippet shallow_water_enhanced.h expression
+
+In the expression the "eval" is an instance of the type \ref gridtools::iterate_domain "iterate_domain". Its \refgridtools::iterate_domain::operator() "operator()" is called,
+which returns a number by reference. This number can be either the entry in the storage to be assigned (on the left hand side of the = sign), or the value to be assigned (on the right hand side).
+Whatever is inside the argument of soch an operator() is either an accessor or an expression of accessors. An expression of accessors must satisfy a specific grammar, which is defined in the \ref gridtools::expressions "expressions namespace". The basic operations supported with accessors are:
+- basic binary operations (plus minus times divide) between accessors and accessors, or between accessors and scalar types.
+- power (with integer exponent).
+- exclamation mark: this operator has the effect of accessing the underlined storage regardless of the current iteration point (the specified offsets instead of
+being relative to an iteration points become absolute).
+
+The second UserFunction is very similar to the one above, and it is defined in the following functor:
+\snippet shallow_water_enhanced.h flux_y
+
+The third and last stage of this MSS is implemented in the functor below:
+\snippet shallow_water_enhanced.h final_step
+
+\subsection ssec_main Main Function
+Let's start digging now in the main function, which contains all the runtime calls performed by the host, i.e. preparation of the tests, memory allocations, kernel launches and so on.
+We show the entire code inside the main before analyzing it in detail
+\snippet shallow_water_enhanced.h main
+
+The first very important concept we describe is the \ref gridtools::layout_map "layout map":
+\snippet shallow_water_enhanced.h layout_map
+It defines a specific memory layout. The numbers correspond to the dimensions (0 for x, 2 for y, 3 for z, and so on), while the order of these numbers defines the value of the strides.
+In particular the strides are decreasing from left to right (as usual in C/C++, while the usual Fortran layout has increasing strides). Thus in this specific case the leftmost dimension,
+which is the z, the third dimension (Dimension<3>) has stride equal to 1, while the second dimension (y) has strides "d3" (i.e. the domain size in z), and the first dimension (x) has stride "d2*d3" (i.e. the domain size in z times the domain size in y).
+
+The layout_map is used to define the type of the storages we will use
+\snippet shallow_water_enhanced.h storage_type
+In particular the dimensions of the storage will equal the size of the layout_map, and the memory will be accessed as defined in the layout_map.
+
+We notice here that we defined two storage types. The second one is temporary, which is supposed to contain intermediate temporary results which are needed by the subsequent stages, but not as a final output.
+The difference between these two types of storages is that the non-temporary ones will be allocated by us (users),
+and we will own and be responsible for the creation/deletion of non-temporary storage instances. On the other hand the temporary storages are defined here, but they will be sized, allocated and
+destructed automatically by the library. In particular the size of the temporary storages depends on the \ref gridtools::enumtype::strategy "strategy" we choose: if it is
+\ref gridtools::enumtype::Naive "Naive",
+then the temporary storages will have the same size as the non-temporary ones. If the \ref gridtools::enumtype::strategy "strategy"  is \ref gridtools::enumtype::Block "Block",
+then the iterations spaced is divided
+in tiles [TODO give reference], and the temporary storages will have the minimum possible size such that the accesses do not go out of bound. To compute this size the \ref gridtools::range "ranges" are used, as
+defined in \ref ssec_kernels "the previous section". The Block strategy is usually better in terms of performance, since it allows to effectively exploit caching.
+
+We now define two new \ref gridtools::data_field "data field" types
+\snippet shallow_water_enhanced.h fields
+A data field is a collection of storages, and can be thought as a vector of variable-size lists of storages.
+A general description is provided in \ref descr_storage "the documentation of the storage class".
+In order to have two storage belonging to the same data field, they must share
+- their dimensions,
+- strides,
+- and memory layout.
+The advantage of using a field instead of separated storages is that
+the storages belonging to the same field share all the information listed above, avoiding unnecessary waste of resources (this is specially effective when using devices with
+limited amount of resourses per thread). Furthermore for all the storages belonging to one field the iteration point is also shared, resulting in a considerable computational
+advantage on some architectures.
+Notice that now, besides the 3 dimensions of the storage types, the fields define a sort of matrix of storages, with 2 extra dimensions. Those dimensions are conceptuelly different
+from the storage dimensions, and we call them "field dimensions". The field dimension though are accessed with the same interface as the storage dimensions by the accessors in \ref ssec_kernels "the previous section".
+
+For each data field used in this example we have to define a placeholder, whose type is composed by the storage type and by an index. These indexes must be unique and contiguous.
+\snippet shallow_water_enhanced.h args
+These placeholders will be assigned to the real storages later in the program, and they will replace the storages inside the library
+
+Next we want to define the \ref gridtools::MPI_3D_process_grid_t "processors grid". We start thus by computing the domain partitions. The code below splits "PROCS" in 2 factors, and writes the "dimensions" vector containing the factors in the first two positions
+\snippet shallow_water_enhanced.h proc_grid_dims
+In the latter line we set manually the third component of the "dimensions" vector to 1: since we are dealing with a 2D example we partition only the xy plane.
+
+The next line is tricky
+\snippet shallow_water_enhanced.h pattern_type
+Here we define the \ref gridtools::halo_exchange_dynamic_ut "pattern type" which will be used to exchange the halo regions among neighboring processors in the processors grid.
+The pattern type is defined by means of two layout_map, a pointer type, a processor grid type, and flags determining the protocol to be used.
+The first layout map in the type definition represents the layout of the data we want to communicate, while the second layout is the pattern of the processors grid,
+as detailed \ref descr_halo_exchange_dynamic_ut "here".
+The run-time values passed to the pattern_type constructor are a list of booleans, specifying wether the processor grid is periodic, the communicator, and the array containing how many processors we
+want in each dimension.
+
+The next step will be defining a partitioner, which is an object bridging the processor grid to the storage. It is responsible for computing the actual partitions and iteration spaces for each
+processors, given the halos and paddings vectors
+\snippet shallow_water_enhanced.h partitioner
+To each processor is assigned a partition. The halos for each processors are the layers of points accessed which reside in a neighboding partition (and thus have to be communicated). The paddings
+are extra layers at the global boundary, which contain valid memory addresses but are not part of the iteration space.
+Notice that we used in this case a \ref gridtools::trivial_partitioner "trivial partitioner", which has the following constraints:
+- the partition is as uniform as possible (i.e. each partition contains roughly the same number of points)
+- the iteration spaces generated for each partition are symmetric in any specific direction (i.e. the padding and halos are the same for all the boundaries in one dimension,
+  while they can change for other dimensions)
+Notice that the partitioner is not aware of the storage it will partition, and can be reused for multiple storages.
+
+We introduce now the \ref gridtools::parallel_storage "parallel storage"
+\snippet shallow_water_enhanced.h parallel_storage
+This is a simple decorator of the regular \ref gridtools::storage "storage" containing the position of that partition in the global domain,
+and its iteration space. The members of this class are not copied to the device, so only the host has knowledge of the global iteration points being accessed.
+The parallel storage must be constructed using a partitioner. Then, when the \ref gridtools::parallel_storage::setup "setup" method computes the local dimensions and strides using the partitioner,
+and allocates the storages.
+
+The following code completes the definition of the processors grid:
+\snippet shallow_water_enhanced.h add_halo
+It basically tells to the pattern_type instance how many and which points have to be exchanged among the neighboring processor. This is done for all three dimensions
+
+Next it's time to initialize
+\snippet shallow_water_enhanced.h initialization_h
+The call to \ref gridtools::data_field::set "set" allows to initialize one by one all the storage snapshots with either scalar values, lambda functions, or function pointers.
+Here we initialize the solution "h" with the droplet function pointer defined \ref anch_droplet "here", just in case the processor ID is 1, otherwise initialize with constant 1.
+We initialize the other components of the solution with 0.
+\snippet shallow_water_enhanced.h initialization
+
+The next line is a simple definition in which we must list all the non temporary storage pointers. They will then be matched with the corresponding placeholders defined previously.
+\snippet shallow_water_enhanced.h domain_type
+
+Then we need to instantiate a \ref gridtools::coordinates "coordinates" type, defining the iteration space in all dimensions for the current partition.
+In this case the iteration space is extracted from the parallel_storage
+\snippet shallow_water_enhanced.h coordinates
+The third coordinate is trated differently as usual
+
+The following part constitutes the core of the MSS definition
+\snippet shallow_water_enhanced.h computation
+It generates a tree of stages, which may or may not be dependent on each other, each of which constitutes an ESF and is defined by one of the functors described in \ref ssec_kernels "the previous section".
+These functors are indeed passed as template arguments to the make_esf helper function. The
+\code
+execute<forward>()
+\endcode
+keyword specifies the order of the loops in the z direction.
+
+The next lines are responsible fro instantiating the temporary storages, setting up the computation
+\snippet shallow_water_enhanced.h setup
+
+Here we might want to start a time loop, and repeat the following commands every time:
+- exchange the data on the halos and apply the boundary conditions (here we suppose zero Neumann boundary conditions everywhere, i.e. we do nothing)
+\snippet shallow_water_enhanced.h exchange
+- run the kernels
+\snippet shallow_water_enhanced.h run
+
+At the end of the time loop we still have to copy the data beck fro mthe device to the host, and cleanup the temporary storages
+\snippet shallow_water_enhanced.h finalize
+
+THAT'S ALL FOLKS
+*/

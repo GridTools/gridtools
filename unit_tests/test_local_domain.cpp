@@ -7,15 +7,15 @@
 
 //#define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <gridtools.h>
+#include <gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/backend.h>
-#include <stencil-composition/make_computation.h>
-#include <stencil-composition/intermediate_metafunctions.h>
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/intermediate_metafunctions.hpp"
 
 using namespace gridtools;
 using gridtools::level;
@@ -133,6 +133,3 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     EXPECT_TRUE(true);
 }
-
-
-

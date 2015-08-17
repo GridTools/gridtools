@@ -2,8 +2,8 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/test_tools.hpp>
-#include "../NeighbourLists.h"
-#include "../triangular_2D.h"
+#include "../NeighbourLists.hpp"
+#include "../triangular_2D.hpp"
 
 BOOST_AUTO_TEST_SUITE(NeighbourListsSuite)
 
@@ -131,6 +131,3 @@ BOOST_AUTO_TEST_CASE(BuildExceptionalCells)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-
-

@@ -1,4 +1,4 @@
-#include "copy_stencil.h"
+#include "copy_stencil.hpp"
 
 int main(int argc, char** argv)
 {

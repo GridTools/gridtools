@@ -1,6 +1,6 @@
 #pragma once
-#include "../../include/storage/base_storage_impl.h"
-#include "../../include/common/layout_map.h"
+#include "../../include/storage/base_storage_impl.hpp"
+#include "../../include/common/layout_map.hpp"
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
 
