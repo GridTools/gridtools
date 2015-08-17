@@ -777,11 +777,11 @@ namespace gridtools {
         typename return_type<typename from<cells>::template to<Location2>, array<uint_t, 4> >::type
         neighbors_indices_3(array<uint_t, 4> const& i, cells, Location2) const
         {
-            //#ifdef _GRID_H_DEBUG
+ #ifdef _GRID_H_DEBUG
             std::cout << "neighbors_indices_3 cells to " << Location2() << " "
                       << i[0] << ", " << i[1] << ", " << i[2] << ", " << i[3]
                       << std::endl;
-            //#endif
+#endif
             switch (i[1]%cells::n_colors) {
             case 0:
                 return ll_map_index(cells(), Location2(), static_int<0>(), {i[0], i[2], i[3]});
@@ -814,6 +814,18 @@ namespace gridtools {
             }
         }
 
+
+        template<typename Location2> // Works for cells or edges with same code
+        typename return_type<typename from<vertexes>::template to<Location2>, array<uint_t, 4> >::type
+        neighbors_indices_3(array<uint_t, 4> const& i, vertexes, Location2) const
+        {
+#ifdef _GRID_H_DEBUG
+            std::cout << "neighbors_indices_3 vertexes to " << Location2() << " "
+                      << i[0] << ", " << i[1] << ", " << i[2] << ", " << i[3]
+                      << std::endl;
+#endif
+            return ll_map_index(vertexes(), Location2(), static_int<0>(), {i[0], i[2], i[3]});
+        }
 
     };
 
