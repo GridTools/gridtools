@@ -30,9 +30,9 @@ using vertex_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::verte
 
 struct stencil_on_cells {
     typedef accessor<0, trapezoid_2D::cells> out;
-    typedef accessor<1, trapezoid_2D::cells> in;
-    typedef accessor<2, trapezoid_2D::edges> out_edges_NOT_USED;
-    typedef accessor<3, trapezoid_2D::edges> in_edges;
+    typedef ro_accessor<1, trapezoid_2D::cells, radius<1> > in;
+    typedef ro_accessor<2, trapezoid_2D::edges> out_edges_NOT_USED;
+    typedef ro_accessor<3, trapezoid_2D::edges, radius<1> > in_edges;
 
     template <typename GridAccessors>
     void
@@ -57,7 +57,7 @@ struct stencil_on_cells {
 
 struct stencil_on_vertexes {
     typedef accessor<0, trapezoid_2D::vertexes> out;
-    typedef accessor<1, trapezoid_2D::vertexes> in;
+    typedef ro_accessor<1, trapezoid_2D::vertexes, radius<1>> in;
 
     template <typename GridAccessors>
     void
@@ -79,8 +79,8 @@ struct stencil_on_vertexes {
 
 struct nested_stencil {
     typedef accessor<0, trapezoid_2D::cells> out;
-    typedef accessor<1, trapezoid_2D::cells> in;
-    typedef accessor<2, trapezoid_2D::edges> edges0;
+    typedef ro_accessor<1, trapezoid_2D::cells, radius<2>> in;
+    typedef ro_accessor<2, trapezoid_2D::edges, radius<1>> edges0;
     typedef accessor<3, trapezoid_2D::edges> edges1;
 
     template <typename GridAccessors>
@@ -121,9 +121,9 @@ struct nested_stencil {
 
 struct stencil_on_edges {
     typedef accessor<0, trapezoid_2D::cells> out_NOT_USED;
-    typedef accessor<1, trapezoid_2D::cells> in;
+    typedef ro_accessor<1, trapezoid_2D::cells, radius<1>> in;
     typedef accessor<2, trapezoid_2D::edges> out_edges;
-    typedef accessor<3, trapezoid_2D::edges> in_edges;
+    typedef ro_accessor<3, trapezoid_2D::edges, radius<1>> in_edges;
 
     template <typename GridAccessors>
     void

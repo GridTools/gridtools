@@ -5,6 +5,12 @@
 #define _ACCESSOR_H_DEBUG_
 
 
+template <int R>
+struct radius {
+    static const int value = R;
+};
+
+
 /**
    Map function that uses compile time (stateless) accessors to be
    evaluated later. Another version would have the Arguments to be
@@ -193,6 +199,11 @@ struct accessor {
     }
 };
 
+template <int I, typename LocationType, typename Radius=radius<0> >
+struct ro_accessor : public accessor<I, LocationType> {
+    using radius_type = Radius;
+};
+
 
 /**
    This class is basically the iterate domain. It contains the
@@ -368,8 +379,9 @@ public:
               , typename Reduction
               , int I
               , typename L
+              , int R
               >
-    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, accessor<I,L>> onneighbors) const {
+    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
         auto current_position = m_ll_indices;
 
         const auto neighbors = m_grid.neighbors_indices_3(current_position
@@ -389,15 +401,22 @@ public:
     }
 
     template <int I, typename LT>
+    double const operator()(ro_accessor<I,LT> const& arg) const {
+        //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
+        return *(boost::fusion::at_c<I>(pointers));
+    }
+
+    template <int I, typename LT>
     double& operator()(accessor<I,LT> const& arg) const {
         //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
         return *(boost::fusion::at_c<I>(pointers));
     }
 
+
 private:
 
-    template <int I, typename L, typename IndexArray>
-    double _evaluate(accessor<I,L>, IndexArray const& position) const {
+    template <int I, typename L, int R, typename IndexArray>
+    double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
 #ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
 #endif
