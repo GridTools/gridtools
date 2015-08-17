@@ -628,11 +628,10 @@ namespace gridtools {
                 ->_index(strides().template get<Accessor::index_type::value>(), accessor);
 
         return static_cast<const IterateDomainImpl*>(this)->template get_value_impl
-            <
-                typename boost::add_reference<
-                    typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type
-                >::type,
-                storage_pointer_t
+        <
+            typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type,
+            Accessor,
+            storage_pointer_t
         >(real_storage_pointer, pointer_offset);
     }
 
