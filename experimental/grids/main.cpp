@@ -174,6 +174,14 @@ int main() {
     trapezoid_2D grid( 6, 12, d3 );
 
 
+    cell_storage_type cells(grid.size(trapezoid_2D::cells()));
+    edge_storage_type edges(grid.size(trapezoid_2D::edges()));
+    vertex_storage_type vertexes(grid.size(trapezoid_2D::vertexes()));
+
+    fill_storage_with_indices(cells);
+    fill_storage_with_indices(edges);
+    fill_storage_with_indices(vertexes);
+
     cell_storage_type cells_out(grid.size(trapezoid_2D::cells()));
     edge_storage_type edges_out(grid.size(trapezoid_2D::edges()));
     vertex_storage_type vertexes_out(grid.size(trapezoid_2D::vertexes()));
