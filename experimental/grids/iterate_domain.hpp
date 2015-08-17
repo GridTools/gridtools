@@ -5,6 +5,12 @@
 #define _ACCESSOR_H_DEBUG_
 
 
+template <int R>
+struct radius {
+    static const int value = R;
+};
+
+
 /**
    Map function that uses compile time (stateless) accessors to be
    evaluated later. Another version would have the Arguments to be
@@ -193,6 +199,11 @@ struct accessor {
     }
 };
 
+template <int I, typename LocationType, typename Radius=radius<0> >
+struct ro_accessor : public accessor<I, LocationType> {
+    using radius_type = Radius;
+};
+
 
 /**
    This class is basically the iterate domain. It contains the
@@ -238,7 +249,7 @@ private:
     pointers_t pointers;
     grid_type const& m_grid;
 
-    gridtools::array<u_int, 3> m_ll_indices;
+    gridtools::array<u_int, 4> m_ll_indices;
 
     template <typename PointersT, typename StoragesT>
     struct _set_pointers
@@ -261,12 +272,12 @@ private:
         PointersT &m_pt;
         StoragesT const &m_st;
         GridT const& m_g;
-        gridtools::array<uint_t, 3> const& _m_ll_indices;
+        gridtools::array<uint_t, 4> const& _m_ll_indices;
 
         _set_pointers_to(PointersT& pt,
                          StoragesT const &st,
                          GridT const& g,
-                         gridtools::array<uint_t, 3> const & ll_ind)
+                         gridtools::array<uint_t, 4> const & ll_ind)
             : m_pt(pt)
             , m_st(st)
             , m_g(g)
@@ -299,10 +310,11 @@ private:
         }
     };
 
-    void _increment_pointers_k()
+    template <int Coord>
+    void _increment_pointers()
     {
         using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-        boost::mpl::for_each<indices>(_move_pointers<2, pointers_t, grid_type>(pointers, m_grid));
+        boost::mpl::for_each<indices>(_move_pointers<Coord, pointers_t, grid_type>(pointers, m_grid));
     }
 
     void _reset_pointers()
@@ -329,11 +341,12 @@ public:
 
     GridType const& grid() const {return m_grid;}
 
-    void inc_ll_k() {++m_ll_indices[2]; _increment_pointers_k();}
+    template <int Coord>
+    void inc_ll() {++m_ll_indices[Coord]; _increment_pointers<Coord>();}
 
     template <typename LocationT>
-    void set_ll_ijk(u_int i, u_int j, u_int k) {
-        m_ll_indices = {i, j, k};
+    void set_ll_ijk(u_int i, u_int j, u_int k, u_int l) {
+        m_ll_indices = {i, j, k, l};
         _set_pointers_to_ll<LocationT>();
     }
 
@@ -366,8 +379,9 @@ public:
               , typename Reduction
               , int I
               , typename L
+              , int R
               >
-    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, accessor<I,L>> onneighbors) const {
+    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
         auto current_position = m_ll_indices;
 
         const auto neighbors = m_grid.neighbors_indices_3(current_position
@@ -387,15 +401,22 @@ public:
     }
 
     template <int I, typename LT>
+    double const operator()(ro_accessor<I,LT> const& arg) const {
+        //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
+        return *(boost::fusion::at_c<I>(pointers));
+    }
+
+    template <int I, typename LT>
     double& operator()(accessor<I,LT> const& arg) const {
         //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
         return *(boost::fusion::at_c<I>(pointers));
     }
 
+
 private:
 
-    template <int I, typename L, typename IndexArray>
-    double _evaluate(accessor<I,L>, IndexArray const& position) const {
+    template <int I, typename L, int R, typename IndexArray>
+    double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
 #ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
 #endif

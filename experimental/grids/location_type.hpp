@@ -1,5 +1,5 @@
 #pragma once
-#include <common/string_c.h>
+#include <common/string_c.hpp>
 namespace gridtools {
     template <int I, ushort_t NColors>
     struct location_type {

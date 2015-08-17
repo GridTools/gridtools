@@ -1,4 +1,4 @@
-#include "tridiagonal.h"
+#include "tridiagonal.hpp"
 
 int main(int argc, char** argv)
 {

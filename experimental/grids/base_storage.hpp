@@ -1,5 +1,5 @@
 #pragma once
-#include <storage/wrap_pointer.h>
+#include <storage/wrap_pointer.hpp>
 
 namespace gridtools {
 

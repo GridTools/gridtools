@@ -1,5 +1,5 @@
 #pragma once
-#include <common/array.h>
+#include <common/array.hpp>
 
 namespace gridtools {
     template <typename T, size_t D>

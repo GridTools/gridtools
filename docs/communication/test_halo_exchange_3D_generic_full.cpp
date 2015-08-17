@@ -2,16 +2,16 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.h>
+#include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <common/layout_map.h>
-#include <common/boollist.h>
+#include <common/layout_map.hpp>
+#include <common/boollist.hpp>
 #include <sys/time.h>
 
  //#define USE_DOUBLE true
 //#define USE_DOUBLE false
-#include "triplet.h"
+#include "triplet.hpp"
 
 int pid;
 int nprocs;
@@ -46,14 +46,14 @@ typedef gridtools::gcl_cpu arch_type;
 
 
 template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
-void run(ST & file, int DIM1, int DIM2, int DIM3, 
-         int H1m1, int H1p1, int H2m1, int H2p1, int H3m1, int H3p1, 
-         int H1m2, int H1p2, int H2m2, int H2p2, int H3m2, int H3p2, 
-         int H1m3, int H1p3, int H2m3, int H2p3, int H3m3, int H3p3, 
+void run(ST & file, int DIM1, int DIM2, int DIM3,
+         int H1m1, int H1p1, int H2m1, int H2p1, int H3m1, int H3p1,
+         int H1m2, int H1p2, int H2m2, int H2p2, int H3m2, int H3p2,
+         int H1m3, int H1p3, int H2m3, int H2p3, int H3m3, int H3p3,
          triple_t<USE_DOUBLE, T1> *_a, triple_t<USE_DOUBLE, T2> *_b, triple_t<USE_DOUBLE, T3> *_c) {
 
   typedef gridtools::layout_map<I1,I2,I3> layoutmap;
-  
+
   array<triple_t<USE_DOUBLE, T1>, layoutmap > a(_a, (DIM1+H1m1+H1p1),(DIM2+H2m1+H2p1),(DIM3+H3m1+H3p1));
   array<triple_t<USE_DOUBLE, T2>, layoutmap > b(_b, (DIM1+H1m2+H1p2),(DIM2+H2m2+H2p2),(DIM3+H3m2+H3p2));
   array<triple_t<USE_DOUBLE, T3>, layoutmap > c(_c, (DIM1+H1m3+H1p3),(DIM2+H2m3+H2p3),(DIM3+H3m3+H3p3));
@@ -112,25 +112,25 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
 
   gridtools::array<gridtools::halo_descriptor,3> h_example;
 #define MAX3(a,b,c) std::max(a, std::max(b,c))
-  h_example[0] = gridtools::halo_descriptor(MAX3(H1m1, H1m2, H1m3), 
-                                      MAX3(H1p1, H1p2, H1p3), 
-                                      MAX3(H1m1, H1m2, H1m3), 
-                                      DIM1+MAX3(H1m1, H1m2, H1m3)-1, 
+  h_example[0] = gridtools::halo_descriptor(MAX3(H1m1, H1m2, H1m3),
+                                      MAX3(H1p1, H1p2, H1p3),
+                                      MAX3(H1m1, H1m2, H1m3),
+                                      DIM1+MAX3(H1m1, H1m2, H1m3)-1,
                                       DIM1+MAX3(H1m1, H1m2, H1m3)+MAX3(H1p1, H1p3, H1p3));
-  h_example[1] = gridtools::halo_descriptor(MAX3(H2m1, H2m2, H2m3), 
-                                      MAX3(H2p1, H2p2, H2p3), 
-                                      MAX3(H2m1, H2m2, H2m3), 
-                                      DIM2+MAX3(H2m1, H2m2, H2m3)-1, 
+  h_example[1] = gridtools::halo_descriptor(MAX3(H2m1, H2m2, H2m3),
+                                      MAX3(H2p1, H2p2, H2p3),
+                                      MAX3(H2m1, H2m2, H2m3),
+                                      DIM2+MAX3(H2m1, H2m2, H2m3)-1,
                                       DIM2+MAX3(H2m1, H2m2, H2m3)+MAX3(H2p1, H2p3, H2p3));
-  h_example[2] = gridtools::halo_descriptor(MAX3(H3m1, H3m2, H3m3), 
-                                      MAX3(H3p1, H3p2, H3p3), 
-                                      MAX3(H3m1, H3m2, H3m3), 
-                                      DIM3+MAX3(H3m1, H3m2, H3m3)-1, 
+  h_example[2] = gridtools::halo_descriptor(MAX3(H3m1, H3m2, H3m3),
+                                      MAX3(H3p1, H3p2, H3p3),
+                                      MAX3(H3m1, H3m2, H3m3),
+                                      DIM3+MAX3(H3m1, H3m2, H3m3)-1,
                                       DIM3+MAX3(H3m1, H3m2, H3m3)+MAX3(H3p1, H3p3, H3p3));
 #undef MAX3
-  he.setup(3, gridtools::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,h_example), // BEWARE!!!! 
-           std::max(sizeof(triple_t<USE_DOUBLE, T1>::data_type), 
-                    std::max(sizeof(triple_t<USE_DOUBLE, T2>::data_type), 
+  he.setup(3, gridtools::field_on_the_fly<int,layoutmap, pattern_type::traits>(NULL,h_example), // BEWARE!!!!
+           std::max(sizeof(triple_t<USE_DOUBLE, T1>::data_type),
+                    std::max(sizeof(triple_t<USE_DOUBLE, T2>::data_type),
                              sizeof(triple_t<USE_DOUBLE, T3>::data_type)
                              ) // Estimates the size
                     )
@@ -149,7 +149,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
   for (int ii=0; ii<DIM1+H1m2+H1p2; ++ii)
     for (int jj=0; jj<DIM2+H2m2+H2p2; ++jj) {
       for (int kk=0; kk<DIM3+H3m2+H3p2; ++kk) {
-        b(ii,jj,kk) = triple_t<USE_DOUBLE, T2>();                                      
+        b(ii,jj,kk) = triple_t<USE_DOUBLE, T2>();
       }
     }
 
@@ -161,27 +161,27 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
     }
 
   for (int ii=H1m1; ii<DIM1+H1m1; ++ii)
-    for (int jj=H2m1; jj<DIM2+H2m1; ++jj) 
+    for (int jj=H2m1; jj<DIM2+H2m1; ++jj)
       for (int kk=H3m1; kk<DIM3+H3m1; ++kk) {
-        a(ii,jj,kk) = 
+        a(ii,jj,kk) =
           triple_t<USE_DOUBLE, T1>(ii-H1m1+(DIM1)*coords[0],
                    jj-H2m1+(DIM2)*coords[1],
                    kk-H3m1+(DIM3)*coords[2]);
       }
 
   for (int ii=H1m2; ii<DIM1+H1m2; ++ii)
-    for (int jj=H2m2; jj<DIM2+H2m2; ++jj) 
+    for (int jj=H2m2; jj<DIM2+H2m2; ++jj)
       for (int kk=H3m2; kk<DIM3+H3m2; ++kk) {
-        b(ii,jj,kk) = 
+        b(ii,jj,kk) =
           triple_t<USE_DOUBLE, T2>(ii-H1m2+(DIM1)*coords[0]+B_ADD,
                    jj-H2m2+(DIM2)*coords[1]+B_ADD,
                    kk-H3m2+(DIM3)*coords[2]+B_ADD);
       }
 
   for (int ii=H1m3; ii<DIM1+H1m3; ++ii)
-    for (int jj=H2m3; jj<DIM2+H2m3; ++jj) 
+    for (int jj=H2m3; jj<DIM2+H2m3; ++jj)
       for (int kk=H3m3; kk<DIM3+H3m3; ++kk) {
-        c(ii,jj,kk) = 
+        c(ii,jj,kk) =
           triple_t<USE_DOUBLE, T3>(ii-H1m3+(DIM1)*coords[0]+C_ADD,
                    jj-H2m3+(DIM2)*coords[1]+C_ADD,
                    kk-H3m3+(DIM3)*coords[2]+C_ADD);
@@ -269,27 +269,27 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
         int tax, tay, taz;
 
         tax = modulus(ii-H1m1+(DIM1)*coords[0], DIM1*dims[0]);
- 
+
         tay = modulus(jj-H2m1+(DIM2)*coords[1], DIM2*dims[1]);
- 
+
         taz = modulus(kk-H3m1+(DIM3)*coords[2], DIM3*dims[2]);
- 
+
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H1m1)) || 
+          if ( ((coords[0]==0) && (ii<H1m1)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H1m1)) ) {
             tax=triple_t<USE_DOUBLE, T1>().x();
            }
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H2m1)) || 
+          if ( ((coords[1]==0) && (jj<H2m1)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H2m1)) ) {
             tay=triple_t<USE_DOUBLE, T1>().y();
            }
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H3m1)) || 
+          if ( ((coords[2]==0) && (kk<H3m1)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H3m1)) ) {
             taz=triple_t<USE_DOUBLE, T1>().z();
           }
@@ -299,8 +299,8 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
 
         if (a(ii,jj,kk) != ta) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " values found != expct: " 
-               << "a " << a(ii,jj,kk) << " != " 
+          file << ii << ", " << jj << ", " << kk << " values found != expct: "
+               << "a " << a(ii,jj,kk) << " != "
                << ta
                << "\n";
         }
@@ -320,21 +320,21 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
         tbz = modulus(kk-H3m2+(DIM3)*coords[2], DIM3*dims[2])+B_ADD;
 
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H1m2)) || 
+          if ( ((coords[0]==0) && (ii<H1m2)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H1m2)) ) {
             tbx=triple_t<USE_DOUBLE, T2>().x();
           }
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H2m2)) || 
+          if ( ((coords[1]==0) && (jj<H2m2)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H2m2)) ) {
             tby=triple_t<USE_DOUBLE, T2>().y();
           }
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H3m2)) || 
+          if ( ((coords[2]==0) && (kk<H3m2)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H3m2)) ) {
             tbz=triple_t<USE_DOUBLE, T2>().z();
           }
@@ -344,8 +344,8 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
 
         if (b(ii,jj,kk) != tb) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " values found != expct: " 
-               << "b " << b(ii,jj,kk) << " != " 
+          file << ii << ", " << jj << ", " << kk << " values found != expct: "
+               << "b " << b(ii,jj,kk) << " != "
                << tb
                << "\n";
         }
@@ -365,21 +365,21 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
         tcz = modulus(kk-H3m3+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H1m3)) || 
+          if ( ((coords[0]==0) && (ii<H1m3)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H1m3)) ) {
             tcx=triple_t<USE_DOUBLE, T3>().x();
           }
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H2m3)) || 
+          if ( ((coords[1]==0) && (jj<H2m3)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H2m3)) ) {
             tcy=triple_t<USE_DOUBLE, T3>().y();
           }
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H3m3)) || 
+          if ( ((coords[2]==0) && (kk<H3m3)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H3m3)) ) {
             tcz=triple_t<USE_DOUBLE, T3>().z();
           }
@@ -389,8 +389,8 @@ void run(ST & file, int DIM1, int DIM2, int DIM3,
 
         if (c(ii,jj,kk) != tc) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " values found != expct: " 
-               << "c " << c(ii,jj,kk) << " != " 
+          file << ii << ", " << jj << ", " << kk << " values found != expct: "
+               << "c " << c(ii,jj,kk) << " != "
                << tc
                << "\n";
         }
@@ -438,7 +438,7 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   MPI_Cart_get(CartComm, 3, dims, period, coords);
@@ -471,19 +471,19 @@ int main(int argc, char** argv) {
   int H3m3  =atoi(argv[20]);
   int H3p3  =atoi(argv[21]);
 
-  file << "Field A " 
+  file << "Field A "
        << "size = " << DIM1 << "x" << DIM2 << "x" << DIM3 << " "
        << "Halo along i " << H1m1 << " - " << H1p1 << ", "
        << "Halo along j " << H2m1 << " - " << H2p1 << ", "
        << "Halo along k " << H3m1 << " - " << H3p1 << std::endl;
 
-  file << "Field B " 
+  file << "Field B "
        << "size = " << DIM1 << "x" << DIM2 << "x" << DIM3 << " "
        << "Halo along i " << H1m2 << " - " << H1p2 << ", "
        << "Halo along j " << H2m2 << " - " << H2p2 << ", "
        << "Halo along k " << H3m2 << " - " << H3p2 << std::endl;
 
-  file << "Field C " 
+  file << "Field C "
        << "size = " << DIM1 << "x" << DIM2 << "x" << DIM3 << " "
        << "Halo along i " << H1m3 << " - " << H1p3 << ", "
        << "Halo along j " << H2m3 << " - " << H2p3 << ", "
@@ -684,7 +684,7 @@ int main(int argc, char** argv) {
                                                _a, _b, _c);
 
   file << "run<std::ostream, 1,0,2, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,0,2, false, false, true>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,0,2, false, false, true>(file, DIM1, DIM2, DIM3,
                                                H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
@@ -692,7 +692,7 @@ int main(int argc, char** argv) {
                                                _a, _b, _c);
 
   file << "run<std::ostream, 1,0,2, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,0,2, false, false, false>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,0,2, false, false, false>(file, DIM1, DIM2, DIM3,
                                                 H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                 H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                 H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
@@ -710,49 +710,49 @@ int main(int argc, char** argv) {
                                              _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, true, true, false>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,2,0, true, true, false>(file, DIM1, DIM2, DIM3,
                                               H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                               H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                               H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                               _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, true, false, true>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,2,0, true, false, true>(file, DIM1, DIM2, DIM3,
                                               H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                               H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                               H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                               _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, true, false, false>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,2,0, true, false, false>(file, DIM1, DIM2, DIM3,
                                                H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                                _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m1, H1p1, 
+  run<std::ostream, 1,2,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m1, H1p1,
                                               H2m1, H2p1, H3m1, H3p1,
                                               H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                               H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                               _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m1, H1p1, 
+  run<std::ostream, 1,2,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m1, H1p1,
                                                H2m1, H2p1, H3m1, H3p1,
                                                H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                                _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, false, false, true>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,2,0, false, false, true>(file, DIM1, DIM2, DIM3,
                                                H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                                _a, _b, _c);
 
   file << "run<std::ostream, 1,2,0, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H31, _a, _b, _c)\n";
-  run<std::ostream, 1,2,0, false, false, false>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 1,2,0, false, false, false>(file, DIM1, DIM2, DIM3,
                                                 H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                 H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                 H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
@@ -763,35 +763,35 @@ int main(int argc, char** argv) {
   file << "Permutation 2,0,1\n";
 
   file << "run<std::ostream, 2,0,1, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 2,0,1, true, true, true>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 2,0,1, true, true, true>(file, DIM1, DIM2, DIM3,
                                              H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                              H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                              H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                              _a, _b, _c);
 
   file << "run<std::ostream, 2,0,1, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 2,0,1, true, true, false>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 2,0,1, true, true, false>(file, DIM1, DIM2, DIM3,
                                               H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                               H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                               H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                               _a, _b, _c);
 
   file << "run<std::ostream, 2,0,1, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 2,0,1, true, false, true>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 2,0,1, true, false, true>(file, DIM1, DIM2, DIM3,
                                               H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                               H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                               H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                               _a, _b, _c);
 
   file << "run<std::ostream, 2,0,1, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 2,0,1, true, false, false>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 2,0,1, true, false, false>(file, DIM1, DIM2, DIM3,
                                                H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
                                                _a, _b, _c);
 
   file << "run<std::ostream, 2,0,1, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
-  run<std::ostream, 2,0,1, false, true, true>(file, DIM1, DIM2, DIM3, 
+  run<std::ostream, 2,0,1, false, true, true>(file, DIM1, DIM2, DIM3,
                                               H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                               H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                               H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
@@ -802,7 +802,7 @@ int main(int argc, char** argv) {
                                                H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
- 
+
                                                _a, _b, _c);
 
   file << "run<std::ostream, 2,0,1, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, _c)\n";
@@ -818,7 +818,7 @@ int main(int argc, char** argv) {
                                                 H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
                                                 H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
                                                 H1m3, H1p3, H2m3, H2p3, H3m3, H3p3,
- 
+
                                                 _a, _b, _c);
   file << "---------------------------------------------------\n";
 

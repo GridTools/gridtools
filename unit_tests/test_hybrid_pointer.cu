@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
+#include "common/gpu_clone.hpp"
+#include "storage/hybrid_pointer.hpp"
 
 using gridtools::uint_t;
 using gridtools::int_t;

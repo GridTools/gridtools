@@ -1,9 +1,12 @@
 dist
 venv
 venv2
+cover
 styles
 samples
 astviewer
+ShallowWater
+.coverage
 .ipynb_checkpoints
 *.egg-info
 *.bak

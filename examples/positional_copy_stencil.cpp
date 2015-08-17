@@ -1,4 +1,4 @@
-#include "positional_copy_stencil.h"
+#include "positional_copy_stencil.hpp"
 
 int main(int argc, char** argv)
 {

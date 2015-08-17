@@ -1,9 +1,9 @@
 #include <mpi.h>
 #include <iostream>
-#include <proc_grids_3D.h>
-#include <Halo_Exchange_3D.h>
+#include <proc_grids_3D.hpp>
+#include <Halo_Exchange_3D.hpp>
 #include <stdio.h>
-#include <common/boollist.h>
+#include <common/boollist.hpp>
 
 struct T3 {}; // MPI CYCLIC
 struct T4 {}; // MPI not CYCLIC
