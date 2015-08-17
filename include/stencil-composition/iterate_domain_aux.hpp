@@ -595,7 +595,7 @@ namespace gridtools{
 
 
     template<typename LocalDomain, typename Accessor>
-    struct get_storage_pointer_accessor
+    struct get_storage_accessor
     {
         GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, "Wrong type");
         GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "Wrong type");
@@ -612,9 +612,23 @@ namespace gridtools{
                     typename Accessor::index_type
                 >::type
             >::type
-        >::type storage_type_t;
+        >::type type;
+    };
 
-        typedef typename boost::add_pointer<typename storage_type_t::value_type>::type type;
+    template<typename LocalDomain, typename Accessor>
+    struct get_storage_pointer_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "Wrong type");
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size<typename LocalDomain::local_args_type>::value > Accessor::index_type::value),
+            "Wrong type"
+        );
+
+        typedef typename boost::add_pointer<
+            typename get_storage_accessor<LocalDomain, Accessor>::type::value_type
+        >::type type;
     };
 
 }//namespace gridtools

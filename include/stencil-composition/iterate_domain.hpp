@@ -653,11 +653,8 @@ namespace gridtools {
     iterate_domain<IterateDomainImpl>::operator()(Accessor const& accessor) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args))>::type;
-#else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::type::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
+        typedef typename get_storage_accessor<local_domain_t, Accessor>::type storage_type;
+
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
         GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions+2/*max. extra dimensions*/>=Accessor::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
