@@ -322,82 +322,88 @@ int main() {
 
     }
 
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "CASE # 2" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 2" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
 
-    // {
-    //     auto x = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
-    //         (out_cells(), out_cells(), out_edges(), in_edges());
+    {
+        auto x = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
+            (out_cells(), out_cells(), out_edges(), in_edges());
 
-    //     iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
-    //                   trapezoid_2D, trapezoid_2D::cells> acc
-    //         (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
-    //          (&cells_out, &cells, &edges_out, &edges), grid);
+        iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
+                      trapezoid_2D, trapezoid_2D::cells> acc
+            (boost::fusion::vector<cell_storage_type*, cell_storage_type*, edge_storage_type*, edge_storage_type*>
+             (&cells_out, &cells, &edges_out, &edges), grid);
 
+        struct _coords {
+            int_t lb0, ub0;
+            int_t lb1, ub1;
+            int_t lb2, ub2;
 
-    //     struct _coords {
-    //         int_t lb0, ub0;
-    //         int_t lb1, ub1;
-
-    //         _coords(int lb0, int ub0, int lb1, int ub1)
-    //             : lb0(lb0)
-    //             , ub0(ub0)
-    //             , lb1(lb1)
-    //             , ub1(ub1)
-    //         {}
-    //     } coords(1, NE-1-1, 3, ME-3);
-
-    //     gridtools::colored_backend::run(acc, x, coords);
-
-    // }
-
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "CASE # 3" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-
-    // {
-    //     auto x = make_esf<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
-    //         (out_vertexes(), in_vertexes());
+            _coords(int lb0, int ub0, int lb1, int ub1, int lb2, int ub2)
+                : lb0(lb0)
+                , ub0(ub0)
+                , lb1(lb1)
+                , ub1(ub1)
+                , lb2(lb2)
+                , ub2(ub2)
+            {}
+        } coords(1, NC-1, 2, MC-2, 0, d3); // closed intervals
 
 
-    //     // gridtools::domain_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges> >
-    //     //     (&cells_out, &cells, &edges_out, &edges);
+        gridtools::colored_backend::run(acc, x, coords);
 
-    //     auto ptrs = boost::fusion::vector<vertex_storage_type*,
-    //                                       vertex_storage_type*>
-    //         (&vertexes_out, &vertexes);
+    }
+
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 3" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+
+    {
+        auto x = make_esf<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
+            (out_vertexes(), in_vertexes());
 
 
-    //     iterate_domain<boost::mpl::vector<out_vertexes, in_vertexes>,
-    //                   trapezoid_2D, trapezoid_2D::vertexes> it_
-    //         (ptrs, grid);
+        // gridtools::domain_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges> >
+        //     (&cells_out, &cells, &edges_out, &edges);
 
-    //     struct _coords {
-    //         int_t lb0, ub0;
-    //         int_t lb1, ub1;
+        auto ptrs = boost::fusion::vector<vertex_storage_type*,
+                                          vertex_storage_type*>
+            (&vertexes_out, &vertexes);
 
-    //         _coords(int lb0, int ub0, int lb1, int ub1)
-    //             : lb0(lb0)
-    //             , ub0(ub0)
-    //             , lb1(lb1)
-    //             , ub1(ub1)
-    //         {}
-    //     } coords(1, NV-1-1, 2, MV-2-1); // closed intervals
 
-    //     gridtools::colored_backend::run(it_, x, coords);
+        iterate_domain<boost::mpl::vector<out_vertexes, in_vertexes>,
+                      trapezoid_2D, trapezoid_2D::vertexes> it_
+            (ptrs, grid);
 
-    // }
+        struct _coords {
+            int_t lb0, ub0;
+            int_t lb1, ub1;
+            int_t lb2, ub2;
 
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "CASE # 4" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
-    // std::cout << "#############################################################################################################################################################" << std::endl;
+            _coords(int lb0, int ub0, int lb1, int ub1, int lb2, int ub2)
+                : lb0(lb0)
+                , ub0(ub0)
+                , lb1(lb1)
+                , ub1(ub1)
+                , lb2(lb2)
+                , ub2(ub2)
+            {}
+        } coords(1, NC-1, 2, MC-2, 0, d3); // closed intervals
+
+        gridtools::colored_backend::run(it_, x, coords);
+
+    }
+
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 4" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
         auto x = make_esf<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
