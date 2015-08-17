@@ -73,6 +73,14 @@ public:
     GT_FUNCTION
     void initialize_impl() {}
 
+    template<typename ReturnType, typename StoragePointer>
+    GT_FUNCTION
+    ReturnType get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        return *(storage_pointer+pointer_offset);
+    }
+
+
 private:
     data_pointer_array_t* RESTRICT m_data_pointer;
     strides_cached_t* RESTRICT m_strides;

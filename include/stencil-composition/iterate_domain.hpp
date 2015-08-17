@@ -1,7 +1,10 @@
 #pragma once
 #include "iterate_domain_aux.hpp"
 #include <boost/fusion/include/size.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/add_pointer.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/has_key.hpp>
 #include <boost/mpl/vector.hpp>
 #include "expressions.hpp"
 #ifndef CXX11_ENABLED
@@ -394,6 +397,7 @@ namespace gridtools {
             this method is enabled only if the current placeholder dimension does not exceed the number of space dimensions of the storage class.
             I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for definitions)
         */
+
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
@@ -401,11 +405,12 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
+            printw2<Accessor> oi;
+
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
                                                     , local_domain_t, typename Accessor::type >::value]);
         }
-
 
         template<typename Accessor>
         GT_FUNCTION
@@ -434,7 +439,6 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const;
-
 
 #if defined(CXX11_ENABLED)
 #if !defined(__CUDACC__)
@@ -594,12 +598,9 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))>::type;
-#else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*boost::fusion::at<typename Accessor::index_type>(local_domain.local_args)) )>::type storage_type;
-#endif
-        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+        typedef typename get_storage_pointer_accessor<local_domain_t, Accessor>::type storage_pointer_t;
+
+        storage_pointer_t RESTRICT real_storage_pointer=static_cast<storage_pointer_t>(storage_pointer);
 
         //the following assert fails when an out of bound access is observed, i.e. either one of
         //i+offset_i or j+offset_j or k+offset_k is too large.
@@ -624,12 +625,18 @@ namespace gridtools {
                 ->_index(strides().template get<Accessor::index_type::value>(), accessor)
                 >= 0);
 
-        return *(real_storage_pointer
-                 +(m_index[Accessor::index_type::value])
-                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
-                 //here we suppose for the moment that Accessor::index_types are ordered like the LocalDomain::esf_args mpl vector
-                 ->_index(strides().template get<Accessor::index_type::value>(), accessor)
-            );
+
+        const uint_t pointer_offset = (m_index[Accessor::index_type::value])
+                +(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))
+                ->_index(strides().template get<Accessor::index_type::value>(), accessor);
+
+        return static_cast<const IterateDomainImpl*>(this)->template get_value_impl
+            <
+                typename boost::add_reference<
+                    typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type
+                >::type,
+                storage_pointer_t
+        >(real_storage_pointer, pointer_offset);
     }
 
 

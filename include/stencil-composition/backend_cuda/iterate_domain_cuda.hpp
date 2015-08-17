@@ -180,6 +180,13 @@ public:
             m_thread_pos[Coordinate]=threadIdx.y;
     }
 
+    template<typename ReturnType, typename StoragePointer>
+    GT_FUNCTION
+    ReturnType get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        return *(storage_pointer+pointer_offset);
+    }
+
 private:
     // array storing the (i,j) position of the current thread within the block
     array<int, 2> m_thread_pos;
