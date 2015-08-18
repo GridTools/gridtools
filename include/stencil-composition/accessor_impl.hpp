@@ -58,6 +58,7 @@ namespace gridtools {
         static const ushort_t n_dim=Dim;
 
         typedef static_uint<I> index_type;
+        typedef enumtype::enum_type<enumtype::intend, Intend> intend_t;
         typedef Range range_type;
 
 
@@ -74,7 +75,7 @@ namespace gridtools {
         //move ctor from another accessor_base with different index
         template<uint_t OtherIndex>
         GT_FUNCTION
-        constexpr accessor_base(accessor_base<OtherIndex, Range, Dim>&& other) :
+        constexpr accessor_base(accessor_base<OtherIndex, Intend, Range, Dim>&& other) :
             m_offsets(other.offsets()) {}
 #endif
         //copy ctor

@@ -64,11 +64,11 @@ namespace gridtools {
 
         //move ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Range, Number>&& other) : super(std::move(other)) {}
+        constexpr explicit accessor(accessor<ID, Intend, Range, Number>&& other) : super(std::move(other)) {}
 
         //copy ctor
         GT_FUNCTION
-        constexpr accessor(accessor<ID, Range, Number> const& other) : super(other) {
+        constexpr accessor(accessor<ID, Intend, Range, Number> const& other) : super(other) {
         }
 #endif
 #else
@@ -127,11 +127,13 @@ namespace gridtools {
         typedef typename ArgType::index_type index_type;
     private:
         static constexpr accessor_base<ArgType::index_type::value
+                                             , ArgType::intend_t::value
                                              , typename ArgType::range_type
                                              , ArgType::n_dim> s_args_constexpr{
             dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
+                      , ArgType::intend_t::value
                       , typename ArgType::range_type
                       , ArgType::n_dim> m_args_runtime;
         typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
@@ -173,6 +175,7 @@ namespace gridtools {
 
     template <typename ArgType, typename ... Pair>
     constexpr accessor_base<ArgType::index_type::value
+                                  , ArgType::intend_t::value
                                   , typename ArgType::range_type
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
