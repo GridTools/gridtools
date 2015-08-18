@@ -150,8 +150,6 @@ namespace gridtools {
             , m_meta_data(meta_data_)
             {}
 
-// #if defined(CXX11_ENABLED) && !defined( __CUDACC__)
-
         /**
            @brief 3D storage constructor
            \tparam FloatType is the floating point type passed to the constructor for initialization. It is a template parameter in order to match float, double, etc...
@@ -167,7 +165,7 @@ namespace gridtools {
                 initialize(init, 1);
             }
 
-        /**@BRIEF generic multidimensional constructor
+        /**@brief generic multidimensional constructor
 
            There are two possible types of storage dimension. One (space dimension) defines the number of indexes
            used to access a contiguous chunk of data. The other (field dimension) defines the number of pointers
@@ -186,42 +184,6 @@ namespace gridtools {
                 allocate();
             }
 
-//         template<typename ... UInt>
-//         void setup(UInt const& ... dims)
-//             {
-//                 assign<space_dimensions-1>::apply(m_dims, std::tie(dims...));
-//                 GRIDTOOLS_STATIC_ASSERT(sizeof...(UInt)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
-
-//                 GRIDTOOLS_STATIC_ASSERT(field_dimensions>0, "you specified a zero or negative value for a storage fields dimension");
-
-//                 //m_strides[0] = accumulate( multiplies(), dims...) ;
-//                 // _impl::assign_strides<(short_t)(space_dimensions-2), (short_t)(space_dimensions-1), layout>::apply(&m_strides[0], dims...);
-
-
-// #ifdef PEDANTIC
-//                 //the following assert fails when we passed an argument to the arbitrary dimensional storage constructor which is not an unsigned integer (type uint_t).
-//                 //You only have to pass the dimension sizes to this constructor, maybe you have to explicitly cast the value
-//                 GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), sizeof(UInt) == sizeof(uint_t) ... ), "You can disable this assertion by recompiling with the DISABLE_PEDANTIC flag set. This assert fails when we pass one or more arguments to the arbitrary dimensional storage constructor which are not of unsigned integer type (type uint_t). You can only pass the dimension sizes to this constructor." );
-
-// #endif
-//             }
-
-// #else //CXX11_ENABLED
-
-        /**@brief default constructor
-           sets all the data members given the storage dimensions
-        */
-   // base_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3,
-   //         value_type init = value_type(0.), char const* s="default storage" ) :
-   //     is_set( true )
-   //     , m_name(s)
-   //          {
-   //              setup(dim1, dim2, dim3);
-   //              allocate();
-   //              initialize(init, 1);
-   //              set_name(s);
-   //          }
-
 
         /**@brief default constructor
            sets all the data members given the storage dimensions
@@ -235,8 +197,6 @@ namespace gridtools {
                 initialize(lambda, 1);
             }
 
-
-
         /**@brief 3D constructor with the storage pointer provided externally
 
            This interface handles the case in which the storage is allocated from the python interface. Since this storege gets freed inside python, it must be instantiated as a
@@ -246,12 +206,11 @@ namespace gridtools {
             ):
             is_set( true )
             , m_name(s)
-            , m_meta_data(meta_data_)
-            {
-                m_fields[0]=pointer_type(ptr, meta_data_, true);
-              if(FieldDimension>1)
-                  allocate(FieldDimension, 1);
-            }
+            , m_meta_data(meta_data_){
+            m_fields[0]=pointer_type(ptr, meta_data_, true);
+            if(FieldDimension>1)
+                allocate(FieldDimension, 1);
+        }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage(){
@@ -267,8 +226,7 @@ namespace gridtools {
             is_set(other.is_set)
             , m_name(other.m_name)
             , m_fields(other.m_fields)
-            , m_meta_data(other.m_meta_data)
-            {
+            , m_meta_data(other.m_meta_data){
             }
 
         void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
@@ -388,9 +346,8 @@ namespace gridtools {
 
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
-        template <typename MetaDataType>
         GT_FUNCTION
-        value_type const & operator()( MetaDataType const& meta_data_, uint_t const& i, uint_t const& j, uint_t const& k) const {
+        value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
 #ifndef __CUDACC__
             assert(m_meta_data._index(i,j,k) < m_meta_data.size());
 #endif

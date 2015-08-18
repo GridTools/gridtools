@@ -579,7 +579,6 @@ namespace gridtools{
 
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<MetaStorageSequence>::value, "the ID is larger than the number of storage types");
-            printf("%d, %d, %d", ID::value, m_strides.template get<ID::value>()[0], boost::fusion::template at_c<ID::value>(m_storages)->strides(1));
 
 #ifndef __CUDACC__
             GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");

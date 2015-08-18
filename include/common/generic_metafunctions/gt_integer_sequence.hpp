@@ -8,9 +8,6 @@ namespace gridtools{
         // constructs and returns a Container initialized by Lambda<I>::apply(Args...)
         template<typename Container, template <int_t T> class Lambda, typename ... UIntTypes>
         static constexpr Container apply(UIntTypes ... args_ ){
-            // typedef fuck<Lambda<Indices> ...> type;
-            // type::fuck();
-            //return Container(1,1);
             return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
     };

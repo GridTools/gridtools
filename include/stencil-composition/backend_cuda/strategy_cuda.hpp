@@ -9,7 +9,7 @@
 // #include "../../storage/host_tmp_storage.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
-#include "../../storage/meta_storage_wrapper.hpp"
+#include "../../storage/meta_storage.hpp"
 
 namespace gridtools{
 

@@ -193,20 +193,44 @@ namespace gridtools{
         };
 
 
-        template <typename Index, typename Layout, typename ... Tiles>
+        template <typename Index, typename Layout,
+#ifdef CXX11_ENABLED
+                  typename ... Tiles
+#else
+                  typename TileI, typename TileJ
+#endif
+                  >
         struct get_tmp_meta_storage
         {
-            typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true//, Tiles ...
-                                                           > > type;
+            typedef meta_storage_wrapper<meta_storage_base
+                                         <Index::value, Layout, true,
+#ifdef CXX11_ENABLED
+                                          Tiles ...
+#else
+                                          TileI, TileJ
+#endif
+                                          > > type;
         };
 
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          */
+#ifdef CXX11_ENABLED
         template <typename Storage, typename ... Tiles>
+#else
+        template <typename Storage, typename TileI, typename TileJ>
+#endif
         struct get_tmp_storage
         {
-            typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...>::type, Storage::field_dimensions > > type;
+            typedef storage<base_storage
+                            <typename Storage::pointer_type, typename get_tmp_meta_storage
+                             <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+#ifdef CXX11_ENABLED
+                              Tiles ...
+#else
+                              TileI, TileJ
+#endif
+                              >::type, Storage::field_dimensions > > type;
         };
 };
 

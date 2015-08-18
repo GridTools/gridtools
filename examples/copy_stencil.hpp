@@ -54,13 +54,12 @@ namespace copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            printf(" %f ", eval(in(0,0,0,0)));
-// #ifdef CXX11_ENABLED
-//             eval(in(time(1)))
-// #else
-//                 eval(out())
-// #endif
-//                 =eval(in());
+#ifdef CXX11_ENABLED
+            eval(in(time(1)))
+#else
+                eval(out())
+#endif
+                =eval(in());
         }
     };
 

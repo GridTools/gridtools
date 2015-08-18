@@ -130,7 +130,6 @@ namespace gridtools {
                 // ElemType: an element in the data field place-holders list
                 template <typename ElemType>
                 void operator()(ElemType*&  e) const {
-
                     typedef typename ElemType::meta_data_t meta_t;
                     //insert new type in the map only if not present already
                     if( !m_metadata_set.template present<pointer<const meta_t> >() )

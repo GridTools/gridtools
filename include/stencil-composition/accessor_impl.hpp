@@ -128,6 +128,7 @@ namespace gridtools {
         }
 
         template<short_t Idx>
+        GT_FUNCTION
         constexpr bool end() const {return true;}
 
         template<short_t Idx>
