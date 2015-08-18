@@ -2,6 +2,7 @@
 
 #include <boost/mpl/contains.hpp>
 #include "esf.hpp"
+#include "stencil-composition/accessor_metafunctions.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
 
 namespace gridtools {
@@ -67,7 +68,8 @@ struct is_written_temp {
         typedef typename boost::mpl::if_<
             is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
             typename boost::mpl::if_<
-                boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
+                is_accessor_readonly<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
+//                boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
                 boost::false_type,
                 boost::true_type
             >::type,
@@ -87,7 +89,8 @@ struct is_written {
         typedef typename boost::mpl::if_<
             is_plchldr<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
             typename boost::mpl::if_<
-                boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
+                is_accessor_readonly<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
+//                boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
                 boost::false_type,
                 boost::true_type
             >::type,
