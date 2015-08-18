@@ -26,7 +26,7 @@ typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axi
 
 struct functor1 {
     typedef const accessor<0> in;
-    typedef accessor<1> out;
+    typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -37,8 +37,8 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef const accessor<0, range<-1,1,-1,1> > in;
-    typedef accessor<1> out;
+    typedef const accessor<0, enumtype::in, range<-1,1,-1,1> > in;
+    typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
