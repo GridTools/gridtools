@@ -46,7 +46,7 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 // 1st order in time, 3-point constant-coefficient stencil in one dimension, with symmetry.
 struct d1point3{
     typedef accessor<0> out;
-    typedef accessor<1, range<-1,1,0,0> > in; // this says to access x-1 anx x+1
+    typedef const accessor<1, range<-1,1,0,0> > in; // this says to access x-1 anx x+1
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -59,24 +59,24 @@ struct d1point3{
 // 1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
 struct d3point7{
     typedef accessor<0> out;
-    typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
+    typedef const accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
         dom(out()) = 7.0 * dom(in())
-                    - 1.0/7.0 * (dom(in(x(-1)))+dom(in(x(+1))))
-                    - 1.0/7.0 * (dom(in(y(-1)))+dom(in(y(+1))))
-                    - 1.0/7.0 * (dom(in(z(-1)))+dom(in(z(+1))));
+                    - 0.14285714285 * (dom(in(x(-1)))+dom(in(x(+1))))
+                    - 0.14285714285 * (dom(in(y(-1)))+dom(in(y(+1))))
+                    - 0.14285714285 * (dom(in(z(-1)))+dom(in(z(+1))));
     }
 };
 
 // 1st order in time, 7-point variable-coefficient stencil in 3D, with no coefficient symmetry.
 struct d3point7_var{
     typedef accessor<0> out;
-    typedef accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
-    typedef accessor<2, range<0,0,0,0> , 4> const coeff;
+    typedef const accessor<1, range<-1,1,-1,1> > in; // this says to access 6 neighbors
+    typedef const accessor<2, range<0,0,0,0> , 4> coeff;
     typedef boost::mpl::vector<out, in, coeff> arg_list;
     using quad=dimension<4>;
 
@@ -97,8 +97,8 @@ struct d3point7_var{
 // 25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_var{
     typedef accessor<0> out;
-    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
-    typedef accessor<2, range<0,0,0,0> , 4> const coeff;
+    typedef const accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
+    typedef const accessor<2, range<0,0,0,0> , 4> coeff;
     typedef boost::mpl::vector<out, in, coeff> arg_list;
     using quad=dimension<4>;
 
@@ -125,9 +125,9 @@ struct d3point25_var{
 // 2-nd order in time, 25-point constant-coefficient, isotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_time2{
     typedef accessor<0> out;
-    typedef accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
-    typedef accessor<2> in_old; // this says to access 6 neighbors
-    typedef accessor<3> alpha;
+    typedef const accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
+    typedef const accessor<2> in_old; // this says to access 6 neighbors
+    typedef const accessor<3> alpha;
     typedef boost::mpl::vector<out, in, in_old, alpha> arg_list;
 
     template <typename Domain>
@@ -135,16 +135,16 @@ struct d3point25_time2{
     static void Do(Domain const & dom, x_interval) {
         dom(out()) = 2 * dom(in()) - dom(in_old())
                     + dom(alpha()) * (25.0 * dom(in())
-                        - 1/25.0 * (dom(in(x(-1)))+dom(in(x(+1)))
+                        - 0.04 * (dom(in(x(-1)))+dom(in(x(+1)))
                                     + dom(in(y(-1)))+dom(in(y(+1)))
                                     + dom(in(z(-1)))+dom(in(z(+1))))
-                        - 1/25.0 * (dom(in(x(-2)))+dom(in(x(+2)))
+                        - 0.04 * (dom(in(x(-2)))+dom(in(x(+2)))
                                     + dom(in(y(-2)))+dom(in(y(+2)))
                                     + dom(in(z(-2)))+dom(in(z(+2))))
-                        - 1/25.0 * (dom(in(x(-3)))+dom(in(x(+3)))
+                        - 0.04 * (dom(in(x(-3)))+dom(in(x(+3)))
                                     + dom(in(y(-3)))+dom(in(y(+3)))
                                     + dom(in(z(-3)))+dom(in(z(+3))))
-                        - 1/25.0 * (dom(in(x(-4)))+dom(in(x(+4)))
+                        - 0.04 * (dom(in(x(-4)))+dom(in(x(+4)))
                                     + dom(in(y(-4)))+dom(in(y(+4)))
                                     + dom(in(z(-4)))+dom(in(z(+4))))
                     );
@@ -204,7 +204,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     if(q==0) //diagonal point
                         coeff7pt_var(i,j,k,q) = 7.0;
                     else //off-diagonal point
-                        coeff7pt_var(i,j,k,q) = -1/7.0;
+                        coeff7pt_var(i,j,k,q) = -0.14285714285;
                 }
    
 
@@ -222,7 +222,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     if(q==0) //diagonal point
                         coeff25pt_var(i,j,k,q) = 25.0;
                     else //off-diagonal point
-                        coeff25pt_var(i,j,k,q) = -1/25.0;
+                        coeff25pt_var(i,j,k,q) = -0.04;
                 }
 
     //25-pt stencil, 2-nd order in time with coeff symmetry
