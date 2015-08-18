@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gridtools.hpp>
-#include <storage/base_storage_metadata.hpp>
+#include <storage/meta_storage.hpp>
 
 namespace horizontal_diffusion {
 
@@ -28,12 +28,12 @@ using gridtools::int_t;
 
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage<0,layout_ijk, false> > metadata_ijk_t;
-    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage<1,layout_ij, false> > metadata_ij_t;
-    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage<2,layout_scalar, false> > metadata_scalar_t;
-    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage<0,layout_ijk, true> > metadata_ijk_tmp_t;
-    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage<1,layout_ij, true> > metadata_ij_tmp_t;
-    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage<2,layout_scalar, true> > metadata_scalar_tmp_t;
+    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage_base<0,layout_ijk, false> > metadata_ijk_t;
+    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage_base<1,layout_ij, false> > metadata_ij_t;
+    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage_base<2,layout_scalar, false> > metadata_scalar_t;
+    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage_base<0,layout_ijk, true> > metadata_ijk_tmp_t;
+    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage_base<1,layout_ij, true> > metadata_ij_tmp_t;
+    typedef gridtools::meta_storage_wrapper<gridtools::meta_storage_base<2,layout_scalar, true> > metadata_scalar_tmp_t;
 
 class repository
 {
@@ -52,7 +52,7 @@ class repository
     typedef hd_backend::temporary_storage_type<gridtools::float_type, metadata_ijk_tmp_t >::type tmp_storage_type;
     typedef hd_backend::temporary_storage_type<gridtools::float_type, metadata_scalar_tmp_t>::type tmp_scalar_storage_type;
 
-    repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const int halo_size):
+    repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size):
         m_metadata_ijk(idim, jdim, kdim),
         m_metadata_ij(idim, jdim, kdim),
         m_metadata_scalar(idim, jdim, kdim),

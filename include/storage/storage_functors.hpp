@@ -4,6 +4,23 @@
 
 namespace gridtools {
 
+template<typename Orig>
+struct copy_pointers_set_functor {
+
+private:
+    Orig const& m_orig;
+
+public:
+    copy_pointers_set_functor(Orig const& orig_) : m_orig(orig_) {}
+
+    template <typename Dest>
+    GT_FUNCTION_WARNING
+    void operator()(Dest& dest_) const {
+        if(!Dest::value_type::is_temporary)
+            dest_=boost::fusion::at_key<Dest>(m_orig);
+    }
+};
+
 template<typename DestCont, typename OrigCont>
 struct copy_pointers_functor {
 
@@ -46,11 +63,19 @@ private:
             template < typename StorageType//typename T, typename U, bool B
                        >
             GT_FUNCTION_WARNING
-            void operator()(/*base_storage<enumtype::Cuda,T,U,B
-                              >*/StorageType *& s) const {
+            void operator()(StorageType *& s) const {
                 if (s) {
                     copy_data_impl<StorageType>(s);
 
+                    s->clone_to_gpu();
+                }
+            }
+
+            /**separate (for the moment) overload for the metadata*/
+            template < typename StorageType >
+            GT_FUNCTION_WARNING
+            void operator()(pointer<const StorageType>& s) const {
+                if (s.get()) {
                     s->clone_to_gpu();
                 }
             }
@@ -60,13 +85,13 @@ private:
             template<typename StorageType>
             GT_FUNCTION_WARNING
             void copy_data_impl(StorageType *& s,
-                    typename boost::enable_if_c<is_tmp_storage<StorageType>::value>::type* = 0) const
+                    typename boost::enable_if_c<is_temporary_storage<StorageType>::value>::type* = 0) const
             {}
 
             template<typename StorageType>
             GT_FUNCTION_WARNING
             void copy_data_impl(StorageType *& s,
-                    typename boost::disable_if_c<is_tmp_storage<StorageType>::value>::type* = 0) const
+                    typename boost::disable_if_c<is_temporary_storage<StorageType>::value>::type* = 0) const
             {
                 s->copy_data_to_gpu();
             }

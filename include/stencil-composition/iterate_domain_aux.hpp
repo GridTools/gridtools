@@ -318,15 +318,15 @@ namespace gridtools{
         GT_FUNCTION
         void operator()(Pair const&) const {
 
-            static const uint_t ID = boost::mpl::second<Pair>::type::value;
+            typedef typename boost::mpl::second<Pair>::type ID;
             typedef typename boost::mpl::first<Pair>::type metadata_t;
 
-            GRIDTOOLS_STATIC_ASSERT((ID < boost::fusion::result_of::size<MetaStorageSequence>::value),
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
             assert(m_index_array);
-            boost::fusion::at_c<ID>(m_storages)->template increment<Coordinate>(
-                    m_increment,&m_index_array[ID], m_strides_cached.template get<ID>());
+            boost::fusion::at_c<ID::value>(m_storages)->template increment<Coordinate>(
+                m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
         }
 
         GT_FUNCTION
@@ -573,25 +573,21 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::second<Pair>::type::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            static const uint_t ID=boost::mpl::second<Pair>::type::value;
+            typedef typename boost::mpl::second<Pair>::type ID;
 
             typedef typename boost::mpl::first<Pair>::type meta_storage_type;
 
-                // typedef typename boost::remove_const
-                //  <typename boost::remove_reference
-                //   <typename boost::fusion::result_of::at<MetaStorageSequence, ID>::type
-                //    >::type
-                //    ::value_type
-                //  >::type
-                // meta_storage_type;
-
             //if the following fails, the ID is larger than the number of storage types
-            GRIDTOOLS_STATIC_ASSERT(ID < boost::mpl::size<MetaStorageSequence>::value, "the ID is larger than the number of storage types");
+            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<MetaStorageSequence>::value, "the ID is larger than the number of storage types");
+            printf("%d, %d, %d", ID::value, m_strides.template get<ID::value>()[0], boost::fusion::template at_c<ID::value>(m_storages)->strides(1));
 
-            GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
+#ifndef __CUDACC__
+            GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
+#endif
+
             for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
             assign_strides_inner_functor<BackendType>
-            (&(m_strides.template get<ID>()[0]), &(boost::fusion::template at_c<ID>(m_storages)->strides(1)))
+            (&(m_strides.template get<ID::value>()[0]), &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1)))
                 );
         }
     };

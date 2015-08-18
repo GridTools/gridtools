@@ -232,7 +232,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 #endif
     public:
 
-#ifdef CXX11_ENABLED
+#if defined (CXX11_ENABLED) && !defined (__CUDACC__)
         /** @brief variadic constructor
             construct the domain_type given an arbitrary number of placeholders to the non-temporary
             storages passed as arguments.
@@ -243,7 +243,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             \endverbatim
         */
         template <typename... StorageArgs, typename ... MetaStorageArgs>
-        domain_type(storage<StorageArgs>... args, MetaStorageArgs ... meta_args)
+        domain_type(storage<StorageArgs> ... args, MetaStorageArgs ... meta_args)
             : m_storage_pointers()
             , m_metadata_set()
             {

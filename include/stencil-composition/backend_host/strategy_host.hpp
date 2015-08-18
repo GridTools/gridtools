@@ -196,7 +196,8 @@ namespace gridtools{
         template <typename Index, typename Layout, typename ... Tiles>
         struct get_tmp_meta_storage
         {
-            typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true, Tiles ...> > type;
+            typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true//, Tiles ...
+                                                           > > type;
         };
 
         /**

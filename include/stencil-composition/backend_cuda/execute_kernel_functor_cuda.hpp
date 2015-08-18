@@ -124,6 +124,8 @@ struct execute_kernel_functor_cuda
             std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
         }
 #endif
+
+        //TODO: check: isn't this done also in intermediate.hpp?
         m_local_domain.clone_to_gpu();
         m_coords.clone_to_gpu();
 

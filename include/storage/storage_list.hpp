@@ -24,17 +24,16 @@ namespace gridtools{
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
-        //default constructor
-        storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
+        // //default constructor
+        // storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
-        template<typename ... UIntTypes>
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args ): super( meta_data_,  args ... ) {
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_ ): super( meta_data_ ) {
         }
 #else
         /**@brief default constructor*/
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, uint_t const& d1, uint_t const& d2, uint_t const& d3 ): super( meta_data_, d1, d2, d3 ) {
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_ ): super( meta_data_ ) {
         }
 #endif
 
@@ -53,13 +52,13 @@ namespace gridtools{
 
             }
 
-        /**@brief copy all the data fields to the GPU*/
-        GT_FUNCTION_WARNING
-        void copy_data_to_gpu(){
-            //the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
-            for (uint_t i=0; i< super::field_dimensions; ++i)
-                super::m_fields[i].update_gpu();
-        }
+        // /**@brief copy all the data fields to the GPU*/
+        // GT_FUNCTION_WARNING
+        // void copy_data_to_gpu(){
+        //     //the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
+        //     for (uint_t i=0; i< super::field_dimensions; ++i)
+        //         super::m_fields[i].update_gpu();
+        // }
 
         // using super::setup;
 

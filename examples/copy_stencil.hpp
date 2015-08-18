@@ -53,12 +53,14 @@ namespace copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-#ifdef CXX11_ENABLED
-            eval(in(time(1)))
-#else
-                eval(out())
-#endif
-                =eval(in());
+
+            printf(" %f ", eval(in(0,0,0,0)));
+// #ifdef CXX11_ENABLED
+//             eval(in(time(1)))
+// #else
+//                 eval(out())
+// #endif
+//                 =eval(in());
         }
     };
 
@@ -72,12 +74,12 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef meta_storage_base< 0,layout_t, false > meta_data_t;
+    typedef meta_storage< 0,layout_t, false > meta_data_t;
 
     // typedef meta_storage_wrapper<meta_storage<0,layout_t, false> > meta_data_t;
     bool test(uint_t x, uint_t y, uint_t z) {
 
-        meta_data_t meta_data_(10,10,10);
+        meta_data_t meta_data_(x,y,z);
 
 #ifdef USE_PAPI_WRAP
         int collector_init = pw_new_collector("Init");
@@ -249,33 +251,33 @@ namespace copy_stencil{
         pw_print();
 #endif
         bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                {
-#ifdef CXX11_ENABLED
-                    if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
-#else
-                        if (in(i, j, k)!=out(i,j,k))
-#endif
-                        {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-#ifdef CXX11_ENABLED
-                                      << "in = " << (in.get_value<0,0>(i, j, k))
-                                      << ", out = " << (in.get_value<1,0>(i, j, k))
-#else
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
-#endif
-                                      << std::endl;
-                            success = false;
-                        }
-                }
-        if(!success) std::cout << "ERROR" << std::endl;
-        else std::cout << "OK" << std::endl;
+//         for(uint_t i=0; i<d1; ++i)
+//             for(uint_t j=0; j<d2; ++j)
+//                 for(uint_t k=0; k<d3; ++k)
+//                 {
+// #ifdef CXX11_ENABLED
+//                     if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
+// #else
+//                         if (in(i, j, k)!=out(i,j,k))
+// #endif
+//                         {
+//                             std::cout << "error in "
+//                                       << i << ", "
+//                                       << j << ", "
+//                                       << k << ": "
+// #ifdef CXX11_ENABLED
+//                                       << "in = " << (in.get_value<0,0>(i, j, k))
+//                                       << ", out = " << (in.get_value<1,0>(i, j, k))
+// #else
+//                                       << "in = " << in(i, j, k)
+//                                       << ", out = " << out(i, j, k)
+// #endif
+//                                       << std::endl;
+//                             success = false;
+//                         }
+//                 }
+//         if(!success) std::cout << "ERROR" << std::endl;
+//         else std::cout << "OK" << std::endl;
 
         return success;
     }

@@ -9,6 +9,7 @@
 // #include "../../storage/host_tmp_storage.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
+#include "../../storage/meta_storage_wrapper.hpp"
 
 namespace gridtools{
 
@@ -55,24 +56,22 @@ namespace gridtools{
             }
         };
 
+
+        template <typename Index, typename Layout, typename ... Tiles>
+        struct get_tmp_meta_storage
+        {
+            typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true, Tiles ...> > type;
+        };
+
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          * with the naive algorithms, the temporary storages are like the non temporary ones
          */
-        template <typename StorageType,
-                  uint_t BI,
-                  uint_t BJ,
-                  uint_t IMinus,
-                  uint_t JMinus,
-                  uint_t IPlus,
-                  uint_t JPlus>
+        template <typename Storage, typename ... Tiles>
         struct get_tmp_storage
         {
-//#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-//            typedef storage< StorageType > type;
-            typedef storage <typename StorageType::super// , BI, BJ, IMinus, JMinus, IPlus+1, JPlus+1
-                             > type;
-
+            typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...
+                                                                                                       >::type, Storage::field_dimensions > > type;
         };
     };
 

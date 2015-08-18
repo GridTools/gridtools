@@ -41,7 +41,7 @@ namespace gridtools{
         template <typename ValueType, typename MetaData, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            typedef storage< base_storage<typename pointer<ValueType>::type, MetaData, Temp, SpaceDim> > storage_t;
+            typedef storage< base_storage<typename pointer<ValueType>::type, MetaData, SpaceDim> > storage_t;
         };
 
         template <typename Arguments>

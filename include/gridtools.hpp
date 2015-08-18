@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stencil-composition/pointer.hpp"
 #include <boost/config.hpp>
 #if defined(__CUDACC__) && !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
 # define BOOST_NO_CXX11_RVALUE_REFERENCES
@@ -27,3 +26,4 @@
 #include "common/host_device.hpp"
 #include "common/array.hpp"
 #include "common/layout_map.hpp"
+#include "common/pointer.hpp"

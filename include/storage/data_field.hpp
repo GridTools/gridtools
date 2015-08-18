@@ -119,15 +119,7 @@ namespace gridtools{
         typedef dimension_extension_traits<First, StorageExtended ...  > traits;
         typedef typename super::pointer_type pointer_type;
         typedef typename  super::basic_type basic_type;
-        // typedef typename super::original_storage original_storage;
         static const short_t n_width=sizeof...(StorageExtended)+1;
-
-        /**@brief constructor given the space boundaries*/
-        template<typename ... UIntTypes>
-        data_field(  typename basic_type::meta_data_t & meta_data_, UIntTypes const& ... args )
-            : super(meta_data_, args...)
-            {
-       }
 #else
 
         template <typename First, typename Second, typename Third>
@@ -141,16 +133,11 @@ namespace gridtools{
             typedef typename super::original_storage original_storage;
             static const short_t n_width=3;
 
-            /**@brief constructor given the space boundaries*/
-            data_field(  typename basic_type::meta_data_t & meta_data_, uint_t const& d1, uint_t const& d2, uint_t const& d3 )
-                : super(meta_data_, d1, d2, d3)
-            {
-       }
 
 #endif
 
-   /**@brief default constructor*/
-        data_field(typename basic_type::meta_data_t & meta_data_): super(meta_data_){}
+        /**@brief default constructor*/
+        data_field(typename basic_type::meta_data_t const & meta_data_): super(meta_data_){}
 
    /**@brief device copy constructor*/
         template <typename T>
@@ -337,14 +324,10 @@ namespace gridtools{
             typedef dimension_extension_traits2<First, Second > traits;
             typedef typename super::pointer_type pointer_type;
             typedef typename  super::basic_type basic_type;
-            typedef typename super::original_storage original_storage;
             static const short_t n_width=2;
 
-            /**@brief constructor given the space boundaries*/
-            data_field2(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
-                : super(d1, d2, d3)
-            {
-       }
+            /**@brief default constructor*/
+            data_field2(typename basic_type::meta_data_t const & meta_data_): super(meta_data_){}
 
    /**@brief device copy constructor*/
         template <typename T>
@@ -379,7 +362,7 @@ namespace gridtools{
         template<uint_t dimension>
         GT_FUNCTION
         void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
-       for (uint_t i=0; i<super::size(); ++i)
+       for (uint_t i=0; i<this->m_meta_data.size(); ++i)
            field[i]=value;
        push_front<dimension>(field);
    }
@@ -462,7 +445,7 @@ namespace gridtools{
    template<short_t field_dim, short_t snapshot  >
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-                    return get<field_dim, snapshot>()[super::_index(super::strides(),i,j,k)];
+                    return get<field_dim, snapshot>()[this->m_meta_data._index(this->m_meta_data.strides(),i,j,k)];
       }
 
    /**@biref ODE advancing for a single dimension
@@ -511,11 +494,8 @@ namespace gridtools{
             typedef typename super::original_storage original_storage;
             static const short_t n_width=1;
 
-            /**@brief constructor given the space boundaries*/
-            data_field1(  uint_t const& d1, uint_t const& d2, uint_t const& d3 )
-                : super(d1, d2, d3)
-            {
-       }
+        /**@brief default constructor*/
+        data_field1(typename basic_type::meta_data_t const & meta_data_): super(meta_data_){}
 
    /**@brief device copy constructor*/
         template <typename T>

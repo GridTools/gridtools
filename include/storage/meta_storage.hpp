@@ -1,7 +1,7 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
-#include "meta_storage_wrapper.hpp"
+// #include "meta_storage_wrapper.hpp"
 
 namespace gridtools {
 
@@ -54,11 +54,26 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
             }
 
+        // variadic constexpr constructor
+        constexpr meta_storage_base(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
+            m_dims(d1, d2, d3)
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( d1, d2, d3 ))
+            {
+            }
+
+        //  constexpr copy constructor
+        __device__
+        constexpr meta_storage_base( meta_storage_base const&other ) :
+            m_dims(other.m_dims)
+            , m_strides(other.m_strides)
+            {
+            }
+
         /**@brief method used to check if the instance is consexpr
 
            used in conjunction with has_constexpr_check<meta_storage>
          */
-         constexpr int check(){return size();}
+         constexpr uint_t check(){return size();}
 
         /** @brief prints debugging information */
          void info() const {
@@ -70,7 +85,7 @@ namespace gridtools {
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
-         uint_t size() const { //cast to uint_t
+        constexpr uint_t size() const { //cast to uint_t
             return m_strides[0];
         }
 
@@ -231,47 +246,5 @@ namespace gridtools {
 
     };
 
-
-#ifdef CXX11_ENABLED
-    template < ushort_t Index
-               , typename Layout
-               , bool IsTemporary
-               , typename ... Tiles
-               >
-    using meta_storage = meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
-#else
-    template < ushort_t Index
-               , typename Layout
-               , bool IsTemporary
-               , typename ... Tiles
-               >
-    struct meta_storage<> : meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >{};
-#endif
-
-    template<typename T>
-    struct is_meta_storage : boost::mpl::false_{};
-
-    template< typename Storage>
-    struct is_meta_storage<meta_storage_wrapper<Storage> > : boost::mpl::true_{};
-
-    template < ushort_t Index
-               , typename Layout
-               , bool IsTemporary
-               , typename ... Tiles
-               >
-    struct is_meta_storage<meta_storage<Index, Layout, IsTemporary, Tiles...> > : boost::mpl::true_{};
-
-    template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
-    struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
-
-    template<typename T>
-    struct is_meta_storage_wrapper : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};
-
-
-    template<typename T>
-    struct is_ptr_to_meta_storage_wrapper : boost::mpl::false_ {};
-
-    template<typename T>
-    struct is_ptr_to_meta_storage_wrapper<pointer<const T> > : is_meta_storage_wrapper<T> {};
 
 }//namespace gridtools
