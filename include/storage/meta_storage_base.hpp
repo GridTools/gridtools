@@ -26,7 +26,7 @@ namespace gridtools {
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
-        static const ushort_t index=Index;
+        // static const ushort_t index=Index;
 
     protected:
 
@@ -122,9 +122,16 @@ namespace gridtools {
             return (&m_strides[1]);
         }
 
+#ifdef CXX11_ENABLED
+        /**@brief straightforward interface*/
+        template <typename ... UInt>
+        GT_FUNCTION
+        uint_t index(uint_t const& first, UInt const& ... args_) const { return _index(strides(), first, args_... ); }
+#else
         /**@brief straightforward interface*/
         GT_FUNCTION
-        uint_t _index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return _index(strides(), i, j, k); }
+        uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return _index(strides(), i, j, k); }
+#endif
 
         //####################################################
         // static functions (independent from the storage)

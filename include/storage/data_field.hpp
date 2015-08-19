@@ -227,7 +227,7 @@ namespace gridtools{
 #endif
    void set(/* pointer_type& field,*/ typename super::value_type const& val)
        {
-           for (uint_t i=0; i<super::size(); ++i)
+           for (uint_t i=0; i<this->m_meta_data.size(); ++i)
                (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])[i]=val;
        }
 
@@ -246,11 +246,11 @@ namespace gridtools{
 #endif
    void set( typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
        {
-           for (uint_t i=0; i<this->m_dims[0]; ++i)
-               for (uint_t j=0; j<this->m_dims[1]; ++j)
-                   for (uint_t k=0; k<this->m_dims[2]; ++k)
+           for (uint_t i=0; i<this->m_meta_data.template dims<0>(); ++i)
+               for (uint_t j=0; j<this->m_meta_data.template dims<1>(); ++j)
+                   for (uint_t k=0; k<this->m_meta_data.template dims<2>(); ++k)
                        (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
-                           [super::_index(i,j,k)]=
+                           [this->m_meta_data.index(i,j,k)]=
                            lambda(i, j, k);
        }
 
@@ -290,7 +290,7 @@ namespace gridtools{
 #endif
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-          return get<field_dim, snapshot>()[this->m_meta_data._index(i,j,k)];
+          return get<field_dim, snapshot>()[this->m_meta_data.index(i,j,k)];
       }
 
         /**@biref ODE advancing for a single dimension
@@ -418,7 +418,7 @@ namespace gridtools{
       for (uint_t i=0; i<this->m_dims[0]; ++i)
           for (uint_t j=0; j<this->m_dims[1]; ++j)
          for (uint_t k=0; k<this->m_dims[2]; ++k)
-             (field)[super::_index(i,j,k)]=lambda(i, j, k);
+             (field)[this->m_meta_data.index(i,j,k)]=lambda(i, j, k);
       set<field_dim, snapshot>(field);
        }
 
@@ -586,7 +586,7 @@ namespace gridtools{
       for (uint_t i=0; i<this->m_dims[0]; ++i)
           for (uint_t j=0; j<this->m_dims[1]; ++j)
          for (uint_t k=0; k<this->m_dims[2]; ++k)
-             (field)[super::_index(i,j,k)]=lambda(i, j, k);
+             (field)[this->m_meta_data.index(i,j,k)]=lambda(i, j, k);
       set<field_dim, snapshot>(field);
        }
 
@@ -623,7 +623,7 @@ namespace gridtools{
    template<short_t field_dim, short_t snapshot  >
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-                    return get<field_dim, snapshot>()[super::_index(i,j,k)];
+                    return get<field_dim, snapshot>()[this->m_meta_data.index(i,j,k)];
       }
 
    /**@biref ODE advancing for a single dimension

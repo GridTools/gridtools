@@ -135,7 +135,8 @@ int main(int argc, char** argv) {
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef meta_storage<0, layout_t, false> meta_storage_t;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_storage_t >::type storage_type;
 // [storage_type]
 
     std::ofstream file_i("full_in");
@@ -145,8 +146,9 @@ int main(int argc, char** argv) {
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
-    storage_type in(d1,d2,d3,-1., "in");
-    storage_type out(d1,d2,d3,-7.3, "out");
+    meta_storage_t metadata_(d1,d2,d3);
+    storage_type in(metadata_, -1., "in");
+    storage_type out(metadata_, -7.3, "out");
 // [storage_initialization]
     out.print(file_i);
 
@@ -213,7 +215,7 @@ int main(int argc, char** argv) {
 #else
     boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-      make_computation<gridtools::BACKEND, layout_t>
+      make_computation<gridtools::BACKEND>
         (
          make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
@@ -222,9 +224,6 @@ int main(int argc, char** argv) {
           ),
          domain, coords);
 // [computation]
-
-    // domain.storage_info<boost::mpl::int_<0> >();
-    // domain.storage_info<boost::mpl::int_<1> >();
 
 // [ready_steady_run_finalize]
 /**

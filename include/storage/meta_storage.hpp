@@ -95,6 +95,9 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
     template< typename Storage>
     struct is_meta_storage<meta_storage_wrapper<Storage> > : boost::mpl::true_{};
 
+    template< typename Storage>
+    struct is_meta_storage<no_meta_storage_type_yet<Storage> > : is_meta_storage<Storage> {};
+
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary

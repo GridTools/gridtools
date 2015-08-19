@@ -189,8 +189,10 @@ namespace gridtools {
             actual_args_type,
             boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
 
+    public:
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
-        typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::esf_args> strides_cached_t;
+        typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+    private:
 
         GT_FUNCTION
         data_pointer_array_t& RESTRICT data_pointer()
@@ -772,27 +774,37 @@ namespace gridtools {
     GT_FUNCTION
     typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type& RESTRICT
     iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& expr, StoragePointer & RESTRICT storage_pointer) const {
+
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-        assert(boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args)->size() >  (boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))
+        assert(metadata_->size() >  metadata_
                ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
 
-        assert((boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))
+        assert(metadata_
                ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand) >= 0);
-        GRIDTOOLS_STATIC_ASSERT((
-                                    Accessor::n_dim <= boost::mpl::at<
-                                    typename local_domain_t::esf_args,
-                                    typename Accessor::index_type
-                                    >::type::storage_type::meta_data_t::space_dimensions),
-                                "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
+        //getting the storage type
         using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))>::type;
 
+        //getting information about the metadata
+        typedef typename boost::mpl::at
+            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+
+        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+            < metadata_index_t >(local_domain.m_local_metadata);
+
+        //compile-time check
+        GRIDTOOLS_STATIC_ASSERT((
+                                    Accessor::n_dim <= storage_type::meta_data_t::space_dimensions),
+                                "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+
+        //casting the storage pointer from void* to the sotrage value_type
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
+        //returning the value without adding the m_index
         return *(real_storage_pointer
-                 +(boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))
-                 ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
+                 +metadata_
+                 ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand));
     }
 #endif //ifndef CXX11_ENABLED
 

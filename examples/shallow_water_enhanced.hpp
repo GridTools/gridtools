@@ -300,8 +300,10 @@ namespace shallow_water{
 //! [layout_map]
 
 //! [storage_type]
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+        typedef gridtools::meta_storage<0, layout_t, false> meta_storage_t;
+        typedef gridtools::meta_storage<0, layout_t, true> meta_storage_tmp_t;
+        typedef gridtools::BACKEND::storage_type<float_type, meta_storage_t >::type storage_type;
+        typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_storage_tmp_t >::type tmp_storage_type;
         typedef storage_type::pointer_type pointer_type;
 //! [storage_type]
 
@@ -349,14 +351,14 @@ namespace shallow_water{
 //! [padding_halo]
 
 //! [parallel_storage]
-        parallel_storage<sol_type, partitioner_t> sol(part);
-        sol.setup(d1, d2, d3);
+        parallel_meta_storage<meta_storage_t, partitioner_t> meta_(part, d1, d2, d3);
+        sol_type sol(meta_.get_metadata(), "sol");
 //! [parallel_storage]
 
 //! [add_halo]
-        he.add_halo<0>(sol.get_halo_gcl<0>());
-        he.add_halo<1>(sol.get_halo_gcl<1>());
-        he.add_halo<2>(sol.get_halo_gcl<2>());
+        he.add_halo<0>(meta_.get_halo_gcl<0>());
+        he.add_halo<1>(meta_.get_halo_gcl<1>());
+        he.add_halo<2>(meta_.get_halo_gcl<2>());
 
         he.setup(3);
 //! [add_halo]
@@ -391,14 +393,14 @@ namespace shallow_water{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
 //! [coordinates]
-        coordinates<axis, partitioner_t> coords(part, sol);
+        coordinates<axis, partitioner_t> coords(part, meta_);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 //! [coordinates]
 
 //! [computation]
         auto shallow_water_stencil =
-            make_computation<gridtools::BACKEND, layout_t>
+            make_computation<gridtools::BACKEND>
             (
                 make_mss // mss_descriptor
                 (

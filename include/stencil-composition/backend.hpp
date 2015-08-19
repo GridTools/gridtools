@@ -4,8 +4,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
 
-#include <gridtools.hpp>
-
+#include "gridtools.hpp"
 #include "backend_traits_fwd.hpp"
 #include "run_functor_arguments.hpp"
 

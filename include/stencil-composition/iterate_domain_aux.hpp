@@ -80,7 +80,7 @@ namespace gridtools{
     //TODOCOSUNA this is just an array, no need for special class, looks like
     template<ushort_t ID, typename StorageList>
     struct strides_cached : public strides_cached<ID-1, StorageList> {
-        typedef typename  boost::mpl::at_c<StorageList, ID>::type::storage_type storage_type;
+        typedef typename  boost::mpl::at_c<StorageList, ID>::type storage_type;
         typedef strides_cached<ID-1, StorageList> super;
         typedef array<int_t, storage_type::space_dimensions-1> data_array_t;
 
@@ -137,7 +137,7 @@ namespace gridtools{
     /**specialization to stop the recursion*/
     template<typename MetaStorageList>
         struct strides_cached<(ushort_t)0, MetaStorageList>  {
-        typedef typename boost::mpl::at_c<MetaStorageList, 0>::type::storage_type storage_type;
+        typedef typename boost::mpl::at_c<MetaStorageList, 0>::type storage_type;
 
         GT_FUNCTION
         strides_cached(){}

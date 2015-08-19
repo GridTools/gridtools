@@ -99,11 +99,15 @@ namespace assembly{
         //                   strides  1 x xy xyz
         typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::BACKEND::storage_type<float_type, layout4_t >::type integration_type;
+        typedef meta_storage<0, layout_t, false >::type metadata_t;
+        typedef meta_storage<1, layout4_t, false >::type metadata4_t;
+        typedef meta_storage<2, layout4_t, false >::type metadata4_local_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata4_t >::type integration_type;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata4_local_t >::type local_type;
 
-        typedef arg<0, integration_type > p_phi;
-        typedef arg<1, integration_type > p_psi;
+        typedef arg<0, local_type > p_phi;
+        typedef arg<1, local_type > p_psi;
         typedef arg<2, integration_type > p_jac;
         typedef arg<3, storage_type > p_f;
         typedef arg<4, storage_type > p_result;
@@ -115,12 +119,15 @@ namespace assembly{
         uint_t b2=2;
         uint_t b3=2;
         //basis functions available in a 2x2x2 cell, because of P1 FE
-        integration_type phi(b1,b2,b3,nbQuadPt);
-        integration_type psi(b1,b2,b3,nbQuadPt);
+        metadata4_local_t local_metadata(b1,b2,b3,nbQuadPt);
+
+        local_type phi(local_metadata);
+        local_type psi(local_metadata);
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
-        integration_type jac(d1,d2,d3,nbQuadPt);
+        metadata4_t integration_metadata(b1,b2,b3,nbQuadPt);
+        integration_type jac(integration_metadata);
 
         //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
         jac.allocate();
@@ -142,9 +149,10 @@ namespace assembly{
                         phi(i,j,k,q)=10.;
                         psi(i,j,k,q)=11.;
                     }
-        storage_type f(d1, d2, d3, (float_type)1.3, "f");
 
-        storage_type result(d1, d2, d3, (float_type)0., "result");
+        metadata_t meta_(d1, d2, d3);
+        storage_type f(meta_, (float_type)1.3, "f");
+        storage_type result(meta_, (float_type)0., "result");
 
         gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
@@ -165,7 +173,7 @@ namespace assembly{
 #else
             boost::shared_ptr<gridtools::computation> fe_comp =
 #endif
-            make_computation<gridtools::BACKEND, layout_t>
+            make_computation<gridtools::BACKEND>
             (
                 make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
                 (

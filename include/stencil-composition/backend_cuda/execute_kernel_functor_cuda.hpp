@@ -24,10 +24,11 @@ namespace _impl_cuda {
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
-        typedef strides_cached<iterate_domain_t::N_META_STORAGES-1, typename LocalDomain::esf_args> strides_t;
-        typedef array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer_t;
+        //<iterate_domain_t::N_META_STORAGES-1, typename LocalDomain::storage_metadata_vector_t>
+        typedef typename iterate_domain_t::strides_cached_t strides_t;
+        typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
         typedef shared_iterate_domain<
-            data_pointer_t,
+            data_pointer_array_t,
             strides_t,
             typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
         > shared_iterate_domain_t;

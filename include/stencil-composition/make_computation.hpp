@@ -15,7 +15,7 @@
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/intercept.hpp>
 
-#include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
 #include "stencil-composition/esf.hpp"
 #include "stencil-composition/mss_metafunctions.hpp"
 #ifndef __CUDACC__

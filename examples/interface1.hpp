@@ -196,8 +196,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
 // #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
 //     gridtools::domain_type<accessor_list, metadata_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 // #else
-    gridtools::domain_type<accessor_list , metadata_list
-                           > domain(boost::fusion::make_vector(&coeff, &in, &out), boost::fusion::make_vector(&repository.m_metadata_ijk));
+    gridtools::domain_type<accessor_list
+                           > domain(boost::fusion::make_vector(&coeff, &in, &out));
 // #endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,

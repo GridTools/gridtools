@@ -303,6 +303,9 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages.");
 #endif
 
+            //NOTE: an error in the line below could mean that the storage type
+            // associated to the arg is not the
+            // correct one (TODO: think of a good way to catch this)
             //copy of the non-tmp storages into m_storage_pointers
             boost::fusion::copy(real_storage_, fview);
 

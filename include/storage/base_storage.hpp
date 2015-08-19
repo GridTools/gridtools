@@ -272,7 +272,7 @@ namespace gridtools {
                     for (uint_t i=0; i<this->m_dims[0]; ++i)
                         for (uint_t j=0; j<this->m_dims[1]; ++j)
                             for (uint_t k=0; k<this->m_dims[2]; ++k)
-                                (m_fields[f])[m_meta_data._index(i,j,k)]=lambda(i, j, k);
+                                (m_fields[f])[m_meta_data.index(i,j,k)]=lambda(i, j, k);
                 }
             }
 
@@ -324,9 +324,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
-            assert(m_meta_data._index(dims...) < m_meta_data.size());
+            assert(m_meta_data.index(dims...) < m_meta_data.size());
 #endif
-            return (m_fields[0])[m_meta_data._index(dims...)];
+            return (m_fields[0])[m_meta_data.index(dims...)];
         }
 
 
@@ -335,9 +335,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
 #ifndef __CUDACC__
-            assert(m_meta_data._index(dims...) < m_meta_data.size());
+            assert(m_meta_data.index(dims...) < m_meta_data.size());
 #endif
-            return (m_fields[0])[m_meta_data._index(dims...)];
+            return (m_fields[0])[m_meta_data.index(dims...)];
         }
 #else //CXX11_ENABLED
 
@@ -345,9 +345,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
 #ifndef __CUDACC__
-            assert(m_meta_data._index(i,j,k) < m_meta_data.size());
+            assert(m_meta_data.index(i,j,k) < m_meta_data.size());
 #endif
-            return (m_fields[0])[m_meta_data._index(i,j,k)];
+            return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
 
 
@@ -355,9 +355,9 @@ namespace gridtools {
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
 #ifndef __CUDACC__
-            assert(m_meta_data._index(i,j,k) < m_meta_data.size());
+            assert(m_meta_data.index(i,j,k) < m_meta_data.size());
 #endif
-            return (m_fields[0])[m_meta_data._index(i,j,k)];
+            return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
 #endif
 
@@ -367,7 +367,7 @@ namespace gridtools {
         }
 
         /**@brief prints a single value of the data field given the coordinates*/
-        void print_value( uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, (m_fields[0])[m_meta_data._index(i, j, k)], m_meta_data._index(i, j, k));}
+        void print_value( uint_t i, uint_t j, uint_t k){ printf("value(%d, %d, %d)=%f, at index %d on the data\n", i, j, k, (m_fields[0])[m_meta_data.index(i, j, k)], m_meta_data.index(i, j, k));}
 
         static const std::string info_string;
 
@@ -394,7 +394,7 @@ namespace gridtools {
                             // << i << ","
                             // << j << ","
                             // << k << ")"
-                               <<  (m_fields[t])[m_meta_data._index(i,j,k)] << "] ";
+                               <<  (m_fields[t])[m_meta_data.index(i,j,k)] << "] ";
                     }
                     stream << std::endl;
                 }

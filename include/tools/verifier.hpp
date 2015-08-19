@@ -33,8 +33,8 @@ public:
                 {
                     for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
-                        typename storage_type::value_type expected = field1.fields()[f][meta->_index(i,j,k)];
-                        typename storage_type::value_type actual = field2.fields()[f][meta->_index(i,j,k)];
+                        typename storage_type::value_type expected = field1.fields()[f][meta->index(i,j,k)];
+                        typename storage_type::value_type actual = field2.fields()[f][meta->index(i,j,k)];
 
                         if(!compare_below_threashold(expected, actual))
                         {

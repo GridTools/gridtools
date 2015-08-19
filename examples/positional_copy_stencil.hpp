@@ -1,12 +1,6 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <boost/timer/timer.hpp>
 #include <stencil-composition/make_computation.hpp>
-
-#include <stencil-composition/backend.hpp>
-
-#include <boost/fusion/include/make_vector.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -26,13 +20,14 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef CXX11_ENABLED
-#define POSTFIX
-#else
-#define POSTFIX
-#endif
 
 namespace positional_copy_stencil{
+#ifdef __CUDACC__
+        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
+#else
+        typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
+#endif
+
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -40,8 +35,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef accessor<0, range<0,0,0,0> > POSTFIX one;
-        typedef accessor<1, range<0,0,0,0> > POSTFIX two;
+        typedef accessor<0, range<0,0,0,0> >  one;
+        typedef accessor<1, range<0,0,0,0> >  two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
@@ -55,8 +50,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> POSTFIX in;
-        typedef accessor<1, range<0,0,0,0>, 3> POSTFIX out;
+        typedef const accessor<0, range<0,0,0,0>, 3>  in;
+        typedef accessor<1, range<0,0,0,0>, 3>  out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */
@@ -110,7 +105,9 @@ namespace positional_copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef gridtools::meta_storage<0, layout_t, false> meta_t;
+
+        typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -124,8 +121,9 @@ namespace positional_copy_stencil{
         /* typedef arg<1, vec_field_type > p_out; */
 
         // Definition of the actual data fields that are used for input/output
-        storage_type in(d1,d2,d3,-3.5,"in");
-        storage_type out(d1,d2,d3,1.5,"out");
+        meta_t meta_(d1,d2,d3);
+        storage_type in(meta_,-3.5,"in");
+        storage_type out(meta_,1.5,"out");
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -150,7 +148,7 @@ namespace positional_copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> init =
 #endif
-            gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_positional_computation<gridtools::BACKEND>
             (
              gridtools::make_mss // mss_descriptor
              (
@@ -210,7 +208,7 @@ namespace positional_copy_stencil{
 #else
         boost::shared_ptr<gridtools::computation> copy =
 #endif
-            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_computation<gridtools::BACKEND>
             (
              gridtools::make_mss // mss_descriptor
              (
@@ -287,7 +285,6 @@ namespace positional_copy_stencil{
                             success = false;
                         }
                     }
-                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
         return success;
 
     }
