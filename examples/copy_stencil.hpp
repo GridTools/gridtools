@@ -37,6 +37,19 @@ namespace copy_stencil{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
+#ifdef SINGLE_STORAGE
+    // These are the stencil operators that compose the multistage stencil in this test
+    struct copy_functor {
+
+        typedef const accessor<0, range<0,0,0,0>, 4> in;
+        typedef boost::mpl::vector<in> arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            eval(in())=eval(in(dimension<4>(1)));
+        }
+#else
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
@@ -49,6 +62,7 @@ namespace copy_stencil{
         static void Do(Evaluation const & eval, x_interval) {
             eval(out())=eval(in());
         }
+#endif
 
     };
 
@@ -90,28 +104,45 @@ namespace copy_stencil{
 
         //                   strides  1 x xy
         //                      dims  x y z
-        typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
+        typedef field<storage_t,2>::type storage_type;
 
         // Definition of the actual data fields that are used for input/output
+#ifdef SINGLE_STORAGE
+        storage_type in(meta_data_);
+        in.allocate();
+        in.initialize(0.);
+#else
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, -1.);
-
+#endif
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
-                    in(i, j, k)=i+j+k;
+                    in.template get_value<0,1>(i, j, k)=i+j+k;
                 }
 
         typedef arg<0, storage_type > p_in;
+#ifndef SINGLE_STORAGE
         typedef arg<1, storage_type > p_out;
+#endif
 
-        typedef boost::mpl::vector<p_in, p_out> accessor_list;
+        typedef boost::mpl::vector<
+            p_in
+#ifndef SINGLE_STORAGE
+            , p_out
+#endif
+            > accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
         gridtools::domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&in, &out));
+            (boost::fusion::make_vector(&in
+#ifndef SINGLE_STORAGE
+                                        , &out
+#endif
+                ));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -170,8 +201,10 @@ namespace copy_stencil{
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
-                       ,p_out()
-                    )
+#ifndef SINGLE_STORAGE
+                        ,p_out()
+#endif
+                        )
                 ),
                 domain, coords
             );
@@ -179,7 +212,6 @@ namespace copy_stencil{
         copy->ready();
 
         copy->steady();
-        domain.clone_to_gpu();
 
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_init);
@@ -215,33 +247,33 @@ namespace copy_stencil{
         pw_print();
 #endif
         bool success = true;
-//         for(uint_t i=0; i<d1; ++i)
-//             for(uint_t j=0; j<d2; ++j)
-//                 for(uint_t k=0; k<d3; ++k)
-//                 {
-// #ifdef CXX11_ENABLED
-//                     if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
-// #else
-//                         if (in(i, j, k)!=out(i,j,k))
-// #endif
-//                         {
-//                             std::cout << "error in "
-//                                       << i << ", "
-//                                       << j << ", "
-//                                       << k << ": "
-// #ifdef CXX11_ENABLED
-//                                       << "in = " << (in.get_value<0,0>(i, j, k))
-//                                       << ", out = " << (in.get_value<1,0>(i, j, k))
-// #else
-//                                       << "in = " << in(i, j, k)
-//                                       << ", out = " << out(i, j, k)
-// #endif
-//                                       << std::endl;
-//                             success = false;
-//                         }
-//                 }
-//         if(!success) std::cout << "ERROR" << std::endl;
-//         else std::cout << "OK" << std::endl;
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
+                {
+#ifdef SINGLE_STORAGE
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k))
+#else
+                        if (in(i, j, k)!=out(i,j,k))
+#endif
+                        {
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+#ifdef SINGLE_STORAGE
+                                      << "in = " << (in.get_value<0,0>(i, j, k))
+                                      << ", out = " << (in.get_value<0,1>(i, j, k))
+#else
+                                      << "in = " << in(i, j, k)
+                                      << ", out = " << out(i, j, k)
+#endif
+                                      << std::endl;
+                            success = false;
+                        }
+                }
+        if(!success) std::cout << "ERROR" << std::endl;
+        else std::cout << "OK" << std::endl;
 
         return success;
     }

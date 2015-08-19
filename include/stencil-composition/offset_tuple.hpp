@@ -193,13 +193,13 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
         super( ), m_offset(0) {}
 
 
-    /**
-       @briefconstexpr copy constructor (the default one does a bit-copy)
-    */
-    GT_FUNCTION
-        constexpr offset_tuple(offset_tuple const& other) : super(other), m_offset(other.get<n_args-1>())
-    {
-    }
+    // /**
+    //    @briefconstexpr copy constructor (the default one does a bit-copy)
+    // */
+    // GT_FUNCTION
+    //     constexpr offset_tuple(offset_tuple const& other) : super(other), m_offset(other.get<n_args-1>())
+    // {
+    // }
 
     template<short_t Idx>
     GT_FUNCTION

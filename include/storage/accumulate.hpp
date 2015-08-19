@@ -78,10 +78,28 @@ namespace gridtools{
         return op(first,accumulate(op, args ...));
     }
 
+#ifdef __CUDACC__ //no clue why nvcc cannot figure this out (works on a small test)
+    /**@brief accumulator recursive implementation*/
+    template<typename First, typename ... Args>
+    GT_FUNCTION
+    static constexpr First accumulate(add_functor op, First first, Args ... args ) {
+        return op(first,accumulate(op, args ...));
+    }
+#endif
+
     /**@brief specialization to stop the recursion*/
     template<typename Operator, typename First>
     GT_FUNCTION
     static constexpr First accumulate(Operator op, First first){return first;}
+
+#ifdef __CUDACC__
+    /**@brief accumulator recursive implementation*/
+    template<typename First>
+    GT_FUNCTION
+    static constexpr First accumulate(add_functor op, First first ) {
+        return first;
+    }
+#endif
 
     template<uint_t Id>
     struct assign{

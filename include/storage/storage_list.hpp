@@ -29,7 +29,8 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
         /**@brief default constructor*/
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_ ): super( meta_data_ ) {
+        template<typename...ExtraArgs>
+        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, ExtraArgs... args_ ): super( meta_data_, args_... ) {
         }
 #else
         /**@brief default constructor*/

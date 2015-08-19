@@ -30,22 +30,23 @@ namespace gridtools{
           :  super(other)
       {}
 
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type const& value, char const* s="default name"): super(dim1, dim2, dim3, value, s) {
-            GRIDTOOLS_STATIC_ASSERT( boost::is_float<value_type>::value, "The initialization value in the storage constructor must me a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
-        }
-
-
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
-
 #if defined(CXX11_ENABLED)
-//arbitrary dimensional field
-        template <class ... UIntTypes>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(meta_data_, args ...)
+        //forwarding constructor
+        template <class ... ExtraArgs>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
             {
             }
 #else
-        //constructor picked in absence of CXX11 or which GCC<4.9
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+        template <class T>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
+            {
+            }
+
+        template <class T, class U>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, arg1, arg2)
+            {
+            }
+
 #endif
 
 //    private :
@@ -56,7 +57,7 @@ namespace gridtools{
 
        Annoyngly enough does not work with CUDA 6.5
     */
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) //&& !defined(__CUDACC__)
 
     template< class Storage, uint_t ... Number >
     struct field_reversed{

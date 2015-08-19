@@ -2,7 +2,7 @@
 #include "storage_list.hpp"
 
 namespace gridtools{
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) //&& !defined(__CUDACC__)
     /** @brief traits class defining some useful compile-time counters
      */
     template < typename First, typename  ...  StorageExtended>
@@ -54,7 +54,7 @@ namespace gridtools{
 /**@brief template specialization at the end of the recustion.*/
     template < typename First>
     struct dimension_extension_traits
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) //&& !defined(__CUDACC__)
     <First>
 #endif
     {
@@ -65,7 +65,7 @@ namespace gridtools{
         typedef dimension_extension_null super;
     };
 
-#if !defined(CXX11_ENABLED) || defined(__CUDACC__)// big code repetition
+#if !defined(CXX11_ENABLED) //|| defined(__CUDACC__)// big code repetition
 
     /** @brief non-C++11 crap
      */
@@ -103,7 +103,7 @@ namespace gridtools{
 #endif //CXX11_ENABLED
 
 
-#if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
+#if defined( CXX11_ENABLED ) //&& !defined( __CUDACC__ )
     /**@brief implements the discretized field structure
 
        It is a collection of arbitrary length \ref gridtools::storage_list "storage lists".
@@ -120,6 +120,10 @@ namespace gridtools{
         typedef typename super::pointer_type pointer_type;
         typedef typename  super::basic_type basic_type;
         static const short_t n_width=sizeof...(StorageExtended)+1;
+
+        /**@brief default constructor*/
+        template <typename ... ExtraArgs>
+        data_field(typename basic_type::meta_data_t const & meta_data_, ExtraArgs const& ... args_ ): super(meta_data_, args_...){}
 #else
 
         template <typename First, typename Second, typename Third>
@@ -133,11 +137,17 @@ namespace gridtools{
             typedef typename super::original_storage original_storage;
             static const short_t n_width=3;
 
-
-#endif
-
         /**@brief default constructor*/
         data_field(typename basic_type::meta_data_t const & meta_data_): super(meta_data_){}
+
+        template <typename T>
+        data_field(typename basic_type::meta_data_t const & meta_data_, T const& arg1_ ): super(meta_data_, args1_){}
+
+        template <typename T, typename U>
+        data_field(typename basic_type::meta_data_t const & meta_data_, T const& args1_, U const& arg2_ ): super(meta_data_, args1_, arg2_){}
+
+
+#endif
 
    /**@brief device copy constructor*/
         template <typename T>
@@ -240,7 +250,7 @@ namespace gridtools{
                for (uint_t j=0; j<this->m_dims[1]; ++j)
                    for (uint_t k=0; k<this->m_dims[2]; ++k)
                        (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
-                           [super::_index(super::strides(), i,j,k)]=
+                           [super::_index(i,j,k)]=
                            lambda(i, j, k);
        }
 
@@ -280,7 +290,7 @@ namespace gridtools{
 #endif
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-          return get<field_dim, snapshot>()[this->m_meta_data._index(this->m_meta_data.strides(),i,j,k)];
+          return get<field_dim, snapshot>()[this->m_meta_data._index(i,j,k)];
       }
 
         /**@biref ODE advancing for a single dimension
@@ -315,7 +325,7 @@ namespace gridtools{
 
     };
 
-#if !defined( CXX11_ENABLED ) || defined ( __CUDACC__ )
+#if !defined( CXX11_ENABLED ) //|| defined ( __CUDACC__ )
         template <typename First, typename Second>
         struct data_field2 : public dimension_extension_traits2<First, Second >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
         {
@@ -408,7 +418,7 @@ namespace gridtools{
       for (uint_t i=0; i<this->m_dims[0]; ++i)
           for (uint_t j=0; j<this->m_dims[1]; ++j)
          for (uint_t k=0; k<this->m_dims[2]; ++k)
-             (field)[super::_index(super::strides(), i,j,k)]=lambda(i, j, k);
+             (field)[super::_index(i,j,k)]=lambda(i, j, k);
       set<field_dim, snapshot>(field);
        }
 
@@ -422,7 +432,7 @@ namespace gridtools{
    template<short_t field_dim  , short_t snapshot  >
    pointer_type& get( )
        {
-      return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+           return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
        }
 
 
@@ -445,7 +455,7 @@ namespace gridtools{
    template<short_t field_dim, short_t snapshot  >
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-                    return get<field_dim, snapshot>()[this->m_meta_data._index(this->m_meta_data.strides(),i,j,k)];
+                    return get<field_dim, snapshot>()[this->m_meta_data._index(i,j,k)];
       }
 
    /**@biref ODE advancing for a single dimension
@@ -576,7 +586,7 @@ namespace gridtools{
       for (uint_t i=0; i<this->m_dims[0]; ++i)
           for (uint_t j=0; j<this->m_dims[1]; ++j)
          for (uint_t k=0; k<this->m_dims[2]; ++k)
-             (field)[super::_index(super::strides(), i,j,k)]=lambda(i, j, k);
+             (field)[super::_index(i,j,k)]=lambda(i, j, k);
       set<field_dim, snapshot>(field);
        }
 
@@ -613,7 +623,7 @@ namespace gridtools{
    template<short_t field_dim, short_t snapshot  >
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
       {
-                    return get<field_dim, snapshot>()[super::_index(super::strides(),i,j,k)];
+                    return get<field_dim, snapshot>()[super::_index(i,j,k)];
       }
 
    /**@biref ODE advancing for a single dimension
@@ -653,7 +663,7 @@ namespace gridtools{
 #endif
 
 
-#if defined(CXX11_ENABLED) && !defined( __CUDACC__ )
+#if defined(CXX11_ENABLED) //&& !defined( __CUDACC__ )
     template <typename F, typename ... T>
     std::ostream& operator<<(std::ostream &s, data_field< F, T... > const &) {
         return s << "field storage" ;

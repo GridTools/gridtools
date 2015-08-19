@@ -182,7 +182,6 @@ namespace gridtools {
         typedef typename local_domain_t::actual_args_type actual_args_type;
         //the number of different storage metadatas  used in the current functor
         static const uint_t N_META_STORAGES=boost::mpl::size<metadata_map_t>::value;
-
         //the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
         //the total number of snapshot (one or several per storage)
