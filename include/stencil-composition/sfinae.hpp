@@ -91,7 +91,7 @@ namespace gridtools {
     struct has_constexpr_name : decltype(test<T>(0)){};
 
 
-    template<int> struct sfinae_true : std::true_type{};
+    template<int> struct sfinae_true : boost::mpl::true_{};
 
     /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
 #define HAS_CONSTEXPR_METHOD( instance_, name )                  \

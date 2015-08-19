@@ -6,7 +6,6 @@
 #include "expressions.hpp"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
-#include <boost/mpl/at_key.hpp>
 #endif
 #include "local_domain.hpp"
 #include "../common/gt_assert.hpp"
@@ -181,8 +180,10 @@ namespace gridtools {
         // typedef typename local_domain_t::mpl_storage_multiplicity multiplicity;
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;
         typedef typename local_domain_t::actual_args_type actual_args_type;
-        //the number of storages  used in the current functor
+        //the number of different storage metadatas  used in the current functor
         static const uint_t N_META_STORAGES=boost::mpl::size<metadata_map_t>::value;
+
+        //the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
         //the total number of snapshot (one or several per storage)
         static const uint_t N_DATA_POINTERS=total_storages<
@@ -598,15 +599,20 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-        auto const storage_ = boost::fusion::at
+#ifndef CXX11_ENABLED
+        typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
+                                                                                      < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+        storage_type* const storage_=
+#else
+        auto const storage_ =
+#endif
+            boost::fusion::at
             < index_t>(local_domain.m_local_args);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef CXX11_ENABLED
         using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
-#else
-        typedef typename boost::remove_reference<BOOST_TYPEOF( (*storage_) )>::type storage_type;
 #endif
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
@@ -614,7 +620,7 @@ namespace gridtools {
         typedef typename boost::mpl::at
             <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
 
-        auto const metadata_ = boost::fusion::at
+        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
         //getting the value
 

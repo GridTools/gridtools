@@ -26,11 +26,14 @@ namespace gridtools{
         typedef T value_type;
         GT_FUNCTION
         pointer(): m_t(0){}
-        GT_FUNCTION
-        pointer(T const* t_): m_t(t_){}
 
+        template <typename U>
         GT_FUNCTION
-        void operator = (T const* t_){
+        pointer(U const* t_): m_t(t_){}
+
+        template <typename U>
+        GT_FUNCTION
+        void operator = (U const* t_){
             m_t=t_;
         }
 
@@ -38,7 +41,7 @@ namespace gridtools{
            @brief returns the raw pointer
         */
         GT_FUNCTION
-        T const* get(){return m_t;}
+        T const* get() {return m_t;}
         GT_FUNCTION
         T const* operator -> () const {return m_t;}
         GT_FUNCTION

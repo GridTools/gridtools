@@ -35,13 +35,21 @@ namespace gridtools{
     public:
 
         constexpr meta_storage_base( uint_t const& initial_offset_i,
-                                    uint_t const& initial_offset_j,
-                                    uint_t const& dim3,
-                                    uint_t const& n_i_threads=1,
-                                    uint_t const& n_j_threads=1)
-            : super((tile_i+minus_i+plus_i)*n_i_threads,(tile_j+minus_j+plus_j)*n_j_threads, dim3/*, init, s*/)
+                                     uint_t const& initial_offset_j,
+                                     uint_t const& dim3,
+                                     uint_t const& n_i_threads=1,
+                                     uint_t const& n_j_threads=1)
+            : super((tile_i+minus_i+plus_i)*n_i_threads,(tile_j+minus_j+plus_j)*n_j_threads, dim3)
+#ifdef CXX11_ENABLED
             , m_initial_offsets{initial_offset_i - minus_i, initial_offset_j - minus_j, 0}
-            {}
+#endif
+            {
+#ifndef CXX11_ENABLED
+                m_initial_offsets[0] = initial_offset_i - minus_i;
+                m_initial_offsets[1] = initial_offset_j - minus_j;
+                m_initial_offsets[2] = 0;
+#endif
+            }
 
 
 

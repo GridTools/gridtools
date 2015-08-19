@@ -40,27 +40,16 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-#ifdef CXX11_ENABLED
-        typedef accessor<0, range<0,0,0,0>, 4> in;
-        typedef boost::mpl::vector<in> arg_list;
-        typedef dimension<4> time;
-#else
         typedef const accessor<0, range<0,0,0,0>, 3> in;
         typedef accessor<1, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
-#endif
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-
-#ifdef CXX11_ENABLED
-            eval(in(time(1)))
-#else
-                eval(out())
-#endif
-                =eval(in());
+            eval(out())=eval(in());
         }
+
     };
 
     /*
@@ -103,30 +92,10 @@ namespace copy_stencil{
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_type;
 
-#if !defined(__CUDACC__) && defined(CXX11_ENABLED)
-        //vector field of dimension 2
-        typedef field<storage_type::basic_type, 1, 1>::type  vec_field_type;
-#else
-#if defined(__CUDACC__) && defined(CXX11_ENABLED)
-        /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-        //pointless and tedious syntax, temporary while thinking/waiting for an alternative like below
-        typedef base_storage<hybrid_pointer<float_type>, meta_data_t, 2> base_type1;
-        typedef storage_list<base_type1, 0>  extended_type;
-        typedef storage<data_field2<extended_type, extended_type> > vec_field_type;
-#endif
-#endif
-
-        // Definition of placeholders. The order of them reflect the order the user will deal with them
-        // especially the non-temporary ones, in the construction of the domain
-        typedef arg<0, vec_field_type > p_in;
-        typedef boost::mpl::vector<p_in> accessor_list;
-
         // Definition of the actual data fields that are used for input/output
-        vec_field_type in(meta_data_);
-        vec_field_type::original_storage::pointer_type  init1(d1*d2*d3);
-        vec_field_type::original_storage::pointer_type  init2(d1*d2*d3);
-        in.push_front<0>(init1, 1.5);
-        in.push_front<1>(init2, -1.5);
+        storage_type in(meta_data_);
+        storage_type out(meta_data_);
+        out.initialize(-1.);
 
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
@@ -135,17 +104,16 @@ namespace copy_stencil{
                     in(i, j, k)=i+j+k;
                 }
 
-        typedef boost::mpl::vector<meta_data_t> metadata_list;
+        typedef arg<0, storage_type > p_in;
+        typedef arg<1, storage_type > p_out;
+
+        typedef boost::mpl::vector<p_in, p_out> accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#ifdef CXX11_ENABLED
-        gridtools::domain_type<accessor_list, metadata_list> domain
-            (boost::fusion::make_vector(&in), boost::fusion::make_vector(&meta_data_));
-#else
         gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in, &out));
-#endif
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -203,9 +171,7 @@ namespace copy_stencil{
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
-#ifndef CXX11_ENABLED
                        ,p_out()
-#endif
                     )
                 ),
                 domain, coords

@@ -297,9 +297,7 @@ namespace gridtools {
 
 
         template<typename T>
-        struct storage2metadata {
-            typedef typename T::meta_data_t type;
-        };
+        struct storage2metadata;
 
     /**
      * @brief computes the list of actual arg types by replacing the temporaries with their

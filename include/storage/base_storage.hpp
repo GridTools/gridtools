@@ -426,6 +426,13 @@ namespace gridtools {
     template <typename PointerType
               , typename MetaData
               , ushort_t Dim>
+    const ushort_t base_storage<PointerType
+                                , MetaData
+                                , Dim>::field_dimensions;
+
+    template <typename PointerType
+              , typename MetaData
+              , ushort_t Dim>
     struct is_temporary_storage<base_storage<PointerType,MetaData,Dim>*& >
         : boost::mpl::bool_<MetaData::is_temporary>
     {};

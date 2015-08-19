@@ -1,5 +1,5 @@
 #pragma once
-#include "<<meta_storage_base.hpp"
+#include "meta_storage_base.hpp"
 #include "meta_storage_tmp.hpp"
 
 namespace gridtools{
@@ -46,12 +46,47 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
                >
     using meta_storage = meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
 #else
+
+    template < uint_t Tile, uint_t Minus, uint_t Plus >
+    struct tile;
+
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
-               , typename ... Tiles
+               , typename TileI=int
+               , typename TileJ=int
                >
-    struct meta_storage<> : meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >{};
+    struct meta_storage;
+
+    template < ushort_t Index
+               , typename Layout
+               , bool IsTemporary
+               , uint_t TileI,uint_t MinusI,uint_t PlusI
+               , uint_t TileJ,uint_t MinusJ,uint_t PlusJ
+               >
+    struct meta_storage<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > : public meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > >{
+        typedef meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > > super;
+
+        meta_storage(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+        template <typename T>
+        GT_FUNCTION
+        meta_storage(T const& t) : super(t){}
+    };
+
+    template < ushort_t Index
+               , typename Layout
+               , bool IsTemporary
+               >
+    struct meta_storage<Index, Layout, IsTemporary, int, int> : public meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary> >{
+        typedef meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary> > super;
+
+        meta_storage(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+        template <typename T>
+        GT_FUNCTION
+        meta_storage(T const& t) : super(t){}
+    };
 #endif
 
     template<typename T>
@@ -63,12 +98,28 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
+#ifdef CXX11_ENABLED
                , typename ... Tiles
+#else
+               , typename TileI, typename TileJ
+#endif
                >
-    struct is_meta_storage<meta_storage<Index, Layout, IsTemporary, Tiles...> > : boost::mpl::true_{};
+    struct is_meta_storage<meta_storage
+                           <Index, Layout, IsTemporary,
+#ifdef CXX11_ENABLED
+                            Tiles...
+#else
+                            TileI, TileJ
+#endif
+                            > > : boost::mpl::true_{};
 
+#ifdef CXX11_ENABLED
     template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
+#else
+    template<ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
+    struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, TileI, TileJ> > : boost::mpl::true_{};
+#endif
 
     template<typename T>
     struct is_meta_storage_wrapper : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};

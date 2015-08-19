@@ -13,8 +13,10 @@
 #include "../common/gpu_clone.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../common/generic_metafunctions/histogram.hpp"
 #include "arg.hpp"
 #include "../gt_for_each/for_each.hpp"
+#include "../storage/storage_metafunctions.hpp"
 
 #include <boost/fusion/include/as_set.hpp>
 
@@ -70,7 +72,7 @@ namespace gridtools {
             void operator()(Local& local_) const {
                 local_ =
 #ifdef __CUDACC__
-                    boost::fusion::at_key<Local>(m_actual)->gpu_object_ptr;
+                    (typename Local::value_type *) boost::fusion::at_key<Local>(m_actual)->gpu_object_ptr;
 #else
                     boost::fusion::at_key<Local>(m_actual);
 #endif
@@ -125,16 +127,7 @@ namespace gridtools {
                     >::type type;
             };
         };
-
-        template<typename Storage>
-        struct extract_meta_data{
-            typedef typename Storage::meta_data_t// ::value_t
-            type;
-        };
-
     } // namespace gt_aux
-
-
 
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
@@ -219,7 +212,7 @@ namespace gridtools {
                                           boost::mpl::vector0<>,
                                           boost::mpl::push_back<
                                               boost::mpl::_1,
-                                              typename local_domain_aux::extract_meta_data<
+                                              storage2metadata<
                                                   boost::remove_pointer<
                                                   boost::mpl::_2 >
                                                   >
@@ -227,12 +220,27 @@ namespace gridtools {
                                           >::type::type local_metadata_mpl_t;
 
 
+        // convoluted way to filter out the duplicated meta storage types : transform vector to set to map
         typedef typename boost::mpl::fold<boost::mpl::range_c<uint_t, 0, boost::mpl::size<local_metadata_mpl_t>::value>
+                                          , boost::mpl::set0<>
+                                          , boost::mpl::insert
+                                          <boost::mpl::_1,boost::mpl::at
+                                            <local_metadata_mpl_t, boost::mpl::_2>
+                                           >
+                                          >::type storage_metadata_set_t;
+
+        typedef typename boost::mpl::fold<storage_metadata_set_t
+                                          , boost::mpl::vector0<>
+                                          , boost::mpl::push_back
+                                          <boost::mpl::_1, boost::mpl::_2>
+                                          >::type storage_metadata_vector_t;
+
+        typedef typename boost::mpl::fold<boost::mpl::range_c<uint_t, 0, boost::mpl::size<storage_metadata_vector_t>::value>
                                           , boost::mpl::map0<>
                                           , boost::mpl::insert
                                           <boost::mpl::_1, boost::mpl::pair
                                            <boost::mpl::at
-                                            <local_metadata_mpl_t, boost::mpl::_2>,
+                                            <storage_metadata_vector_t, boost::mpl::_2>,
                                             boost::mpl::_2
                                             >
                                            >
@@ -245,7 +253,7 @@ namespace gridtools {
 
         /*construct the boost fusion vector of metadata pointers*/
         typedef typename boost::fusion::result_of::as_vector<
-            typename boost::mpl::transform<local_metadata_mpl_t, pointer<
+            typename boost::mpl::transform<storage_metadata_vector_t, pointer<
                                                                      boost::add_const< boost::mpl::_1> > >::type
             >::type local_metadata_type;
 

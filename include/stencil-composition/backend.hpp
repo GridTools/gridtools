@@ -25,6 +25,7 @@
 #include "axis.hpp"
 #include "../common/meta_array.hpp"
 #include "tile.hpp"
+#include "../storage/meta_storage.hpp"
 
 /**
    @file

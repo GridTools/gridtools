@@ -2,7 +2,7 @@
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
 #include "execute_kernel_functor_host.hpp"
-#include "../../storage/meta_storage_tmp.hpp"
+#include "../../storage/meta_storage.hpp"
 
 namespace gridtools{
 
@@ -74,7 +74,7 @@ namespace gridtools{
          struct get_tmp_meta_storage
          {
              //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef meta_storage_wrapper<meta_storage_base<Index::value, Layout, true> > type;
+             typedef meta_storage<Index::value, Layout, true > type;
          };
 
         template <typename Storage, typename ... Tiles>
@@ -202,14 +202,13 @@ namespace gridtools{
                   >
         struct get_tmp_meta_storage
         {
-            typedef meta_storage_wrapper<meta_storage_base
-                                         <Index::value, Layout, true,
+            typedef meta_storage<Index::value, Layout, true,
 #ifdef CXX11_ENABLED
                                           Tiles ...
 #else
                                           TileI, TileJ
 #endif
-                                          > > type;
+                                          > type;
         };
 
         /**

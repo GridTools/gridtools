@@ -45,8 +45,8 @@ namespace gridtools {
      This class reorders the placeholders according to their indices, checks that there's no holes in the numeration,
     */
 
-    template <typename Placeholders, typename MetaStorages>
-    struct domain_type : public clonable_to_gpu<domain_type<Placeholders, MetaStorages> > {
+    template <typename Placeholders>
+    struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
         typedef Placeholders original_placeholders;
 
     private:
@@ -73,6 +73,7 @@ namespace gridtools {
         typedef typename boost::mpl::transform<original_placeholders,
                                                _impl::l_get_type
                                                >::type raw_storage_list;
+
 
         typedef typename boost::mpl::transform<original_metadata_t,
                                                pointer<boost::add_const<// get_value_t<
@@ -225,7 +226,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         template <typename Arg0, typename... OtherArgs>
         void assign_metadata(Arg0 const& arg0, OtherArgs const& ... other_args)
         {
-            m_metadata_set.insert(pointer<const Arg0>(arg0.ptr));
+            m_metadata_set.insert(pointer<const typename Arg0::meta_data_t>(arg0.ptr->meta_data()));
             assign_metadata(other_args...);
         }
 
@@ -242,24 +243,26 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
             \endverbatim
         */
-        template <typename... StorageArgs, typename ... MetaStorageArgs>
-        domain_type(storage<StorageArgs> ... args, MetaStorageArgs ... meta_args)
+        template <typename... StorageArgs>
+        domain_type(storage<StorageArgs> ... args)
             : m_storage_pointers()
             , m_metadata_set()
             {
                 assign_pointers(args...);
-                assign_metadata(meta_args...);
+                assign_metadata(args...);
             }
 #endif
 
 
         /**
            @brief functor to insert a boost fusion sequence to the metadata set
+           @tparam Sequence is of type metadata_set
 
            to be used whithin boost::mpl::for_each
          */
         template <typename Sequence>
         struct assign_metadata_set{
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set<Sequence>::value, "Internal error: wrong type");
         private:
             Sequence& m_sequence;
 
@@ -269,7 +272,8 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             template <typename Arg>
             void operator()( Arg const* arg_) const{
-                m_sequence.insert(pointer<const Arg>(arg_));
+                if (!m_sequence.template present<pointer<const typename Arg::meta_data_t> >())
+                    m_sequence.insert(pointer<const typename Arg::meta_data_t>(&arg_->meta_data()));
             }
         };
 
@@ -284,8 +288,8 @@ The numeration of the placeholders is not contiguous. You have to define each ar
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template <typename RealStorage, typename MetaStorage>
-        explicit domain_type(RealStorage const & real_storage_, MetaStorage const& meta_storage_)
+        template <typename RealStorage>
+        explicit domain_type(RealStorage const & real_storage_)
             : m_storage_pointers()
             , m_metadata_set()
             {
@@ -303,7 +307,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             boost::fusion::copy(real_storage_, fview);
 
             //copy of the non-tmp metadata into m_metadata_set
-            boost::fusion::for_each(meta_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
+            boost::fusion::for_each(real_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
 
 #ifdef __VERBOSE__
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
@@ -378,7 +382,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
     template<typename domain>
     struct is_domain_type : boost::mpl::false_ {};
 
-    template <typename Placeholders, typename MetaData>
-    struct is_domain_type<domain_type<Placeholders, MetaData> > : boost::mpl::true_{};
+    template <typename Placeholders>
+    struct is_domain_type<domain_type<Placeholders> > : boost::mpl::true_{};
 
 } // namespace gridtools

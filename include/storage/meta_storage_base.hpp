@@ -38,6 +38,7 @@ namespace gridtools {
         template <typename T, typename U, bool B, ushort_t D>
         friend std::ostream& operator<<(std::ostream &, base_storage<T,U, D> const & );
 
+#ifdef CXX11_ENABLED
         //alias to ease the notation
         template <typename ... IntTypes>
         using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
@@ -45,23 +46,30 @@ namespace gridtools {
         constexpr meta_storage_base(){}
 
         // variadic constexpr constructor
-        template <class ... IntTypes, typename Dummy = all_integers<IntTypes...> >
+        template <class ... IntTypes
+#ifndef __CUDACC__
+                  , typename Dummy = all_integers<IntTypes...> //nvcc does not get it
+#endif
+                  >
         constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
             }
-
-        // variadic constexpr constructor
-        constexpr meta_storage_base(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
+#else
+        // non variadic non constexpr constructor
+        meta_storage_base(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
             m_dims(d1, d2, d3)
-            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( d1, d2, d3 ))
             {
+                m_strides[0]=( ((layout::template at_<0>::value < 0)?1:d1) * ((layout::template at_<1>::value < 0)?1:d2) * ((layout::template at_<2>::value < 0)?1:d3) );
+                m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,short_t,1>(d1,d2,d3)*layout::template find_val<1,short_t,1>(d1,d2,d3) );
+                m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,short_t,1>(d1,d2,d3) );
             }
+#endif
 
         //  constexpr copy constructor
-        __device__
+        GT_FUNCTION
         constexpr meta_storage_base( meta_storage_base const&other ) :
             m_dims(other.m_dims)
             , m_strides(other.m_strides)
