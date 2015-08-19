@@ -8,7 +8,6 @@ from gridtools.utils import Utilities
 
 
 
-
 class StencilCompiler ( ):
     """
     A global class that takes care of compiling the defined stencils 
@@ -63,10 +62,14 @@ class StencilCompiler ( ):
         """
         from tempfile import mkdtemp
 
+
         logging.debug ("Initializing dynamic compiler ...")
         self.src_dir = mkdtemp (prefix="__gridtools_")
         self.utils.initialize ( )
-
+ 
+        self.utils = Utilities (self)
+        self.utils.check_env_var( )
+        
 
     def analyze (self, stencil, **kwargs):
         """

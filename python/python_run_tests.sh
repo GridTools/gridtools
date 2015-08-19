@@ -1,56 +1,49 @@
 #!/bin/bash
 
+CMAKE_SOURCE_DIR=$1
+PYTHON_INSTALL_PREFIX=$2
+
 #
 # remove any files left from the previous run
 #
-rm -rf /tmp/__gridtools_* 
-
-CMAKE_SOURCE_DIR=$1
-PYTHON_INSTALL_PREFIX=$2
+rm -rf /tmp/__gridtools_* > /dev/null 2>&1
 
 #
 # run interactively without arguments
 #
 if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
-    # Checking gcc version (it has to be >=4.9.x)
-    gcc_vers=`gcc -dumpversion|cut -f1 -d.`
-    if [ $gcc_vers -lt 4 ]
+    # Looking for PYTHON_INSTALL_PREFIX
+    if [ "$PYTHON_INSTALL_PREFIX" != " " ]
     then
-      echo "gcc version 4.x is required. EXIT NOW"
-      exit 1
-    else
-      gcc_vers=`gcc -dumpversion|cut -f2 -d.`
-      if [ $gcc_vers -lt 9 ]
+      # Looking for virtualenv
+      virtualenv_cmd=`which virtualenv`
+      if [ $? -eq 0 ]
       then
-        echo "gcc version 4.9.x is required. EXIT NOW"
-        exit 1
+        source ${PYTHON_INSTALL_PREFIX}/bin/activate
+        echo "Activated virtual environment ($VIRTUAL_ENV)"
       else
-        # gcc version is 4.9.x
-        # Looking for PYTHON_INSTALL_PREFIX
-        if [ "$PYTHON_INSTALL_PREFIX" != " " ]
-        then
-          # Looking for virtualenv
-          virtualenv_cmd=`which virtualenv`
-          if [ $? -eq 0 ]
-          then
-            source ${PYTHON_INSTALL_PREFIX}/bin/activate
-            export GRIDTOOLS_ROOT=$CMAKE_SOURCE_DIR
-          else
-            echo "Error while running virtualenv. EXIT NOW"
-            exit  1
-          fi
-        fi 
+        echo "Error while activating virtualenv. EXIT NOW"
+        exit  1
       fi
-    fi
+    fi 
 fi
 
-echo "Running python tests ..."
-nosetests -v -s --with-coverage --cover-package=gridtools --cover-erase --cover-html tests.test_sw tests.test_stencils
-if [ $? -ne 0 ]; then
-    echo "Error running python tests. EXIT NOW"
-    exit 1
-else
+echo "Running Python tests ..."
+echo "Test 1 :: Checking environment variable settings ..."
+nosetests -v -s tests.test_envvar
+
+exit
+
+echo "Test 2 :: Checking Gridtools tests ..."
+#nosetests -v -s tests.test_sw tests.test_stencils
+nosetests -v -s tests.test_stencils
+TEST_STATUS=$?
+if [ ${TEST_STATUS} == 0 ]; then
+    echo "All Python tests OK"
     if [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
-        ${PYTHON_INSTALL_PREFIX}/bin/deactivate
+        deactivate
     fi
+else
+    echo "Error running Python tests. EXIT NOW"
+    exit 1
 fi

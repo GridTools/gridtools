@@ -51,7 +51,7 @@ class EnvVarMissing(unittest.TestCase):
          #print(str(os.getenv(var)))
 
        #print("**qui si esegue il nosetests")
-       result = nose.run(argv=[sys.argv[0],TEST_LIST,'-v'])
+       result = nose.run(argv=[sys.argv[0],TEST_LIST,'-v','-s'])
        #
        # Checking exit status 
        #  

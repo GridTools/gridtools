@@ -4,7 +4,6 @@ import logging
 import numpy as np
 
 
-
 class Utilities ( ):
     """
     Class to contain various helpful functions.
@@ -54,4 +53,36 @@ class Utilities ( ):
             raise TypeError ("NumPy array element type (%s) does not match backend" % nptype)
 
         return rv
+
+
+    def check_env_var (self):
+        """
+        Check if environment variables are correctly set
+        """
+        import os
+        from gridtools import BASIC_ENVVARS
+        from gridtools import CUDA_ENVVARS
+
+        # Defining a list to gather the env vars not defined 
+        missing_envvar = []
+
+        # Using an indicator to identify the error type
+        ind = 0
+        for var in CUDA_ENVVARS:
+           # Check if variables have been defined
+           if os.getenv(var) is None:
+               missing_envvar.append(var)             
+               ind = 1
+           else:
+               # Check if path pointed by var exists 
+               if not os.path.exists(os.getenv(var)):
+                   ind=2
+
+        msg="\n   Before continue: \n   1. Set variables "+str(BASIC_ENVVARS)+" for C++ backend and "+str(CUDA_ENVVARS)+" for CUDA backend \n   "
+        if ind == 1:
+          msg=msg+"2. Set the following undefined environment variable(s): "+str(missing_envvar)+" \n   EXIT NOW"
+
+        if ind != 0:
+           raise SystemError (msg)
+ 
 
