@@ -240,6 +240,9 @@ namespace gridtools {
         GT_FUNCTION
         void initialize(value_type const& init, ushort_t const& dims=field_dimensions)
             {
+                //if this fails  you used the wrong constructor (i.e. the empty one)
+                assert(is_set);
+
 #ifdef _GT_RANDOM_INPUT
                 srand(12345);
 #endif
@@ -261,6 +264,9 @@ namespace gridtools {
         GT_FUNCTION
         void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), ushort_t const& dims=field_dimensions)
             {
+                //if this fails  you used the wrong constructor (i.e. the empty one)
+                assert(is_set);
+
                 for(ushort_t f=0; f<dims; ++f)
                 {
                     for (uint_t i=0; i<this->m_dims[0]; ++i)

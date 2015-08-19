@@ -93,9 +93,8 @@ namespace copy_stencil{
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_type;
 
         // Definition of the actual data fields that are used for input/output
-        storage_type in(meta_data_);
-        storage_type out(meta_data_);
-        out.initialize(-1.);
+        storage_type in(meta_data_, "in");
+        storage_type out(meta_data_, -1.);
 
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
