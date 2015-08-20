@@ -13,6 +13,9 @@ namespace gridtools{
     struct storage_list : public Storage
     {
 
+        template < typename PT, typename MD, ushort_t FD >
+        using my_type=storage_list<typename Storage::template my_type<PT, MD, FD>, ExtraWidth>;
+
         typedef storage_list<Storage, ExtraWidth> type;
         /*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
         GRIDTOOLS_STATIC_ASSERT(ExtraWidth>0, "you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.");
@@ -24,20 +27,10 @@ namespace gridtools{
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
-        // //default constructor
-        // storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
-
-#ifdef CXX11_ENABLED
         /**@brief default constructor*/
         template<typename...ExtraArgs>
         explicit storage_list(typename basic_type::meta_data_t const& meta_data_, ExtraArgs... args_ ): super( meta_data_, args_... ) {
         }
-#else
-        /**@brief default constructor*/
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_ ): super( meta_data_ ) {
-        }
-#endif
-
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~storage_list(){
@@ -124,23 +117,19 @@ namespace gridtools{
     template < typename Storage>
     struct storage_list<Storage, 0> : public Storage
     {
+        template < typename PT, typename MD, ushort_t FD >
+        using my_type=storage_list<typename Storage::template my_type<PT, MD, FD>, 0>;
+
         typedef typename Storage::basic_type basic_type;
         typedef Storage super;
-        // typedef typename Storage::basic_storage original_storage;
 
         //default constructor
         storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
 
-#ifdef CXX11_ENABLED
         /**@brief default constructor*/
         template<typename ... UIntTypes>
         explicit storage_list(typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args ): Storage( meta_data_, args ... ) {
         }
-#else
-        /**@brief default constructor*/
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, uint_t const& d1, uint_t const& d2, uint_t const& d3 ): Storage( meta_data_, d1, d2, d3 ) {
-        }
-#endif
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~storage_list(){

@@ -262,23 +262,21 @@ namespace gridtools {
         template <typename Domain
                   , typename MssComponentsArray
                   , typename ValueType
-                  // , typename MetaDataType
                   >
         struct obtain_temporary_storage_types {
 
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
-            // GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaDataType>::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
 
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
+            // typedef typename Domain::placeholders::fuck fuck;
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
             typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssComponentsArray>::type map_of_ranges;
-
 
             // GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
             //         "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"

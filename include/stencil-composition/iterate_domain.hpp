@@ -777,12 +777,6 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-        assert(metadata_->size() >  metadata_
-               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
-
-        assert(metadata_
-               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand) >= 0);
-
         //getting the storage type
         using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::index_type>(local_domain.m_local_args))>::type;
 
@@ -793,7 +787,13 @@ namespace gridtools {
         pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
 
-        //compile-time check
+        //error checks
+        assert(metadata_->size() >  metadata_
+               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
+
+        assert(metadata_
+               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand) >= 0);
+
         GRIDTOOLS_STATIC_ASSERT((
                                     Accessor::n_dim <= storage_type::meta_data_t::space_dimensions),
                                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");

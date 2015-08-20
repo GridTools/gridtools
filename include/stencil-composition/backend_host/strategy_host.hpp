@@ -81,7 +81,17 @@ namespace gridtools{
          struct get_tmp_storage
          {
              //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type, Storage::field_dimensions > > type;
+             typedef storage<
+#ifdef CXX11_ENABLED
+                typename Storage::template my_type
+#else
+                 base_storage
+#endif
+                 <typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type, Storage::field_dimensions > > type;
+
+// typedef select_storage_type<Storage>::with_metadata<
+             //                             typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type
+             //                             > type;
          };
 
     };
@@ -221,15 +231,23 @@ namespace gridtools{
 #endif
         struct get_tmp_storage
         {
-            typedef storage<base_storage
-                            <typename Storage::pointer_type, typename get_tmp_meta_storage
-                             <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+            // typedef select_storage_type<Storage,
+            //                             <typename Storage::pointer_type, typename get_tmp_meta_storage
+            //                              <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+            typedef storage<
 #ifdef CXX11_ENABLED
-                              Tiles ...
+                typename Storage::template my_type
 #else
-                              TileI, TileJ
+                base_storage
 #endif
-                              >::type, Storage::field_dimensions > > type;
+                <typename Storage::pointer_type, typename get_tmp_meta_storage
+                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+#ifdef CXX11_ENABLED
+                  Tiles ...
+#else
+                  TileI, TileJ
+#endif
+                  >::type, Storage::field_dimensions > > type;
         };
 };
 

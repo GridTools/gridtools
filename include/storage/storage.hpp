@@ -1,5 +1,6 @@
 #pragma once
 #include "data_field.hpp"
+#include "meta_storage.hpp"
 #include "common/gpu_clone.hpp"
 //#include "host_tmp_storage.hpp"
 #include "accumulate.hpp"
@@ -57,34 +58,34 @@ namespace gridtools{
 
        Annoyngly enough does not work with CUDA 6.5
     */
-#if defined(CXX11_ENABLED) //&& !defined(__CUDACC__)
+#if defined(CXX11_ENABLED)
 
+    /** @brief syntactic sugar for defining a data field
+
+        Given a storage type and the dimension number it generates the correct data field type
+        @tparam Storage the basic storage used
+        @tparam Number the number of snapshots in each dimension
+     */
     template< class Storage, uint_t ... Number >
     struct field_reversed{
         typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
-
-    // // specialization for temporary storages/naive strategy
-
-    // template<  typename PointerType
-    //            ,typename MetaData
-    //            ,short_t FieldDimension
-    //            ,uint_t ... Number >
-    // struct field_reversed<base_storage<PointerType, MetaData, FieldDimension>, Number... >{
-    //     typedef storage< data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
-    // };
-
-    // specialization for temporary storages/block strategy
-
+    /**@brief specialization for no_storage_type_yet (Block strategy)*/
     template<  typename PointerType
                ,typename MetaData
-               ,short_t FieldDimension
+               ,ushort_t FieldDimension
                ,uint_t ... Number >
     struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, MetaData, FieldDimension> > >, Number... >{
         typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
     };
 
+    /**@brief interface for definig a data field
+
+       @tparam Storage the basic storage type shared by all the snapshots
+       @tparam First  all the subsequent parameters define the dimensionality of the snapshot arrays
+        in all the data field dimensions
+     */
     template< class Storage, uint_t First, uint_t ... Number >
     struct field{
         typedef typename reverse_pack<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
@@ -105,16 +106,6 @@ namespace gridtools{
     };
 
 
-
-    // template<  typename PointerType
-    //            ,typename MetaData
-    //            ,short_t FieldDimension
-    //            , uint_t Number1, uint_t Number2, uint_t Number3 >
-    // struct field<base_storage<PointerType, MetaData, true, FieldDimension>, Number1, Number2, Number3 >{
-    //     typedef storage<data_field< storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, MetaData, true, Number1+Number2+Number3>, Number3-1> > > type;
-    // };
-
-
     template<  typename PointerType
                ,typename MetaData
                ,short_t FieldDimension
@@ -130,4 +121,5 @@ namespace gridtools{
           << static_cast<T const&>(x) << " > ";
         return s;
     }
+
 }//namespace gridtools

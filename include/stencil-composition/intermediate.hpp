@@ -308,7 +308,6 @@ namespace gridtools {
         typename DomainType,
         typename MssComponentsArray,
         typename StencilValueType
-        //typename MetaData
     >
     struct create_actual_arg_list
     {
@@ -324,10 +323,8 @@ namespace gridtools {
         typedef typename Backend::template obtain_temporary_storage_types<
             DomainType,
             MssComponentsArray,
-            StencilValueType// ,
-            // MetaData
+            StencilValueType
             >::type mpl_actual_tmp_pairs;
-
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
@@ -437,7 +434,6 @@ namespace gridtools {
             >
         >::type range_sizes_t;
 
-        // build the meta array with all the mss components
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
             MssDescriptorArray,
@@ -451,7 +447,7 @@ namespace gridtools {
                 float_type
         >::type actual_arg_list_type;
 
-
+        // build the meta array with all the mss components
         typedef typename boost::mpl::fold<
             actual_arg_list_type
             , boost::mpl::set<>
@@ -471,13 +467,6 @@ namespace gridtools {
             , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 > >::type actual_metadata_vector_t;
 
         typedef metadata_set<actual_metadata_set_t> actual_metadata_list_type;
-        // typedef typename create_actual_metadata_list<
-        //     Backend,
-        //     DomainType,
-        //     typename boost::fusion::result_of::as_vector<typename DomainType::metadata_set_t::set_t>::type,
-        //     float_type >::type actual_metadata_list_type;
-
-        // typedef typename DomainType::metadata_set_t actual_metadata_list_type;
 
         typedef typename create_mss_local_domains<
             backend_id<Backend>::value,

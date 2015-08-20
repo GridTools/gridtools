@@ -23,12 +23,17 @@ namespace gridtools {
      */
     template <typename RegularStorageType>
     struct no_storage_type_yet {
+
+#ifdef CXX11_ENABLED
+        template < typename PT, typename MD, ushort_t FD >
+        using my_type=typename RegularStorageType::template my_type<PT, MD, FD>;
+#endif
+
         typedef RegularStorageType type;
         typedef no_meta_storage_type_yet<typename RegularStorageType::meta_data_t> meta_data_t;
         typedef typename  type::layout layout;
         typedef typename  type::const_iterator_type const_iterator_type;
         typedef typename  type::basic_type basic_type;
-        typedef typename type::original_storage original_storage;
         typedef typename type::pointer_type pointer_type;
         static const ushort_t n_width=basic_type::n_width;
         static const ushort_t field_dimensions=basic_type::field_dimensions;
@@ -113,6 +118,11 @@ namespace gridtools {
     template < typename PointerType, typename MetaData, ushort_t FieldDimension >
     struct base_storage
     {
+#ifdef CXX11_ENABLED
+        template < typename PT, typename MD, ushort_t FD >
+        using my_type=base_storage<PT,MD,FD>;
+#endif
+
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::type::value, "wrong meta_storage type");
         typedef base_storage<PointerType, MetaData, FieldDimension> type;
         typedef PointerType pointer_type;
