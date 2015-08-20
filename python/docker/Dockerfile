@@ -78,8 +78,9 @@ RUN  cd $HOME/gridtools/python                                      && \
      pip3 install -r requirements.txt
 ADD  matplotlibrc /usr/local/lib/python3.4/dist-packages/matplotlib/mpl-data/matplotlibrc
 
-USER root
+EXPOSE 8888
+
 COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-#CMD ["vim"]
+CMD ["/bin/bash"]
