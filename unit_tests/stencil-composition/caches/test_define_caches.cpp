@@ -6,9 +6,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include "stencil-composition/caches/define_caches.hpp"
-#include "stencil-composition/accessor.hpp"
-#include "stencil-composition/backend.hpp"
-#include "common/defs.hpp"
+#include "stencil-composition/make_computation.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
