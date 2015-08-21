@@ -37,6 +37,13 @@
 namespace gridtools {
 
 
+        template<typename T>
+        struct is_ptr_to_tmp : boost::mpl::false_{};
+
+        template<typename T>
+        struct is_ptr_to_tmp<pointer<const T> > : boost::mpl::bool_<T::is_temporary> {};
+
+
         namespace _impl{
 
         /** @brief Functor used to instantiate the local domains to be passed to each
@@ -494,13 +501,6 @@ namespace gridtools {
                 std::cout << T() << "            ----------" << std::endl;
             }
         };
-
-        template<typename T>
-        struct is_ptr_to_tmp : boost::mpl::false_{};
-
-        template<typename T>
-        struct is_ptr_to_tmp<pointer<const T> > : boost::mpl::bool_<T::is_temporary> {};
-
 
         intermediate(DomainType & domain, Coords const & coords)
             : m_domain(domain), m_coords(coords), m_meter("NoName")

@@ -15,10 +15,10 @@
 
 #include "boundary_conditions_test.hpp"
 
-// TODO modify after the memory leak fix
-// TEST(testdomain, testallocationongpu) {
-//     EXPECT_EQ(test_domain(), false);
-// }
+//TODO modify after the memory leak fix
+TEST(testdomain, testallocationongpu) {
+    EXPECT_EQ(test_domain(), false);
+}
 
 TEST(testhybridpointer, testhybridpointerongpu) {
     EXPECT_EQ(test_hybrid_pointer(), true);

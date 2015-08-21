@@ -421,6 +421,10 @@ namespace gridtools {
         GT_FUNCTION
         pointer_type const* fields() const {return &(m_fields[0]);}
 
+                /** @brief returns a const pointer to the data field*/
+        GT_FUNCTION
+        pointer_type* fields_view() {return &(m_fields[0]);}
+
 
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION

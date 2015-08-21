@@ -86,6 +86,9 @@ add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
 set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(CopyStencil ${exe_LIBS})
 
+cuda_add_executable( test_cuda_storage test_cuda_storage.cu )
+target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+
 add_subdirectory( communication )
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
