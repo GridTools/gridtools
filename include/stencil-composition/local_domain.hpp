@@ -13,7 +13,6 @@
 #include "../common/gpu_clone.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../common/generic_metafunctions/histogram.hpp"
 #include "arg.hpp"
 #include "../gt_for_each/for_each.hpp"
 #include "../storage/storage_metafunctions.hpp"

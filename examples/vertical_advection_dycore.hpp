@@ -262,7 +262,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #else
         boost::shared_ptr<gridtools::computation> vertical_advection =
 #endif
-        gridtools::make_computation<vertical_advection::va_backend, layout_ijk>
+        gridtools::make_computation<vertical_advection::va_backend>
         (
             gridtools::make_mss // mss_descriptor
             (

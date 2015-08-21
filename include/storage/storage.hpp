@@ -90,29 +90,6 @@ namespace gridtools{
     struct field{
         typedef typename reverse_pack<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
     };
-
-#else//CXX11_ENABLED
-
-
-    template< class Storage, uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field{
-        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Number1+Number2+Number3>, Number3-1> > > type;
-    };
-
-
-    template< class Storage, uint_t Number1>
-    struct field1{
-        typedef storage< data_field1< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, Number1>, Number1-1> > > type;
-    };
-
-
-    template<  typename PointerType
-               ,typename MetaData
-               ,short_t FieldDimension
-               ,uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<no_storage_type_yet<storage<base_storage<PointerType, MetaData, FieldDimension> > >, Number1, Number2, Number3 >{
-        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, MetaData, Number1+Number2+Number3 >, Number1-1>, storage_list<base_storage<PointerType, MetaData, Number1+Number2+Number3 >, Number2-1>, storage_list<base_storage<PointerType, MetaData, Number1+Number2+Number3 >, Number3-1> > > > type;
-    };
 #endif
 
     template <typename T>

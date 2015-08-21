@@ -1,6 +1,6 @@
 #pragma once
 #include "base_storage.hpp"
-
+#ifdef CXX11_ENABLED
 namespace gridtools{
     /** @brief storage class containing a buffer of data snapshots
 
@@ -148,3 +148,4 @@ namespace gridtools{
             {}
     };
 }//namespace gridtools
+#endif
