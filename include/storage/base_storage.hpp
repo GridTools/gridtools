@@ -185,7 +185,7 @@ namespace gridtools {
 
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
-        base_storage( MetaData meta_data_, char const* s// ="default storage"
+        base_storage( MetaData const& meta_data_, char const* s// ="default storage"
             ) :
             is_set( true )
             , m_name(s)

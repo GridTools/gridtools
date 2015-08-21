@@ -789,10 +789,10 @@ namespace gridtools {
 
         //error checks
         assert(metadata_->size() >  metadata_
-               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand));
+               ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand));
 
         assert(metadata_
-               ->_index(strides().template get<Accessor::index_type::value>(), expr.first_operand) >= 0);
+               ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand) >= 0);
 
         GRIDTOOLS_STATIC_ASSERT((
                                     Accessor::n_dim <= storage_type::meta_data_t::space_dimensions),

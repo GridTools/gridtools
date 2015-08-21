@@ -41,7 +41,6 @@ bool assign_placeholders() {
     storage_type out(meta_,-7.3, "out");
     storage_type coeff(meta_,8., "coeff");
 
-
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
     typedef arg<0, tmp_storage_type > p_lap;
@@ -59,7 +58,7 @@ bool assign_placeholders() {
     // printf("in    (4) pointer: %x\n", &in);
     // printf("out   (5) pointer: %x\n", &out);
 
-    gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff) );
+    gridtools::domain_type<accessor_list> domain( boost::fusion::make_vector(&coeff, &in, &out) );
 
     return ((boost::fusion::at_c<3>(domain.storage_pointers_view()) == &coeff) &&
             (boost::fusion::at_c<4>(domain.storage_pointers_view()) == &in) &&

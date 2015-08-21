@@ -233,24 +233,24 @@ namespace test_iterate_domain{
         it_domain.get_index(new_index);
 
         //even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra stride
-        assert(index[0]+in.meta_data().strides<0>(in.meta_data().strides())+in.meta_data().strides<1>(in.meta_data().strides())+in.meta_data().strides<2>(in.meta_data().strides()) == new_index[0] );
+        assert(index[2]+in.meta_data().strides<0>(in.meta_data().strides())+in.meta_data().strides<1>(in.meta_data().strides())+in.meta_data().strides<2>(in.meta_data().strides()) == new_index[2] );
         // std::cout<<index[1]<<" + "<<buff.strides<0>(buff.strides()) << " + " << buff.strides<1>(buff.strides()) << " + " << buff.strides<2>(buff.strides())<<std::endl;
         assert(index[1]+buff.meta_data().strides<0>(buff.meta_data().strides())+buff.meta_data().strides<1>(buff.meta_data().strides())+buff.meta_data().strides<2>(buff.meta_data().strides()) == new_index[1] );
-        assert(index[2]+out.meta_data().strides<0>(out.meta_data().strides())+out.meta_data().strides<1>(out.meta_data().strides()) == new_index[2] );
+        assert(index[0]+out.meta_data().strides<0>(out.meta_data().strides())+out.meta_data().strides<1>(out.meta_data().strides()) == new_index[0] );
 
         //check offsets for the space dimensions
         using in_1_1=alias<accessor<0, range<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>;
 
-        assert(((float_type*)(in.get<1,1>().get()+new_index[0]+in.meta_data().strides<0>(in.meta_data().strides()))==
+        assert(((float_type*)(in.get<1,1>().get()+new_index[2]+in.meta_data().strides<0>(in.meta_data().strides()))==
                 &it_domain(in_1_1(dimension<1>(1)))));
 
-        assert(((float_type*)(in.get<1,1>()+new_index[0]+in.meta_data().strides<1>(in.meta_data().strides()))==
+        assert(((float_type*)(in.get<1,1>()+new_index[2]+in.meta_data().strides<1>(in.meta_data().strides()))==
                 &it_domain(in_1_1(dimension<2>(1)))));
 
-        assert(((float_type*)(in.get<1,1>()+new_index[0]+in.meta_data().strides<2>(in.meta_data().strides()))==
+        assert(((float_type*)(in.get<1,1>()+new_index[2]+in.meta_data().strides<2>(in.meta_data().strides()))==
                 &it_domain(in_1_1(dimension<3>(1)))));
 
-        assert(((float_type*)(in.get<1,1>()+new_index[0]+in.meta_data().strides<3>(in.meta_data().strides()))==
+        assert(((float_type*)(in.get<1,1>()+new_index[2]+in.meta_data().strides<3>(in.meta_data().strides()))==
                 &it_domain(in_1_1(dimension<4>(1)))));
 
         //check offsets for the space dimensions
@@ -269,22 +269,22 @@ namespace test_iterate_domain{
 
         using out_1=alias<accessor<2, range<0,0,0,0>, 4>, dimension<4>, dimension<3> >::set<1, 1>;
 
-        assert(((float_type*)(out.get<1,1>()+new_index[2]+out.meta_data().strides<0>(out.meta_data().strides()))==
+        assert(((float_type*)(out.get<1,1>()+new_index[0]+out.meta_data().strides<0>(out.meta_data().strides()))==
                 &it_domain(out_1(dimension<1>(1)))));
 
-        assert(((float_type*)(out.get<1,1>()+new_index[2]+out.meta_data().strides<1>(out.meta_data().strides()))==
+        assert(((float_type*)(out.get<1,1>()+new_index[0]+out.meta_data().strides<1>(out.meta_data().strides()))==
                 &it_domain(out_1(dimension<2>(1)))));
 
         //check strides initialization
 
-        assert(in.meta_data().strides(1)==strides.get<0>()[0]);
-        assert(in.meta_data().strides(2)==strides.get<0>()[1]);
-        assert(in.meta_data().strides(3)==strides.get<0>()[2]);//4D storage
+        assert(in.meta_data().strides(1)==strides.get<2>()[0]);
+        assert(in.meta_data().strides(2)==strides.get<2>()[1]);
+        assert(in.meta_data().strides(3)==strides.get<2>()[2]);//4D storage
 
         assert(buff.meta_data().strides(1)==strides.get<1>()[0]);
         assert(buff.meta_data().strides(2)==strides.get<1>()[1]);//3D storage
 
-        assert(out.meta_data().strides(1)==strides.get<2>()[0]);//2D storage
+        assert(out.meta_data().strides(1)==strides.get<0>()[0]);//2D storage
 
         return true;
     }

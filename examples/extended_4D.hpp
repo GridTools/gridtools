@@ -126,7 +126,7 @@ namespace assembly{
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
-        metadata4_t integration_metadata(b1,b2,b3,nbQuadPt);
+        metadata4_t integration_metadata(d1,d2,d3,nbQuadPt);
         integration_type jac(integration_metadata);
 
         //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.

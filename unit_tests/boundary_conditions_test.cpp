@@ -912,6 +912,7 @@ bool usingvalue_2() {
 
     meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
     storage_type in(meta_);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
     storage_type out(meta_);
