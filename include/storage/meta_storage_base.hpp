@@ -68,11 +68,13 @@ namespace gridtools {
 #endif
 
         //  constexpr copy constructor
+        template <typename Other>
         GT_FUNCTION
-        constexpr meta_storage_base( meta_storage_base const&other ) :
+        constexpr meta_storage_base( Other const&other ) :
             m_dims(other.m_dims)
             , m_strides(other.m_strides)
             {
+                GRIDTOOLS_STATIC_ASSERT(is_meta_storage<Other>::type::value, "Type error");
             }
 
         /**@brief method used to check if the instance is consexpr

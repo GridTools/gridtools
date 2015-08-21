@@ -82,8 +82,11 @@ endif()
   endif()
 endif()
 
+add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
+set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(CopyStencil ${exe_LIBS})
+
 add_subdirectory( communication )
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
 add_subdirectory( storage )
-

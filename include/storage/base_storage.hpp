@@ -217,7 +217,7 @@ namespace gridtools {
             is_set( true )
             , m_name(s)
             , m_meta_data(meta_data_){
-            m_fields[0]=pointer_type(ptr, meta_data_, true);
+            m_fields[0]=pointer_type(ptr, m_meta_data.size(), true);
             if(FieldDimension>1)
                 allocate(FieldDimension, 1);
         }
@@ -279,9 +279,9 @@ namespace gridtools {
 
                 for(ushort_t f=0; f<dims; ++f)
                 {
-                    for (uint_t i=0; i<this->m_dims[0]; ++i)
-                        for (uint_t j=0; j<this->m_dims[1]; ++j)
-                            for (uint_t k=0; k<this->m_dims[2]; ++k)
+                    for (uint_t i=0; i<m_meta_data.template dims<0>(); ++i)
+                        for (uint_t j=0; j<m_meta_data.template dims<1>(); ++j)
+                            for (uint_t k=0; k<m_meta_data.template dims<2>(); ++k)
                                 (m_fields[f])[m_meta_data.index(i,j,k)]=lambda(i, j, k);
                 }
             }

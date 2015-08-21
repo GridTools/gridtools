@@ -135,10 +135,12 @@ bool basic() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -272,10 +274,12 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -432,10 +436,12 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -589,10 +595,12 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -728,14 +736,16 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_);
     out.allocate();
     out.initialize(-1);
     out.set_name("out");
@@ -896,13 +906,15 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.initialize(-1);
     in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_);
     out.allocate();
     out.initialize(-1);
     out.set_name("out");
@@ -1038,18 +1050,20 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, meta_storage<0,layout_map<0,1,2>, false> >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type src(d1,d2,d3);
+
+    meta_storage<0,layout_map<0,1,2>, false> meta_(d1,d2,d3);
+    storage_type src(meta_);
     src.allocate();
     src.initialize(-1);
     src.set_name("src");
-    storage_type one(d1,d2,d3);
+    storage_type one(meta_);
     one.allocate();
     one.initialize(-1);
     one.set_name("one");
-    storage_type two(d1,d2,d3);
+    storage_type two(meta_);
     two.allocate();
     two.initialize(-1);
     two.set_name("two");

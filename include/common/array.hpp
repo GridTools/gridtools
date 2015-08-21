@@ -22,7 +22,7 @@ namespace gridtools {
     template <typename T, size_t D>
     class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
 
-        template<uint_t Idx>
+        template<int_t Idx>
         struct get_component{
             constexpr get_component(){}
             template<typename OtherArray>
@@ -88,9 +88,25 @@ namespace gridtools {
 #endif
 
 #ifdef CXX11_ENABLED
-        /** constexpr copy constructor */
+        /** @brief constexpr copy constructor
+
+            unrolling the input array into a pack and forwarding to the regular constructor
+            TODO: complicated and counter intuitive syntax
+        */
+        // GT_FUNCTION
+        // constexpr array( array<T,_size> const& other): gt_make_integer_sequence<_size>::template apply<array<T, _size>, get_component> (other) {
+        // }
         GT_FUNCTION
-        constexpr array( array<T,1> const& other): _array(gt_make_integer_sequence<_size>::template apply<array,get_component> (other)) {
+        constexpr array( array<T,1> const& other): _array{other[0]} {
+        }
+        GT_FUNCTION
+        constexpr array( array<T,2> const& other): _array{other[0], other[1]} {
+        }
+        GT_FUNCTION
+        constexpr array( array<T,3> const& other): _array{other[0], other[1], other[2]}{
+        }
+        GT_FUNCTION
+        constexpr array( array<T,4> const& other): _array{other[0], other[1], other[2], other[3]} {
         }
 #else
         //TODO provide a BOOST PP implementation for this (so ugly :-()

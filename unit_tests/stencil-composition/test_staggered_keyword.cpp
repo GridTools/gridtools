@@ -1,6 +1,3 @@
-#include "common/defs.hpp"
-#include "stencil-composition/make_stencils.hpp"
-#include "stencil-composition/backend.hpp"
 #include "stencil-composition/make_computation.hpp"
 
 #include "gtest/gtest.h"
@@ -46,11 +43,12 @@ uint_t functor::ok_j=0;
 bool test(){
 
     typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::meta_storage<0, layout_t, false> meta_t;
+    typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
 
-    typedef gridtools::BACKEND::storage_type<uint_t, layout_t >::type storage_type;
-
-    storage_type i_data ((uint_t) 30,(uint_t) 20, (uint_t) 1);
-    storage_type j_data ((uint_t) 30,(uint_t) 20, (uint_t) 1);
+    meta_t meta_((uint_t) 30,(uint_t) 20, (uint_t) 1);
+    storage_type i_data (meta_);
+    storage_type j_data (meta_);
     i_data.allocate();
     j_data.allocate();
 
@@ -70,7 +68,7 @@ bool test(){
 
     domain_type<accessor_list> domain(boost::fusion::make_vector (&i_data, &j_data));
     auto comp =
-        gridtools::make_computation<gridtools::BACKEND, layout_t>
+        gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss
             (

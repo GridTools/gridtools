@@ -36,6 +36,7 @@ namespace gridtools{
             }
         };
 
+        /**@brief functor to assign all the strides */
         template<int_t MaxIndex,  typename Layout>
         struct assign_all_strides{
 
@@ -44,8 +45,8 @@ namespace gridtools{
 
             template<typename ... UIntType>
             static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
-                using seq = typename gt_make_integer_sequence<sizeof ... (args)>::type;
-                return seq::template apply<array<int_t, MaxIndex>, lambda>(args...);
+                using seq = typename gt_make_integer_sequence<int_t, sizeof ... (args)>::type;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
             }
         };
 

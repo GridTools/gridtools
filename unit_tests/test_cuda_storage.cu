@@ -39,13 +39,14 @@ using namespace enumtype;
 bool test_cuda_storage() {
 
     typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
-    typedef gridtools::backend<Cuda, Block>::storage_type<float_type, gridtools::layout_map<0,1,2> > ::type storage_type;
+    typedef gridtools::backend<Cuda, Block>::storage_type<float_type, meta_storage<0,layout_map<0,1,2>,false> > ::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type data(d1,d2,d3,-1., "data");
+    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type data(meta_, -1., "data");
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {

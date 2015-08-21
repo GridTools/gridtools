@@ -211,6 +211,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         metadata_set_t m_metadata_set;
 
 #ifdef CXX11_ENABLED
+        void assign_pointers() {}
 
         /**@brief recursively assignes all the pointers passed as arguments to storages.
          */
@@ -219,15 +220,6 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         {
             boost::fusion::at<typename Arg0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             assign_pointers(other_args...);
-        }
-
-        /**@brief recursively assignes all the pointers passed as arguments to the metadata set.
-         */
-        template <typename Arg0, typename... OtherArgs>
-        void assign_metadata(Arg0 const& arg0, OtherArgs const& ... other_args)
-        {
-            m_metadata_set.insert(pointer<const typename Arg0::meta_data_t>(arg0.ptr->meta_data()));
-            assign_metadata(other_args...);
         }
 
 #endif
@@ -244,12 +236,13 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             \endverbatim
         */
         template <typename... StorageArgs>
-        domain_type(storage<StorageArgs> ... args)
+        domain_type(StorageArgs ... args)
             : m_storage_pointers()
             , m_metadata_set()
             {
                 assign_pointers(args...);
-                assign_metadata(args...);
+                //copy of the non-tmp metadata into m_metadata_set
+                boost::fusion::for_each(m_storage_pointers, assign_metadata_set<metadata_set_t >(m_metadata_set));
             }
 #endif
 
@@ -300,7 +293,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             view_type fview(m_storage_pointers);
 
 #ifdef PEDANTIC
-            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages.");
+            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 #endif
 
             //NOTE: an error in the line below could mean that the storage type
@@ -379,6 +372,11 @@ The numeration of the placeholders is not contiguous. You have to define each ar
            @brief returning by non-const reference the metadata set
          */
         metadata_set_t & metadata_set_view(){return m_metadata_set;}
+
+        /**
+           @brief returning by non-const reference the storage pointers
+        */
+        arg_list & storage_pointers_view(){return m_storage_pointers;}
 
     };
 
