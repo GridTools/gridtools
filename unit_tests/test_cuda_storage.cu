@@ -97,7 +97,3 @@ bool test_cuda_storage() {
 
     return same;
 }
-
-int main(){
-    return test_cuda_storage();
-}

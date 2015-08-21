@@ -87,7 +87,7 @@ set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAG
 target_link_libraries(CopyStencil ${exe_LIBS})
 
 if (CUDA_FOUND)
-   cuda_add_executable( test_cuda_storage test_cuda_storage.cu )
+   cuda_add_executable( test_cuda_storage test_cuda_storage_exe.cu )
    target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 endif()
 
