@@ -5,23 +5,31 @@ MAINTAINER Lucas Benedicic <benedicic@cscs.ch>
 # environment variables
 ENV DEBIAN_FRONTEND noninteractive
 
-# install software
-RUN apt-get update  && \
+# install software for SSH and GridTools
+RUN apt-get update                              && \
+    apt-get install -y openssh-server  \
+                       sudo            \
+                       xauth           \
+                    --no-install-recommends     && \
     apt-get install -y autotools-dev        \
                        build-essential      \
                        cmake                \
                        gcc-4.8              \
+                       gfortran-4.8         \
                        git                  \
                        libbz2-dev           \
                        libzip-dev           \
                        libicu-dev           \
                        libfreetype6-dev     \
+                       liblapack-dev        \
+                       libopenblas-dev      \
                        libxft-dev           \
+                       libzmq-dev           \
                        python3-dev          \
                        python3-pip          \
                        qt4-dev-tools        \
-                       sudo                 \
-                       wget
+                       wget                     && \
+    rm -rf /var/lib/apt/lists
 
 # user and locale configuration
 RUN useradd dev                                                     && \
@@ -34,6 +42,13 @@ RUN useradd dev                                                     && \
 WORKDIR /home/dev
 ENV     HOME /home/dev
 ENV     LC_ALL en_US.UTF-8
+
+# SSH configuration
+ADD ssh/id_rsa.pub .ssh/authorized_keys
+RUN chmod 700  $HOME/.ssh                       && \
+    chmod 600  $HOME/.ssh/authorized_keys       && \
+    mkdir      /var/run/sshd                    && \
+    chmod 0755 /var/run/sshd
 
 # install Boost Libs
 ENV     BOOST_ROOT /usr/local/boost-1.56.0
@@ -49,7 +64,7 @@ RUN     wget -O boost_1_56_0.tar.gz http://sourceforge.net/projects/boost/files/
         rm -rf boost_1_56_0.tar.gz boost_1_56_0
 
 # install CUDA 7
-ENV     CUDATOOLKIT_HOME=/usr/local/cuda-7.0
+ENV     CUDATOOLKIT_HOME /usr/local/cuda-7.0
 RUN     mkdir -p $HOME/cuda                                 && \
         cd $HOME/cuda                                       && \
         wget -O cuda_7.0.run http://developer.download.nvidia.com/compute/cuda/7_0/Prod/local_installers/cuda_7.0.28_linux.run && \
@@ -59,7 +74,6 @@ RUN     mkdir -p $HOME/cuda                                 && \
 
 # include GridTools source
 ADD  gridtools_ccd7860 gridtools
-RUN  chown --recursive dev:dev $HOME
 
 # install GridTools requirements
 # -- pyside --
@@ -78,9 +92,9 @@ RUN  cd $HOME/gridtools/python                                      && \
      pip3 install -r requirements.txt
 ADD  matplotlibrc /usr/local/lib/python3.4/dist-packages/matplotlib/mpl-data/matplotlibrc
 
-EXPOSE 8888
+# change ownership to non-root user
+RUN chown --recursive dev:dev $HOME
 
-COPY docker-entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 22
 
-CMD ["/bin/bash"]
+CMD ["/usr/sbin/sshd", "-D"]
