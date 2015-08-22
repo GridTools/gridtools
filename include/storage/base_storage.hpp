@@ -146,7 +146,7 @@ namespace gridtools {
 #else
         array<pointer_type, field_dimensions> m_fields;
 #endif
-        const MetaData & m_meta_data;//should possibly be a constexpr
+        MetaData const& m_meta_data;//should possibly be a constexpr
 
     public:
 

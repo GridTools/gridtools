@@ -1,26 +1,46 @@
 #pragma once
 
+#include <functional>
+
 namespace gridtools{
 
 #ifdef CXX11_ENABLED
-    template<typename UInt, UInt ... Indices> struct gt_integer_sequence{
+
+    /**
+       @brief helper struct to use an integer sequence in order to fill a generic container
+
+       can be used with an arbitrary container with elements of the same type (not a tuple),
+       it is consexpr constructable.
+     */
+    template< typename UInt, UInt... Indices> struct gt_integer_sequence{
         using type = gt_integer_sequence;
 
         /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
-            for all the indices I in the sequence*/
-        template<typename Container, template <UInt T> class Lambda, typename ... Arguments>
+            for all the indices I in the sequence
+
+            @tparam Container is the container to be filled
+            @tparam Lambda is a metafunction templated with an integer, whose static member
+            function "apply" returns an element of the container
+            @tparam ExtraTypes are the types of the arguments to the method "apply" (deduced by the compiler)
+
+            The type of the Container members must correspond to the return types of the apply method in
+            the user-defined Lambda functor.
+        */
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
-        static constexpr Container apply(Arguments ... args_ ){
-            return Container{Lambda<Indices>::apply(args_...) ...} ;
+        static constexpr Container apply(ExtraTypes const& ... args_ ){
+            return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
 
-        /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
-            for all the indices I in the sequence*/
-        template<typename Container, class Lambda, typename ... Arguments>
+        /**
+           @brief same as before, but with non-static lambda taking as first argument the index
+         */
+        template<typename Container, class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
-        static constexpr Container apply(Lambda lambda_, Arguments ... args_ ){
-            return Container(lambda_(Indices, args_...) ...) ;
+        static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
+            return Container(lambda(Indices, args_...) ...) ;
         }
+
     };
 
     /** @bief concatenates two integer sequences*/

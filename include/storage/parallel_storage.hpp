@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "common/defs.hpp"
 #include "partitioner.hpp"
 /**
@@ -27,6 +28,9 @@ namespace gridtools {
         array<int_t, metadata_t::space_dimensions> m_up_bound;
         metadata_t m_metadata;
 
+        // template<typename ... Dims>
+        // using lambda_t=uint_t ( uint_t, array<halo_descriptor, metadata_t::space_dimensions>&, array<halo_descriptor, metadata_t::space_dimensions>&, array<int_t, metadata_t::space_dimensions>&, array<int_t, metadata_t::space_dimensions>&, Dims...) ;
+
     public:
         DISALLOW_COPY_AND_ASSIGN(parallel_meta_storage);
 
@@ -42,22 +46,41 @@ namespace gridtools {
            very convoluted way to initielize the metadata
          */
         template <typename ... UInt>
-        explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... components_)
+        explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
-            , m_metadata(gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template
-                         apply<metadata_t>([&part]( uint_t ID
-                                                    ,array<halo_descriptor, metadata_t::space_dimensions>& coords
-                                                    ,array<halo_descriptor, metadata_t::space_dimensions>& coords_gcl
-                                                    ,array<int_t, metadata_t::space_dimensions>& low_b
-                                                    ,array<int_t, metadata_t::space_dimensions>& up_b
-                                                    ,UInt ... comp ) -> uint_t
-                             {return part.compute_bounds(ID, coords, coords_gcl, low_b, up_b, comp...);}
-                                           , m_coordinates
-                                           , m_coordinates_gcl
-                                           , m_low_bound
-                                           , m_up_bound
-                                           , components_ ...) )
+            , m_metadata(
+                gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template apply<metadata_t>
+                (// static_cast<lambda_t<UInt const& ...>* >
+                 ([&part]
+                  ( uint_t index_
+                    , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
+                    , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_gcl_
+                    , array<int_t, metadata_t::space_dimensions>& low_bound_
+                    , array<int_t, metadata_t::space_dimensions>& up_bound_
+                    , UInt const& ... args_ )-> uint_t
+                   { return part.compute_bounds( index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_ ... );}
+                  )
+                  , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
+                )
+                // part.compute_bounds(components_, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound)...)
+            // , m_metadata(gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template
+            //              apply<metadata_t>([&part]( uint_t ID
+            //                                         ,array<halo_descriptor, metadata_t::space_dimensions>& coords
+            //                                         ,array<halo_descriptor, metadata_t::space_dimensions>& coords_gcl
+            //                                         ,array<int_t, metadata_t::space_dimensions>& low_b
+            //                                         ,array<int_t, metadata_t::space_dimensions>& up_b
+            //                                         ,UInt ... comp ) -> uint_t
+            //                  {return part.compute_bounds(ID, coords, coords_gcl, low_b, up_b, comp...);}
+            //                                , m_coordinates
+            //                                , m_coordinates_gcl
+            //                                , m_low_bound
+            //                                , m_up_bound
+            //                                , components_ ...) )
             {
+
+                std::function<int()> tmp=[&part](){return part.fuck_you();};
+                int t=tmp();
+                // auto tmp=std::bind(&(partitioner_t::compute_bounds), &part, uint_t(1), m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
             }
 
         /**
