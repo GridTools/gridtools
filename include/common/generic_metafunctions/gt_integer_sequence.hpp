@@ -13,6 +13,14 @@ namespace gridtools{
         static constexpr Container apply(Arguments ... args_ ){
             return Container{Lambda<Indices>::apply(args_...) ...} ;
         }
+
+        /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
+            for all the indices I in the sequence*/
+        template<typename Container, class Lambda, typename ... Arguments>
+        GT_FUNCTION
+        static constexpr Container apply(Lambda lambda_, Arguments ... args_ ){
+            return Container(lambda_(Indices, args_...) ...) ;
+        }
     };
 
     /** @bief concatenates two integer sequences*/

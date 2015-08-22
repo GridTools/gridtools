@@ -27,6 +27,13 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
 #else
         //constructor picked in absence of CXX11 or which GCC<4.9
         explicit meta_storage_wrapper(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+
+        meta_storage_wrapper( uint_t const& initial_offset_i,
+                              uint_t const& initial_offset_j,
+                              uint_t const& dim3,
+                              uint_t const& n_i_threads,
+                              uint_t const& n_j_threads)
+            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
 #endif
 
 
@@ -68,6 +75,13 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
         typedef meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > > super;
 
         meta_storage(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+        meta_storage( uint_t const& initial_offset_i,
+                      uint_t const& initial_offset_j,
+                      uint_t const& dim3,
+                      uint_t const& n_i_threads=1,
+                      uint_t const& n_j_threads=1)
+            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
 
         template <typename T>
         GT_FUNCTION
