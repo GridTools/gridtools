@@ -51,11 +51,11 @@ struct bc_basic {
 };
 
 #define SET_TO_ZERO                                     \
-    template <typename Direction, typename DataField0>  \
+    template <typename Direction, typename DataField0> \
     void operator()(Direction,                          \
                     DataField0 & data_field0,           \
                     uint_t i, uint_t j, uint_t k) const {        \
-        data_field0(i,j,k) = 0;                         \
+                        data_field0( i,j,k) = 0;        \
     }
 
 
@@ -76,7 +76,7 @@ struct bc_two {
     void operator()(Direction,
                     DataField0 & data_field0,
                     uint_t i, uint_t j, uint_t k) const {
-        data_field0(i,j,k) = 0;
+        data_field0( i,j,k) = 0;
     }
 
     template <sign I, sign J, sign K, typename DataField0>
@@ -171,14 +171,15 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
+    meta_.clone_to_gpu();
     in.clone_to_gpu();
     in.h2d_update();
 
-    gridtools::boundary_apply_gpu<bc_basic>(halos, bc_basic()).apply(in);
+    gridtools::boundary_apply_gpu<bc_basic>(halos,  bc_basic()).apply(in);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<bc_basic>(halos, bc_basic()).apply(in);
+    gridtools::boundary_apply<bc_basic>(halos,  bc_basic()).apply(in);
 #endif
 
 #ifndef NDEBUG
@@ -311,6 +312,7 @@ bool predicate() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
+    meta_.clone_to_gpu();
     in.clone_to_gpu();
     in.h2d_update();
 

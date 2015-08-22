@@ -1,6 +1,6 @@
 #pragma once
 #include "storage_list.hpp"
-
+#ifdef CXX11_ENABLED
 namespace gridtools{
     /** @brief traits class defining some useful compile-time counters
      */
@@ -234,3 +234,4 @@ namespace gridtools{
     }
 
 }//namespace gridtools
+#endif

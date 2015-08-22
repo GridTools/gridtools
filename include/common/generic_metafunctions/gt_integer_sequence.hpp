@@ -27,6 +27,7 @@ namespace gridtools{
             the user-defined Lambda functor.
         */
         template<typename Container, template <int_t T> class Lambda, typename ... ExtraTypes>
+        GT_FUNCTION
         static constexpr Container apply(ExtraTypes& ... args_ ){
             return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
@@ -35,10 +36,12 @@ namespace gridtools{
            @brief same as before, but with non-static lambda taking as first argument the index
          */
         template<typename Container, class Lambda, typename ... ExtraTypes>
-            static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
+        GT_FUNCTION
+        static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
             return Container(lambda(Indices, args_...) ...) ;
         }
-};
+
+    };
 
     /** @bief concatenates two integer sequences*/
     template<class S1, class S2> struct concat;

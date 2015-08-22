@@ -100,14 +100,15 @@ namespace copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
-        typedef field<storage_t,2>::type storage_type;
 
         // Definition of the actual data fields that are used for input/output
 #ifdef SINGLE_STORAGE
+        typedef field<storage_t,2>::type storage_type;
         storage_type in(meta_data_);
         in.allocate();
         in.initialize(0.);
 #else
+        typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, -1.);
 #endif
@@ -115,7 +116,11 @@ namespace copy_stencil{
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
+#ifdef SINGLE_STORAGE
                     in.template get_value<0,1>(i, j, k)=i+j+k;
+#else
+                    in(i,j,k)=i+j+k;
+#endif
                 }
 
         typedef arg<0, storage_type > p_in;

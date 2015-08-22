@@ -30,7 +30,7 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, layout_ij_t >::type storage_type;
+typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_storage<0,layout_ij_t,false> >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -59,7 +59,7 @@ TEST(cache_metafunctions, cache_used_by_esfs)
 TEST(cache_metafunctions, extract_ranges_for_caches)
 {
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
-    typedef local_domain< boost::mpl::void_, esf_args_t, false> local_domain_t;
+    typedef local_domain< boost::mpl::void_, boost::mpl::void_, esf_args_t, false> local_domain_t;
 
     typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
 
@@ -78,10 +78,11 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
 
 TEST(cache_metafunctions, get_cache_storage_tuple)
 {
+    typedef metadata_set<boost::mpl::vector1<storage_type::meta_data_t > > metadata_vector_t;
     typedef boost::mpl::vector3<storage_type, storage_type, storage_type> storages_t;
     typedef boost::fusion::result_of::as_vector<storages_t>::type storages_tuple_t;
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
-    typedef local_domain< storages_tuple_t, esf_args_t, false> local_domain_t;
+    typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false> local_domain_t;
 
     typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
 

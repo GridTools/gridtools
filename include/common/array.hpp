@@ -24,8 +24,12 @@ namespace gridtools {
 
         template<int_t Idx>
         struct get_component{
+
+            GT_FUNCTION
             constexpr get_component(){}
+
             template<typename OtherArray>
+            GT_FUNCTION
             constexpr T& apply(OtherArray const& other_){
                 return other_[Idx];
             }

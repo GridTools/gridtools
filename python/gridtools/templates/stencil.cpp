@@ -38,7 +38,7 @@ using namespace enumtype;
 //
 extern "C"
 {
-    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3, 
+    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3,
                       {%- for p in params %}
                       float_type *{{ p.name }}_buff
                           {%- if not loop.last -%}
@@ -72,21 +72,23 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_storage<0, layout_t, false> >::type storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_storage<0, layout_t, true> >::type tmp_storage_type;
     {% endif -%}
 
     {% if params %}
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
+    typename storage_type::meta_data_t meta_(d1, d2, d3);
+
     {% for p in params -%}
-    storage_type {{ p.name }} (d1, d2, d3,
+    storage_type {{ p.name }} (meta_,
                          (float_type *) {{ p.name }}_buff,
                           "{{ p.name }}");
     {% endfor %}
@@ -161,14 +163,14 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // 3) the actual domain dimensions
     //
 #ifdef __CUDACC__
-    gridtools::computation* 
+    gridtools::computation*
 #else
-    boost::shared_ptr<gridtools::computation> 
+    boost::shared_ptr<gridtools::computation>
 #endif
     {% set inside_independent_block = False %}
 
     comp_{{ s.name|lower }} =
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
       (
             gridtools::make_mss
             (
@@ -243,7 +245,7 @@ int main (int argc, char **argv)
             }
         }
     }
- 				
+
     // execution
     run (dim1, dim2, dim3,
           {%- for p in params %}
@@ -252,7 +254,7 @@ int main (int argc, char **argv)
               ,
               {%- endif -%}
           {% endfor -%});
-    
+
     // output
     for (int i = 0; i<dim1; i++) {
 	    for (int j = 0; j<dim2; j++) {

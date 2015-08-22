@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/timer/timer.hpp>
 #include <stencil-composition/make_computation.hpp>
 
 #ifdef USE_PAPI_WRAP

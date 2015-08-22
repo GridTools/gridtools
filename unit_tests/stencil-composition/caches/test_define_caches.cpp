@@ -5,10 +5,8 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
+#include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/caches/define_caches.hpp"
-#include "stencil-composition/accessor.hpp"
-#include "stencil-composition/backend.hpp"
-#include "common/defs.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -30,7 +28,7 @@ TEST(define_caches, test_sequence_caches)
 #else
     typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
 #endif
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_storage<0,layout_t,false> >::type storage_type;
 
     typedef gridtools::arg<0,storage_type> arg0_t;
     typedef gridtools::arg<1,storage_type> arg1_t;
@@ -52,5 +50,3 @@ TEST(define_caches, test_sequence_caches)
 
     ASSERT_TRUE(true);
 }
-
-

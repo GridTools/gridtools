@@ -40,6 +40,11 @@ namespace gridtools {
             {
             }
 
+#ifdef CXX11_ENABLED
+
+        /**
+           very convoluted way to initielize the metadata
+         */
         template <typename ... UInt>
         explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
@@ -58,6 +63,19 @@ namespace gridtools {
                   , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
                 )
                 // part.compute_bounds(components_, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound)...)
+            // , m_metadata(gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template
+            //              apply<metadata_t>([&part]( uint_t ID
+            //                                         ,array<halo_descriptor, metadata_t::space_dimensions>& coords
+            //                                         ,array<halo_descriptor, metadata_t::space_dimensions>& coords_gcl
+            //                                         ,array<int_t, metadata_t::space_dimensions>& low_b
+            //                                         ,array<int_t, metadata_t::space_dimensions>& up_b
+            //                                         ,UInt ... comp ) -> uint_t
+            //                  {return part.compute_bounds(ID, coords, coords_gcl, low_b, up_b, comp...);}
+            //                                , m_coordinates
+            //                                , m_coordinates_gcl
+            //                                , m_low_bound
+            //                                , m_up_bound
+            //                                , components_ ...) )
             {
 
                 std::function<int()> tmp=[&part](){return part.fuck_you();};
@@ -79,8 +97,6 @@ namespace gridtools {
         //         m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
         //         m_metadata=MetaStorage(dims[0], dims[1], dims[2]);
         //     }
-
-#ifdef CXX11_ENABLED
 
         template <typename ... UInt>
         bool mine(UInt const& ... coordinates_)

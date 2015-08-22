@@ -328,6 +328,7 @@ namespace gridtools {
             return &((m_fields[0])[m_meta_data.size()]);
         }
 
+
 #ifdef CXX11_ENABLED
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
@@ -339,6 +340,15 @@ namespace gridtools {
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type& operator()(meta_data_t* metadata_, UInt const& ... dims) {
+#ifndef __CUDACC__
+            assert(metadata_->index(dims...) < metadata_->size());
+#endif
+            return (m_fields[0])[metadata_->index(dims...)];
+        }
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
@@ -420,6 +430,10 @@ namespace gridtools {
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
         pointer_type const* fields() const {return &(m_fields[0]);}
+
+                /** @brief returns a const pointer to the data field*/
+        GT_FUNCTION
+        pointer_type* fields_view() {return &(m_fields[0]);}
 
 
         /** @brief returns a const pointer to the data field*/

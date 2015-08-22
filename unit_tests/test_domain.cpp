@@ -13,17 +13,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.hpp>
-#include <storage/hybrid_pointer.hpp>
-#include <stencil-composition/domain_type.hpp>
-#include <stencil-composition/accessor.hpp>
-#include <stencil-composition/intermediate.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/intermediate.hpp>
 #include <boost/current_function.hpp>
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
+
+#include <stencil-composition/make_computation.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -108,19 +103,20 @@ bool test_domain() {
 #else
     typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > backend_t;
 #endif
-    typedef backend_t::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef backend_t::storage_type<double, gridtools::meta_storage<0,gridtools::layout_map<0,1,2>,false> >::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type in(d1,d2,d3,-1, ("in"));
-    storage_type out(d1,d2,d3,-7.3, ("out"));
-    storage_type coeff(d1,d2,d3,-3.4, ("coeff"));
+    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type in(meta_, -1, ("in"));
+    storage_type out(meta_,-7.3, ("out"));
+    storage_type coeff(meta_,-3.4, ("coeff"));
 
-    storage_type host_in(d1,d2,d3,-1, ("host_in"));
-    storage_type host_out(d1,d2,d3,-7.3, ("host_out"));
-    storage_type host_coeff(d1,d2,d3,-3.4, ("host_coeff"));
+    storage_type host_in(meta_,-1, ("host_in"));
+    storage_type host_out(meta_,-7.3, ("host_out"));
+    storage_type host_coeff(meta_,-3.4, ("host_coeff"));
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -163,17 +159,45 @@ bool test_domain() {
 
     actual_arg_list_type actual_arg_list;
 
-    boost::fusion::copy(domain.storage_pointers, actual_arg_list);
+    //filter the non temporary meta storage pointers among the actual ones
+
+    // build the meta array with all the mss components
+    typedef typename boost::mpl::fold<
+        actual_arg_list_type
+        , boost::mpl::set<>
+        , boost::mpl::insert<boost::mpl::_1, gridtools::pointer
+                             <boost::add_const
+                              <gridtools::storage2metadata
+                               <boost::remove_pointer<boost::mpl::_2>
+                                >
+                               >
+                              >
+                             >
+        >::type actual_metadata_set_t;
+    typedef gridtools::metadata_set<actual_metadata_set_t> actual_metadata_list_type;
+    actual_metadata_list_type actual_metadata_list;
+
+    typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
+                                       boost::mpl::not_<gridtools::is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
+
+    t_meta_view  meta_view(actual_metadata_list.sequence_view());
+
+
+    boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
 #endif
 
     actual_arg_list_type* arg_list_device_ptr;
     cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
     cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
+
+    actual_metadata_list_type* metadata_list_device_ptr;
+    cudaMalloc(&metadata_list_device_ptr, sizeof(actual_metadata_list_type));
+    cudaMemcpy(metadata_list_device_ptr, &actual_metadata_list , sizeof(actual_metadata_list_type), cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
@@ -192,12 +216,12 @@ bool test_domain() {
     in.data().update_cpu();
     out.data().update_cpu();
 
-    boost::fusion::copy(domain.storage_pointers, actual_arg_list);
+    boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
 #endif
 
     cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
