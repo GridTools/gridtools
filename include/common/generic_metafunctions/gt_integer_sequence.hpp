@@ -12,7 +12,7 @@ namespace gridtools{
        can be used with an arbitrary container with elements of the same type (not a tuple),
        it is consexpr constructable.
      */
-    template<uint_t ... Indices> struct gt_integer_sequence{
+    template< typename UInt, UInt... Indices> struct gt_integer_sequence{
         using type = gt_integer_sequence;
 
         /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
@@ -26,9 +26,9 @@ namespace gridtools{
             The type of the Container members must correspond to the return types of the apply method in
             the user-defined Lambda functor.
         */
-        template<typename Container, template <int_t T> class Lambda, typename ... ExtraTypes>
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
-        static constexpr Container apply(ExtraTypes& ... args_ ){
+        static constexpr Container apply(ExtraTypes const& ... args_ ){
             return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
 

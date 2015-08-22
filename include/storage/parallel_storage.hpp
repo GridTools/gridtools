@@ -49,7 +49,7 @@ namespace gridtools {
         explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
             , m_metadata(
-                gt_make_integer_sequence<sizeof...(UInt)>::template apply<metadata_t>
+                gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template apply<metadata_t>
                 (// static_cast<lambda_t<UInt const& ...>* >
                  ([&part]
                   ( uint_t index_
