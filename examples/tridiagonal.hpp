@@ -183,11 +183,10 @@ bool solver(uint_t x, uint_t y, uint_t z) {
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
     typedef gridtools::meta_storage<0, layout_t, false> meta_t;
-    typedef gridtools::meta_storage<0, layout_t, true> meta_tmp_t;
     typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_tmp_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
-     // Definition of the actual data fields that are used for input/output
+    // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));
     meta_t meta_(d1,d2,d3);
     storage_type out(meta_,0., "out");

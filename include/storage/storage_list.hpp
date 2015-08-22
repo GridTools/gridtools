@@ -144,7 +144,7 @@ namespace gridtools{
         template<typename T>
         __device__
         storage_list(T const& other)
-            : Storage(other)
+            : super(other)
             {}
     };
 }//namespace gridtools

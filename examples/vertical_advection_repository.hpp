@@ -20,25 +20,33 @@ public:
 #endif
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef va_backend::storage_type<gridtools::float_type, layout_ijk >::type storage_type;
-    typedef va_backend::storage_type<gridtools::float_type, layout_ij >::type ij_storage_type;
+    typedef gridtools::meta_storage<0, layout_ijk, false> meta_t;//stride 1 on k
+    typedef gridtools::meta_storage<0, layout_ij, false> meta_2D_t;//stride 1 on k
+    typedef gridtools::meta_storage<0, layout_scalar, false> meta_scalar_t;//stride 1 on k
+    typedef gridtools::meta_storage<0, layout_ijk, true> meta_tmp_t;//stride 1 on k
+    typedef gridtools::meta_storage<0, layout_ij, true> meta_2D_tmp_t;//stride 1 on k
+    typedef gridtools::meta_storage<0, layout_scalar, true> meta_scalar_tmp_t;//stride 1 on k
 
-    typedef va_backend::storage_type<gridtools::float_type, layout_scalar >::type scalar_storage_type;
-    typedef va_backend::temporary_storage_type<gridtools::float_type, layout_ijk >::type tmp_storage_type;
-    typedef va_backend::temporary_storage_type<gridtools::float_type, layout_scalar>::type tmp_scalar_storage_type;
+    typedef va_backend::storage_type<gridtools::float_type, meta_t >::type storage_type;
+    typedef va_backend::storage_type<gridtools::float_type, meta_2D_t >::type ij_storage_type;
+
+    typedef va_backend::storage_type<gridtools::float_type, meta_scalar_t >::type scalar_storage_type;
+    typedef va_backend::temporary_storage_type<gridtools::float_type, meta_tmp_t >::type tmp_storage_type;
+    typedef va_backend::temporary_storage_type<gridtools::float_type, meta_scalar_tmp_t>::type tmp_scalar_storage_type;
 
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size) :
-        utens_stage_(idim, jdim, kdim, -1., "utens_stage"),
-        utens_stage_ref_(idim, jdim, kdim, -1., "utens_stage_ref"),
-        u_stage_(idim, jdim, kdim, -1., "u_stage"),
-        wcon_(idim, jdim, kdim, -1., "wcon"),
-        u_pos_(idim, jdim, kdim, -1., "u_pos"),
-        utens_(idim, jdim, kdim, -1., "utens"),
-        ipos_(idim, jdim, kdim, -1., "ipos"),
-        jpos_(idim, jdim, kdim, -1., "jpos"),
-        kpos_(idim, jdim, kdim, -1., "kpos"),
+        m_meta(idim, jdim, kdim),
+        utens_stage_(m_meta, -1., "utens_stage"),
+        utens_stage_ref_(m_meta, -1., "utens_stage_ref"),
+        u_stage_(m_meta, -1., "u_stage"),
+        wcon_(m_meta, -1., "wcon"),
+        u_pos_(m_meta, -1., "u_pos"),
+        utens_(m_meta, -1., "utens"),
+        ipos_(m_meta, -1., "ipos"),
+        jpos_(m_meta, -1., "jpos"),
+        kpos_(m_meta, -1., "kpos"),
         //dtr_stage_(0,0,0, -1, "dtr_stage"),
-        dtr_stage_(idim,jdim,kdim, -1., "dtr_stage"),
+        dtr_stage_(m_meta, -1., "dtr_stage"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
     {}
@@ -113,8 +121,11 @@ public:
     {
         double dtr_stage = dtr_stage_(0,0,0);
 
-        ij_storage_type datacol(idim_, jdim_, (uint_t)1, -1., "datacol");
-        storage_type ccol(idim_, jdim_, kdim_, -1., "ccol"), dcol(idim_, jdim_, kdim_, -1., "dcol");
+        meta_2D_t meta_2D_(idim_, jdim_, (uint_t)1);
+        ij_storage_type datacol(meta_2D_, -1., "datacol");
+
+        meta_t meta_(idim_, jdim_, kdim_);
+        storage_type ccol(meta_, -1., "ccol"), dcol(meta_, -1., "dcol");
 
         init_field_to_value(ccol, 0.0);
         init_field_to_value(dcol, 0.0);
@@ -262,6 +273,7 @@ public:
     storage_type& u_stage() {return u_stage_;}
     storage_type& utens_stage_ref() {return utens_stage_ref_;}
 private:
+    meta_t m_meta;
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
     //scalar_storage_type dtr_stage_;

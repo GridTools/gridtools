@@ -347,6 +347,7 @@ namespace shallow_water{
         array<ushort_t, 3> padding={1,1,0};
         array<ushort_t, 3> halo={1,1,0};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
+
         partitioner_t part(he.comm(), halo, padding);
 //! [padding_halo]
 

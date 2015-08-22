@@ -62,6 +62,9 @@ namespace gridtools{
             where d is the number of dimensions of the processors grid.
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
         */
+
+        int fuck_you() const {}
+
         partitioner_trivial(const communicator_t& comm,
                             const gridtools::array<ushort_t, space_dimensions>& halo,
                             const gridtools::array<ushort_t, space_dimensions>& padding )
@@ -91,13 +94,13 @@ namespace gridtools{
                 if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
         }
 
-        void low_up_bounds(int_t& low_bound, int_t& up_bound, ushort_t component, uint_t const* sizes_) const
+        void low_up_bounds(int_t& low_bound, int_t& up_bound, ushort_t component, uint_t const size_) const
             {
                 if ( component >= communicator_t::ndims || m_pid[component]==0 )
                     low_bound = 0;
                 else
                 {
-                    div_t value=std::div(sizes_[component],m_ntasks[component]);
+                    div_t value=std::div(size_,m_ntasks[component]);
                     low_bound = ((int)(value.quot*(m_pid[component])) + (int)((value.rem>=m_pid[component]) ? (m_pid[component]) : value.rem));
                     /*error in the partitioner*/
                     //assert(low_bound[component]>=0);
@@ -109,24 +112,24 @@ namespace gridtools{
                 }
 
                 if (component >= communicator_t::ndims || m_pid[component]==m_ntasks[component]-1 )
-                    up_bound = sizes_[component];
+                    up_bound = size_;
                 else
                 {
-                    div_t value=std::div(sizes_[component],m_ntasks[component]);
+                    div_t value=std::div(size_,m_ntasks[component]);
                     up_bound = ((int)(value.quot*(m_pid[component]+1)) + (int)((value.rem>m_pid[component]) ? (m_pid[component]+1) : value.rem));
                     /*error in the partitioner*/
                     //assert(up_bound[component]<size);
-                    if(up_bound>sizes_[component]){
-                        printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", PID,  component, up_bound, sizes_[component] );
+                    if(up_bound>size_){
+                        printf("\n\n\n ERROR[%d]: up bound for component %d is %d>%d\n\n\n", PID,  component, up_bound, size_ );
                     }
 
                 }
             }
 
-        uint_t compute_tile(ushort_t component, uint_t const* sizes_ ) const {
+        uint_t compute_tile(ushort_t component, uint_t const size_ ) const {
             int_t low;
             int_t high;
-            low_up_bounds(low, high, component, sizes_);
+            low_up_bounds(low, high, component, size_);
             return high-low;
         }
 
@@ -138,9 +141,9 @@ namespace gridtools{
            The bounds must be inclusive of the halo region
         */
 #ifdef CXX11_ENABLED
-        template<typename ... UInt>
+            template<typename ... UInt>
 #endif
-        uint_t compute_bounds(uint_t component, array<halo_descriptor, space_dimensions>& coordinates, array<halo_descriptor, space_dimensions>& coordinates_gcl, array<int_t, space_dimensions>& low_bound, array<int_t, space_dimensions>& up_bound,
+            uint_t compute_bounds(uint_t component, array<halo_descriptor, space_dimensions>& coordinates, array<halo_descriptor, space_dimensions>& coordinates_gcl, array<int_t, space_dimensions>& low_bound, array<int_t, space_dimensions>& up_bound,
 #ifdef CXX11_ENABLED
                             UInt const& ... original_sizes
 #else
@@ -151,12 +154,16 @@ namespace gridtools{
                 //m_sizes[component]=size;
 #ifdef CXX11_ENABLED
                 uint_t sizes[sizeof...(UInt)]={original_sizes...};
+                uint_t size_=sizes[component];
+                // suboptimal.
+                // uint_t size_=std::get<component>(std::tuple<UInt const&...>(original_sizes...));
 #else
                 uint_t sizes[3]={d1, d2, d3};
+                uint_t size_=sizes[component];
 #endif
                 // for(uint_t component=0; component<space_dimensions; ++component){
 
-                    low_up_bounds(low_bound[component], up_bound[component], component, sizes);
+                    low_up_bounds(low_bound[component], up_bound[component], component, size_);
 
                     uint_t tile_dimension = up_bound[component]-low_bound[component];
 
@@ -184,7 +191,7 @@ namespace gridtools{
                 std::cout<<"up bounds for component "<< component <<": "<<up_bound[component]<<std::endl
                          <<"low bounds for component "<< component <<": "<<low_bound[component]<<std::endl
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
-                         <<"component, size: "<<component<<" "<<sizes[component]<<std::endl;
+                         <<"component, size: "<<component<<" "<<size_<<std::endl;
 #endif
                 return tile_dimension+ compute_halo(component,UP)+compute_halo(component,LOW);
                 // }
