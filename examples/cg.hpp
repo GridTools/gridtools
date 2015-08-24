@@ -328,8 +328,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time1 = time1.elapsed();
     
 
+#ifdef DEBUG
     printf("Print domain A after computation\n");
     TIME_STEPS % 2 == 0 ? in3pt.print() : out3pt.print();
+#endif
 
     std::cout << "TIME d1point3: " << boost::timer::format(lapse_time1) << std::endl;
 //------------------------------------------------------------------------------
@@ -375,8 +377,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time2 = time2.elapsed();
 
 
+#ifdef DEBUG
     printf("Print domain B after computation\n");
     TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
+#endif
 
     std::cout << "TIME d3point7: " << boost::timer::format(lapse_time2) << std::endl;
 //------------------------------------------------------------------------------
@@ -420,8 +424,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     boost::timer::cpu_times lapse_time3 = time3.elapsed();
 
+#ifdef DEBUG
     printf("Print domain C after computation\n");
     TIME_STEPS % 2 == 0 ? in7pt_var.print() : out7pt_var.print();
+#endif
 
     std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
 //------------------------------------------------------------------------------
@@ -465,8 +471,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     boost::timer::cpu_times lapse_time4 = time4.elapsed();
 
+#ifdef DEBUG
     printf("Print domain D after computation\n");
     TIME_STEPS % 2 == 0 ? in25pt_var.print() : out25pt_var.print();
+#endif
 
     std::cout << "TIME d3point25_var: " << boost::timer::format(lapse_time4) << std::endl;
 //------------------------------------------------------------------------------
@@ -515,7 +523,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     boost::timer::cpu_times lapse_time5 = time5.elapsed();
 
-
+#ifdef DEBUG
     printf("Print domain E after computation\n");
     if(TIME_STEPS % 3 == 0)
         in25pt.print();
@@ -523,6 +531,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         out25pt.print();
     else
         in25pt_old.print();
+#endif
 
     std::cout << "TIME d3point25_time2: " << boost::timer::format(lapse_time5) << std::endl;
 
