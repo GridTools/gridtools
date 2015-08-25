@@ -152,13 +152,27 @@ namespace gridtools {
 //################################################################################
 
     /**
-     * Struct to test if an argument is a temporary
+     * Struct to test if an argument (placeholder) is an argument (placeholder)
+     */
+    template <typename T>
+    struct is_plchldr : boost::false_type
+    {};
+
+    /**
+     * Struct to test if an argument is a placeholder - Specialization yielding true
+     */
+    template <uint_t I, typename T>
+    struct is_plchldr<arg<I,T> > : boost::true_type
+    {};
+
+    /**
+     * Struct to test if an argument (placeholder) is a temporary
      */
     template <typename T>
     struct is_plchldr_to_temp;
 
     /**
-     * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
+     * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
      */
     template <uint_t I, typename T>
     struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
