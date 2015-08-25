@@ -47,12 +47,12 @@ struct lap_function {
 
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_lap) {
-        dom(out()) = (gridtools::float_type)4*dom(in()) -
-            (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+    static void Do(Evaluation const & eval, x_lap) {
+        eval(out()) = (gridtools::float_type)4*eval(in()) -
+            (eval(in( 1, 0, 0)) + eval(in( 0, 1, 0)) +
+             eval(in(-1, 0, 0)) + eval(in( 0,-1, 0)));
     }
 };
 
@@ -64,12 +64,12 @@ struct flx_function {
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
-        dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
-            dom(out()) = 0.;
+    static void Do(Evaluation const & eval, x_flx) {
+        eval(out()) = eval(lap(1,0,0))-eval(lap(0,0,0));
+        if (eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0) {
+            eval(out()) = 0.;
         }
     }
 };
@@ -82,12 +82,12 @@ struct fly_function {
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
-        dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
-            dom(out()) = 0.;
+    static void Do(Evaluation const & eval, x_flx) {
+        eval(out()) = eval(lap(0,1,0))-eval(lap(0,0,0));
+        if (eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0) {
+            eval(out()) = 0.;
         }
     }
 };
@@ -102,20 +102,13 @@ struct out_function {
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_out) {
-#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-       dom(out()) = dom(in()) - dom(coeff()) *
-           (dom(flx() - flx( -1,0,0) +
-            fly() - fly( 0,-1,0))
-            );
-#else
-        dom(out()) =  dom(in()) - dom(coeff())*
-            (dom(flx()) - dom(flx( -1,0,0)) +
-             dom(fly()) - dom(fly( 0,-1,0))
+    static void Do(Evaluation const & eval, x_out) {
+        eval(out()) = eval(in()) - eval(coeff())*
+            (eval(flx()) - eval(flx( -1,0,0)) +
+             eval(fly()) - eval(fly( 0,-1,0))
              );
-#endif
     }
 };
 

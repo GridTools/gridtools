@@ -234,7 +234,7 @@ namespace test_iterate_domain{
     assert(index[2]+out.strides<0>(out.strides())+out.strides<1>(out.strides()) == new_index[2] );
 
     //check offsets for the space dimensions
-    using in_1_1=alias<accessor<0, enumtype::in, range<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>;
+    using in_1_1=alias<accessor<0, enumtype::inout, range<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>;
 
     assert(((float_type*)(in.get<1,1>().get()+new_index[0]+in.strides<0>(in.strides()))==
             &it_domain(in_1_1(dimension<1>(1)))));
@@ -250,7 +250,7 @@ namespace test_iterate_domain{
 
     //check offsets for the space dimensions
 
-    using buff_1_1=alias<accessor<1, enumtype::in, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 1>;
+    using buff_1_1=alias<accessor<1, enumtype::inout, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 1>;
 
     assert(((float_type*)(buff.get<1,1>().get()+new_index[1]+buff.strides<0>(buff.strides()))==
             &it_domain(buff_1_1(dimension<1>(1)))));
