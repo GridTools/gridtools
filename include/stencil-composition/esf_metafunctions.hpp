@@ -69,7 +69,6 @@ struct is_written_temp {
             is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
             typename boost::mpl::if_<
                 is_accessor_readonly<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
-//                boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
                 boost::false_type,
                 boost::true_type
             >::type,
@@ -89,8 +88,7 @@ struct is_written {
         typedef typename boost::mpl::if_<
             is_plchldr<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
             typename boost::mpl::if_<
-                is_accessor_readonly<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
-//                boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
+                typename is_accessor_readonly<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>::type,
                 boost::false_type,
                 boost::true_type
             >::type,
@@ -220,5 +218,72 @@ struct esf_get_r_per_functor {
     >::type type;
 };
 
+template<typename EsfSequence>
+struct compute_readwrite_args
+{
+    template<typename ToInsert, typename Seq>
+    struct insert_copy
+    {
+        typedef typename boost::mpl::copy<
+            ToInsert,
+            boost::mpl::inserter<
+                boost::mpl::set0<>, boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+            >
+        >::type type;
+    };
+
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence,is_esf_descriptor>::value), "Wrong Type");
+    typedef typename boost::mpl::fold<
+        EsfSequence,
+        boost::mpl::set0<>,
+        insert_copy<
+            esf_get_w_per_functor<boost::mpl::_2>,
+            boost::mpl::_1
+        >
+    >::type type;
+};
+
+template<typename EsfSequence>
+struct compute_readonly_args
+{
+    template<typename Acc, typename Esf, typename ReadWriteArgs>
+    struct extract_readonly_arg
+    {
+        typedef typename boost::mpl::fold<
+            typename Esf::args_t,
+            Acc,
+            boost::mpl::if_<
+                boost::mpl::or_<
+                    boost::mpl::has_key<ReadWriteArgs, boost::mpl::_2>,
+                    is_plchldr_to_temp<boost::mpl::_2>
+                >,
+                boost::mpl::_1,
+                boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+            >
+        >::type type;
+    };
+
+    typedef typename compute_readwrite_args<EsfSequence>::type readwrite_args_t;
+
+    typedef typename boost::mpl::fold<
+        EsfSequence,
+        boost::mpl::set0<>,
+        extract_readonly_arg<boost::mpl::_1, boost::mpl::_2, readwrite_args_t>
+    >::type type;
+
+};
+
+template<typename EsfSequence>
+struct compute_readonly_args_indices
+{
+    typedef typename boost::mpl::fold<
+        typename compute_readonly_args<EsfSequence>::type,
+        boost::mpl::set0<>,
+        boost::mpl::insert<
+            boost::mpl::_1,
+            arg_index<boost::mpl::_2>
+        >
+    >::type type;
+};
 
 } //namespace gridtools

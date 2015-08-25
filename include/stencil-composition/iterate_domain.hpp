@@ -89,6 +89,10 @@ namespace gridtools {
         typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
 
+        typedef typename compute_readonly_args_indices<
+            typename iterate_domain_arguments_t::esf_sequence_t
+        >::type readonly_args_indices_t;
+
         typedef typename local_domain_t::esf_args esf_args_t;
 
         typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;

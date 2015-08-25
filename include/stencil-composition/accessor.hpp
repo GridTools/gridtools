@@ -227,4 +227,12 @@ namespace gridtools {
     };
 #endif
 
+#ifdef CXX11_ENABLED
+    template <uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
+    using in_accessor = accessor<ID, enumtype::in, Range, Number>;
+
+    template <uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
+    using inout_accessor = accessor<ID, enumtype::inout, Range, Number>;
+#endif
+
 } // namespace gridtools

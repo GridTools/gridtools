@@ -24,6 +24,7 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef typename super::strides_cached_t strides_cached_t;
 
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
+    typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
     typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
@@ -180,17 +181,46 @@ public:
             m_thread_pos[Coordinate]=threadIdx.y;
     }
 
-    template<typename ReturnType, typename Accessor, typename StoragePointer>
+    template<typename Accessor>
+    struct accessor_points_to_readonly_arg
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        typedef typename
+            boost::mpl::has_key<readonly_args_indices_t, boost::mpl::integral_c<int, Accessor::index_type::value> >::type type;
+    };
+
+    template<
+        typename ReturnType,
+        typename Accessor,
+        typename StoragePointer
+    >
     GT_FUNCTION
-    ReturnType& RESTRICT get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    ReturnType& RESTRICT get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset,
+        typename boost::enable_if<typename accessor_points_to_readonly_arg<Accessor>::type>::type* dummy = 0) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 //#if __CUDA_ARCH__ >= 350
-//    // on Kepler use ldg to read directly via read only cache
+//        // on Kepler use ldg to read directly via read only cache
 //        return __ldg(storage_pointer + pointer_offset);
 //#else
         return *(storage_pointer+pointer_offset);
 //#endif
+
+    }
+
+    template<
+        typename ReturnType,
+        typename Accessor,
+        typename StoragePointer
+    >
+    GT_FUNCTION
+    ReturnType& RESTRICT get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset,
+        typename boost::disable_if<typename accessor_points_to_readonly_arg<Accessor>::type>::type* dummy = 0) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+
+        return *(storage_pointer+pointer_offset);
+
 
     }
 

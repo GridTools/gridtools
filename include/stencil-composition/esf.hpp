@@ -18,6 +18,7 @@ namespace gridtools {
      */
     template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0,0,0> >
     struct esf_descriptor {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value), "Wrong type");
     private:
 
         /** Private metafunction that associates (in a mpl::map) placeholders to ranges.
