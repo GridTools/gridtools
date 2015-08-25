@@ -7,6 +7,7 @@
 #include <stencil-composition/make_computation.hpp>
 
 #include <boost/timer/timer.hpp>
+#include "cg.h"
 
 /*
   @file This file shows an implementation of the various stencil operations.
@@ -288,6 +289,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
      */
 
     //start timer
+    boost::timer::cpu_times lapse_time1run = {0,0,0};
     boost::timer::cpu_timer time1;
 
     //TODO: exclude ready, steady,finalize from time measurement (only run)
@@ -316,7 +318,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         //prepare and run single step of stencil computation
         stencil_step_1->ready();
         stencil_step_1->steady();
+
+        boost::timer::cpu_timer time1run;
         stencil_step_1->run();
+        lapse_time1run = lapse_time1run + time1run.elapsed();
+        
         stencil_step_1->finalize();
 
         //swap input and output fields
@@ -333,10 +339,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     TIME_STEPS % 2 == 0 ? in3pt.print() : out3pt.print();
 #endif
 
-    std::cout << "TIME d1point3: " << boost::timer::format(lapse_time1) << std::endl;
+    std::cout << "TIME d1point3 TOTAL: " << boost::timer::format(lapse_time1);
+    std::cout << "TIME d1point3 RUN:" << boost::timer::format(lapse_time1run) << std::endl;
 //------------------------------------------------------------------------------
    
     //start timer
+    boost::timer::cpu_times lapse_time2run = {0,0,0};
     boost::timer::cpu_timer time2;
 
     //TODO: exclude ready, steady,finalize from time measurement (only run)
@@ -365,7 +373,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         //prepare and run single step of stencil computation
         stencil_step_2->ready();
         stencil_step_2->steady();
+
+        boost::timer::cpu_timer time2run;
         stencil_step_2->run();
+        lapse_time2run = lapse_time2run + time2run.elapsed();
+
         stencil_step_2->finalize();
 
         //swap input and output fields
@@ -382,10 +394,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
 #endif
 
-    std::cout << "TIME d3point7: " << boost::timer::format(lapse_time2) << std::endl;
+    std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
+    std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run) << std::endl;
 //------------------------------------------------------------------------------
     
     //start timer
+    boost::timer::cpu_times lapse_time3run = {0,0,0};
     boost::timer::cpu_timer time3;
 
     //TODO: exclude ready, steady,finalize from time measurement (only run)
@@ -413,7 +427,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         //prepare and run single step of stencil computation
         stencil_step_3->ready();
         stencil_step_3->steady();
+
+        boost::timer::cpu_timer time3run;
         stencil_step_3->run();
+        lapse_time3run = lapse_time3run + time3run.elapsed();
+
         stencil_step_3->finalize();
 
         //swap input and output fields
@@ -429,10 +447,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     TIME_STEPS % 2 == 0 ? in7pt_var.print() : out7pt_var.print();
 #endif
 
-    std::cout << "TIME d3point7_var: " << boost::timer::format(lapse_time3) << std::endl;
+    std::cout << "TIME d3point7_var TOTAL: " << boost::timer::format(lapse_time3);
+    std::cout << "TIME d3point7_var RUN:" << boost::timer::format(lapse_time3run) << std::endl;
 //------------------------------------------------------------------------------
 
     //start timer
+    boost::timer::cpu_times lapse_time4run = {0,0,0};
     boost::timer::cpu_timer time4;
 
     //TODO: exclude ready, steady,finalize from time measurement (only run)
@@ -460,7 +480,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         //prepare and run single step of stencil computation
         stencil_step_4->ready();
         stencil_step_4->steady();
+
+        boost::timer::cpu_timer time4run;
         stencil_step_4->run();
+        lapse_time4run = lapse_time4run + time4run.elapsed();
+
         stencil_step_4->finalize();
 
         //swap input and output fields
@@ -476,10 +500,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     TIME_STEPS % 2 == 0 ? in25pt_var.print() : out25pt_var.print();
 #endif
 
-    std::cout << "TIME d3point25_var: " << boost::timer::format(lapse_time4) << std::endl;
+    std::cout << "TIME d3point25_var TOTAL: " << boost::timer::format(lapse_time4);
+    std::cout << "TIME d3point25_var RUN:" << boost::timer::format(lapse_time4run) << std::endl;
 //------------------------------------------------------------------------------
 
     //start timer
+    boost::timer::cpu_times lapse_time5run = {0,0,0};
     boost::timer::cpu_timer time5;
 
     //TODO: exclude ready, steady,finalize from time measurement (only run)
@@ -510,7 +536,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         //prepare and run single step of stencil computation
         stencil_step_5->ready();
         stencil_step_5->steady();
+
+        boost::timer::cpu_timer time5run;
         stencil_step_5->run();
+        lapse_time5run = lapse_time5run + time5run.elapsed();
+
         stencil_step_5->finalize();
 
         //swap input and output fields
@@ -533,7 +563,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         in25pt_old.print();
 #endif
 
-    std::cout << "TIME d3point25_time2: " << boost::timer::format(lapse_time5) << std::endl;
+    std::cout << "TIME d3point25_time2 TOTAL: " << boost::timer::format(lapse_time5);
+    std::cout << "TIME d3point25_time2 RUN:" << boost::timer::format(lapse_time5run) << std::endl;
 
 
     return 1;
