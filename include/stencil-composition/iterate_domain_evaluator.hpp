@@ -62,9 +62,6 @@ public:
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-    template <typename T> struct printq{BOOST_MPL_ASSERT_MSG((false), QQQQQQQQQQQQQq, (T));};
-
-
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Expression>
     GT_FUNCTION
