@@ -146,7 +146,7 @@ public:
     // return a value that was cached
     template<typename Accessor>
     GT_FUNCTION
-    typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
+    typename super::template accessor_return_type<Accessor>::type& RESTRICT
     get_cache_value_impl(Accessor const & _accessor) const
     {
         //        assert(m_pshared_iterate_domain);
@@ -220,8 +220,6 @@ public:
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 
         return *(storage_pointer+pointer_offset);
-
-
     }
 
 private:
