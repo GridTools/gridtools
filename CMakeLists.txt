@@ -288,9 +288,11 @@ endif(ENABLE_PYTHON)
 add_subdirectory( unit_tests )
 add_subdirectory( examples )
 
+add_subdirectory( experimental/grids )
+
+
 file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-
 

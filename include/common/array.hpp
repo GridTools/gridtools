@@ -51,8 +51,17 @@ namespace gridtools {
         constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
+        template <typename Int, size_t E>
         GT_FUNCTION
-        array(std::initializer_list<T> c) {
+        array(array<Int, E> const& other)
+        {
+            assert(other.size() == _size);
+            std::copy(&other[0], &other[D], _array);
+        }
+
+        GT_FUNCTION
+        array(std::initializer_list<T> c)
+        {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
         }
@@ -147,6 +156,18 @@ namespace gridtools {
 #endif
 
         GT_FUNCTION
+        T const* begin() const {return &_array[0];}
+
+        GT_FUNCTION
+        T * begin() {return &_array[0];}
+
+        GT_FUNCTION
+        T const* end() const {return &_array[_size];}
+
+        GT_FUNCTION
+        T * end() {return &_array[_size];}
+
+        GT_FUNCTION
         T * data() const {
             return _array;
         }
@@ -182,6 +203,19 @@ namespace gridtools {
 
         struct _data_item {
             char _data_storage[sizeof(T)];
+
+            _data_item()
+                : _data_storage{}
+            {}
+
+            _data_item(_data_item const& other) {
+                std::copy(&other._data_storage[0], &other._data_storage[sizeof(T)-1], &_data_storage[0]);
+            }
+
+            _data_item(T const& x) {
+                const char* addr =  reinterpret_cast<const char*>(&x);
+                std::copy(addr, addr+sizeof(T), &_data_storage[0]);
+            }
         };
 
         _data_item _array[_size];
@@ -190,10 +224,14 @@ namespace gridtools {
         typedef T value_type;
 
         GT_FUNCTION
-        array() {}
+        array()
+            : _array{}
+        {}
 
 #ifdef CXX11_ENABLED
-        array(std::initializer_list<T> c) {
+        array(std::initializer_list<T> c)
+            :_array{}
+        {
             assert(c.size() == _size);
             std::copy(c.begin(), c.end(), _array);
         }
