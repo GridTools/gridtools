@@ -10,12 +10,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
-#include <stencil-composition/backend.h>
-#include <common/layout_map.h>
-#include <common/defs.h>
-#include <stencil-composition/backend.h>
+#include "common/gpu_clone.hpp"
+#include "storage/hybrid_pointer.hpp"
+#include "stencil-composition/backend.hpp"
+#include "common/layout_map.hpp"
+#include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
 
 using gridtools::uint_t;
 using gridtools::int_t;

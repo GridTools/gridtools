@@ -4,14 +4,14 @@
 #include <fstream>
 std::ostream *filep;
 
-#include <communication/halo_exchange.h>
+#include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <common/layout_map.h>
-#include <common/boollist.h>
+#include <common/layout_map.hpp>
+#include <common/boollist.hpp>
 #include <sys/time.h>
 
-#include "triplet.h"
+#include "triplet.hpp"
 
 int pid;
 int nprocs;
@@ -42,7 +42,7 @@ template <typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2>
 void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple_t<USE_DOUBLE> *_a, triple_t<USE_DOUBLE> *_b, triple_t<USE_DOUBLE> *_c) {
 
   typedef gridtools::layout_map<I1,I2,I3> layoutmap;
-  
+
   array<triple_t<USE_DOUBLE>, layoutmap > a(_a, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
   array<triple_t<USE_DOUBLE>, layoutmap > b(_b, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
   array<triple_t<USE_DOUBLE>, layoutmap > c(_c, (DIM1+2*H1),(DIM2+2*H2),(DIM3+2*H3));
@@ -52,7 +52,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
     for (int jj=0; jj<DIM2+2*H2; ++jj) {
       for (int kk=0; kk<DIM3+2*H3; ++kk) {
         a(ii,jj,kk) = triple_t<USE_DOUBLE>();
-        b(ii,jj,kk) = triple_t<USE_DOUBLE>();                                      
+        b(ii,jj,kk) = triple_t<USE_DOUBLE>();
         c(ii,jj,kk) = triple_t<USE_DOUBLE>();
       }
     }
@@ -77,7 +77,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
      logically to processor (p+1,q,r). The other dimensions goes as
      the others.
    */
-  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3, 
+  typedef gridtools::halo_exchange_generic<gridtools::layout_map<0,1,2>, 3,
         arch_type, PACKING_TYPE > pattern_type;
 
 
@@ -94,11 +94,11 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   halo_dsc[1] = gridtools::halo_descriptor(H2, H2, H2, DIM2+H2-1, DIM2+2*H2);
   halo_dsc[2] = gridtools::halo_descriptor(H3, H3, H3, DIM3+H3-1, DIM3+2*H3);
 
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
       field1(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(a.ptr), halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
       field2(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(b.ptr), halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
       field3(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(c.ptr), halo_dsc);
 
   /* Pattern is set up. This must be done only once per pattern. The
@@ -114,13 +114,13 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   /* Data is initialized in the inner region of size DIM1xDIM2
    */
   for (int ii=H1; ii<DIM1+H1; ++ii)
-    for (int jj=H2; jj<DIM2+H2; ++jj) 
+    for (int jj=H2; jj<DIM2+H2; ++jj)
       for (int kk=H3; kk<DIM3+H3; ++kk) {
         a(ii,jj,kk) = //(100*(pid))+
           triple_t<USE_DOUBLE>(ii-H1+(DIM1)*coords[0],
                    jj-H2+(DIM2)*coords[1],
                    kk-H3+(DIM3)*coords[2]);
-          b(ii,jj,kk) = //(200*(pid))+ 
+          b(ii,jj,kk) = //(200*(pid))+
           triple_t<USE_DOUBLE>(ii-H1+(DIM1)*coords[0]+B_ADD,
                    jj-H2+(DIM2)*coords[1]+B_ADD,
                    kk-H3+(DIM3)*coords[2]+B_ADD);
@@ -158,32 +158,32 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_a, a.ptr,
-                       (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)*sizeof(triple_t<USE_DOUBLE>::data_type), 
+                       (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)*sizeof(triple_t<USE_DOUBLE>::data_type),
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_b, b.ptr,
-                       (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)*sizeof(triple_t<USE_DOUBLE>::data_type), 
+                       (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)*sizeof(triple_t<USE_DOUBLE>::data_type),
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( gpu_c, c.ptr,
-                       (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)*sizeof(triple_t<USE_DOUBLE>::data_type), 
+                       (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)*sizeof(triple_t<USE_DOUBLE>::data_type),
                        cudaMemcpyHostToDevice );
   if( !checkCudaStatus( status ) ) return;
 
 
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
       field1_gpu(gpu_a, halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
       field2_gpu(gpu_b, halo_dsc);
-  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
       field3_gpu(gpu_c, halo_dsc);
-  // gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  // gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
   //     field1_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_a), halo_dsc);
-  // gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  // gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
   //     field2_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_b), halo_dsc);
-  // gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> 
+  // gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits>
   //    field3_gpu(reinterpret_cast<triple_t<USE_DOUBLE>::data_type*>(gpu_c), halo_dsc);
   std::vector<gridtools::field_on_the_fly<triple_t<USE_DOUBLE>::data_type, layoutmap, pattern_type::traits> > vect(3);
 
@@ -245,19 +245,19 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
 
   status = cudaMemcpy( a.ptr, gpu_a,
                        (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)
-                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
+                       *sizeof(triple_t<USE_DOUBLE>::data_type),
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( b.ptr, gpu_b,
                        (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)
-                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
+                       *sizeof(triple_t<USE_DOUBLE>::data_type),
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
   status = cudaMemcpy( c.ptr, gpu_c,
                        (DIM1+2*H1)*(DIM2+2*H2)*(DIM3+2*H3)
-                       *sizeof(triple_t<USE_DOUBLE>::data_type), 
+                       *sizeof(triple_t<USE_DOUBLE>::data_type),
                        cudaMemcpyDeviceToHost );
   if( !checkCudaStatus( status ) ) return;
 
@@ -306,7 +306,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
         tcz = modulus(kk-H3+(DIM3)*coords[2], DIM3*dims[2])+C_ADD;
 
         if (!per0) {
-          if ( ((coords[0]==0) && (ii<H1)) || 
+          if ( ((coords[0]==0) && (ii<H1)) ||
                ((coords[0] == dims[0]-1) && (ii >= DIM1+H1)) ) {
             tax=triple_t<USE_DOUBLE>().x();
             tbx=triple_t<USE_DOUBLE>().x();
@@ -315,7 +315,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
         }
 
         if (!per1) {
-          if ( ((coords[1]==0) && (jj<H2)) || 
+          if ( ((coords[1]==0) && (jj<H2)) ||
                ((coords[1] == dims[1]-1) && (jj >= DIM2+H2)) ) {
             tay=triple_t<USE_DOUBLE>().y();
             tby=triple_t<USE_DOUBLE>().y();
@@ -324,7 +324,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
         }
 
         if (!per2) {
-          if ( ((coords[2]==0) && (kk<H3)) || 
+          if ( ((coords[2]==0) && (kk<H3)) ||
                ((coords[2] == dims[2]-1) && (kk >= DIM3+H3)) ) {
             taz=triple_t<USE_DOUBLE>().z();
             tbz=triple_t<USE_DOUBLE>().z();
@@ -338,24 +338,24 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
 
         if (a(ii,jj,kk) != ta) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " values found != expct: " 
-               << "a " << a(ii,jj,kk) << " != " 
+          file << ii << ", " << jj << ", " << kk << " values found != expct: "
+               << "a " << a(ii,jj,kk) << " != "
                << ta
                << "\n";
         }
 
         if (b(ii,jj,kk) != tb) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " values found != expct: " 
-               << "b " << b(ii,jj,kk) << " != " 
+          file << ii << ", " << jj << ", " << kk << " values found != expct: "
+               << "b " << b(ii,jj,kk) << " != "
                << tb
                << "\n";
         }
 
         if (c(ii,jj,kk) != tc) {
           passed = false;
-          file << ii << ", " << jj << ", " << kk << " values found != expct: " 
-               << "c " << c(ii,jj,kk) << " != " 
+          file << ii << ", " << jj << ", " << kk << " values found != expct: "
+               << "c " << c(ii,jj,kk) << " != "
                << tc
                << "\n";
         }
@@ -449,7 +449,7 @@ int main(int argc, char** argv) {
   int period[3] = {1, 1, 1};
 
   file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
- 
+
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
   MPI_Cart_get(CartComm, 3, dims, period, coords);

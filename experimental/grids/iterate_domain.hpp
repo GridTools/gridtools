@@ -159,6 +159,25 @@ reduce_on_cells(Reduction function
     return reduce_on_something(function, initial, mapf);
 }
 
+template <typename Reduction
+          , typename ValueType
+          , typename Map
+          >
+on_neighbors_impl<ValueType
+                  , typename Map::location_type
+                  , Reduction
+                  , Map
+                  >
+reduce_on_vertexes(Reduction function
+                , ValueType initial
+                , Map mapf)
+{
+    static_assert(Map::location_type::value==2,
+                  "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
+    return reduce_on_something(function, initial, mapf);
+}
+
+
 /**
    This is the type of the accessors accessed by a stencil functor.
    It's a pretty minima implementation.

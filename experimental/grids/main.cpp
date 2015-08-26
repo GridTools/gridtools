@@ -26,7 +26,7 @@ using trapezoid_2D = gridtools::trapezoid_2D_colored<gridtools::_backend>;
 
 using cell_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::cells>;
 using edge_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::edges>;
-
+using vertex_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::vertexes>;
 
 struct stencil_on_cells {
     typedef accessor<0, trapezoid_2D::cells> out;
@@ -45,14 +45,32 @@ struct stencil_on_cells {
 #ifdef _MAIN_CPP_DEBUG_
                 std::cout << "#";
 #endif
-                return _in+_res;
-             };
-
+               return _in+_res;
+                };
 
         /**
            This interface checks that the location types are compatible with the accessors
          */
         eval(out()) = eval(reduce_on_cells(ff, 0.0, in())) + eval(reduce_on_edges(ff, 0.0, in_edges()));
+    }
+};
+
+struct stencil_on_vertexes {
+    typedef accessor<0, trapezoid_2D::vertexes> out;
+    typedef accessor<1, trapezoid_2D::vertexes> in;
+
+    template <typename GridAccessors>
+    void
+    operator()(GridAccessors /*const*/& eval/*, region*/) const {
+        auto ff = [](const double _in, const double _res) -> double
+            {
+            return _in+_res;
+             };
+
+        /**
+           This interface checks that the location types are compatible with the accessors
+         */
+        eval(out()) = eval(reduce_on_vertexes(ff, 0.0, in()));
     }
 };
 
@@ -142,14 +160,13 @@ struct stencil_on_edges {
 #define _EVAL_I(l1,l2,x,y)                                              \
     std::cout << #l1 << "->" << #l2 << ": " << gridtools::array<decltype(x),2>{x,y} << " -> " << (grid.neighbors_indices({x,y}, trapezoid_2D::l1(), trapezoid_2D::l2())) << std::endl;
 
-template <typename Array>
-uint_t product(Array && x) {
-    uint_t r = 1;
-    for (int i = 0; i < x.size(); ++i) {
-        r *= x[i];
-    }
-    return r;
-};
+template<typename Storage>
+void fill_storage_with_indices(Storage& storage)
+{
+    for(uint_t i =0; i < storage.m_size; ++i)
+        storage.m_ptr[i] = i;
+}
+
 
 int main() {
     uint_t NC = trapezoid_2D::u_size_i(trapezoid_2D::cells(), 6);
@@ -157,6 +174,10 @@ int main() {
 
     uint_t NE = trapezoid_2D::u_size_i(trapezoid_2D::edges(), 6);
     uint_t ME = trapezoid_2D::u_size_j(trapezoid_2D::edges(), 12);
+
+    uint_t NV = trapezoid_2D::u_size_i(trapezoid_2D::vertexes(), 6);
+    uint_t MV = trapezoid_2D::u_size_j(trapezoid_2D::vertexes(), 12);
+
 
     std::cout << "NC = " << NC << " "
               << "MC = " << MC
@@ -179,6 +200,11 @@ int main() {
 
     cell_storage_type cells(grid.size(trapezoid_2D::cells()));
     edge_storage_type edges(grid.size(trapezoid_2D::edges()));
+    vertex_storage_type vertexes(grid.size(trapezoid_2D::vertexes()));
+
+    fill_storage_with_indices(cells);
+    fill_storage_with_indices(edges);
+    fill_storage_with_indices(vertexes);
 
     EVAL_C(trapezoid_2D::cells(), trapezoid_2D::cells(), gridtools::static_int<0>(), 1, 1, (gridtools::array<uint_t,3>{9*d3, 24*d3, 25*d3}));
     EVAL_C(trapezoid_2D::cells(), trapezoid_2D::cells(), gridtools::static_int<0>()/*color0*/, 1, 2,/*coords*/ (gridtools::array<uint_t,3>{/*offsets*/10*d3, 25*d3, 26*d3}));
@@ -208,6 +234,16 @@ int main() {
     _EVAL_C(edges,cells, 2, 4, (gridtools::array<uint_t,2>    {25*d3,33*d3}));
     _EVAL_C(edges,cells, 2, 5, (gridtools::array<uint_t,2>    {33*d3,41*d3}));
 
+    EVAL_C(trapezoid_2D::cells(), trapezoid_2D::cells(), gridtools::static_int<0>(), 1, 1, (gridtools::array<uint_t,3>{9*d3, 24*d3, 25*d3}));
+
+    EVAL_C(trapezoid_2D::vertexes(), trapezoid_2D::vertexes(),
+           gridtools::static_int<0>(), 2, 3, (gridtools::array<uint_t,6>{12*d3,13*d3,22*d3,30*d3,29*d3,20*d3}));
+    EVAL_C(trapezoid_2D::vertexes(), trapezoid_2D::vertexes(),
+           gridtools::static_int<0>(), 4, 2, (gridtools::array<uint_t,6>{29*d3,30*d3,39*d3,47*d3,46*d3,37*d3}));
+    _EVAL_C(vertexes,vertexes, 2, 4, (gridtools::array<uint_t,6>{13*d3,14*d3,23*d3,31*d3,30*d3,21*d3}));
+    _EVAL_C(vertexes,vertexes, 3, 4, (gridtools::array<uint_t,6>{22*d3,23*d3,32*d3,40*d3,39*d3,30*d3}));
+
+
     _EVAL_I(cells,cells, 2, 3);
     _EVAL_I(cells,cells, 2, 4);
     _EVAL_I(cells,cells, 3, 3);
@@ -227,15 +263,19 @@ int main() {
 
     cell_storage_type cells_out(grid.size(trapezoid_2D::cells()));
     edge_storage_type edges_out(grid.size(trapezoid_2D::edges()));
-    // cell_storage_type cells_out(product(trapezoid_2D::u_cell_size(NC, MC)));
-    // edge_storage_type edges_out(product(trapezoid_2D::u_edge_size(NE, ME)));
+    vertex_storage_type vertexes_out(grid.size(trapezoid_2D::vertexes()));
 
+    fill_storage_with_indices(cells_out);
+    fill_storage_with_indices(edges_out);
+    fill_storage_with_indices(vertexes_out);
 
 
     typedef arg<0, trapezoid_2D::cells> out_cells;
     typedef arg<1, trapezoid_2D::cells> in_cells;
     typedef arg<2, trapezoid_2D::edges> out_edges;
     typedef arg<3, trapezoid_2D::edges> in_edges;
+    typedef arg<4, trapezoid_2D::vertexes> out_vertexes;
+    typedef arg<5, trapezoid_2D::vertexes> in_vertexes;
 
 
     std::cout << "#############################################################################################################################################################" << std::endl;
@@ -311,10 +351,48 @@ int main() {
 
     }
 
-
     std::cout << "#############################################################################################################################################################" << std::endl;
     std::cout << "#############################################################################################################################################################" << std::endl;
     std::cout << "CASE # 3" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+
+    {
+        auto x = make_esf<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
+            (out_vertexes(), in_vertexes());
+
+
+        // gridtools::domain_type<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges> >
+        //     (&cells_out, &cells, &edges_out, &edges);
+
+        auto ptrs = boost::fusion::vector<vertex_storage_type*,
+                                          vertex_storage_type*>
+            (&vertexes_out, &vertexes);
+
+
+        iterate_domain<boost::mpl::vector<out_vertexes, in_vertexes>,
+                      trapezoid_2D, trapezoid_2D::vertexes> it_
+            (ptrs, grid);
+
+        struct _coords {
+            int_t lb0, ub0;
+            int_t lb1, ub1;
+
+            _coords(int lb0, int ub0, int lb1, int ub1)
+                : lb0(lb0)
+                , ub0(ub0)
+                , lb1(lb1)
+                , ub1(ub1)
+            {}
+        } coords(1, NV-1-1, 2, MV-2-1); // closed intervals
+
+        gridtools::colored_backend::run(it_, x, coords);
+
+    }
+
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "#############################################################################################################################################################" << std::endl;
+    std::cout << "CASE # 4" << std::endl;
     std::cout << "#############################################################################################################################################################" << std::endl;
     std::cout << "#############################################################################################################################################################" << std::endl;
 

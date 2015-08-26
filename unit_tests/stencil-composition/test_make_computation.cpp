@@ -7,15 +7,15 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <gridtools.h>
+#include <gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/backend.h>
-#include <stencil-composition/make_stencils.h>
-#include <stencil-composition/make_computation.h>
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/make_stencils.hpp"
+#include "stencil-composition/make_computation.hpp"
 
 #ifdef CXX11_ENABLED
 

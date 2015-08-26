@@ -1,10 +1,10 @@
 #include <mpi.h>
-#include <communication/GCL.h>
+#include <communication/GCL.hpp>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/low-level/proc_grids_3D.h>
-#include <common/boollist.h>
+#include <communication/low-level/proc_grids_3D.hpp>
+#include <common/boollist.hpp>
 
 #define OUT(I,J,K)  << "( " << I << ", " << J << ", " << K << ") " << pg.proc<I,J,K>() << " - "
 

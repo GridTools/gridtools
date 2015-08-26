@@ -1,4 +1,4 @@
-#include "extended_4D.h"
+#include "extended_4D.hpp"
 #include <iostream>
 
 int main(int argc, char** argv)

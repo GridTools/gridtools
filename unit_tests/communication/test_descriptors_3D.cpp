@@ -1,11 +1,11 @@
-#include <communication/GCL.h>
+#include <communication/GCL.hpp>
 #include <mpi.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/high-level/descriptors.h>
+#include <communication/high-level/descriptors.hpp>
 #include <string>
-#include <common/boollist.h>
+#include <common/boollist.hpp>
 
 #define DIM 10
 

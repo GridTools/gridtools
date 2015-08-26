@@ -1,6 +1,6 @@
 #if !defined(CXX11_ENABLED)
 
-#include "shallow_water_cxx03_split.h"
+#include "shallow_water_cxx03_split.hpp"
 #include <iostream>
 
 int main(int argc, char** argv)

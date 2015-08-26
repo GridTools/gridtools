@@ -1,4 +1,4 @@
-#include "shallow_water_test.h"
+#include "shallow_water_test.hpp"
 #include <iostream>
 
 int main(int argc, char** argv)
