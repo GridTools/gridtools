@@ -6,8 +6,8 @@
 #include <iterator>
 #include <stdlib.h>
 #include <boost/timer/timer.hpp>
-#include "triangular_2D.h"
-#include "NeighbourLists.h"
+#include "triangular_2D.hpp"
+#include "NeighbourLists.hpp"
 
 double c_laplace(triangular_storage<triangular_offsets>& storage, std::vector<std::list<int> >& neighbours, const int cellId)
 {

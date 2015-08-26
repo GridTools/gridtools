@@ -21,6 +21,14 @@ fi
 echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 pwd
 
+if [ "x$CXX_11_ON" == "xcxx11" ]
+then
+CXX_11=ON
+else
+CXX_11=OFF
+fi
+echo "C++ 11 = $CXX_11"
+
 module load cmake
 module load boost/1.56.0
 module unload  PrgEnv-cray
@@ -52,7 +60,7 @@ cmake \
 -DPAPI_WRAP_PREFIX:PATH=/users/crosetto/builds/GridTools/gridtools/include/external/perfcount \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3 -m64 -mavx -DNDEBUG -DBOOST_SYSTEM_NO_DEPRECATED"  \
 -DSINGLE_PRECISION=$SINGLE_PRECISION \
--DENABLE_CXX11=OFF \
+-DENABLE_CXX11=$CXX_11 \
 ../
 
 make -j8;

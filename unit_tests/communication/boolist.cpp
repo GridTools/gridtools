@@ -6,8 +6,8 @@
 #define __device__
 #endif
 
-#include <common/boollist.h>
-#include <common/layout_map.h>
+#include <common/boollist.hpp>
+#include <common/layout_map.hpp>
 #include <iostream>
 #include <stdlib.h>
 

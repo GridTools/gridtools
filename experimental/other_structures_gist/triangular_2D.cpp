@@ -18,7 +18,7 @@ struct triangular_offsets {
     bool upward;
     int m_offset[3];
     static const int n_neighbors = 3;
-    triangular_offsets(int, int a, bool upward) 
+    triangular_offsets(int, int a, bool upward)
         : upward(upward)
         , m_offset{upward?1:-1, upward?-1:1, upward?a:-a}
     {}

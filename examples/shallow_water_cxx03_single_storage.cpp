@@ -1,6 +1,6 @@
 #if !defined(CXX11_ENABLED)
 
-#include "shallow_water_cxx03_single_storage.h"
+#include "shallow_water_cxx03_single_storage.hpp"
 #include <iostream>
 
 int main(int argc, char** argv)
@@ -27,4 +27,3 @@ int main(int argc, char** argv)
 #else
 int main(int argc, char** argv){}
 #endif
-
