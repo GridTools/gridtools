@@ -45,11 +45,11 @@ namespace assembly{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct integration {
-        typedef accessor<0, enumtype::in, range<-1, 1, -1, 1> , 4> phi;
-        typedef accessor<1, enumtype::in, range<-1, 1, -1, 1> , 4> psi;//how to detect when index is wrong??
-        typedef accessor<2, enumtype::in, range<-1, 1, -1, 1> , 4> jac;
-        typedef accessor<3, enumtype::in, range<-1, 1, -1, 1> > f;
-        typedef accessor<4, enumtype::inout, range<-1, 1, -1, 1> > result;
+        typedef in_accessor<0, range<-1, 1, -1, 1> , 4> phi;
+        typedef in_accessor<1, range<-1, 1, -1, 1> , 4> psi;//how to detect when index is wrong??
+        typedef in_accessor<2, range<-1, 1, -1, 1> , 4> jac;
+        typedef in_accessor<3, range<-1, 1, -1, 1> > f;
+        typedef inout_accessor<4, range<-1, 1, -1, 1> > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
         using quad=dimension<4>;
         template <typename Evaluation>

@@ -56,7 +56,7 @@ struct lap_function {
 /**
        @brief  placeholder for the input field, index 1
     */
-    typedef const accessor<1, enumtype::in, range<-1, 1, -1, 1>, 3 > in;
+    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1>, 3 > in;
     /**
        @brief MPL vector of the out and in types
     */
@@ -209,9 +209,9 @@ int main(int argc, char** argv) {
        */
 
 #ifdef __CUDACC__
-    computation* horizontal_diffusion =
+    computation* laplacian =
 #else
-    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+    boost::shared_ptr<gridtools::computation> laplacian =
 #endif
       make_computation<gridtools::BACKEND, layout_t>
         (
@@ -221,46 +221,32 @@ int main(int argc, char** argv) {
           make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           ),
          domain, coords);
-// [computation]
-
-    // domain.storage_info<boost::mpl::int_<0> >();
-    // domain.storage_info<boost::mpl::int_<1> >();
 
 // [ready_steady_run_finalize]
 /**
    @brief This method allocates on the heap the temporary variables
    this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of ranges defined in the temporary placeholders (none).
  */
-    horizontal_diffusion->ready();
+    laplacian->ready();
 
 /**
    @brief calls setup_computation and creates the local domains
    the constructors of the local domains get called (\ref gridtools::intermediate::instantiate_local_domain, which only initializes the dom public pointer variable)
    @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer is passed to the instantiate_local_domain struct
  */
-    horizontal_diffusion->steady();
+    laplacian->steady();
 
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_timer time;
-#endif
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
-    horizontal_diffusion->run();
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_times lapse_time = time.elapsed();
+    laplacian->run();
+
+    laplacian->finalize();
+
+#ifdef BENCHMARK
+        std::cout << laplacian->print_meter() << std::endl;
 #endif
 
-    horizontal_diffusion->finalize();
-// [ready_steady_run_finalize]
-
-    //    in.print();
-    out.print();
-    out.print(file_o);
-    //    lap.print();
-#ifndef CUDA_EXAMPLE
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
      return 0;
 }
 
