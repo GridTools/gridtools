@@ -31,6 +31,10 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
         shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+    typedef typename iterate_domain_cache_t::bypass_caches_map_t bypass_caches_map_t;
+
+    using super::get_value;
+    using super::get_data_pointer;
 
 private:
     const uint_t m_block_size_i;
@@ -144,18 +148,6 @@ public:
         return m_pshared_iterate_domain->strides();
     }
 
-    // return a value that was cached
-    template<typename Accessor>
-    GT_FUNCTION
-    typename super::template accessor_return_type<Accessor>::type& RESTRICT
-    get_cache_value_impl(Accessor const & _accessor) const
-    {
-        //        assert(m_pshared_iterate_domain);
-        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
-        // the block and the offsets of the accessor
-        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
-    }
-
     template <ushort_t Coordinate, typename Execution>
     GT_FUNCTION
     void increment_impl()
@@ -182,6 +174,8 @@ public:
             m_thread_pos[Coordinate]=threadIdx.y;
     }
 
+    /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs
+    */
     template<typename Accessor>
     struct accessor_points_to_readonly_arg
     {
@@ -200,6 +194,56 @@ public:
 
     };
 
+    /** @brief return a the value in gmem pointed to by an accessor
+    */
+    template<
+        typename ReturnType,
+        typename StoragePointer
+    >
+    GT_FUNCTION
+    ReturnType get_gmem_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        return *(storage_pointer+pointer_offset);
+    }
+
+
+    /** @brief return a value that was cached
+    * specialization where cache is not explicitly disabled by user
+    */
+    template<typename ReturnType, typename Accessor>
+    GT_FUNCTION
+    typename boost::disable_if<
+        boost::mpl::has_key<bypass_caches_map_t, static_uint<Accessor::index_type::value> >,
+        ReturnType
+    >::type
+    get_cache_value_impl(Accessor const & _accessor) const
+    {
+
+        //        assert(m_pshared_iterate_domain);
+        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
+        // the block and the offsets of the accessor
+        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
+    }
+
+    /** @brief return a value that was cached
+    * specialization where cache is explicitly disabled by user
+    */
+    template<typename ReturnType, typename Accessor>
+    GT_FUNCTION
+    typename boost::enable_if<
+        boost::mpl::has_key<bypass_caches_map_t, static_uint<Accessor::index_type::value> >,
+        ReturnType
+    >::type
+    get_cache_value_impl(Accessor const & _accessor) const
+    {
+        // we call the iterate domain main get_value method that returns the value from gmem
+        return get_value(_accessor, get_data_pointer(_accessor));
+    }
+
+    /** @brief return a the value in memory pointed to by an accessor
+    * specialization where the accessor points to an arg which is readonly for all the ESFs in all MSSs
+    * Value is read via texture system
+    */
     template<
         typename ReturnType,
         typename Accessor,
@@ -214,10 +258,13 @@ public:
         // on Kepler use ldg to read directly via read only cache
         return __ldg(storage_pointer + pointer_offset);
 #else
-        return *(storage_pointer+pointer_offset);
+        return get_gmem_value_impl<ReturnType>(storage_pointer,pointer_offset);
 #endif
     }
 
+    /** @brief return a the value in memory pointed to by an accessor
+    * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
+    */
     template<
         typename ReturnType,
         typename Accessor,
@@ -228,7 +275,7 @@ public:
         typename boost::disable_if<typename accessor_points_to_readonly_arg<Accessor>::type>::type* dummy = 0) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return *(storage_pointer+pointer_offset);
+        return get_gmem_value_impl<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:

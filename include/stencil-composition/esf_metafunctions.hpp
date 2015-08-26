@@ -4,6 +4,7 @@
 #include "esf.hpp"
 #include "stencil-composition/accessor_metafunctions.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
+#include "common/generic_metafunctions/copy_into_set.hpp"
 
 namespace gridtools {
 
@@ -218,31 +219,28 @@ struct esf_get_r_per_functor {
     >::type type;
 };
 
+/**
+   @brief It computes an associative sequence of all arg types specified by the user
+    that are written into by at least one ESF
+ */
 template<typename EsfSequence>
 struct compute_readwrite_args
 {
-    template<typename ToInsert, typename Seq>
-    struct insert_copy
-    {
-        typedef typename boost::mpl::copy<
-            ToInsert,
-            boost::mpl::inserter<
-                boost::mpl::set0<>, boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
-            >
-        >::type type;
-    };
-
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence,is_esf_descriptor>::value), "Wrong Type");
     typedef typename boost::mpl::fold<
         EsfSequence,
         boost::mpl::set0<>,
-        insert_copy<
+        copy_into_set<
             esf_get_w_per_functor<boost::mpl::_2>,
             boost::mpl::_1
         >
     >::type type;
 };
 
+/**
+   @brief It computes an associative sequence of all arg types specified by the user
+    that are readonly through all ESFs/MSSs
+ */
 template<typename EsfSequence>
 struct compute_readonly_args
 {
@@ -263,6 +261,7 @@ struct compute_readonly_args
         >::type type;
     };
 
+    // compute all the args which are written by at least one ESF
     typedef typename compute_readwrite_args<EsfSequence>::type readwrite_args_t;
 
     typedef typename boost::mpl::fold<
@@ -273,9 +272,14 @@ struct compute_readonly_args
 
 };
 
+/**
+   @brief It computes an associative sequence of indices for all arg types specified by
+    the user that are readonly through all ESFs/MSSs
+ */
 template<typename EsfSequence>
 struct compute_readonly_args_indices
 {
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Wrong type");
     typedef typename boost::mpl::fold<
         typename compute_readonly_args<EsfSequence>::type,
         boost::mpl::set0<>,

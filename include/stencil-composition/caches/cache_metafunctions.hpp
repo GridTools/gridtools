@@ -247,4 +247,20 @@ struct get_cache_storage_tuple
     >::type type;
 };
 
+template<cache_type cacheType, typename CacheSequence, typename LocalDomain>
+struct get_empty_cache_map
+{
+    typedef typename boost::mpl::fold<
+        CacheSequence,
+        boost::mpl::map0<>,
+        boost::mpl::eval_if<
+            typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
+            boost::mpl::insert<
+                boost::mpl::_1, boost::mpl::pair<cache_to_index<boost::mpl::_2, LocalDomain>, boost::mpl::void_ >
+            >,
+            boost::mpl::identity<boost::mpl::_1>
+        >
+    >::type type;
+};
+
 } // namespace gridtools
