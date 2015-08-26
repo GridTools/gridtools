@@ -28,6 +28,7 @@ struct variadic_to_vector<>
 {
     typedef boost::mpl::vector<> type;
 };
+
 #endif
 
 }
