@@ -83,6 +83,27 @@ namespace iga_rt
 	}
 
 	/**
+	 * @brief Operator - overloading for sum of points in R^DIM
+	 * @tparam DIM number of space dimensions
+	 * @param i_point1 First addend
+	 * @param i_point2 Second addend
+	 * @return Point difference result
+	 */
+	template <int DIM>
+	Point<DIM> operator-(const Point<DIM>& i_point1, const Point<DIM>& i_point2)
+	{
+		Point<DIM> o_point;
+		// TODO: use contract operators
+		// TODO: use std algos
+		// TODO: avoid temporary copy
+		for(int i=0;i<DIM;++i)
+		{
+			o_point.m_coords[i] = i_point1.m_coords[i] - i_point2.m_coords[i];
+		}
+		return o_point;
+	}
+
+	/**
 	 * @brief Operator * overloading for scalar and point in R^DIM multiplication
 	 * @tparam DIM number of space dimensions
 	 * @param i_factor Multiplication scalar factor
@@ -101,4 +122,25 @@ namespace iga_rt
 		}
 		return o_point;
 	}
+
+	/**
+	 * @brief Operator / overloading for scalar and point in R^DIM multiplication
+	 * @tparam DIM number of space dimensions
+	 * @param i_point Ratio point in R^DIM
+	 * @param i_factor Ratio scalar factor
+	 * @return Ratio result
+	 */
+	template <int DIM>
+	Point<DIM> operator/(const Point<DIM>& i_point,const double i_factor)
+	{
+		Point<DIM> o_point;
+		// TODO: use contract operators
+		// TODO: use std algos
+		for(int i=0;i<DIM;++i)
+		{
+			o_point.m_coords[i] = i_point.m_coords[i]/i_factor;
+		}
+		return o_point;
+	}
+
 }
