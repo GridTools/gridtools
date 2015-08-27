@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <array>
 #include <numeric>
 #include "generic_basis_rt.h"
 #include "b_splines_basis_rt.h"
@@ -25,9 +26,10 @@ namespace iga_rt
 		 * @param i_knots b-spline basis knot set
 		 * @param i_weights b-spline basis function linear combination weight set
 		 */
-		NurbsBasis(const double* i_knots, const double* i_weights)
+		NurbsBasis(const std::array<double,N+P+1>& i_knots, const double* i_weights)
 			 :m_bspline_basis(i_knots)
-			 ,m_weights(m_weights)
+			 ,m_weights(i_weights)
+			 ,m_normalization_factor(0.)
 		{}
 
 		/**
@@ -36,6 +38,14 @@ namespace iga_rt
 		 * @return (N) values corresponding to base function values at the provided point
 		 */
 		std::vector<double> evaluate(double i_csi) const;
+
+		/**
+		 * @brief nurbs base functions normalization factor retrieval method (corresponding to last basis evaluation)
+		 * @return normalization factor corresponding to last basis evaluation
+		 * @throw //TODO: what? if no previous basis evaluation has been requested
+		 */
+		double getNormalizationFactor(void) const;
+
 
 	private:
 
@@ -59,6 +69,11 @@ namespace iga_rt
 		 */
 		const double* m_weights;
 
+		/**
+		 * Normalization factor corresponding to last basis evaluation
+		 */
+		mutable double m_normalization_factor;// TODO: avoid mutable
+
 	};
 
 	template<int P, int N>
@@ -75,17 +90,28 @@ namespace iga_rt
 		}
 
 		// Compute weighted sum reciprocal (nurbs denominator)
-		const double weighted_sum_recipr(1./std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.));
+		m_normalization_factor = 1./std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.);
 
 		// Compute Nurbs basis functions
 		// TODO: switch to std algos
 		std::vector<double> o_nurbs_basis(N);
 		for(unsigned int basis_index=0;basis_index<N;++basis_index)
 		{
-			o_nurbs_basis[basis_index] = b_spline_values[basis_index]*weighted_sum_recipr;
+			o_nurbs_basis[basis_index] = b_spline_values[basis_index]*m_normalization_factor;
 		}
 
 		return o_nurbs_basis;
+	}
+
+	template<int P, int N>
+	double NurbsBasis<P,N>::getNormalizationFactor(void) const
+	{
+		if(m_normalization_factor==0.)
+		{
+			//TODO: add exception
+		}
+
+		return m_normalization_factor;
 	}
 
 	// TODO: as for b-spline the 1D, 2D, ..., ND cases can be unified
@@ -108,9 +134,10 @@ namespace iga_rt
 		 * @param i_knots2 b-spline basis knot set in second direction
 		 * @param i_weights b-spline basis function linear compbination weight set
 		 */
-		BivariateNurbsBasis(const double* i_knots1, const double* i_knots2, const double* i_weights)
+		BivariateNurbsBasis(const std::array<double,N1+P1+1>& i_knots1, const std::array<double,N2+P2+1>& i_knots2, const double* i_weights)
 						   :m_bspline_basis(i_knots1,i_knots2)
 						   ,m_weights(i_weights)
+						   ,m_normalization_factor(0.)
 		{}
 
 		/**
@@ -120,6 +147,13 @@ namespace iga_rt
 		 * @return (N) values corresponding to base function values at the provided point
 		 */
 		std::vector<double> evaluate(double i_csi, double i_eta) const;
+
+		/**
+		 * @brief nurbs base functions normalization factor retrieval method (corresponding to last basis evaluation)
+		 * @return normalization factor corresponding to last basis evaluation
+		 * @throw //TODO: what? if no previous basis evaluation has been requested
+		 */
+		double getNormalizationFactor(void) const;
 
 	private:
 
@@ -143,8 +177,14 @@ namespace iga_rt
 		 */
 		const double* m_weights;
 
+		/**
+		 * Normalization factor corresponding to last basis evaluation
+		 */
+		mutable double m_normalization_factor;// TODO: avoid mutable
+
 	};
 
+	// TODO: code duplication with 1D case
 	template<int P1, int N1, int P2, int N2>
 	std::vector<double> BivariateNurbsBasis<P1,N1,P2,N2>::evaluate(const double i_csi, const double i_eta) const
 	{
@@ -159,17 +199,29 @@ namespace iga_rt
 		}
 
 		// Compute weighted sum reciprocal (nurbs denominator)
-		const double weighted_sum_recipr(1./std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.));
+		m_normalization_factor = 1./std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.);
 
 		// Compute Nurbs basis functions
 		// TODO: switch to std algos
 		std::vector<double> o_nurbs_basis(basis_size);
 		for(unsigned int basis_index=0;basis_index<basis_size;++basis_index)
 		{
-			o_nurbs_basis[basis_index] = b_spline_values[basis_index]*weighted_sum_recipr;
+			o_nurbs_basis[basis_index] = b_spline_values[basis_index]*m_normalization_factor;
 		}
 
 		return o_nurbs_basis;
+	}
+
+	// TODO: code duplication with 1D case
+	template<int P1, int N1, int P2, int N2>
+	double BivariateNurbsBasis<P1,N1,P2,N2>::getNormalizationFactor(void) const
+	{
+		if(m_normalization_factor==0.)
+		{
+			//TODO: add exception
+		}
+
+		return m_normalization_factor;
 	}
 
 }
