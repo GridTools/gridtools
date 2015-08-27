@@ -13,7 +13,7 @@ namespace iga_rt
 	 * @tparam P b-spline basis order
 	 * @tparam N number of basis functions of order P
 	 */
-	template<int P, int N>
+	template<int P, int N, int RUN_N=N>
 	struct BSplineBasisGenerator
 	{
 		/**
@@ -21,17 +21,17 @@ namespace iga_rt
 		 * @param i_knots b-spline basis knot set
 		 * @param io_bsplines vector of pointers to b-spline functions (ordered from 1 to N)
 		 */
-		static void generateBSplineBasis(const double* i_knots, std::vector<BaseBSpline*>& io_bsplines)
+		static void generateBSplineBasis(const std::array<double,N+P+1>& i_knots, std::vector<BaseBSpline*>& io_bsplines)
 		{
-			io_bsplines[N-1] = new BSpline<N,P>(i_knots);
-			BSplineBasisGenerator<P,N-1>::generateBSplineBasis(i_knots, io_bsplines);
+			io_bsplines[RUN_N-1] = new BSpline<RUN_N,P>(i_knots.data());
+			BSplineBasisGenerator<P,N,RUN_N-1>::generateBSplineBasis(i_knots, io_bsplines);
 		}
 	};
 
-	template<int P>
-	struct BSplineBasisGenerator<P,0>
+	template<int P, int N>
+	struct BSplineBasisGenerator<P,N,0>
 	{
-		static void generateBSplineBasis(const double* i_knots, std::vector<BaseBSpline*>& io_bsplines)
+		static void generateBSplineBasis(const std::array<double,N+P+1>& i_knots, std::vector<BaseBSpline*>& io_bsplines)
 		{
 		}
 	};
@@ -57,7 +57,7 @@ namespace iga_rt
 		 * @brief Constructor
 		 * @param i_knots b-spline basis knot set
 		 */
-		BSplineBasis(const double* i_knots);
+		BSplineBasis(const std::array<double,N+P+1>& i_knots);
 
 		virtual ~BSplineBasis(void);
 
@@ -93,19 +93,19 @@ namespace iga_rt
 		std::vector<BaseBSpline*> m_bsplines; // TODO: this should be const
 
 		/**
-		 * b-spline basis knot set
-		 */
-		const double* m_knots;
-
-		/**
 		 * b-spline basis knot set number
 		 */
 		constexpr static unsigned int m_number_of_knots{N+P+1};
 
+		/**
+		 * b-spline basis knot set
+		 */
+		const std::array<double,m_number_of_knots> m_knots;
+
 	};
 
 	template<int P, int N>
-	BSplineBasis<P,N>::BSplineBasis(const double* i_knots)
+	BSplineBasis<P,N>::BSplineBasis(const std::array<double,N+P+1>& i_knots)
 								   :m_bsplines(N,0)
 								   ,m_knots(i_knots)
 	{
@@ -182,7 +182,7 @@ namespace iga_rt
 		 * @param i_knots1 b-spline basis knot set (first direction)
 		 * @param i_knots2 b-spline basis knot set (second direction)
 		 */
-		BivariateBSplineBasis(const double* i_knots1, const double* i_knots2);
+		BivariateBSplineBasis(const std::array<double,N1+P1+1>& i_knots1, const std::array<double,N2+P2+1>& i_knots2);
 
 		virtual ~BivariateBSplineBasis(void)
 		{}
@@ -226,16 +226,6 @@ namespace iga_rt
 		BSplineBasis<P2,N2> m_bsplines2;
 
 		/**
-		 * b-spline basis knot set in first direction
-		 */
-		const double* m_knots1;
-
-		/**
-		 * b-spline basis knot set in second direction
-		 */
-		const double* m_knots2;
-
-		/**
 		 * b-spline basis knot set number in first direction
 		 */
 		constexpr static unsigned int m_number_of_knots1{N1+P1+1};
@@ -248,11 +238,9 @@ namespace iga_rt
 	};
 
 	template<int P1, int N1, int P2, int N2>
-	BivariateBSplineBasis<P1,N1,P2,N2>::BivariateBSplineBasis(const double* i_knots1, const double* i_knots2)
+	BivariateBSplineBasis<P1,N1,P2,N2>::BivariateBSplineBasis(const std::array<double,N1+P1+1>& i_knots1, const std::array<double,N2+P2+1>& i_knots2)
 															 :m_bsplines1(i_knots1)
 															 ,m_bsplines2(i_knots2)
-															 ,m_knots1(i_knots1)
-															 ,m_knots2(i_knots2)
 	{
 	}
 
