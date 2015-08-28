@@ -30,7 +30,7 @@ namespace iga_rt
 		 */
 		PolinomialParametricCurve(const std::vector<Point<DIM> >& i_controlPoints)// TODO: change constructor signature and add setControlPoint methods (same for surface and volumes)
 								 :m_controlPoints(i_controlPoints)
-								 ,m_basis(0)
+								 ,m_basis(nullptr)
 								 {}
 
 		virtual ~PolinomialParametricCurve(void) { delete m_basis; }
@@ -77,9 +77,9 @@ namespace iga_rt
 	{
 
 		// TODO: find better solution to avoid this step
-		if(m_basis == 0)
+		if(m_basis == nullptr)
 		{
-			generateBasis();
+			m_basis = generateBasis();
 		}
 
 		std::vector<double> basis_values(m_basis->evaluate(i_csi));
@@ -117,7 +117,7 @@ namespace iga_rt
 		 */
 		PolinomialParametricSurface(const std::vector<Point<DIM> >& i_controlPoints)
 								   :m_controlPoints(i_controlPoints)
-								   ,m_basis(0)
+								   ,m_basis(nullptr)
 								   {}
 
 		virtual ~PolinomialParametricSurface(void) { delete m_basis; }
@@ -164,7 +164,7 @@ namespace iga_rt
 	template<int DIM>
 	Point<DIM> PolinomialParametricSurface<DIM>::evaluate(const double i_csi, const double i_eta) const
 	{
-		if(m_basis==0)
+		if(m_basis == nullptr)
 		{
 			m_basis = generateBasis();
 		}
