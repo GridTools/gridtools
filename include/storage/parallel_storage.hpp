@@ -23,13 +23,10 @@ namespace gridtools {
         //these are set by the partitioner
         array<halo_descriptor, metadata_t::space_dimensions> m_coordinates;
         array<halo_descriptor, metadata_t::space_dimensions> m_coordinates_gcl;
-        //these remember where am I on the storage (also set by the partitioner)
+        //these remember where am I in the storage (also set by the partitioner)
         array<int_t, metadata_t::space_dimensions> m_low_bound;
         array<int_t, metadata_t::space_dimensions> m_up_bound;
         metadata_t m_metadata;
-
-        // template<typename ... Dims>
-        // using lambda_t=uint_t ( uint_t, array<halo_descriptor, metadata_t::space_dimensions>&, array<halo_descriptor, metadata_t::space_dimensions>&, array<int_t, metadata_t::space_dimensions>&, array<int_t, metadata_t::space_dimensions>&, Dims...) ;
 
     public:
         DISALLOW_COPY_AND_ASSIGN(parallel_meta_storage);
@@ -43,7 +40,25 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 
         /**
-           very convoluted way to initielize the metadata
+           @brief constructor for the parallel meta storage
+
+           \param part the partitioner (e.g. \ref gridtools::partitioner_trivial)
+           \param dims_ ... the global dimensions of the storage
+
+           The global dimensions get transformed to local ones during the construction
+           NOTE: very convoluted way to initialize the metadata. it is initialized performing the
+           following unroll operation
+           \code
+           m_metadata(
+           part.compute_bounds(0, .....),
+           part.compute_bounds(1, .....),
+           part.compute_bounds(2, .....),
+           part.compute_bounds(3, .....),
+           .....)
+           \endcode
+           Each call to compute_bounds returns the partitioned dimension and fills an element
+           of the arrays passed as input (corresponding to the dimension passed as first argument).
+
          */
         template <typename ... UInt>
         explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
@@ -54,7 +69,7 @@ namespace gridtools {
             , m_up_bound()
             , m_metadata(
                 gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template apply<metadata_t>
-                (// static_cast<lambda_t<UInt const& ...>* >
+                (
                  ([&part]
                   ( uint_t index_
                     , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
@@ -67,27 +82,11 @@ namespace gridtools {
                   , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
                 )
             {
-                // m_metadata= metadata_t (part.compute_bounds(0, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...),
-                //                         part.compute_bounds(1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...),
-                //                         part.compute_bounds(2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...)
-                //     );
             }
 
         /**
-           @brief 3D constructor
-
-           Given the partitioner and the three space dimensions it constructs a storage and allocate the data
-           relative to the current process
-        // */
-        // void setup(uint_t const& d1, uint_t const& d2, uint_t const& d3)
-        //     {
-        //         /**the partitioner must be set at this point*/
-        //         assert(m_partitioner);
-        //         uint_t dims[3];
-        //         m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
-        //         m_metadata=MetaStorage(dims[0], dims[1], dims[2]);
-        //     }
-
+           @brief given the global coordinates returns wether the point belongs to the current partition
+         */
         template <typename ... UInt>
         bool mine(UInt const& ... coordinates_) const
             {
@@ -101,6 +100,9 @@ namespace gridtools {
                 return result;
             }
 
+        /**
+           @brief given the global coordinates returns the local index, or -1 if the point is outside the current partition
+         */
         //TODO generalize for arbitrary dimension
         template <uint_t field_dim=0, uint_t snapshot=0, typename UInt>
         int_t get_local_index( UInt const& i, UInt const& j, UInt const& k ) const
@@ -118,12 +120,12 @@ namespace gridtools {
         /**
            @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
 
-           It sums the offset given by the partitioner to the local index
+           It sums the offsets computed by the partitioner to the local index
         */
         template<uint_t Component>
         uint_t const& local_to_global(uint_t const& value){
             GRIDTOOLS_STATIC_ASSERT(Component<metadata_t::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of local_to_global");
-            return m_partitioner->template global_offset<Component>()+value;}
+            return m_low_bound[Component]+value;}
 
         /**
            @brief returns the halo descriptors to be used inside the coordinates object

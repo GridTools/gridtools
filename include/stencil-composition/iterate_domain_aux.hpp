@@ -33,17 +33,6 @@ namespace gridtools{
     template < typename BaseStorage >
     struct is_any_iterate_domain_storage<storage<BaseStorage> > : boost::mpl::true_{};
 
-    // template <typename BaseStorage,
-    //     uint_t TileI,
-    //     uint_t TileJ,
-    //     uint_t MinusI,
-    //     uint_t MinusJ,
-    //     uint_t PlusI,
-    //     uint_t PlusJ
-    // >
-    // struct is_any_iterate_domain_storage<host_tmp_storage< BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > :
-    //     boost::mpl::true_{};
-
     template <typename T> struct meta_storage_wrapper;
 
     template<typename T>

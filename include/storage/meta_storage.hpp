@@ -2,6 +2,20 @@
 #include "meta_storage_base.hpp"
 #include "meta_storage_tmp.hpp"
 
+/**
+   @file
+   @brief implementation of a container for the storage meta information
+*/
+
+/**
+   @class
+   @brief containing the meta information which is clonable to GPU
+
+   double inheritance is used in order to make the storage metadata clonable to the gpu.
+
+   NOTE: Since this class is inheriting from clonable_to_gpu, the constexpr property of the
+   meta_storage_base is lost (this can be easily avoided on the host)
+*/
 namespace gridtools{
 template < typename BaseStorage >
 struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_wrapper<BaseStorage> >
@@ -13,21 +27,36 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
         typedef meta_storage_wrapper<BaseStorage> original_storage;
         typedef clonable_to_gpu<meta_storage_wrapper<BaseStorage> > gpu_clone;
 
+        /** @brief copy ctor
+
+            forwarding to the base class
+         */
         __device__
         meta_storage_wrapper(BaseStorage const& other)
             :  super(other)
             {}
 
 #if defined(CXX11_ENABLED)
-        //arbitrary dimensional field
+        /** @brief ctor
+
+            forwarding to the base class
+         */
         template <class ... UIntTypes>
         explicit meta_storage_wrapper(  UIntTypes const& ... args ): super(args ...)
             {
             }
 #else
-        //constructor picked in absence of CXX11 or which GCC<4.9
+        //constructor picked in absence of CXX11 or with GCC<4.9
+        /** @brief ctor
+
+            forwarding to the base class
+         */
         explicit meta_storage_wrapper(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
 
+        /** @brief ctor
+
+            forwarding to the base class
+         */
         meta_storage_wrapper( uint_t const& initial_offset_i,
                               uint_t const& initial_offset_j,
                               uint_t const& dim3,
@@ -36,16 +65,30 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
             : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
 #endif
 
+    private:
+        /** @brief empty ctor
 
-
-//    private :
+            should never be called
+         */
         explicit meta_storage_wrapper(): super(){}
-        // BaseStorage m_meta_storage;
 
     };
 
 
 #ifdef CXX11_ENABLED
+    /**
+       @brief syntactic sugar for the metadata type definition
+
+       \tparam Index an index used to differentiate the types also when there's only runtime
+       differences (e.g. only the storage dimensions differ)
+       \tparam Layout the map of the layout in memory
+       \tparam IsTemporary boolean flag set to true when the storage is a temporary one
+       \tmaram ... Tiles variadic argument containing the information abount the tiles
+       (for the Block strategy)
+
+       syntax example:
+       using metadata_t=meta_storage_wrapper<0,layout_map<0,1,2>,false>
+     */
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
@@ -54,9 +97,11 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
     using meta_storage = meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
 #else
 
+    //fwd declarationx
     template < uint_t Tile, uint_t Minus, uint_t Plus >
     struct tile;
 
+    //generic fwd declaration
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
@@ -65,6 +110,7 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
                >
     struct meta_storage;
 
+    /** specialization in the case of tiling in I-J*/
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
@@ -102,6 +148,11 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
         meta_storage(T const& t) : super(t){}
     };
 #endif
+
+/** \addtogroup specializations Specializations
+    Partial specializations
+    @{
+*/
 
     template<typename T>
     struct is_meta_storage : boost::mpl::false_{};
@@ -148,5 +199,6 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
     template<typename T>
     struct is_ptr_to_meta_storage_wrapper<pointer<const T> > : is_meta_storage_wrapper<T> {};
 
+/**@}*/
 
 } // namespace gridtools

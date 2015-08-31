@@ -96,10 +96,6 @@ namespace gridtools{
 
     };
 
-    // //forward declaration
-    // template<typename StorageBase,uint_t D,uint_t E,uint_t F,uint_t G,uint_t H,uint_t I >
-    // struct host_tmp_storage;
-
     /**
        @brief specialization for the \ref gridtools::_impl::Block strategy
        The loops over i and j are split according to the values of BI and BJ

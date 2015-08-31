@@ -111,7 +111,16 @@ namespace gridtools{
         }
 
 
-        /*this one is not static*/
+        /**
+           @brief initializing a given coordinate (i.e. multiplying times its stride)
+
+           \param steps_ the input coordinate value
+           \param block_ the current block index
+           \param index_ the output index
+           \param strides_ the strides array
+
+           NOTE: this method is not static, while it is in the non-temporary case
+        */
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         void initialize(const int_t steps_, const uint_t block_, int_t* RESTRICT index_, StridesVector const& strides_) const {

@@ -108,7 +108,7 @@ namespace test_iterate_domain{
                 >
             > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list);
+        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
         it_domain_t it_domain(local_domain1);
 

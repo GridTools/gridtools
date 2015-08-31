@@ -16,11 +16,13 @@ namespace gridtools{
     struct is_pointer<pointer<T> > : boost::mpl::true_{};
 
     /**
-       @brief class that given a generig MPL sequence creates a fusion set.
+       @brief class that given a generic MPL sequence creates a fusion set.
 
        The interface of this class allows to insert and get elements of the sequence give its type.
        It also allows to query if the element corresponding to a given type has been or not initialized
 
+       It is used to hold the list of meta-storages, in which a 1-1 relation is needed between instances
+       and types.
      */
     template<typename Sequence>
     struct metadata_set{
@@ -30,20 +32,22 @@ namespace gridtools{
                                  "internal error: not a sequence of pointers");
         typedef typename boost::fusion::result_of::as_set<Sequence>::type set_t;
 
-        // DISALLOW_COPY_AND_ASSIGN(metadata_set);
-
     private:
         set_t m_set;
 
     public:
+
         GT_FUNCTION
         metadata_set() : m_set(){};
 
+        /**
+           @brief device copy constructor
+         */
         __device__
         metadata_set(metadata_set const& other) : m_set(other.m_set){};
 
         /**
-           @brief inserts a new instance on the vector
+           @brief inserts a new instance in the sequence
         */
         template <typename T>
         GT_FUNCTION
@@ -56,7 +60,9 @@ namespace gridtools{
             }
 
         /**
-           @brief returns the raw pointer
+           @brief returns the raw pointer given a key
+
+           \tparam T key
         */
         template <typename T>
         GT_FUNCTION
@@ -75,7 +81,7 @@ namespace gridtools{
         GT_FUNCTION
         set_t const& sequence_view() const {return m_set;}
 
-        /**@bief queries if the given key corresponds to a pointer which is being initialized*/
+        /**@bief queries if the given key corresponds to a pointer which has been initialized*/
         template <typename T>
         GT_FUNCTION
         bool present() {
