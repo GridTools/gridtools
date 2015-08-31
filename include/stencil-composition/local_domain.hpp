@@ -80,7 +80,7 @@ namespace gridtools {
             void operator()(Key& local_) const {
                 local_ =
 #ifdef __CUDACC__
-                    (typename Local::value_type *) boost::fusion::at_key<Key>(m_actual)->gpu_object_ptr;
+                    (typename Key::value_type *) boost::fusion::at_key<Key>(m_actual)->gpu_object_ptr;
 #else
                     boost::fusion::at_key<Key>(m_actual);
 #endif
