@@ -273,7 +273,6 @@ namespace gridtools {
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
-            // typedef typename Domain::placeholders::fuck fuck;
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
             typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssComponentsArray>::type map_of_ranges;

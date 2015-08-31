@@ -328,14 +328,27 @@ namespace gridtools {
             return &((m_fields[0])[m_meta_data.size()]);
         }
 
+        /** @brief returns (by reference) the value of the data field at the index "index_" */
+        template <typename UInt>
+        GT_FUNCTION
+        value_type const& operator[](UInt const& index_) const {
+#ifndef __CUDACC__
+            assert(index_ < m_meta_data.size());
+            assert(is_set);
+            GRIDTOOLS_STATIC_ASSERT(boost::is_integral<UInt>::value, "wrong type to the storage [] operator (the argument must be integral)");
+#endif
+            return (m_fields[0])[index_];
+        }
 
 #ifdef CXX11_ENABLED
+
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
 #ifndef __CUDACC__
             assert(m_meta_data.index(dims...) < m_meta_data.size());
+            assert(is_set);
 #endif
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
@@ -346,6 +359,7 @@ namespace gridtools {
         value_type& operator()(meta_data_t* metadata_, UInt const& ... dims) {
 #ifndef __CUDACC__
             assert(metadata_->index(dims...) < metadata_->size());
+            assert(is_set);
 #endif
             return (m_fields[0])[metadata_->index(dims...)];
         }
@@ -356,6 +370,7 @@ namespace gridtools {
         value_type const & operator()(UInt const& ... dims) const {
 #ifndef __CUDACC__
             assert(m_meta_data.index(dims...) < m_meta_data.size());
+            assert(is_set);
 #endif
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
@@ -366,6 +381,7 @@ namespace gridtools {
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
 #ifndef __CUDACC__
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
+            assert(is_set);
 #endif
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
@@ -376,6 +392,7 @@ namespace gridtools {
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
 #ifndef __CUDACC__
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
+            assert(is_set);
 #endif
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }

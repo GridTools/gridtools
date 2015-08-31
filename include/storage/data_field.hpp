@@ -182,6 +182,12 @@ namespace gridtools{
            return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
        }
 
+   template<short_t field_dim=0, short_t snapshot=0>
+   pointer_type const& get( ) const
+       {
+           return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+       }
+
 
    /**@biref sets the given storage as the nth snapshot of a specific field dimension, at the specified coordinates
 
@@ -196,6 +202,12 @@ namespace gridtools{
         */
    template<short_t field_dim=0, short_t snapshot=0>
         typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
+      {
+          return get<field_dim, snapshot>()[this->m_meta_data.index(i,j,k)];
+      }
+
+   template<short_t field_dim=0, short_t snapshot=0>
+        typename super::value_type const& get_value( uint_t const& i, uint_t const& j, uint_t const& k ) const
       {
           return get<field_dim, snapshot>()[this->m_meta_data.index(i,j,k)];
       }

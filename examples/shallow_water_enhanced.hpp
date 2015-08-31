@@ -451,7 +451,7 @@ namespace shallow_water{
 #endif
 
 #ifndef CUDA_EXAMPLE
-                boost::timer::cpu_timer time;
+            boost::timer::cpu_timer time;
 #endif
 
 //! [run]
@@ -469,11 +469,12 @@ namespace shallow_water{
 //! [finalize]
         he.wait();
 
+        shallow_water_stencil->finalize();
+
         GCL_Finalize();
 
         bool retval=true;
 
-        shallow_water_stencil->finalize();
 //! [finalize]
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
@@ -486,7 +487,7 @@ namespace shallow_water{
         {
             reference.iterate();
         }
-        retval=check_result.verify(sol, reference.solution);
+        retval=check_result.verify_parallel(meta_, sol, reference.solution);
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 

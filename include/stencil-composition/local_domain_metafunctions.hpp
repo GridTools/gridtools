@@ -172,7 +172,6 @@ namespace gridtools {
             boost::mpl::identity<LocalDomainSequence>
         >::type fused_mss_local_domains_t;
 
-        // typedef typename LocalDomainSequence::fuck suck;//not here
         typedef typename boost::fusion::result_of::as_vector<fused_mss_local_domains_t>::type type;
 
     };

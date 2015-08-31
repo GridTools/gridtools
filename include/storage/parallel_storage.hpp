@@ -48,6 +48,10 @@ namespace gridtools {
         template <typename ... UInt>
         explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
+            , m_coordinates()
+            , m_coordinates_gcl()
+            , m_low_bound()
+            , m_up_bound()
             , m_metadata(
                 gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template apply<metadata_t>
                 (// static_cast<lambda_t<UInt const& ...>* >
@@ -62,25 +66,11 @@ namespace gridtools {
                   )
                   , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
                 )
-                // part.compute_bounds(components_, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound)...)
-            // , m_metadata(gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template
-            //              apply<metadata_t>([&part]( uint_t ID
-            //                                         ,array<halo_descriptor, metadata_t::space_dimensions>& coords
-            //                                         ,array<halo_descriptor, metadata_t::space_dimensions>& coords_gcl
-            //                                         ,array<int_t, metadata_t::space_dimensions>& low_b
-            //                                         ,array<int_t, metadata_t::space_dimensions>& up_b
-            //                                         ,UInt ... comp ) -> uint_t
-            //                  {return part.compute_bounds(ID, coords, coords_gcl, low_b, up_b, comp...);}
-            //                                , m_coordinates
-            //                                , m_coordinates_gcl
-            //                                , m_low_bound
-            //                                , m_up_bound
-            //                                , components_ ...) )
             {
-
-                std::function<int()> tmp=[&part](){return part.fuck_you();};
-                int t=tmp();
-                // auto tmp=std::bind(&(partitioner_t::compute_bounds), &part, uint_t(1), m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
+                // m_metadata= metadata_t (part.compute_bounds(0, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...),
+                //                         part.compute_bounds(1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...),
+                //                         part.compute_bounds(2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...)
+                //     );
             }
 
         /**
@@ -99,7 +89,7 @@ namespace gridtools {
         //     }
 
         template <typename ... UInt>
-        bool mine(UInt const& ... coordinates_)
+        bool mine(UInt const& ... coordinates_) const
             {
                 GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_meta_storage::mine()");
                 GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_meta_storage::mine()");
@@ -113,15 +103,15 @@ namespace gridtools {
 
         //TODO generalize for arbitrary dimension
         template <uint_t field_dim=0, uint_t snapshot=0, typename UInt>
-        uint_t get_local_index( UInt const& i, UInt const& j, UInt const& k )
+        int_t get_local_index( UInt const& i, UInt const& j, UInt const& k ) const
             {
                 if(mine(i,j,k))
-                    return m_metadata._index(i-m_low_bound[0], j-m_low_bound[1], k-m_low_bound[2]);
+                    return m_metadata.index((uint_t)(i-m_low_bound[0]), (uint_t)(j-m_low_bound[1]), (uint_t)(k-m_low_bound[2]));
                 else
 #ifndef DNDEBUG
                     printf("(%d, %d, %d) not available in processor %d \n\n", i, j, k , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
 #endif
-                return -1.;
+                return -1;
             }
 #endif
 
