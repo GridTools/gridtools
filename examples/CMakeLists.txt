@@ -12,7 +12,7 @@
 #list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D )
 list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D)
 
-if( GCL_MPI )
+if( GCL_MPI AND ENABLE_CXX11 )
     list(APPEND SRCFILES copy_stencil_parallel)
 endif()
 
@@ -69,7 +69,7 @@ if(CUDA_FOUND)
         CUDA_COMPILE_PTX(generated_files interface1.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
     else()
 
-        if( GCL_MPI )
+        if( GCL_MPI AND ENABLE_CXX11 )
              cuda_add_executable( copy_stencil_parallel_cuda copy_stencil_parallel.cu )
              target_link_libraries(copy_stencil_parallel_cuda gcl ${exe_LIBS})
         endif()
