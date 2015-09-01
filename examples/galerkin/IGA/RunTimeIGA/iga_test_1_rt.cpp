@@ -1,6 +1,7 @@
 #include "b_splines_basis_rt.h"
 #include <iostream>
 #include <cmath>
+#include <array>
 #include <numeric>
 
 //TODO: add test description
@@ -12,7 +13,7 @@ int main()
 
 	const int P(2);
 	const int N(4);
-	const double knots[] = {0.,0.,0.,0.5,1.,1.,1.};
+	const std::array<double,P+N+1> knots{0.,0.,0.,0.5,1.,1.,1.};
 
 	const double csi_test_1 = 0.25;
 	const double csi_test_2 = 0.75;
@@ -119,13 +120,19 @@ int main()
 
 	// Unity test loop
 	test_passed = true;
+	const double minEta(0.);
+	const double maxEta(1.);
+	const double deltaEta =(maxEta-minEta)/numPoints;
 	for(double csi=minCsi;csi<=maxCsi;csi+=deltaCsi)
 	{
-		std::vector<double> b_spline_values(bsplineTest.evaluate(csi));
-		if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
+		for(double eta=minEta;eta<=maxEta;eta+=deltaEta)
 		{
-			test_passed = false;
-			break;
+			std::vector<double> b_spline_values(bivariateBsplineTest.evaluate(csi,eta));
+			if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
+			{
+				test_passed = false;
+				break;
+			}
 		}
 	}
 	if(test_passed == true)
