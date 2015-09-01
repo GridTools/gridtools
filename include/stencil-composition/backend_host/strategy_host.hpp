@@ -88,10 +88,6 @@ namespace gridtools{
                  base_storage
 #endif
                  <typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type, Storage::field_dimensions > > type;
-
-// typedef select_storage_type<Storage>::with_metadata<
-             //                             typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type
-             //                             > type;
          };
 
     };
@@ -227,9 +223,6 @@ namespace gridtools{
 #endif
         struct get_tmp_storage
         {
-            // typedef select_storage_type<Storage,
-            //                             <typename Storage::pointer_type, typename get_tmp_meta_storage
-            //                              <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
             typedef storage<
 #ifdef CXX11_ENABLED
                 typename Storage::template my_type
