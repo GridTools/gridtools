@@ -283,6 +283,15 @@ namespace gridtools {
             }
         }
 
+
+        /**
+           returning 0 in a non blocked storage
+        */
+        GT_FUNCTION
+        uint_t fields_offset(int_t EU_id_i, int_t EU_id_j) const {
+            return 0;
+        }
+
     };
 
 

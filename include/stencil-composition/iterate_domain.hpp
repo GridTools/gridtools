@@ -278,8 +278,10 @@ namespace gridtools {
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
-                    typename local_domain_t::local_args_type
-                >(data_pointer(), local_domain.m_local_args,  EU_id_i, EU_id_j));
+                    typename local_domain_t::local_args_type,
+                    typename local_domain_t::local_metadata_type,
+                    metadata_map_t
+                >(data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata,  EU_id_i, EU_id_j));
         }
 
         /**
@@ -501,7 +503,7 @@ namespace gridtools {
         GT_FUNCTION
         auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) {
             //arg.to_string();
-            GRIDTOOLS_STATIC_ASSERT(is_expr<Expression<Arguments ... > >, "invalid expression" );
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Arguments ... > >::value), "invalid expression" );
             return evaluation::value((*this), arg);
         }
 
@@ -523,7 +525,7 @@ namespace gridtools {
         GT_FUNCTION
         auto operator() (Expression<Argument, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_binary_expr<Expression<Argument, IntType> >::value, "invalid expression");
+            GRIDTOOLS_STATIC_ASSERT((is_binary_expr<Expression<Argument, IntType> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
 
@@ -531,7 +533,7 @@ namespace gridtools {
         GT_FUNCTION
         auto operator() (Expression<Argument, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_binary_expr<Expression<Argument, exponent> >::value, "invalid expression");
+            GRIDTOOLS_STATIC_ASSERT((is_binary_expr<Expression<Argument, exponent> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
 
