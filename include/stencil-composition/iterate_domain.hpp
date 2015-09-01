@@ -513,7 +513,7 @@ namespace gridtools {
                   , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
         auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
-            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
             return evaluation::value_scalar((*this), arg);
         }
 
@@ -525,7 +525,7 @@ namespace gridtools {
         GT_FUNCTION
         auto operator() (Expression<Argument, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
 
-            GRIDTOOLS_STATIC_ASSERT((is_binary_expr<Expression<Argument, IntType> >::value), "invalid expression");
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, IntType> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
 
@@ -533,7 +533,7 @@ namespace gridtools {
         GT_FUNCTION
         auto operator() (Expression<Argument, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
 
-            GRIDTOOLS_STATIC_ASSERT((is_binary_expr<Expression<Argument, exponent> >::value), "invalid expression");
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, exponent> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
 
