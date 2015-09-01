@@ -318,8 +318,6 @@ namespace gridtools {
 
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename DomainType::placeholders>::type::value> iter_range;
 
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<mpl_actual_tmp_pairs>::type::value>0, "You probably specified in the make_computation a redundant temporary placeholder without using it in any expressions.");
-
         typedef typename boost::mpl::fold<
             iter_range,
             boost::mpl::vector0<>,
