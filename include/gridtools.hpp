@@ -18,7 +18,6 @@
 #endif
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
-// #include <boost/type_traits.hpp>
 
 #include<communication/GCL.hpp>
 #include "common/gt_assert.hpp"

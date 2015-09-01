@@ -1,5 +1,5 @@
 #pragma once
-#include "../gridtools.hpp"
+#include <boost/mpl/bool.hpp>
 
 /**
 @file
