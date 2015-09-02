@@ -1,4 +1,6 @@
 #pragma once
+
+#include "../common/gpu_clone.hpp"
 #include "meta_storage_base.hpp"
 #include "meta_storage_tmp.hpp"
 
@@ -153,9 +155,6 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
     Partial specializations
     @{
 */
-
-    template<typename T>
-    struct is_meta_storage : boost::mpl::false_{};
 
     template< typename Storage>
     struct is_meta_storage<meta_storage_wrapper<Storage> > : boost::mpl::true_{};

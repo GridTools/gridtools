@@ -13,6 +13,22 @@
 */
 namespace gridtools {
 
+    /**
+     * @brief Type to indicate that the type is not decided yet
+     */
+    template <typename RegularMetaStorageType>
+    struct no_meta_storage_type_yet {
+        typedef RegularMetaStorageType type;
+        typedef typename type::index_type index_type;
+        typedef typename  type::layout layout;
+        static const ushort_t space_dimensions=type::space_dimensions;
+        static const bool is_temporary = type::is_temporary;
+    };
+
+    template<typename T>
+    struct is_meta_storage : boost::mpl::false_{};
+
+
     /**fwd declaration*/
     template < ushort_t Index
                , typename Layout
@@ -51,8 +67,8 @@ namespace gridtools {
 
     public:
 
-        template <typename T, typename U, bool B, ushort_t D>
-        friend std::ostream& operator<<(std::ostream &, base_storage<T,U, D> const & );
+        template <uint_t T, typename U, bool B, typename ... D>
+        friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
 
 #ifdef CXX11_ENABLED
         /**

@@ -10,13 +10,7 @@
 namespace gridtools {
 
     template <typename RegularMetaStorageType>
-    struct no_meta_storage_type_yet {
-        typedef RegularMetaStorageType type;
-        typedef typename type::index_type index_type;
-        typedef typename  type::layout layout;
-        static const ushort_t space_dimensions=type::space_dimensions;
-        static const bool is_temporary = type::is_temporary;
-    };
+    struct no_meta_storage_type_yet;
 
     /**
      * @brief Type to indicate that the type is not decided yet
@@ -115,7 +109,7 @@ namespace gridtools {
 
     template <typename T> struct is_meta_storage;
 
-    template < typename PointerType, typename MetaData, ushort_t FieldDimension >
+    template < typename PointerType, typename MetaData, ushort_t FieldDimension=1 >
     struct base_storage
     {
 #ifdef CXX11_ENABLED
@@ -448,7 +442,7 @@ namespace gridtools {
         GT_FUNCTION
         pointer_type const* fields() const {return &(m_fields[0]);}
 
-                /** @brief returns a const pointer to the data field*/
+        /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
         pointer_type* fields_view() {return &(m_fields[0]);}
 

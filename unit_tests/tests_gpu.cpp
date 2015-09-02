@@ -24,9 +24,9 @@ TEST(testhybridpointer, testhybridpointerongpu) {
     EXPECT_EQ(test_hybrid_pointer(), true);
 }
 
-// TEST(testcudastorage, testcudastorageongpu) {
-//     EXPECT_EQ(test_cuda_storage(), true);
-// }
+TEST(testcudastorage, testcudastorageongpu) {
+    EXPECT_EQ(test_cuda_storage(), true);
+}
 
 TEST(testgpuclone, testgpuclone) {
     EXPECT_EQ(gpu_clone_test::test_gpu_clone(), true);
