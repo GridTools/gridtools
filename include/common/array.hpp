@@ -12,7 +12,6 @@
 #include "host_device.hpp"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
-#include "generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
 

@@ -2,11 +2,6 @@
 
 #include <stencil-composition/make_computation.hpp>
 
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
-
 /**
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
@@ -78,11 +73,6 @@ namespace copy_stencil{
 
         meta_data_t meta_data_(x,y,z);
 
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
-
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
@@ -117,7 +107,7 @@ namespace copy_stencil{
                 for(uint_t k=0; k<d3; ++k)
                 {
 #ifdef SINGLE_STORAGE
-                    in.template get_value<0,1>(i, j, k)=i+j+k;
+                    in.template get_value<1,0>(i, j, k)=i+j+k;
 #else
                     in(i,j,k)=i+j+k;
 #endif
@@ -165,29 +155,6 @@ namespace copy_stencil{
           3) The actual domain dimensions
         */
 
-#ifdef USE_PAPI
-        int event_set = PAPI_NULL;
-        int retval;
-        long long values[1] = {-1};
-
-
-        /* Initialize the PAPI library */
-        retval = PAPI_library_init(PAPI_VER_CURRENT);
-        if (retval != PAPI_VER_CURRENT) {
-            fprintf(stderr, "PAPI library init error!\n");
-            exit(1);
-        }
-
-        if( PAPI_create_eventset(&event_set) != PAPI_OK)
-            handle_error(1);
-        if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operations
-            handle_error(1);
-#endif
-
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_init);
-#endif
-
         // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
         gridtools::computation* copy =
@@ -213,46 +180,21 @@ namespace copy_stencil{
 
         copy->steady();
 
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_init);
-#endif
-
-#ifdef USE_PAPI
-        if( PAPI_start(event_set) != PAPI_OK)
-            handle_error(1);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_execute);
-#endif
         copy->run();
 
-#ifdef USE_PAPI
-        double dummy=0.5;
-        double dummy2=0.8;
-        if( PAPI_read(event_set, values) != PAPI_OK)
-            handle_error(1);
-        printf("%f After reading the counters: %lld\n", dummy, values[0]);
-        PAPI_stop(event_set, values);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_execute);
-#endif
         copy->finalize();
 
 #ifdef BENCHMARK
         std::cout << copy->print_meter() << std::endl;
 #endif
 
-#ifdef USE_PAPI_WRAP
-        pw_print();
-#endif
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
 #ifdef SINGLE_STORAGE
-                    if (in.get_value<0,0>(i, j, k)!=in.get_value<0,1>(i,j,k))
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
 #else
                         if (in(i, j, k)!=out(i,j,k))
 #endif
@@ -263,7 +205,7 @@ namespace copy_stencil{
                                       << k << ": "
 #ifdef SINGLE_STORAGE
                                       << "in = " << (in.get_value<0,0>(i, j, k))
-                                      << ", out = " << (in.get_value<0,1>(i, j, k))
+                                      << ", out = " << (in.get_value<1,0>(i, j, k))
 #else
                                       << "in = " << in(i, j, k)
                                       << ", out = " << out(i, j, k)

@@ -108,7 +108,7 @@ namespace test_iterate_domain{
                 >
             > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list);
+        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
         it_domain_t it_domain(local_domain1);
 
@@ -131,42 +131,42 @@ namespace test_iterate_domain{
         //check data pointers initialization
 
         assert(((float_type*)it_domain.data_pointer(0)==in.get<0,0>().get()));
-        assert(((float_type*)it_domain.data_pointer(1)==in.get<0,1>().get()));
-        assert(((float_type*)it_domain.data_pointer(2)==in.get<0,2>().get()));
-        assert(((float_type*)it_domain.data_pointer(3)==in.get<1,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(1)==in.get<1,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(2)==in.get<2,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(3)==in.get<0,1>().get()));
         assert(((float_type*)it_domain.data_pointer(4)==in.get<1,1>().get()));
-        assert(((float_type*)it_domain.data_pointer(5)==in.get<2,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(5)==in.get<0,2>().get()));
 
         assert(((float_type*)it_domain.data_pointer(6)==buff.get<0,0>().get()));
-        assert(((float_type*)it_domain.data_pointer(7)==buff.get<0,1>().get()));
-        assert(((float_type*)it_domain.data_pointer(8)==buff.get<0,2>().get()));
-        assert(((float_type*)it_domain.data_pointer(9)==buff.get<0,3>().get()));
+        assert(((float_type*)it_domain.data_pointer(7)==buff.get<1,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(8)==buff.get<2,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(9)==buff.get<3,0>().get()));
 
-        assert(((float_type*)it_domain.data_pointer(10)==buff.get<1,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(10)==buff.get<0,1>().get()));
         assert(((float_type*)it_domain.data_pointer(11)==buff.get<1,1>().get()));
-        assert(((float_type*)it_domain.data_pointer(12)==buff.get<1,2>().get()));
-        assert(((float_type*)it_domain.data_pointer(13)==buff.get<1,3>().get()));
-        assert(((float_type*)it_domain.data_pointer(14)==buff.get<1,4>().get()));
-        assert(((float_type*)it_domain.data_pointer(15)==buff.get<1,5>().get()));
-        assert(((float_type*)it_domain.data_pointer(16)==buff.get<1,6>().get()));
+        assert(((float_type*)it_domain.data_pointer(12)==buff.get<2,1>().get()));
+        assert(((float_type*)it_domain.data_pointer(13)==buff.get<3,1>().get()));
+        assert(((float_type*)it_domain.data_pointer(14)==buff.get<4,1>().get()));
+        assert(((float_type*)it_domain.data_pointer(15)==buff.get<5,1>().get()));
+        assert(((float_type*)it_domain.data_pointer(16)==buff.get<6,1>().get()));
 
         assert(((float_type*)it_domain.data_pointer(17)==out.get<0,0>().get()));
-        assert(((float_type*)it_domain.data_pointer(18)==out.get<0,1>().get()));
-        assert(((float_type*)it_domain.data_pointer(19)==out.get<1,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(18)==out.get<1,0>().get()));
+        assert(((float_type*)it_domain.data_pointer(19)==out.get<0,1>().get()));
         assert(((float_type*)it_domain.data_pointer(20)==out.get<1,1>().get()));
-        assert(((float_type*)it_domain.data_pointer(21)==out.get<2,0>().get()));
-        assert(((float_type*)it_domain.data_pointer(22)==out.get<2,1>().get()));
+        assert(((float_type*)it_domain.data_pointer(21)==out.get<0,2>().get()));
+        assert(((float_type*)it_domain.data_pointer(22)==out.get<1,2>().get()));
 
         // check field storage access
 
         //using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
         it_domain.set_index(0);
         *in.get<0,0>()=0.;//is accessor<0>
-        *in.get<0,1>()=1.;
-        *in.get<0,2>()=2.;
-        *in.get<1,0>()=10.;
+        *in.get<1,0>()=1.;
+        *in.get<2,0>()=2.;
+        *in.get<0,1>()=10.;
         *in.get<1,1>()=11.;
-        *in.get<2,0>()=20.;
+        *in.get<0,2>()=20.;
 
         assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<5> >::set<0>())==0.);
         assert(it_domain(alias<accessor<0, range<0,0,0,0>, 6>, dimension<5> >::set<1>())==1.);
@@ -177,16 +177,16 @@ namespace test_iterate_domain{
 
         //using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
         *buff.get<0,0>()=0.;//is accessor<1>
-        *buff.get<0,1>()=1.;
-        *buff.get<0,2>()=2.;
-        *buff.get<0,3>()=3.;
-        *buff.get<1,0>()=10.;
+        *buff.get<1,0>()=1.;
+        *buff.get<2,0>()=2.;
+        *buff.get<3,0>()=3.;
+        *buff.get<0,1>()=10.;
         *buff.get<1,1>()=11.;
-        *buff.get<1,2>()=12.;
-        *buff.get<1,3>()=13.;
-        *buff.get<1,4>()=14.;
-        *buff.get<1,5>()=15.;
-        *buff.get<1,6>()=16.;
+        *buff.get<2,1>()=12.;
+        *buff.get<3,1>()=13.;
+        *buff.get<4,1>()=14.;
+        *buff.get<5,1>()=15.;
+        *buff.get<6,1>()=16.;
 
         assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<4> >::set<0>())==0.);
         assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<4> >::set<1>())==1.);
@@ -200,11 +200,11 @@ namespace test_iterate_domain{
         assert(it_domain(alias<accessor<1, range<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 6>())==16.);
 
         *out.get<0,0>()=0.;//is accessor<2>
-        *out.get<0,1>()=1.;
-        *out.get<1,0>()=10.;
+        *out.get<1,0>()=1.;
+        *out.get<0,1>()=10.;
         *out.get<1,1>()=11.;
-        *out.get<2,0>()=20.;
-        *out.get<2,1>()=21.;
+        *out.get<0,2>()=20.;
+        *out.get<1,2>()=21.;
 
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>())==0.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<3>(1)))==1.);

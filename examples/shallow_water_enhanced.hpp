@@ -83,7 +83,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Snapshot, Component>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -92,7 +92,7 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            data_field0.template get<Snapshot, Component>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
         // default: do nothing
@@ -451,7 +451,7 @@ namespace shallow_water{
 #endif
 
 #ifndef CUDA_EXAMPLE
-                boost::timer::cpu_timer time;
+            boost::timer::cpu_timer time;
 #endif
 
 //! [run]
@@ -469,11 +469,12 @@ namespace shallow_water{
 //! [finalize]
         he.wait();
 
+        shallow_water_stencil->finalize();
+
         GCL_Finalize();
 
         bool retval=true;
 
-        shallow_water_stencil->finalize();
 //! [finalize]
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
@@ -486,7 +487,7 @@ namespace shallow_water{
         {
             reference.iterate();
         }
-        retval=check_result.verify(sol, reference.solution);
+        retval=check_result.verify_parallel(meta_, sol, reference.solution);
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 

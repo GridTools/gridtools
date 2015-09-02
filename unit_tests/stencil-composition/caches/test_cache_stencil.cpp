@@ -81,8 +81,8 @@ protected:
 
     cache_stencil() :
         m_halo_size(2), m_d1(32+m_halo_size), m_d2(32+m_halo_size), m_d3(6),
-        m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size, m_d1),
-        m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size, m_d2),
+        m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1),
+        m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2),
         m_coords(m_di, m_dj),
         m_meta(m_d1, m_d2, m_d3),
         m_in(m_meta, -8.5, "in"),

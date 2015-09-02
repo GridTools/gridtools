@@ -33,17 +33,6 @@ namespace gridtools{
     template < typename BaseStorage >
     struct is_any_iterate_domain_storage<storage<BaseStorage> > : boost::mpl::true_{};
 
-    // template <typename BaseStorage,
-    //     uint_t TileI,
-    //     uint_t TileJ,
-    //     uint_t MinusI,
-    //     uint_t MinusJ,
-    //     uint_t PlusI,
-    //     uint_t PlusJ
-    // >
-    // struct is_any_iterate_domain_storage<host_tmp_storage< BaseStorage, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > :
-    //     boost::mpl::true_{};
-
     template <typename T> struct meta_storage_wrapper;
 
     template<typename T>
@@ -199,17 +188,15 @@ namespace gridtools{
     private:
         DataPointerArray& RESTRICT m_data_pointer_array;
         Storage const * RESTRICT m_storage;
-        const uint_t m_EU_id_i;
-        const uint_t m_EU_id_j;
+        const uint_t m_offset;
 
     public:
         GT_FUNCTION
-        assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_EU_id_i(other.m_EU_id_i), m_EU_id_j(other.m_EU_id_j){}
+        assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset){}
 
         GT_FUNCTION
-        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage,
-                const uint_t EU_id_i, const uint_t EU_id_j) :
-                m_data_pointer_array(data_pointer_array), m_storage(storage), m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
+        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage, uint const offset_) :
+            m_data_pointer_array(data_pointer_array), m_storage(storage), m_offset(offset_) {}
 
         template <typename ID>
         GT_FUNCTION
@@ -225,23 +212,13 @@ namespace gridtools{
 
         assign_raw_data_functor();
 
-        // // implementation of the assignment of the data pointer in case the storage is a temporary storage
-        // template<typename ID, typename PE_ID, typename _Storage>
-        // GT_FUNCTION
-        // void impl(typename boost::disable_if_c<is_storage<_Storage>::value>::type* = 0) const
-        // {
-        //     BackendType::template once_per_block<PE_ID::value>::assign(
-        //             m_data_pointer_array[Offset+ID::value], m_storage->fields_offset(ID::value,m_EU_id_i, m_EU_id_j));
-        // }
-
-        // implementation of the assignment of the data pointer in case the storage is a a regular storage
+        // implementation of the assignment of the data pointer in case the storage is a temporary storage
         template<typename ID, typename PE_ID, typename _Storage>
         GT_FUNCTION
-        void impl( // typename boost::enable_if_c<is_storage<_Storage>::value>::type* = 0
-            ) const
+        void impl() const
         {
             BackendType::template once_per_block<PE_ID::value>::assign(
-                    m_data_pointer_array[Offset+ID::value], m_storage->fields()[ID::value].get());
+                m_data_pointer_array[Offset+ID::value], m_storage->fields()[ID::value].get()+m_offset);
         }
     };
 
@@ -459,7 +436,7 @@ namespace gridtools{
      * @tparam DataPointerArray gridtools array of data pointers
      * @tparam StorageSequence sequence of any of the storage types handled by the iterate domain
      * */
-    template<typename BackendType, typename DataPointerArray, typename StorageSequence>
+    template<typename BackendType, typename DataPointerArray, typename StorageSequence, typename MetaStorageSequence, typename MetaDataMap>
     struct assign_storage_functor{
 
         GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value), "internal error: wrong type");
@@ -468,17 +445,18 @@ namespace gridtools{
     private:
         DataPointerArray& RESTRICT m_data_pointer_array;
         StorageSequence const & RESTRICT m_storages;
+        MetaStorageSequence const & RESTRICT m_meta_storages;
         const int_t m_EU_id_i;
         const int_t m_EU_id_j;
         assign_storage_functor();
     public:
         GT_FUNCTION
-        assign_storage_functor(assign_storage_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storages(other.m_storages), m_EU_id_i(other.m_EU_id_i), m_EU_id_j(other.m_EU_id_j)  {}
+        assign_storage_functor(assign_storage_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storages(other.m_storages), m_meta_storages(other.m_meta_storages), m_EU_id_i(other.m_EU_id_i), m_EU_id_j(other.m_EU_id_j)  {}
 
         GT_FUNCTION
-        assign_storage_functor(DataPointerArray& RESTRICT data_pointer_array, StorageSequence const& RESTRICT storages,
+        assign_storage_functor(DataPointerArray& RESTRICT data_pointer_array, StorageSequence const& RESTRICT storages, MetaStorageSequence const& RESTRICT meta_storages,
                 const int_t EU_id_i, const int_t EU_id_j) :
-            m_data_pointer_array(data_pointer_array), m_storages(storages), m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
+            m_data_pointer_array(data_pointer_array), m_storages(storages), m_meta_storages(meta_storages), m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
 
         template <typename ID>
         GT_FUNCTION
@@ -492,6 +470,14 @@ namespace gridtools{
                  >::type
             >::type storage_type;
 
+            typedef typename boost::mpl::at
+                <MetaDataMap, typename storage_type::meta_data_t >::type metadata_index_t;
+
+            pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+                < metadata_index_t >(m_meta_storages);
+
+
+
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
@@ -502,7 +488,7 @@ namespace gridtools{
                     BackendType,
                     DataPointerArray,
                     storage_type
-                >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), m_EU_id_i, m_EU_id_j)
+                >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), metadata_->fields_offset(m_EU_id_i, m_EU_id_j))
             );
         }
     };

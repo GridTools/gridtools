@@ -1,5 +1,12 @@
 #!/bin/bash
 
+function exit_if_error {
+    if [ "x$1" != "x0" ]
+    then
+        rm -rf *
+        exit $1
+    fi
+}
 
 #
 # full path to the virtual environment where the Python tests run
@@ -96,9 +103,15 @@ cmake \
 -DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
  ../
 
+exit_if_error $?
+
 make -j8;
 
+exit_if_error $?
+
 sh ./run_tests.sh
+
+exit_if_error $?
 
 if [ "x$TARGET" == "xcpu" ]
 then
@@ -107,10 +120,9 @@ then
         if [ "x$CXX_11_ON" == "xcxx11" ]
         then
             mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+            exit_if_error $?
         fi
-
         #TODO not updated to greina
         #    ../examples/communication/run_communication_tests.sh
     fi
 fi
-rm -rf *

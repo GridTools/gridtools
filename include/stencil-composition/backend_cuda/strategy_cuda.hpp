@@ -6,7 +6,6 @@
 #include "../level.hpp"
 
 #include "backend_traits_cuda.hpp"
-// #include "../../storage/host_tmp_storage.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 #include "../../storage/meta_storage.hpp"

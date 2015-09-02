@@ -24,7 +24,6 @@ namespace _impl_cuda {
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
-        //<iterate_domain_t::N_META_STORAGES-1, typename LocalDomain::storage_metadata_vector_t>
         typedef typename iterate_domain_t::strides_cached_t strides_t;
         typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
         typedef shared_iterate_domain<
@@ -127,7 +126,7 @@ struct execute_kernel_functor_cuda
 #endif
 
         //TODO: check: isn't this done also in intermediate.hpp?
-        m_local_domain.clone_to_gpu();
+        // m_local_domain.clone_to_gpu();
         m_coords.clone_to_gpu();
 
         local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;

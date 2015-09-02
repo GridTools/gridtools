@@ -40,7 +40,7 @@ namespace gridtools {
 
         /**
            \brief defines a method which associates an
-           host_tmp_storage, whose range depends on an index, to the
+           tmp storage, whose range depends on an index, to the
            element in the Temporaries vector at that index position.
 
            \tparam Temporaries is the vector of temporary placeholder types.
@@ -56,7 +56,6 @@ namespace gridtools {
                 typedef typename boost::mpl::second<MapElem>::type range_type;
                 typedef typename boost::mpl::first<MapElem>::type temporary;
 
-                //get_tmp_meta_storage?
                 typedef pair<
                 typename StrategyTraits::template get_tmp_storage<
                     typename temporary::storage_type
@@ -68,7 +67,6 @@ namespace gridtools {
                     type;
             };
         };
-
     } // namespace _impl
 
 
@@ -238,7 +236,7 @@ namespace gridtools {
          */
         template <typename Domain, typename MssComponentsArray>
         struct obtain_map_ranges_temporaries_mss_array {
-            // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
 
             typedef typename boost::mpl::fold<
@@ -273,7 +271,6 @@ namespace gridtools {
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
-            // typedef typename Domain::placeholders::fuck fuck;
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
             typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssComponentsArray>::type map_of_ranges;
@@ -300,36 +297,6 @@ namespace gridtools {
         };
 
 
-
-        // /**
-        //  * @brief compute a list with all the temporary storage types used by an array of mss
-        //  * @tparam Domain domain
-        //  * @tparam MssComponentsArray meta array of mss components
-        //  * @tparam ValueType type of field values stored in the temporary storage
-        //  * @tparam LayoutType memory layout
-        //  */
-        // template <typename Domain
-        //           , typename StoragePairs //vector of pairs
-        //           , typename MetaDataSet
-        //           , typename ValueType
-        //           >
-        // struct obtain_temporary_meta_storage_types {
-
-        //     GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
-        //     // GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaDataType>::value), "Internal Error: wrong type");
-
-        //     typedef typename boost::mpl::fold<
-        //         StoragePairs,
-        //         boost::mpl::vector<>,
-        //         typename boost::mpl::push_back<
-        //             typename boost::mpl::_1,
-        //             storage2metadata<
-        //                 typename boost::mpl::second
-        //                 <boost::mpl::_2>
-        //             >
-        //         >
-        //     >::type type;
-        // };
 
 
         /**
