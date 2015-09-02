@@ -79,7 +79,7 @@ namespace gridtools{
        \tparam DimTo the second dimension
 
        syntax:
-       swap<3,1>::with<4,1>(storage_);
+       swap<3,1>::with<4,1>::apply(storage_);
      */
     template<ushort_t SnapshotFrom, ushort_t DimFrom=0>
     struct swap{
@@ -87,7 +87,7 @@ namespace gridtools{
         struct with{
             template<typename Storage>
             GT_FUNCTION
-            void operator()(Storage& storage_){
+            static void apply(Storage& storage_){
                 typename Storage::pointer_type tmp=storage_.template get<SnapshotFrom, DimFrom>();
                 storage_.template get<SnapshotFrom, DimFrom>()=
                     storage_.template get<SnapshotTo, DimTo>();
@@ -96,7 +96,16 @@ namespace gridtools{
         };
     };
 
-    /**@brief shifts the snapshots in one data field dimension*/
+    /**@brief shifts the snapshots in one data field dimension
+
+       \tparam Dim the data field dimension
+
+       it cycles, i.e. the pointer to the last snapshots becomes the first
+       (so that the storage is overwritten)
+
+       syntax:
+       advance<2>()(storage_);
+     */
     template<ushort_t Dim>
     struct advance{
 
@@ -117,7 +126,7 @@ namespace gridtools{
         };
 
         template <typename Storage>
-        void operator()(Storage& storage_){
+        static void apply(Storage& storage_){
 
             //save last snapshot
             typename Storage::pointer_type tmp=storage_.fields_view()[impl_::width_t<Storage, Dim>::value + impl_::offset_t<Storage, Dim>::value-1];
