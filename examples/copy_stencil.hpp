@@ -107,7 +107,7 @@ namespace copy_stencil{
                 for(uint_t k=0; k<d3; ++k)
                 {
 #ifdef SINGLE_STORAGE
-                    in.template get<1,0>()(i, j, k)=i+j+k;
+                    in.template get_value<1,0>(i, j, k)=i+j+k;
 #else
                     in(i,j,k)=i+j+k;
 #endif
@@ -194,7 +194,7 @@ namespace copy_stencil{
                 for(uint_t k=0; k<d3; ++k)
                 {
 #ifdef SINGLE_STORAGE
-                    if (in.get()<0,0>(i, j, k)!=in.get()<1,0>(i,j,k))
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
 #else
                         if (in(i, j, k)!=out(i,j,k))
 #endif
@@ -204,8 +204,8 @@ namespace copy_stencil{
                                       << j << ", "
                                       << k << ": "
 #ifdef SINGLE_STORAGE
-                                      << "in = " << (in.get()<0,0>(i, j, k))
-                                      << ", out = " << (in.get()<1,0>(i, j, k))
+                                      << "in = " << (in.get_value<0,0>(i, j, k))
+                                      << ", out = " << (in.get_value<1,0>(i, j, k))
 #else
                                       << "in = " << in(i, j, k)
                                       << ", out = " << out(i, j, k)
