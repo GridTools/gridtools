@@ -61,6 +61,9 @@ namespace gridtools{
         static const uint_t value=type::value;
     };
 
+    template<typename T>
+    struct is_data_field : public boost::mpl::false_{};
+
     namespace impl_{
     /**@brief syntactic sugar*/
     template<typename Storage, uint_t Id>
@@ -88,6 +91,8 @@ namespace gridtools{
             template<typename Storage>
             GT_FUNCTION
             static void apply(Storage& storage_){
+            GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
+                                    "\"swap\" can only be called with instanced of type \"data_field\" ");
                 typename Storage::pointer_type tmp=storage_.template get<SnapshotFrom, DimFrom>();
                 storage_.template get<SnapshotFrom, DimFrom>()=
                     storage_.template get<SnapshotTo, DimTo>();
@@ -127,7 +132,8 @@ namespace gridtools{
 
         template <typename Storage>
         static void apply(Storage& storage_){
-
+            GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
+                                    "\"advance\" can only be called with instanced of type \"data_field\" ");
             //save last snapshot
             typename Storage::pointer_type tmp=storage_.fields_view()[impl_::width_t<Storage, Dim>::value + impl_::offset_t<Storage, Dim>::value-1];
 
@@ -341,6 +347,14 @@ namespace gridtools{
         }
 
     };
+
+    template <typename First,  typename  ...  StorageExtended>
+    struct is_data_field<data_field<First,  StorageExtended...> > : public boost::mpl::true_{};
+
+    template<typename T> struct storage;
+
+    template <typename First,  typename  ...  StorageExtended>
+    struct is_data_field<storage<data_field<First,  StorageExtended...> > > : public boost::mpl::true_{};
 
     template <typename F, typename ... T>
     std::ostream& operator<<(std::ostream &s, data_field< F, T... > const &) {
