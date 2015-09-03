@@ -30,15 +30,15 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> in;
-        typedef accessor<1, range<0,0,0,0>, 3> out;
-        typedef boost::mpl::vector<in,out> arg_list;
+        typedef const accessor<0, range<0,0,0,0>, 4> in;
+        typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(out())=eval(in());
+            eval(in())=eval(in(dimension<4>(1)));
         }
+
     };
 
     /*
@@ -77,29 +77,27 @@ namespace copy_stencil{
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
 
         // Definition of the actual data fields that are used for input/output
-        typedef storage_t storage_type;
-        storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, -1.);
+        typedef field<storage_t,2>::type storage_type;
+        storage_type in(meta_data_);
+        in.allocate();
+        in.initialize(0.);
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
-                    in(i,j,k)=i+j+k;
+                    in.template get_value<1,0>(i, j, k)=i+j+k;
                 }
 
         typedef arg<0, storage_type > p_in;
-        typedef arg<1, storage_type > p_out;
 
         typedef boost::mpl::vector<
             p_in
-            , p_out
             > accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
         gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in
-                                        , &out
                 ));
 
         // Definition of the physical dimensions of the problem.
@@ -136,7 +134,6 @@ namespace copy_stencil{
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
-                        ,p_out()
                         )
                 ),
                 domain, coords
@@ -159,14 +156,14 @@ namespace copy_stencil{
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
-                        if (in(i, j, k)!=out(i,j,k))
+                    if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
                         {
                             std::cout << "error in "
                                       << i << ", "
                                       << j << ", "
                                       << k << ": "
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
+                                      << "in = " << (in.get_value<0,0>(i, j, k))
+                                      << ", out = " << (in.get_value<1,0>(i, j, k))
                                       << std::endl;
                             success = false;
                         }
