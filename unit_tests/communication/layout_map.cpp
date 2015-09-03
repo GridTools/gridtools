@@ -170,6 +170,23 @@ bool test_layout_map () {
     if (gridtools::layout_map<2,0,1>::find_val<3,int,666>(a,b,c) != 666) {
         success = false;
     }
+
+
+    ////// TESTING FIND_VAL
+    gridtools::array<int, 3> arr{a,b,c};
+    if (gridtools::layout_map<2,0,1>::find_val<0,int,666>(arr) != b) {
+        success = false;
+    }
+    if (gridtools::layout_map<2,0,1>::find_val<1,int,666>(arr) != c) {
+        success = false;
+    }
+    if (gridtools::layout_map<2,0,1>::find_val<2,int,666>(arr) != a) {
+        success = false;
+    }
+    if (gridtools::layout_map<2,0,1>::find_val<3,int,666>(arr) != 666) {
+        success = false;
+    }
+
     return success;
 }
 

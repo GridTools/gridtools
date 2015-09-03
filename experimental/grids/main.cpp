@@ -2,7 +2,7 @@ using uint_t = unsigned int;
 using int_t = int;
 #include <iostream>
 #include "grid.hpp"
-#include "base_storage.hpp"
+#include <storage/base_storage.hpp>
 #include <common/layout_map.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -24,9 +24,9 @@ using gridtools::wrap_pointer;
 
 using trapezoid_2D = gridtools::trapezoid_2D_colored<gridtools::_backend>;
 
-using cell_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::cells>;
-using edge_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::edges>;
-using vertex_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::vertexes>;
+using cell_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::cells, double>;
+using edge_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::edges, double>;
+using vertex_storage_type = typename trapezoid_2D::storage_t<trapezoid_2D::vertexes, double>;
 
 struct stencil_on_cells {
     typedef accessor<0, trapezoid_2D::cells> out;
@@ -146,8 +146,8 @@ struct stencil_on_edges {
 template<typename Storage>
 void fill_storage_with_indices(Storage& storage)
 {
-    for(uint_t i =0; i < storage.m_size; ++i)
-        storage.m_ptr[i] = i;
+    // for(uint_t i =0; i < storage.m_size; ++i)
+    //     storage.m_ptr[i] = i;
 }
 
 
@@ -174,17 +174,17 @@ int main() {
     trapezoid_2D grid( 6, 12, d3 );
 
 
-    cell_storage_type cells(grid.size(trapezoid_2D::cells()));
-    edge_storage_type edges(grid.size(trapezoid_2D::edges()));
-    vertex_storage_type vertexes(grid.size(trapezoid_2D::vertexes()));
+    cell_storage_type cells = grid.make_storage<trapezoid_2D::cells>();
+    edge_storage_type edges = grid.make_storage<trapezoid_2D::edges>();
+    vertex_storage_type vertexes = grid.make_storage<trapezoid_2D::vertexes>();
 
     fill_storage_with_indices(cells);
     fill_storage_with_indices(edges);
     fill_storage_with_indices(vertexes);
 
-    cell_storage_type cells_out(grid.size(trapezoid_2D::cells()));
-    edge_storage_type edges_out(grid.size(trapezoid_2D::edges()));
-    vertex_storage_type vertexes_out(grid.size(trapezoid_2D::vertexes()));
+    cell_storage_type cells_out = grid.make_storage<trapezoid_2D::cells>();
+    edge_storage_type edges_out = grid.make_storage<trapezoid_2D::edges>();
+    vertex_storage_type vertexes_out = grid.make_storage<trapezoid_2D::vertexes>();
 
     fill_storage_with_indices(cells_out);
     fill_storage_with_indices(edges_out);

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "base_storage.hpp"
+#include <storage/storage.hpp>
+#include <storage/meta_storage.hpp>
 #include "location_type.hpp"
 
 
@@ -11,26 +12,29 @@ namespace gridtools {
      */
     struct _backend {
     public:
-        template <typename LocationType, typename X, typename LayoutMap>
-        struct _storage_type;
+        // template <typename LocationType, typename X, typename LayoutMap>
+        // struct _storage_type;
 
-        template <ushort_t NColors, typename X, typename LayoutMap>
-        struct _storage_type<location_type<0, NColors>, X, LayoutMap> {
-            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<0, NColors> >;
-        };
+        // template <ushort_t NColors, typename X, typename LayoutMap>
+        // struct _storage_type<location_type<0, NColors>, X, LayoutMap> {
+        //     using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<0, NColors> >;
+        // };
 
-        template <ushort_t NColors, typename X, typename LayoutMap>
-        struct _storage_type<location_type<1, NColors>, X, LayoutMap> {
-            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<1, NColors> >;
-        };
+        // template <ushort_t NColors, typename X, typename LayoutMap>
+        // struct _storage_type<location_type<1, NColors>, X, LayoutMap> {
+        //     using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<1, NColors> >;
+        // };
 
-        template <ushort_t NColors, typename X, typename LayoutMap>
-        struct _storage_type<location_type<2, NColors>, X, LayoutMap> {
-            using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<2, NColors> >;
-        };
+        // template <ushort_t NColors, typename X, typename LayoutMap>
+        // struct _storage_type<location_type<2, NColors>, X, LayoutMap> {
+        //     using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<2, NColors> >;
+        // };
 
         template <typename LocationType>
-        using storage_type = typename _storage_type<LocationType, void, layout_map<0,1,2,3> >::type;
+        using meta_storage_type = meta_storage<LocationType::value, layout_map<0,1,2,3>, false >;
+
+        template <typename LocationType, typename ValueType>
+        using storage_type = base_storage<wrap_pointer<ValueType>, meta_storage_type<LocationType>, 1>;
 
     };
 

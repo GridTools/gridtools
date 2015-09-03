@@ -3,6 +3,7 @@
 #include "../common/gpu_clone.hpp"
 #include "meta_storage_base.hpp"
 #include "meta_storage_tmp.hpp"
+#include "../common/gpu_clone.hpp"
 
 /**
    @file
@@ -45,6 +46,10 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
          */
         template <class ... UIntTypes>
         explicit meta_storage_wrapper(  UIntTypes const& ... args ): super(args ...)
+
+        template <size_t S>
+        explicit meta_storage_wrapper( array<uint_t, S> const& arg ): super(arg)
+
             {
             }
 #else

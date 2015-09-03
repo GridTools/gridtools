@@ -206,11 +206,11 @@ namespace gridtools {
            This interface handles the case in which the storage is allocated from the python interface. Since this storege gets freed inside python, it must be instantiated as a
            'managed outside' wrap_pointer. In this way the storage destructor will not free the pointer.*/
         template<typename FloatType>
-        explicit base_storage(MetaData const& meta_data_, FloatType* ptr, char const* s="default storage"
-            ):
-            is_set( true )
+        explicit base_storage(MetaData const& meta_data_, FloatType* ptr, char const* s="default storage")
+            : is_set( true )
             , m_name(s)
-            , m_meta_data(meta_data_){
+            , m_meta_data(meta_data_)
+        {
             m_fields[0]=pointer_type(ptr, m_meta_data.size(), true);
             if(FieldDimension>1)
                 allocate(FieldDimension, 1);
@@ -223,11 +223,9 @@ namespace gridtools {
         }
 
         /**@brief device copy constructor*/
-        template<typename T>
         __device__
-        base_storage(T const& other)
-            :
-            is_set(other.is_set)
+        base_storage(base_storage const& other)
+            : is_set(other.is_set)
             , m_name(other.m_name)
             , m_fields(other.m_fields)
             , m_meta_data(other.m_meta_data){

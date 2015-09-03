@@ -68,9 +68,9 @@ TEST(test_local_domain, merge_mss_local_domains) {
     uint_t d2 = 1;
     uint_t d3 = 1;
 
-    meta_ijk_t meta_ijk(d1,d2,d3);
+    meta_ijk_t meta_ijk(gridtools::array<uint_t, 3>{d1,d2,d3});
     storage_type in(meta_ijk,-3.5,"in");
-    meta_kji_t meta_kji(d1,d2,d3);
+    meta_kji_t meta_kji(gridtools::array<uint_t, 3>{d1,d2,d3});
     storage_buff_type buff(meta_kji,1.5,"buff");
     storage_type out(meta_ijk,1.5,"out");
 

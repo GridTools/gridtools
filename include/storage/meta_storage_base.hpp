@@ -67,8 +67,8 @@ namespace gridtools {
 
     public:
 
-        template <uint_t T, typename U, bool B, typename ... D>
-        friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
+        template <ushort_t I, typename L, bool B, typename ... Ts>
+        friend std::ostream& operator<<(std::ostream &, meta_storage_base<I,L,B,Ts...> const & );
 
 #ifdef CXX11_ENABLED
         /**
@@ -81,6 +81,18 @@ namespace gridtools {
            @brief empty constructor
         */
         constexpr meta_storage_base(){}
+
+
+        template <size_t S>
+        meta_storage_base(array<uint_t, S> const& a)
+            : m_dims(a)
+        {
+            m_strides[0]=( ((layout::template at_<0>::value < 0)?1:m_dims[0]) * ((layout::template at_<1>::value < 0)?1:m_dims[1]) * ((layout::template at_<2>::value < 0)?1:m_dims[2]) );
+            m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims)*layout::template find_val<1,uint_t,1>(m_dims) );
+            m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims) );
+        }
+
+        // variadic constexpr constructor
 
         /**
            @brief constructor given the space dimensions
@@ -115,13 +127,12 @@ namespace gridtools {
 
             copy constructor, used e.g. to generate the gpu clone of the storage metadata.
          */
-        template <typename Other>
         GT_FUNCTION
-        constexpr meta_storage_base( Other const& other ) :
-            m_dims(other.m_dims)
+        constexpr meta_storage_base( meta_storage_base const&other )
+            : m_dims(other.m_dims)
             , m_strides(other.m_strides)
             {
-                GRIDTOOLS_STATIC_ASSERT(is_meta_storage<Other>::type::value, "Type error");
+                //GRIDTOOLS_STATIC_ASSERT(is_meta_storage<Other>::type::value, "Type error");
             }
 
         /** @brief prints debugging information */

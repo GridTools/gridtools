@@ -21,19 +21,6 @@ namespace gridtools {
     template <typename T, size_t D>
     class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
 
-        template<int_t Idx>
-        struct get_component{
-
-            GT_FUNCTION
-            constexpr get_component(){}
-
-            template<typename OtherArray>
-            GT_FUNCTION
-            constexpr T& apply(OtherArray const& other_){
-                return other_[Idx];
-            }
-        };
-
         static const uint_t _size = (D>0)?D:1;
 
         T _array[_size];
@@ -97,61 +84,6 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[4]=p;
         }
 
-#endif
-
-#ifdef CXX11_ENABLED
-        /** @brief constexpr copy constructor
-
-            unrolling the input array into a pack and forwarding to the regular constructor
-            TODO: complicated and counter intuitive syntax
-        */
-        // GT_FUNCTION
-        // constexpr array( array<T,_size> const& other): gt_make_integer_sequence<_size>::template apply<array<T, _size>, get_component> (other) {
-        // }
-        GT_FUNCTION
-        constexpr array( array<T,1> const& other): _array{other[0]} {
-        }
-        GT_FUNCTION
-        constexpr array( array<T,2> const& other): _array{other[0], other[1]} {
-        }
-        GT_FUNCTION
-        constexpr array( array<T,3> const& other): _array{other[0], other[1], other[2]}{
-        }
-        GT_FUNCTION
-        constexpr array( array<T,4> const& other): _array{other[0], other[1], other[2], other[3]} {
-        }
-#else
-        //TODO provide a BOOST PP implementation for this (so ugly :-()
-        GT_FUNCTION
-        array( array<T,1> const& other): _array() {
-            _array[0]=other[0];
-        }
-        GT_FUNCTION
-        array( array<T,2> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-        }
-        GT_FUNCTION
-        array( array<T,3> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-            _array[2]=other[2];
-        }
-        GT_FUNCTION
-        array( array<T,4> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-            _array[2]=other[2];
-            _array[3]=other[3];
-        }
-        GT_FUNCTION
-        array( array<T,5> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-            _array[2]=other[2];
-            _array[3]=other[3];
-            _array[4]=other[4];
-        }
 #endif
 
         GT_FUNCTION

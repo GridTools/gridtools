@@ -3,7 +3,6 @@
 #include <common/array.hpp>
 #include <cassert>
 #include <boost/mpl/vector.hpp>
-#include "virtual_storage.hpp"
 #include "location_type.hpp"
 #include "backend.hpp"
 #include "array_addons.hpp"
@@ -552,12 +551,12 @@ namespace gridtools {
             using type = double*;
         };
 
+        //    private:
         template <typename LocationType>
-        using storage_t = typename Backend::template storage_type<LocationType>;
+        using v_storage_t = typename Backend::template meta_storage_type<LocationType>;
 
-    private:
-        template <typename LocationType>
-        using v_storage_t = virtual_storage<typename storage_t<LocationType>::layout>;
+        template <typename LocationType, typename ValueType>
+        using storage_t = typename Backend::template storage_type<LocationType, ValueType>;
 
         const gridtools::array<uint_t, 2> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
@@ -566,8 +565,8 @@ namespace gridtools {
         std::tuple<v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes> > m_v_storage_tuple;
 
         using virtual_storage_types =
-            typename boost::fusion::vector<v_storage_t<cells>*, v_storage_t<edges>*, v_storage_t<vertexes>*>;
-        using storage_types = boost::mpl::vector<storage_t<cells>*, storage_t<edges>*, storage_t<vertexes>* >;
+            typename boost::fusion::vector<v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes>>;
+        using storage_types = boost::mpl::vector<storage_t<cells, double>*, storage_t<edges, double>*, storage_t<vertexes, double>* >;
         virtual_storage_types m_virtual_storages;
     public:
 
@@ -606,24 +605,24 @@ namespace gridtools {
         template<typename ... UInt>
         trapezoid_2D_colored(uint_t first_, uint_t second_, UInt ... dims)
             : m_dims{second_, first_}
-            , m_v_storage_tuple(// std::make_tuple(
-                // v_storage_t<cells>(
-                array<uint_t, v_storage_t<cells>::space_dimensions>
-                {u_size_i(cells(), first_), cells::n_colors, u_size_j(cells() ,second_)/cells::n_colors, dims...}//)
-                , // v_storage_t<edges>(
-                array<uint_t, v_storage_t<edges>::space_dimensions>
-                {u_size_i(edges(), first_), edges::n_colors, u_size_j(edges() , second_)/edges::n_colors, dims...}//))
-                , // v_storage_t<vertexes>(
-                array<uint_t, v_storage_t<vertexes>::space_dimensions>
-                {u_size_i(vertexes(), first_), vertexes::n_colors, u_size_j(vertexes() , second_)/vertexes::n_colors, dims...}//))
+            , m_v_storage_tuple
+              (std::make_tuple
+               (v_storage_t<cells>(array<uint_t, v_storage_t<cells>::space_dimensions>{u_size_i(cells(), first_), cells::n_colors, u_size_j(cells() ,second_)/cells::n_colors, dims...}),
+                v_storage_t<edges>(array<uint_t, v_storage_t<edges>::space_dimensions>{u_size_i(edges(), first_), edges::n_colors, u_size_j(edges() , second_)/edges::n_colors, dims...}),
+                v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{u_size_i(vertexes(), first_), vertexes::n_colors, u_size_j(vertexes() , second_)/vertexes::n_colors, dims...}))
              )
         {
-            boost::fusion::at_c<cells::value>(m_virtual_storages) = &std::get<0>(m_v_storage_tuple);
-            boost::fusion::at_c<edges::value>(m_virtual_storages) = &std::get<1>(m_v_storage_tuple);
-            boost::fusion::at_c<vertexes::value>(m_virtual_storages) = &std::get<2>(m_v_storage_tuple);
+            boost::fusion::at_c<cells::value>(m_virtual_storages) = std::get<0>(m_v_storage_tuple);
+            boost::fusion::at_c<edges::value>(m_virtual_storages) = std::get<1>(m_v_storage_tuple);
+            boost::fusion::at_c<vertexes::value>(m_virtual_storages) = std::get<2>(m_v_storage_tuple);
         }
 
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
+
+        template <typename LocationType>
+        storage_t<LocationType, double> make_storage() const {
+            return storage_t<LocationType, double>(std::get<LocationType::value>(m_v_storage_tuple));
+        }
 
 // #define DO_THE_MATH(stor, i,j,k)                \
 //         m_v_ ## stor ## _storage._index(i,j,k)

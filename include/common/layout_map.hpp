@@ -9,6 +9,7 @@
 #include "../common/gt_assert.hpp"
 #include "../common/host_device.hpp"
 #include "../common/defs.hpp"
+#include "../common/array.hpp"
 #ifdef CXX11_ENABLED
 #include <tuple>
 #endif
@@ -291,12 +292,39 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
-        static constexpr T find_val(Tuple const& indices) {
+        static constexpr typename std::enable_if<!is_array<Tuple>::value, T>::type
+        find_val(Tuple const& indices) {
             GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
                 indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+            //this calls arg_decorator::get
+        }
+
+        /** Given a gridtools::array of values tuple and a static index I, the function
+            returns the value of the element in the tuple whose position
+            corresponds to the position of 'I' in the map. If the
+            value is not found a default value is returned, which is
+            passed as template parameter. It works for intergal types.
+
+            \code
+            auto arr=gridtools::array<int, 3ul>{a,b,c};
+            gridtools::layout_map<2,0,1>::find_val<1,int,default>(arr) == c
+            \endcode
+
+            \tparam I Index to be searched in the map
+            \tparam Default_Val Default value returned if the find is not successful
+            \tparam[in] Indices List of argument where to return the found value
+            \param[in] indices List of values (length must be equal to the length of the layout_map length)
+        */
+        template <ushort_t I, typename T, size_t S, T DefaultVal>
+        GT_FUNCTION
+        static constexpr T find_val(array<T, S> const& indices) {
+            return ((pos_<I>::value >= length)) ?
+                DefaultVal
+                :
+                indices[S-pos_<I>::value-1];
             //this calls arg_decorator::get
         }
 
