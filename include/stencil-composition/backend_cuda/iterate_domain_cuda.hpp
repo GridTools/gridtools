@@ -31,7 +31,7 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
         shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
-    typedef typename iterate_domain_cache_t::bypass_caches_map_t bypass_caches_map_t;
+    typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
 
     using super::get_value;
     using super::get_data_pointer;
@@ -213,12 +213,11 @@ public:
     template<typename ReturnType, typename Accessor>
     GT_FUNCTION
     typename boost::disable_if<
-        boost::mpl::has_key<bypass_caches_map_t, static_uint<Accessor::index_type::value> >,
+        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
         ReturnType
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
-
         //        assert(m_pshared_iterate_domain);
         // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
         // the block and the offsets of the accessor
@@ -231,13 +230,14 @@ public:
     template<typename ReturnType, typename Accessor>
     GT_FUNCTION
     typename boost::enable_if<
-        boost::mpl::has_key<bypass_caches_map_t, static_uint<Accessor::index_type::value> >,
+        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
         ReturnType
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
-        // we call the iterate domain main get_value method that returns the value from gmem
-        return get_value(_accessor, get_data_pointer(_accessor));
+
+        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
+                    super::template get_data_pointer<Accessor>(_accessor));
     }
 
     /** @brief return a the value in memory pointed to by an accessor

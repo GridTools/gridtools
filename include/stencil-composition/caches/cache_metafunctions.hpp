@@ -6,6 +6,9 @@
 #pragma once
 
 #include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/void.hpp>
+#include <boost/mpl/insert.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -248,19 +251,36 @@ struct get_cache_storage_tuple
 };
 
 template<cache_type cacheType, typename CacheSequence, typename LocalDomain>
-struct get_empty_cache_map
+struct get_cache_set_for_type
 {
+
     typedef typename boost::mpl::fold<
         CacheSequence,
-        boost::mpl::map0<>,
-        boost::mpl::eval_if<
+        boost::mpl::set0<>,
+        boost::mpl::if_<
             typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
             boost::mpl::insert<
-                boost::mpl::_1, boost::mpl::pair<cache_to_index<boost::mpl::_2, LocalDomain>, boost::mpl::void_ >
+                boost::mpl::_1,
+                cache_to_index<boost::mpl::_2, LocalDomain>
             >,
-            boost::mpl::identity<boost::mpl::_1>
+            boost::mpl::_1
         >
     >::type type;
 };
+
+template<typename CacheSequence, typename LocalDomain>
+struct get_cache_set
+{
+
+    typedef typename boost::mpl::fold<
+        CacheSequence,
+        boost::mpl::set0<>,
+        boost::mpl::insert<
+            boost::mpl::_1,
+            cache_to_index<boost::mpl::_2, LocalDomain>
+        >
+    >::type type;
+};
+
 
 } // namespace gridtools
