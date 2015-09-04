@@ -194,6 +194,19 @@ public:
 
     };
 
+    /**
+    * @brief metafunction that determines if an accessor has to be read from texture memory  
+    */ 
+    template<typename Accessor>
+    struct accessor_read_from_texture
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        typedef typename boost::mpl::and_<
+            typename accessor_points_to_readonly_arg<Accessor>::type,
+            typename boost::mpl::not_< typename boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >::type >::type
+        >::type type;
+    };
+
     /** @brief return a the value in gmem pointed to by an accessor
     */
     template<
@@ -235,7 +248,6 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
-
         return super::template get_value<Accessor, void * RESTRICT> (_accessor,
                     super::template get_data_pointer<Accessor>(_accessor));
     }
@@ -250,8 +262,11 @@ public:
         typename StoragePointer
     >
     GT_FUNCTION
-    ReturnType get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset,
-        typename boost::enable_if<typename accessor_points_to_readonly_arg<Accessor>::type>::type* dummy = 0) const
+    typename boost::enable_if<
+        typename accessor_read_from_texture<Accessor>::type,
+        ReturnType
+    >::type
+    get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 #if __CUDA_ARCH__ >= 350
@@ -271,8 +286,11 @@ public:
         typename StoragePointer
     >
     GT_FUNCTION
-    ReturnType get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset,
-        typename boost::disable_if<typename accessor_points_to_readonly_arg<Accessor>::type>::type* dummy = 0) const
+    typename boost::disable_if<
+        typename accessor_read_from_texture<Accessor>::type,
+        ReturnType
+    >::type
+    get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         return get_gmem_value_impl<ReturnType>(storage_pointer,pointer_offset);
