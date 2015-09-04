@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 
 
-version = "0.0.1"
+version = "0.1.1"
 
 
 #
@@ -13,7 +13,6 @@ version = "0.0.1"
 if sys.version_info.major < 3:
     print ("Python 3.x is required.")
     sys.exit (1)
-
 
 
 def read_file (fname):
@@ -25,10 +24,9 @@ def read_file (fname):
     return open (os.path.join (os.path.dirname (__file__), fname)).read ( )
 
 
-
 setup (
     name             = 'gridtools4py',
-    description      = "Python interface C++ library Gridtools",
+    description      = 'Python interface C++ library Gridtools',
     long_description = read_file ('README.md'),
     version          = version,
     classifiers      = ['Development Status :: 5 - Production/Stable',
@@ -43,14 +41,14 @@ setup (
                         'Programming Language :: Python :: 3',
                         'Programming Language :: Python :: 3.3',
                         'Programming Language :: Python :: 3.4',],
-    keywords         = "stencil jit c++ openmp cuda",
-    author           = "Lucas Benedicic",
-    author_email     = "benedicic@cscs.ch",
-    url              = "https://github.com/eth-cscs/gridtools",
-    license          = "COSMO",
+    keywords         = 'stencil jit c++ openmp cuda',
+    author           = 'Lucas Benedicic',
+    author_email     = 'benedicic@cscs.ch',
+    url              = 'https://github.com/eth-cscs/gridtools',
+    license          = 'COSMO',
     packages         = ['gridtools', 'tests'],
-    package_dir      = {'': os.path.dirname (__file__)},
-    package_data     = {'gridtools' : ['templates/*'],
+    package_data     = {         '' : ['README.md'],
+                        'gridtools' : ['templates/*'],
                             'tests' : ['*.npy']},
-    install_requires = read ("requirements.txt").split ('\n')
+    install_requires = read_file ('requirements.txt').split ('\n')
 )
