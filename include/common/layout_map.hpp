@@ -239,9 +239,11 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
+        template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First>
         GT_FUNCTION
-        static constexpr T find_val(First first, Indices ... indices) {
+        static constexpr
+        typename boost::enable_if<boost::is_integral<T>, T>::type
+        find_val(First first, Indices ... indices) {
             static_assert(sizeof...(Indices)<length, "Too many arguments");
 
             //lazy template instantiation
@@ -264,7 +266,8 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
-        static constexpr Indices
+        static constexpr
+        typename boost::enable_if<boost::is_integral<T>, T>::type
         find_val(Indices const * indices) {
             return (pos_<I>::value >= length ) ?
                 DefaultVal
@@ -318,9 +321,9 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, size_t S, T DefaultVal>
+        template <ushort_t I, typename T, T DefaultVal, typename U, size_t S >
         GT_FUNCTION
-        static constexpr T find_val(array<T, S> const& indices) {
+        static constexpr T find_val(array<U, S> const& indices) {
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :

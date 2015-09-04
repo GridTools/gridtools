@@ -45,13 +45,10 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
             forwarding to the base class
          */
         template <class ... UIntTypes>
-        explicit meta_storage_wrapper(  UIntTypes const& ... args ): super(args ...)
+        explicit meta_storage_wrapper(  UIntTypes const& ... args ): super(args ...) {}
 
         template <size_t S>
-        explicit meta_storage_wrapper( array<uint_t, S> const& arg ): super(arg)
-
-            {
-            }
+        explicit meta_storage_wrapper( array<uint_t, S> const& arg ): super(arg) {}
 #else
         //constructor picked in absence of CXX11 or with GCC<4.9
         /** @brief ctor

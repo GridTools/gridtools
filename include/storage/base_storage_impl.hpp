@@ -115,7 +115,7 @@ namespace gridtools{
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, Tuple const&  indices_){
                 return (int_t)strides_[space_dimensions-Id]
-                    * Layout::template find_val<space_dimensions-Id, int, 0>(indices_)
+                    * Layout::template find_val<space_dimensions-Id, uint_t, 0>(indices_)
                     + compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 

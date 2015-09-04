@@ -566,7 +566,10 @@ namespace gridtools {
 
         using virtual_storage_types =
             typename boost::fusion::vector<v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes>>;
-        using storage_types = boost::mpl::vector<storage_t<cells, double>*, storage_t<edges, double>*, storage_t<vertexes, double>* >;
+
+        using storage_types = boost::mpl::vector<storage_t<cells, double>*,
+                                                 storage_t<edges, double>*,
+                                                 storage_t<vertexes, double>* >;
         virtual_storage_types m_virtual_storages;
     public:
 
@@ -611,10 +614,11 @@ namespace gridtools {
                 v_storage_t<edges>(array<uint_t, v_storage_t<edges>::space_dimensions>{u_size_i(edges(), first_), edges::n_colors, u_size_j(edges() , second_)/edges::n_colors, dims...}),
                 v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{u_size_i(vertexes(), first_), vertexes::n_colors, u_size_j(vertexes() , second_)/vertexes::n_colors, dims...}))
              )
+            , m_virtual_storages(v_storage_t<cells>{array<uint_t, v_storage_t<cells>::space_dimensions>{u_size_i(cells(), first_), cells::n_colors, u_size_j(cells() ,second_)/cells::n_colors, dims...}},
+                                 v_storage_t<edges>{array<uint_t, v_storage_t<edges>::space_dimensions>{u_size_i(edges(), first_), edges::n_colors, u_size_j(edges() , second_)/edges::n_colors, dims...}},
+                                 v_storage_t<vertexes>{array<uint_t, v_storage_t<vertexes>::space_dimensions>{u_size_i(vertexes(), first_), vertexes::n_colors, u_size_j(vertexes() , second_)/vertexes::n_colors, dims...}})
+
         {
-            boost::fusion::at_c<cells::value>(m_virtual_storages) = std::get<0>(m_v_storage_tuple);
-            boost::fusion::at_c<edges::value>(m_virtual_storages) = std::get<1>(m_v_storage_tuple);
-            boost::fusion::at_c<vertexes::value>(m_virtual_storages) = std::get<2>(m_v_storage_tuple);
         }
 
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
@@ -649,7 +653,7 @@ namespace gridtools {
                       << i[3] << ")"
                       << std::endl;
 #endif
-            return std::get<LocationType::value>(m_v_storage_tuple)._index(&i[0]);
+            return std::get<LocationType::value>(m_v_storage_tuple)._index(i);
         }
 
         // methods returning the neighbors. Specializations according to the location type

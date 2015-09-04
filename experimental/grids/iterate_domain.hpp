@@ -260,7 +260,7 @@ private:
 
         template <typename Index>
         void operator()(Index) {
-            double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr());
+            double * ptr = const_cast<double*>(&(*(boost::fusion::at_c<Index::value>(m_st)))(0,0,0,0));
 
             boost::fusion::at_c<Index::value>(m_pt) = ptr;
         }
@@ -286,8 +286,8 @@ private:
 
         template <typename Index>
         void operator()(Index) {
-            double * ptr = const_cast<double*>((boost::fusion::at_c<Index::value>(m_st))->min_addr())
-                + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())->_index(&_m_ll_indices[0]));
+            double * ptr = const_cast<double*>(&(*(boost::fusion::at_c<Index::value>(m_st)))(0,0,0,0))
+                + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())._index(&_m_ll_indices[0]));
 
             boost::fusion::at_c<Index::value>(m_pt) = ptr;
         }
@@ -304,7 +304,7 @@ private:
         template <typename Index>
         void operator()(Index) {
             auto value = boost::fusion::at_c<boost::mpl::at_c<PlcVector, Index::value>::type::location_type::value>
-                (m_g.virtual_storages())->template strides<Coordinate>();
+                (m_g.virtual_storages()).template strides(Coordinate);
             //std::cout << "Stide<" << Index::value << "> for coordinate " << Coordinate << " = " << value << std::endl;
             boost::fusion::at_c<Index::value>(m_pt) += value;
         }

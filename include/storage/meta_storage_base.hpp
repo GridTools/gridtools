@@ -236,10 +236,16 @@ namespace gridtools {
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template <typename OffsetTuple, typename StridesVector>
+        template <typename StridesVector, typename OffsetTuple>
         GT_FUNCTION
         static constexpr int_t _index(StridesVector const& RESTRICT strides_, OffsetTuple  const& tuple) {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
+        }
+
+        template <typename OffsetTuple>
+        GT_FUNCTION
+        constexpr int_t _index(OffsetTuple  const& tuple) {
+            return _impl::compute_offset<space_dimensions, layout>::apply(strides(), tuple);
         }
 
         /** @brief returns the memory access index of the element with coordinate passed as an array
