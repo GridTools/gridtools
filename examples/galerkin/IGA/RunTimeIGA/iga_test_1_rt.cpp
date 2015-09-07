@@ -72,6 +72,11 @@ int main()
 			break;
 		}
 	}
+    std::vector<double> b_spline_values(bsplineTest.evaluate(knots[P+N]));
+    if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
+    {
+        test_passed = false;
+    }
 	if(test_passed == true)
 	{
 		std::cout<<"Unity 1D test passed"<<std::endl;
@@ -80,6 +85,7 @@ int main()
 	{
 		std::cout<<"Unity 1D test failed"<<std::endl;
 	}
+
 
 	// BIVARIATE CASE
 
@@ -135,6 +141,11 @@ int main()
 			}
 		}
 	}
+    std::vector<double> bivariate_b_spline_values(bivariateBsplineTest.evaluate(knots[P+N],knots[P+N]));
+    if(std::abs(std::accumulate(bivariate_b_spline_values.begin(),bivariate_b_spline_values.end(),0.) - 1.)>unity_tolerance)
+    {
+        test_passed = false;
+    }
 	if(test_passed == true)
 	{
 		std::cout<<"Unity 2D test passed"<<std::endl;
