@@ -3,7 +3,7 @@
 namespace gridtools{
 
     template < typename Partitioner, typename Storage >
-class parallel_storage;
+class parallel_meta_storage;
 }
 
 class verifier
@@ -49,25 +49,26 @@ public:
         return verified;
     }
 
-    template<typename Partitioner, typename storage_type>
-    bool verify(gridtools::parallel_storage<storage_type, Partitioner>& field1, storage_type& field2)
+    template<typename Partitioner, typename MetaStorageType, typename StorageType>
+    bool verify_parallel(gridtools::parallel_meta_storage<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2)
     {
-        const gridtools::uint_t idim = field2.template dims<0>();
-        const gridtools::uint_t jdim = field2.template dims<1>();
-        const gridtools::uint_t kdim = field2.template dims<2>();
+
+        const gridtools::uint_t idim = metadata_.get_metadata().template dims<0>();
+        const gridtools::uint_t jdim = metadata_.get_metadata().template dims<1>();
+        const gridtools::uint_t kdim = metadata_.get_metadata().template dims<2>();
 
         bool verified = true;
 
-        for(gridtools::uint_t f=0; f<storage_type::field_dimensions; ++f)
+        for(gridtools::uint_t f=0; f<StorageType::field_dimensions; ++f)
             for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
             {
                 for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
                 {
                     for(gridtools::uint_t k=0; k < kdim; ++k)
                     {
-                        if(field1.mine(i,j,k)){
-                            typename storage_type::value_type expected = field2.get_value(i,j,k);
-                            typename storage_type::value_type actual = field1.get_value(i,j,k);
+                        if(metadata_.mine(i,j,k)){
+                            typename StorageType::value_type expected = field2.get_value(i,j,k);
+                            typename StorageType::value_type actual = field1[metadata_.get_local_index(i,j,k)];
 
                             if(!compare_below_threashold(expected, actual))
                             {

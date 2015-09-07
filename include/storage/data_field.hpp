@@ -1,5 +1,7 @@
 #pragma once
 #include "storage_list.hpp"
+#include "../gt_for_each/for_each.hpp"
+#include "../common/generic_metafunctions/reversed_range.hpp"
 #ifdef CXX11_ENABLED
 namespace gridtools{
     /** @brief traits class defining some useful compile-time counters
@@ -7,11 +9,11 @@ namespace gridtools{
     template < typename First, typename  ...  StorageExtended>
     struct dimension_extension_traits
     {
-        //total number of snapshots in the discretized field
+        //total number of snapshots in the discretized data field
         static const ushort_t n_fields=First::n_width + dimension_extension_traits<StorageExtended  ...  >::n_fields ;
         //the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
         static const short_t n_width=First::n_width;
-        //the number of dimensions (i.e. the number of different fields)
+        //the number of dimensions (i.e. the number of different storage_lists)
         static const ushort_t n_dimensions=  dimension_extension_traits<StorageExtended  ...  >::n_dimensions  +1 ;
         //the current field extension
         //n_fields-1 because the storage_list takes the EXTRA width as argument, not the total width.
@@ -31,12 +33,117 @@ namespace gridtools{
         using type = static_int<T::value>;
     };
 
+    template<typename T>
+    struct get_width{
+        using type = static_int<T::n_width>;
+    };
+
+    /** @brief metafunction to compute the number of total snapshots present in the data field
+        (sum of storage_list::n_width) before
+        the ID-th storage list*/
     template<typename Storage, uint_t Id, uint_t IdMax>
     struct compute_storage_offset{
 
         GRIDTOOLS_STATIC_ASSERT(IdMax>=Id && Id>=0, "Library internal error");
         typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id+1, IdMax> > >::type type;
         static const uint_t value=type::value;
+    };
+
+
+    /** @brief metafunction to compute the number of snapshots present in the ID-th storage_list
+        (storage_list::n_width)
+     */
+    template<typename Storage, uint_t Id, uint_t IdMax>
+    struct compute_storage_list_width{
+
+        GRIDTOOLS_STATIC_ASSERT(IdMax>=Id && Id>=0, "Library internal error");
+        typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_width<Storage> , get_width<compute_storage_list_width<typename Storage::super, Id+1, IdMax> > >::type type;
+        static const uint_t value=type::value;
+    };
+
+    template<typename T>
+    struct is_data_field : public boost::mpl::false_{};
+
+    namespace impl_{
+    /**@brief syntactic sugar*/
+    template<typename Storage, uint_t Id>
+    using offset_t=compute_storage_offset<typename Storage::traits, Id, Storage::traits::n_dimensions-1>;
+
+    /**@brief syntactic sugar*/
+    template<typename Storage, uint_t Id>
+    using width_t=compute_storage_list_width<typename Storage::traits, Id, Storage::traits::n_dimensions-1>;
+    }
+
+    /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
+
+       \tparam SnapshotFrom one snapshot
+       \tparam DimFrom one dimension
+       \tparam SnapshotTo the second snapshot
+       \tparam DimTo the second dimension
+
+       syntax:
+       swap<3,1>::with<4,1>::apply(storage_);
+     */
+    template<ushort_t SnapshotFrom, ushort_t DimFrom=0>
+    struct swap{
+        template<ushort_t SnapshotTo, ushort_t DimTo=0>
+        struct with{
+            template<typename Storage>
+            GT_FUNCTION
+            static void apply(Storage& storage_){
+            GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
+                                    "\"swap\" can only be called with instanced of type \"data_field\" ");
+                typename Storage::pointer_type tmp=storage_.template get<SnapshotFrom, DimFrom>();
+                storage_.template get<SnapshotFrom, DimFrom>()=
+                    storage_.template get<SnapshotTo, DimTo>();
+                storage_.template get<SnapshotTo, DimTo>()=tmp;
+            }
+        };
+    };
+
+    /**@brief shifts the snapshots in one data field dimension
+
+       \tparam Dim the data field dimension
+
+       it cycles, i.e. the pointer to the last snapshots becomes the first
+       (so that the storage is overwritten)
+
+       syntax:
+       advance<2>()(storage_);
+     */
+    template<ushort_t Dim>
+    struct advance{
+
+        template <typename Storage>
+        struct shift{
+        private:
+            Storage & m_storage;
+
+        public:
+            shift(Storage & storage_)
+                : m_storage(storage_){}
+
+            template<typename Id>
+            void operator()(Id){
+                std::cout<<"ID: "<<Id::value<<std::endl;
+                m_storage.fields_view()[Id::value]=m_storage.fields_view()[Id::value-1];
+            }
+        };
+
+        template <typename Storage>
+        static void apply(Storage& storage_){
+            GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
+                                    "\"advance\" can only be called with instanced of type \"data_field\" ");
+            //save last snapshot
+            typename Storage::pointer_type tmp=storage_.fields_view()[impl_::width_t<Storage, Dim>::value + impl_::offset_t<Storage, Dim>::value-1];
+
+            typedef typename reversed_range<ushort_t, 1+impl_::offset_t<Storage, Dim>::value, impl_::width_t<Storage, Dim>::value+impl_::offset_t<Storage, Dim>::value>::type range_t;
+
+            for_each<range_t>(shift<Storage>(storage_));
+
+            //restore the first snapshot
+            storage_.fields_view()[impl_::offset_t<Storage, Dim>::value]=tmp;
+        }
     };
 
 
@@ -176,17 +283,20 @@ namespace gridtools{
       \tparam snapshot the snapshot of dimension field_dim to be set
       \param field the input storage
         */
-   template<short_t field_dim=0, short_t snapshot=0>
-   pointer_type& get( )
-       {
-           return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
-       }
+        template< short_t snapshot=0, short_t field_dim=0>
+        pointer_type& get( )
+            {
+                return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+            }
+
+        template<short_t snapshot=0, short_t field_dim=0>
+        pointer_type const& get( ) const
+            {
+                return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+            }
 
 
-   /**@biref sets the given storage as the nth snapshot of a specific field dimension, at the specified coordinates
-
-
-        /**@biref gets a given value as the given field i,j,k coordinates
+        /**@biref gets a given value at the given field i,j,k coordinates
 
            \tparam field_dim the given field dimenisons
            \tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
@@ -194,10 +304,20 @@ namespace gridtools{
            \param j index in the horizontal direction
            \param k index in the vertical direction
         */
-   template<short_t field_dim=0, short_t snapshot=0>
-        typename super::value_type& get_value( uint_t const& i, uint_t const& j, uint_t const& k )
+        template< short_t snapshot=0, short_t field_dim=0, typename ... Int>
+        typename super::value_type& get_value( Int ... args )
       {
-          return get<field_dim, snapshot>()[this->m_meta_data.index(i,j,k)];
+          return get<snapshot,field_dim>()[this->m_meta_data.index(args...)];
+      }
+
+        /**@biref gets a given value at the given field i,j,k coordinates
+
+           same as the previous one, but returning a constant reference
+         */
+        template<short_t snapshot=0, short_t field_dim=0, typename ... Int>
+        typename super::value_type const& get_value( Int ... args ) const
+      {
+          return get<snapshot,field_dim>()[this->m_meta_data.index(args...)];
       }
 
         /**@biref ODE advancing for a single dimension
@@ -227,6 +347,14 @@ namespace gridtools{
         }
 
     };
+
+    template <typename First,  typename  ...  StorageExtended>
+    struct is_data_field<data_field<First,  StorageExtended...> > : public boost::mpl::true_{};
+
+    template<typename T> struct storage;
+
+    template <typename First,  typename  ...  StorageExtended>
+    struct is_data_field<storage<data_field<First,  StorageExtended...> > > : public boost::mpl::true_{};
 
     template <typename F, typename ... T>
     std::ostream& operator<<(std::ostream &s, data_field< F, T... > const &) {

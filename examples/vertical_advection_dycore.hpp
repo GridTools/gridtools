@@ -213,7 +213,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef arg<2, storage_type> p_wcon;
     typedef arg<3, storage_type> p_u_pos;
     typedef arg<4, storage_type> p_utens;
-    typedef arg<5, storage_type> p_dtr_stage;
+    typedef arg<5, scalar_storage_type> p_dtr_stage;
     typedef arg<6, tmp_storage_type> p_acol;
     typedef arg<7, tmp_storage_type> p_bcol;
     typedef arg<8, tmp_storage_type> p_ccol;

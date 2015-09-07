@@ -15,7 +15,7 @@ template<typename ArgType, typename Storage>
 struct arg_storage_pair {
     typedef ArgType arg_type;
     typedef Storage storage_type;
-    typedef typename Storage::iterator_type index_type;
+    // typedef typename Storage::iterator_type index_type;
 
     Storage *ptr;
 

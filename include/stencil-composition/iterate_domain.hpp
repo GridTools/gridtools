@@ -80,7 +80,14 @@ namespace gridtools {
     template<typename IterateDomainImpl>
     struct iterate_domain_backend_id;
 
-    /**@brief class handling the computation of the */
+    /**@brief class managing the memory accesses, indices increment
+
+       This class gets instantiated in the backend-specific code, and has a different implementation for
+       each backend (see CRTP pattern). It is instantiated whithin the kernel (e.g. in the device code),
+       and drives all the operations which are performed at the innermost level. In particular
+       the computation/increment of the useful addresses in memory, given the iteration point,
+       the storage placeholders/metadatas and their offsets.
+     */
     template <typename IterateDomainImpl>
     struct iterate_domain {
         typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
@@ -176,11 +183,9 @@ namespace gridtools {
             >::type type;
         };
 
-        //typedef typename local_domain_t::local_args_type local_args_type;
-        // typedef typename local_domain_t::mpl_storage_multiplicity multiplicity;
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;
         typedef typename local_domain_t::actual_args_type actual_args_type;
-        //the number of different storage metadatas  used in the current functor
+        //the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES=boost::mpl::size<metadata_map_t>::value;
         //the number of storages  used in the current functor
         static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
@@ -194,24 +199,36 @@ namespace gridtools {
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
     private:
 
+        /**
+           @brief returns the array of pointers to the raw data
+        */
         GT_FUNCTION
         data_pointer_array_t& RESTRICT data_pointer()
         {
             return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
+        /**
+           @brief returns the array of pointers to the raw data as const reference
+        */
         GT_FUNCTION
         data_pointer_array_t const & RESTRICT data_pointer() const
         {
             return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
+        /**
+           @brief returns the strides
+        */
         GT_FUNCTION
         strides_cached_t& RESTRICT strides()
         {
             return static_cast<IterateDomainImpl*>(this)->strides_impl();
         }
 
+        /**
+           @brief returns the strides as const reference
+        */
         GT_FUNCTION
         strides_cached_t const & RESTRICT strides() const
         {
@@ -237,6 +254,11 @@ namespace gridtools {
         iterate_domain(local_domain_t const& local_domain_)
             : local_domain(local_domain_) {}
 
+
+        /**
+           @brief returns a single snapshot in the array of raw data pointers
+           \param i index in the array of raw data pointers
+        */
         GT_FUNCTION
         const void* data_pointer(ushort_t i){return ( data_pointer() )[i];}
 
@@ -256,10 +278,19 @@ namespace gridtools {
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
-                    typename local_domain_t::local_args_type
-                >(data_pointer(), local_domain.m_local_args,  EU_id_i, EU_id_j));
+                    typename local_domain_t::local_args_type,
+                    typename local_domain_t::local_metadata_type,
+                    metadata_map_t
+                >(data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata,  EU_id_i, EU_id_j));
         }
 
+        /**
+           @brief recursively assignes all the strides
+
+           copies them from the
+           local_domain.m_local_metadata vector, and stores them into an instance of the
+           \ref strides_cached class.
+         */
         template<typename BackendType, typename Strides>
         GT_FUNCTION
         void assign_stride_pointers(){
@@ -531,38 +562,37 @@ namespace gridtools {
         GT_FUNCTION
         auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) {
             //arg.to_string();
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Arguments ... > >::value), "invalid expression" );
             return evaluation::value((*this), arg);
         }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for double (or float)*/
-        template <typename Accessor, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+        template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
                   , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Accessor, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
-            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+        auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
             return evaluation::value_scalar((*this), arg);
         }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
-        // template <typename Arg, int Arg2, template<typename Arg1, int a> class Expression >
-        template <typename Accessor, template<typename Arg1, typename Arg2> class Expression, typename IntType
+        template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename IntType
                   , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Accessor, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
-            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+        auto operator() (Expression<Argument, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
 
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, IntType> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
 
-        template <typename Accessor, template<typename Arg1, int Arg2> class Expression
-                  , /*typename IntType, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0*/int exponent >
+        template <typename Argument, template<typename Arg1, int Arg2> class Expression, int exponent >
         GT_FUNCTION
-        auto operator() (Expression<Accessor, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
-            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+        auto operator() (Expression<Argument, exponent> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
 
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, exponent> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
 

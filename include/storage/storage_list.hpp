@@ -46,54 +46,6 @@ namespace gridtools{
 
             }
 
-        // /**@brief copy all the data fields to the GPU*/
-        // GT_FUNCTION_WARNING
-        // void copy_data_to_gpu(){
-        //     //the fields are otherwise not copied to the gpu, since they are not inserted in the storage_pointers fusion vector
-        //     for (uint_t i=0; i< super::field_dimensions; ++i)
-        //         super::m_fields[i].update_gpu();
-        // }
-
-        // using super::setup;
-
-        /**
-            @brief returns a const reference to the specified data snapshot
-
-            \param index the index of the snapshot in the array
-        */
-        GT_FUNCTION
-        pointer_type const& get_field(int index) const {return super::m_fields[index];};
-
-        /**@brief swaps the argument with the last data snapshots*/
-        GT_FUNCTION
-        void swap(pointer_type & field){
-            //the integration takes ownership over all the pointers?
-            //cycle in a ring
-            pointer_type swap(super::m_fields[super::field_dimensions-1]);
-            super::m_fields[super::field_dimensions-1]=field;
-            field = swap;
-        }
-
-        /**@brief adds a given data field at the front of the buffer
-           \param field the pointer to the input data field
-           NOTE: better to shift all the pointers in the array, because we do this seldomly, so that we don't need to keep another indirection when accessing the storage ("stateless" buffer)
-        */
-        GT_FUNCTION
-        void push_front( pointer_type& field, uint_t const& from=(uint_t)0, uint_t const& to=(uint_t)(n_width)){
-            //cycle in a ring: better to shift all the pointers, so that we don't need to keep another indirection when accessing the storage (stateless buffer)
-            for(uint_t i=from+1;i<to;i++) super::m_fields[i]=super::m_fields[i-1];
-            super::m_fields[from]=(field);
-        }
-
-        //the time integration takes ownership over all the pointers?
-        /**TODO code repetition*/
-        GT_FUNCTION
-        void advance(uint_t from=(uint_t)0, uint_t to=(uint_t)(n_width)){
-            pointer_type tmp(super::m_fields[to-1]);
-            for(uint_t i=from+1;i<to;i++) super::m_fields[i]=super::m_fields[i-1];
-            super::m_fields[from]=tmp;
-        }
-
         /**@brief printing the first values of all the snapshots contained in the discrete field*/
         void print() {
             print(std::cout);
@@ -135,9 +87,7 @@ namespace gridtools{
         virtual ~storage_list(){
         }
 
-        // using super::setup;
-
-   /**dimension number of snaphsots for the current field dimension*/
+        /**dimension number of snaphsots for the current field dimension*/
         static const ushort_t n_width = Storage::n_width;
 
         /**@brief device copy constructor*/

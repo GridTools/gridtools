@@ -22,13 +22,6 @@
 namespace gridtools {
 
     namespace local_domain_aux {
-        template <typename List, typename Index>
-        struct get_index {
-            typedef typename boost::mpl::at<
-                List,
-                Index
-                >::type type;
-        };
 
         template <typename ArgList>
         struct assign_storage_pointers {
@@ -55,6 +48,16 @@ namespace gridtools {
         };
 
 
+        /**
+           @class
+           @brief functor to assign a boost::fusion associative containers with another one, both
+           accessed using a key
+
+           \tparam LocalMetaData output container type
+           \tparam ActualMetaData input container type
+           It is used here to assign the storage meta data of the current local domain (i.e. one
+           user functor) given the actual meta data of the whole computation
+         */
         template <typename LocalMetaData, typename ActualMetaData>
         struct assign_fusion_maps {
 
@@ -66,14 +69,20 @@ namespace gridtools {
                 m_actual(actual_)
             {}
 
-            template <typename Local>
+            /**
+               @brief assignment
+
+               \tparam Key the key to access one specific instance in the two containers
+               \param local_ the instance getting assigned
+             */
+            template <typename Key>
             GT_FUNCTION_WARNING
-            void operator()(Local& local_) const {
+            void operator()(Key& local_) const {
                 local_ =
 #ifdef __CUDACC__
-                    (typename Local::value_type *) boost::fusion::at_key<Local>(m_actual)->gpu_object_ptr;
+                    (typename Key::value_type *) boost::fusion::at_key<Key>(m_actual)->gpu_object_ptr;
 #else
-                    boost::fusion::at_key<Local>(m_actual);
+                    boost::fusion::at_key<Key>(m_actual);
 #endif
             }
         };
@@ -174,7 +183,7 @@ namespace gridtools {
                                           boost::mpl::vector<>,
                                           boost::mpl::push_back<
                                               boost::mpl::_1,
-                                              local_domain_aux::get_index<esf_args,  boost::mpl::_2>
+                                              boost::mpl::at<esf_args,  boost::mpl::_2>
                                               >
                                           >::type domain_indices_t;
 

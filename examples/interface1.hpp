@@ -160,7 +160,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef horizontal_diffusion::repository::storage_type storage_type;
     typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
-    // horizontal_diffusion::repository::create_metadata(d1,d2,d3);
     horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
     repository.init_fields();
 
@@ -187,11 +186,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-// #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-//     gridtools::domain_type<accessor_list, metadata_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
-// #else
+#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
+    gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
+#else
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
-// #endif
+#endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
@@ -313,8 +312,6 @@ PAPI_stop(event_set, values);
     if(!result){
         std::cout << "ERROR"  << std::endl;
     }
-    else
-        std::cout<<"OK"<<std::endl;
 
 #ifdef BENCHMARK
         std::cout << horizontal_diffusion->print_meter() << std::endl;

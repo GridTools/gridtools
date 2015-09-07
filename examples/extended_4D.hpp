@@ -1,8 +1,5 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
 /**
@@ -100,15 +97,15 @@ namespace assembly{
         typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
         typedef gridtools::layout_map<2,1,0> layout_t;
         typedef meta_storage<0, layout_t, false >::type metadata_t;
-        typedef meta_storage<1, layout4_t, false >::type metadata4_t;
-        typedef meta_storage<2, layout4_t, false >::type metadata4_local_t;
+        typedef meta_storage<1, layout4_t, false >::type metadata_global_quad_t;
+        typedef meta_storage<2, layout4_t, false >::type metadata_local_quad_t;
         typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-        typedef gridtools::BACKEND::storage_type<float_type, metadata4_t >::type integration_type;
-        typedef gridtools::BACKEND::storage_type<float_type, metadata4_local_t >::type local_type;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
-        typedef arg<0, local_type > p_phi;
-        typedef arg<1, local_type > p_psi;
-        typedef arg<2, integration_type > p_jac;
+        typedef arg<0, storage_local_quad_t > p_phi;
+        typedef arg<1, storage_local_quad_t > p_psi;
+        typedef arg<2, storage_global_quad_t > p_jac;
         typedef arg<3, storage_type > p_f;
         typedef arg<4, storage_type > p_result;
 
@@ -119,15 +116,15 @@ namespace assembly{
         uint_t b2=2;
         uint_t b3=2;
         //basis functions available in a 2x2x2 cell, because of P1 FE
-        metadata4_local_t local_metadata(b1,b2,b3,nbQuadPt);
+        metadata_local_quad_t local_metadata(b1,b2,b3,nbQuadPt);
 
-        local_type phi(local_metadata);
-        local_type psi(local_metadata);
+        storage_local_quad_t phi(local_metadata);
+        storage_local_quad_t psi(local_metadata);
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
-        metadata4_t integration_metadata(d1,d2,d3,nbQuadPt);
-        integration_type jac(integration_metadata);
+        metadata_global_quad_t integration_metadata(d1,d2,d3,nbQuadPt);
+        storage_global_quad_t  jac(integration_metadata);
 
         //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
         jac.allocate();

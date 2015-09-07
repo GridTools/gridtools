@@ -106,8 +106,7 @@ namespace gridtools {
             , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
             , boost::mpl::if_< is_storage_arg<boost::mpl::_2>, boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >::type original_metadata_set_t;
 
-        // typedef typename original_metadata_set_t::fuck you;
-        // create an mpl::vector of metadata types
+        /** @brief Create an mpl::vector of metadata types*/
         typedef typename boost::mpl::fold<
             original_metadata_set_t
             , boost::mpl::vector0<>
@@ -124,13 +123,6 @@ namespace gridtools {
                                                >::type raw_storage_list;
 
 
-        typedef typename boost::mpl::transform<original_metadata_t,
-                                               pointer<boost::add_const<// get_value_t<
-                                                                       boost::mpl::_1// >
-                                                                       > >
-                                               >::type::type raw_metadata_list;
-
-
         /**
          * \brief Get a sequence of the same type of original_placeholders, but containing the iterator types corresponding to the placeholder's storage type
          */
@@ -138,12 +130,12 @@ namespace gridtools {
                                                _impl::l_get_it_type
                                                >::type raw_iterators_list;
 
-
+        /** @brief Wrap the meta datas in pointer-to-const types*/
         typedef typename boost::mpl::transform<original_metadata_t,
-                                               pointer<boost::add_const<// get_value_t<
-                                                                    boost::mpl::_1// >
-                                                                    > >
-                                               >::type::type shared_mpl_metadata_list;
+                                               pointer<boost::add_const<
+                                                           boost::mpl::_1
+                                                           > >
+                                               >::type::type mpl_metadata_ptr_list;
 
     public:
 
@@ -160,7 +152,6 @@ namespace gridtools {
          e.g. [0,1,2,3,4]
          */
         typedef boost::mpl::range_c<uint_t ,0,len> range_t;
-        typedef boost::mpl::range_c<uint_t ,0,len_meta> meta_range_t;
 
     private:
         typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
@@ -230,7 +221,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         /**
          * Type of fusion::set of pointers to meta storages
          */
-        typedef typename boost::fusion::result_of::as_set<shared_mpl_metadata_list>::type shared_metadata_list;
+        typedef typename boost::fusion::result_of::as_set<mpl_metadata_ptr_list>::type metadata_ptr_list;
         /**
          * Type of fusion::vector of pointers to iterators as indicated in Placeholders
          */
@@ -240,7 +231,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
            Wrapper for a fusion set of pointers (built from an MPL sequence) containing the
            metadata information for the storages.
          */
-        typedef metadata_set<shared_metadata_list> metadata_set_t;
+        typedef metadata_set<metadata_ptr_list> metadata_set_t;
 
         /**
          * fusion::vector of pointers to storages
@@ -290,8 +281,13 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             , m_metadata_set()
             {
                 assign_pointers(args...);
+
                 //copy of the non-tmp metadata into m_metadata_set
-                boost::fusion::for_each(m_storage_pointers, assign_metadata_set<metadata_set_t >(m_metadata_set));
+                typedef boost::fusion::filter_view<arg_list,
+                                                   is_storage<boost::mpl::_1> > view_type;
+
+                view_type fview(m_storage_pointers);
+                boost::fusion::for_each(fview, assign_metadata_set<metadata_set_t >(m_metadata_set));
             }
 #endif
 

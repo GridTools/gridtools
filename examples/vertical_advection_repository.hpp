@@ -36,6 +36,7 @@ public:
 
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size) :
         m_metadata(idim, jdim, kdim),
+        m_scalar_metadata(1,1,1), //fake 3D
         utens_stage_(m_metadata, -1., "utens_stage"),
         utens_stage_ref_(m_metadata, -1., "utens_stage_ref"),
         u_stage_(m_metadata, -1., "u_stage"),
@@ -46,7 +47,7 @@ public:
         jpos_(m_metadata, -1., "jpos"),
         kpos_(m_metadata, -1., "kpos"),
         //dtr_stage_(0,0,0, -1, "dtr_stage"),
-        dtr_stage_(m_metadata, -1., "dtr_stage"),
+        dtr_stage_(m_scalar_metadata, -1., "dtr_stage"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
     {}
@@ -264,19 +265,17 @@ public:
     storage_type& ipos() {return ipos_;}
     storage_type& jpos() {return jpos_;}
     storage_type& kpos() {return kpos_;}
-    //TODO fix this, with a scalar storage the GPU version does not work
-    //scalar_storage_type& dtr_stage()
-    storage_type& dtr_stage() {return dtr_stage_;}
+    scalar_storage_type& dtr_stage(){return dtr_stage_;}
 
     //output fields
     storage_type& u_stage() {return u_stage_;}
     storage_type& utens_stage_ref() {return utens_stage_ref_;}
 private:
     typename storage_type::meta_data_t m_metadata;
+    typename scalar_storage_type::meta_data_t m_scalar_metadata;
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
-    //scalar_storage_type dtr_stage_;
-    storage_type dtr_stage_;
+    scalar_storage_type dtr_stage_;
     const int halo_size_;
     const int idim_, jdim_, kdim_;
 };
