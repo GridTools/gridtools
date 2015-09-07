@@ -408,11 +408,6 @@ namespace gridtools {
 
     // };
 
-
-
-
-
-
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -458,15 +453,18 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             actual_arg_list_type
             , boost::mpl::set<>
-            , boost::mpl::insert<boost::mpl::_1, pointer
-                                 <boost::add_const
-                                  <storage2metadata
-                                   <boost::remove_pointer<boost::mpl::_2>
-                                    >
-                                   >
-                                  >
-                                 >
-            >::type actual_metadata_set_t;
+            , boost::mpl::if_< is_any_storage<boost::mpl::_2>,
+                               boost::mpl::insert<boost::mpl::_1, pointer
+                                                  <boost::add_const
+                                                   <storage2metadata
+                                                    <boost::remove_pointer<boost::mpl::_2>
+                                                     >
+                                                    >
+                                                   >
+                                                  >,
+                               boost::mpl::_1
+                               >
+                               >::type actual_metadata_set_t;
 
         typedef typename boost::mpl::fold<
             actual_metadata_set_t
@@ -541,11 +539,11 @@ namespace gridtools {
 
             //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
-                                               is_storage<boost::mpl::_1> > t_domain_view;
+                                               is_not_tmp_storage<boost::mpl::_1> > t_domain_view;
 
             //filter the non temporary storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<actual_arg_list_type,
-                                               is_storage<boost::mpl::_1> > t_args_view;
+                                               is_not_tmp_storage<boost::mpl::_1> > t_args_view;
 
             t_domain_view domain_view(domain.m_storage_pointers);
             t_args_view args_view(actual_arg_list);

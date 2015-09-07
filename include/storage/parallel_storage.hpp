@@ -78,8 +78,6 @@ namespace gridtools {
             //                                , components_ ...) )
             {
 
-                std::function<int()> tmp=[&part](){return part.fuck_you();};
-                int t=tmp();
                 // auto tmp=std::bind(&(partitioner_t::compute_bounds), &part, uint_t(1), m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
             }
 

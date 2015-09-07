@@ -25,6 +25,7 @@
 
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
+#include "../common/generic_metafunctions/static_if.hpp"
 
 /**@file
  @brief This file contains the global list of placeholders to the storages
@@ -45,6 +46,47 @@ namespace gridtools {
      This class reorders the placeholders according to their indices, checks that there's no holes in the numeration,
     */
 
+
+    //     template <typename T>
+    //     struct partitioner_trivial;
+
+    //     template <typename T>
+    //     struct is_partitioner_trivial : boost::mpl::false_
+    //     {};
+
+    //     template <typename T>
+    //     struct is_partitioner_trivial<partitioner_trivial<T> > : boost::mpl::true_
+    //     {};
+
+    //     template <typename T>
+    //     struct is_partitioner_trivial<partitioner_trivial<T>* > : boost::mpl::true_
+    //     {};
+
+    // template <typename T>
+    //     struct is_partitioner_trivial<partitioner_trivial<T>*&> : boost::mpl::true_
+    //     {};
+
+
+        // template<typename T>
+        // struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, is_partitioner_trivial<T > >{
+        // };
+
+    // template<typename T>
+    //     struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, is_partitioner_trivial<T > >{
+    //     };
+
+
+    template<typename T>
+    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
+    };
+
+        // template<typename T>
+        // struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, is_extra_arg<T > >{
+        // };
+
+    // template<>
+        // struct is_partitioner_trivial<gridtools::partitioner_trivial<gridtools::cell_topology<gridtools::topology::cartesian<gridtools::layout_map<0, 1, 2> > > > > : boost::mpl::true_ {};
+
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
         typedef Placeholders original_placeholders;
@@ -52,12 +94,19 @@ namespace gridtools {
     private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
 
+        // typedef typename original_placeholders::fuck fuck;
+
+        // template <typename Lambda, typename True, typename False>
+        // struct lazy_if_is_storage_arg {
+        //     typedef boost::mpl::if_< Lambda::type, True, False >::type type;};
+
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold<
             original_placeholders
-            , boost::mpl::set<>
-            , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> > >::type original_metadata_set_t;
+            , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
+            , boost::mpl::if_< is_storage_arg<boost::mpl::_2>, boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >::type original_metadata_set_t;
 
+        // typedef typename original_metadata_set_t::fuck you;
         // create an mpl::vector of metadata types
         typedef typename boost::mpl::fold<
             original_metadata_set_t
@@ -246,6 +295,23 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             }
 #endif
 
+        template <typename Sequence, typename Arg>
+        struct conditional{
+        private :
+            Sequence& m_seq;
+            Arg const* m_arg;
+        public:
+            conditional(Sequence& seq_, Arg const* arg_): m_seq(seq_), m_arg(arg_){}
+            void operator()(){
+                if (!m_seq.template present<pointer<const typename Arg::meta_data_t> >())
+                    m_seq.insert(pointer<const typename Arg::meta_data_t>(&m_arg->meta_data()));                 }
+        };
+
+        struct empty{
+            void operator()() const{
+            }
+        };
+
 
         /**
            @brief functor to insert a boost fusion sequence to the metadata set
@@ -265,8 +331,11 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             template <typename Arg>
             void operator()( Arg const* arg_) const{
-                if (!m_sequence.template present<pointer<const typename Arg::meta_data_t> >())
-                    m_sequence.insert(pointer<const typename Arg::meta_data_t>(&arg_->meta_data()));
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                static_if<is_storage_arg<Arg>::type::value>::eval(
+                    conditional<Sequence, Arg>(m_sequence, arg_)
+                    , empty());
+
             }
         };
 
@@ -275,6 +344,21 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         template <typename T>
         struct meta_storage_wrapper;
+
+        // template<typename T>
+        // struct is_temporary_storage;
+        template<typename T>
+        struct is_tmp_lambda {
+            typename  boost::mpl::false_ type;
+        };
+
+        template<typename T>
+        struct is_tmp_lambda <storage<T> > {
+            typedef static_bool<storage<T>::is_temporary> type;
+        };
+
+// template<typename T>
+        // struct is_partitioner_trivial : boost::mpl::false_{};
 
         /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
@@ -286,9 +370,13 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             : m_storage_pointers()
             , m_metadata_set()
             {
+                typedef boost::fusion::filter_view
+                    <arg_list,
+                     is_not_tmp_storage<boost::mpl::_1> > view_type;
 
-            typedef boost::fusion::filter_view<arg_list,
-                is_storage<boost::mpl::_1> > view_type;
+            // typedef boost::fusion::filter_view
+            //     <view_type
+            //      , is_partitioner_trivial<boost::mpl::_1> > nested_view_type;
 
             view_type fview(m_storage_pointers);
 

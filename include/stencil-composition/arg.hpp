@@ -66,6 +66,12 @@ struct is_arg : boost::mpl::false_{};
 template<uint_t I, typename Storage>
 struct is_arg<arg<I, Storage> > : boost::mpl::true_{};
 
+template<typename T>
+struct is_storage_arg : boost::mpl::false_{};
+
+template<uint_t I, typename Storage>
+struct is_storage_arg<arg<I, Storage> > : is_storage<Storage>{};
+
 /**
  * @struct arg_hods_data_field
  * metafunction that determines if an arg type is holding the storage type of a data field

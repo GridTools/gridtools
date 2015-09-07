@@ -379,6 +379,66 @@ namespace gridtools {
             static const uint_t value=(total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
         };
 
+
+
+
+
+
+        /** @brief method called in the Do methods of the functors.
+            specialization for the generic accessors placeholders
+        */
+        template <uint_t I>
+        GT_FUNCTION
+        typename boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type
+
+        //typename IterateDomainImpl::ga_storage_type
+        // typename std::remove_reference<decltype(declval((IterateDomainImpl::m_data_pointer))[current_storage<(I==0), local_domain_t, typename generic_accessor<I>::type >::value])>::type
+        //typename accessor_return_type<generic_accessor<I>>::type::value_type* RESTRICT
+        operator()(generic_accessor<I> const& accessor) const {
+
+            //getting information about the storage
+            typedef typename generic_accessor<I>::index_type index_t;
+
+#ifndef CXX11_ENABLED
+            typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
+                                                                                                   < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+            storage_type* const storage_=
+#else
+                auto const storage_ =
+#endif
+                boost::fusion::at
+                < index_t>(local_domain.m_local_args);
+
+#ifdef CXX11_ENABLED
+            using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
+#endif
+            auto storage_pointer=(data_pointer())[current_storage<(index_t::value==0), local_domain_t, typename generic_accessor<I>::type >::value];
+
+            typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+
+            // accessor_return_type<generic_accessor<I>>::type::value_type::fuck();
+            // storage_type::fuck();
+            // local_domain_t::mpl_storages::bitch();
+            //boost::mpl::at_c<1, local_domain_t::mpl_storages>::type::dirty();
+            //boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type::fuckyou();
+
+            return real_storage_pointer;
+        }
+
+
+        // /** @brief method called in the Do methods of the functors.
+        //     specialization for the generic accessors placeholders
+        // */
+        // template <uint_t I>
+        // GT_FUNCTION
+        // int
+        // operator()(generic_accessor<I> const& accessor) const {
+        //     return 0;
+        // }
+
+
+
+
 #ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors.
             specialization for the expr_direct_access<accessor> placeholders
@@ -439,7 +499,6 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const;
-
 
 #if defined(CXX11_ENABLED)
 #if !defined(__CUDACC__)
