@@ -17,3 +17,7 @@ target_link_libraries(iga_test_1_rt ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 add_executable( iga_test_2_rt iga_test_2_rt.cpp)
 set_target_properties(iga_test_2_rt PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(iga_test_2_rt ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+
+add_executable( iga_test_3_rt iga_test_3_rt.cpp)
+set_target_properties(iga_test_3_rt PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(iga_test_3_rt ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
