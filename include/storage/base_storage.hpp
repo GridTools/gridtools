@@ -444,6 +444,11 @@ namespace gridtools {
         pointer_type const* fields() const {return &(m_fields[0]);}
 
         /** @brief returns a const pointer to the data field*/
+        template <typename ID>
+        GT_FUNCTION
+        typename pointer_type::pointee_t* access_value() const {return fields()[ID::value].get();}
+
+        /** @brief returns a non const pointer to the data field*/
         GT_FUNCTION
         pointer_type* fields_view() {return &(m_fields[0]);}
 

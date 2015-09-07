@@ -93,12 +93,14 @@ namespace shallow_water{
             using u=alias<sol, comp>::set<1>;
             using v=alias<sol, comp>::set<2>;
 
-            std::cout<<"boundary: "<<eval(partitioner())->boundary()<<std::endl;
+            uint_t boundary=eval(partitioner())->boundary();
 
             //! [expression]
-            eval(h())=0.;
-            eval(u())=0.;
-            eval(v())=0.;
+            if(boundary==1){
+                eval(h())=10.;
+                eval(u())=10.;
+                eval(v())=10.;
+            }
             //! [expression]
         }
     };
@@ -467,8 +469,10 @@ namespace shallow_water{
 
 //! [setup]
         shallow_water_stencil->ready();
+        bc_eval->ready();
 
         shallow_water_stencil->steady();
+        bc_eval->steady();
 //! [setup]
 
         //the following might be runtime value
@@ -515,6 +519,7 @@ namespace shallow_water{
 #endif
 
         }
+        bc_eval->run();
 
 //! [finalize]
         he.wait();

@@ -47,24 +47,24 @@ namespace gridtools {
     */
 
 
-    //     template <typename T>
-    //     struct partitioner_trivial;
+        template <typename T>
+        struct partitioner_trivial;
 
-    //     template <typename T>
-    //     struct is_partitioner_trivial : boost::mpl::false_
-    //     {};
+        template <typename T>
+        struct is_partitioner_trivial : boost::mpl::false_
+        {};
 
-    //     template <typename T>
-    //     struct is_partitioner_trivial<partitioner_trivial<T> > : boost::mpl::true_
-    //     {};
+        template <typename T>
+        struct is_partitioner_trivial<partitioner_trivial<T> > : boost::mpl::true_
+        {};
 
-    //     template <typename T>
-    //     struct is_partitioner_trivial<partitioner_trivial<T>* > : boost::mpl::true_
-    //     {};
+        template <typename T>
+        struct is_partitioner_trivial<partitioner_trivial<T>* > : boost::mpl::true_
+        {};
 
-    // template <typename T>
-    //     struct is_partitioner_trivial<partitioner_trivial<T>*&> : boost::mpl::true_
-    //     {};
+    template <typename T>
+        struct is_partitioner_trivial<partitioner_trivial<T>*&> : boost::mpl::true_
+        {};
 
 
         // template<typename T>
@@ -298,7 +298,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             Arg const* m_arg;
         public:
             conditional(Sequence& seq_, Arg const* arg_): m_seq(seq_), m_arg(arg_){}
-            void operator()(){
+            void operator()()const{
                 if (!m_seq.template present<pointer<const typename Arg::meta_data_t> >())
                     m_seq.insert(pointer<const typename Arg::meta_data_t>(&m_arg->meta_data()));                 }
         };
@@ -328,7 +328,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             template <typename Arg>
             void operator()( Arg const* arg_) const{
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                static_if<is_storage_arg<Arg>::type::value>::eval(
+                static_if<is_storage<Arg>::type::value>::eval(
                     conditional<Sequence, Arg>(m_sequence, arg_)
                     , empty());
 

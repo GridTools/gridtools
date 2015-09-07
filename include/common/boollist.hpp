@@ -25,13 +25,16 @@ namespace gridtools {
     template <ushort_t I>
     struct boollist
     {
-      static const ushort_t size=I;
+      static const ushort_t m_size=I;
 
     private:
         // const
         array<bool, I> m_value;
 
     public:
+
+        GT_FUNCTION
+        constexpr ushort_t const& size() const{return size;}
 
         GT_FUNCTION
         constexpr bool const& value(ushort_t const& id) const{return m_value[id];}
@@ -74,7 +77,7 @@ namespace gridtools {
         GT_FUNCTION
         boollist(boollist const& bl)
 #ifdef CXX11_ENABLED
-            :m_value{bl.m_value[0], bl.m_value[1]} //TODO: generalize to arbitrary dimension
+            :m_value{bl.m_value}
             {}
 #else
             {

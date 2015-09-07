@@ -195,7 +195,7 @@ namespace gridtools{
         assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset){}
 
         GT_FUNCTION
-        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage, uint const offset_) :
+        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage, uint const offset_=0) :
             m_data_pointer_array(data_pointer_array), m_storage(storage), m_offset(offset_) {}
 
         template <typename ID>
@@ -218,7 +218,7 @@ namespace gridtools{
         void impl() const
         {
             BackendType::template once_per_block<PE_ID::value>::assign(
-                m_data_pointer_array[Offset+ID::value], m_storage->fields()[ID::value].get()+m_offset);
+                m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
     };
 
@@ -460,7 +460,7 @@ namespace gridtools{
 
         template <typename ID>
         GT_FUNCTION
-        void operator()(ID const&) const {
+        void operator()(ID const&, typename boost::enable_if<is_any_storage<typename boost::fusion::result_of::at<StorageSequence, ID>::type>, int >::type dummy=0 ) const {
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
@@ -489,6 +489,33 @@ namespace gridtools{
                     DataPointerArray,
                     storage_type
                 >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), metadata_->fields_offset(m_EU_id_i, m_EU_id_j))
+            );
+        }
+
+
+        template <typename ID>
+        GT_FUNCTION
+        void operator()(ID const&, typename boost::disable_if<is_any_storage<typename boost::fusion::result_of::at<StorageSequence, ID>::type>, int >::type dummy=0 ) const {
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
+                                    "Accessing an index out of bound in fusion tuple");
+
+            typedef typename boost::remove_pointer<
+                typename boost::remove_reference<
+                    typename boost::fusion::result_of::at<StorageSequence, ID>::type
+                 >::type
+            >::type storage_type;
+
+            //if the following fails, the ID is larger than the number of storage types
+            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
+                                    "the ID is larger than the number of storage types");
+
+                for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+                assign_raw_data_functor<
+                    total_storages<StorageSequence, ID::value>::value,
+                    BackendType,
+                    DataPointerArray,
+                    storage_type
+                >(m_data_pointer_array, boost::fusion::at<ID>(m_storages))
             );
         }
     };

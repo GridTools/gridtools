@@ -36,8 +36,11 @@ namespace gridtools{
         // typedef int meta_data_t; //TODO remove
         static const ushort_t field_dimensions=1; //TODO remove
         // int const& meta_data() const; //TODO remove
-        partitioner_trivial<GridTopology> * fields() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
-        partitioner_trivial<GridTopology> * get() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
+
+        template<typename ID>
+        partitioner_trivial<GridTopology> * access_value() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
+        // partitioner_trivial<GridTopology> * fields() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
+        // partitioner_trivial<GridTopology> * get() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
 
         // static const bool is_temporary=false;
 
