@@ -68,7 +68,7 @@ namespace gridtools {
             , m_low_bound()
             , m_up_bound()
             , m_metadata(
-                apply_integer_sequence<typename gt_make_integer_sequence
+                apply_integer_sequence<typename make_integer_sequence
                 <uint_t, sizeof ... (UInt)>::type >::template apply<metadata_t>
                 (
                  ([&part]

@@ -13,8 +13,8 @@ namespace gridtools{
        can be used with an arbitrary container with elements of the same type (not a tuple),
        it is consexpr constructable.
      */
-    template< typename UInt, UInt... Indices> struct gt_integer_sequence{
-        using type = gt_integer_sequence;
+    template< typename UInt, UInt... Indices> struct integer_sequence{
+        using type = integer_sequence;
     };
 
 
@@ -22,24 +22,24 @@ namespace gridtools{
     template<class S1, class S2> struct concat;
 
     template<typename UInt, UInt... I1, UInt... I2>
-    struct concat<gt_integer_sequence<UInt, I1...>, gt_integer_sequence<UInt, I2...>>
-        : gt_integer_sequence<UInt, I1..., (sizeof...(I1)+I2)...>{};
+    struct concat<integer_sequence<UInt, I1...>, integer_sequence<UInt, I2...>>
+        : integer_sequence<UInt, I1..., (sizeof...(I1)+I2)...>{};
 
     /** @brief constructs an integer sequence
 
         @tparam N number larger than 2, size of the integer sequence
      */
     template<typename UInt, uint_t N>
-    struct gt_make_integer_sequence : concat<typename gt_make_integer_sequence<UInt, N/2>::type, typename gt_make_integer_sequence<UInt, N - N/2>::type >::type{};
+    struct make_integer_sequence : concat<typename make_integer_sequence<UInt, N/2>::type, typename make_integer_sequence<UInt, N - N/2>::type >::type{};
 
-    template<typename UInt> struct gt_make_integer_sequence<UInt, 0> : gt_integer_sequence<UInt>{};
-    template<typename UInt> struct gt_make_integer_sequence<UInt, 1> : gt_integer_sequence<UInt,0>{};
+    template<typename UInt> struct make_integer_sequence<UInt, 0> : integer_sequence<UInt>{};
+    template<typename UInt> struct make_integer_sequence<UInt, 1> : integer_sequence<UInt,0>{};
 #else
     template <typename UInt, UInt ... Indices>
-    using gt_integer_sequence=std::integer_sequence<UInt, Indices ...>;
+    using integer_sequence=std::integer_sequence<UInt, Indices ...>;
 
     template<typename UInt, uint_t N>
-    using make_integer_sequence=std::integer_sequence<UInt, N>;
+    using make_integer_sequence=std::make_integer_sequence<UInt, N>;
 #endif
 
     /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
@@ -58,7 +58,7 @@ namespace gridtools{
     struct apply_integer_sequence;
 
     template< typename UInt, UInt... Indices>
-    struct apply_integer_sequence<gt_integer_sequence<UInt, Indices ...> >
+    struct apply_integer_sequence<integer_sequence<UInt, Indices ...> >
     {
 
     template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>

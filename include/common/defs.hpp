@@ -15,6 +15,10 @@
 #endif
 #endif
 
+#if((defined(CXX11_DISABLED) && defined(CXX14_ENABLED)))
+#error("Internal error: when CXX14 is ON, also CXX11 must be automatically turned ON");
+#endif
+
 //defines how many threads participate to the (shared) memory initialization
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
@@ -201,7 +205,6 @@ namespace gridtools{
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition)
 #endif
 
-    GRIDTOOLS_STATIC_ASSERT(!(CXX11_DISABLED && CXX14_ENABLED), "Internal error: when CXX14 is ON, also CXX11 must be automatically turned ON");
 
 
 //################ Type aliases for GridTools ################
