@@ -273,7 +273,7 @@ namespace gridtools{
         }
 
         GT_FUNCTION
-        bool at_boundary(ushort_t const& component_, typename super::Flag const& flag_) const {
+        constexpr bool at_boundary(ushort_t const& component_, typename super::Flag flag_) const {
 
             ushort_t left = boundary()%(ushort_t)((ushort_t)std::pow(2,component_+1)*(ushort_t)flag_);
             ushort_t right = ((component_+(ushort_t)1)*(ushort_t)flag_);
@@ -283,8 +283,20 @@ namespace gridtools{
             return !(left < right);
         }
 
+        /**to be called from the user interface*/
+        template<typename UpDown>
         GT_FUNCTION
-        uint_t const & boundary() const {
+        // constexpr
+        bool at_boundary(ushort_t const& component_, UpDown /**/) const {
+            // is_up<UpDown>::type::fuck();
+            // is_down<UpDown>::type::fuck();
+            // boost::mpl::or_<typename is_up<UpDown>::type, typename is_down<UpDown>::type >::type::fuck();
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_<typename is_up<UpDown>::type, typename is_down<UpDown>::type >::type::value) , "the second argument of at_boundary must be either up() or down()");
+            return at_boundary(component_, UpDown::template value<partitioner_trivial>());
+        }
+
+        GT_FUNCTION
+        constexpr uint_t const & boundary() const {
             return m_boundary;
         }
 
@@ -305,13 +317,5 @@ namespace gridtools{
         uint_t m_boundary;
         const ushort_t m_comm_dims;
     };
-
-    // template <typename T>
-    // struct is_partitioner_trivial : boost::mpl::false_
-    // {};
-
-    // template <typename T>
-    // struct is_partitioner_trivial<partitioner_trivial<T>> : boost::mpl::true_
-    // {};
 
 }//namespace gridtools

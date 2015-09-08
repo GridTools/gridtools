@@ -77,9 +77,9 @@ namespace shallow_water{
 
 // [boundary_conditions]
     struct bc : functor_traits {
-        typedef accessor<0,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
-        typedef accessor<1,range<0, 0, 0, 0>, 5> tmpx; /** (input) is the solution at the cell center */
-        typedef accessor<2,range<0, 0, 0, 0>, 5> tmpy;
+        typedef accessor<0,range<0, 0, 0, 0>, 5> tmpx; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1,range<0, 0, 0, 0>, 5> tmpy; /** (input) is the solution at the cell center */
+        typedef accessor<2,range<0, 0, 0, 0>, 5> sol;
         typedef generic_accessor<3> partitioner;
         using arg_list=boost::mpl::vector<sol, tmpx, tmpy> ;
 
@@ -94,13 +94,16 @@ namespace shallow_water{
             using v=alias<sol, comp>::set<2>;
 
             uint_t boundary=eval(partitioner())->boundary();
+            std::cout<<eval(partitioner())->at_boundary(0,up())<<std::endl;
 
             //! [expression]
-            if(boundary==1){
-                eval(h())=10.;
-                eval(u())=10.;
-                eval(v())=10.;
-            }
+            if((eval(partitioner())->at_boundary(0,up())))
+                eval(h())+=10.;
+            if((eval(partitioner())->at_boundary(1,up())))
+                eval(u())+=11.;
+            if((eval(partitioner())->at_boundary(2,up())))
+                eval(v())+=12.;
+            std::cout<<eval(!h())<<std::endl;
             //! [expression]
         }
     };
@@ -271,6 +274,7 @@ namespace shallow_water{
                      (pow<2>(vy())    /hy()    +pow<2>(hy())   *((g()/2.))))*((dt()/dy())));
 
 
+            std::cout<<"reuslt: "<<eval(sol())<<std::endl;
         }
 
     };
@@ -279,9 +283,9 @@ namespace shallow_water{
 
     uint_t final_step::current_time=0;
 
-/*
- * The following operators and structs are for debugging only
- */
+    /*
+     * The following operators and structs are for debugging only
+     */
     std::ostream& operator<<(std::ostream& s, flux_x const) {
         return s << "initial step 1: ";
         // initiali_step.to_string();
@@ -291,9 +295,9 @@ namespace shallow_water{
         return s << "initial step 2: ";
     }
 
-/*
- * The following operators and structs are for debugging only
- */
+    /*
+     * The following operators and structs are for debugging only
+     */
     std::ostream& operator<<(std::ostream& s, final_step const) {
         return s << "final step";
     }
@@ -449,7 +453,9 @@ namespace shallow_water{
 //! [computation]
 
 //! [coordinates_bc]
-        coordinates<axis, partitioner_t> coords_bc(part, meta_);
+
+        halo_descriptor dj=halo_descriptor(0,1,1,1,2);
+        coordinates<axis> coords_bc(meta_.get_halo_descriptor<0>(), dj);
         coords_bc.value_list[0] = 0;
         coords_bc.value_list[1] = d3-1;
 //! [coordinates_bc]
@@ -517,8 +523,8 @@ namespace shallow_water{
                 if(PID==0)
                     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
-
         }
+
         bc_eval->run();
 
 //! [finalize]
@@ -529,8 +535,8 @@ namespace shallow_water{
         GCL_Finalize();
 
         bool retval=true;
-
 //! [finalize]
+
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
