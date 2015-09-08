@@ -45,7 +45,7 @@ namespace gridtools{
 
             template<typename ... UIntType>
             static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
-                using seq = typename gt_make_integer_sequence<int_t, sizeof ... (args)>::type;
+                using seq = apply_integer_sequence<typename gt_make_integer_sequence<int_t, sizeof ... (args)>::type >;
                 return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
             }
         };

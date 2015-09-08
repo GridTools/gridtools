@@ -271,7 +271,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         struct meta_storage;
 
         template <typename T>
-        struct meta_storage_wrapper;
+        struct meta_storage_derived;
 
         /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders

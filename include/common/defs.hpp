@@ -1,10 +1,17 @@
 #pragma once
 
-#if __cplusplus > 199711L
+#if __cplusplus > 199711L && __cplusplus <= 201103L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
+#define CXX14_DISABLED
+#else
+#if __cplusplus > 201103L
+#define CXX11_ENABLED
+#define CXX14_ENABLED
 #else
 #define CXX11_DISABLED
+#define CXX14_DISABLED
+#endif
 #endif
 #endif
 
@@ -194,6 +201,7 @@ namespace gridtools{
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition)
 #endif
 
+    GRIDTOOLS_STATIC_ASSERT(!(CXX11_DISABLED && CXX14_ENABLED), "Internal error: when CXX14 is ON, also CXX11 must be automatically turned ON");
 
 
 //################ Type aliases for GridTools ################

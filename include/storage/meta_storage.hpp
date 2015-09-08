@@ -20,21 +20,21 @@
 */
 namespace gridtools{
 template < typename BaseStorage >
-struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_wrapper<BaseStorage> >
+struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_derived<BaseStorage> >
     {
         static const bool is_temporary=BaseStorage::is_temporary;
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
         typedef typename BaseStorage::index_type index_type;
-        typedef meta_storage_wrapper<BaseStorage> original_storage;
-        typedef clonable_to_gpu<meta_storage_wrapper<BaseStorage> > gpu_clone;
+        typedef meta_storage_derived<BaseStorage> original_storage;
+        typedef clonable_to_gpu<meta_storage_derived<BaseStorage> > gpu_clone;
 
         /** @brief copy ctor
 
             forwarding to the base class
          */
         __device__
-        meta_storage_wrapper(BaseStorage const& other)
+        meta_storage_derived(BaseStorage const& other)
             :  super(other)
             {}
 
@@ -44,7 +44,7 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
             forwarding to the base class
          */
         template <class ... UIntTypes>
-        explicit meta_storage_wrapper(  UIntTypes const& ... args ): super(args ...)
+        explicit meta_storage_derived(  UIntTypes const& ... args ): super(args ...)
             {
             }
 #else
@@ -53,13 +53,13 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
 
             forwarding to the base class
          */
-        explicit meta_storage_wrapper(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+        explicit meta_storage_derived(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
 
         /** @brief ctor
 
             forwarding to the base class
          */
-        meta_storage_wrapper( uint_t const& initial_offset_i,
+        meta_storage_derived( uint_t const& initial_offset_i,
                               uint_t const& initial_offset_j,
                               uint_t const& dim3,
                               uint_t const& n_i_threads,
@@ -72,7 +72,7 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
 
             should never be called
          */
-        explicit meta_storage_wrapper(): super(){}
+        explicit meta_storage_derived(): super(){}
 
     };
 
@@ -89,14 +89,14 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
        (for the Block strategy)
 
        syntax example:
-       using metadata_t=meta_storage_wrapper<0,layout_map<0,1,2>,false>
+       using metadata_t=meta_storage_derived<0,layout_map<0,1,2>,false>
      */
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
                , typename ... Tiles
                >
-    using meta_storage = meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
+    using meta_storage = meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
 #else
 
     //fwd declarationx
@@ -119,8 +119,8 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
                , uint_t TileI,uint_t MinusI,uint_t PlusI
                , uint_t TileJ,uint_t MinusJ,uint_t PlusJ
                >
-    struct meta_storage<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > : public meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > >{
-        typedef meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > > super;
+    struct meta_storage<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > : public meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > >{
+        typedef meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > > super;
 
         meta_storage(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -140,8 +140,8 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
                , typename Layout
                , bool IsTemporary
                >
-    struct meta_storage<Index, Layout, IsTemporary, int, int> : public meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary> >{
-        typedef meta_storage_wrapper<meta_storage_base<Index, Layout, IsTemporary> > super;
+    struct meta_storage<Index, Layout, IsTemporary, int, int> : public meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> >{
+        typedef meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> > super;
 
         meta_storage(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -157,7 +157,7 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
 */
 
     template< typename Storage>
-    struct is_meta_storage<meta_storage_wrapper<Storage> > : boost::mpl::true_{};
+    struct is_meta_storage<meta_storage_derived<Storage> > : boost::mpl::true_{};
 
     template< typename Storage>
     struct is_meta_storage<no_meta_storage_type_yet<Storage> > : is_meta_storage<Storage> {};
@@ -189,14 +189,14 @@ struct meta_storage_wrapper : public BaseStorage, clonable_to_gpu<meta_storage_w
 #endif
 
     template<typename T>
-    struct is_meta_storage_wrapper : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};
+    struct is_meta_storage_derived : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};
 
 
     template<typename T>
-    struct is_ptr_to_meta_storage_wrapper : boost::mpl::false_ {};
+    struct is_ptr_to_meta_storage_derived : boost::mpl::false_ {};
 
     template<typename T>
-    struct is_ptr_to_meta_storage_wrapper<pointer<const T> > : is_meta_storage_wrapper<T> {};
+    struct is_ptr_to_meta_storage_derived<pointer<const T> > : is_meta_storage_derived<T> {};
 
 /**@}*/
 

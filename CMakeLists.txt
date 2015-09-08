@@ -64,15 +64,21 @@ endif()
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
+set( ENABLE_CXX14 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
 if ( ENABLE_CXX11 )
-   message ("-- CXX11 enabled?: " "${ENABLE_CXX11}")
-   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
+  message ("-- CXX11 enabled?: " "${ENABLE_CXX11}")
+  set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
-   message ("-- CXX11 disabled")
-   set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
+  if ( ENABLE_CXX14 )
+    message ("-- CXX14 enabled?: " "${ENABLE_CXX11}")
+    set (ADDITIONAL_CXX_FLAGS "-std=c++14")
+  else()
+    message ("-- CXX11 and 14 disabled")
+    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
+  endif()
 endif()
 
 # Optionally include CUDA
@@ -239,7 +245,7 @@ function(gridtools_add_test test_name test_script test_exec)
 endfunction(gridtools_add_test)
 
 
-set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
 if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
@@ -247,14 +253,14 @@ endif( NOT ENABLE_CACHING )
 if (ENABLE_PYTHON)
     message ("PYTHON enabled ")
     # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )
     # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
     set (cmd "cat" )
     set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
     execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
     #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
     # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
-    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version)
 
     find_package(PythonLibs)
     find_package(PythonInterp)
@@ -274,8 +280,8 @@ if (ENABLE_PYTHON)
         set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
         execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
         # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
-        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
-        
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version)
+
         #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
         set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
         set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
@@ -292,5 +298,3 @@ file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-
-

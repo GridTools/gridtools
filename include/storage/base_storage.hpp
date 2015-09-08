@@ -309,13 +309,6 @@ namespace gridtools {
                 m_fields[i].update_cpu();
         }
 
-        /** @brief returns the first memory addres of the data field */
-        GT_FUNCTION
-        const_iterator_type min_addr() const {
-            return &((m_fields[0])[m_meta_data.begin()]);
-        }
-
-
         /** @brief returns the last memry address of the data field */
         GT_FUNCTION
         const_iterator_type max_addr() const {
