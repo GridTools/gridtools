@@ -7,6 +7,7 @@
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/make_computation.hpp"
 
+using namespace gridtools;
 using namespace gridtools::enumtype;
 using gridtools::accessor;
 using gridtools::range;
@@ -25,10 +26,10 @@ struct print_r {
 };
 
 struct functor0{
-    typedef const accessor<0, range<-1, 0, -2, 1, -3, 2>> in0;
-    typedef const accessor<1, range<-3, 2, -2, 0, 0, 2>> in1;
-    typedef accessor<2> out;
-    typedef const accessor<3, range<-1, 2, 0, 0, -3, 1>> in3;
+    typedef accessor<0, enumtype::in, range<-1, 0, -2, 1, -3, 2>> in0;
+    typedef accessor<1, enumtype::in, range<-3, 2, -2, 0, 0, 2>> in1;
+    typedef accessor<2, enumtype::inout> out;
+    typedef accessor<3, enumtype::in, range<-1, 2, 0, 0, -3, 1>> in3;
 
     typedef boost::mpl::vector<in0,in1,out,in3> arg_list;
 
@@ -54,7 +55,9 @@ typedef arg<0, storage_type> o0;
 typedef arg<1, storage_type> in0;
 typedef arg<2, storage_type> in1;
 typedef arg<3, storage_type> in2;
-int main() {
+
+TEST(esf_metafunctions, compute_ranges_of)
+{
     typedef decltype(gridtools::make_esf<functor0>(in0(), in1(), o0(), in2())) functor0__;
     typedef decltype( gridtools::make_mss
         (
@@ -64,8 +67,6 @@ int main() {
     typedef boost::mpl::vector<o0, in0, in1, in2> placeholders;
 
     typedef gridtools::compute_ranges_of<placeholders>::for_mss<mss_t>::type final_map;
-    std::cout << "FINAL" << std::endl;
-    boost::mpl::for_each<final_map>(print_r());
 
 GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, range<0, 0, 0, 0, 0, 0>>::type::value),
                           "o0 range<0, 0, 0, 0, 0, 0>");
@@ -76,6 +77,6 @@ GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, rang
 GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, range<-1, 2, 0, 0, -3, 1>>::type::value),
                           "in2 range<-1, 2, 0, 0, -3, 1>");
 /* total placeholders (rounded to 10) _SIZE = 10*/
-    return 0;
+    ASSERT_TRUE(true);
 }
 

@@ -35,12 +35,12 @@ namespace copy_stencil{
     struct copy_functor {
 
 #ifdef CXX11_ENABLED
-        typedef accessor<0, range<0,0,0,0>, 4> in;
+        typedef inout_accessor<0, range<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
         typedef dimension<4> time;
 #else
-        typedef const accessor<0, range<0,0,0,0>, 3> in;
-        typedef accessor<1, range<0,0,0,0>, 3> out;
+        typedef accessor<0, enumtype::in, range<0,0,0,0>, 3> in;
+        typedef accessor<1, enumtype::inout, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 #endif
 

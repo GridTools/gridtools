@@ -270,9 +270,9 @@ namespace gridtools {
              boost::mpl::size<type>::value), "Internal Error: wrong size");
     };
 
-
     template <typename Placeholders>
     struct compute_ranges_of {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "wrong type");
         template<typename MssDescriptor>
         struct for_mss
         {

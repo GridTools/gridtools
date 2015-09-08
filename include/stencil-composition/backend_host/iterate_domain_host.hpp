@@ -73,6 +73,16 @@ public:
     GT_FUNCTION
     void initialize_impl() {}
 
+    template<typename ReturnType, typename Accessor, typename StoragePointer>
+    GT_FUNCTION
+    ReturnType& RESTRICT get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+
+        return *(storage_pointer+pointer_offset);
+    }
+
+
 private:
     data_pointer_array_t* RESTRICT m_data_pointer;
     strides_cached_t* RESTRICT m_strides;
