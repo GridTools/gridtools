@@ -102,12 +102,18 @@ namespace iga_rt
 		 */
 		const std::array<double,m_number_of_knots> m_knots;
 
+        /**
+         * b-spline basis knot set last knot multiplicity status (required for correct calculation of basis value on knot set closure, multiplicity should be P+1 for interpolant basis)
+         */
+        const bool m_isLastKnotRepeated;
+
 	};
 
 	template<int P, int N>
 	BSplineBasis<P,N>::BSplineBasis(const std::array<double,N+P+1>& i_knots)
 								   :m_bsplines(N,0)
 								   ,m_knots(i_knots)
+                                   ,m_isLastKnotRepeated((i_knots[N+P]==i_knots[N]) ? true : false)// TODO: this check is based on the condition i_knots[i]<=i_knots[i+1] which is not checked anywhere
 	{
 		// TODO: add check on number of nodes
 		// TODO: update interfaces also for other dimensions
@@ -131,9 +137,18 @@ namespace iga_rt
 		std::vector<double> o_bsplineValues(N);
 
 		// TODO: use iterator
-		for(int i=1;i<=N;++i)
+		for(int i=1;i<N;++i)
 		{
 			o_bsplineValues[i-1] = m_bsplines[i-1]->evaluate(i_csi);
+		}
+
+		if(m_isLastKnotRepeated && i_csi == m_knots[N+P])
+		{
+			o_bsplineValues[N-1] = 1.;
+		}
+		else
+		{
+			o_bsplineValues[N-1] = m_bsplines[N-1]->evaluate(i_csi);
 		}
 
 		return o_bsplineValues;
