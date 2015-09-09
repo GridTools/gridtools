@@ -107,11 +107,11 @@ namespace iga_rt{
 			// TODO: switch to stl algos (and the next loop is useless due to initialization above)
 			for(unsigned int i=0;i<P;++i)
 			{
-				derivativeKnots[i] = 0.;
+				derivativeKnots[i] = m_knots.front();
 			}
 			for(unsigned int i=0;i<P;++i)
 			{
-				derivativeKnots[N - 1 + i] = 1.;
+				derivativeKnots[N - 1 + i] = m_knots.back();
 			}
 			if(N-P-1>0)
 			{
@@ -269,11 +269,11 @@ namespace iga_rt{
 			// TODO: switch to stl algos (and the next loop is useless due to initialization above)
 			for(unsigned int i=0;i<P1;++i)
 			{
-				derivativeKnots1[i] = 0.;
+				derivativeKnots1[i] = m_knots1.front();
 			}
 			for(unsigned int i=0;i<P1;++i)
 			{
-				derivativeKnots1[N1 - 1 + i] = 1.;
+				derivativeKnots1[N1 - 1 + i] = m_knots1.back();
 			}
 			if(N1-P1-1>0)
 			{
@@ -323,11 +323,11 @@ namespace iga_rt{
 			// TODO: switch to stl algos (and the next loop is useless due to initialization above)
 			for(unsigned int i=0;i<P2;++i)
 			{
-				derivativeKnots2[i] = 0.;
+				derivativeKnots2[i] = m_knots2.front();
 			}
 			for(unsigned int i=0;i<P2;++i)
 			{
-				derivativeKnots2[N2 - 1 + i] = 1.;
+				derivativeKnots2[N2 - 1 + i] = m_knots2.back();
 			}
 			if(N2-P2-1>0)
 			{
@@ -346,7 +346,7 @@ namespace iga_rt{
 				for(unsigned int j=0;j<N2-1;++j,++global)
 				{
 					numeratorDerivativeControlPoints[global] =
-							P2*(m_weights[N2*i+j+1]*PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j+1] - m_weights[N2*i*j]*PolinomialParametricSurface<DIM>::m_controlPoints[N2*i*j])/
+							P2*(m_weights[N2*i+j+1]*PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j+1] - m_weights[N2*i+j]*PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j])/
 							(m_knots2[j+P2+1] - m_knots2[j+1]);
 				}
 			}
@@ -360,7 +360,7 @@ namespace iga_rt{
 			{
 				for(unsigned int j=0;j<N2-1;++j,++global)
 				{
-					denominatorDerivativeControlPoints[global].m_coords[0] = P2*(m_weights[N2*i+j+1] - m_weights[N2*i*j])/(m_knots2[j+P2+1] - m_knots2[j+1]);
+					denominatorDerivativeControlPoints[global].m_coords[0] = P2*(m_weights[N2*i+j+1] - m_weights[N2*i+j])/(m_knots2[j+P2+1] - m_knots2[j+1]);
 				}
 			}
 

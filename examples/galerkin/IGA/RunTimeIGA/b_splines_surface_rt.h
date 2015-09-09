@@ -95,11 +95,12 @@ namespace iga_rt
 			// TODO: switch to stl algos (and the next loop is useless due to initialization above)
 			for(unsigned int i=0;i<P;++i)
 			{
-				derivativeKnots[i] = 0.;
+				derivativeKnots[i] = m_knots.front();
 			}
 			for(unsigned int i=0;i<P;++i)
 			{
-				derivativeKnots[N - 1 + i] = 1.;
+				// TODO: avoid continuous access to m_knots
+				derivativeKnots[N - 1 + i] = m_knots.back();
 			}
 			if(N-P-1>0)
 			{
@@ -296,11 +297,11 @@ namespace iga_rt
 			std::array<double,N1+P1-1> derivativeKnots1;
 			for(unsigned int i=0;i<P1;++i)
 			{
-				derivativeKnots1[i] = 0.;
+				derivativeKnots1[i] = m_knots1.front();
 			}
 			for(unsigned int i=0;i<P1;++i)
 			{
-				derivativeKnots1[N1 - 1 + i] = 1.;
+				derivativeKnots1[N1 - 1 + i] = m_knots1.back();
 			}
 			if(N1-P1-1>0)
 			{
@@ -332,11 +333,11 @@ namespace iga_rt
 			std::array<double,N2+P2-1> derivativeKnots2;
 			for(unsigned int i=0;i<P2;++i)
 			{
-				derivativeKnots2[i] = 0.;
+				derivativeKnots2[i] = m_knots2.front();
 			}
 			for(unsigned int i=0;i<P2;++i)
 			{
-				derivativeKnots2[N2 - 1 + i] = 1.;
+				derivativeKnots2[N2 - 1 + i] = m_knots2.back();
 			}
 			if(N2-P2-1>0)
 			{
@@ -468,11 +469,11 @@ namespace iga_rt
 			std::array<double,N2+P2-1> derivativeKnots2;
 			for(unsigned int i=0;i<P2;++i)
 			{
-				derivativeKnots2[i] = 0.;
+				derivativeKnots2[i] = m_knots2.front();
 			}
 			for(unsigned int i=0;i<P2;++i)
 			{
-				derivativeKnots2[N2 - 1 + i] = 1.;
+				derivativeKnots2[N2 - 1 + i] = m_knots2.back();
 			}
 			if(N2-P2-1>0)
 			{
@@ -603,11 +604,11 @@ namespace iga_rt
 			std::array<double,N1+P1-1> derivativeKnots1;
 			for(unsigned int i=0;i<P1;++i)
 			{
-				derivativeKnots1[i] = 0.;
+				derivativeKnots1[i] = m_knots1.front();
 			}
 			for(unsigned int i=0;i<P1;++i)
 			{
-				derivativeKnots1[N1 - 1 + i] = 1.;
+				derivativeKnots1[N1 - 1 + i] = m_knots1.back();
 			}
 			if(N1-P1-1>0)
 			{
