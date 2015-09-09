@@ -6,6 +6,7 @@
 
 //TODO: add test description
 //TODO: switch to google testing suite
+//TODO: add comment about unity condition for b-spline basis (http://math.stackexchange.com/questions/758284/is-partition-of-unity-a-property-of-b-spline-bases)
 
 int main()
 {
@@ -59,8 +60,8 @@ int main()
 	// Unity test loop
 	bool test_passed(true);
 	const double unity_tolerance(1.e-6);
-	const double minCsi(0.);
-	const double maxCsi(1.);
+	const double minCsi(knots[P]);
+	const double maxCsi(knots[N]);
 	const int numPoints(1000);
 	const double deltaCsi =(maxCsi-minCsi)/numPoints;
 	for(double csi=minCsi;csi<=maxCsi;csi+=deltaCsi)
@@ -72,11 +73,11 @@ int main()
 			break;
 		}
 	}
-    std::vector<double> b_spline_values(bsplineTest.evaluate(knots[P+N]));
-    if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
-    {
-        test_passed = false;
-    }
+	std::vector<double> b_spline_values(bsplineTest.evaluate(knots[N]));
+	if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
+	{
+		test_passed = false;
+	}
 	if(test_passed == true)
 	{
 		std::cout<<"Unity 1D test passed"<<std::endl;
@@ -126,8 +127,8 @@ int main()
 
 	// Unity test loop
 	test_passed = true;
-	const double minEta(0.);
-	const double maxEta(1.);
+	const double minEta(knots[P]);
+	const double maxEta(knots[N]);
 	const double deltaEta =(maxEta-minEta)/numPoints;
 	for(double csi=minCsi;csi<=maxCsi;csi+=deltaCsi)
 	{
@@ -141,11 +142,11 @@ int main()
 			}
 		}
 	}
-    std::vector<double> bivariate_b_spline_values(bivariateBsplineTest.evaluate(knots[P+N],knots[P+N]));
-    if(std::abs(std::accumulate(bivariate_b_spline_values.begin(),bivariate_b_spline_values.end(),0.) - 1.)>unity_tolerance)
-    {
-        test_passed = false;
-    }
+	b_spline_values = bivariateBsplineTest.evaluate(knots[N],knots[N]);
+	if(std::abs(std::accumulate(b_spline_values.begin(),b_spline_values.end(),0.) - 1.)>unity_tolerance)
+	{
+		test_passed = false;
+	}
 	if(test_passed == true)
 	{
 		std::cout<<"Unity 2D test passed"<<std::endl;
