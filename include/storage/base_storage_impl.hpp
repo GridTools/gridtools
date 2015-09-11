@@ -50,7 +50,6 @@ namespace gridtools{
             }
         };
 
-
         /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
         template<int_t ID, int_t MaxIndex,  typename Layout>
         struct assign_strides{

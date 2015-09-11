@@ -27,6 +27,7 @@ namespace gridtools {
 
     public:
         typedef T value_type;
+        static const size_t n_dimensions=D;
 
         GT_FUNCTION
         array() {}
@@ -153,6 +154,7 @@ namespace gridtools {
 
     public:
         typedef T value_type;
+        static const size_t n_dimensions=D;
 
         GT_FUNCTION
         array()
