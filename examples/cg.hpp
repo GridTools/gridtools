@@ -95,6 +95,31 @@ struct d3point7_var{
     }
 };
 
+// 25-point, anisotropic stencil in 3D, with symmetry across each axis.
+struct d3point25{
+    typedef accessor<0> out;
+    typedef const accessor<1, range<-4,4,-4,4> > in; // this says to access 24 neighbors
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(out()) = 25.0 * dom(in())
+                        -0.04 * (dom(in(x(-1))) + dom(in(x(+1))))
+                        -0.04 * (dom(in(y(-1))) + dom(in(y(+1))))
+                        -0.04 * (dom(in(z(-1))) + dom(in(z(+1))))
+                        -0.04 * (dom(in(x(-2))) + dom(in(x(+2))))
+                        -0.04 * (dom(in(y(-2))) + dom(in(y(+2))))
+                        -0.04 * (dom(in(z(-2))) + dom(in(z(+2))))
+                        -0.04 * (dom(in(x(-3))) + dom(in(x(+3))))
+                        -0.04 * (dom(in(y(-3))) + dom(in(y(+3))))
+                        -0.04 * (dom(in(z(-3))) + dom(in(z(+3))))
+                        -0.04 * (dom(in(x(-4))) + dom(in(x(+4))))
+                        -0.04 * (dom(in(y(-4))) + dom(in(y(+4))))
+                        -0.04 * (dom(in(z(-4))) + dom(in(z(+4))));
+    }
+};
+
 // 25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_var{
     typedef accessor<0> out;
@@ -207,6 +232,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     else //off-diagonal point
                         coeff7pt_var(i,j,k,q) = -0.14285714285;
                 }
+
+    //25-pt stencil
+    storage_type out25pt_const(d1,d2,d3,1., "domain_out");
+    storage_type in25pt_const(d1,d2,d3,1., "domain_in");
+    storage_type *ptr_in25pt_const = &in25pt_const, *ptr_out25pt_const = &out25pt_const;
    
 
     //25-pt stencil with variable coeffs
@@ -452,8 +482,63 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 //------------------------------------------------------------------------------
 
     //start timer
-    boost::timer::cpu_times lapse_time4run = {0,0,0};
-    boost::timer::cpu_timer time4;
+    boost::timer::cpu_times lapse_time40run = {0,0,0};
+    boost::timer::cpu_timer time40;
+
+    //TODO: exclude ready, steady,finalize from time measurement (only run)
+    for(int i=0; i < TIME_STEPS; i++) {
+
+        // construction of the domain.
+        gridtools::domain_type<accessor_list> domain3d_25
+            (boost::fusion::make_vector(ptr_out25pt_const, ptr_in25pt_const));
+
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_40 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_40 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d3point25>(p_out(), p_in())
+                        ),
+                    domain3d_25, coords3d25pt
+                    );
+
+        //prepare and run single step of stencil computation
+        stencil_step_40->ready();
+        stencil_step_40->steady();
+
+        boost::timer::cpu_timer time40run;
+        stencil_step_40->run();
+        lapse_time40run = lapse_time40run + time40run.elapsed();
+
+        stencil_step_40->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out25pt_const;
+        ptr_out25pt_const = ptr_in25pt_const;
+        ptr_in25pt_const = tmp;
+    }
+
+    boost::timer::cpu_times lapse_time40 = time40.elapsed();
+
+#ifdef DEBUG
+    printf("Print domain D0 after computation\n");
+    TIME_STEPS % 2 == 0 ? in25pt_const.print() : out25pt_const.print();
+#endif
+
+    std::cout << "TIME d3point25 TOTAL: " << boost::timer::format(lapse_time40);
+    std::cout << "TIME d3point25 RUN:" << boost::timer::format(lapse_time40run) << std::endl;
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+
+    //start timer
+    boost::timer::cpu_times lapse_time41run = {0,0,0};
+    boost::timer::cpu_timer time41;
 
     //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i < TIME_STEPS; i++) {
@@ -463,9 +548,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
             (boost::fusion::make_vector(ptr_out25pt_var, ptr_in25pt_var, &coeff25pt_var));
 
         #ifdef __CUDACC__
-            gridtools::computation* stencil_step_4 =
+            gridtools::computation* stencil_step_41 =
         #else
-                boost::shared_ptr<gridtools::computation> stencil_step_4 =
+                boost::shared_ptr<gridtools::computation> stencil_step_41 =
         #endif
               gridtools::make_computation<gridtools::BACKEND, layout_t>
                 (
@@ -478,14 +563,14 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     );
 
         //prepare and run single step of stencil computation
-        stencil_step_4->ready();
-        stencil_step_4->steady();
+        stencil_step_41->ready();
+        stencil_step_41->steady();
 
-        boost::timer::cpu_timer time4run;
-        stencil_step_4->run();
-        lapse_time4run = lapse_time4run + time4run.elapsed();
+        boost::timer::cpu_timer time41run;
+        stencil_step_41->run();
+        lapse_time41run = lapse_time41run + time41run.elapsed();
 
-        stencil_step_4->finalize();
+        stencil_step_41->finalize();
 
         //swap input and output fields
         storage_type* tmp = ptr_out25pt_var;
@@ -493,15 +578,15 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         ptr_in25pt_var = tmp;
     }
 
-    boost::timer::cpu_times lapse_time4 = time4.elapsed();
+    boost::timer::cpu_times lapse_time41 = time41.elapsed();
 
 #ifdef DEBUG
-    printf("Print domain D after computation\n");
+    printf("Print domain D1 after computation\n");
     TIME_STEPS % 2 == 0 ? in25pt_var.print() : out25pt_var.print();
 #endif
 
-    std::cout << "TIME d3point25_var TOTAL: " << boost::timer::format(lapse_time4);
-    std::cout << "TIME d3point25_var RUN:" << boost::timer::format(lapse_time4run) << std::endl;
+    std::cout << "TIME d3point25_var TOTAL: " << boost::timer::format(lapse_time41);
+    std::cout << "TIME d3point25_var RUN:" << boost::timer::format(lapse_time41run) << std::endl;
 //------------------------------------------------------------------------------
 
     //start timer
