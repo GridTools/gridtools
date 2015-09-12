@@ -16,6 +16,7 @@
   3-point constant-coefficient stencil in one dimension, with symmetry.
   7-point constant-coefficient isotropic stencil in three dimensions, with symmetry.
   7-point variable-coefficient stencil in three dimension, with no coefficient symmetry.
+  25-point constant-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
   25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
 
  2nd order in time:
@@ -24,6 +25,14 @@
   A diagonal dominant matrix is used with "N" as a center-point value for a N-point stencil   
   and "-1/N" as a off-diagonal value.
  */
+
+//conditional selection of stencils to be executed
+//#define pt3
+#define pt7
+#define pt7_var
+#define pt25
+#define pt25_var
+//#define E pt25_t2
 
 using gridtools::level;
 using gridtools::accessor;
@@ -187,6 +196,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     uint_t d3 = z;
     uint_t TIME_STEPS = nt;
 
+    printf("Running for %d x %d x %d, %d iterations\n",x,y,z,nt);
+
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
 #else
@@ -206,16 +217,21 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
+#ifdef pt3
     //3pt stencil
     storage_type out3pt(d1,1,1,1., "domain3pt_out");
     storage_type in3pt(d1,1,1,1., "domain3pt_in");
     storage_type *ptr_in3pt = &in3pt, *ptr_out3pt = &out3pt;
+#endif
 
+#ifdef pt7
     //7pt stencil with symmetry
     storage_type out7pt(d1,d2,d3,1., "domain7pt_out");
     storage_type in7pt(d1,d2,d3,1., "domain7pt_in");
     storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+#endif
 
+#ifdef pt7_var
     //7pt stencil with variable coeffs
     storage_type out7pt_var(d1,d2,d3,1., "domain_out");
     storage_type in7pt_var(d1,d2,d3,1., "domain_in");
@@ -232,13 +248,16 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     else //off-diagonal point
                         coeff7pt_var(i,j,k,q) = -0.14285714285;
                 }
+#endif
 
+#ifdef pt25
     //25-pt stencil
     storage_type out25pt_const(d1,d2,d3,1., "domain_out");
     storage_type in25pt_const(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in25pt_const = &in25pt_const, *ptr_out25pt_const = &out25pt_const;
-   
+#endif   
 
+#ifdef pt25_var
     //25-pt stencil with variable coeffs
     storage_type out25pt_var(d1,d2,d3,1., "domain_out");
     storage_type in25pt_var(d1,d2,d3,1., "domain_in");
@@ -255,7 +274,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     else //off-diagonal point
                         coeff25pt_var(i,j,k,q) = -0.04;
                 }
+#endif
 
+#ifdef pt25_t2
     //25-pt stencil, 2-nd order in time with coeff symmetry
     storage_type out25pt(d1,d2,d3,1., "domain_out");
     storage_type in25pt(d1,d2,d3,1., "domain_in");
@@ -264,6 +285,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type *ptr_in25pt_old = &in25pt_old;
     storage_type *ptr_out25pt = &out25pt;
     storage_type alpha(d1,d2,d3,1., "coeff_alpha");
+#endif
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
@@ -318,6 +340,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
       3) The actual domain dimensions
      */
 
+#ifdef pt3
     //start timer
     boost::timer::cpu_times lapse_time1run = {0,0,0};
     boost::timer::cpu_timer time1;
@@ -371,8 +394,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d1point3 TOTAL: " << boost::timer::format(lapse_time1);
     std::cout << "TIME d1point3 RUN:" << boost::timer::format(lapse_time1run) << std::endl;
+
+#endif
 //------------------------------------------------------------------------------
-   
+#ifdef pt7   
     //start timer
     boost::timer::cpu_times lapse_time2run = {0,0,0};
     boost::timer::cpu_timer time2;
@@ -426,8 +451,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
     std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run) << std::endl;
+#endif
 //------------------------------------------------------------------------------
-    
+#ifdef pt7_var    
     //start timer
     boost::timer::cpu_times lapse_time3run = {0,0,0};
     boost::timer::cpu_timer time3;
@@ -479,8 +505,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point7_var TOTAL: " << boost::timer::format(lapse_time3);
     std::cout << "TIME d3point7_var RUN:" << boost::timer::format(lapse_time3run) << std::endl;
+#endif
 //------------------------------------------------------------------------------
-
+#ifdef pt25
     //start timer
     boost::timer::cpu_times lapse_time40run = {0,0,0};
     boost::timer::cpu_timer time40;
@@ -532,10 +559,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point25 TOTAL: " << boost::timer::format(lapse_time40);
     std::cout << "TIME d3point25 RUN:" << boost::timer::format(lapse_time40run) << std::endl;
+#endif
 //------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-
+#ifdef pt25_var
     //start timer
     boost::timer::cpu_times lapse_time41run = {0,0,0};
     boost::timer::cpu_timer time41;
@@ -587,8 +613,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point25_var TOTAL: " << boost::timer::format(lapse_time41);
     std::cout << "TIME d3point25_var RUN:" << boost::timer::format(lapse_time41run) << std::endl;
+#endif
 //------------------------------------------------------------------------------
-
+#ifdef pt25_t2
     //start timer
     boost::timer::cpu_times lapse_time5run = {0,0,0};
     boost::timer::cpu_timer time5;
@@ -650,7 +677,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point25_time2 TOTAL: " << boost::timer::format(lapse_time5);
     std::cout << "TIME d3point25_time2 RUN:" << boost::timer::format(lapse_time5run) << std::endl;
-
+#endif
 
     return 1;
     }//solver
