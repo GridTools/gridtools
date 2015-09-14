@@ -379,6 +379,25 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 #endif
+        typedef typename boost::mpl::fold<
+            arg_list_mpl
+            , boost::mpl::vector0<>
+            , boost::mpl::if_<is_not_tmp_storage<boost::mpl::_2>
+                              , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >
+                              , boost::mpl::_1
+            > >
+            ::type view_type_mpl;
+
+            typedef typename boost::mpl::fold<
+                boost::mpl::range_c<uint_t, 0, boost::mpl::size<RealStorage>::type::value>
+                , boost::mpl::bool_<true>
+                , boost::mpl::and_<
+                    boost::is_same<boost::mpl::at<view_type_mpl, boost::mpl::_2>, boost::mpl::at<RealStorage, boost::mpl::_2> >
+                      , boost::mpl::_1
+                      >
+                >::type::type storages_matching;
+
+                GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the

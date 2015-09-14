@@ -20,6 +20,7 @@ if (GTEST_FOUND)
         tests.cpp
         test_domain_indices.cpp
         boundary_conditions_test.cpp
+        test_bc.cpp
     )
     set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp stencil-composition/test_iterate_domain.cpp test_data_fields.cpp)
 

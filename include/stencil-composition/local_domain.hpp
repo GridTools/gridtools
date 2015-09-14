@@ -113,7 +113,7 @@ namespace gridtools {
         struct extract_actual_types {
 
             template <typename Storage, typename Enable=void>
-            struct check_if_temporary;
+            struct check_if_temporary : boost::mpl::false_{};
 
             template <typename Storage>
             struct check_if_temporary<Storage, typename boost::enable_if_c<is_temporary_storage<Storage>::value>::type> {
