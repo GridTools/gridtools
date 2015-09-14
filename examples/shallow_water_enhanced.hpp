@@ -486,17 +486,6 @@ namespace shallow_water{
 
         for (;final_step::current_time < total_time; ++final_step::current_time)
         {
-#ifdef CUDA_EXAMPLE
-            /*                        component,snapshot */
-//             boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-//             boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-//             boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
-#else
-            /*                    component,snapshot */
-//             boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-//             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-//             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
-#endif
 //! [exchange]
             std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
             he.pack(vec);
@@ -525,7 +514,8 @@ namespace shallow_water{
 #endif
         }
 
-        bc_eval->run();
+        // bcs not yet enabled
+        // bc_eval->run();
 
 //! [finalize]
         he.wait();
