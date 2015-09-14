@@ -85,20 +85,15 @@ namespace gridtools {
 
 
 #ifdef CXX11_ENABLED
-        constexpr meta_storage_base(array<uint_t, 4> const& a) :
-            m_dims(4),
-            m_strides(explode<array<int_t, (short_t)(space_dimensions)> >(
-                   _impl::assign_all_strides< (short_t)(space_dimensions), layout>::
-                   template apply<int,int,int,int>, a))
+        constexpr meta_storage_base(array<uint_t, space_dimensions> const& a) :
+            m_dims(space_dimensions),
+            m_strides(explode<
+                   array<int_t, (short_t)(space_dimensions)>,
+                   _impl::assign_all_strides< (short_t)(space_dimensions), layout>
+                   >(a))
         {}
-        constexpr meta_storage_base(array<uint_t, 3> const& a) :
-            m_dims(3),
-            m_strides(explode<array<int_t, (short_t)(space_dimensions)> >(
-                   _impl::assign_all_strides< (short_t)(space_dimensions), layout>::
-                   template apply<int,int,int,int>, a))
-        {}
-
 #else
+        //TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
         meta_storage_base(array<uint_t, 3> const& a)
             : m_dims(a)
         {
@@ -106,7 +101,7 @@ namespace gridtools {
             m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims)*layout::template find_val<1,uint_t,1>(m_dims) );
             m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims) );
         }
-
+d
 #endif
         template<typename T>
         constexpr meta_storage_base(T const& a)
