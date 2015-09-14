@@ -191,11 +191,25 @@ d
         }
 
 #ifdef CXX11_ENABLED
+
         /**@brief straightforward interface*/
         template <typename ... UInt>
         GT_FUNCTION
         uint_t index(uint_t const& first, UInt const& ... args_) const {
             return _index(strides(), first, args_... );
+        }
+
+        struct _impl_index{
+            template<typename ... UIntType>
+            static uint_t apply(const type& me, UIntType ... args){
+                return me.index(args...);
+            }
+        };
+
+        template<size_t S>
+        GT_FUNCTION
+        uint_t index(array<uint, S> a) const {
+            return explode<uint_t, _impl_index>(a, *this);
         }
 #else
         /**@brief straightforward interface*/
