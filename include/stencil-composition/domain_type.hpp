@@ -25,6 +25,7 @@
 
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
+#include "stencil-composition/arg_metafunctions.hpp"
 
 /**@file
  @brief This file contains the global list of placeholders to the storages

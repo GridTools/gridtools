@@ -13,6 +13,7 @@
 #include "caches/cache_metafunctions.hpp"
 #include "esf.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "caches/cache_metafunctions.hpp"
 
 namespace gridtools {
 

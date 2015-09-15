@@ -244,6 +244,11 @@ if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
 
+set(RECTANGULAR_GRIDS "ON" CACHE BOOL "compile for rectangular grids" )
+if(RECTANGULAR_GRIDS)
+    add_definitions( -DRECTANGULAR_GRIDS )
+endif(RECTANGULAR_GRIDS)
+
 if (ENABLE_PYTHON)
     message ("PYTHON enabled ")
     # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)

@@ -1,8 +1,10 @@
 #pragma once
+#include "common/defs.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
 
-//#include <stencil-composition/arg_storage_pair.hpp>
+namespace gridtools {
 
-template <int I, typename LocationType>
+template <uint_t I, typename LocationType>
 struct arg {
     using location_type = LocationType;
 
@@ -14,8 +16,12 @@ struct arg {
 //    }
 };
 
+template<uint_t I, typename LocationType>
+struct is_arg<arg<I, LocationType> > : boost::mpl::true_{};
+
 template <int I, typename T>
 std::ostream& operator<<(std::ostream& s, arg<I,T>) {
     return s << "placeholder<" << I << ", " << T() << ">";
 }
 
+}

@@ -12,7 +12,7 @@
 #include <communication/halo_exchange.hpp>
 
 //#include <storage/io.hpp>
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>

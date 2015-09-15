@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef CXX11_ENABLED
 /**@file
 @brief implementation of a compile time string.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
 #include <stencil-composition/interval.hpp>

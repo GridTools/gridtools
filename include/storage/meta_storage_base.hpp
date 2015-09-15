@@ -93,7 +93,7 @@ namespace gridtools {
                    >(a))
         {}
 #else
-        //TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
+         //TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
         meta_storage_base(array<uint_t, 3> const& a)
             : m_dims(a)
         {

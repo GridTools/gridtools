@@ -14,9 +14,7 @@
 #include "gtest/gtest.h"
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
+#include <stencil-composition/domain_type.hpp>
 
 #ifdef CXX11_ENABLED
 
@@ -36,31 +34,34 @@ namespace make_computation_test{
     };
 }
 
-TEST(test_make_computation_other_grid, get_mss_array) {
+TEST(test_make_computation, get_mss_array) {
 
     using namespace gridtools;
 
-    #define BACKEND backend<enumtype::Host, enumtype::Block >
+    using backend_t = backend<enumtype::Host, enumtype::Block >;
 
     typedef gridtools::layout_map<2,1,0> layout_t;
-    typedef gridtools::BACKEND::storage_type<float_type, meta_storage<0,layout_t,false> >::type storage_type;
+    using trapezoid_2D_t = gridtools::trapezoid_2D_colored<backend_t>;
 
-    typedef arg<0, storage_type> p_in;
-    typedef arg<1, storage_type> p_out;
-    typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
+    using cell_storage_type = typename backend_t::storage_t<trapezoid_2D_t::cells, double>;
+
+    typedef arg<0, trapezoid_2D_t::cells> in_cells;
+    typedef arg<1, trapezoid_2D_t::cells> out_cells;
+
+    typedef boost::mpl::vector<in_cells, out_cells> accessor_list_t;
 
     typedef decltype(
         gridtools::make_mss // mss_descriptor
         (
                 enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor>(p_in())
+                gridtools::make_esf<make_computation_test::test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(in_cells())
         )) mss1_t;
 
     typedef decltype(
         gridtools::make_mss // mss_descriptor
         (
                 enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor>(p_in())
+                gridtools::make_esf<make_computation_test::test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(out_cells())
         )) mss2_t;
 
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;

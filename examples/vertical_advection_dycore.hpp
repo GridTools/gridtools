@@ -2,7 +2,7 @@
 
 #include <gridtools.hpp>
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "vertical_advection_repository.hpp"

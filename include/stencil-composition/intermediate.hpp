@@ -1,5 +1,5 @@
 #pragma once
-#include "make_stencils.hpp"
+
 #include <boost/mpl/transform.hpp>
 #include "gt_for_each/for_each.hpp"
 #include <boost/fusion/include/transform.hpp>
@@ -14,6 +14,7 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
+#include "esf.hpp"
 #include "level.hpp"
 #include "loopintervals.hpp"
 #include "functor_do_methods.hpp"

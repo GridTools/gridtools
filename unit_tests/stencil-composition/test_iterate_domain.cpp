@@ -4,11 +4,7 @@
 #include "common/defs.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/intermediate_metafunctions.hpp"
-// #include "stencil-composition/backend.hpp"
-// #include "stencil-composition/interval.hpp"
-// #include "stencil-composition/local_domain.hpp"
-// #include "stencil-composition/backend_host/iterate_domain_host.hpp"
-// #include "stencil-composition/accessor.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 namespace test_iterate_domain{
     using namespace gridtools;

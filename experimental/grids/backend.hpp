@@ -10,7 +10,8 @@ namespace gridtools {
     /**
        The backend is, as usual, declaring what the storage types are
      */
-    struct _backend {
+    template<enumtype::backend BackendId, enumtype::strategy StrategyType >
+    struct backend {
     public:
         // template <typename LocationType, typename X, typename LayoutMap>
         // struct _storage_type;
@@ -31,14 +32,14 @@ namespace gridtools {
         // };
 
         template <typename LocationType>
-        using meta_storage_type = meta_storage<LocationType::value, layout_map<0,1,2,3>, false >;
+        using meta_storage_t = meta_storage<LocationType::value, layout_map<0,1,2,3>, false >;
 
         template <typename LocationType, typename ValueType>
-        using storage_type = base_storage<wrap_pointer<ValueType>, meta_storage_type<LocationType>, 1>;
+        using storage_t = base_storage<wrap_pointer<ValueType>, meta_storage_t<LocationType>, 1>;
 
     };
 
-    struct colored_backend : public _backend {
+    struct colored_backend : public backend<enumtype::Host, enumtype::Block> {
     private:
 
         template <ushort_t NColors, typename Accessor, typename Computation, typename Coords>

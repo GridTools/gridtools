@@ -26,7 +26,6 @@
 #include <cassert>
 #include <boost/mpl/vector.hpp>
 #include "location_type.hpp"
-#include "backend.hpp"
 #include "array_addons.hpp"
 
 namespace gridtools {
@@ -587,10 +586,10 @@ namespace gridtools {
 
         //    private:
         template <typename LocationType>
-        using v_storage_t = typename Backend::template meta_storage_type<LocationType>;
+        using v_storage_t = typename Backend::template meta_storage_t<LocationType>;
 
         template <typename LocationType, typename ValueType>
-        using storage_t = typename Backend::template storage_type<LocationType, ValueType>;
+        using storage_t = typename Backend::template storage_t<LocationType, ValueType>;
 
         const gridtools::array<uint_t, 2> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
