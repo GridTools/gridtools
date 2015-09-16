@@ -4,7 +4,7 @@ include_directories( ../../../include/stencil-composition ) ## Library header fi
 FILE(GLOB_RECURSE INC_ALL "../../../nclude/stencil-composition/*.hpp")
 
 if( ENABLE_CXX11 )
-  SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_make_computation.cpp ${INC_ALL})
+  SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_make_computation.cpp test_copy_stencil.cpp ${INC_ALL})
 endif( ENABLE_CXX11 )
 
 ### Executables

@@ -5,12 +5,6 @@
 #define _ACCESSOR_H_DEBUG_
 
 
-template <int R>
-struct radius {
-    static const int value = R;
-};
-
-
 /**
    Map function that uses compile time (stateless) accessors to be
    evaluated later. Another version would have the Arguments to be
@@ -182,27 +176,6 @@ reduce_on_vertexes(Reduction function
                   "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
     return reduce_on_something(function, initial, mapf);
 }
-
-
-/**
-   This is the type of the accessors accessed by a stencil functor.
-   It's a pretty minima implementation.
- */
-template <int I, typename LocationType>
-struct accessor {
-    using this_type = accessor<I, LocationType>;
-    using location_type = LocationType;
-    static const int value = I;
-
-    location_type location() const {
-        return location_type();
-    }
-};
-
-template <int I, typename LocationType, typename Radius=radius<0> >
-struct ro_accessor : public accessor<I, LocationType> {
-    using radius_type = Radius;
-};
 
 
 /**

@@ -10,6 +10,7 @@
 #include "../common/host_device.hpp"
 #include "../common/defs.hpp"
 #include "../common/array.hpp"
+#include "stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
 #include <tuple>
 #endif
@@ -50,28 +51,6 @@ namespace gridtools {
         }
 
     }//namespace _impl
-
-
-    // forward declarations
-    template < ushort_t ID, typename Range, ushort_t Number>
-    struct accessor;
-
-#ifdef CXX11_ENABLED
-    template <typename ArgType, typename ... Pair>
-    struct accessor_mixed;
-#endif
-
-    //template arguments type checking
-    template <typename T>
-    struct is_arg_tuple : boost::false_type {};
-
-    template < ushort_t ID, typename Range, ushort_t Number>
-    struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
-
-#ifdef CXX11_ENABLED
-    template <typename ArgType, typename ... Pair>
-    struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
-#endif
 
     /**
        Layout maps are simple sequences of integers specified
@@ -293,15 +272,15 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        template <ushort_t I, typename T, T DefaultVal, typename Accessor>
         GT_FUNCTION
-        static constexpr typename std::enable_if<!is_array<Tuple>::value, T>::type
-        find_val(Tuple const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type");
+        static constexpr typename std::enable_if<!is_array<Accessor>::value, T>::type
+        find_val(Accessor const& indices) {
+            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "the find_val method is used with tuples of arg_type type");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+                indices.template get<Accessor::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

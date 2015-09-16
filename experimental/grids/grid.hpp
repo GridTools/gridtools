@@ -30,11 +30,7 @@
 
 namespace gridtools {
 
-    extern char const cells_str[]="cells";
-    extern char const edges_str[]="edges";
-    extern char const vertexes_str[]="vertexes";
-
-    namespace{
+namespace{
         using cells = location_type<0,2>;
         using edges = location_type<1,3>;
         using vertexes = location_type<2,1>;

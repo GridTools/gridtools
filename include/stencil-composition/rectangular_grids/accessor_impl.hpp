@@ -153,12 +153,6 @@ namespace gridtools {
 //################################################################################
 
     /**
-     * Struct to test if an argument is a temporary
-     */
-    template <typename T>
-    struct is_plchldr_to_temp;
-
-    /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
      */
     template <uint_t I, typename T>

@@ -1,6 +1,9 @@
 #pragma once
 #include "common/gt_assert.hpp"
+#include "common/array.hpp"
 #include "stencil-composition/block_size.hpp"
+#include "stencil-composition/range.hpp"
+#include "stencil-composition/offset_tuple.hpp"
 
 namespace gridtools {
 

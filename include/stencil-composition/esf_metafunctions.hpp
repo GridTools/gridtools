@@ -2,6 +2,7 @@
 
 #include <boost/mpl/contains.hpp>
 #include "stencil-composition/esf.hpp"
+#include "stencil-composition/accessor.hpp"
 
 namespace gridtools {
 
