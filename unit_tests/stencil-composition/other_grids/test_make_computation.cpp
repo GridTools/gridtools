@@ -45,8 +45,8 @@ TEST(test_make_computation, get_mss_array) {
 
     using cell_storage_type = typename backend_t::storage_t<trapezoid_2D_t::cells, double>;
 
-    typedef arg<0, trapezoid_2D_t::cells> in_cells;
-    typedef arg<1, trapezoid_2D_t::cells> out_cells;
+    typedef arg<0, cell_storage_type> in_cells;
+    typedef arg<1, cell_storage_type> out_cells;
 
     typedef boost::mpl::vector<in_cells, out_cells> accessor_list_t;
 

@@ -645,6 +645,12 @@ namespace{
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
 
         template <typename LocationType>
+        storage_t<LocationType, double> make_storage() const {
+            return storage_t<LocationType, double>(boost::fusion::at_c<LocationType::value>
+                                                   (m_virtual_storages));
+        }
+
+        template <typename LocationType>
         array<int_t, 4> ll_indices(array<int_t, 3> const& i, LocationType) const {
             // std::cout << " *cells* " << std::endl;
             auto out = array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors), i[1]/static_cast<int>(LocationType::n_colors), i[2]};
@@ -739,5 +745,10 @@ namespace{
         }
 
     };
+
+    template<typename T> struct is_grid : boost::mpl::false_{};
+
+    template <typename Backend>
+    struct is_grid<trapezoid_2D_colored<Backend> > : boost::mpl::true_ {};
 
 }
