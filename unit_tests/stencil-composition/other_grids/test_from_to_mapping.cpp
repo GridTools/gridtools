@@ -1,11 +1,10 @@
 #include "gtest/gtest.h"
 
-#include "../grid.hpp"
-#include "../array_addons.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 
-using trapezoid_2D = gridtools::trapezoid_2D_colored<gridtools::_backend>;
+using trapezoid_2D = gridtools::trapezoid_2D_colored<gridtools::backend<enumtype::Host, enumtype::Block>>;
 
 class ll_map_test : public ::testing::TestWithParam<int> {
     // You can implement all the usual fixture class members here.

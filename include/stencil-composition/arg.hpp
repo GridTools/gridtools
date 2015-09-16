@@ -10,5 +10,5 @@
 #ifdef RECTANGULAR_GRIDS
     #include "stencil-composition/rectangular_grids/arg.hpp"
 #else
-    #include "../experimental/grids/arg.hpp"
+    #include "stencil-composition/other_grids/arg.hpp"
 #endif

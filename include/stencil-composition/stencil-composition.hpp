@@ -7,5 +7,5 @@
 #include "stencil-composition/axis.hpp"
 
 #ifndef RECTANGULAR_GRIDS
-    #include "../experimental/grids/grid.hpp"
+    #include "stencil-composition/other_grids/grid.hpp"
 #endif

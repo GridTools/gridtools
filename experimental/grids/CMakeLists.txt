@@ -6,4 +6,3 @@ if ( ENABLE_CXX11 )
     target_link_libraries(main_example ${exe_LIBS})
 endif()
 
-add_subdirectory(unit_tests)

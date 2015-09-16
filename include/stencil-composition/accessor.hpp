@@ -3,5 +3,5 @@
 #ifdef RECTANGULAR_GRIDS
     #include "stencil-composition/rectangular_grids/accessor.hpp"
 #else
-    #include "../experimental/grids/accessor.hpp"
+    #include "stencil-composition/other_grids/accessor.hpp"
 #endif
