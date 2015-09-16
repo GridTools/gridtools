@@ -2,6 +2,7 @@
 
 #include <boost/mpl/contains.hpp>
 #include "stencil-composition/esf.hpp"
+#include "stencil-composition/independent_esf.hpp"
 #include "stencil-composition/accessor.hpp"
 
 namespace gridtools {
@@ -63,6 +64,8 @@ struct esf_get_temps_per_functor {
     >::type type;
 };
 
+template <typename T>
+struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
 
 } //namespace gridtools
 

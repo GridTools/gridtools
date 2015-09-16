@@ -1,8 +1,5 @@
 #pragma once
 
-#include "storage/storage.hpp"
-#include "common/layout_map.hpp"
-#include "range.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -12,8 +9,12 @@
 #include "common/is_temporary_storage.hpp"
 #include "stencil-composition/offset_tuple.hpp"
 #include "storage/storage_metafunctions.hpp"
+#include "storage/storage.hpp"
+#include "common/layout_map.hpp"
+#include "stencil-composition/range.hpp"
+
 #ifdef CXX11_ENABLED
-#include "expressions.hpp"
+#include "stencil-composition/expressions.hpp"
 #endif
 
 namespace gridtools {

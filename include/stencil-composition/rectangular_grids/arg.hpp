@@ -6,7 +6,8 @@
 */
 
 #pragma once
-#include "../storage/storage_metafunctions.hpp"
+#include "storage/storage_metafunctions.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
 
 namespace gridtools {
 

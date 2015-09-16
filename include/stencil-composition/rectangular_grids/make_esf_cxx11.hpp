@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
-#include "mss_metafunctions.hpp"
+#include "stencil-composition/mss_metafunctions.hpp"
 
 namespace gridtools {
 

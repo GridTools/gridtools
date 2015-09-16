@@ -14,7 +14,7 @@
 #include "gtest/gtest.h"
 
 #include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/intermediate_metafunctions.hpp"
 
 using namespace gridtools;

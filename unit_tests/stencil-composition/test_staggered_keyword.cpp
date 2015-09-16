@@ -1,6 +1,5 @@
-#include "stencil-composition/make_computation.hpp"
-
 #include "gtest/gtest.h"
+#include "stencil-composition/stencil-composition.hpp"
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >

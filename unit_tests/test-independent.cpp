@@ -8,7 +8,7 @@
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
 #include "common/gt_assert.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

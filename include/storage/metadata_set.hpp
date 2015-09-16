@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/fusion/include/as_set.hpp>
+#include "common/generic_metafunctions/is_sequence_of.hpp"
 
 /**
 @file

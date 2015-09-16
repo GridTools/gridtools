@@ -5,8 +5,8 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
-#include "backend_traits_fwd.hpp"
-#include "run_functor_arguments.hpp"
+#include "stencil-composition/backend_traits_fwd.hpp"
+#include "stencil-composition/run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
 #include "stencil-composition/backend_cuda/backend_cuda.hpp"
@@ -14,17 +14,17 @@
 #include "stencil-composition/backend_host/backend_host.hpp"
 #endif
 
-#include "../common/pair.hpp"
-#include "heap_allocated_temps.hpp"
+#include "common/pair.hpp"
+#include "stencil-composition/heap_allocated_temps.hpp"
 #include "accessor.hpp"
-#include "domain_type.hpp"
-#include "mss_metafunctions.hpp"
-#include "mss_local_domain.hpp"
-#include "mss.hpp"
-#include "axis.hpp"
-#include "../common/meta_array.hpp"
-#include "tile.hpp"
-#include "../storage/meta_storage.hpp"
+#include "stencil-composition/domain_type.hpp"
+#include "stencil-composition/mss_metafunctions.hpp"
+#include "stencil-composition/mss_local_domain.hpp"
+#include "stencil-composition/mss.hpp"
+#include "stencil-composition/axis.hpp"
+#include "common/meta_array.hpp"
+#include "stencil-composition/tile.hpp"
+#include "storage/meta_storage.hpp"
 
 /**
    @file

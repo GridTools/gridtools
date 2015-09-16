@@ -1,4 +1,5 @@
 #pragma once
+#include "common/host_device.hpp"
 
 namespace gridtools {
     /**

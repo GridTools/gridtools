@@ -1,5 +1,5 @@
 #pragma once
-#include "stencil-composition/accessor_impl.hpp"
+#include "stencil-composition/rectangular_grids/accessor_impl.hpp"
 #include "stencil-composition/arg.hpp"
 #include "stencil-composition/dimension.hpp"
 /**

@@ -3,9 +3,9 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
-#include "domain_type.hpp"
+#include "stencil-composition/domain_type.hpp"
 #include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "esf_fwd.hpp"
+#include "stencil-composition/esf_fwd.hpp"
 
 /**
    @file
@@ -55,8 +55,5 @@ namespace gridtools {
 
     template<typename ESF, typename ArgArray, typename Staggering>
     struct is_esf_descriptor<esf_descriptor<ESF, ArgArray, Staggering> > : boost::mpl::true_{};
-
-    template <typename T>
-    struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
 
 } // namespace gridtools
