@@ -5,6 +5,7 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
+#include "stencil-composition/heap_allocated_temps.hpp"
 #include "stencil-composition/backend_traits_fwd.hpp"
 #include "stencil-composition/run_functor_arguments.hpp"
 
@@ -15,7 +16,6 @@
 #endif
 
 #include "common/pair.hpp"
-#include "stencil-composition/heap_allocated_temps.hpp"
 #include "accessor.hpp"
 #include "stencil-composition/domain_type.hpp"
 #include "stencil-composition/mss_metafunctions.hpp"
@@ -119,14 +119,14 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template< enumtype::backend BackendId, enumtype::strategy StrategyType >
+    template< enumtype::backend BackendId, enumtype::strategy StrategyId >
     struct backend_base
     {
         typedef backend_traits_from_id<BackendId> backend_traits_t;
-        typedef typename backend_traits_t::template select_strategy<StrategyType>::type strategy_traits_t;
+        typedef typename backend_traits_t::template select_strategy<StrategyId>::type strategy_traits_t;
 
-        typedef backend_base<BackendId, StrategyType> this_type;
-        static const enumtype::strategy s_strategy_id=StrategyType;
+        typedef backend_base<BackendId, StrategyId> this_type;
+        static const enumtype::strategy s_strategy_id=StrategyId;
         static const enumtype::backend s_backend_id =BackendId;
 
         /** types of the functions used to compute the thread grid information
@@ -266,7 +266,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
 
-            typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
+            typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
 
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
@@ -325,7 +325,7 @@ namespace gridtools {
         template <typename ArgList, typename MetaList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Coords const& coords_)
         {
-            _impl::template prepare_temporaries_functor<ArgList, MetaList, Coords, this_type>::
+            _impl::template prepare_temporaries_functor<ArgList, MetaList, Coords, BackendId, StrategyId>::
                 prepare_temporaries((arg_list_), meta_list_,  (coords_));
         }
 
