@@ -209,7 +209,7 @@ namespace gridtools{
 #ifdef CXX11_ENABLED
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
-                GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
 
             typedef storage_info<Index::value, Layout, true,

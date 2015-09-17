@@ -59,6 +59,13 @@ namespace gridtools{
         template <typename Index, typename Layout, typename ... Tiles>
         struct get_tmp_meta_storage
         {
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+#else
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
+#endif
+
             typedef meta_storage<Index::value, Layout, true, Tiles ...> type;
         };
 
@@ -69,6 +76,12 @@ namespace gridtools{
         template <typename Storage, typename ... Tiles>
         struct get_tmp_storage
         {
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+#else
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
+#endif
+
             typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...
                                                                                                        >::type, Storage::field_dimensions > > type;
         };
