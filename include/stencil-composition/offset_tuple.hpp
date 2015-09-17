@@ -219,15 +219,17 @@ template< int_t NDim >
 struct offset_tuple<0, NDim>
 {
     static const int_t n_dim=NDim;
-    #ifdef CXX11_ENABLED
+
+#ifdef CXX11_ENABLED
     template <typename... Whatever>
     GT_FUNCTION
-    constexpr offset_tuple ( Whatever... x) {}
+    constexpr offset_tuple ( Whatever... x) {
+        GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_dimension<Whatever>::type::value ... ), "wrong type for the argument of an offset_tuple" );
+    }
 
     //copy ctor
-    template <typename Other>
     GT_FUNCTION
-    constexpr offset_tuple (const Other& other) {}
+    constexpr offset_tuple (const offset_tuple& other) {}
 #else
     template <typename X, typename Y, typename Z,  typename T>
     GT_FUNCTION

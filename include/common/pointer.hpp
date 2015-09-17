@@ -43,10 +43,18 @@ namespace gridtools{
         */
         GT_FUNCTION
         T const* get() {return m_t;}
+
         GT_FUNCTION
-        T const* operator -> () const {return m_t;}
+        T const* operator -> () const {
+            assert(m_t);
+            return m_t;
+        }
+
         GT_FUNCTION
-        T const& operator * () const {return *m_t;}
+        T const& operator * () const {
+            assert (m_t);
+            return *m_t;
+        }
 
     };
 
