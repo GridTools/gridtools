@@ -64,7 +64,6 @@ endif()
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
-set( ENABLE_CXX14 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
@@ -72,13 +71,8 @@ if ( ENABLE_CXX11 )
   message ("-- CXX11 enabled?: " "${ENABLE_CXX11}")
   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
-  if ( ENABLE_CXX14 )
-    message ("-- CXX14 enabled?: " "${ENABLE_CXX11}")
-    set (ADDITIONAL_CXX_FLAGS "-std=c++14")
-  else()
-    message ("-- CXX11 and 14 disabled")
-    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
-  endif()
+  message ("-- CXX11 disabled")
+  set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
 endif()
 
 # Optionally include CUDA

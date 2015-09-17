@@ -1,18 +1,13 @@
 #pragma once
 
-#if __cplusplus > 199711L && __cplusplus <= 201103L
+#if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
-#define CXX14_DISABLED
-#else
-#if __cplusplus > 201103L
-#define CXX11_ENABLED
-#define CXX14_ENABLED
 #else
 #define CXX11_DISABLED
-#define CXX14_DISABLED
 #endif
-#endif
+#else
+#define CXX11_DISABLED
 #endif
 
 #if((defined(CXX11_DISABLED) && defined(CXX14_ENABLED)))

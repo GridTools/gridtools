@@ -21,19 +21,6 @@ namespace gridtools {
     template <typename T, size_t D>
     class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
 
-        template<int_t Idx>
-        struct get_component{
-
-            GT_FUNCTION
-            constexpr get_component(){}
-
-            template<typename OtherArray>
-            GT_FUNCTION
-            constexpr T& apply(OtherArray const& other_){
-                return other_[Idx];
-            }
-        };
-
         static const uint_t _size = (D>0)?D:1;
 
         T _array[_size];
@@ -50,11 +37,11 @@ namespace gridtools {
         constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
-        GT_FUNCTION
-        array(std::initializer_list<T> c) {
-            assert(c.size() == _size);
-            std::copy(c.begin(), c.end(), _array);
-        }
+        // GT_FUNCTION
+        // array(std::initializer_list<T> c) {
+        //     assert(c.size() == _size);
+        //     std::copy(c.begin(), c.end(), _array);
+        // }
 #else
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
@@ -93,12 +80,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         /** @brief constexpr copy constructor
 
-            unrolling the input array into a pack and forwarding to the regular constructor
-            TODO: complicated and counter intuitive syntax
         */
-        // GT_FUNCTION
-        // constexpr array( array<T,_size> const& other): gt_make_integer_sequence<_size>::template apply<array<T, _size>, get_component> (other) {
-        // }
         GT_FUNCTION
         constexpr array( array<T,1> const& other): _array{other[0]} {
         }
@@ -151,14 +133,15 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T const & operator[](size_t i) const {
-            assert((i < _size));
+        constexpr T const & operator[](size_t i) const {
+            // assert((i < _size));
             return _array[i];
         }
 
         GT_FUNCTION
+        // constexpr
         T & operator[](size_t i) {
-            assert((i < _size));
+            //assert((i < _size));
             return _array[i];
         }
 

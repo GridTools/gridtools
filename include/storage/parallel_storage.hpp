@@ -11,7 +11,7 @@
 namespace gridtools {
 
     template < typename MetaStorage, typename Partitioner >
-    class parallel_meta_storage
+    class parallel_storage_info
     {
 
     public:
@@ -29,9 +29,9 @@ namespace gridtools {
         metadata_t m_metadata;
 
     public:
-        DISALLOW_COPY_AND_ASSIGN(parallel_meta_storage);
+        DISALLOW_COPY_AND_ASSIGN(parallel_storage_info);
 
-        explicit parallel_meta_storage(partitioner_t const& part)
+        explicit parallel_storage_info(partitioner_t const& part)
             : m_partitioner(&part)
             , m_metadata()
             {
@@ -61,14 +61,14 @@ namespace gridtools {
 
          */
         template <typename ... UInt>
-        explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
+        explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
             , m_coordinates()
             , m_coordinates_gcl()
             , m_low_bound()
             , m_up_bound()
             , m_metadata(
-                apply_integer_sequence<typename make_integer_sequence
+                apply_gt_integer_sequence<typename make_gt_integer_sequence
                 <uint_t, sizeof ... (UInt)>::type >::template apply<metadata_t>
                 (
                  ([&part]
@@ -91,8 +91,8 @@ namespace gridtools {
         template <typename ... UInt>
         bool mine(UInt const& ... coordinates_) const
             {
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_meta_storage::mine()");
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_meta_storage::mine()");
+                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_storage_info::mine()");
+                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_storage_info::mine()");
                 uint_t coords[metadata_t::space_dimensions]={coordinates_ ...};
                 bool result=true;
                 for(ushort_t i=0; i<metadata_t::space_dimensions; ++i)
@@ -154,7 +154,7 @@ namespace gridtools {
 
     private:
 
-        parallel_meta_storage();
+        parallel_storage_info();
 
     };
 }//namespace gridtools

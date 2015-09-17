@@ -115,13 +115,11 @@ namespace gridtools {
 
             copy constructor, used e.g. to generate the gpu clone of the storage metadata.
          */
-        template <typename Other>
         GT_FUNCTION
-        constexpr meta_storage_base( Other const& other ) :
+        constexpr meta_storage_base( meta_storage_base const& other ) :
             m_dims(other.m_dims)
             , m_strides(other.m_strides)
             {
-                GRIDTOOLS_STATIC_ASSERT(is_meta_storage<Other>::type::value, "Type error");
             }
 
         /** @brief prints debugging information */

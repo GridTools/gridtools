@@ -79,7 +79,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::meta_storage<0, layout_t, false> meta_t;
+    typedef gridtools::storage_info<0, layout_t, false> meta_t;
 
     //
     // define the storage unit used by the backend

@@ -74,7 +74,7 @@ namespace gridtools{
          struct get_tmp_meta_storage
          {
              //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef meta_storage<Index::value, Layout, true > type;
+             typedef storage_info<Index::value, Layout, true > type;
          };
 
         template <typename Storage, typename ... Tiles>
@@ -204,7 +204,7 @@ namespace gridtools{
                   >
         struct get_tmp_meta_storage
         {
-            typedef meta_storage<Index::value, Layout, true,
+            typedef storage_info<Index::value, Layout, true,
 #ifdef CXX11_ENABLED
                                           Tiles ...
 #else

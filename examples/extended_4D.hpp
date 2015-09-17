@@ -96,9 +96,9 @@ namespace assembly{
         //                   strides  1 x xy xyz
         typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef meta_storage<0, layout_t, false >::type metadata_t;
-        typedef meta_storage<1, layout4_t, false >::type metadata_global_quad_t;
-        typedef meta_storage<2, layout4_t, false >::type metadata_local_quad_t;
+        typedef storage_info<0, layout_t, false >::type metadata_t;
+        typedef storage_info<1, layout4_t, false >::type metadata_global_quad_t;
+        typedef storage_info<2, layout4_t, false >::type metadata_local_quad_t;
         typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
         typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
         typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;

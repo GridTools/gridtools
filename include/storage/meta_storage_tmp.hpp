@@ -3,8 +3,20 @@
 
 namespace gridtools{
 
-    template<ushort_t Index, typename Layout, typename First, typename ... Tiles>
-    struct meta_storage_base<Index, Layout, true, First, Tiles...> : public meta_storage_base<Index, Layout, false> {
+    template<ushort_t Index, typename Layout, typename First,
+#ifdef CXX11_ENABLED
+             typename ... Tiles
+#else
+             typename TileI, typename TileJ
+#endif
+             >
+    struct meta_storage_base<Index, Layout, true, First,
+#ifdef CXX11_ENABLED
+                             Tiles...
+#else
+                             TileI, TileJ
+#endif
+                             > : public meta_storage_base<Index, Layout, false> {
         static const bool is_temporary=true;
         typedef  meta_storage_base<Index, Layout, false> super;
 

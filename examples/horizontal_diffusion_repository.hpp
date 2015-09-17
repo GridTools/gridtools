@@ -28,12 +28,12 @@ using gridtools::int_t;
 
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::meta_storage<0,layout_ijk, false> metadata_ijk_t;
-    typedef gridtools::meta_storage<1,layout_ij, false> metadata_ij_t;
-    typedef gridtools::meta_storage<2,layout_scalar, false> metadata_scalar_t;
-    typedef gridtools::meta_storage<0,layout_ijk, true> metadata_ijk_tmp_t;
-    typedef gridtools::meta_storage<1,layout_ij, true> metadata_ij_tmp_t;
-    typedef gridtools::meta_storage<2,layout_scalar, true> metadata_scalar_tmp_t;
+    typedef gridtools::storage_info<0,layout_ijk, false> metadata_ijk_t;
+    typedef gridtools::storage_info<1,layout_ij, false> metadata_ij_t;
+    typedef gridtools::storage_info<2,layout_scalar, false> metadata_scalar_t;
+    typedef gridtools::storage_info<0,layout_ijk, true> metadata_ijk_tmp_t;
+    typedef gridtools::storage_info<1,layout_ij, true> metadata_ij_tmp_t;
+    typedef gridtools::storage_info<2,layout_scalar, true> metadata_scalar_tmp_t;
 
 class repository
 {
