@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../common/gpu_clone.hpp"
-#include "meta_storage_base.hpp"
 #include "meta_storage_tmp.hpp"
 
 /**
@@ -139,7 +138,7 @@ private:
                , typename Layout
                , bool IsTemporary
                >
-    struct meta_storage<Index, Layout, IsTemporary, int, int> : public meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> >{
+    struct storage_info<Index, Layout, IsTemporary, int, int> : public meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> >{
         typedef meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> > super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}

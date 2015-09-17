@@ -5,7 +5,7 @@
 
 namespace gridtools{
 
-// #ifdef CXX11_ENABLED
+#ifdef CXX11_ENABLED
 
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
@@ -79,5 +79,5 @@ namespace gridtools{
 
     };
 
-// #endif
+#endif
 } //namespace gridtools
