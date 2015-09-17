@@ -6,11 +6,8 @@
 @brief dummy pointer object
 
 this class is supposed to be replaced by (or to wrap) a smart pointer of our choice.
-For the moment it just replace a raw pointer
+For the moment it just replaces a raw pointer
 
-NOTE: one reason for it being needed is that
-fusion set does not support raw pointers as keys. Instead of creating a set of pairs
-I went for the pointer wrapper
 */
 
 namespace gridtools{
@@ -25,13 +22,23 @@ namespace gridtools{
         T const* m_t;
     public:
         typedef T value_type;
+
+        /**
+           @brief default constructor
+         */
         GT_FUNCTION
         pointer(): m_t(0){}
 
+        /**
+           @brief construct from raw pointer
+         */
         template <typename U>
         GT_FUNCTION
         pointer(U const* t_): m_t(t_){}
 
+        /**
+           @brief assign operator
+         */
         template <typename U>
         GT_FUNCTION
         void operator = (U const* t_){
@@ -39,17 +46,23 @@ namespace gridtools{
         }
 
         /**
-           @brief returns the raw pointer
+           @brief returns the raw pointer (even if it's null)
         */
         GT_FUNCTION
         T const* get() {return m_t;}
 
+        /**
+           @brief access operator
+         */
         GT_FUNCTION
         T const* operator -> () const {
             assert(m_t);
             return m_t;
         }
 
+        /**
+           @brief dereference operator
+         */
         GT_FUNCTION
         T const& operator * () const {
             assert (m_t);
@@ -62,7 +75,8 @@ namespace gridtools{
 
     /**@brief deleting the pointers
 
-       NOTE: this is called in the finalize stage of the gridtools computation
+       NOTE: this is called in the finalize stage of the gridtools computation,
+       to delete the instances of the storage_info class
      */
     struct delete_pointer{
 

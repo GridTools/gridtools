@@ -289,9 +289,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             view_type fview(m_storage_pointers);
 
-//#ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
-//#endif
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the

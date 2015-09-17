@@ -137,6 +137,7 @@ namespace gridtools {
 
         template <typename ValueType, typename MetaDataType>
         struct storage_type {
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
             typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType>::storage_t type;
         };
 
@@ -325,6 +326,8 @@ namespace gridtools {
         template <typename ArgList, typename MetaList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Coords const& coords_)
         {
+            GRIDTOOLS_STATIC_ASSERT((is_metadata_set<MetaList>::value), "wrong type for the MetaList");
+
             _impl::template prepare_temporaries_functor<ArgList, MetaList, Coords, this_type>::
                 prepare_temporaries((arg_list_), meta_list_,  (coords_));
         }
