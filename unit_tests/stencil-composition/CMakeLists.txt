@@ -18,3 +18,7 @@ set_target_properties(stencil_composition_tests PROPERTIES COMPILE_FLAGS ${ADDIT
 target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 add_subdirectory(caches)
+
+add_executable(test_cycle_and_swap test_cycle_and_swap_exe.cpp)
+set_target_properties( test_cycle_and_swap PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries( test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})

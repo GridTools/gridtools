@@ -264,10 +264,14 @@ namespace gridtools {
             }
 
 
-        /** @brief initializes with a lambda function */
+        /** @brief initializes with a lambda function
+
+            NOTE: valid for 3D storages only
+         */
         GT_FUNCTION
         void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), ushort_t const& dims=field_dimensions)
             {
+                GRIDTOOLS_STATIC_ASSERT(space_dimensions==3, "this initialization is valid for storages with 3 space dimensions");
                 //if this fails  you used the wrong constructor (i.e. the empty one)
                 assert(is_set);
 
