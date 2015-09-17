@@ -19,6 +19,11 @@ target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthrea
 
 add_subdirectory(caches)
 
+if ( ENABLE_CXX11 )
 add_executable(test_cycle_and_swap test_cycle_and_swap_exe.cpp)
 set_target_properties( test_cycle_and_swap PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries( test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+target_link_libraries( test_cycle_and_swap -lpthread ${exe_LIBS})
+
+cuda_add_executable(test_cycle_and_swap_cuda test_cycle_and_swap_exe.cu)
+target_link_libraries( test_cycle_and_swap_cuda -lpthread ${exe_LIBS})
+endif (ENABLE_CXX11)

@@ -67,7 +67,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
 
-            typedef meta_storage<Index::value, Layout, true, Tiles ...> type;
+            typedef storage_info<Index::value, Layout, true, Tiles ...> type;
         };
 
         /**

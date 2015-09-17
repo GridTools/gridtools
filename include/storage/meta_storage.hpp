@@ -158,6 +158,9 @@ private:
     struct is_meta_storage<meta_storage_derived<Storage> > : boost::mpl::true_{};
 
     template< typename Storage>
+    struct is_meta_storage<meta_storage_derived<Storage>& > : boost::mpl::true_{};
+
+    template< typename Storage>
     struct is_meta_storage<no_meta_storage_type_yet<Storage> > : is_meta_storage<Storage> {};
 
     template < ushort_t Index
