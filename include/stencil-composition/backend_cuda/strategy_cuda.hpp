@@ -9,6 +9,7 @@
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 #include "../../storage/meta_storage.hpp"
+#include "../tile.hpp"
 
 namespace gridtools{
 
