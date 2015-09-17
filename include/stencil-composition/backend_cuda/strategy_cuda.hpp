@@ -57,9 +57,9 @@ namespace gridtools{
 
 
         template <typename Index, typename Layout, typename ... Tiles>
-        struct get_tmp_meta_storage
+        struct get_tmp_storage_info
         {
-            typedef meta_storage<Index::value, Layout, true, Tiles ...> type;
+            typedef storage_info<Index::value, Layout, true, Tiles ...> type;
         };
 
         /**
@@ -69,7 +69,7 @@ namespace gridtools{
         template <typename Storage, typename ... Tiles>
         struct get_tmp_storage
         {
-            typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...
+            typedef storage<base_storage<typename Storage::pointer_type, typename get_tmp_storage_info<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles ...
                                                                                                        >::type, Storage::field_dimensions > > type;
         };
     };

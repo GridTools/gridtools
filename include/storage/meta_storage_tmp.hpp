@@ -4,27 +4,19 @@
 namespace gridtools{
 
     template<ushort_t Index, typename Layout, typename First,
-#ifdef CXX11_ENABLED
              typename ... Tiles
-#else
-             typename TileI, typename TileJ
-#endif
              >
     struct meta_storage_base<Index, Layout, true, First,
-#ifdef CXX11_ENABLED
                              Tiles...
-#else
-                             TileI, TileJ
-#endif
                              > : public meta_storage_base<Index, Layout, false> {
         static const bool is_temporary=true;
         typedef  meta_storage_base<Index, Layout, false> super;
 
         typedef meta_storage_base<Index, Layout, true, First, Tiles ...> this_type;
+        typedef typename boost::mpl::vector<First, Tiles ...> tiles_vector_t;
         typedef typename super::basic_type basic_type;
         typedef typename super::layout layout;
 
-        typedef typename boost::mpl::vector<First, Tiles ...> tiles_vector_t;
 
         //loss of generality: here we suppose tiling in i-j
         typedef typename boost::mpl::at_c<tiles_vector_t, 0>::type::s_tile_t  tile_i_t;
