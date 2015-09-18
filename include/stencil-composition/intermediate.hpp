@@ -29,6 +29,7 @@
 #include "backend_traits_fwd.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "../storage/storage_functors.hpp"
+#include "stencil-composition/compute_ranges_metafunctions.hpp"
 
 /**
  * @file
@@ -358,7 +359,7 @@ namespace gridtools {
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                mss_compute_range_sizes<boost::mpl::_2>
+                GRIDPREFIX::mss_compute_range_sizes<boost::mpl::_2>
             >
         >::type range_sizes_t;
 
