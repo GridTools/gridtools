@@ -6,11 +6,11 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
-#include "../gt_for_each/for_each.hpp"
-#include "expressions.hpp"
+#include "gt_for_each/for_each.hpp"
+#include "stencil-composition/expressions.hpp"
 #include "stencil-composition/rectangular_grids/accessor_metafunctions.hpp"
-#include "../common/meta_array.hpp"
-#include "../common/array.hpp"
+#include "common/meta_array.hpp"
+#include "common/array.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
 
