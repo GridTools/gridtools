@@ -3,10 +3,12 @@
 
 namespace gridtools
 {
-    template<typename T> struct is_iterate_domain : boost::mpl::false_{};
+//    template<typename T> struct is_iterate_domain : boost::mpl::false_{};
 
     template<typename T>
     struct is_positional_iterate_domain : boost::mpl::false_{};
+
+    template<typename T> struct positional_iterate_domain;
 
     template<typename IterateDomainImpl>
     struct is_positional_iterate_domain<positional_iterate_domain<IterateDomainImpl> > : boost::mpl::true_{};
@@ -25,6 +27,4 @@ namespace gridtools
                                 "Internal Error: wrong type");
         typedef typename IterateDomainArguments::local_domain_t type;
     };
-
-
 }

@@ -46,7 +46,6 @@
    \endverbatim
 
 */
-
 namespace gridtools {
 
     template<typename T>

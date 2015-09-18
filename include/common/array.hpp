@@ -136,9 +136,7 @@ namespace gridtools {
         struct _data_item {
             char _data_storage[sizeof(T)];
 
-            _data_item()
-                : _data_storage{}
-            {}
+            _data_item() : _data_storage{} {}
 
             _data_item(_data_item const& other) {
                 std::copy(&other._data_storage[0], &other._data_storage[sizeof(T)-1], &_data_storage[0]);

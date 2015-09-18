@@ -60,16 +60,16 @@ TEST(test_copy_stencil, run) {
 //#else
 //            boost::shared_ptr<gridtools::computation> copy =
 //#endif
-//            gridtools::make_computation<backend_t >
-//            (
-//                gridtools::make_mss // mss_descriptor
-//                (
-//                    execute<forward>(),
-//                    gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(
-//                        p_in_cells(), p_out_cells() )
-//                ),
-//                domain, coords
-//            );
+            gridtools::make_computation<backend_t >
+            (
+                gridtools::make_mss // mss_descriptor
+                (
+                    execute<forward>(),
+                    gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(
+                        p_in_cells(), p_out_cells() )
+                ),
+                domain, coords
+            );
 
 
     typedef decltype(

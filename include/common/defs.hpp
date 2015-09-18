@@ -220,6 +220,12 @@ namespace gridtools{
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
 
+#ifdef RECTANGULAR_GRID
+    #define GRIDPREFIX recgrid
+#else
+    #define GRIDPREFIX othergrid
+#endif
+
 #ifdef CXX11_ENABLED
     using int_t          = int;
     using short_t        = int;

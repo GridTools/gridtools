@@ -13,7 +13,7 @@ namespace gridtools {
         return s;
     }
 
-}
+} // namespace gridtools
 
 template <typename T, typename U, size_t D>
 bool operator==(gridtools::array<T,D> const& a, gridtools::array<U,D> const& b) {
@@ -23,3 +23,4 @@ bool operator==(gridtools::array<T,D> const& a, gridtools::array<U,D> const& b) 
     std::sort(b0.begin(), b0.end());
     return std::equal(a0.begin(), a0.end(), b0.begin());
 }
+

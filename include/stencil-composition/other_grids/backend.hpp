@@ -1,8 +1,10 @@
 #pragma once
 
-#include <storage/storage.hpp>
-#include <storage/meta_storage.hpp>
+#include "storage/storage.hpp"
+#include "storage/meta_storage.hpp"
 #include "location_type.hpp"
+#include "stencil-composition/backend_base.hpp"
+
 
 
 namespace gridtools {
@@ -11,7 +13,7 @@ namespace gridtools {
        The backend is, as usual, declaring what the storage types are
      */
     template<enumtype::backend BackendId, enumtype::strategy StrategyType >
-    struct backend {
+    struct backend : public backend_base<BackendId, StrategyType>{
     public:
         // template <typename LocationType, typename X, typename LayoutMap>
         // struct _storage_type;
@@ -30,6 +32,14 @@ namespace gridtools {
         // struct _storage_type<location_type<2, NColors>, X, LayoutMap> {
         //     using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<2, NColors> >;
         // };
+
+        typedef backend_base<BackendId, StrategyType> base_t;
+
+        using base_t::backend_traits_t;
+        using base_t::strategy_traits_t;
+
+        static const enumtype::strategy s_strategy_id=base_t::s_strategy_id;
+        static const enumtype::backend s_backend_id =base_t::s_backend_id;
 
         template <typename LocationType>
         using meta_storage_t = meta_storage<LocationType::value, layout_map<0,1,2,3>, false >;

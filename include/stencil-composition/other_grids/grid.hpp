@@ -30,7 +30,7 @@
 
 namespace gridtools {
 
-namespace{
+    namespace{
         using cells = location_type<0,2>;
         using edges = location_type<1,3>;
         using vertexes = location_type<2,1>;
@@ -751,4 +751,4 @@ namespace{
     template <typename Backend>
     struct is_grid<trapezoid_2D_colored<Backend> > : boost::mpl::true_ {};
 
-}
+} // namespace gridtools
