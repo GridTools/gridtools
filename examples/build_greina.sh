@@ -113,4 +113,3 @@ then
         #    ../examples/communication/run_communication_tests.sh
     fi
 fi
-rm -rf *
