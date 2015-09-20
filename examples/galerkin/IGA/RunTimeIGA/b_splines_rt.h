@@ -81,7 +81,7 @@ namespace iga_rt
 	 * @tparam I b-spline function index
 	 * @tparam P b-spline function order
 	 */
-	template <int I, int P>
+	template <int P>
 	class BSpline : public BaseBSpline
 	{
 	public:
@@ -92,7 +92,8 @@ namespace iga_rt
 		 * @brief Contructor
 		 * @param i_knots b-spline function knot set
 		 */
-		BSpline(const double* i_knots);
+            template <typename Array>
+            BSpline(const Array* i_knots);
 
 		/**
 		 * @param i_csi Parametric space point value
@@ -148,30 +149,33 @@ namespace iga_rt
 		/**
 		 * b-spline function of order P-1 and index I in Cox-de Boor formula
 		 */
-		BSpline<I,P-1> m_bIPm1;
+		BSpline<P-1> m_bIPm1;
 
 		/**
 		 * b-spline function of order P-1 and index I+1 in Cox-de Boor formula
 		 */
-		BSpline<I+1,P-1> m_bIp1Pm1;
+		BSpline<P-1> m_bIp1Pm1;
 	};
 
-	template <int I, int P>
-	BSpline<I,P>::BSpline(const double* i_knots)
-						 :m_csiI(i_knots[I-1])
-						 ,m_csiIp1(i_knots[I+1-1])
-						 ,m_csiIpP(i_knots[I+P-1])
-						 ,m_csiIpPp1(i_knots[I+P+1-1])
-						 ,m_denIPm1((m_csiIpP!=m_csiI)?(1./(m_csiIpP-m_csiI)):0.)
-						 ,m_denIp1Pm1((m_csiIpPp1!=m_csiIp1)?(1./(m_csiIpPp1-m_csiIp1)):0.)
-						 ,m_bIPm1(i_knots)
-						 ,m_bIp1Pm1(i_knots)
+    template <int P>
+    template <typename Array>
+	BSpline<P>::BSpline(const Array* i_knots)
+            :m_csiI((*i_knots)[1-1])
+            ,m_csiIp1((*i_knots)[1+1-1])
+            ,m_csiIpP((*i_knots)[1+P-1])
+            ,m_csiIpPp1((*i_knots)[1+P+1-1])
+            ,m_denIPm1((m_csiIpP!=m_csiI)?(1./(m_csiIpP-m_csiI)):0.)
+            ,m_denIp1Pm1((m_csiIpPp1!=m_csiIp1)?(1./(m_csiIpPp1-m_csiIp1)):0.)
+            ,m_bIPm1(i_knots)
+            ,m_bIp1Pm1(i_knots)
 	{}
 
 
-	template <int I, int P>
-	double BSpline<I,P>::evaluate(const double i_csi) const
+	template <int P>
+	double BSpline<P>::evaluate(const double i_csi) const
 	{
+            std::cout<<"for P = "<<P<<std::endl;
+            std::cout<<"("<<i_csi<<"-"<<m_csiI<<")*"<<m_denIPm1<<"*"<<m_bIPm1.evaluate(i_csi)<<" + ("<<m_csiIpPp1<<"-"<<i_csi<<")*"<<m_denIp1Pm1<<"*"<<m_bIp1Pm1.evaluate(i_csi)<<" = "<< (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi) <<std::endl;
 		return (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi);
 	}
 
@@ -181,20 +185,23 @@ namespace iga_rt
 	 * @brief Class for the representation of 0-th b-spline function given a set of knots
 	 * @tparam I b-spline function index
 	 */
-	template <int I>
-	class BSpline<I,0> : public BaseBSpline
+        template<>
+	class BSpline<0> : public BaseBSpline
 	{
 	public:
 
 		// TODO: add static assert for template parameters check
+                // PAOLO: is accumulate(logical_and(), condition<Pack>...)
+                // see accumulate.hpp
 
 		/**
 		 * @brief Contructor
 		 * @param i_knots b-spline function knot set
 		 */
-		BSpline(const double* i_knots)
-			   :m_csiI(i_knots[I-1])
-			   ,m_csiIp1(i_knots[I+1-1])
+            template <typename Array>
+		BSpline(const Array* i_knots)
+                    :m_csiI((*i_knots)[1-1])
+                    ,m_csiIp1((*i_knots)[1+1-1])
 		{}
 
 		/**
@@ -230,9 +237,7 @@ namespace iga_rt
 		const double m_csiIp1;
 	};
 
-
-	template <int I>
-	double BSpline<I,0>::evaluate(const double i_csi) const
+	double BSpline<0>::evaluate(const double i_csi) const
 	{
 		if(i_csi>=m_csiI && i_csi<m_csiIp1)
 		{
@@ -284,12 +289,12 @@ namespace iga_rt
 		/**
 		 * b-spline function in first direction
 		 */
-		const BSpline<I1,P1> m_b1;
+		const BSpline<P1> m_b1;
 
 		/**
 		 * b-spline function in second direction
 		 */
-		const BSpline<I2,P2> m_b2;
+		const BSpline<P2> m_b2;
 	};
 
 	/**
@@ -341,6 +346,6 @@ namespace iga_rt
 		/**
 		 * b-spline function in third direction
 		 */
-		BSpline<I3,P3> m_b2;
+		BSpline<P3> m_b2;
 	};
 }

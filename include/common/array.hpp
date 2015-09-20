@@ -31,18 +31,18 @@ namespace gridtools {
         GT_FUNCTION
         array() {}
 
-#ifdef CXX11_ENABLED
+// #ifdef CXX11_ENABLED
         template<typename ... ElTypes>
         GT_FUNCTION
         constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
-        GT_FUNCTION
-        array(std::initializer_list<T> c) {
-            assert(c.size() == _size);
-            std::copy(c.begin(), c.end(), _array);
-        }
-#else
+        // GT_FUNCTION
+        // array(std::initializer_list<T> c) {
+        //     assert(c.size() == _size);
+        //     std::copy(c.begin(), c.end(), _array);
+        // }
+// #else
         GT_FUNCTION
         array(T const& i): _array() {
             const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
@@ -58,7 +58,7 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
             const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
         }
-#endif
+// #endif
 
         GT_FUNCTION
         T * data() const {
