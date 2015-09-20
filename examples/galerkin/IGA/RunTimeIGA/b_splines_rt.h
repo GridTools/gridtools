@@ -174,8 +174,8 @@ namespace iga_rt
 	template <int P>
 	double BSpline<P>::evaluate(const double i_csi) const
 	{
-            std::cout<<"for P = "<<P<<std::endl;
-            std::cout<<"("<<i_csi<<"-"<<m_csiI<<")*"<<m_denIPm1<<"*"<<m_bIPm1.evaluate(i_csi)<<" + ("<<m_csiIpPp1<<"-"<<i_csi<<")*"<<m_denIp1Pm1<<"*"<<m_bIp1Pm1.evaluate(i_csi)<<" = "<< (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi) <<std::endl;
+            // std::cout<<"for P = "<<P<<std::endl;
+            // std::cout<<"("<<i_csi<<"-"<<m_csiI<<")*"<<m_denIPm1<<"*"<<m_bIPm1.evaluate(i_csi)<<" + ("<<m_csiIpPp1<<"-"<<i_csi<<")*"<<m_denIp1Pm1<<"*"<<m_bIp1Pm1.evaluate(i_csi)<<" = "<< (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi) <<std::endl;
 		return (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi);
 	}
 
