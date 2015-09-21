@@ -7,6 +7,11 @@ namespace gridtools {
         static const uint_t n_colors = NColors; //! <- is the number of locations of this type
     };
 
+    template<typename T> struct is_location_type : boost::mpl::false_{};
+
+    template <int I, ushort_t NColors>
+    struct is_location_type<location_type<I, NColors> > : boost::mpl::true_{};
+
     template <int I, ushort_t NColors>
     std::ostream& operator<<(std::ostream& s, location_type<I, NColors>) {
         return s << "location_type<" << I << "> with "<< NColors<< " colors";

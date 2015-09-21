@@ -3,33 +3,34 @@
 #include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
+using namespace enumtype;
 
 namespace cs_test{
+
+    using backend_t = ::gridtools::backend<Host, Block >;
+    using trapezoid_2D_t = ::gridtools::trapezoid_2D_colored<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef ro_accessor<0, radius<1> > in;
-        typedef boost::mpl::vector1<in> arg_list;
+        typedef ro_accessor<0, trapezoid_2D_t::cells, radius<1> > in;
+        typedef accessor<1, trapezoid_2D_t::cells> out;
+        typedef boost::mpl::vector2<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {}
+        static void Do(Evaluation const & eval, x_interval) {
+            eval(out())= eval(in());
+        }
     };
 }
 
 using namespace cs_test;
-using namespace enumtype;
-using namespace gridtools;
 
 TEST(test_copy_stencil, run) {
 
-
-    using backend_t = gridtools::backend<Host, Block >;
-
     typedef gridtools::layout_map<2,1,0> layout_t;
-    using trapezoid_2D_t = gridtools::trapezoid_2D_colored<backend_t>;
 
     using cell_storage_type = typename backend_t::storage_t<trapezoid_2D_t::cells, double>;
 
@@ -55,11 +56,11 @@ TEST(test_copy_stencil, run) {
     coords.value_list[1] = d3-1;
 
 
-//#ifdef __CUDACC__
-//        gridtools::computation* copy =
-//#else
-//            boost::shared_ptr<gridtools::computation> copy =
-//#endif
+#ifdef __CUDACC__
+        gridtools::computation* copy =
+#else
+            boost::shared_ptr<gridtools::computation> copy =
+#endif
             gridtools::make_computation<backend_t >
             (
                 gridtools::make_mss // mss_descriptor

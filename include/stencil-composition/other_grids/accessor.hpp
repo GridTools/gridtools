@@ -8,6 +8,7 @@ namespace gridtools {
  */
 template <int I, typename LocationType>
 struct accessor {
+    GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
     using this_type = accessor<I, LocationType>;
     using location_type = LocationType;
     static const int value = I;
