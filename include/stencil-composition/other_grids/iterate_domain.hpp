@@ -1,8 +1,12 @@
 #pragma once
 #include "location_type.hpp"
 #include <type_traits>
+#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "stencil-composition/total_storages.hpp"
 
 #define _ACCESSOR_H_DEBUG_
+
+namespace gridtools {
 
 /**
    Map function that uses compile time (stateless) accessors to be
@@ -182,6 +186,36 @@ reduce_on_vertexes(Reduction function
 //template <typename PlcVector, typename GridType, typename LocationType>
 template <typename IterateDomainImpl>
 struct iterate_domain {
+
+    typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
+    typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+
+    typedef typename local_domain_t::esf_args esf_args_t;
+
+    typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
+
+    typedef typename backend_traits_from_id< backend_id_t::value >::
+            template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
+
+    typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+
+    GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
+    typedef typename boost::remove_pointer<
+        typename boost::mpl::at_c<
+            typename local_domain_t::mpl_storages, 0>::type
+        >::type::value_type value_type;
+
+    typedef typename local_domain_t::storage_metadata_map metadata_map_t;
+    typedef typename local_domain_t::actual_args_type actual_args_type;
+    //the number of storages  used in the current functor
+    static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
+    //the total number of snapshot (one or several per storage)
+    static const uint_t N_DATA_POINTERS=total_storages<
+        actual_args_type,
+        boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
+
+public:
+    typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
 
 //private:
 
@@ -437,3 +471,4 @@ struct iterate_domain {
 
 };
 
+} //namespace gridtools

@@ -190,7 +190,11 @@ namespace gridtools{
 
             typedef typename boost::mpl::eval_if<
                 local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
+#ifdef RECTANGULAR_GRIDS
                 select_positional_iterate_domain<IterateDomainArguments>,
+#else
+                select_basic_iterate_domain<IterateDomainArguments>,
+#endif
                 select_basic_iterate_domain<IterateDomainArguments>
             >::type type;
         };

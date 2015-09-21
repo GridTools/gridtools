@@ -13,6 +13,7 @@
 #include "common/array.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
+#include "stencil-composition/total_storages.hpp"
 
 /**
    @file
@@ -220,45 +221,6 @@ namespace gridtools{
             BackendType::template once_per_block<PE_ID::value>::assign(
                 m_data_pointer_array[Offset+ID::value], m_storage->fields()[ID::value].get()+m_offset);
         }
-    };
-
-    /**@brief metafunction that counts the total number of data fields which are neceassary for this functor (i.e. number of storage
-     * instances times number of fields per storage)
-    */
-    template <typename StoragesVector, int_t EndIndex>
-    struct total_storages{
-        DISALLOW_COPY_AND_ASSIGN(total_storages);
-        //the index must not exceed the number of storages
-        GRIDTOOLS_STATIC_ASSERT(EndIndex <= boost::mpl::size<StoragesVector>::type::value,
-                                "the index must not exceed the number of storages");
-
-        template<typename Index_>
-        struct get_field_dimensions{
-            typedef typename boost::mpl::int_<
-                 boost::remove_pointer<
-                     typename boost::remove_reference<
-                         typename boost::mpl::at<StoragesVector, Index_ >::type
-                     >::type
-                 >::type::field_dimensions
-             >::type type;
-        };
-
-        typedef typename boost::mpl::if_c<
-            (EndIndex < 0),
-            boost::mpl::int_<0>,
-            typename boost::mpl::fold<
-                typename reversed_range< int_t, 0, EndIndex >::type,
-                boost::mpl::int_<0>,
-                boost::mpl::plus<
-                    boost::mpl::_1,
-                    get_field_dimensions<boost::mpl::_2>
-                    >
-            >::type
-        >::type type;
-
-        static const uint_t value=type::value;
-    private:
-        total_storages();
     };
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
