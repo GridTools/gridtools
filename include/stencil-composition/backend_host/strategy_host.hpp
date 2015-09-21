@@ -1,7 +1,7 @@
 #pragma once
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
-#include "execute_kernel_functor_host.hpp"
+#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 #include "../../storage/meta_storage.hpp"
 
 namespace gridtools{
