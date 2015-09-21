@@ -15,6 +15,7 @@
 #include "caches/cache_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
 #include "esf.hpp"
+#include "stencil-composition/coordinates.hpp"
 
 namespace gridtools {
 

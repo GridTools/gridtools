@@ -30,6 +30,7 @@
 #include "mss_components_metafunctions.hpp"
 #include "../storage/storage_functors.hpp"
 #include "stencil-composition/compute_ranges_metafunctions.hpp"
+#include "stencil-composition/coordinates.hpp"
 
 /**
  * @file

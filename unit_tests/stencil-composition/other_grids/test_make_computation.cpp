@@ -65,7 +65,7 @@ TEST(test_make_computation, get_mss_array) {
         )) mss2_t;
 
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;
-    typedef gridtools::coordinates<axis_t> coords_t;
+    typedef gridtools::coordinates<axis_t, trapezoid_2D_t> coords_t;
 
     typedef gridtools::domain_type<accessor_list_t> domain_t;
     typedef boost::mpl::vector5<int, domain_t, mss2_t, coords_t, mss1_t> ListTypes;

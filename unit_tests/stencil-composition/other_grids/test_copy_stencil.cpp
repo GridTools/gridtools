@@ -38,6 +38,7 @@ TEST(test_copy_stencil, run) {
     const uint_t d1=6;
     const uint_t d2=12;
     trapezoid_2D_t grid( d1, d2, d3 );
+
     cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>();
     cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>();
 
@@ -51,7 +52,7 @@ TEST(test_copy_stencil, run) {
     uint_t di[5] = {0, 0, 0, d1-1, d1};
     uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
+    gridtools::coordinates<axis, trapezoid_2D_t> coords(grid);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
@@ -87,14 +88,5 @@ TEST(test_copy_stencil, run) {
                 gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(p_out_cells())
         )) mss2_t;
 
-    typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;
-    typedef gridtools::coordinates<axis_t> coords_t;
-
-    typedef gridtools::domain_type<accessor_list_t> domain_t;
-    typedef boost::mpl::vector5<int, domain_t, mss2_t, coords_t, mss1_t> ListTypes;
-
-    typedef _impl::get_mss_array<ListTypes>::type MssArray;
-
-    BOOST_STATIC_ASSERT(( boost::mpl::equal<MssArray::elements, boost::mpl::vector2<mss2_t, mss1_t> >::value));
     EXPECT_TRUE(true);
 }
