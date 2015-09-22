@@ -85,7 +85,7 @@ struct execute_kernel_functor_host
         typedef typename boost::mpl::back<typename RunFunctorArguments::range_sizes_t>::type range_t;
         GRIDTOOLS_STATIC_ASSERT((is_range<range_t>::value), "Internal Error: wrong type");
 
-//        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 //        typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 //#ifdef __VERBOSE__
 //        #pragma omp critical
