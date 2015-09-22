@@ -397,7 +397,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
                       >
                 >::type::type storages_matching;
 
-                GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
+                GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the

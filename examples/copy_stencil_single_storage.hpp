@@ -81,12 +81,13 @@ namespace copy_stencil{
         storage_type in(meta_data_);
         in.allocate();
         in.initialize(0.);
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                {
+        for(uint_t i=0; i<d1; ++i){
+            for(uint_t j=0; j<d2; ++j){
+                for(uint_t k=0; k<d3; ++k){
                     in.template get_value<1,0>(i, j, k)=i+j+k;
                 }
+            }
+        }
 
         typedef arg<0, storage_type > p_in;
 
@@ -152,22 +153,23 @@ namespace copy_stencil{
 #endif
 
         bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                {
+        for(uint_t i=0; i<d1; ++i){
+            for(uint_t j=0; j<d2; ++j){
+                for(uint_t k=0; k<d3; ++k){
                     if (in.get_value<0,0>(i, j, k)!=in.get_value<1,0>(i,j,k))
-                        {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "in = " << (in.get_value<0,0>(i, j, k))
-                                      << ", out = " << (in.get_value<1,0>(i, j, k))
-                                      << std::endl;
-                            success = false;
-                        }
+                    {
+                        std::cout << "error in "
+                                  << i << ", "
+                                  << j << ", "
+                                  << k << ": "
+                                  << "in = " << (in.get_value<0,0>(i, j, k))
+                                  << ", out = " << (in.get_value<1,0>(i, j, k))
+                                  << std::endl;
+                        success = false;
+                    }
                 }
+            }
+        }
         if(!success) std::cout << "ERROR" << std::endl;
         else std::cout << "OK" << std::endl;
 

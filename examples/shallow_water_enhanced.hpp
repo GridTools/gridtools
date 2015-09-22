@@ -29,7 +29,7 @@
   For an exhaustive description of the shallow water problem refer to: http://www.mathworks.ch/moler/exm/chapters/water.pdf
 
   NOTE: It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
- */
+*/
 
 // [namespaces]
 using namespace gridtools;
@@ -38,15 +38,16 @@ using namespace expressions;
 // [namespaces]
 
 namespace shallow_water{
-// This is the definition of the special regions in the "vertical" direction
-// [intervals]
+    // This is the definition of the special regions in the "vertical" direction
+    // [intervals]
     typedef interval<level<0,-1>, level<1,-1> > x_interval;
     typedef interval<level<0,-2>, level<1,1> > axis;
-// [intervals]
+    // [intervals]
 
-// [functor_traits]
+    // [functor_traits]
     /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
+
         //! [dimension]
         typedef dimension<5> comp;
         //! [dimension]
@@ -68,14 +69,15 @@ namespace shallow_water{
         static x::Index i;
         static y::Index j;
         //! [index]
+
         typedef decltype(i) i_t;        typedef decltype(j) j_t;
 
     };
     functor_traits::i_t functor_traits::i;
     functor_traits::j_t functor_traits::j;
-// [functor_traits]
+    // [functor_traits]
 
-// [boundary_conditions]
+    // [boundary_conditions]
     struct bc : functor_traits {
         typedef accessor<0,range<0, 0, 0, 0>, 5> tmpx; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef accessor<1,range<0, 0, 0, 0>, 5> tmpy; /** (input) is the solution at the cell center */
@@ -105,6 +107,7 @@ namespace shallow_water{
                 eval(v())+=12.;
             std::cout<<eval(!h())<<std::endl;
             //! [expression]
+
         }
     };
 
@@ -453,7 +456,6 @@ namespace shallow_water{
 //! [computation]
 
 //! [coordinates_bc]
-
         halo_descriptor dj=halo_descriptor(0,1,1,1,2);
         coordinates<axis> coords_bc(meta_.get_halo_descriptor<0>(), dj);
         coords_bc.value_list[0] = 0;
@@ -470,7 +472,6 @@ namespace shallow_water{
                     make_esf<bc>(p_tmpx(), p_tmpy(), p_sol(), p_partitioner()))
                 , domain, coords_bc
                 );
-
 //! [computation_bc]
 
 //! [setup]
