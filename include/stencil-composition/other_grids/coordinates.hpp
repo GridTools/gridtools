@@ -8,6 +8,7 @@ struct coordinates : public clonable_to_gpu<coordinates<Axis, Grid> > {
     GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
     typedef Axis axis_type;
+    typedef Grid grid_t;
 
     typedef typename boost::mpl::plus<
             boost::mpl::minus<typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter>,

@@ -3,6 +3,7 @@
 #include <type_traits>
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
+#include "stencil-composition/other_grids/iterate_domain_aux.hpp"
 
 #define _ACCESSOR_H_DEBUG_
 
@@ -189,6 +190,7 @@ struct iterate_domain {
 
     typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
     typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+    typedef typename iterate_domain_arguments_t::coordinates_t::grid_t grid_t;
 
     typedef typename local_domain_t::esf_args esf_args_t;
 
@@ -207,6 +209,9 @@ struct iterate_domain {
 
     typedef typename local_domain_t::storage_metadata_map metadata_map_t;
     typedef typename local_domain_t::actual_args_type actual_args_type;
+
+    //the number of different storage metadatas used in the current functor
+    static const uint_t N_META_STORAGES=boost::mpl::size<metadata_map_t>::value;
     //the number of storages  used in the current functor
     static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
     //the total number of snapshot (one or several per storage)
@@ -216,6 +221,7 @@ struct iterate_domain {
 
 public:
     typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
+    typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
 
 //private:
 
