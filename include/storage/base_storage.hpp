@@ -19,7 +19,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=typename RegularStorageType::template my_type<PT, MD, FD>;
+        using type_tt=typename RegularStorageType::template type_tt<PT, MD, FD>;
 #endif
 
         typedef RegularStorageType type;
@@ -113,7 +113,7 @@ namespace gridtools {
     {
 #ifdef CXX11_ENABLED
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=base_storage<PT,MD,FD>;
+        using type_tt=base_storage<PT,MD,FD>;
 #endif
 
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::type::value, "wrong meta_storage type");

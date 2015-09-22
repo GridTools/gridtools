@@ -1,7 +1,8 @@
+#ifdef CXX11_ENABLED
 #include "gtest/gtest.h"
 #include "storage/meta_storage.hpp"
 #include "storage/storage.hpp"
-#ifdef CXX11_ENABLED
+#include "storage/wrap_pointer.hpp"
 
 using namespace gridtools;
 

@@ -102,7 +102,7 @@ namespace gridtools{
 #endif
             typedef storage<
 #ifdef CXX11_ENABLED
-                typename Storage::template my_type
+                typename Storage::template type_tt
 #else
                 base_storage
 #endif

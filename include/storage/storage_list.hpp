@@ -14,7 +14,7 @@ namespace gridtools{
     {
 
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=storage_list<typename Storage::template my_type<PT, MD, FD>, ExtraWidth>;
+        using type_tt=storage_list<typename Storage::template type_tt<PT, MD, FD>, ExtraWidth>;
 
         typedef storage_list<Storage, ExtraWidth> type;
         /*If the following assertion fails, you probably set one field dimension to contain zero (or negative) snapshots. Each field dimension must contain one or more snapshots.*/
@@ -70,7 +70,7 @@ namespace gridtools{
     struct storage_list<Storage, 0> : public Storage
     {
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=storage_list<typename Storage::template my_type<PT, MD, FD>, 0>;
+        using type_tt=storage_list<typename Storage::template type_tt<PT, MD, FD>, 0>;
 
         typedef typename Storage::basic_type basic_type;
         typedef Storage super;

@@ -178,7 +178,7 @@ namespace gridtools{
     struct data_field : public dimension_extension_traits<First, StorageExtended ... >::type/*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
     {
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=data_field<typename First::template my_type<PT, MD, FD>,typename  StorageExtended::template my_type<PT, MD, FD>... >;
+        using type_tt=data_field<typename First::template type_tt<PT, MD, FD>,typename  StorageExtended::template type_tt<PT, MD, FD>... >;
 
         typedef data_field<First, StorageExtended...> type;
         typedef typename dimension_extension_traits<First, StorageExtended ... >::type super;
