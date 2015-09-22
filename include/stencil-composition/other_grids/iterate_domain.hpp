@@ -223,6 +223,24 @@ public:
     typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
     typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
 
+    local_domain_t const& local_domain;
+    uint_t m_index;
+
+public:
+
+    /**@brief constructor of the iterate_domain struct
+
+       It assigns the storage pointers to the first elements of
+       the data fields (for all the data_fields present in the
+       current evaluation), and the indexes to access the data
+       fields (one index per storage instance, so that one index
+       might be shared among several data fileds)
+    */
+    GT_FUNCTION
+    iterate_domain(local_domain_t const& local_domain_)
+        : local_domain(local_domain_) {}
+
+
 //private:
 
 //    template <typename GridType_>
