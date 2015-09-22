@@ -25,7 +25,7 @@ namespace gridtools {
    @brief Used as template argument in the storage.
    In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-#if (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+#if defined(CXX11_ENABLED)// && !defined(__CUDACC__))
 
     namespace _impl {
 
@@ -55,10 +55,8 @@ namespace gridtools {
     template < ushort_t ID, typename Range, ushort_t Number>
     struct accessor;
 
-#ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
     struct accessor_mixed;
-#endif
 
     //template arguments type checking
     template <typename T>
@@ -67,10 +65,8 @@ namespace gridtools {
     template < ushort_t ID, typename Range, ushort_t Number>
     struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
 
-#ifdef CXX11_ENABLED
     template <typename ArgType, typename ... Pair>
     struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
-#endif
 
     /**
        Layout maps are simple sequences of integers specified
@@ -123,6 +119,7 @@ namespace gridtools {
             using type=T;
         };
 
+#ifndef __CUDACC__
         /** Given a parameter pack of values and a static index, the function
             returns the reference to the value in the position indicated
             at position 'I' in the map.
@@ -138,9 +135,17 @@ namespace gridtools {
         template <ushort_t I, typename ... T>
         GT_FUNCTION
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
-            return  std::template get<layout_vector[I]>( std::tie(args...) );
+            return  std::template get<layout_vector[I]>( std::make_tuple(args...) );
         }
-
+#else
+        template <ushort_t I, typename First, typename ... T>
+        GT_FUNCTION
+        static First
+        constexpr
+        select(First & f, T & ... args) {
+            return  std::template get<boost::mpl::at_c<layout_vector_t, I>::type::value >( std::make_tuple(args...) );
+        }
+#endif
         //returns the dimension corresponding to the given strides (get<0> for stride 1)
         template <ushort_t i>
         GT_FUNCTION
@@ -331,7 +336,7 @@ namespace gridtools {
         template <ushort_t I>
         struct at_ {
 #ifdef PEDANTIC
-            static_assert(I<length, "Index out of bound: accessing anobjact with a layout map (a storage) with too many indices.");
+            static_assert(I<length, "Index out of bound: accessing an objact with a layout map (a storage) using too many indices.");
 #endif
             static const short_t value = I<length ? layout_vector[I] : -1;
         };
@@ -353,7 +358,7 @@ namespace gridtools {
             template <ushort_t X, bool IsHere>
             struct _find_pos
             {
-                static constexpr ushort_t value = _find_pos<X+1, layout_vector[ (X+1>=length)?X:X+1 ] == I>::value;
+                static constexpr ushort_t value = _find_pos<X+1, boost::mpl::at_c<layout_vector_t,  (X+1>=length)?X:X+1>::type::value == I>::value;
             };
 
             template <ushort_t X>
@@ -373,7 +378,7 @@ namespace gridtools {
                 static constexpr ushort_t value = ~ushort_t();
             };
 
-            static constexpr ushort_t value = _find_pos<0, layout_vector[ 0 ] == I>::value;
+            static constexpr ushort_t value = _find_pos<0, boost::mpl::at_c<layout_vector_t, 0>::type::value == I>::value;
 
         };
 
