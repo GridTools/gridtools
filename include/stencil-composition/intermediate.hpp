@@ -42,6 +42,10 @@ namespace gridtools {
             elementary stencil function */
         template <typename ArgList, typename MetaStorages, bool IsStateful>
         struct instantiate_local_domain {
+
+            //TODO check the type of ArgList
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaStorages>::value, "wrong type");
+
             GT_FUNCTION
             instantiate_local_domain(ArgList const& arg_list, MetaStorages const& meta_storages_)
                 : m_arg_list(arg_list)
@@ -68,6 +72,10 @@ namespace gridtools {
             elementary stencil function */
         template <typename ArgList, typename MetaStorages, bool IsStateful>
         struct instantiate_mss_local_domain {
+
+            //TODO add check for ArgList
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaStorages>::value, "wrong type");
+
             GT_FUNCTION
             instantiate_mss_local_domain(ArgList const& arg_list, MetaStorages const& meta_storages_)
                 : m_arg_list(arg_list)
@@ -234,6 +242,9 @@ namespace gridtools {
         template<typename ArgListType, typename MetaData, typename DomainType>
         static uint_t apply(ArgListType& storage_pointers, MetaData& meta_data_,  DomainType &  domain){
 
+            //TODO check the type of ArgListType and MetaData
+            GRIDTOOLS_STATIC_ASSERT(is_domain_type<DomainType>::value, "wrong domain type");
+
             //copy pointers into the domain original pointers, except for the temporaries.
             gridtools::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
@@ -252,6 +263,10 @@ namespace gridtools {
     struct setup_computation<enumtype::Host>{
         template<typename ArgListType, typename MetaData, typename DomainType>
         static int_t apply(ArgListType const& storage_pointers, MetaData const& meta_data_, DomainType &  domain){
+
+            //TODO check the type of ArgListType and MetaData
+            GRIDTOOLS_STATIC_ASSERT(is_domain_type<DomainType>::value, "wrong domain type");
+
             return GT_NO_ERRORS;
         }
     };
@@ -271,6 +286,8 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
+
+        GRIDTOOLS_STATIC_ASSERT((is_metadata_set<ActualMetadataListType>::value), "Internal Error: wrong type");
 
         struct get_the_mss_local_domain {
             template <typename T>

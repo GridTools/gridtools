@@ -135,8 +135,8 @@ int main(int argc, char** argv) {
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef meta_storage<0, layout_t, false> meta_storage_t;
-    typedef gridtools::BACKEND::storage_type<float_type, meta_storage_t >::type storage_type;
+    typedef storage_info<0, layout_t> storage_info_t;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
 // [storage_type]
 
     std::ofstream file_i("full_in");
@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
-    meta_storage_t metadata_(d1,d2,d3);
+    storage_info_t metadata_(d1,d2,d3);
     storage_type in(metadata_, -1., "in");
     storage_type out(metadata_, -7.3, "out");
 // [storage_initialization]

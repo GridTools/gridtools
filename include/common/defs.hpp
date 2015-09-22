@@ -6,6 +6,8 @@
 #else
 #define CXX11_DISABLED
 #endif
+#else
+#define CXX11_DISABLED
 #endif
 
 //defines how many threads participate to the (shared) memory initialization
@@ -261,10 +263,15 @@ namespace gridtools{
         typedef boost::mpl::integral_c<bool,B> type;
     };
 
+#endif
+    template<typename T>
+    struct is_static_integral : boost::mpl::false_{};
+
+    template<typename T, T N>
+    struct is_static_integral<boost::mpl::integral_c<T, N> >: boost::mpl::true_{};
     /**
        @}
      */
 //######################################################
-#endif
 
 }//namespace gridtools

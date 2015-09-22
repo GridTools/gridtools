@@ -411,20 +411,14 @@ namespace gridtools {
         };
 
 
-
-
-
-
         /** @brief method called in the Do methods of the functors.
+
             specialization for the generic accessors placeholders
         */
         template <uint_t I>
         GT_FUNCTION
         typename boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type
 
-        //typename IterateDomainImpl::ga_storage_type
-        // typename std::remove_reference<decltype(declval((IterateDomainImpl::m_data_pointer))[current_storage<(I==0), local_domain_t, typename generic_accessor<I>::type >::value])>::type
-        //typename accessor_return_type<generic_accessor<I>>::type::value_type* RESTRICT
         operator()(generic_accessor<I> const& accessor) const {
 
             //getting information about the storage
@@ -447,27 +441,8 @@ namespace gridtools {
 
             typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
-            // accessor_return_type<generic_accessor<I>>::type::value_type::fuck();
-            // storage_type::fuck();
-            // local_domain_t::mpl_storages::bitch();
-            //boost::mpl::at_c<1, local_domain_t::mpl_storages>::type::dirty();
-            //boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type::fuckyou();
-
             return real_storage_pointer;
         }
-
-
-        // /** @brief method called in the Do methods of the functors.
-        //     specialization for the generic accessors placeholders
-        // */
-        // template <uint_t I>
-        // GT_FUNCTION
-        // int
-        // operator()(generic_accessor<I> const& accessor) const {
-        //     return 0;
-        // }
-
-
 
 
 #ifdef CXX11_ENABLED
@@ -532,7 +507,6 @@ namespace gridtools {
         operator()(Accessor const& accessor) const;
 
 #if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__)
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -540,8 +514,6 @@ namespace gridtools {
         GT_FUNCTION
         typename accessor_return_type<Accessor>::type::value_type& RESTRICT
         operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const;
-
-#endif //ifndef __CUDACC__
 
 #endif
 
@@ -805,7 +777,7 @@ namespace gridtools {
                              ]);
     }
 
-#if defined(CXX11_ENABLED) && !defined( __CUDACC__ )
+#if defined(CXX11_ENABLED)
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/

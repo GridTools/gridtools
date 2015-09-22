@@ -7,11 +7,13 @@
 */
 
 #include <stddef.h>
+#include <algorithm>
+#include <boost/type_traits/has_trivial_constructor.hpp>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
+#include "generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 
@@ -20,19 +22,6 @@ namespace gridtools {
 
     template <typename T, size_t D>
     class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
-
-        template<int_t Idx>
-        struct get_component{
-
-            GT_FUNCTION
-            constexpr get_component(){}
-
-            template<typename OtherArray>
-            GT_FUNCTION
-            constexpr T& apply(OtherArray const& other_){
-                return other_[Idx];
-            }
-        };
 
         static const uint_t _size = (D>0)?D:1;
 
@@ -45,16 +34,25 @@ namespace gridtools {
         array() {}
 
 #ifdef CXX11_ENABLED
-        template<typename ... ElTypes>
-        GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
-        }
 
-        GT_FUNCTION
-        array(std::initializer_list<T> c) {
-            assert(c.size() == _size);
-            std::copy(c.begin(), c.end(), _array);
+#ifndef __CUDACC__ // NVCC always returns false in the SFINAE
+	// variadic constructor enabled only for arguments of type T
+        template<typename ... ElTypes
+                 , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
+                 >
+        GT_FUNCTION constexpr
+        array(ElTypes const& ... types): _array{(T)types ... } {
         }
+#else // nvcc only checks the first argument
+	// variadic constructor enabled only for arguments of type T
+        template<typename First, typename ... ElTypes
+                 , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
+                 >
+        GT_FUNCTION
+        // constexpr
+        array(First const& first_, ElTypes const& ... types): _array{(T)first_, (T)types ... } {
+        }
+#endif
 #else
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
@@ -93,12 +91,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         /** @brief constexpr copy constructor
 
-            unrolling the input array into a pack and forwarding to the regular constructor
-            TODO: complicated and counter intuitive syntax
         */
-        // GT_FUNCTION
-        // constexpr array( array<T,_size> const& other): gt_make_integer_sequence<_size>::template apply<array<T, _size>, get_component> (other) {
-        // }
         GT_FUNCTION
         constexpr array( array<T,1> const& other): _array{other[0]} {
         }
@@ -151,14 +144,15 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T const & operator[](size_t i) const {
-            assert((i < _size));
+        constexpr T const & operator[](size_t i) const {
+            // assert((i < _size));
             return _array[i];
         }
 
         GT_FUNCTION
+        // constexpr
         T & operator[](size_t i) {
-            assert((i < _size));
+            //assert((i < _size));
             return _array[i];
         }
 

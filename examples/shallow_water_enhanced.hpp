@@ -332,10 +332,10 @@ namespace shallow_water{
 //! [layout_map]
 
 //! [storage_type]
-        typedef gridtools::meta_storage<0, layout_t, false> meta_storage_t;
-        typedef gridtools::meta_storage<0, layout_t, true> meta_storage_tmp_t;
-        typedef gridtools::BACKEND::storage_type<float_type, meta_storage_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_storage_tmp_t >::type tmp_storage_type;
+        typedef gridtools::storage_info<0, layout_t> storage_info_t;
+        typedef gridtools::storage_info<0, layout_t> storage_info_tmp_t;
+        typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+        typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info_tmp_t >::type tmp_storage_type;
         typedef storage_type::pointer_type pointer_type;
 //! [storage_type]
 
@@ -385,7 +385,7 @@ namespace shallow_water{
 //! [padding_halo]
 
 //! [parallel_storage]
-        parallel_meta_storage<meta_storage_t, partitioner_t> meta_(part, d1, d2, d3);
+        parallel_storage_info<storage_info_t, partitioner_t> meta_(part, d1, d2, d3);
         sol_type sol(meta_.get_metadata(), "sol");
 //! [parallel_storage]
 
