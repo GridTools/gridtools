@@ -356,7 +356,7 @@ namespace iga_rt
 				for(unsigned int j=0;j<N2-1;++j,++global)
 				{
 					derivativeControlPoints[global] =
-							P2*(PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j+1] - PolinomialParametricSurface<DIM>::m_controlPoints[N2*i*j])/
+							P2*(PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j+1] - PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j])/
 							(m_knots2[j+P2+1] - m_knots2[j+1]);
 				}
 			}
@@ -492,7 +492,7 @@ namespace iga_rt
 				for(unsigned int j=0;j<N2-1;++j,++global)
 				{
 					derivativeControlPoints[global] =
-							P2*(PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j+1] - PolinomialParametricSurface<DIM>::m_controlPoints[N2*i*j])/
+							P2*(PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j+1] - PolinomialParametricSurface<DIM>::m_controlPoints[N2*i+j])/
 							(m_knots2[j+P2+1] - m_knots2[j+1]);
 				}
 			}
