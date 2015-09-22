@@ -8,21 +8,40 @@
 */
 namespace gridtools{
 
+#ifndef CXX11_ENABLED
+    template <uint_t Tile, uint_t Plus, uint_t Minus>
+    struct tile;
+#endif
+
     /**
        @class
        @brief specialization for the temporary storages and block strategy
      */
-    template<ushort_t Index, typename Layout, typename First,
+    template<ushort_t Index, typename Layout, typename FirstTile,
+#ifdef CXX11_ENABLED
              typename ... Tiles
+#else
+	     uint_t Tile, uint_t Plus, uint_t Minus
+#endif
              >
-    struct meta_storage_base<Index, Layout, true, First,
+    struct meta_storage_base<Index, Layout, true, FirstTile,
+#ifdef CXX11_ENABLED
                              Tiles...
+#else
+			     tile<Tile, Plus, Minus>
+#endif
                              > : public meta_storage_base<Index, Layout, false> {
         static const bool is_temporary=true;
         typedef  meta_storage_base<Index, Layout, false> super;
 
-        typedef meta_storage_base<Index, Layout, true, First, Tiles ...> this_type;
-        typedef typename boost::mpl::vector<First, Tiles ...> tiles_vector_t;
+#ifdef CXX11_ENABLED
+        typedef meta_storage_base<Index, Layout, true, FirstTile, Tiles ...> this_type;
+        typedef typename boost::mpl::vector<FirstTile, Tiles ...> tiles_vector_t;
+#else
+	typedef tile<Tile, Plus, Minus> TileJ;
+        typedef meta_storage_base<Index, Layout, true, FirstTile, TileJ> this_type;
+        typedef typename boost::mpl::vector<FirstTile, TileJ> tiles_vector_t;
+#endif
         typedef typename super::basic_type basic_type;
         typedef typename super::layout layout;
 

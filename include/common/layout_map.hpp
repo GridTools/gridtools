@@ -335,7 +335,7 @@ namespace gridtools {
         template <ushort_t I>
         struct at_ {
 #ifdef PEDANTIC
-            static_assert(I<length, "Index out of bound: accessing an objact with a layout map (a storage) using too many indices.");
+            static_assert(I<length, "Index out of bound: accessing an object with a layout map (a storage) using too many indices.");
 #endif
             static const short_t value = I<length ? layout_vector[I] : -1;
         };

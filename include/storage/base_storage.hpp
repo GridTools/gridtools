@@ -1,6 +1,5 @@
 #pragma once
 #include "base_storage_impl.hpp"
-#include "hybrid_pointer.hpp"
 #include "../common/array.hpp"
 
 /**@file

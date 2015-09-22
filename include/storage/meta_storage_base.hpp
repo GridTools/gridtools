@@ -28,12 +28,15 @@ namespace gridtools {
     template<typename T>
     struct is_meta_storage : boost::mpl::false_{};
 
-
     /**fwd declaration*/
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
+#ifdef CXX11_ENABLED
                , typename ... Tiles
+#else
+               , typename TileI=int, typename TileJ=int
+#endif
                >
     struct meta_storage_base;
 
@@ -48,13 +51,19 @@ namespace gridtools {
                , typename Layout
                , bool IsTemporary
                >
-    struct meta_storage_base<Index, Layout, IsTemporary>
+    struct meta_storage_base<Index, Layout, IsTemporary
+#ifndef CXX11_ENABLED
+			     ,int, int
+#endif
+			     >
     {
-        typedef meta_storage_base<Index, Layout , IsTemporary> type;
+        typedef meta_storage_base<Index, Layout , IsTemporary
+#ifndef CXX11_ENABLED
+			     ,int, int
+#endif
+				  > basic_type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
-
-        typedef meta_storage_base<Index, Layout , IsTemporary> basic_type;
 
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;

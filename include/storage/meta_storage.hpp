@@ -102,7 +102,8 @@ private:
     template < ushort_t Index
                , typename Layout
                >
-    struct storage_info : public meta_storage_derived<meta_storage_base<Index, Layout, false> >{
+    struct storage_info : public meta_storage_derived<meta_storage_base<Index, Layout, false> > {
+
         typedef meta_storage_derived<meta_storage_base<Index, Layout, false> > super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
