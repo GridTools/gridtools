@@ -212,9 +212,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION
         constexpr
         static uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
-#ifndef __CUDACC__
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
-#endif
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
 #endif

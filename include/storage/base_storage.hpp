@@ -135,11 +135,7 @@ namespace gridtools {
     protected:
         bool is_set;
         const char* m_name;
-#ifdef __CUDACC__ // this is related to the fact that the gridtools::array should not be templated to a const type when CXX11 disabled
-        pointer_type m_fields[field_dimensions];
-#else
         array<pointer_type, field_dimensions> m_fields;
-#endif
         MetaData const& m_meta_data;//should possibly be a constexpr
 
     public:
@@ -323,11 +319,9 @@ namespace gridtools {
         template <typename UInt>
         GT_FUNCTION
         value_type const& operator[](UInt const& index_) const {
-#ifndef __CUDACC__
             assert(index_ < m_meta_data.size());
             assert(is_set);
             GRIDTOOLS_STATIC_ASSERT(boost::is_integral<UInt>::value, "wrong type to the storage [] operator (the argument must be integral)");
-#endif
             return (m_fields[0])[index_];
         }
 
@@ -337,10 +331,8 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
-#ifndef __CUDACC__
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 
@@ -348,10 +340,8 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         value_type& operator()(meta_data_t* metadata_, UInt const& ... dims) {
-#ifndef __CUDACC__
             assert(metadata_ && metadata_->index(dims...) < metadata_->size());
             assert(is_set);
-#endif
             return (m_fields[0])[metadata_->index(dims...)];
         }
 
@@ -359,10 +349,8 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
-#ifndef __CUDACC__
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 #else //CXX11_ENABLED
@@ -370,10 +358,8 @@ namespace gridtools {
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
-#ifndef __CUDACC__
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
 
@@ -381,10 +367,8 @@ namespace gridtools {
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
-#ifndef __CUDACC__
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
 #endif

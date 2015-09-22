@@ -197,7 +197,7 @@ namespace copy_stencil{
 
         printf("copy unpacked\n");
 
-        in.print();
+        // in.print();
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();

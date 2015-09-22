@@ -88,72 +88,29 @@ private:
        (for the Block strategy)
 
        syntax example:
-       using metadata_t=meta_storage_derived<0,layout_map<0,1,2>,false>
+       using metadata_t=storage_info<0,layout_map<0,1,2> >
+
+       NOTE: the information specified here will be used at a later stage
+       to define the storage meta information (the meta_storage_base type)
      */
     template < ushort_t Index
                , typename Layout
-               //, bool IsTemporary
-               //, typename ... Tiles
                >
     using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, false > >;
 #else
 
-    //fwd declarationx
-    // template < uint_t Tile, uint_t Minus, uint_t Plus >
-    // struct tile;
-
-    //generic fwd declaration
     template < ushort_t Index
                , typename Layout
-               // , bool IsTemporary
-               // , typename TileI=int
-               // , typename TileJ=int
                >
-    struct storage_info;
-
-    /** specialization in the case of tiling in I-J*/
-    template < ushort_t Index
-               , typename Layout
-               // , bool IsTemporary
-               // , uint_t TileI,uint_t MinusI,uint_t PlusI
-               // , uint_t TileJ,uint_t MinusJ,uint_t PlusJ
-               >
-    struct storage_info<Index, Layout// , IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ>
-                        > : public meta_storage_derived<meta_storage_base<Index, Layout, false// IsTemporary
-// , tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ>
-                                                                          > >{
-        typedef meta_storage_derived<meta_storage_base<Index, Layout, false // IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ>
-                                                       > > super;
+    struct storage_info : public meta_storage_derived<meta_storage_base<Index, Layout, false> >{
+        typedef meta_storage_derived<meta_storage_base<Index, Layout, false> > super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
-
-        storage_info( uint_t const& initial_offset_i,
-                      uint_t const& initial_offset_j,
-                      uint_t const& dim3,
-                      uint_t const& n_i_threads=1,
-                      uint_t const& n_j_threads=1)
-            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
 
         GT_FUNCTION
         storage_info(storage_info const& t) : super(t){}
     };
 
-    template < ushort_t Index
-               , typename Layout
-               // , bool IsTemporary
-               >
-    struct storage_info<Index, Layout// , IsTemporary, int, int
-                        > : public meta_storage_derived<meta_storage_base<Index, Layout, false, int, int// , IsTemporary
-                                                                          > >{
-        typedef meta_storage_derived<meta_storage_base<Index, Layout, false, int, int// IsTemporary
-                                                       > > super;
-
-        storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
-
-        template <typename T>
-        GT_FUNCTION
-        storage_info(T const& t) : super(t){}
-    };
 #endif
 
 /** \addtogroup specializations Specializations

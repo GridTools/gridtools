@@ -25,14 +25,9 @@ namespace gridtools {
    @brief Used as template argument in the storage.
    In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-#if defined(CXX11_ENABLED)// && !defined(__CUDACC__))
+#if defined(CXX11_ENABLED)
 
     namespace _impl {
-
-        template <typename T0, typename... Ts>
-        struct first_type {
-            using type = T0;
-        };
 
         template <int index>
         static int __get(int i) {
@@ -135,17 +130,22 @@ namespace gridtools {
         template <ushort_t I, typename ... T>
         GT_FUNCTION
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
+
+            GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
             return  std::template get<layout_vector[I]>( std::make_tuple(args...) );
+
         }
-#else
+#else //problem determining of the return type with NVCC
         template <ushort_t I, typename First, typename ... T>
         GT_FUNCTION
         static First
         constexpr
         select(First & f, T & ... args) {
-            return  std::template get<boost::mpl::at_c<layout_vector_t, I>::type::value >( std::make_tuple(args...) );
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            return  std::template get<boost::mpl::at_c<layout_vector_t, I>::type::value >( std::make_tuple(f, args...) );
         }
-#endif
+#endif // __CUDACC__
+
         //returns the dimension corresponding to the given strides (get<0> for stride 1)
         template <ushort_t i>
         GT_FUNCTION
@@ -183,15 +183,14 @@ namespace gridtools {
             \tparam[in] Indices List of values where element is selected
             \param[in] indices  (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename... Indices>
+        template <ushort_t I, typename First, typename... Indices>
         GT_FUNCTION
-        static constexpr typename _impl::first_type<Indices...>::type
-        find(Indices & ... indices) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)<=length, "Too many arguments");
+        static constexpr First
+        find(First const& first_, Indices const& ... indices) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<=length, "Too many arguments");
 
-            return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
+            return std::get<pos_<I>::value>(std::tuple<First, Indices...>{first_, indices...});
         }
-
 
         /* forward declaration*/
         template <ushort_t I>
@@ -918,7 +917,7 @@ namespace gridtools {
 
     };
 
-#endif // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+#endif // (defined(CXX11_ENABLED)
 
 
     template <typename LM>

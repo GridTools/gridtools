@@ -67,7 +67,7 @@ namespace gridtools{
             }
         };
 
-
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
         template <typename Index, typename Layout,
 #ifdef CXX11_ENABLED
                   typename ... Tiles
@@ -75,7 +75,7 @@ namespace gridtools{
                   typename TileI, typename TileJ
 #endif
                   >
-        struct get_tmp_meta_storage
+        struct get_tmp_storage_info
         {
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
@@ -98,6 +98,7 @@ namespace gridtools{
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          */
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
 #ifdef CXX11_ENABLED
         template <typename Storage, typename ... Tiles>
 #else
@@ -116,7 +117,7 @@ namespace gridtools{
 #else
                 base_storage
 #endif
-                <typename Storage::pointer_type, typename get_tmp_meta_storage
+                <typename Storage::pointer_type, typename get_tmp_storage_info
                  <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
 #ifdef CXX11_ENABLED
                   Tiles ...
@@ -230,6 +231,7 @@ namespace gridtools{
         };
 
 
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
         template <typename Index, typename Layout,
 #ifdef CXX11_ENABLED
                   typename ... Tiles
@@ -260,6 +262,7 @@ namespace gridtools{
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          */
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
 #ifdef CXX11_ENABLED
         template <typename Storage, typename ... Tiles>
 #else

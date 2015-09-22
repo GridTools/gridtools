@@ -311,8 +311,6 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             boost::fusion::copy(real_storage_, original_fview);
         }
 
-
-#ifdef __CUDACC__
         /** Copy constructor to be used when cloning to GPU
          *
          * @param The object to copy. Typically this will be *this
@@ -323,7 +321,6 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             , m_original_pointers(other.m_original_pointers)
             , m_metadata_set(other.m_metadata_set)
         { }
-#endif
 
 #ifndef NDEBUG
         GT_FUNCTION

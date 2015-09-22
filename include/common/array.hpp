@@ -34,12 +34,25 @@ namespace gridtools {
         array() {}
 
 #ifdef CXX11_ENABLED
-	// variadic constructor enabled only for arguments of type T
-        template<typename ... ElTypes, typename = typename std::enable_if<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...) > >
-        GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
-        }
 
+#ifndef __CUDACC__ // NVCC always returns false in the SFINAE
+	// variadic constructor enabled only for arguments of type T
+        template<typename ... ElTypes
+                 , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
+                 >
+        GT_FUNCTION constexpr
+        array(ElTypes const& ... types): _array{(T)types ... } {
+        }
+#else // nvcc only checks the first argument
+	// variadic constructor enabled only for arguments of type T
+        template<typename First, typename ... ElTypes
+                 , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
+                 >
+        GT_FUNCTION
+        // constexpr
+        array(First const& first_, ElTypes const& ... types): _array{(T)first_, (T)types ... } {
+        }
+#endif
 #else
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION

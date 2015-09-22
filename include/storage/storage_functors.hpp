@@ -61,7 +61,7 @@ namespace gridtools {
         template <typename Index>
         GT_FUNCTION_WARNING
         void operator()(const Index& ) const {
-            GRIDTOOLS_STATIC_ASSERT(boost::is_integral<Index>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_static_integral<Index>::type::value, "wrong type");
             assign<Index>();
         }
     private:
@@ -75,7 +75,7 @@ namespace gridtools {
                     >::type
                     >::value
                     >::type* = 0) const {
-            GRIDTOOLS_STATIC_ASSERT(boost::is_integral<Index>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_static_integral<Index>::type::value, "wrong type");
         }
 
         /**
@@ -91,7 +91,7 @@ namespace gridtools {
                     >::value
                     >::type* = 0) const
         {
-            GRIDTOOLS_STATIC_ASSERT(boost::is_integral<Index>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_static_integral<Index>::type::value, "wrong type");
             boost::fusion::at<Index>(m_dc) = boost::fusion::at<Index>(m_oc);
         }
 
@@ -101,7 +101,6 @@ namespace gridtools {
 
     /**@brief Functor updating the pointers on the device */
     struct update_pointer {
-#ifdef __CUDACC__
 
         template < typename StorageType//typename T, typename U, bool B
                    >
@@ -114,7 +113,12 @@ namespace gridtools {
             }
         }
 
-        /**separate (for the moment) overload for the metadata*/
+        /**
+           @brief Functor updating the pointers on the device
+
+           separate (for the moment) overload for the metadata
+           since the metadata is stored in (smart) non-raw pointers
+        */
         template < typename StorageType >
         GT_FUNCTION_WARNING
         void operator()(pointer<const StorageType>& s) const {
@@ -139,37 +143,32 @@ namespace gridtools {
             s->copy_data_to_gpu();
         }
 
-#else
-        template <typename StorageType>
-        GT_FUNCTION_WARNING
-        void operator()(StorageType* s) const {}
-#endif
     };
 
 
-    //TODO : This struct is never used
-    struct call_h2d {
-        template <typename StorageType>
-        GT_FUNCTION
-        void operator()(StorageType * arg) const {
-#ifndef __CUDA_ARCH__
-            do_impl<StorageType>(arg,
-                                 static_cast<typename is_no_storage_type_yet<StorageType>::type*>(0)
-                );
-#endif
-        }
-    private:
-        template <typename StorageType>
-        GT_FUNCTION
-        void do_impl(StorageType * arg,
-                     typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
-        template <typename StorageType>
-        GT_FUNCTION
-        void do_impl(StorageType * arg,
-                     typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
-            arg->h2d_update();
-        }
-    };
+//     //TODO : This struct is never used
+//     struct call_h2d {
+//         template <typename StorageType>
+//         GT_FUNCTION
+//         void operator()(StorageType * arg) const {
+// #ifndef __CUDA_ARCH__
+//             do_impl<StorageType>(arg,
+//                                  static_cast<typename is_no_storage_type_yet<StorageType>::type*>(0)
+//                 );
+// #endif
+//         }
+//     private:
+//         template <typename StorageType>
+//         GT_FUNCTION
+//         void do_impl(StorageType * arg,
+//                      typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
+//         template <typename StorageType>
+//         GT_FUNCTION
+//         void do_impl(StorageType * arg,
+//                      typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
+//             arg->h2d_update();
+//         }
+//     };
 
     struct call_d2h {
         template <typename StorageType>

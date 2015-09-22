@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/mpl/at.hpp>
 /**@file @brief implementation of a compile-time accumulator and max
 
    The accumulator allows to perform operations on static const value to

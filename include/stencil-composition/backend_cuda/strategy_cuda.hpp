@@ -56,8 +56,14 @@ namespace gridtools{
             }
         };
 
-
-        template <typename Index, typename Layout, typename ... Tiles>
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
+        template <typename Index, typename Layout
+#ifdef CXX11_ENABLED
+                  , typename ... Tiles
+#else
+                  , typename TileI, typename TileJ
+#endif
+                  >
         struct get_tmp_storage_info
         {
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
@@ -66,28 +72,48 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-
-            typedef storage_info<Index::value, Layout, true, Tiles ...> type;
+            typedef meta_storage_derived
+            <meta_storage_base
+            <Index::value, Layout, true,
+#ifdef CXX11_ENABLED
+             Tiles ...
+#else
+             TileI, TileJ
+#endif
+             > > type;
         };
 
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          * with the naive algorithms, the temporary storages are like the non temporary ones
          */
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
+#ifdef CXX11_ENABLED
         template <typename Storage, typename ... Tiles>
-        struct get_tmp_storage{
-
+#else
+        template <typename Storage, typename TileI, typename TileJ>
+#endif
+        struct get_tmp_storage
+        {
 #ifdef CXX11_ENABLED
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-
-            typedef storage<base_storage
-                            <typename Storage::pointer_type
-                             , typename get_tmp_storage_info<typename Storage::meta_data_t::index_type
-                                                             , typename Storage::meta_data_t::layout, Tiles ...>
-                             ::type, Storage::field_dimensions > > type;
+            typedef storage<
+#ifdef CXX11_ENABLED
+                typename Storage::template my_type
+#else
+                base_storage
+#endif
+                <typename Storage::pointer_type, typename get_tmp_storage_info
+                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+#ifdef CXX11_ENABLED
+                  Tiles ...
+#else
+                  TileI, TileJ
+#endif
+                  >::type, Storage::field_dimensions > > type;
         };
     };
 

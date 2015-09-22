@@ -49,6 +49,17 @@ namespace gridtools{
             typedef storage<base_storage<typename pointer<ValueType>::type, MetaData, FieldDim > >   storage_t;
         };
 
+        /**
+           @brief storage info type associated to the host backend
+
+           the storage info type is meta_storage_base, which is not clonable to GPU.
+         */
+        template <typename MetaData, bool Temp>
+        struct meta_storage_traits{
+	GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
+            typedef meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> type;
+        };
+
         template <typename Arguments>
         struct execute_traits{
             typedef _impl_host::run_functor_host< Arguments > run_functor_t;

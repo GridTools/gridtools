@@ -79,7 +79,7 @@ namespace gridtools {
             GT_FUNCTION_WARNING
             void operator()(Key& local_) const {
                 local_ =
-#ifdef __CUDACC__
+#ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
                     (typename Key::value_type *) boost::fusion::at_key<Key>(m_actual)->gpu_object_ptr;
 #else
                     boost::fusion::at_key<Key>(m_actual);

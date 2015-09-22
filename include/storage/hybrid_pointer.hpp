@@ -73,7 +73,6 @@ namespace gridtools {
 };
 
         void allocate_it(uint_t size) {
-#ifdef __CUDACC__
             cudaError_t err = cudaMalloc(&m_gpu_p, size*sizeof(T));
             if (err != cudaSuccess) {
                 std::cout << "Error allocating storage in "
@@ -86,14 +85,11 @@ namespace gridtools {
                 printf("allocating hybrid pointer %x \n", this);
 #endif
             }
-#endif
         }
 
         void free_it() {
-#ifdef __CUDACC__
             cudaFree(m_gpu_p);
             m_gpu_p=NULL;
-#endif
             wrap_pointer<T>::free_it();
 #ifdef __VERBOSE__
             printf("freeing hybrid pointer %x \n", this);
@@ -101,26 +97,20 @@ namespace gridtools {
       }
 
         void update_gpu() const {
-#ifdef __CUDACC__
 #ifdef __VERBOSE__
             printf("update gpu "); out();
 #endif
             cudaMemcpy(m_gpu_p, this->m_cpu_p, m_size*sizeof(T), cudaMemcpyHostToDevice);
-#endif
         }
 
         void update_cpu() const {
-#ifdef __CUDACC__
 #ifdef __VERBOSE__
             printf("update cpu "); out();
 #endif
             cudaMemcpy(this->m_cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
-#endif
         }
 
-#ifdef __CUDACC__
         void set(pointee_t const& value, uint_t const& index){cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice); }
-#endif
 
         __host__ __device__
         void out() const {

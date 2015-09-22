@@ -141,7 +141,7 @@ namespace gridtools {
 
             typedef typename backend_traits_t::template storage_traits
             <ValueType
-            , meta_storage_derived< meta_storage_base<MetaDataType::index_type::value, typename MetaDataType::layout, false> >
+             , typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type
              , false>::storage_t type;
         };
 
@@ -163,7 +163,7 @@ namespace gridtools {
         private:
             typedef typename backend_traits_t::template storage_traits<
             ValueType
-            , meta_storage_derived<meta_storage_base<MetaDataType::index_type::value, typename MetaDataType::layout, true> >
+            , typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type
             , true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
