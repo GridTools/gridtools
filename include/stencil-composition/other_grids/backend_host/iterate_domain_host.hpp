@@ -11,7 +11,6 @@ namespace gridtools {
     /**
  * @brief iterate domain class for the Host backend
  */
-    template<typename T> struct printu{BOOST_MPL_ASSERT_MSG((false), TTTTTTTTTTTTTTT, (T));};
     template<template<class> class IterateDomainBase, typename IterateDomainArguments>
     class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
     {
@@ -78,7 +77,6 @@ namespace gridtools {
         void initialize_impl() {}
 
     private:
-//        printu<strides_cached_t> lo;
         data_pointer_array_t* RESTRICT m_data_pointer;
         strides_cached_t* RESTRICT m_strides;
     };
