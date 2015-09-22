@@ -30,6 +30,13 @@ namespace iga_rt
 		 */
 		virtual std::vector<double> evaluate(double i_csi) const = 0;
 
+		/**
+		 * @brief base functions derivative evaluation method for a given point in parametric space
+		 * @param i_csi Parametric space point value
+		 * @return Values corresponding to base function derivative values at the provided point
+		 */
+		virtual std::vector<double> evaluateDerivatives(double i_csi) const = 0;
+
 	};
 
 
@@ -57,6 +64,14 @@ namespace iga_rt
 		 * @return Values corresponding to base function values at the provided point
 		 */
 		virtual std::vector<double> evaluate(double i_csi, double i_eta) const = 0;
+
+		/**
+		 * @brief base functions derivative evaluation method for a given point in parametric space
+		 * @param i_csi Parametric space point value (first direction)
+		 * @param i_eta Parametric space point value (second direction)
+		 * @return Values corresponding to base function derivative values at the provided point (first array component corresponds to derivatives vs first variable)
+		 */
+		virtual std::array<std::vector<double>,2> evaluateDerivatives(double i_csi, double i_eta) const = 0;
 
 	};
 
