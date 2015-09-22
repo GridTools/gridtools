@@ -5,7 +5,7 @@
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
-#include "accumulate.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{

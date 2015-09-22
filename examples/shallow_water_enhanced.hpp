@@ -300,8 +300,8 @@ namespace shallow_water{
 //! [layout_map]
 
 //! [storage_type]
-        typedef gridtools::storage_info<0, layout_t, false> storage_info_t;
-        typedef gridtools::storage_info<0, layout_t, true> storage_info_tmp_t;
+        typedef gridtools::storage_info<0, layout_t> storage_info_t;
+        typedef gridtools::storage_info<0, layout_t> storage_info_tmp_t;
         typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info_tmp_t >::type tmp_storage_type;
         typedef storage_type::pointer_type pointer_type;

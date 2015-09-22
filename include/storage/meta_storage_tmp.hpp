@@ -1,8 +1,17 @@
 #pragma once
 #include "meta_storage_base.hpp"
 
+/**
+   @file
+   implementation of a class handling the storage meta information in case of temporary storage
+   when using the block strategy
+*/
 namespace gridtools{
 
+    /**
+       @class
+       @brief specialization for the temporary storages and block strategy
+     */
     template<ushort_t Index, typename Layout, typename First,
              typename ... Tiles
              >
@@ -38,6 +47,18 @@ namespace gridtools{
 
     public:
 
+        /**
+           @brief constructor
+
+           @param initial_offset_i the initial global i coordinate of the ij block
+           @param initial_offset_j the initial global j coordinate of the ij block
+           @param dim3 the dimension in k direction
+           @param n_i_threads number of threads in the i direction
+           @param n_j_threads number of threads in the j direction
+
+           This constructor creates a storage tile with one peace assigned to each thread.
+           The partition of the storage in tiles is a strategy to enhance data locality.
+         */
         constexpr meta_storage_base( uint_t const& initial_offset_i,
                                      uint_t const& initial_offset_j,
                                      uint_t const& dim3,

@@ -10,10 +10,6 @@
 #define CXX11_DISABLED
 #endif
 
-#if((defined(CXX11_DISABLED) && defined(CXX14_ENABLED)))
-#error("Internal error: when CXX14 is ON, also CXX11 must be automatically turned ON");
-#endif
-
 //defines how many threads participate to the (shared) memory initialization
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32

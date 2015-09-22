@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::storage_info<0,gridtools::layout_map<0,1,2>,false> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
     // Definition of the actual data fields that are used for input/output

@@ -28,32 +28,32 @@ using gridtools::int_t;
 
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::storage_info<0,layout_ijk, false> metadata_ijk_t;
-    typedef gridtools::storage_info<1,layout_ij, false> metadata_ij_t;
-    typedef gridtools::storage_info<2,layout_scalar, false> metadata_scalar_t;
-    typedef gridtools::storage_info<0,layout_ijk, true> metadata_ijk_tmp_t;
-    typedef gridtools::storage_info<1,layout_ij, true> metadata_ij_tmp_t;
-    typedef gridtools::storage_info<2,layout_scalar, true> metadata_scalar_tmp_t;
+    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_t;
+    typedef gridtools::storage_info<1,layout_ij> storage_info_ij_t;
+    typedef gridtools::storage_info<2,layout_scalar> storage_info_scalar_t;
+    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
+    typedef gridtools::storage_info<1,layout_ij> storage_info_ij_tmp_t;
+    typedef gridtools::storage_info<2,layout_scalar> storage_info_scalar_tmp_t;
 
 class repository
 {
     public:
 
-    typedef hd_backend::storage_type<gridtools::float_type, metadata_ijk_t >::type storage_type;
-    typedef hd_backend::storage_type<gridtools::float_type, metadata_ij_t >::type ij_storage_type;
+    typedef hd_backend::storage_type<gridtools::float_type, storage_info_ijk_t >::type storage_type;
+    typedef hd_backend::storage_type<gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
 
-    typedef hd_backend::temporary_storage_type<gridtools::float_type, metadata_scalar_t >::type scalar_storage_type;
-    typedef hd_backend::temporary_storage_type<gridtools::float_type, metadata_ijk_tmp_t >::type tmp_storage_type;
-    typedef hd_backend::temporary_storage_type<gridtools::float_type, metadata_scalar_tmp_t>::type tmp_scalar_storage_type;
+    typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_scalar_t >::type scalar_storage_type;
+    typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_ijk_tmp_t >::type tmp_storage_type;
+    typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_scalar_tmp_t>::type tmp_scalar_storage_type;
 
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size):
-        m_metadata_ijk(idim, jdim, kdim),
-        m_metadata_ij(idim, jdim, kdim),
-        m_metadata_scalar(idim, jdim, kdim),
-        in_(m_metadata_ijk, -1., "in"),
-        out_(m_metadata_ijk, -1., "out"),
-        out_ref_(m_metadata_ijk, -1., "out_ref"),
-        coeff_(m_metadata_ijk, -1., "coeff"),
+        m_storage_info_ijk(idim, jdim, kdim),
+        m_storage_info_ij(idim, jdim, kdim),
+        m_storage_info_scalar(idim, jdim, kdim),
+        in_(m_storage_info_ijk, -1., "in"),
+        out_(m_storage_info_ijk, -1., "out"),
+        out_ref_(m_storage_info_ijk, -1., "out_ref"),
+        coeff_(m_storage_info_ijk, -1., "coeff"),
         halo_size_(halo_size),
         idim_(idim), jdim_(jdim), kdim_(kdim)
         {
@@ -114,9 +114,9 @@ class repository
 
     void generate_reference()
     {
-        ij_storage_type lap(m_metadata_ij, -1., "lap");
-        ij_storage_type flx(m_metadata_ij, -1., "flx");
-        ij_storage_type fly(m_metadata_ij, -1., "fly");
+        ij_storage_type lap(m_storage_info_ij, -1., "lap");
+        ij_storage_type flx(m_storage_info_ij, -1., "flx");
+        ij_storage_type fly(m_storage_info_ij, -1., "fly");
 
         init_field_to_value(lap, 0.0);
 
@@ -170,13 +170,13 @@ class repository
     storage_type& out() {return out_;}
     storage_type& out_ref() {return out_ref_;}
     storage_type& coeff() {return coeff_;}
-    metadata_ijk_t& metadata_ijk() {return m_metadata_ijk;}
+    storage_info_ijk_t& storage_info_ijk() {return m_storage_info_ijk;}
 
-    metadata_ijk_t m_metadata_ijk;
+    storage_info_ijk_t m_storage_info_ijk;
 private:
 
-    metadata_ij_t m_metadata_ij;
-    metadata_scalar_t m_metadata_scalar;
+    storage_info_ij_t m_storage_info_ij;
+    storage_info_scalar_t m_storage_info_scalar;
     storage_type in_, out_, out_ref_, coeff_;
     const uint_t halo_size_;
     const uint_t idim_, jdim_, kdim_;

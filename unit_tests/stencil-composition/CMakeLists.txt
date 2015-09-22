@@ -17,8 +17,6 @@ gridtools_add_test(tests.stencil_composition ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}
 set_target_properties(stencil_composition_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
-add_subdirectory(caches)
+gridtools_add_test(tests.test_cycle_and_swap ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_cycle_and_swap")
 
-add_executable(test_cycle_and_swap test_cycle_and_swap_exe.cpp)
-set_target_properties( test_cycle_and_swap PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries( test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+add_subdirectory(caches)

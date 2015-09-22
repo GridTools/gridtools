@@ -43,8 +43,9 @@ namespace gridtools{
         /**
            @brief storage type associated to the host backend
          */
-        template <typename ValueType, typename MetaData, bool Temp=false, short_t FieldDim=1>
+        template <typename ValueType, typename MetaData, bool Temp, short_t FieldDim=1>
         struct storage_traits{
+            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the MetaList");
             typedef storage<base_storage<typename pointer<ValueType>::type, MetaData, FieldDim > >   storage_t;
         };
 

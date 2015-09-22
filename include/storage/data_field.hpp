@@ -52,7 +52,7 @@ namespace gridtools{
 
     /** @brief metafunction to compute the number of snapshots present in the ID-th storage_list
         (storage_list::n_width)
-     */
+    */
     template<typename Storage, uint_t Id, uint_t IdMax>
     struct compute_storage_list_width{
 
@@ -65,25 +65,25 @@ namespace gridtools{
     struct is_data_field : public boost::mpl::false_{};
 
     namespace impl_{
-    /**@brief syntactic sugar*/
-    template<typename Storage, uint_t Id>
-    using offset_t=compute_storage_offset<typename Storage::traits, Id, Storage::traits::n_dimensions-1>;
+        /**@brief syntactic sugar*/
+        template<typename Storage, uint_t Id>
+        using offset_t=compute_storage_offset<typename Storage::traits, Id, Storage::traits::n_dimensions-1>;
 
-    /**@brief syntactic sugar*/
-    template<typename Storage, uint_t Id>
-    using width_t=compute_storage_list_width<typename Storage::traits, Id, Storage::traits::n_dimensions-1>;
+        /**@brief syntactic sugar*/
+        template<typename Storage, uint_t Id>
+        using width_t=compute_storage_list_width<typename Storage::traits, Id, Storage::traits::n_dimensions-1>;
     }
 
     /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
 
-       \tparam SnapshotFrom one snapshot
-       \tparam DimFrom one dimension
-       \tparam SnapshotTo the second snapshot
-       \tparam DimTo the second dimension
+       @tparam SnapshotFrom one snapshot
+       @tparam DimFrom one dimension
+       @tparam SnapshotTo the second snapshot
+       @tparam DimTo the second dimension
 
        syntax:
        swap<3,1>::with<4,1>::apply(storage_);
-     */
+    */
     template<ushort_t SnapshotFrom, ushort_t DimFrom=0>
     struct swap{
         template<ushort_t SnapshotTo, ushort_t DimTo=0>
@@ -91,8 +91,8 @@ namespace gridtools{
             template<typename Storage>
             GT_FUNCTION
             static void apply(Storage& storage_){
-            GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
-                                    "\"swap\" can only be called with instanced of type \"data_field\" ");
+                GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
+                                        "\"swap\" can only be called with instanced of type \"data_field\" ");
                 typename Storage::pointer_type tmp=storage_.template get<SnapshotFrom, DimFrom>();
                 storage_.template get<SnapshotFrom, DimFrom>()=
                     storage_.template get<SnapshotTo, DimTo>();
@@ -103,14 +103,14 @@ namespace gridtools{
 
     /**@brief shifts the snapshots in one data field dimension
 
-       \tparam Dim the data field dimension
+       @tparam Dim the data field dimension
 
        it cycles, i.e. the pointer to the last snapshots becomes the first
        (so that the storage is overwritten)
 
        syntax:
        advance<2>()(storage_);
-     */
+    */
     template<ushort_t Dim>
     struct advance{
 
@@ -191,22 +191,20 @@ namespace gridtools{
         template <typename ... ExtraArgs>
         data_field(typename basic_type::meta_data_t const & meta_data_, ExtraArgs const& ... args_ ): super(meta_data_, args_...){}
 
-   /**@brief device copy constructor*/
+        /**@brief device copy constructor*/
         template <typename T>
         __device__
         data_field( T const& other )
             : super(other)
-            {}
+        {}
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~data_field(){
         }
 
-        // using super::setup;
-
         /**@brief pushes a given data field at the front of the buffer for a specific dimension
-           \param field the pointer to the input data field
-           \tparam dimension specifies which field dimension we want to access
+           @param field the pointer to the input data field
+           @tparam dimension specifies which field dimension we want to access
         */
         template<uint_t dimension=1>
         GT_FUNCTION
@@ -222,109 +220,109 @@ namespace gridtools{
             super::push_front(field, indexFrom, indexTo);
         }
 
-   /**@brief Pushes the given storage as the first snapshot at the specified field dimension*/
+        /**@brief Pushes the given storage as the first snapshot at the specified field dimension*/
         template<uint_t dimension=1>
         GT_FUNCTION
         void push_front( pointer_type& field, typename super::value_type const& value ){//copy constructor
             for (uint_t i=0; i<this->m_meta_data.size(); ++i)
-           field[i]=value;
-       push_front<dimension>(field);
-   }
+                field[i]=value;
+            push_front<dimension>(field);
+        }
 
-   /**@biref sets the given storage as the nth snapshot of a specific field dimension
+        /**@biref sets the given storage as the nth snapshot of a specific field dimension
 
-      \tparam field_dim the given field dimenisons
-      \tparam snapshot the snapshot of dimension field_dim to be set
-      \param field the input storage
+           @tparam field_dim the given field dimenisons
+           @tparam snapshot the snapshot of dimension field_dim to be set
+           @param field the input storage
         */
         template<short_t field_dim=0, short_t snapshot=0>
         void set( pointer_type& field)
-       {
-           super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
-       }
+        {
+            super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot]=field;
+        }
 
-   /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input constant value
+        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input constant value
 
-      \tparam field_dim the given field dimenisons
-      \tparam snapshot the snapshot of dimension field_dim to be set
-      \param field the input storage
-      \param val the initializer value
+           @tparam field_dim the given field dimenisons
+           @tparam snapshot the snapshot of dimension field_dim to be set
+           @param field the input storage
+           @param val the initializer value
         */
         template<short_t field_dim=0, short_t snapshot=0>
         void set(/* pointer_type& field,*/ typename super::value_type const& val)
-       {
-           for (uint_t i=0; i<this->m_meta_data.size(); ++i)
-               (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])[i]=val;
-       }
+        {
+            for (uint_t i=0; i<this->m_meta_data.size(); ++i)
+                (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])[i]=val;
+        }
 
-   /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input lambda function
-      TODO: this should be merged with the boundary conditions code (repetition)
+        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage with an input lambda function
+           TODO: this should be merged with the boundary conditions code (repetition)
 
-      \tparam field_dim the given field dimenisons
-      \tparam snapshot the snapshot of dimension field_dim to be set
-      \param field the input storage
-      \param lambda the initializer function
+           @tparam field_dim the given field dimenisons
+           @tparam snapshot the snapshot of dimension field_dim to be set
+           @param field the input storage
+           @param lambda the initializer function
         */
         template<short_t field_dim=0, short_t snapshot=0>
         void set( typename super::value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&))
-       {
-           for (uint_t i=0; i<this->m_meta_data.template dims<0>(); ++i)
-               for (uint_t j=0; j<this->m_meta_data.template dims<1>(); ++j)
-                   for (uint_t k=0; k<this->m_meta_data.template dims<2>(); ++k)
-                       (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
-                           [this->m_meta_data.index(i,j,k)]=
-                           lambda(i, j, k);
-       }
+        {
+            for (uint_t i=0; i<this->m_meta_data.template dims<0>(); ++i)
+                for (uint_t j=0; j<this->m_meta_data.template dims<1>(); ++j)
+                    for (uint_t k=0; k<this->m_meta_data.template dims<2>(); ++k)
+                        (super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot])
+                            [this->m_meta_data.index(i,j,k)]=
+                            lambda(i, j, k);
+        }
 
 
-   /**@biref gets the given storage as the nth snapshot of a specific field dimension
+        /**@biref gets the given storage as the nth snapshot of a specific field dimension
 
-      \tparam field_dim the given field dimenisons
-      \tparam snapshot the snapshot of dimension field_dim to be set
-      \param field the input storage
+           @tparam field_dim the given field dimenisons
+           @tparam snapshot the snapshot of dimension field_dim to be set
+           @param field the input storage
         */
         template< short_t snapshot=0, short_t field_dim=0>
         pointer_type& get( )
-            {
-                return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
-            }
+        {
+            return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+        }
 
         template<short_t snapshot=0, short_t field_dim=0>
         pointer_type const& get( ) const
-            {
-                return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
-            }
+        {
+            return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
+        }
 
 
         /**@biref gets a given value at the given field i,j,k coordinates
 
-           \tparam field_dim the given field dimenisons
-           \tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
-           \param i index in the horizontal direction
-           \param j index in the horizontal direction
-           \param k index in the vertical direction
+           @tparam field_dim the given field dimenisons
+           @tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
+           @param i index in the horizontal direction
+           @param j index in the horizontal direction
+           @param k index in the vertical direction
         */
         template< short_t snapshot=0, short_t field_dim=0, typename ... Int>
         typename super::value_type& get_value( Int ... args )
-      {
-          return get<snapshot,field_dim>()[this->m_meta_data.index(args...)];
-      }
+        {
+            return get<snapshot,field_dim>()[this->m_meta_data.index(args...)];
+        }
 
         /**@biref gets a given value at the given field i,j,k coordinates
 
            same as the previous one, but returning a constant reference
-         */
+        */
         template<short_t snapshot=0, short_t field_dim=0, typename ... Int>
         typename super::value_type const& get_value( Int ... args ) const
-      {
-          return get<snapshot,field_dim>()[this->m_meta_data.index(args...)];
-      }
+        {
+            return get<snapshot,field_dim>()[this->m_meta_data.index(args...)];
+        }
 
         /**@biref ODE advancing for a single dimension
 
            it advances the supposed finite difference scheme of one step for a specific field dimension
-           \tparam dimension the dimension to be advanced
-           \param offset the number of steps to advance
+           @tparam dimension the dimension to be advanced
+           @param offset the number of steps to advance
         */
         template<uint_t dimension=1>
         GT_FUNCTION

@@ -7,11 +7,13 @@
 */
 
 #include <stddef.h>
+#include <algorithm>
+#include <boost/type_traits/has_trivial_constructor.hpp>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
+#include "generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 
@@ -32,16 +34,12 @@ namespace gridtools {
         array() {}
 
 #ifdef CXX11_ENABLED
-        template<typename ... ElTypes>
+	// variadic constructor enabled only for arguments of type T
+        template<typename ... ElTypes, typename = typename std::enable_if<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...) > >
         GT_FUNCTION
         constexpr array(ElTypes const& ... types): _array{(T)types ... } {
         }
 
-        // GT_FUNCTION
-        // array(std::initializer_list<T> c) {
-        //     assert(c.size() == _size);
-        //     std::copy(c.begin(), c.end(), _array);
-        // }
 #else
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION

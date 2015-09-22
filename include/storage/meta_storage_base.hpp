@@ -37,7 +37,7 @@ namespace gridtools {
                >
     struct meta_storage_base;
 
-    /**@brief class containing the storage meta information for non temporary storage
+    /**@brief class containing the storage meta information
 
        \tparam Index an index used to differentiate the types also when there's only runtime
        differences (e.g. only the storage dimensions differ)
@@ -97,7 +97,11 @@ namespace gridtools {
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
             }
 #else
         // non variadic non constexpr constructor
@@ -241,20 +245,6 @@ namespace gridtools {
 
             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, indices);
         }
-
-        // /** @brief method to increment the memory address index by moving forward one step in the given Coordinate direction
-
-        //     SFINAE: design pattern used to avoid the compilation of the overloaded method which are not used (and which would produce a compilation error)
-        // */
-        // template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
-        // GT_FUNCTION
-        // static void increment( int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
-        //     BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-        //     if(layout::template at_< Coordinate >::value >=0)//static if
-        //     {
-        //         increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_));
-        //     }
-        // }
 
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction
             \tparam Coordinate: the dimension which is being incremented (0=i, 1=j, 2=k, ...)

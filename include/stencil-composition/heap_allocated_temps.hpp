@@ -24,8 +24,13 @@ namespace gridtools {
         struct prepare_temporaries_functor<ArgList, MetaList, Coords, backend<BackendId, enumtype::/*strategy::*/Naive> >
         {
 
+            //TODO check the type of ArgList
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaList>::value, "wrong type for metadata");
+            GRIDTOOLS_STATIC_ASSERT(is_coordinates<Coords>::value, "wrong type for coords");
+
             typedef MetaList metadata_set_t;
-/**
+
+            /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
             */
             struct instantiate_tmps
@@ -49,6 +54,9 @@ namespace gridtools {
                 template <typename ElemType>
                 void operator()(ElemType*&  e) const {
 
+                    //TODO no is_storage
+                    GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
+                    GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::meta_data_t>::value, "wrong metadata type");
 
                     if( !m_metadata_set.template present<pointer<
                         typename ElemType::meta_data_t const> >() )
@@ -97,6 +105,10 @@ namespace gridtools {
         <ArgList, MetaList, Coords,  backend<BackendId, enumtype::/*strategy::*/Block> >
         {
 
+            //TODO implement a check for the ArgList type
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaList>::value, "wrong type for metadata");
+            GRIDTOOLS_STATIC_ASSERT(is_coordinates<Coords>::value, "wrong type for coords");
+
             typedef backend<BackendId, enumtype/*::strategy*/::Block> backend_type;
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
@@ -129,7 +141,12 @@ namespace gridtools {
                 // ElemType: an element in the data field place-holders list
                 template <typename ElemType>
                 void operator()(ElemType*&  e) const {
+                    //TODO no is_storage
+                    GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
+                    GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::meta_data_t>::value, "wrong metadata type");
+
                     typedef typename ElemType::meta_data_t meta_t;
+
                     //insert new type in the map only if not present already
                     if( !m_metadata_set.template present<pointer<const meta_t> >() )
                         //creates a metadata on the heap, passing on ownership

@@ -39,7 +39,7 @@ namespace gridtools{
     struct vec_max
     {
         typedef typename find_max< Vector, boost::mpl::size<Vector>::type::value-1>::type type;
-        static const int_t value=/*find_max< Vector, boost::mpl::size<Vector>::type::value-1>::*/type::value;
+        static const int_t value=type::value;
     };
 
     /**@brief operation to be used inside the accumulator*/
@@ -101,31 +101,6 @@ namespace gridtools{
     }
 #endif
 
-    template<uint_t Id>
-    struct assign{
-        GT_FUNCTION
-        constexpr assign(){}
-
-        template <typename T1, typename T2  >
-        GT_FUNCTION
-        static void apply(T1& t1, T2 const& t2)
-            {
-                t1[Id]=std::get<Id>(t2);
-                assign<Id-1>::apply(t1, t2);
-            }
-    };
-
-    template<>
-    struct assign<0>{
-        GT_FUNCTION
-        constexpr assign(){}
-        template <typename T1, typename T2  >
-        GT_FUNCTION
-        static void apply(T1& t1, T2 const& t2)
-            {
-                t1[0]=std::get<0>(t2);
-            }
-    };
 #endif
 
 }//namespace gridtools

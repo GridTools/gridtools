@@ -140,7 +140,12 @@ namespace gridtools{
 #ifdef CXX11_ENABLED
             template<typename ... UInt>
 #endif
-            uint_t compute_bounds(uint_t component, array<halo_descriptor, space_dimensions>& coordinates, array<halo_descriptor, space_dimensions>& coordinates_gcl, array<int_t, space_dimensions>& low_bound, array<int_t, space_dimensions>& up_bound,
+            uint_t compute_bounds(uint_t component
+                                  , array<halo_descriptor
+                                  , space_dimensions>& coordinates
+                                  , array<halo_descriptor, space_dimensions>& coordinates_gcl
+                                  , array<int_t, space_dimensions>& low_bound
+                                  , array<int_t, space_dimensions>& up_bound,
 #ifdef CXX11_ENABLED
                             UInt const& ... original_sizes
 #else
@@ -148,17 +153,13 @@ namespace gridtools{
 #endif
 ) const
             {
-                //m_sizes[component]=size;
 #ifdef CXX11_ENABLED
                 uint_t sizes[sizeof...(UInt)]={original_sizes...};
                 uint_t size_=sizes[component];
-                // suboptimal.
-                // uint_t size_=std::get<component>(std::tuple<UInt const&...>(original_sizes...));
 #else
                 uint_t sizes[3]={d1, d2, d3};
                 uint_t size_=sizes[component];
 #endif
-                // for(uint_t component=0; component<space_dimensions; ++component){
 
                     low_up_bounds(low_bound[component], up_bound[component], component, size_);
 
@@ -191,7 +192,6 @@ namespace gridtools{
                          <<"component, size: "<<component<<" "<<size_<<std::endl;
 #endif
                 return tile_dimension+ compute_halo(component,UP)+compute_halo(component,LOW);
-                // }
             }
 
         /** @brief method to query the halo dimension based on the periodicity of the communicator and the boundary flag

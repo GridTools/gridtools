@@ -92,34 +92,38 @@ private:
      */
     template < ushort_t Index
                , typename Layout
-               , bool IsTemporary
-               , typename ... Tiles
+               //, bool IsTemporary
+               //, typename ... Tiles
                >
-    using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary, Tiles...> >;
+    using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, false > >;
 #else
 
     //fwd declarationx
-    template < uint_t Tile, uint_t Minus, uint_t Plus >
-    struct tile;
+    // template < uint_t Tile, uint_t Minus, uint_t Plus >
+    // struct tile;
 
     //generic fwd declaration
     template < ushort_t Index
                , typename Layout
-               , bool IsTemporary
-               , typename TileI=int
-               , typename TileJ=int
+               // , bool IsTemporary
+               // , typename TileI=int
+               // , typename TileJ=int
                >
     struct storage_info;
 
     /** specialization in the case of tiling in I-J*/
     template < ushort_t Index
                , typename Layout
-               , bool IsTemporary
-               , uint_t TileI,uint_t MinusI,uint_t PlusI
-               , uint_t TileJ,uint_t MinusJ,uint_t PlusJ
+               // , bool IsTemporary
+               // , uint_t TileI,uint_t MinusI,uint_t PlusI
+               // , uint_t TileJ,uint_t MinusJ,uint_t PlusJ
                >
-    struct storage_info<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > : public meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > >{
-        typedef meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ> > > super;
+    struct storage_info<Index, Layout// , IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ>
+                        > : public meta_storage_derived<meta_storage_base<Index, Layout, false// IsTemporary
+// , tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ>
+                                                                          > >{
+        typedef meta_storage_derived<meta_storage_base<Index, Layout, false // IsTemporary, tile<TileI,MinusI,PlusI>, tile<TileJ,MinusJ,PlusJ>
+                                                       > > super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -136,10 +140,13 @@ private:
 
     template < ushort_t Index
                , typename Layout
-               , bool IsTemporary
+               // , bool IsTemporary
                >
-    struct storage_info<Index, Layout, IsTemporary, int, int> : public meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> >{
-        typedef meta_storage_derived<meta_storage_base<Index, Layout, IsTemporary> > super;
+    struct storage_info<Index, Layout// , IsTemporary, int, int
+                        > : public meta_storage_derived<meta_storage_base<Index, Layout, false, int, int// , IsTemporary
+                                                                          > >{
+        typedef meta_storage_derived<meta_storage_base<Index, Layout, false, int, int// IsTemporary
+                                                       > > super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -160,30 +167,18 @@ private:
     template< typename Storage>
     struct is_meta_storage<no_meta_storage_type_yet<Storage> > : is_meta_storage<Storage> {};
 
-    template < ushort_t Index
-               , typename Layout
-               , bool IsTemporary
-#ifdef CXX11_ENABLED
-               , typename ... Tiles
-#else
-               , typename TileI, typename TileJ
-#endif
-               >
-    struct is_meta_storage<storage_info
-                           <Index, Layout, IsTemporary,
-#ifdef CXX11_ENABLED
-                            Tiles...
-#else
-                            TileI, TileJ
-#endif
-                            > > : boost::mpl::true_{};
-
 #ifdef CXX11_ENABLED
     template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
 #else
     template<ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, TileI, TileJ> > : boost::mpl::true_{};
+
+    template < ushort_t Index
+               , typename Layout
+               >
+    struct is_meta_storage<storage_info<Index, Layout> > : boost::mpl::true_{};
+
 #endif
 
     template<typename T>

@@ -28,8 +28,8 @@ bool assign_placeholders() {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    typedef gridtools::BACKEND::storage_type<float_type, gridtools::storage_info<0, gridtools::layout_map<0,1,2>, false> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::storage_info<0, gridtools::layout_map<0,1,2>, true> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, gridtools::storage_info<0, gridtools::layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::storage_info<0, gridtools::layout_map<0,1,2> > >::type tmp_storage_type;
 
     uint_t d1=5;
     uint_t d2=5;

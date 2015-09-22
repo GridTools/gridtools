@@ -42,7 +42,7 @@ TEST(test_make_computation, get_mss_array) {
     #define BACKEND backend<enumtype::Host, enumtype::Block >
 
     typedef gridtools::layout_map<2,1,0> layout_t;
-    typedef gridtools::BACKEND::storage_type<float_type, storage_info<0,layout_t,false> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_info<0,layout_t> >::type storage_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_type> p_out;

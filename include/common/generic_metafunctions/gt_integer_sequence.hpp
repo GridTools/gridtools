@@ -54,7 +54,6 @@ namespace gridtools{
         The type of the Container members must correspond to the return types of the apply method in
         the user-defined Lambda functor.
     */
-
     template< typename T>
     struct apply_gt_integer_sequence;
 

@@ -27,14 +27,13 @@ namespace test_cycle_and_swap{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval){
-            std::cout<<"value swapped: "<<eval(p_i())<<std::endl;
         }
 };
 
 bool test(){
 
     typedef gridtools::layout_map<0,1> layout_t;
-    typedef gridtools::storage_info<0, layout_t, false> meta_t;
+    typedef gridtools::storage_info<0, layout_t> meta_t;
     typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
     typedef typename field<storage_type, 2>::type field_t;
 
@@ -75,6 +74,6 @@ bool test(){
     comp->run();
     comp->finalize();
 
-    return 0;
+    return i_data.get_value<0,0>(0,0)==1;
 }
 } //namespace test_cycle_and_swap

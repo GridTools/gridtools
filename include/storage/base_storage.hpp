@@ -349,7 +349,7 @@ namespace gridtools {
         GT_FUNCTION
         value_type& operator()(meta_data_t* metadata_, UInt const& ... dims) {
 #ifndef __CUDACC__
-            assert(metadata_->index(dims...) < metadata_->size());
+            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
             assert(is_set);
 #endif
             return (m_fields[0])[metadata_->index(dims...)];
@@ -402,10 +402,6 @@ namespace gridtools {
         /**@brief printing a portion of the content of the data field*/
         template < typename Stream>
         void print( Stream & stream, uint_t t=0) const {
-            // stream << " (" << m_strides[1] << "x"
-            //        << m_strides[2] << "x"
-            //        << 1 << ")"
-            //        << std::endl;
             stream << "| j" << std::endl;
             stream << "| j" << std::endl;
             stream << "v j" << std::endl;

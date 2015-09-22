@@ -82,8 +82,8 @@ namespace copy_stencils_3D_2D_1D_0D {
 #endif
 #endif
 
-        typedef storage_info<0, DstLayout, false> meta_dst_t;
-        typedef storage_info<0, SrcLayout, false> meta_src_t;
+        typedef storage_info<0, DstLayout> meta_dst_t;
+        typedef storage_info<0, SrcLayout> meta_src_t;
         typedef typename gridtools::BACKEND::storage_type<double, meta_dst_t >::type storage_type;
         typedef typename gridtools::BACKEND::storage_type<double, meta_src_t >::type src_storage_type;
 
