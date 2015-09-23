@@ -337,8 +337,8 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             view_type fview(m_storage_pointers);
 
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
-#endif
-        typedef typename boost::mpl::fold<
+
+            typedef typename boost::mpl::fold<
             arg_list_mpl
             , boost::mpl::vector0<>
             , boost::mpl::if_<is_not_tmp_storage<boost::mpl::_2>

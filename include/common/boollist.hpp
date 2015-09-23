@@ -34,7 +34,7 @@ namespace gridtools {
     public:
 
         GT_FUNCTION
-        constexpr ushort_t const& size() const{return size;}
+        constexpr ushort_t const& size() const{return m_size;}
 
         GT_FUNCTION
         constexpr bool const& value(ushort_t const& id) const{return m_value[id];}

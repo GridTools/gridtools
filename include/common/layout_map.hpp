@@ -199,13 +199,14 @@ namespace gridtools {
         /**@brief traits class allowing the lazy static analysis
 
            hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
-           The following class defines a subclass with a templated method which returns a given element in a tuple.
+           The following struct defines a subclass with a templated method which returns a given element in a tuple.
         */
         template<ushort_t I, typename Int>
         struct tied_type
         {
             struct type{
                 template<typename ... Indeces>
+                GT_FUNCTION
                 static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::make_tuple(indices...));}
             };
         };

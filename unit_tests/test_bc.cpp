@@ -44,7 +44,7 @@ struct functor{
 
 TEST(test_bc, boundary_conditions) {
 
-    typedef meta_storage<0, layout_map<0,1,2>, false> meta_t;
+    typedef storage_info<0, layout_map<0,1,2> > meta_t;
     meta_t meta_(10,10,10);
     typedef gridtools::backend<Host, Naive>::storage_type<float_type, meta_t >::type storage_type;
     storage_type sol_(meta_);
