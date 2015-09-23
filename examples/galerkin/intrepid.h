@@ -103,13 +103,14 @@ namespace intrepid{
                 {
                     m_phi_at_cub_points_s=std::unique_ptr<basis_function_storage_t>(new basis_function_storage_t(fe::basisCardinality, cub::numCubPoints, 1));
                     Intrepid::FieldContainer<double> phi_at_cub_points_i(fe::basisCardinality, cub::numCubPoints);
+
                     fe::hexBasis.getValues(phi_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_VALUE);
                     //copy the values
                     for (uint_t q=0; q<cub::numCubPoints; ++q)
-                        for (uint_t j=0; j<fe::spaceDim; ++j)
-                            for (uint_t i=0; i<fe::basisCardinality; ++i){
-                                (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
-			    }
+                        // for (uint_t j=0; j<fe::spaceDim; ++j)
+			for (uint_t i=0; i<fe::basisCardinality; ++i){
+			    (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
+			}
                     break;
                 }
                 default : assert(false);

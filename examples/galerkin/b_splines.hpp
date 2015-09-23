@@ -42,8 +42,8 @@ namespace gridtools{
         template<typename Basis>
         double operator()(Basis const& basis_) const
         {
-            std::cout<<"Basis "<<Basis::dimension<<" for value "<<std::get<Basis::dimension>(m_vals)<<
-                " returns "<<basis_.evaluate(std::get<Basis::dimension>(m_vals))<<std::endl;
+            // std::cout<<"Basis "<<Basis::dimension<<" for value "<<std::get<Basis::dimension>(m_vals)<<
+            //     " returns "<<basis_.evaluate(std::get<Basis::dimension>(m_vals))<<std::endl;
             return basis_.evaluate(std::get<Basis::dimension>(m_vals));
         }
     };
@@ -109,26 +109,22 @@ namespace gridtools{
 
     template<ushort_t P>
     struct parametric_space<P, 3>{
-        array<double, P+P+2> m_knots_i;
-        array<double, P+P+2> m_knots_j;
-        array<double, P+P+2> m_knots_k;
+        array<double, P+P+1> m_knots_i;
+        array<double, P+P+1> m_knots_j;
+        array<double, P+P+1> m_knots_k;
         //normalization
-        double factor=(P+1);
 
-        parametric_space():
-	    m_knots_i(-3.,-2.,-1.,0.,1.,2.//,3.,4.//,5.// ,6.,7.,8.,9.
-		)
-	    ,m_knots_j(-3.,-2.,-1.,0.,1.,2.//,3.,4.//,5.// ,6.,7.,8.,9.
-		)
-	    ,m_knots_k(-3.,-2.,-1.,0.,1.,2.//,3.,4.//,5.// ,6.,7.,8.,9.
-		)
+        parametric_space()
 	{
-            // for(int i=0; i< P+P+2; ++i)
-            // {
-            //     m_knots_i[i]=(double)((i)-1-factor)/factor;
-            //     m_knots_j[i]=(double)((i)-1-factor)/factor;
-            //     m_knots_k[i]=(double)((i)-1-factor)/factor;
-            // }
+	    int k=0;
+            for(int i=0; i< (P+P+1)*2; i+=2)
+            {
+		std::cout<<" knots at "<<(double)((i)+1.-2.*P)<<std::endl;
+                m_knots_i[k]=(double)((i)+1.-2.*P);///factor;
+                m_knots_j[k]=(double)((i)+1.-2.*P);///factor;
+                m_knots_k[k]=(double)((i)+1.-2.*P);///factor;
+		k++;
+            }
 
         }
     };
@@ -177,7 +173,7 @@ namespace gridtools{
         int getCardinality() const
         {
             //returns the number of basis functions
-            return (P+1)*Dim;
+            return gt_pow<Dim>::apply(P);
         }
 
 
@@ -186,7 +182,7 @@ namespace gridtools{
 		  , typename Range1, typename Range2, typename Range3>
         struct nest_loop_IJK{
 
-	    using array_t=array<double, P+P+2>;
+	    using array_t=array<double, P+P+1>;
 
             Quad const& m_quad;
             Storage& m_storage;
@@ -211,7 +207,7 @@ namespace gridtools{
         template <typename Quad, typename Storage, template<typename Q, typename S, uint_t ... I> class InnerFunctor, typename Range2, typename Range3>
         struct nest_loop_J{
 
-	    using array_t=array<double, P+P+2>;
+	    using array_t=array<double, P+P+1>;
 
             Quad const& m_quad;
             Storage& m_storage;
@@ -237,7 +233,7 @@ namespace gridtools{
         template <typename Quad, typename Storage, template<typename Q, typename S, uint_t ... I> class InnerFunctor, uint_t I, typename Range3>
         struct nest_loop_K{
 
-	    using array_t=array<double, P+P+2>;
+	    using array_t=array<double, P+P+1>;
 
             Quad const& m_quad;
             Storage& m_storage;
@@ -261,7 +257,7 @@ namespace gridtools{
 
         template <typename Quad, typename Storage, uint_t I, uint_t J>
         struct functor_get_vals{
-	    using array_t=array<double, P+P+2>;
+	    using array_t=array<double, P+P+1>;
 
 	private:
             Quad const& m_quad;
@@ -285,9 +281,13 @@ namespace gridtools{
 
 		for (int k=0; k< m_quad.dimension(0); ++k)
 		{
+		    std::cout<<
+			"evaluation of basis<"<<I<<", "<<J<<", "<<Id::value<<
+			"> on point ("<<m_quad(k, 0)<<", "<<m_quad(k, 1)<<", "<<m_quad(k, 2)<<
+			") gives: "<<basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2))
+					      <<std::endl;
 		    // define a storage_metadata here!
 		    auto storage_index=(I-1)+P*(J-1)+P*P*(Id::value-1);
-		    std::cout<<"storage_index: "<<storage_index<<std::endl;
 		    m_storage(storage_index,k)=basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2));
 		}
             }
@@ -311,9 +311,9 @@ namespace gridtools{
 
 		nest_loop_IJK
 		    <Quad, Storage, functor_get_vals
-		     , boost::mpl::range_c<uint_t, 1,P+1>
-		     , boost::mpl::range_c<uint_t, 1,P+1>
-		     , boost::mpl::range_c<uint_t, 1,P+1> >
+		     , boost::mpl::range_c<uint_t, 1, P+1>
+		     , boost::mpl::range_c<uint_t, 1, P+1>
+		     , boost::mpl::range_c<uint_t, 1, P+1> >
 		    (quad_points_, storage_, this->m_knots_i, this->m_knots_j, this->m_knots_k)();
 		break;
 	    default:
