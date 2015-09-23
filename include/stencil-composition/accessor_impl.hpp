@@ -27,15 +27,6 @@ namespace gridtools {
     template <uint_t I, typename T>
     struct arg;
 
-    template <uint_t I>
-    struct generic_accessor{
-
-        typedef generic_accessor<I> type;
-        // static const ushort_t n_dim=Dim;
-        typedef static_uint<I> index_type;
-        // typedef Range range_type;
-    };
-
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
      *
@@ -161,17 +152,11 @@ namespace gridtools {
 //                              Compile time checks
 //################################################################################
 
-    template <typename T>
-    struct no_storage_type_yet;
-
-    template <typename T>
-    struct storage;
-
     /**
      * Struct to test if an argument is a temporary
      */
     template <typename T>
-    struct is_plchldr_to_temp : boost::mpl::false_{};
+    struct is_plchldr_to_temp;
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
@@ -193,12 +178,8 @@ namespace gridtools {
      storage class, falls back on the original class type here the
      decorator is the \ref gridtools::storage
     */
-    // template <uint_t I, typename BaseType>
-    // struct is_plchldr_to_temp<arg<I, no_storage_type_yet<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
-    // {};
-
-    template <uint_t I, typename BaseType>
-    struct is_plchldr_to_temp<arg<I, storage<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    template <uint_t I, typename BaseType, template <typename T> class Decorator>
+    struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
 
 #ifdef CXX11_ENABLED
@@ -209,9 +190,9 @@ namespace gridtools {
      storage class, falls back on the original class type here the
      decorator is the dimension extension, \ref gridtools::data_field
     */
-    // template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
-    // struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
-    // {};
+    template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
+    struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
+    {};
 
 #else
 
@@ -293,28 +274,21 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     {};
 
-
-    // template <typename BaseType >
-    // struct is_storage<no_storage_type_yet<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
-    // {};
-
-    template <typename BaseType >
-    struct is_storage<no_storage_type_yet<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    //Decorator is the storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
     {};
 
-    template <typename BaseType >
-    struct is_storage<storage<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
-    {};
-
-    template <typename BaseType >
-    struct is_storage<storage<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    //Decorator is the storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_storage<Decorator<BaseType> > : public is_storage<typename BaseType::basic_type*>
     {};
 
 #ifdef CXX11_ENABLED
-    // //Decorator is the integrator
-    // template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
-    // struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
-    // {};
+    //Decorator is the integrator
+    template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
+    struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
+    {};
 #else
 
     //Decorator is the integrator

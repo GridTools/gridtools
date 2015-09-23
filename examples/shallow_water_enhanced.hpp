@@ -1,5 +1,4 @@
 #pragma once
-#define PEDANTIC_DISABLED // temporary change
 // [includes]
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
@@ -76,35 +75,6 @@ namespace shallow_water{
 // [functor_traits]
 
 // [boundary_conditions]
-    struct bc : functor_traits {
-        typedef accessor<0,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
-        typedef accessor<1,range<0, 0, 0, 0>, 5> tmpx; /** (input) is the solution at the cell center */
-        typedef accessor<2,range<0, 0, 0, 0>, 5> tmpy;
-        typedef generic_accessor<3> partitioner;
-        using arg_list=boost::mpl::vector<sol, tmpx, tmpy> ;
-
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-
-            //![alias]
-            using h=alias<sol, comp>::set<0>;
-            using u=alias<sol, comp>::set<1>;
-            using v=alias<sol, comp>::set<2>;
-
-            uint_t boundary=eval(partitioner())->boundary();
-
-            //! [expression]
-            if(boundary==1){
-                eval(h())=10.;
-                eval(u())=10.;
-                eval(v())=10.;
-            }
-            //! [expression]
-        }
-    };
-
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic : functor_traits {
         // periodic boundary conditions in I
@@ -193,7 +163,7 @@ namespace shallow_water{
     struct flux_y        : public functor_traits {
 
         typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1 ,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -204,8 +174,6 @@ namespace shallow_water{
             using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
             using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
 
-
-            // std::cout<<"boundary: "<<eval(sol())->boundary()<<std::endl;
 
             eval(hy())= eval((h() + h(j-1))/2. -
                              (v() - v(j-1))*(dt()/(2*dy())) );
@@ -345,7 +313,6 @@ namespace shallow_water{
         typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
 //! [fields]
 
-        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > > > partitioner_t;
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -353,8 +320,7 @@ namespace shallow_water{
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
-        typedef arg<3, partitioner_t > p_partitioner;
-        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol, p_partitioner> accessor_list;
+        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
 //! [args]
 
 //! [proc_grid_dims]
@@ -380,6 +346,7 @@ namespace shallow_water{
 //! [partitioner]
         array<ushort_t, 3> padding={1,1,0};
         array<ushort_t, 3> halo={1,1,0};
+        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
 
         partitioner_t part(he.comm(), halo, padding);
 //! [padding_halo]
@@ -420,7 +387,7 @@ namespace shallow_water{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 //! [domain_type]
         domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&sol, &part));
+            (boost::fusion::make_vector(&sol));
 //! [domain_type]
 
         // Definition of the physical dimensions of the problem.
@@ -448,31 +415,10 @@ namespace shallow_water{
                 );
 //! [computation]
 
-//! [coordinates_bc]
-        coordinates<axis, partitioner_t> coords_bc(part, meta_);
-        coords_bc.value_list[0] = 0;
-        coords_bc.value_list[1] = d3-1;
-//! [coordinates_bc]
-
-//! [computation_bc]
-        auto bc_eval =
-            make_computation<gridtools::BACKEND>
-            (
-                make_mss // mss_descriptor
-                (
-                    execute<forward>(),
-                    make_esf<bc>(p_tmpx(), p_tmpy(), p_sol(), p_partitioner()))
-                , domain, coords_bc
-                );
-
-//! [computation_bc]
-
 //! [setup]
         shallow_water_stencil->ready();
-        bc_eval->ready();
 
         shallow_water_stencil->steady();
-        bc_eval->steady();
 //! [setup]
 
         //the following might be runtime value
@@ -519,7 +465,6 @@ namespace shallow_water{
 #endif
 
         }
-        bc_eval->run();
 
 //! [finalize]
         he.wait();

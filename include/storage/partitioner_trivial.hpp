@@ -26,23 +26,12 @@ namespace gridtools{
     struct is_cell_topology<cell_topology<TopologyType> > : boost::true_type {};
 
     //use of static polimorphism (partitioner methods may be accessed from whithin loops)
-    template <typename GridTopology>
-    class partitioner_trivial : public partitioner<partitioner_trivial<GridTopology> >, clonable_to_gpu<partitioner_trivial<GridTopology> > {
+    template <typename GridTopology, typename Communicator>
+    class partitioner_trivial : public partitioner<partitioner_trivial<GridTopology, Communicator> > {
     public:
         typedef GridTopology topology_t;
-        typedef partitioner<partitioner_trivial<GridTopology> > super;
-        typedef partitioner_trivial<GridTopology>* iterator_type;
-        typedef partitioner_trivial<GridTopology> value_type; //TODO remove
-        // typedef int meta_data_t; //TODO remove
-        static const ushort_t field_dimensions=1; //TODO remove
-        // int const& meta_data() const; //TODO remove
-
-        template<typename ID>
-        partitioner_trivial<GridTopology> * access_value() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
-        // partitioner_trivial<GridTopology> * fields() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
-        // partitioner_trivial<GridTopology> * get() const {return const_cast<partitioner_trivial<GridTopology>*>(this);} //TODO change this
-
-        // static const bool is_temporary=false;
+        typedef Communicator communicator_t;
+        typedef partitioner<partitioner_trivial<GridTopology, Communicator> > super;
 
         using super::LOW;
         using super::UP;
@@ -73,56 +62,38 @@ namespace gridtools{
             where d is the number of dimensions of the processors grid.
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
         */
-
-        template <typename Comm>
-        partitioner_trivial(const Comm& comm,
+        partitioner_trivial(const communicator_t& comm,
                             const gridtools::array<ushort_t, space_dimensions>& halo,
                             const gridtools::array<ushort_t, space_dimensions>& padding )
-            : m_pid(comm.coordinates()), m_ntasks(comm.dimensions()), m_halo(halo), m_pad(padding), m_periodic(comm.periodic()),
-              m_comm_dims(Comm::ndims)
-            {
+        : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
 
             m_boundary=0;//bitmap
 
-            for (ushort_t i=0; i<Comm::ndims; ++i)
+            for (ushort_t i=0; i<communicator_t::ndims; ++i)
                 if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
-            for (ushort_t i=Comm::ndims; i<2*(Comm::ndims); ++i)
-                if(comm.coordinates(i%(Comm::ndims))==0) m_boundary  += std::pow(2, i);
+            for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
+                if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
         }
 
-        template <typename Comm>
-        partitioner_trivial(const Comm& comm)
+        partitioner_trivial(const communicator_t& comm)
         : m_pid(comm.coordinates()),
-          m_ntasks(comm.dimensions()),
+          m_ntasks(&comm.dimensions()[0]),
           m_halo(NULL),
           m_pad(NULL),
-          m_periodic(comm.periodic()),
-          m_comm_dims(Comm::ndims)
+          m_comm(comm)
             {
 
             m_boundary=0;//bitmap
 
-            for (ushort_t i=0; i<Comm::ndims; ++i)
+            for (ushort_t i=0; i<communicator_t::ndims; ++i)
                 if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
-            for (ushort_t i=Comm::ndims; i<2*(Comm::ndims); ++i)
-                if(comm.coordinates(i%(Comm::ndims))==0) m_boundary  += std::pow(2, i);
+            for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
+                if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
         }
-
-        __device__
-        partitioner_trivial(const partitioner_trivial& other)
-            : m_pid(other.m_pid),
-              m_ntasks(other.m_ntasks),
-              m_halo(other.m_halo),
-              m_pad(other.m_pad),
-              m_periodic(other.periodic()),
-              m_boundary(other.m_boundary),
-              m_comm_dims(other.m_comm_dims){}
-
 
         void low_up_bounds(int_t& low_bound, int_t& up_bound, ushort_t component, uint_t const size_) const
             {
-                if ( component >= m_comm_dims// communicator_t::ndims
-                     || m_pid[component]==0 )
+                if ( component >= communicator_t::ndims || m_pid[component]==0 )
                     low_bound = 0;
                 else
                 {
@@ -137,8 +108,7 @@ namespace gridtools{
 #endif
                 }
 
-                if (component >= m_comm_dims// communicator_t::ndims
-                    || m_pid[component]==m_ntasks[component]-1 )
+                if (component >= communicator_t::ndims || m_pid[component]==m_ntasks[component]-1 )
                     up_bound = size_;
                 else
                 {
@@ -267,12 +237,10 @@ namespace gridtools{
             #####2^(d)######
             \endverbatim
         */
-        GT_FUNCTION
         int_t compute_halo(ushort_t const& component_, typename super::Flag const& flag_) const {
-            return (  m_periodic[component_] || !at_boundary(component_, flag_)) ? m_halo[component_]:m_pad[component_];
+            return (  m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]:m_pad[component_];
         }
 
-        GT_FUNCTION
         bool at_boundary(ushort_t const& component_, typename super::Flag const& flag_) const {
 
             ushort_t left = boundary()%(ushort_t)((ushort_t)std::pow(2,component_+1)*(ushort_t)flag_);
@@ -283,35 +251,21 @@ namespace gridtools{
             return !(left < right);
         }
 
-        GT_FUNCTION
         uint_t const & boundary() const {
             return m_boundary;
         }
 
-        template <int_t Component>
-        GT_FUNCTION
+        template<int_t Component>
         int_t pid() const {return m_pid[Component];}
 
-        GT_FUNCTION
         void set_boundary(uint_t boundary_){m_boundary=boundary_;}
 
     private:
-        const array<int, space_dimensions> m_pid;
-        const array<int, space_dimensions> m_ntasks;
-        const array<ushort_t, space_dimensions> m_halo;
-        const array<ushort_t, space_dimensions> m_pad;
-        // communicator_t const& m_comm;
-        const array<bool, space_dimensions> m_periodic;
+        const int* m_pid;
+        const int* m_ntasks;
+        const ushort_t* m_halo;
+        const ushort_t* m_pad;
+        communicator_t const& m_comm;
         uint_t m_boundary;
-        const ushort_t m_comm_dims;
     };
-
-    // template <typename T>
-    // struct is_partitioner_trivial : boost::mpl::false_
-    // {};
-
-    // template <typename T>
-    // struct is_partitioner_trivial<partitioner_trivial<T>> : boost::mpl::true_
-    // {};
-
 }//namespace gridtools

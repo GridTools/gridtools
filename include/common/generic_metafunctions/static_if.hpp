@@ -14,14 +14,6 @@ namespace gridtools{
             {
                 return true_val;
             }
-
-        template <typename TrueVal, typename FalseVal>
-        GT_FUNCTION
-        static void eval(TrueVal const& true_val, FalseVal const& /*false_val*/)
-            {
-                true_val();
-            }
-
     };
 
     template<>
@@ -32,12 +24,5 @@ namespace gridtools{
             {
                 return false_val;
             }
-
-        template <typename TrueVal, typename FalseVal>
-        GT_FUNCTION
-        static void eval(TrueVal const& /*true_val*/, FalseVal const& false_val)
-            {
-                false_val();
-            }
-};
+    };
 }
