@@ -5,7 +5,7 @@ FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp")
 
 SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_make_computation.cpp test_accessor.cpp ${INC_ALL})
 if ( ENABLE_CXX11 )
-  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test_iterate_domain.cpp test_mss_metafunctions.cpp)
+  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp)
 endif( ENABLE_CXX11 )
 
 
