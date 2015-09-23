@@ -40,8 +40,8 @@ To this end we generalize the concept of iteration point to an element by extend
 if for the finite difference case we had a 3D storage and we were iterating on i, j, and k, now each (i,j,k) point identifies an element, and the points inside the element will be
 accessed using 6 indices (i,j,k,pi,pj,pk) for the point (pi,pj,pk) whithin element (i,j,k).
 
-Notice that we could have extended the storage by only one dimension containing all the degrees of freedom inside the element, as it is usually done
-in finite elements codes. However using this layout allows us to exploit the hypercubes structure in order to reduce the algorithm complexity, as will become clear later on.
+Alternativey we can address the storage by using only one dimension for all the degrees of freedom inside the element, as it is usually done
+in finite elements codes. However using the former layout might allow us in some cases to exploit the hypercubes structure in order to reduce the algorithm complexity, as will become clear later on.
 
 We have, as input, the grid (i.e. the location of the dicretization points in the actual domain), the evaluation of the basis functions computed in the quadrature points in the reference element,
 and the evaluation of the geometric map in the same quadrature points.
@@ -190,7 +190,7 @@ We present in what follows the user interface implemented in the file
 \ref gridtools::stiffness.cpp "stiffness.cpp", explaining the syntax and the emphasyzing the
 flexibility of the programming model.
 
-As usual in GridTools the user program is split in two part:
+As usual in GridTools the user program is split in two parts:
 - One defining the kernel functors, which can be arranged in a tree-like structure expressing
   the dependencies, and are executed on the backend (device).
 - One implementing the main function, executing on the frontend (host), preparing and managing the
@@ -245,7 +245,7 @@ basis functions evaluated in the quadrature points.
 The last definition is an alias for the \ref assembly "assembly infrastructure", which is responsible for computing the Jacobian-related quantities and
 thus only depends on the geometric map.
 
-We proceed with the instantiation of the instances of type geo_t and discr_t, and specify which operation are to be computed on the basis functions
+We proceed with the instantiation of the instances of type geo_t and discr_t, and specify which operations are to be computed on the basis functions
 (the possible values are OPERATOR_GRAD, OPERATOR_VALUE, OPERATOR_DIV, OPERATOR_CURL, or OPERATOR_DN where N is a number from 1 to 10).
 \snippet galerkin/stiffness.cpp instantiation
 The line
@@ -271,7 +271,7 @@ The following part consists in the usual placeholders definitions
 We remark that instead of creating an instance of \ref gridtools::domain_type "domain_type" as usually done in GridTools, we call the method
 \ref assembly::domain "assembly::domain" which appends the user defined placeholders to those already defined by the assembler.
 
-The description of the computation defines a series of kernel functors depending one on each other
+The description of the computation defines a series of kernel functors each depending on the previous one
 \snippet galerkin/stiffness.cpp computation
 \ref assembly::update_jac "update_jac", \ref assembly::det "det", and  \ref assembly::inv "inv" are
 provided by the assembly infrastructure, while the stiffness functor is the one we described in the previous section.
