@@ -27,6 +27,13 @@ namespace iga_rt
 		 * @return b-spline value
 		 */
 		virtual double evaluate(double i_csi) const = 0;
+
+		/**
+		 * @brief b-spline derivative evaluation method (pure virtual, to be implemented by derived classes)
+		 * @param i_csi Parametric space point value
+		 * @return b-spline derivative value
+		 */
+		virtual double evaluateDerivatives(double i_csi) const = 0;
 	};
 
 	/**
@@ -49,6 +56,14 @@ namespace iga_rt
 		 * @return b-spline value
 		 */
 		virtual double evaluate(double i_csi, double i_eta) const = 0;
+
+		/**
+		 * @brief b-spline derivatives evaluation method (pure virtual, to be implemented by derived classes)
+		 * @param i_csi Parametric space point value (first direction)
+		 * @param i_eta Parametric space point value (second direction)
+		 * @return b-spline derivative values (first value correspond to the derivative wrt first variable)
+		 */
+		virtual std::pair<double,double> evaluateDerivatives(double i_csi, double i_eta) const = 0;
 	};
 
 	/**
@@ -100,6 +115,13 @@ namespace iga_rt
 		 * @return b-spline function value
 		 */
 		double evaluate(double i_csi) const;
+
+		/**
+		 * @brief b-spline derivative evaluation method
+		 * @param i_csi Parametric space point value
+		 * @return b-spline derivative value
+		 */
+		double evaluateDerivatives(double i_csi) const;
 
 	private:
 
@@ -179,6 +201,12 @@ namespace iga_rt
 		return (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi);
 	}
 
+	template <int I, int P>
+	double BSpline<I,P>::evaluateDerivatives(const double i_csi) const
+	{
+		// TODO: almost all element of this equation are calculated by evaluate method and can be stored in mutable data member
+		return P*m_denIPm1*m_bIPm1.evaluate(i_csi) - P*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi);
+	}
 
 	/**
 	 * @class 0-th order b-spline function class
@@ -210,6 +238,13 @@ namespace iga_rt
 		 * @return b-spline function value
 		 */
 		double evaluate(const double i_csi) const;
+
+		/**
+		 * @brief b-spline derivative evaluation method
+		 * @param i_csi Parametric space point value
+		 * @return b-spline derivative value
+		 */
+		double evaluateDerivatives(double i_csi) const;
 
 	private:
 
@@ -249,6 +284,12 @@ namespace iga_rt
 		}
 	}
 
+	template <int I>
+	double BSpline<I,0>::evaluateDerivatives(const double i_csi) const
+	{
+		return 0.;
+	}
+
 	/**
 	 * @class Bivariate b-spline function class
 	 * @brief Class for the representation of bivariate b-spline function given a set of knots:
@@ -282,7 +323,15 @@ namespace iga_rt
 		 * @param i_eta Parametric space point value (second direction)
 		 * @return b-spline function value
 		 */
-		inline double evaluate(double i_csi, double i_eta) const { return m_b1.evaluate(i_csi)*m_b2.evaluate(i_eta); }
+		inline double evaluate(const double i_csi, const double i_eta) const { return m_b1.evaluate(i_csi)*m_b2.evaluate(i_eta); }
+
+		/**
+		 * @brief b-spline derivatives evaluation method (pure virtual, to be implemented by derived classes)
+		 * @param i_csi Parametric space point value (first direction)
+		 * @param i_eta Parametric space point value (second direction)
+		 * @return b-spline derivative values (first value correspond to the derivative wrt first variable)
+		 */
+		std::pair<double,double> evaluateDerivatives(double i_csi, double i_eta) const;
 
 	private:
 
@@ -296,6 +345,16 @@ namespace iga_rt
 		 */
 		const BSpline<P2> m_b2;
 	};
+
+
+	template<int I1, int P1, int I2, int P2>
+	std::pair<double,double> BivariateBSpline<I1,P1,I2,P2>::evaluateDerivatives(double i_csi, double i_eta) const
+	{
+		// TODO: as for 1D case some element of the following equation are already computed by the evaluate method, use data member to store them
+		return std::make_pair(m_b1.evaluateDerivative(i_csi)*m_b2.evaluate(i_eta),
+							  m_b1.evaluate(i_csi)*m_b2.evaluateDerivative(i_eta));
+	}
+
 
 	/**
 	 * @class Trivariate b-spline function class

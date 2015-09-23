@@ -40,6 +40,13 @@ namespace iga_rt
 		std::vector<double> evaluate(double i_csi) const;
 
 		/**
+		 * @brief base functions derivative evaluation method for a given point in parametric space
+		 * @param i_csi Parametric space point value
+		 * @return Values corresponding to base function derivative values at the provided point
+		 */
+		std::vector<double> evaluateDerivatives(double i_csi) const;
+
+		/**
 		 * @brief nurbs base functions normalization factor retrieval method (corresponding to last basis evaluation)
 		 * @return normalization factor corresponding to last basis evaluation
 		 * @throw //TODO: what? if no previous basis evaluation has been requested
@@ -104,6 +111,37 @@ namespace iga_rt
 	}
 
 	template<int P, int N>
+	std::vector<double> NurbsBasis<P,N>::evaluateDerivatives(const double i_csi) const
+	{
+		// Compute nurbs values // TODO: this is already computed by evaluate method!
+		const std::vector<double> nurbs_values(evaluate(i_csi));
+
+		// Compute b-spline derivatives values
+		std::vector<double> b_splines_derivatives_values(m_bspline_basis.evaluateDerivatives(i_csi));
+
+		// Compute derivative weightening
+		// TODO: switch to std algos
+		for(unsigned int basis_index=0;basis_index<N;++basis_index)
+		{
+			b_splines_derivatives_values[basis_index] *= m_weights[basis_index];
+		}
+
+		// Compute normalization factor derivative
+		const double normalization_factor_der = std::accumulate(b_splines_derivatives_values.begin(),b_splines_derivatives_values.end(),0.);
+
+		// Compute derivative values
+		// TODO: switch to stl algos
+		std::vector<double> o_derivative_values(N,0.);
+		for(unsigned int basis_index=0;basis_index<N;++basis_index)
+		{
+			o_derivative_values[basis_index] = (b_splines_derivatives_values[basis_index]-nurbs_values[basis_index]*normalization_factor_der)*m_normalization_factor;
+		}
+
+		return o_derivative_values;
+	}
+
+
+	template<int P, int N>
 	double NurbsBasis<P,N>::getNormalizationFactor(void) const
 	{
 		if(m_normalization_factor==0.)
@@ -147,6 +185,14 @@ namespace iga_rt
 		 * @return (N) values corresponding to base function values at the provided point
 		 */
 		std::vector<double> evaluate(double i_csi, double i_eta) const;
+
+		/**
+		 * @brief base functions derivative evaluation method for a given point in parametric space
+		 * @param i_csi Parametric space point value (first direction)
+		 * @param i_eta Parametric space point value (second direction)
+		 * @return Values corresponding to base function derivative values at the provided point (first array component corresponds to derivatives vs first variable)
+		 */
+		std::array<std::vector<double>,2> evaluateDerivatives(double i_csi, double i_eta) const;
 
 		/**
 		 * @brief nurbs base functions normalization factor retrieval method (corresponding to last basis evaluation)
@@ -211,6 +257,45 @@ namespace iga_rt
 
 		return o_nurbs_basis;
 	}
+
+
+	// TODO: code duplication with 1D case
+	template<int P1, int N1, int P2, int N2>
+	std::array<std::vector<double>,2> BivariateNurbsBasis<P1,N1,P2,N2>::evaluateDerivatives(double i_csi, double i_eta) const
+	{
+		// Compute nurbs values // TODO: this is already computed by evaluate method!
+		const std::vector<double> nurbs_values(evaluate(i_csi,i_eta));
+
+		// Compute b-spline derivatives values
+		std::array<std::vector<double>,2> b_splines_derivatives_values(m_bspline_basis.evaluateDerivatives(i_csi, i_eta));
+
+		// Compute derivative weightening
+		// TODO: switch to std algos
+		// TODO: inefficient memory acces pattern
+		const unsigned int basis_size(N1*N2);// TODO: switch to constexpr data member
+		for(unsigned int basis_index=0;basis_index<basis_size;++basis_index)
+		{
+			b_splines_derivatives_values[0][basis_index] *= m_weights[basis_index];
+			b_splines_derivatives_values[1][basis_index] *= m_weights[basis_index];
+		}
+
+		// Compute normalization factor derivatives
+		const double normalization_factor_der_first = std::accumulate(b_splines_derivatives_values[0].begin(),b_splines_derivatives_values[0].end(),0.);
+		const double normalization_factor_der_second = std::accumulate(b_splines_derivatives_values[1].begin(),b_splines_derivatives_values[1].end(),0.);
+
+		// Compute derivative values
+		// TODO: switch to stl algos
+		// TODO: inefficient memory acces pattern
+		std::array<std::vector<double>,2> o_derivative_values{{std::vector<double>(N1*N2,0.),std::vector<double>(N1*N2,0.)}};
+		for(unsigned int basis_index=0;basis_index<basis_size;++basis_index)
+		{
+			o_derivative_values[0][basis_index] = (b_splines_derivatives_values[0][basis_index]-nurbs_values[basis_index]*normalization_factor_der_first)*m_normalization_factor;
+			o_derivative_values[1][basis_index] = (b_splines_derivatives_values[1][basis_index]-nurbs_values[basis_index]*normalization_factor_der_second)*m_normalization_factor;
+		}
+
+		return o_derivative_values;
+	}
+
 
 	// TODO: code duplication with 1D case
 	template<int P1, int N1, int P2, int N2>

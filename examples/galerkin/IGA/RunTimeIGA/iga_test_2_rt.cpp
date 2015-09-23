@@ -2,6 +2,7 @@
 #include "nurbs_surface_rt.h"
 #include "point.h"
 #include <vector>
+#include <array>
 #include <iostream>
 
 int main()
@@ -13,10 +14,10 @@ int main()
 	const int P2(2);
 	const int N2(4);
 	const int DIM(2);
-	const double knots1[] = {0.,0.,1.,1.};
-	const double knots2[] = {0.,0.,0.,0.5,1.,1.,1.};
+	const std::array<double,P1+N1+1> knots1{0.,0.,1.,1.};
+	const std::array<double,P2+N2+1> knots2{0.,0.,0.,0.5,1.,1.,1.};
 
-	std::vector<iga_rt::Point<DIM>> rainbow_control_points(8);
+	std::vector<iga_rt::Point<DIM> > rainbow_control_points(8);
 
 	rainbow_control_points[0].m_coords[0] = 1.;
 	rainbow_control_points[0].m_coords[1] = 0.;
