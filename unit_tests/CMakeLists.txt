@@ -21,7 +21,7 @@ if (GTEST_FOUND)
         test_domain_indices.cpp
         boundary_conditions_test.cpp
     )
-    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp stencil-composition/test_iterate_domain.cpp test_data_fields.cpp test_integer_sequence.cpp)
+    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
 
     if ( ENABLE_CXX11 )
       set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)

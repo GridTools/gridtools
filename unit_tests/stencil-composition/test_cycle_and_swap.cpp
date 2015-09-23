@@ -14,7 +14,6 @@
 #endif
 #endif
 
-
 TEST(stencil, test_staggered_keyword){
     EXPECT_TRUE(test_cycle_and_swap::test());
 }
