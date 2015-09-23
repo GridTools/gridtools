@@ -96,7 +96,7 @@ namespace intrepid{
                         for (uint_t j=0; j<fe::spaceDim; ++j)
                             for (uint_t i=0; i<fe::basisCardinality; ++i)
                                 for (uint_t j=0; j<fe::spaceDim; ++j)
-                                    (*m_grad_at_cub_points_s)(i,q,j)=grad_at_cub_points_i(i,q,j);
+				    (*m_grad_at_cub_points_s)(i,q,j)=grad_at_cub_points_i(i,q,j);
                     break;
                 }
                 case Intrepid::OPERATOR_VALUE :
@@ -107,8 +107,9 @@ namespace intrepid{
                     //copy the values
                     for (uint_t q=0; q<cub::numCubPoints; ++q)
                         for (uint_t j=0; j<fe::spaceDim; ++j)
-                            for (uint_t i=0; i<fe::basisCardinality; ++i)
-                                (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);;
+                            for (uint_t i=0; i<fe::basisCardinality; ++i){
+                                (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
+			    }
                     break;
                 }
                 default : assert(false);

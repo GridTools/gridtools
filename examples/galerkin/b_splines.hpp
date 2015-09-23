@@ -11,19 +11,21 @@ namespace gridtools{
        \tparam I index
        \tparam P order
     */
-    template<ushort_t I, ushort_t P>
+    template<ushort_t Dim, ushort_t P, ushort_t I>
     struct BSplineCoeff{
-        static const ushort_t index=I;
+        static const ushort_t dimension=Dim;
         static const ushort_t order=P;
+        static const ushort_t index=I;
     };
 
 
     /** @brief just to ease the notation*/
     template <typename Coeff>
-    struct BSplineDerived : iga_rt::BSpline<Coeff::order>
+    struct BSplineDerived : iga_rt::BSpline<Coeff::index, Coeff::order>
     {
         static const int index=Coeff::index;
-        using super=iga_rt::BSpline<Coeff::order>;
+        static const int dimension=Coeff::dimension;
+        using super=iga_rt::BSpline<Coeff::index,Coeff::order>;
         using super::BSpline;
     };
 
@@ -40,9 +42,9 @@ namespace gridtools{
         template<typename Basis>
         double operator()(Basis const& basis_) const
         {
-            std::cout<<"Basis "<<Basis::index<<" for value "<<std::get<Basis::index>(m_vals)<<
-                " returns "<<basis_.evaluate(std::get<Basis::index>(m_vals))<<std::endl;
-            return basis_.evaluate(std::get<Basis::index>(m_vals));
+            std::cout<<"Basis "<<Basis::dimension<<" for value "<<std::get<Basis::dimension>(m_vals)<<
+                " returns "<<basis_.evaluate(std::get<Basis::dimension>(m_vals))<<std::endl;
+            return basis_.evaluate(std::get<Basis::dimension>(m_vals));
         }
     };
 
@@ -64,6 +66,7 @@ namespace gridtools{
         /** @brief evaluates all the basis on the list of points*/
         template <typename ... Values>
         double evaluate(Values const& ... vals_) const{
+            //check length vals_ == length m_univariate_bsplines
             auto tuple_of_vals = boost::fusion::transform (
                 m_univariate_bsplines
                 , get_val<std::tuple<Values...> >(std::make_tuple(vals_...) ) );
@@ -93,9 +96,10 @@ namespace gridtools{
     template <typename ... Coeff>
     template <typename ... Knots>
     GenericBSpline<Coeff ...>::GenericBSpline( Knots const& ... knots_ ):
+        //check that sizeof...(Knots) is same as Coeff
         m_univariate_bsplines(
             GenericBSpline<Coeff ...>::tuple_t(
-                std::get<Coeff::index>(
+                std::get<Coeff::dimension>(
                     std::make_tuple(&knots_ ...))...))
     {
     }
@@ -105,21 +109,32 @@ namespace gridtools{
 
     template<ushort_t P>
     struct parametric_space<P, 3>{
-        array<double, P+2> m_knots_i;
-        array<double, P+2> m_knots_j;
-        array<double, P+2> m_knots_k;
+        array<double, P+P+2> m_knots_i;
+        array<double, P+P+2> m_knots_j;
+        array<double, P+P+2> m_knots_k;
         //normalization
-        double factor=(P+2)/2.;
+        double factor=(P+1);
 
-        parametric_space(){
-            for(int i=0; i< P+2; ++i)
-            {
-                m_knots_i[i]=((i)-factor)/factor;
-                m_knots_j[i]=((i)-factor)/factor;
-                m_knots_k[i]=((i)-factor)/factor;
-            }
+        parametric_space():
+	    m_knots_i(-3.,-2.,-1.,0.,1.,2.//,3.,4.//,5.// ,6.,7.,8.,9.
+		)
+	    ,m_knots_j(-3.,-2.,-1.,0.,1.,2.//,3.,4.//,5.// ,6.,7.,8.,9.
+		)
+	    ,m_knots_k(-3.,-2.,-1.,0.,1.,2.//,3.,4.//,5.// ,6.,7.,8.,9.
+		)
+	{
+            // for(int i=0; i< P+P+2; ++i)
+            // {
+            //     m_knots_i[i]=(double)((i)-1-factor)/factor;
+            //     m_knots_j[i]=(double)((i)-1-factor)/factor;
+            //     m_knots_k[i]=(double)((i)-1-factor)/factor;
+            // }
+
         }
     };
+
+
+
 
     /**
        @class class implementing the B-Splines elemental basis functions
@@ -137,16 +152,18 @@ namespace gridtools{
     struct b_spline : parametric_space<P, Dim> {
 
     private:
-        using spline_t = GenericBSpline<BSplineCoeff<0,P>, BSplineCoeff<1,P>, BSplineCoeff<2,P> >;
+        //TODO use variadic
+        template <ushort_t I, ushort_t J, ushort_t K>
+        using spline_t = GenericBSpline<BSplineCoeff<0,P,I>, BSplineCoeff<1,P,J>, BSplineCoeff<2,P,K> >;
         //array<gridtools::array<double, P+1>, Dim> m_knots_i;
-        spline_t m_basis;
+        //spline_t m_basis;
 
     public:
 
         /** @brief constructor */
         b_spline( ) :
             parametric_space<P, Dim>()
-            , m_basis(this->m_knots_i, this->m_knots_j, this->m_knots_k)
+            // , m_basis(this->m_knots_i, this->m_knots_j, this->m_knots_k)
         {
         }
 
@@ -160,8 +177,122 @@ namespace gridtools{
         int getCardinality() const
         {
             //returns the number of basis functions
-            return P+1;
+            return (P+1)*Dim;
         }
+
+
+        template <typename Quad, typename Storage
+		  , template<typename Q, typename S, uint_t ... I> class InnerFunctor
+		  , typename Range1, typename Range2, typename Range3>
+        struct nest_loop_IJK{
+
+	    using array_t=array<double, P+P+2>;
+
+            Quad const& m_quad;
+            Storage& m_storage;
+	    array_t const& m_knots_i, m_knots_j, m_knots_k;
+
+            nest_loop_IJK(Quad const& quad_points_, Storage& storage_, array_t const& knots_i, array_t const& knots_j, array_t const& knots_k)
+                :
+                m_quad(quad_points_)
+                , m_storage(storage_)
+		, m_knots_i(knots_i)
+		, m_knots_j(knots_j)
+		, m_knots_k(knots_k)
+            {}
+
+            void operator()(){
+                boost::mpl::for_each<Range1>(nest_loop_J<Quad, Storage, InnerFunctor, Range2, Range3>(m_quad, m_storage, m_knots_i, m_knots_j, m_knots_k));
+            }
+
+        };
+
+
+        template <typename Quad, typename Storage, template<typename Q, typename S, uint_t ... I> class InnerFunctor, typename Range2, typename Range3>
+        struct nest_loop_J{
+
+	    using array_t=array<double, P+P+2>;
+
+            Quad const& m_quad;
+            Storage& m_storage;
+	    array_t const& m_knots_i, m_knots_j, m_knots_k;
+
+            nest_loop_J(Quad const& quad_points_, Storage& storage_, array_t const& knots_i, array_t const& knots_j, array_t const& knots_k)
+                :
+                m_quad(quad_points_)
+                , m_storage(storage_)
+		, m_knots_i(knots_i)
+		, m_knots_j(knots_j)
+		, m_knots_k(knots_k)
+            {}
+
+            template <typename Id>
+            void operator()(Id ){
+                boost::mpl::for_each<Range2>(nest_loop_K<Quad, Storage, InnerFunctor, Id::value, Range3>(m_quad, m_storage, m_knots_i, m_knots_j, m_knots_k));
+            }
+
+        };
+
+
+        template <typename Quad, typename Storage, template<typename Q, typename S, uint_t ... I> class InnerFunctor, uint_t I, typename Range3>
+        struct nest_loop_K{
+
+	    using array_t=array<double, P+P+2>;
+
+            Quad const& m_quad;
+            Storage& m_storage;
+	    array_t const& m_knots_i, m_knots_j, m_knots_k;
+
+            nest_loop_K(Quad const& quad_points_, Storage& storage_, array_t const& knots_i, array_t const& knots_j, array_t const& knots_k)
+                :
+                m_quad(quad_points_)
+                , m_storage(storage_)
+		, m_knots_i(knots_i)
+		, m_knots_j(knots_j)
+		, m_knots_k(knots_k)
+            {}
+
+            template <typename Id>
+            void operator()(Id){
+                boost::mpl::for_each<Range3>(InnerFunctor<Quad, Storage, I, Id::value>(m_quad, m_storage, m_knots_i, m_knots_j, m_knots_k));
+            }
+
+        };
+
+        template <typename Quad, typename Storage, uint_t I, uint_t J>
+        struct functor_get_vals{
+	    using array_t=array<double, P+P+2>;
+
+	private:
+            Quad const& m_quad;
+            Storage& m_storage;
+	    array_t const& m_knots_i, m_knots_j, m_knots_k;
+
+	public:
+            functor_get_vals(Quad const& quad_points_, Storage& storage_, array_t const& knots_i, array_t const& knots_j, array_t const& knots_k)
+                :
+                m_quad(quad_points_)
+                , m_storage(storage_)
+		, m_knots_i(knots_i)
+		, m_knots_j(knots_j)
+		, m_knots_k(knots_k)
+	    {}
+
+            template <typename Id>
+            void operator()(Id){
+
+                spline_t<I, J, Id::value> basis_(m_knots_i, m_knots_j, m_knots_k);
+
+		for (int k=0; k< m_quad.dimension(0); ++k)
+		{
+		    // define a storage_metadata here!
+		    auto storage_index=(I-1)+P*(J-1)+P*P*(Id::value-1);
+		    std::cout<<"storage_index: "<<storage_index<<std::endl;
+		    m_storage(storage_index,k)=basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2));
+		}
+            }
+        };
+
 
         /**
            @brief compute the values of an operator on the basis functions, evaluate
@@ -177,22 +308,19 @@ namespace gridtools{
 
             switch (op){
             case Intrepid::OPERATOR_VALUE :
-                for (int i=0; i< P+1; ++i)
-                {
-                    for (int k=0; k< quad_points_.dimension(0); ++k)
-                    {
-                        std::cout<<"quad point: ("<<quad_points_(k, 0)<<", "<<quad_points_(k, 1)<<", "<<quad_points_(k, 2)<<")"<<std::endl;
-                        std::cout<<"value (product of the three): "<<m_basis.evaluate(quad_points_(k, 0),quad_points_(k, 1),quad_points_(k, 2))<<std::endl;
-                        // scalar basis functions evaluated in quad points
-                        // now all the basis are the same. TODO: introduce traslations
-                        storage_(i,k)=m_basis.evaluate(quad_points_(k, 0),quad_points_(k, 1),quad_points_(k, 2));
-                    }
-                } break;
-                default:
-                {
-                    std::cout<<"Operator not supported"<<std::endl;
-                    assert(false);
-                }
+
+		nest_loop_IJK
+		    <Quad, Storage, functor_get_vals
+		     , boost::mpl::range_c<uint_t, 1,P+1>
+		     , boost::mpl::range_c<uint_t, 1,P+1>
+		     , boost::mpl::range_c<uint_t, 1,P+1> >
+		    (quad_points_, storage_, this->m_knots_i, this->m_knots_j, this->m_knots_k)();
+		break;
+	    default:
+	    {
+		std::cout<<"Operator not supported"<<std::endl;
+		assert(false);
+	    }
             }
         }
     };

@@ -6,7 +6,7 @@
 #include "assembly.h"
 
 int main(){
-    static const int P=4;
+    static const int P=2;
     //the finite elements definitions
     using fe=reference_element<P, enumtype::BSplines, Hexa>;
     //geometry definitions
@@ -39,5 +39,10 @@ int main(){
         }
         std::cout<<std::endl;
     }
+
+
+    gridtools::array<double, 3> knots{0,1,2};
+    iga_rt::BSpline<1,1> test(&knots);
+    std::cout<<"my b spline"<<test.evaluate(0.5)<<std::endl;
 
 }
